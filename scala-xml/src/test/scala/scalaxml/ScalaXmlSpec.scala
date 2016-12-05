@@ -2,7 +2,6 @@ package org.http4s
 package scalaxml
 
 import fs2.{Stream, Task}
-import org.http4s.EntityEncoderSpec.writeToString
 import org.http4s.Status.Ok
 
 import scala.xml.Elem

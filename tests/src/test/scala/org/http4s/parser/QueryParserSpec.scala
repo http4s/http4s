@@ -3,8 +3,6 @@ package parser
 
 import java.nio.CharBuffer
 
-import org.specs2.mutable.Specification
-
 import scala.io.Codec
 
 class QueryParserSpec extends Http4sSpec {
@@ -13,7 +11,6 @@ class QueryParserSpec extends Http4sSpec {
     QueryParser.parseQueryString(str)
 
   "The QueryParser" should {
-
     "correctly extract complete key value pairs" in {
       parseQueryString("key=value") must beRight(Query("key" -> Some("value")))
       parseQueryString("key=value&key2=value2") must beRight(Query("key" -> Some("value"), "key2" -> Some("value2")))

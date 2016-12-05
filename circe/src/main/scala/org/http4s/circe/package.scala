@@ -1,3 +1,8 @@
 package org.http4s
 
-package object circe extends CirceInstances
+import io.circe.Printer
+
+package object circe extends CirceInstances {
+  protected def defaultPrinter: Printer =
+    Printer.noSpaces
+}

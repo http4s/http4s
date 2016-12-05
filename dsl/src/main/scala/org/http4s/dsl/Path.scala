@@ -12,7 +12,7 @@ import scala.util.Try
 
 import collection.immutable.BitSet
 
-import cats.data._
+import cats.data._, Validated._
 import org.http4s.batteries._
 import org.http4s.util.UrlCodingUtils
 
@@ -243,6 +243,46 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
     params.get(name).flatMap(_.headOption).traverse(s =>
       QueryParamDecoder[T].decode(QueryParameterValue(s))
     ).toOption
+}
+
+/**
+  * Capture a query parameter that appears 0 or more times.
+  *
+  * {{{
+  *   case class Foo(i: Int)
+  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   implicit val fooParam: QueryParam[Foo] = ...
+  *
+  *   object FooMatcher extends OptionalMultiQueryParamDecoderMatcher[Foo]("foo")
+  *   val service: HttpService = {
+  *     // matches http://.../closest?foo=2&foo=3&foo=4
+  *     case GET -> Root / "closest" :? FooMatcher(Some(Seq(2,3,4))) => ...
+  *
+  *     /*
+  *     *  matches http://.../closest?foo=2&foo=3&foo=4 as well as http://.../closest (no parameters)
+  *     *  or http://.../closest?foo=2 (single occurrence)
+  *     */
+  *     case GET -> Root / "closest" :? FooMatcher(is) => ...
+  * }}}
+  */
+abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] = {
+    params.get(name) match {
+      case Some(values) => {
+        val parses: Seq[ValidatedNel[ParseFailure, T]] = values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+        val parsed: ValidatedNel[ParseFailure, Seq[T]] = parses.foldLeft(Valid(Seq[T]()) : ValidatedNel[ParseFailure, Seq[T]])((
+          acc: ValidatedNel[ParseFailure, Seq[T]],
+          elem: ValidatedNel[ParseFailure, T]
+        ) => elem match {
+          case Valid(a) => acc.map(v => v :+ a)
+          case Invalid(f) => Invalid(f)
+        })
+
+        Some(parsed.map(_.toList))
+      }
+      case None => Some(Valid(Nil)) // absent
+    }
+  }
 }
 
 abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]

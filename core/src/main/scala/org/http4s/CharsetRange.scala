@@ -2,7 +2,7 @@ package org.http4s
 
 import util._
 
-import cats.{Eq, Show}
+import cats._
 
 sealed abstract class CharsetRange extends HasQValue with Renderable {
   def qValue: QValue
@@ -29,7 +29,7 @@ object CharsetRange extends CharsetRangeInstances {
 }
 
 trait CharsetRangeInstances {
-  implicit val CharacterSetOrder: Eq[CharsetRange] =
+  implicit val CharacterSetEqual: Eq[CharsetRange] =
     Eq.fromUniversalEquals
   implicit val CharsetShow: Show[Charset] =
     Show.fromToString

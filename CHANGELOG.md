@@ -1,12 +1,34 @@
-# v0.15.0-SNASPHOT (unreleased)
+# v0.15.0 (2016-11-30)
+* Add support for Scala 2.12
 * Added `Client.fromHttpService` to assist with testing.
 * Make all case classes final where possible, sealed where not.
 * Codec for Server Sent Events (SSE)
 * Added JSONP middleware
 * Improve Expires header to more easily build the header and support parsing of the header
-* Replce lazy `Raw.parsed` field with a siple null check
+* Replce lazy `Raw.parsed` field with a simple null check
 * Added support for Zipkin headers
-* Upgrade to json4s-3.4.0
+* Eliminate response attribute for detecting fallthrough response.
+  The fallthrough response must be `Response.fallthrough`.
+* Encode URI path segments created with `/`
+* Introduce `AuthedRequest` and `AuthedService` types.
+* Replace `CharSequenceEncoder` with `CharBufferEncoder`, assuming
+  that `CharBuffer` and `String` are the only `CharSequence`s one
+  would want to encode.
+* Remove `EnittyEncoder[Char]` and `EntityEncoder[Byte]`.  Send an
+  array, buffer, or String if you want this.
+* Add `DefaultHead` middleware for `HEAD` implementation.
+* Decouple `http4s-server` from Dropwizard Metrics.  Metrics code is
+  in the new `http4s-metrics` module.
+* Allow custom scheduler for timeout middleware.
+* Add parametric empty `EntityEncoder` and `EntityEncoder[Unit]`.
+* Replace unlawful `Order[CharsetRange]` with `Equal[CharsetRange]`.
+* Auth middlewares renamed `BasicAuth` and `DigestAuth`.
+* `BasicAuth` passes client password to store instead of requesting
+  password from store.
+* Remove realm as an argument to the basic and digest auth stores.
+* Basic and digest auth stores return a parameterized type instead of
+  just a String username.
+* Upgrade to argonaut-6.2-RC2, circe-0.6.1, json4s-3.5.0
 
 # v0.14.11 (2016-10-25)
 * Fix expansion of `uri` and `q` macros by qualifying with `_root_`

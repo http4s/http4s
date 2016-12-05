@@ -1,0 +1,53 @@
+package org.http4s
+package server
+package middleware
+package authentication
+
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers.Authorization
+
+/**
+ * Provides Basic Authentication from RFC 2617.
+ * @param realm The realm used for authentication purposes.
+ * @param store A partial function mapping (realm, user) to the
+ *              appropriate password.
+ */
+object BasicAuth {
+  /**
+    * Validates a plaintext password (presumably by comparing it to a
+    * hashed value).  A Some value indicates success; None indicates
+    * the password failed to validate.
+    */
+  type BasicAuthenticator[A] = BasicCredentials => Task[Option[A]]
+
+  /**
+    * Construct authentication middleware that can validate the client-provided
+    * plaintext password against something else (like a stored, hashed password).
+    * @param realm
+    * @param validate
+    * @return
+    */
+  def apply[A](realm: String, validate: BasicAuthenticator[A]): AuthMiddleware[A] = {
+    challenged(Service.lift { req =>
+      getChallenge(realm, validate, req)
+    })
+  }
+
+  private def getChallenge[A](realm: String, validate: BasicAuthenticator[A], req: Request) =
+    validatePassword(validate, req).map {
+      case Some(authInfo) =>
+        right(AuthedRequest(authInfo, req))
+      case None =>
+        left(Challenge("Basic", realm, Map.empty))
+    }
+
+  private def validatePassword[A](validate: BasicAuthenticator[A], req: Request): Task[Option[A]] = {
+    req.headers.get(Authorization) match {
+      case Some(Authorization(creds: BasicCredentials)) =>
+        validate(creds)
+      case _ =>
+        Task.now(None)
+    }
+  }
+}

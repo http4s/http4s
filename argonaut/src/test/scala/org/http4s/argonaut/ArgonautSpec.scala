@@ -1,13 +1,13 @@
 package org.http4s
-package argonaut
+package argonaut.test // Get out of argonaut package so we can import custom instances
 
 import java.nio.charset.StandardCharsets
 
 import _root_.argonaut._
 import org.http4s.MediaType._
+import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
-import org.http4s.EntityEncoderSpec.writeToString
 import org.specs2.specification.core.Fragment
 import Status.Ok
 
@@ -28,6 +28,23 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     "write compact JSON" in {
       writeToString(json) must_== ("""{"test":"ArgonautSupport"}""")
     }
+
+
+    "write JSON according to custom encoders" in {
+      val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2)
+      import custom._
+      writeToString(json) must_== (
+        """{
+          |  "test" : "ArgonautSupport"
+          |}""".stripMargin)
+    }
+
+    "write JSON according to explicit printer" in {
+      writeToString(json)(jsonEncoderWithPrettyParams(PrettyParams.spaces2)) must_== (
+        """{
+          |  "test" : "ArgonautSupport"
+          |}""".stripMargin)
+    }
   }
 
   "jsonEncoderOf" should {
@@ -37,6 +54,22 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
     "write compact JSON" in {
       writeToString(foo)(jsonEncoderOf[Foo]) must_== ("""{"bar":42}""")
+    }
+
+    "write JSON according to custom encoders" in {
+      val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2)
+      import custom._
+      writeToString(foo)(jsonEncoderOf) must_== (
+        """{
+          |  "bar" : 42
+          |}""".stripMargin)
+    }
+
+    "write JSON according to explicit printer" in {
+      writeToString(foo)(jsonEncoderWithPrinterOf(PrettyParams.spaces2)) must_== (
+        """{
+          |  "bar" : 42
+          |}""".stripMargin)
     }
   }
 
@@ -67,6 +100,14 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
         val result = jsonOf[Umlaut].decode(Request().withBody(json).unsafeRun, strict = true)
         result.value.unsafeRun must_== Right(Umlaut(wort))
       }
+    }
+  }
+
+  "Uri codec" should {
+    "round trip" in {
+      // TODO would benefit from Arbitrary[Uri]
+      val uri = Uri.uri("http://www.example.com/")
+      uri.asJson.as[Uri].result must beRight(uri)
     }
   }
 }

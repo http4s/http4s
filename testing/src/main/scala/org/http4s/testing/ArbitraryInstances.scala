@@ -1,4 +1,5 @@
 package org.http4s
+package testing
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -10,78 +11,78 @@ import scala.collection.immutable.BitSet
 import cats.data.NonEmptyList
 import org.http4s.batteries._
 import org.http4s.headers._
-import org.http4s.util.string._
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
 
-trait TestInstances {
-  implicit class ParseResultSyntax[A](self: ParseResult[A]) {
+trait ArbitraryInstances {
+  private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
-  implicit def NonEmptyListArbitrary[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
+  implicit def arbitraryNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary { for {
       a <- arbitrary[A]
       list <- arbitrary[List[A]]
     } yield NonEmptyList(a, list) }
 
-  lazy val tchars: Gen[Char] = oneOf {
+  lazy val genTchar: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
       ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
   }
-  lazy val tokens: Gen[String] =
-    nonEmptyListOf(tchars).map(_.mkString)
 
-  lazy val fieldValues: Gen[String] =
-    fieldContents
+  lazy val genToken: Gen[String] =
+    nonEmptyListOf(genTchar).map(_.mkString)
 
-  lazy val fieldContents: Gen[String] =
+  lazy val genFieldValue: Gen[String] =
+    genFieldContent
+
+  lazy val genFieldContent: Gen[String] =
     for {
-      head <- fieldVchars
+      head <- genFieldVchar
       tail <- containerOf[Vector, Vector[Char]](
         frequency(
-          9 -> fieldVchars.map(Vector(_)),
+          9 -> genFieldVchar.map(Vector(_)),
           1 -> (for {
             spaces <- nonEmptyContainerOf[Vector, Char](oneOf(' ', '\t'))
-            fieldVchar <- fieldVchars
+            fieldVchar <- genFieldVchar
           } yield spaces :+ fieldVchar)
         )
       ).map(_.flatten)
     } yield (head +: tail).mkString
 
-  lazy val fieldVchars: Gen[Char] =
-    vchars
+  lazy val genFieldVchar: Gen[Char] =
+    genVchar
 
-  lazy val vchars: Gen[Char] =
+  lazy val genVchar: Gen[Char] =
     oneOf('\u0021' to '\u007e')
 
-  lazy val standardMethods: Gen[Method] =
+  lazy val genStandardMethod: Gen[Method] =
     oneOf(Method.registered.toSeq)
 
   implicit lazy val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
-    10 -> standardMethods,
-    1 -> tokens.map(Method.fromString(_).yolo)
+    10 -> genStandardMethod,
+    1 -> genToken.map(Method.fromString(_).yolo)
   ))
   implicit lazy val cogenMethod: Cogen[Method] =
     Cogen[Int].contramap(_.##)
 
-  lazy val validStatusCodes =
+  lazy val genValidStatusCode =
     choose(100, 599)
 
-  lazy val standardStatuses =
+  lazy val genStandardStatus =
     oneOf(Status.registered.toSeq)
 
-  lazy val customStatuses = for {
-    code <- validStatusCodes
-    reason <- arbString.arbitrary
+  lazy val genCustomStatus = for {
+    code <- genValidStatusCode
+    reason <- arbitrary[String]
   } yield Status.fromIntAndReason(code, reason).yolo
 
   implicit lazy val arbitraryStatus: Arbitrary[Status] = Arbitrary(frequency(
-    10 -> standardStatuses,
-    1 -> customStatuses
+    10 -> genStandardStatus,
+    1 -> genCustomStatus
   ))
   implicit lazy val cogenStatus: Cogen[Status] =
     Cogen[Int].contramap(_.code)
@@ -169,10 +170,6 @@ trait TestInstances {
     arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
       .suchThat(!_.toString.contains('\ufffe'))
   }
- 
-  implicit lazy val arbitraryBitSet: Arbitrary[BitSet] = Arbitrary(
-    Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
-  )
 
   implicit lazy val arbitraryAllow: Arbitrary[Allow] =
     Arbitrary { for {
@@ -212,7 +209,7 @@ trait TestInstances {
       boolean <- arbitrary[Boolean]
     } yield `X-B3-Sampled`(boolean) }
 
-  lazy val httpDateInstant: Gen[Instant] = {
+  lazy val genHttpDateInstant: Gen[Instant] = {
     // RFC 5322 says 1900 is the minimum year
     val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
     val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
@@ -221,10 +218,10 @@ trait TestInstances {
 
   implicit lazy val arbitraryDateHeader: Arbitrary[headers.Date] =
     Arbitrary { for {
-      instant <- httpDateInstant
+      instant <- genHttpDateInstant
     } yield headers.Date(instant) }
 
-  lazy val httpExpireInstant: Gen[Instant] = {
+  lazy val genHttpExpireInstant: Gen[Instant] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli
     val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli
@@ -233,15 +230,15 @@ trait TestInstances {
 
   implicit lazy val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
     Arbitrary { for {
-      instant <- httpExpireInstant
+      instant <- genHttpExpireInstant
     } yield headers.Expires(instant) }
 
   implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
-        token <- tokens
-        value <- fieldValues
-      } yield Header(token, value)
+        token <- genToken
+        value <- genFieldValue
+      } yield Header.Raw(token.ci, value)
     }
 
   implicit lazy val arbitraryHeader: Arbitrary[Header] =

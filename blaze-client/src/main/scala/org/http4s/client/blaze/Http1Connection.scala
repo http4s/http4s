@@ -222,7 +222,7 @@ private final class Http1Connection(val requestKey: RequestKey,
           (AttributeMap.empty, EmptyBody)
         } else {
           // We are to the point of parsing the body and then cleaning up
-          val (rawBody, _) = collectBodyFromParser(buffer, terminationCondition)
+          val (rawBody, _) = collectBodyFromParser(buffer, terminationCondition _)
 
           // to collect the trailers we need a cleanup helper and a Task in the attribute map
           val (trailerCleanup, attributes) =

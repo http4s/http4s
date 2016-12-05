@@ -40,7 +40,7 @@ val httpClient = PooledHttp1Client()
 
 ### Describing a call
 
-To execute a GET request, we can call `getAs` with the type we expect
+To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
 ```tut:book
@@ -109,5 +109,33 @@ server.shutdownNow()
 
 Take a look at [json].
 
+## Body decoding / encoding
+
+The reusable way to decode/encode a request is to write a custom `EntityDecoder`
+and `EntityEncoder`. For that topic, take a look at [entity].
+
+If you prefer the quick & dirty solution, some of the methods take a `Response
+=> Task[A]` argument, which lets you add a function which includes the decoding
+functionality, but ignores the media type.
+
+```scala
+TODO: Example here
+```
+
+However, your function has to consume the body before the returned `Task` exits.
+Don't do this:
+
+```scala
+// will come back to haunt you
+client.get[EntityBody]("some-url")(response => response.body)
+```
+
+Passing it to a `EntityDecoder` is safe.
+
+```
+client.get[T]("some-url")(response => jsonOf(response.body))
+```
+
+[entity]: entity.html
 [service]: service.html
 [json]: json.html

@@ -1,7 +1,7 @@
 package org.http4s
 package argonaut
 
-import _root_.argonaut.{EncodeJson, DecodeJson, Argonaut, Json}
+import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}, Argonaut._
 import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
@@ -16,13 +16,37 @@ trait ArgonautInstances {
       )
     }
 
-  implicit val jsonEncoder: EntityEncoder[Json] =
+  protected def defaultPrettyParams: PrettyParams
+
+  implicit def jsonEncoder: EntityEncoder[Json] =
+    jsonEncoderWithPrettyParams(defaultPrettyParams)
+
+  def jsonEncoderWithPrettyParams(prettyParams: PrettyParams): EntityEncoder[Json] =
     EntityEncoder.stringEncoder(Charset.`UTF-8`).contramap[Json] { json =>
-      // TODO naive implementation materializes to a String.
-      // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
-      Argonaut.nospace.pretty(json)
+      prettyParams.pretty(json)
     }.withContentType(`Content-Type`(MediaType.`application/json`, Charset.`UTF-8`))
 
   def jsonEncoderOf[A](implicit encoder: EncodeJson[A]): EntityEncoder[A] =
-    jsonEncoder.contramap[A](encoder.encode)
+    jsonEncoderWithPrinterOf(defaultPrettyParams)
+
+  def jsonEncoderWithPrinterOf[A](prettyParams: PrettyParams)
+    (implicit encoder: EncodeJson[A]): EntityEncoder[A] =
+    jsonEncoderWithPrettyParams(prettyParams).contramap[A](encoder.encode)
+
+  implicit val uriCodec: CodecJson[Uri] = CodecJson(
+    (uri: Uri) => Json.jString(uri.toString),
+    c => c.as[String]
+      .flatMap({str =>
+        Uri.fromString(str)
+          .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok)
+      })
+  )
+}
+
+object ArgonautInstances {
+  def withPrettyParams(pp: PrettyParams): ArgonautInstances = {
+    new ArgonautInstances {
+      def defaultPrettyParams: PrettyParams = pp
+    }
+  }
 }

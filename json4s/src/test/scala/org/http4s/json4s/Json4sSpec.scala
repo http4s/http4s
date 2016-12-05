@@ -2,9 +2,9 @@ package org.http4s
 package json4s
 
 import cats.syntax.option._
-import org.http4s.EntityEncoderSpec._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
+import org.json4s.JsonFormat
 import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
 import org.json4s.JValue
@@ -64,6 +64,15 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
       result.value.unsafeRun must beLeft.like {
         case InvalidMessageBodyFailure("Could not extract JSON", _) => ok
       }
+    }
+  }
+
+  "JsonFormat[Uri]" should {
+    "round trip" in {
+      // TODO would benefit from Arbitrary[Uri]
+      val uri = Uri.uri("http://www.example.com/")
+      val format = implicitly[JsonFormat[Uri]]
+      format.read(format.write(uri)) must_== (uri)
     }
   }
 }

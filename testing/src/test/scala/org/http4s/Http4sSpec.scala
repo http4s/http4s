@@ -12,7 +12,9 @@ package org.http4s
 import java.util.concurrent.ExecutorService
 
 import fs2._
+import fs2.text._
 import org.http4s.util.threads._
+import org.http4s.testing._
 import org.specs2.ScalaCheck
 import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
@@ -25,23 +27,47 @@ import org.scalacheck._
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
 import org.typelevel.discipline.specs2.mutable.Discipline
+import org.typelevel.discipline.Laws
 
 /**
  * Common stack for http4s' own specs.
+ *
+ * Not published in testing's main, because it doesn't depend on specs2.
  */
 trait Http4sSpec extends Specification
   with ScalaCheck
   with AnyMatchers
   with OptionMatchers
   with Http4s
-  with TestInstances
+  with ArbitraryInstances
   with FragmentsDsl
-  with TaskMatchers
   with Discipline
   with Batteries0
   with Http4sMatchers
 {
   implicit val params = Parameters(maxSize = 20)
+
+  implicit class ParseResultSyntax[A](self: ParseResult[A]) {
+    def yolo: A = self.valueOr(e => sys.error(e.toString))
+  }
+
+  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
+    Stream.eval(W.toEntity(a))
+      .flatMap { case Entity(body, _ ) => body }
+      .through(utf8Decode)
+      .foldMonoid
+      .runLast
+      .map(_.getOrElse(""))
+      .unsafeRun
+
+  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
+    Stream.eval(W.toEntity(a))
+      .flatMap { case Entity(body, _ ) => body }
+      .bufferAll
+      .chunks
+      .runLast
+      .map(_.getOrElse(Chunk.empty))
+      .unsafeRun
 
   def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))

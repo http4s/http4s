@@ -1,41 +1,15 @@
 package org.http4s
 
+import scala.concurrent.Future
+
 import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
-import scala.concurrent.Future
-
 import cats._
 import fs2._
-import fs2.Stream._
-import fs2.text._
-import org.http4s.batteries._
-import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
-import org.specs2.mutable.Specification
-
-object EntityEncoderSpec {
-  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
-    eval(W.toEntity(a))
-      .flatMap { case Entity(body, _ ) => body }
-      .through(utf8Decode)
-      .foldMonoid
-      .runLast
-      .map(_.getOrElse(""))
-      .unsafeRun
-
-  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
-    eval(W.toEntity(a))
-      .flatMap { case Entity(body, _ ) => body }
-      .bufferAll
-      .chunks
-      .runLast
-      .map(_.getOrElse(Chunk.empty))
-      .unsafeRun
-}
+import org.http4s.headers._
 
 class EntityEncoderSpec extends Http4sSpec {
-  import EntityEncoderSpec._
-
   "EntityEncoder" should {
     "render strings" in {
       writeToString("pong") must_== "pong"

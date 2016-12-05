@@ -1,4 +1,5 @@
 package org.http4s
+package testing
 
 import cats.data._
 import fs2._

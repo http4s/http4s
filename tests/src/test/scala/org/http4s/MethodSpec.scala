@@ -12,7 +12,7 @@ class MethodSpec extends Http4sSpec {
   import Method._
 
   "parses own string rendering to equal value" in {
-    forAll(tokens) { token => fromString(token).map(_.renderString) must beRight(token) }
+    forAll(genToken) { token => fromString(token).map(_.renderString) must beRight(token) }
   }
 
   "only tokens are valid methods" in {
