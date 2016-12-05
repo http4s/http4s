@@ -46,7 +46,14 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
 
   "FollowRedirect" should {
     "follow the proper strategy" in {
-      def doIt(method: Method, status: Status, body: String, pure: Boolean, response: Either[Throwable, RedirectResponse]) = {
+      def doIt(
+                method: Method,
+                status: Status,
+                body: String,
+                pure: Boolean,
+                response: Either[Throwable, RedirectResponse]
+              ) = {
+
         val u = uri("http://localhost") / status.code.toString
         val req = method match {
           case _: Method.PermitsBody if body.nonEmpty =>
@@ -75,14 +82,14 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       POST     ! MovedPermanently  ! "foo"     ! true   ! Right(RedirectResponse("GET", ""))         |
       POST     ! MovedPermanently  ! "foo"     ! false  ! Right(RedirectResponse("GET", ""))         |
       PUT      ! MovedPermanently  ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-      // PUT      ! MovedPermanently  ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+       PUT      ! MovedPermanently  ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! MovedPermanently  ! "foo"     ! false  ! Left(UnexpectedStatus(MovedPermanently))  |
       GET      ! Found             ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! Found             ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
       POST     ! Found             ! "foo"     ! true   ! Right(RedirectResponse("GET", ""))         |
       POST     ! Found             ! "foo"     ! false  ! Right(RedirectResponse("GET", ""))         |
       PUT      ! Found             ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-      // PUT      ! Found             ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+       PUT      ! Found             ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! Found             ! "foo"     ! false  ! Left(UnexpectedStatus(Found))             |
       GET      ! SeeOther          ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! SeeOther          ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
@@ -93,17 +100,17 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       PUT      ! SeeOther          ! "foo"     ! false  ! Right(RedirectResponse("GET", ""))         |
       GET      ! TemporaryRedirect ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! TemporaryRedirect ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
-      // POST     ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
+       POST     ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
       POST     ! TemporaryRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(TemporaryRedirect)) |
       PUT      ! TemporaryRedirect ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-      // PUT      ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+       PUT      ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! TemporaryRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(TemporaryRedirect)) |
       GET      ! PermanentRedirect ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! PermanentRedirect ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
-      // POST     ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
+       POST     ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
       POST     ! PermanentRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(PermanentRedirect)) |
       PUT      ! PermanentRedirect ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-      // PUT      ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+       PUT      ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! PermanentRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(PermanentRedirect)) |
       { (method, status, body, pure, response) => doIt(method, status, body, pure, response) }
     }
@@ -111,10 +118,10 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
     "Strip payload headers when switching to GET" in {
       // We could test others, and other scenarios, but this was a pain.
       val req = Request(PUT, uri("http://localhost/303")).withBody("foo")
-      Stream.eval(client.fetch(req) {
+      client.fetch(req) {
         case Ok(resp) =>
           resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[Task]
-      }).runLog.unsafeRun() must be(Right(Some("0")))
+      }.unsafeRun() must be(Right(Some("0")))
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {

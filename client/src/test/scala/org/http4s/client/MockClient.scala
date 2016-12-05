@@ -18,8 +18,8 @@ object MockClient {
           body
       }
 
-      kill("response was disposed", disposed) ++
-      kill("client was shut down", isShutdown)
+      kill("response was disposed", disposed).append(kill("client was shut down", isShutdown) )
+
     }
 
     def disposableService(service: HttpService) =

@@ -12,13 +12,13 @@ import java.io.IOException
 // import scalaz.stream.Process._
 
 // import scodec.bits.ByteVector
-// import cats._
-// import cats.data._
-// import cats.implicits._
+ import cats._
+ import cats.data._
+ import cats.implicits._
 import fs2.interop.cats._
-import fs2.Task
+import fs2.Task._
 import fs2._
-import fs2.Stream._
+
 
 
 /**
@@ -34,9 +34,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     */
   def apply[A](f: Response => Task[A]): Task[A] = {
     val task = try f(response) catch { case e: Throwable => Task.fail(e) }
-
-    task
-    // task.flatMap { case _ => dispose }
+    task.attempt.flatMap(result => dispose.flatMap( _ => result.fold[Task[A]](Task.fail, Task.now)))
   }
 }
 
@@ -59,8 +57,10 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     *          response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
-  def fetch[A](req: Request)(f: Response => Task[A]): Task[A] =
-    open.run(req).flatMap(_.apply(f))
+  def fetch[A](req: Request)(f: Response => Task[A]): Task[A] = {
+     open.run(req).flatMap(_.apply(f))
+  }
+
 
   /**
     * Returns this client as a [[Service]].  All connections created by this
@@ -91,6 +91,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     eval(open(req).map { case DisposableResponse(response, dispose) =>
       f(response).onComplete(eval_(dispose))
     }).flatMap(identity(_))
+
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
@@ -174,7 +175,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
 
   @deprecated("Use expect", "0.14")
   def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
-    Uri.fromString(s).fold(Task.fail, uri => getAs[A](uri))
+    Uri.fromString(s).fold(Task.fail, uri => expect[A](uri))
 
   /** Submits a request, and provides a callback to process the response.
     *
@@ -219,14 +220,15 @@ object Client {
 
     def interruptable(body: EntityBody, disposed: AtomicBoolean): Stream[Task, Byte]  = {
       def kill(reason: String, killed: AtomicBoolean): Stream[Task, Byte] = {
-        if (killed.get)
+        if (killed.get) {
           Stream.fail(new IOException(reason))
-        else
+        }
+        else {
           body
+        }
       }
 
-      kill("response was disposed", disposed) ++
-      kill("client was shut down", isShutdown)
+      kill("response was disposed", disposed).drain.append( kill("client was shut down", isShutdown) )
 
     }
 
