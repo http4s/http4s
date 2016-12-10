@@ -1,0 +1,7 @@
+<nav>
+  <ul class="pager">
+    {{if .Prev}}<li class="previous"><a href="{{.Prev.Permalink}}"><span aria-hidden="true">&larr;</span> {{.Prev.Title}}</a></li>{{end}}
+    {{if .Next}}<li class="next"><a href="{{.Next.Permalink}}">{{.Next.Title}} <span aria-hidden="true">&rarr;</span></a></li>{{end}}
+  </ul>
+</nav>
+
