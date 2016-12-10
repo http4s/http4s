@@ -31,7 +31,7 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@784002a0
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@302fd1c6
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -49,7 +49,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@172ebd2a)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@5c2199e7)
 ```
 
 ### Describing a call
@@ -59,7 +59,7 @@ and the URI we want:
 
 ```scala
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@1978c35d
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@74c3487d
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -93,7 +93,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@4cf9f0f4
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@33ece505
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -115,10 +115,10 @@ greetingList.run.mkString("\n")
 //        greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
-// Hello, Ashley.
-// Hello, Christopher.
-// Hello, Jessica.
 // Hello, Michael.
+// Hello, Christopher.
+// Hello, Ashley.
+// Hello, Jessica.
 ```
 
 ## Cleaning up
