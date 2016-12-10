@@ -1,21 +1,24 @@
 package org.http4s
 package testing
 
-import java.time.{ Instant, LocalDateTime, ZoneId, ZonedDateTime }
+import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
 import java.time.temporal.ChronoUnit
 
 import org.http4s.headers._
-import org.http4s.util.NonEmptyList
+import org.http4s.util.{CaseInsensitiveString, NonEmptyList}
 import org.http4s.util.string._
-import java.nio.charset.{ Charset => NioCharset }
+import java.nio.charset.{Charset => NioCharset}
 
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.{Arbitrary, Gen}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
 import scodec.bits.ByteVector
+
+import scalaz.Scalaz._
+import scalaz._
 
 trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -252,4 +255,101 @@ trait ArbitraryInstances {
       )
     } yield ServerSentEvent(data, event, id, retry))
   }
+
+  // https://tools.ietf.org/html/rfc2234#section-6
+  lazy val genHexDigit: Gen[Char] = oneOf(Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
+
+  private implicit def semigroupGen[T: Semigroup]: Semigroup[Gen[T]] = new Semigroup[Gen[T]] {
+    def append(g1: Gen[T], g2: => Gen[T]): Gen[T] = for {t1 <- g1; t2 <- g2} yield t1 |+| t2
+  }
+
+  private def timesBetween[T: Semigroup](min: Int, max: Int, g: Gen[T]): Gen[T] =
+    for { n <- choose(min, max); l <- listOfN(n, g).suchThat(_.length == n) } yield l.reduce(_ |+| _)
+
+  private def times[T: Semigroup](n: Int, g: Gen[T]): Gen[T] =
+    listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
+
+  private def atLeast[T: Semigroup](n: Int, g: Gen[T]): Gen[T] = timesBetween(min = 0, max = Int.MaxValue, g)
+
+  private def atMost[T: Semigroup](n: Int, g: Gen[T]): Gen[T] = timesBetween(min = 0, max = n, g)
+
+  private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] = oneOf(g, const(ev.zero))
+
+  // https://tools.ietf.org/html/rfc3986#appendix-A
+  implicit lazy val arbitraryIPv4: Arbitrary[Uri.IPv4] = Arbitrary {
+    val num = numChar.map(_.toString)
+    def range(min: Int, max: Int) = choose(min.toChar, max.toChar).map(_.toString)
+    val genDecOctet = oneOf(
+      num,
+      range(49, 57) |+| num,
+      const("1")    |+| num           |+| num,
+      const("2")    |+| range(48, 52) |+| num,
+      const("25")   |+| range(48, 51)
+    )
+    listOfN(4, genDecOctet).map(_.mkString(".")) map Uri.IPv4.apply
+  }
+
+  // https://tools.ietf.org/html/rfc3986#appendix-A
+  implicit lazy val arbitraryIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
+    val h16 = timesBetween(min = 1, max = 4, genHexDigit.map(_.toString))
+    val ls32 = oneOf(h16 |+| const(":") |+| h16, arbitraryIPv4.arbitrary.map(_.address.value))
+    val h16colon = h16 |+| const(":")
+    val :: = const("::")
+
+    oneOf(
+                                                  times(6, h16colon) |+| ls32,
+                                           :: |+| times(5, h16colon) |+| ls32,
+      opt(                        h16) |+| :: |+| times(4, h16colon) |+| ls32,
+      opt(atMost(1, h16colon) |+| h16) |+| :: |+| times(3, h16colon) |+| ls32,
+      opt(atMost(2, h16colon) |+| h16) |+| :: |+| times(2, h16colon) |+| ls32,
+      opt(atMost(3, h16colon) |+| h16) |+| :: |+|   opt(   h16colon) |+| ls32,
+      opt(atMost(4, h16colon) |+| h16) |+| ::                        |+| ls32,
+      opt(atMost(5, h16colon) |+| h16) |+| ::                        |+| h16,
+      opt(atMost(6, h16colon) |+| h16) |+| ::
+
+    ) map Uri.IPv6.apply
+  }
+
+  implicit lazy val arbitraryUriHost: Arbitrary[Uri.Host] = Arbitrary {
+    val genRegName = listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
+    oneOf(arbitraryIPv4.arbitrary, arbitraryIPv6.arbitrary, genRegName)
+  }
+
+  implicit lazy val arbitraryAuthority: Arbitrary[Uri.Authority] = Arbitrary {
+    for {
+      userInfo <- identifier
+      maybeUserInfo <- Gen.option(userInfo)
+      host <- arbitraryUriHost.arbitrary
+      maybePort <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
+    } yield Uri.Authority(maybeUserInfo, host, maybePort)
+  }
+
+  lazy val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
+  lazy val genUnreserved: Gen[Char] = oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
+  lazy val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', ''', '(', ')', '*', '+', ',', ';', '='))
+
+  /** https://tools.ietf.org/html/rfc3986 */
+  implicit lazy val arbitraryUri: Arbitrary[Uri] = Arbitrary {
+    val genSegmentNzNc = nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))) map (_.mkString)
+    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
+    val genSegmentNz = nonEmptyListOf(genPChar) map (_.mkString)
+    val genSegment = listOf(genPChar) map (_.mkString)
+    val genPathEmpty = const("")
+    val genPathAbEmpty = listOf(const("/") |+| genSegment) map (_.mkString)
+    val genPathRootless = genSegmentNz |+| genPathAbEmpty
+    val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
+    val genPathAbsolute = const("/") |+| opt(genPathRootless)
+    val genScheme = oneOf("http", "https") map CaseInsensitiveString.apply
+    val genPath = oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
+    val genFragment: Gen[Uri.Fragment] = listOf(oneOf(genPChar, const("/"), const("?"))) map (_.mkString)
+
+    for {
+      scheme <- Gen.option(genScheme)
+      authority <- Gen.option(arbitraryAuthority.arbitrary)
+      path <- genPath
+      query <- arbitraryQuery.arbitrary
+      fragment <- Gen.option(genFragment)
+    } yield Uri(scheme, authority, path, query, fragment)
+  }
+
 }
