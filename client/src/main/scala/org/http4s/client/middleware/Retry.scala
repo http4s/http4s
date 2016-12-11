@@ -5,10 +5,17 @@ package middleware
 import scala.concurrent.duration._
 import scala.math.{pow, min, random}
 
-import scalaz._
-import scalaz.concurrent.Task
+// import scalaz._
+// import scalaz.concurrent.Task
+
+import fs2._
+
 import org.http4s.Status._
 import org.log4s.getLogger
+
+import scala.Either
+import scala.Right
+import scala.Left
 
 object Retry {
 
@@ -26,7 +33,7 @@ object Retry {
   def apply(backoff: Int => Option[FiniteDuration])(client: Client) = {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
-        case \/-(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if req.isIdempotent && RetriableStatuses(status) =>
+        case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if req.isIdempotent && RetriableStatuses(status) =>
           backoff(attempts) match {
             case Some(duration) =>
               logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Retrying after ${duration}.")
@@ -35,9 +42,9 @@ object Retry {
               logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Giving up.")
               Task.now(dr)
           }
-        case \/-(dr) =>
+        case Right(dr) =>
           Task.now(dr)
-        case -\/(e) if req.isIdempotent =>
+        case Left(e) if req.isIdempotent =>
           backoff(attempts) match {
             case Some(duration) =>
               logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
@@ -47,7 +54,7 @@ object Retry {
               logger.info(s"Request ${req} threw an exception on attempt #${attempts} attempts. Giving up.")
               Task.fail(e)
           }
-        case -\/(e) =>
+        case Left(e) =>
           Task.fail(e)
       }
     }

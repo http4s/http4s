@@ -7,9 +7,12 @@ import org.http4s.Status.ResponseClass.Successful
 import scala.util.control.NoStackTrace
 
 import java.io.IOException
-import scalaz.concurrent.Task
-import scalaz.stream.{Process, Process1}
-import scalaz.stream.Process._
+// import scalaz.concurrent.Task
+// import scalaz.stream.{Process, Process1}
+// import scalaz.stream.Process._
+
+import fs2._
+
 import scodec.bits.ByteVector
 
 /**
@@ -25,7 +28,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     */
   def apply[A](f: Response => Task[A]): Task[A] = {
     val task = try f(response) catch { case e: Throwable => Task.fail(e) }
-    task.onFinish { case _ => dispose }
+    task.handleWith { case _ => dispose }
   }
 }
 

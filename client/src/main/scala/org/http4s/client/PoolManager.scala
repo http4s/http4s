@@ -7,9 +7,11 @@ import org.log4s.getLogger
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scalaz.{-\/, \/-}
-import scalaz.syntax.either._
-import scalaz.concurrent.Task
+import scala.Either
+import scala.Right
+import scala.Left
+
+import fs2.Task
 
 private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
                                                  maxTotal: Int,
@@ -31,10 +33,10 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
     if (allocated < maxTotal) {
       allocated += 1
       Task.fork(builder(key))(es).runAsync {
-        case \/-(fresh) =>
+        case Right(fresh) =>
           logger.debug(s"Received complete connection from pool: ${stats}")
           callback(NextConnection(fresh, true).right)
-        case e@ -\/(t) =>
+        case e @ Left(t) =>
           logger.error(t)(s"Error establishing client connection for key $key")
           disposeConnection(key, None)
           callback(e)
@@ -44,7 +46,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
       val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
       val error = new Exception(message)
       logger.error(error)(message)
-      callback(-\/(error))
+      callback(Left(error))
     }
   }
 

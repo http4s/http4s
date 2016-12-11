@@ -1,12 +1,12 @@
 // TODO fs2 port
-/*
+
 package org.http4s
 
 import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
 import Method.{ PermitsBody, NoBody}
 
-import scalaz.concurrent.Task
-
+import fs2._
+import cats.Functor
 
 /** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
   * {{{
@@ -37,6 +37,10 @@ package object client {
   implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
   implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
+  implicit val taskFunctor = new Functor[Task] {
+    def map[A, B](fa: Task[A])(f: A => B): Task[B] = fa.map(f)
+  }
+
 
   implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] = {
     val s = decoder.consumes.toList
@@ -44,4 +48,3 @@ package object client {
   }
 
 }
- */

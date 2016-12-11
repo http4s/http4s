@@ -3,7 +3,7 @@ package client
 
 import java.util.concurrent.ExecutorService
 
-import scalaz.concurrent.Task
+import fs2._
 
 /** Type that is responsible for the client lifecycle
   *
