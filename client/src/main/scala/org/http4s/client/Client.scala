@@ -81,7 +81,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
       response.copy(body = response.body.onComplete(eval_(dispose)))
     }
 
-  def streaming[A](req: Request)(f: Response => Process[Task, A]): Process[Task, A] =
+  def streaming[A](req: Request)(f: Response => Stream[Task, A]): Stream[Task, A] =
     eval(open(req).map { case DisposableResponse(response, dispose) =>
       f(response).onComplete(eval_(dispose))
     }).flatMap(identity(_))
@@ -212,7 +212,7 @@ object Client {
     val isShutdown = new AtomicBoolean(false)
 
     def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
-      def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
+      def loop(reason: String, killed: AtomicBoolean): Stream[ByteVector, ByteVector] = {
         if (killed.get)
           fail(new IOException(reason))
         else
