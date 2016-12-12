@@ -12,7 +12,6 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process.{Halt, halt}
 
 object Metrics {
-
   def apply(
     prefix: String = "",
     registry: CollectorRegistry = CollectorRegistry.defaultRegistry,
@@ -45,27 +44,32 @@ object Metrics {
       if (whitelistedMethods.contains(method)) method.name
       else "other"
 
-    Service.lift { req: Request =>
-      activeRequests.inc()
-      val start = System.nanoTime
-      val future = service(req).get.map { result =>
-        val stop = System.nanoTime
-        activeRequests.inc(-1.0)
-        def record(statusLabel: String) = {
-          val elapsed = stop - start
-          val histo = requestLatency.labels(methodLabel(req.method), statusLabel)
-          histo.observe(elapsed / 1.0e9)
-        }
-        result match {
-          case \/-(resp) =>
-            val statusLabel = (resp.status.code / 100) + "xx"
-            record(statusLabel)
-          case -\/(t) =>
-            record("5xx")
-        }
-        result
+    def record(method: Method, status: Status, elapsed: Long) = {
+      activeRequests.inc(-1.0)
+      val statusLabel = (status.code / 100) + "xx"
+      val histo = requestLatency.labels(methodLabel(method), statusLabel)
+      histo.observe(elapsed / 1.0e9)
+    }
+
+    def onFinish(req: Request, start: Long)(r: Throwable \/ Response): Throwable \/ Response = {
+      val elapsed = System.nanoTime - start
+      r match {
+        case \/-(resp) =>
+          \/-(resp.copy(body = resp.body.onHalt { cause =>
+            record(req.method, resp.status, elapsed)
+            Halt(cause)
+          }))
+
+        case e @ -\/(_) =>
+          record(req.method, Status.InternalServerError, elapsed)
+          e
       }
-      new Task(future)
+    }
+
+    Service.lift { req: Request =>
+      val start = System.nanoTime
+      activeRequests.inc()
+      new Task(service(req).get.map(onFinish(req, start)))
     }
   }
 
