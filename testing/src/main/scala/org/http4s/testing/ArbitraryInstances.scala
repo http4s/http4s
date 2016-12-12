@@ -263,15 +263,20 @@ trait ArbitraryInstances {
     def append(g1: Gen[T], g2: => Gen[T]): Gen[T] = for {t1 <- g1; t2 <- g2} yield t1 |+| t2
   }
 
-  private def timesBetween[T: Semigroup](min: Int, max: Int, g: Gen[T]): Gen[T] =
-    for { n <- choose(min, max); l <- listOfN(n, g).suchThat(_.length == n) } yield l.reduce(_ |+| _)
+  private def timesBetween[T: Monoid](min: Int, max: Int, g: Gen[T]): Gen[T] =
+    for {
+      n <- choose(min, max)
+      l <- listOfN(n, g).suchThat(_.length == n)
+    } yield l.fold(Monoid[T].zero)(_ |+| _)
 
-  private def times[T: Semigroup](n: Int, g: Gen[T]): Gen[T] =
+  private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
 
-  private def atLeast[T: Semigroup](n: Int, g: Gen[T]): Gen[T] = timesBetween(min = 0, max = Int.MaxValue, g)
+  private def atLeast[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
+    timesBetween(min = 0, max = Int.MaxValue, g)
 
-  private def atMost[T: Semigroup](n: Int, g: Gen[T]): Gen[T] = timesBetween(min = 0, max = n, g)
+  private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
+    timesBetween(min = 0, max = n, g)
 
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] = oneOf(g, const(ev.zero))
 
