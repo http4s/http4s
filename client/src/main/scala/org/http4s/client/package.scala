@@ -6,7 +6,8 @@ import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
 import Method.{ PermitsBody, NoBody}
 
 import fs2._
-import cats.Functor
+// import cats.Functor
+import cats.Monad
 
 /** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
   * {{{
@@ -37,8 +38,18 @@ package object client {
   implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
   implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
-  implicit val taskFunctor = new Functor[Task] {
-    def map[A, B](fa: Task[A])(f: A => B): Task[B] = fa.map(f)
+  // implicit val taskFunctor = new Functor[Task] {
+  //   def map[A, B](fa: Task[A])(f: A => B): Task[B] = fa.map(f)
+  // }
+
+  implicit val taskMonad = new Monad[Task] {
+    def flatMap[A, B](fa: Task[A])(f: A => Task[B]): Task[B] =
+      fa.flatMap(f)
+
+    override def map[A, B](fa: Task[A])(f: A => B): Task[B] = fa.map(f)
+
+    def pure[A](a: A): Task[A] = Task.now(a)
+
   }
 
 

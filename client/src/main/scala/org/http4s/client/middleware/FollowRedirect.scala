@@ -11,7 +11,10 @@ import fs2._
 // import scalaz.concurrent.Task
 // import scalaz.stream.Process._
 // import scalaz.syntax.monad._
-import scodec.bits.ByteVector
+
+// Replaced with Chunk
+// cue taken from https://github.com/http4s/http4s/pull/661/commits/68f0d712fd482f31991d642c0a4c0575a715b389
+// import scodec.bits.ByteVector
 
 /** 
   * Client middleware to follow redirect responses.

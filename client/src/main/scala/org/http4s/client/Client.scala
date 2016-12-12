@@ -13,7 +13,9 @@ import java.io.IOException
 
 import fs2._
 
-import scodec.bits.ByteVector
+// Replaced with Chunk
+// cue taken from https://github.com/http4s/http4s/pull/661/commits/68f0d712fd482f31991d642c0a4c0575a715b389
+// import scodec.bits.ByteVector
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -28,7 +30,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     */
   def apply[A](f: Response => Task[A]): Task[A] = {
     val task = try f(response) catch { case e: Throwable => Task.fail(e) }
-    task.handleWith { case _ => dispose }
+    task.flatMap { a => dispose.map(_ => a) }
   }
 }
 
@@ -63,7 +65,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * or when a common response callback is used by many call sites.
     */
   def toService[A](f: Response => Task[A]): Service[Request, A] =
-    open.flatMapK(_.apply(f))
+    open.flatMapF(_.apply(f))
 
   /**
     * Returns this client as an [[HttpService]].  It is the responsibility of
@@ -82,7 +84,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def streaming[A](req: Request)(f: Response => Process[Task, A]): Process[Task, A] =
     eval(open(req).map { case DisposableResponse(response, dispose) =>
       f(response).onComplete(eval_(dispose))
-    }).flatMap(identity)
+    }).flatMap(identity(_))
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
