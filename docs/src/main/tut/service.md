@@ -6,22 +6,7 @@ title: Service
 This tutorial will walk you through creating your first http4s service
 and calling it with http4s' client.
 
-Create a new directory, with the following build.sbt in the root:
-
-```scala
-scalaVersion := "2.11.8" // Also supports 2.10.x
-
-val http4sVersion = "0.15.0a-SNAPSHOT"
-
-// Only necessary for SNAPSHOT releases
-resolvers += Resolver.sonatypeRepo("snapshots")
-
-libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
-  "org.http4s" %% "http4s-blaze-client" % http4sVersion
-)
-```
+Make sure you [install http4s] first.
 
 This tutorial is compiled as part of the build using [tut].  Each page
 is its own REPL session.  If you copy and paste code samples starting
@@ -169,3 +154,4 @@ Next, we'll take a deeper look at creating `HttpService`s with
 [Kleisli: Composing monadic functions]: http://eed3si9n.com/learning-scalaz/Composing+monadic+functions.html
 [Scalaz Task: The Missing Documentation]: http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/
 [http4s-dsl]: dsl.html
+[install http4s]: build.html
