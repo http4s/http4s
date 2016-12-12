@@ -5,7 +5,7 @@ title: Http4s documentation
 
 ## Getting Started
 
-To get started, let's see how to define a [service] with the [dsl].
+To get started, first [get http4s], and define a [service] with the [dsl].
 
 ## Specific topics
 
@@ -16,6 +16,7 @@ To get started, let's see how to define a [service] with the [dsl].
 * `EntityDecoder` / `EntityEncoder`, also covers Media Types: [entity]
 * Serving [static files]
 
+[get http4s]: build.html
 [json]: json.html
 [client]: client.html
 [service]: service.html
