@@ -38,21 +38,6 @@ package object client {
   implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
   implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
-  // implicit val taskFunctor = new Functor[Task] {
-  //   def map[A, B](fa: Task[A])(f: A => B): Task[B] = fa.map(f)
-  // }
-
-  implicit val taskMonad = new Monad[Task] {
-    def flatMap[A, B](fa: Task[A])(f: A => Task[B]): Task[B] =
-      fa.flatMap(f)
-
-    override def map[A, B](fa: Task[A])(f: A => B): Task[B] = fa.map(f)
-
-    def pure[A](a: A): Task[A] = Task.now(a)
-
-  }
-
-
   implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] = {
     val s = decoder.consumes.toList
     EntityDecoder.decodeBy(s.head, s.tail:_*)(resp => decoder.decode(resp, strict = true).map(t => (resp.headers,t)))

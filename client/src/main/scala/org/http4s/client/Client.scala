@@ -9,6 +9,7 @@ import java.io.IOException
 import fs2.interop.cats._
 import fs2.Task._
 import fs2._
+import fs2.Strategy
 
 
 
@@ -40,16 +41,16 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   *                 open connections and freeing resources
   */
 final case class Client(open: Service[Request, DisposableResponse], shutdown: Task[Unit]) {
-  /** Submits a request, and provides a callback to process the response.
+   /** Submits a request, and provides a callback to process the response.
     *
     * @param req The request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
-    *          response body afterward will result in an error.
+    * @param f   A callback for the response to req.  The underlying HTTP connection
+    *            is disposed when the returned task completes.  Attempts to read the
+    *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
   def fetch[A](req: Request)(f: Response => Task[A]): Task[A] = {
-     open.run(req).flatMap(_.apply(f))
+    open.run(req).flatMap(_.apply(f))
   }
 
 
@@ -73,15 +74,21 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * [[toService]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
-  def toHttpService: HttpService =
-    open.map { case DisposableResponse(response, dispose) =>
-      response.copy(body = response.body.onComplete(eval_(dispose)))
+  def toHttpService: HttpService = {
+    open.flatMapF{
+      case DisposableResponse(response, dispose) => dispose.flatMap(_ => Task.now(response))
     }
+  }
 
-  def streaming[A](req: Request)(f: Response => Stream[Task, A]): Stream[Task, A] =
-    eval(open(req).map { case DisposableResponse(response, dispose) =>
-      f(response).onComplete(eval_(dispose))
-    }).flatMap(identity(_))
+
+  def streaming[A](req: Request)(f: Response => Stream[Task, A]): Stream[Task, A] = {
+    Stream.eval(open(req))
+      .flatMap {
+        case DisposableResponse(response, dispose) =>
+          Stream.eval(dispose)
+            .flatMap(_ => f(response))
+      }
+  }
 
 
   /**
