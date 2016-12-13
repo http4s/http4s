@@ -4,6 +4,7 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.time.Instant
+import java.util.concurrent.Executors
 
 import org.http4s.headers.{`Transfer-Encoding`, Date, `Content-Length`}
 import org.http4s.{headers => H, _}
@@ -17,12 +18,9 @@ import org.specs2.specification.core.Fragment
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-import scalaz.concurrent.{Strategy, Task}
-import scalaz.stream.Process
+import fs2._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-
-import scodec.bits.ByteVector
 
 class Http1ServerStageSpec extends Specification {
   def makeString(b: ByteBuffer): String = {
@@ -42,7 +40,7 @@ class Http1ServerStageSpec extends Specification {
 
   def runRequest(req: Seq[String], service: HttpService, maxReqLine: Int = 4*1024, maxHeaders: Int = 16*1024): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService, true, maxReqLine, maxHeaders)
+    val httpStage = Http1ServerStage(service, AttributeMap.empty, Executors.newCachedThreadPool(), true, maxReqLine, maxHeaders)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
@@ -274,13 +272,8 @@ class Http1ServerStageSpec extends Specification {
     // Think of this as drunk HTTP pipelining
     "Not die when two requests come in back to back" in {
 
-      import scalaz.stream.Process.Step
-      val service = HttpService {
-        case req =>
-          req.body.step match {
-            case Step(p,_) => Task.now(Response(body = p))
-            case _ => sys.error("Failure.")
-          }
+      val service = HttpService { case req =>
+        Task.now(Response(body = req.body))
       }
 
       // The first request will get split into two chunks, leaving the last byte off

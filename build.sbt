@@ -84,7 +84,7 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze
   )
-  .dependsOn(core % "compile;test->test")
+  .dependsOn(core % "compile;test->test", testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
