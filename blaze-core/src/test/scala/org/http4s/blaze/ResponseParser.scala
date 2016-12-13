@@ -23,7 +23,7 @@ class ResponseParser extends Http1ClientParser {
 
   /** Will not mutate the ByteBuffers in the Seq */
   def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header], String) = {
-    val b = ByteBuffer.wrap(buffs.map(b => b.array).toArray.flatten)
+    val b = ByteBuffer.wrap(buffs.map(b => ByteBufferChunk(b).toArray).toArray.flatten)
     parseResponseBuffer(b)
   }
     
@@ -40,7 +40,7 @@ class ResponseParser extends Http1ClientParser {
     }
 
     val bp = {
-      val bytes = body.toList.foldMap(bb => Chunk.bytes(bb.array))
+      val bytes = body.toList.foldMap(bb => ByteBufferChunk(bb))
       new String(bytes.toBytes.values, StandardCharsets.ISO_8859_1)
     }
 

@@ -135,11 +135,11 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining()) doParseContent(buffer) match {
       case Some(chunk) if contentComplete() =>
-        Stream.chunk(Chunk.bytes(chunk.array)) -> Http1Stage.futureBufferThunk(buffer)
+        Stream.chunk(ByteBufferChunk(chunk)) -> Http1Stage.futureBufferThunk(buffer)
 
       case Some(chunk) =>
         val (rst,end) = streamingBody(buffer, eofCondition)
-        (Stream.chunk(Chunk.bytes(chunk.array)) ++ rst, end)
+        (Stream.chunk(ByteBufferChunk(chunk)) ++ rst, end)
 
       case None if contentComplete() =>
         if (buffer.hasRemaining) EmptyBody -> Http1Stage.futureBufferThunk(buffer)
@@ -164,7 +164,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
           parseResult match {
             case Some(result) =>
-              cb(right(Chunk.bytes(result.array).some))
+              cb(right(ByteBufferChunk(result).some))
 
             case None if contentComplete() =>
               cb(End)
