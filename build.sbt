@@ -367,9 +367,10 @@ def http4sProject(name: String) = Project(name, file(name))
   .settings(projectMetadata)
   .settings(publishSettings)
   .settings(
-  moduleName := s"http4s-$name",
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"xonly", "failtrace")
-)
+    moduleName := s"http4s-$name",
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"xonly", "failtrace"),
+    initCommands()
+  )
 
 def libraryProject(name: String) = http4sProject(name)
   .settings(mimaSettings)
@@ -558,3 +559,11 @@ def delambdafyOpts(v: String): Boolean = VersionNumber(v).numbers match {
   case Seq(2, 11, x, _*) if x > 7 => true
   case _ => false
 }
+
+def initCommands(additionalImports: String*) =
+  initialCommands := (List(
+    "scalaz._",
+    "Scalaz._",
+    "scalaz.concurrent.Task",
+    "org.http4s._"
+  ) ++ additionalImports).mkString("import ", ", ", "")
