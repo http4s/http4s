@@ -22,6 +22,7 @@ fi
 
 sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
+echo "Uploading codecov"
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
    bash <(curl -s https://codecov.io/bash)
 fi
