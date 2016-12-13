@@ -55,8 +55,9 @@ lazy val testing = libraryProject("testing")
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
   .settings(
-  description := "Tests for core project"
-)
+    description := "Tests for core project",
+    mimaPreviousArtifacts := Set.empty
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val server = libraryProject("server")
