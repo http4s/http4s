@@ -5,16 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.Status.ResponseClass.Successful
 import scala.util.control.NoStackTrace
-
 import java.io.IOException
-// import scalaz.concurrent.Task
-// import scalaz.stream.{Process, Process1}
-// import scalaz.stream.Process._
-
-// import scodec.bits.ByteVector
- import cats._
- import cats.data._
- import cats.implicits._
 import fs2.interop.cats._
 import fs2.Task._
 import fs2._

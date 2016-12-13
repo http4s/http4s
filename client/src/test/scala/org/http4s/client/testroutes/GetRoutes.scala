@@ -3,9 +3,7 @@ package org.http4s.client.testroutes
 import org.http4s.Status._
 import org.http4s.{TransferCoding, Response}
 
-// import scalaz.stream.Process
 import fs2._
-import fs2.Stream._
 
 trait GetRoutes {
 

@@ -4,8 +4,6 @@ package middleware
 
 import scala.concurrent.duration._
 import scala.math.{pow, min, random}
-
-
 import org.http4s.Status._
 import org.log4s.getLogger
 import fs2.Task

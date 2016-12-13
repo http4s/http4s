@@ -6,11 +6,6 @@ import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.string._
 import fs2._
-// import scalaz._
-// import scalaz.concurrent.Task
-// import scalaz.stream.Process._
-// import scalaz.syntax.monad._
-// import scodec.bits.ByteVector
 
 /**
   * Client middleware to follow redirect responses.

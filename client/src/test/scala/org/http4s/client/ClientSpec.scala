@@ -2,18 +2,11 @@ package org.http4s
 package client
 
 import java.io.IOException
-
 import org.http4s.Http4sSpec
 import org.http4s.headers.Accept
 import org.http4s.Status.InternalServerError
-
-// import scalaz.-\/
-// import scalaz.concurrent.Task
-// import scalaz.stream.Process
-
 import fs2._
 import fs2.Stream._
-
 import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
 import org.http4s.Method._
 import org.http4s.Uri.uri

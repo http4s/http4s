@@ -3,22 +3,12 @@ package client
 package middleware
 
 import java.util.concurrent.atomic._
-
 import org.http4s.dsl._
 import org.http4s.headers._
 import org.specs2.mutable.Tables
-// import scalaz._
-// import scalaz.concurrent._
-// import scalaz.stream.Process._
-// import scalaz.syntax.monad._
-// import scodec.bits.ByteVector
 import fs2._
 import fs2.Stream._
 import fs2.Task._
-// import fs2.interop.cats._
-// import cats.implicits._
-// import cats.data._
-// import cats._
 
 class FollowRedirectSpec extends Http4sSpec with Tables {
 
@@ -82,14 +72,14 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       POST     ! MovedPermanently  ! "foo"     ! true   ! Right(RedirectResponse("GET", ""))         |
       POST     ! MovedPermanently  ! "foo"     ! false  ! Right(RedirectResponse("GET", ""))         |
       PUT      ! MovedPermanently  ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-       PUT      ! MovedPermanently  ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+      PUT      ! MovedPermanently  ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! MovedPermanently  ! "foo"     ! false  ! Left(UnexpectedStatus(MovedPermanently))  |
       GET      ! Found             ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! Found             ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
       POST     ! Found             ! "foo"     ! true   ! Right(RedirectResponse("GET", ""))         |
       POST     ! Found             ! "foo"     ! false  ! Right(RedirectResponse("GET", ""))         |
       PUT      ! Found             ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-       PUT      ! Found             ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+      PUT      ! Found             ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! Found             ! "foo"     ! false  ! Left(UnexpectedStatus(Found))             |
       GET      ! SeeOther          ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! SeeOther          ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
@@ -100,17 +90,17 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       PUT      ! SeeOther          ! "foo"     ! false  ! Right(RedirectResponse("GET", ""))         |
       GET      ! TemporaryRedirect ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! TemporaryRedirect ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
-       POST     ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
+      POST     ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
       POST     ! TemporaryRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(TemporaryRedirect)) |
       PUT      ! TemporaryRedirect ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-       PUT      ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+      PUT      ! TemporaryRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! TemporaryRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(TemporaryRedirect)) |
       GET      ! PermanentRedirect ! ""        ! true   ! Right(RedirectResponse("GET", ""))         |
       HEAD     ! PermanentRedirect ! ""        ! true   ! Right(RedirectResponse("HEAD", ""))        |
-       POST     ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
+      POST     ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("POST", "foo"))     |
       POST     ! PermanentRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(PermanentRedirect)) |
       PUT      ! PermanentRedirect ! ""        ! true   ! Right(RedirectResponse("PUT", ""))         |
-       PUT      ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
+      PUT      ! PermanentRedirect ! "foo"     ! true   ! Right(RedirectResponse("PUT", "foo"))      |
       PUT      ! PermanentRedirect ! "foo"     ! false  ! Left(UnexpectedStatus(PermanentRedirect)) |
       { (method, status, body, pure, response) => doIt(method, status, body, pure, response) }
     }

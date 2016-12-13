@@ -6,9 +6,6 @@ import scala.concurrent.duration._
 
 import fs2._
 import fs2.Stream._
-// import scalaz.concurrent.Task
-// import scalaz.stream.Process
-// import scodec.bits.ByteVector
 import org.http4s.dsl._
 import org.http4s.headers.Location
 import org.specs2.specification.Tables

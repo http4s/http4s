@@ -3,7 +3,6 @@ package client
 
 import java.io._
 import java.util.concurrent.atomic._
-
 import fs2._
 
 object MockClient {

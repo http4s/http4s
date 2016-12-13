@@ -2,22 +2,11 @@ package org.http4s
 package client
 
 import java.util.concurrent.ExecutorService
-
 import org.log4s.getLogger
-
 import scala.annotation.tailrec
 import scala.collection.mutable
-
 import fs2._
-import fs2.Stream._
-import fs2.util.Async
 import cats.implicits._
-import cats._
-import cats.data._
-import cats.implicits._
-// import scalaz.{-\/, \/-}
-// import scalaz.syntax.either._
-// import scalaz.concurrent.Task
 
 private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
                                                  maxTotal: Int,

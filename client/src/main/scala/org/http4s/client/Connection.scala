@@ -2,7 +2,6 @@ package org.http4s
 package client
 
 import fs2.Task
-
 import org.log4s.getLogger
 
 trait Connection {

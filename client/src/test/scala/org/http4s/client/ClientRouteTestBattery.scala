@@ -3,15 +3,9 @@ package client
 
 import java.net.InetSocketAddress
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-
-
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
-
 import org.specs2.specification.core.{ Fragments, Fragment }
-
-// import scalaz.concurrent.Task
-// import scalaz.stream.Process
 import scala.concurrent.duration.FiniteDuration
 import fs2._
 import fs2.Task

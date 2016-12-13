@@ -5,10 +5,6 @@ import org.http4s.client.oauth1
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.mutable.Specification
 
-// import scalaz.\/-
-
-
-
 class OAuthTest extends Specification {
   // some params taken from http://oauth.net/core/1.0/#anchor30, others from
   // http://tools.ietf.org/html/rfc5849
