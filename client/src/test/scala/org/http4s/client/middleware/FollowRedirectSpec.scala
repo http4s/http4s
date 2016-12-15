@@ -7,7 +7,6 @@ import org.http4s.dsl._
 import org.http4s.headers._
 import org.specs2.mutable.Tables
 import fs2._
-import fs2.Stream._
 import fs2.Task._
 
 class FollowRedirectSpec extends Http4sSpec with Tables {
@@ -111,7 +110,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       client.fetch(req) {
         case Ok(resp) =>
           resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[Task]
-      }.unsafeRun() must be(Right(Some("0")))
+      }.unsafeRun().get must be("0")
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {
@@ -121,10 +120,10 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
           MovedPermanently(uri("/loop")).withBody(body)
       }
       val client = FollowRedirect(3)(Client.fromHttpService(statefulService))
-      Stream.eval{client.fetch(GET(uri("http://localhost/loop"))) {
+      client.fetch(GET(uri("http://localhost/loop"))) {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => Task.now(-1)
-      }}.runLog.unsafeRun() must_==(4)
+      }.unsafeRun() must_==(4)
     }
   }
 }

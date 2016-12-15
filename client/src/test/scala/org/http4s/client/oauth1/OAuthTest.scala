@@ -63,24 +63,24 @@ class OAuthTest extends Specification {
   }
 
   // TODO fs2 rework
-  // "RFC 5849 example" should {
-  //
-  //   implicit def urlFormEncoder = UrlForm.entityEncoder(Charset.`US-ASCII`)
-  //
-  //   val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
-  //   val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
-  //
-  //   val req = Request(method = Method.POST, uri = uri).withBody(body).run
-  //
-  //   "Collect proper params, pg 22" in {
-  //     oauth1.getUserParams(req).unsafeRun._2.sorted must_== Seq(
-  //       "b5" -> "=%3D",
-  //       "a3" -> "a",
-  //       "c@" -> "",
-  //       "a2" -> "r b",
-  //       "c2" -> "",
-  //       "a3" -> "2 q"
-  //     ).sorted
-  //   }
-  // }
+   "RFC 5849 example" should {
+
+     implicit def urlFormEncoder : EntityEncoder[UrlForm] = UrlForm.entityEncoder(Charset.`US-ASCII`)
+
+     val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
+     val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
+
+     val req = Request(method = Method.POST, uri = uri).withBody(body).unsafeRun()
+
+     "Collect proper params, pg 22" in {
+       oauth1.getUserParams(req).unsafeRun._2.sorted must_== Seq(
+         "b5" -> "=%3D",
+         "a3" -> "a",
+         "c@" -> "",
+         "a2" -> "r b",
+         "c2" -> "",
+         "a3" -> "2 q"
+       ).sorted
+     }
+   }
 }

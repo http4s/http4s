@@ -23,22 +23,21 @@ class ClientSpec extends Http4sSpec {
       client.expect[String](Request(POST).withBody("foo")).unsafeRun must_== "foo"
     }
 
-    // todo fs2 as bytes are now passed this will pass
-     "fail to read body after dispose" in {
-       Request(POST).withBody("foo").flatMap { req =>
-         // This is bad.  Don't do this.
-         client.fetch(req)(Task.now).flatMap(_.as[String])
-       }.unsafeAttemptRun() must beLeft.like {
-         case e: IOException => e.getMessage == "response was disposed"
-       }
-     }
+    "fail to read body after dispose" in {
+      Request(POST).withBody("foo").flatMap { req =>
+        // This is bad.  Don't do this.
+        client.fetch(req)(Task.now).flatMap(_.as[String])
+      }.unsafeAttemptRun() must beLeft.like {
+        case e: IOException => e.getMessage == "response was disposed"
+      }
+    }
 
-     "fail to read body after client shutdown" in {
-       val client = Client.fromHttpService(service)
-       client.shutdown.unsafeRun
-       client.expect[String](Request(POST).withBody("foo")).unsafeAttemptRun() must beLeft.like{
-         case e: IOException => e.getMessage == "client was shut down"
-       }
-     }
+    "fail to read body after client shutdown" in {
+      val client = Client.fromHttpService(service)
+      client.shutdownNow()
+      client.expect[String](Request(POST).withBody("foo")).unsafeAttemptRun() must beLeft.like{
+        case e: IOException => e.getMessage == "client was shut down"
+      }
+    }
   }
 }
