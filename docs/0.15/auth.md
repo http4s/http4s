@@ -107,10 +107,10 @@ import java.time._
 // import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString("")))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@4b9a6df5)
+// key: org.reactormonk.PrivateKey = PrivateKey([B@5c45f969)
 
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@4b9a6df5))
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@5c45f969))
 
 val clock = Clock.systemUTC
 // clock: java.time.Clock = SystemClock[Z]
