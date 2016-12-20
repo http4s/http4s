@@ -9,9 +9,9 @@ the `Request` sent to service, and/or the `Response` returned by the service. In
 some cases, such as [Authentication], middleware may even prevent the service
 from being called.
 
-At it's most basic, middleware is simply a function that takes one `Service` as a
+At its most basic, middleware is simply a function that takes one `Service` as a
 parameter and returns another `Service`. In addition to the `Service`, the middleware
-function can take any additional parameters it needs to perform it's task. Let's look 
+function can take any additional parameters it needs to perform its task. Let's look 
 at a simple example.
 
 For this, we'll need a dependency on the http4s [dsl].
@@ -75,7 +75,8 @@ val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 wrappedService(goodRequest).run
 wrappedService(badRequest).run
 ```
-Note that the successful response has our header added to it.
+
+Note that the successful response has your header added to it.
 
 If you intend to use you middleware in multiple places,  you may want to implement 
 it as an `object` and use the `apply` method.
@@ -97,7 +98,7 @@ newService(badRequest).run
 ```
 
 It is possible for the wrapped `Service` to have different `Request` and `Response`
-types than the middleware. Authorization is, again, a good example. Authorization 
+types than the middleware. Authentication is, again, a good example. Authentication 
 middleware is an `HttpService` (an alias for `Service[Request, Response]`) that wraps an `
 AuthedService` (an alias for `Service[AuthedRequest[T], Response]`. There is a type 
 defined for this in the `http4s.server` package:
