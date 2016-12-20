@@ -24,8 +24,7 @@ import org.http4s.dsl._
 ```
 
 Let's start by making a simple service that returns a (relatively) large string
-in it's body. We'll use `as[String]` to examine the body. The body is returned
-as a `Task[String]`, so we need to call `run` to get the string itself.
+in its body. We'll use `as[String]` to examine the body. 
 
 ```tut:book
 val service = HttpService {
@@ -35,6 +34,7 @@ val service = HttpService {
 
 val request = Request(Method.GET, uri("/"))
 
+// Do not call 'run' in your code - see note at bottom.
 val response = service(request).run
 val body = response.as[String].run
 body.length
@@ -46,6 +46,7 @@ Now we can wrap the service in the `GZip` middleware.
 import org.http4s.server.middleware._
 val zipService = GZip(service)
 
+// Do not call 'run' in your code - see note at bottom.
 val response = zipService(request).run
 val body = response.as[String].run
 body.length
@@ -59,6 +60,7 @@ values for the `Accept-Encoding` header are **"gzip"**, **"x-gzip"**, and **"*"*
 val acceptHeader = Header("Accept-Encoding", "gzip")
 val zipRequest = request.putHeaders(acceptHeader)
 
+// Do not call 'run' in your code - see note at bottom.
 val response = zipService(zipRequest).run
 val body = response.as[String].run
 body.length
@@ -70,5 +72,11 @@ of **"gzip"**.
 
 As described in [Middleware], services and middleware can be composed such 
 that only some of your endpoints are GZip enabled.
+
+**NOTE:** In this documentation, we are calling `run` to extract values out of a
+`Task` so that they will be printed out. You should **not** call `run` in your 
+service or middleware code. You can work with values while keeping them inside the 
+Task using `map`, `flatMap` and/or `for`. Remember, your service returns a 
+`Task[Response]`.
 
 [Middleware]: ../middleware
