@@ -15,7 +15,6 @@ import scodec.bits.ByteVector
 
 object GZip {
   private[this] val logger = getLogger
-  
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
   def apply(service: HttpService, bufferSize: Int = 32 * 1024, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = Service.lift {
@@ -47,7 +46,8 @@ object GZip {
 
   private def isZippable(resp: Response): Boolean = {
     val contentType = resp.headers.get(`Content-Type`)
-    resp.headers.get(`Content-Encoding`).isEmpty &&
+    !Fallthrough[Response].isFallthrough(resp) &&
+      resp.headers.get(`Content-Encoding`).isEmpty &&
       (contentType.isEmpty || contentType.get.mediaType.compressible ||
       (contentType.get.mediaType eq MediaType.`application/octet-stream`))
   }
