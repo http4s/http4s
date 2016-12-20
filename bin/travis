@@ -3,7 +3,7 @@
 set -e
 
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageOff"
+  SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
 else
   SBT_COMMAND=";test"
 fi
@@ -27,6 +27,7 @@ fi
 
 sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
+echo "Uploading codecov"
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
    bash <(curl -s https://codecov.io/bash)
 fi
