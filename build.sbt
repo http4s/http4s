@@ -88,7 +88,7 @@ lazy val blazeCore = libraryProject("blaze-core")
   description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze
 )
-  .dependsOn(core)
+  .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
@@ -511,7 +511,9 @@ lazy val commonSettings = Seq(
         }
 
       }).transform(node).head
-  }
+  },
+  coursierVerbosity := 0,
+  ivyLoggingLevel := UpdateLogging.Quiet // This doesn't seem to work? We see this in MiMa
 )
 
 lazy val publishSettings = Seq(
