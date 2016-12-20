@@ -7,14 +7,15 @@ jdk: oraclejdk8
 env:
   global:
   - secure: d1FSl5YJDbNXvOY7185WfF8PbiccHA1oyb8/qyBJcKX070ovNNA1HYl09DR+62ZxkYDWPuFx4f1FfL8OiGWdCRJC2qfBe5SDLOzjGJE8wvD0oyHp4h71XLJ6mbtInixYzgJwpDfW8c+lmODo6Z7MGr5JSlxagXpiTVu9Gv4dygw=
+  - HUGO_VERSION=0.18
   matrix:
   - SCALAZ_VERSION=7.1.11
   - SCALAZ_VERSION=7.2.8
-rvm:
-- 2.2.3
 before_script:
 - mkdir -p $HOME/.sbt/launchers/0.13.8/
 - curl -L -o $HOME/.sbt/launchers/0.13.8/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.8/sbt-launch.jar
+- mkdir $HOME/bin
+- export PATH=$HOME/bin:$PATH
 script: bash bin/travis
 webhooks:
   urls:
@@ -29,6 +30,5 @@ cache:
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
 before_install:
-- rvm install 2.2.3
 - openssl aes-256-cbc -K $encrypted_cb02ffa32b87_key -iv $encrypted_cb02ffa32b87_iv
   -in bin/prebuild.enc -d | sh
