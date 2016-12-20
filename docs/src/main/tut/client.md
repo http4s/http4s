@@ -1,9 +1,8 @@
 ---
-layout: default
+menu: tut
+weight: 200
 title: HTTP Client
 ---
-
-## Your first client
 
 How do we know the server is running?  Let's create a client with
 http4s to try our service.

@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 100
 title: Service
 ---
 

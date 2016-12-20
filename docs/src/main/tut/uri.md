@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 350
 title: URI handling
 ---
 

@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 110
 title: The http4s DSL
 ---
 

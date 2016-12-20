@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 310
 title: JSON handling
 ---
 

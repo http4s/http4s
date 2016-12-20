@@ -1,0 +1,11 @@
+baseurl = "http://http4s.org/"
+languageCode = "en-us"
+title = "http4s"
+
+[params]
+version = "0.15"
+
+[[menu.tut]]
+    name = "Scaladoc"
+    weight = 10000
+    url = "/v0.15/api"
