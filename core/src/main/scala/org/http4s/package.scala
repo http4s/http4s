@@ -78,6 +78,10 @@ package object http4s { // scalastyle:ignore
     def apply[T](pf: PartialFunction[AuthedRequest[T], Task[Response]]): AuthedService[T] =
       lift(req => pf.applyOrElse(req, Function.const(Response.fallthrough)))
 
+    /**
+      * Oops, should be of type `AuthedService[T]`. Use `AuthedService.lift(_ => Response.fallthrough)`
+      * instead.
+      */
     val empty: HttpService =
       Service.const(Response.fallthrough)
   }
