@@ -64,6 +64,8 @@ package object http4s { // scalastyle:ignore
   }
 
   object AuthedService {
+    private [this] val _empty: AuthedService[Any] = Service.const(Response.fallthrough)
+
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
@@ -78,8 +80,13 @@ package object http4s { // scalastyle:ignore
     def apply[T](pf: PartialFunction[AuthedRequest[T], Task[Response]]): AuthedService[T] =
       lift(req => pf.applyOrElse(req, Function.const(Response.fallthrough)))
 
-    val empty: HttpService =
-      Service.const(Response.fallthrough)
+    /**
+      * The empty service (all requests fallthrough).
+      *
+      * @tparam T - ignored.
+      * @return
+      */
+    def empty[T]: AuthedService[T] = _empty.asInstanceOf[AuthedService[T]] // OK as `T` isn't used here.
   }
 
   type Callback[A] = Throwable \/ A => Unit
