@@ -17,7 +17,7 @@ class GZipSpec extends Http4sSpec {
         .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
       val resp = service.run(req).run
       resp.status must_== (Status.Ok)
-      resp.get(`Content-Encoding`) must beNone
+      resp.headers.get(`Content-Encoding`) must beNone
     }
   }
 }
