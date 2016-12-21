@@ -5,37 +5,37 @@
   <body>
     <div class="container">
       <div class="content">
-	<div class="col-md-10" role="main">
-	  <div class="page-header">
-	    <h1>{{ .Title }}</h1>
-	  </div>
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>{{ .Title }}</h1>
+          </div>
           {{ .Content }}
-	  <footer>
-	    <nav>
-	      <ul class="pager">
-		{{ if .Prev }}
-		<li class="previous"><a href="{{.Prev.Permalink}}"><i class="fa fa-arrow-left"></i> {{.Prev.Title}}</a></li>
-		{{ end }}
-		<li><a href="https://github.com/http4s/http4s/edit/v{{.Site.Params.version}}/docs/src/main/tut{{ replace .File.Path (print "v" .Site.Params.version) ""}}"><i class="fa fa-pencil"></i> Edit this page</a></li>
-		{{ if .Next }}
-		<li class="next"><a href="{{.Next.Permalink}}">{{.Next.Title}} <i class="fa fa-arrow-right"></i></a></li>
-		{{ end }}
-	      </ul>
-	    </nav>
-	  </footer>
-	</div>
-	<div class="col-md-2" role="complementary">
-	  <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
-	    <ul class="nav">
-	      {{ $currentNode := . }}
-	      {{ range .Site.Menus.tut }}
-	      <li {{if $currentNode.IsMenuCurrent "tut" . }}class="active"{{end}}>
-		<a href="{{ .URL }}">{{ .Name }}</a>
-	      </li>
-	      {{ end }}
-	    </ul>
-	  </nav>
-	</div>
+          <footer>
+            <nav>
+              <ul class="pager">
+                {{ if .Prev }}
+                <li class="previous"><a href="{{.Prev.Permalink}}"><i class="fa fa-arrow-left"></i> {{.Prev.Title}}</a></li>
+                {{ end }}
+                <li><a href="https://github.com/http4s/http4s/edit/release-{{.Site.Params.version}}.x/docs/src/main/tut{{ replace .File.Path (print "v" .Site.Params.version) ""}}"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                {{ if .Next }}
+                <li class="next"><a href="{{.Next.Permalink}}">{{.Next.Title}} <i class="fa fa-arrow-right"></i></a></li>
+                {{ end }}
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              {{ $currentNode := . }}
+              {{ range .Site.Menus.tut }}
+              <li {{if $currentNode.IsMenuCurrent "tut" . }}class="active"{{end}}>
+                <a href="{{ .URL }}">{{ .Name }}</a>
+              </li>
+              {{ end }}
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
     {{ partial "scripts.html" . }}
