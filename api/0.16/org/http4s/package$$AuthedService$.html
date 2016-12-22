@@ -205,7 +205,7 @@ where <code>pf</code> is not defined.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.AuthedService#empty" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.AuthedService#empty" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="empty:org.http4s.package.HttpService"></a>
       <a id="empty:HttpService"></a>
       <h4 class="signature">
@@ -221,7 +221,9 @@ where <code>pf</code> is not defined.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Oops, should be of type <code>AuthedService[T]</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Oops, should be of type <code>AuthedService[T]</code>. Use <code>AuthedService.lift(_ =&gt; Response.fallthrough)</code>
+instead.
+</p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
