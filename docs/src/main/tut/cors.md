@@ -1,6 +1,6 @@
 ---
-menu: main
-title: Cross Origin Resource Sharing
+menu: tut
+title: CORS
 weight: 122
 ---
 
