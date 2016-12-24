@@ -32,10 +32,6 @@ val service = HttpService {
   case GET -> Root / "seconds" =>
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-
-import org.http4s.server.syntax._
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-val server = builder.run
 ```
 
 Streams are returned to the client as chunked HTTP responses automatically. You don't need to provide the header yourself.
