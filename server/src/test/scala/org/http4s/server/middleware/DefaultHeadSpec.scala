@@ -23,18 +23,18 @@ class DefaultHeadSpec extends Http4sSpec {
   "DefaultHead" should {
     "honor HEAD routes" in {
       val req = Request(Method.HEAD, uri = uri("/special"))
-      service.run(req).map(_.headers.get("X-Handled-By".ci).map(_.value)) must returnValue(Some("HEAD"))
+      service.orNotFound(req).map(_.headers.get("X-Handled-By".ci).map(_.value)) must returnValue(Some("HEAD"))
     }
 
     "return truncated body of corresponding GET on fallthrough" in {
       val req = Request(Method.HEAD, uri = uri("/hello"))
-      service.run(req).flatMap(_.as[String]).run must_== ""
+      service.orNotFound(req).flatMap(_.as[String]).run must_== ""
     }
 
     "retain all headers of corresponding GET on fallthrough" in {
       val get = Request(Method.GET, uri = uri("/hello"))      
       val head = get.copy(method = Method.HEAD)
-      service.run(get).map(_.headers).run must_== service.run(head).map(_.headers).run
+      service.orNotFound(get).map(_.headers).run must_== service.orNotFound(head).map(_.headers).run
     }
 
     "allow GET body to clean up on fallthrough" in {
@@ -44,7 +44,7 @@ class DefaultHeadSpec extends Http4sSpec {
           val body: EntityBody = halt.onComplete(eval_(Task.delay(cleanedUp = true)))
           Ok(body)
       })
-      service.run(Request(Method.HEAD)).flatMap(_.as[String]).run
+      service.orNotFound(Request(Method.HEAD)).flatMap(_.as[String]).run
       cleanedUp must beTrue
     }
   }

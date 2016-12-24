@@ -26,13 +26,15 @@ object Jsonp  {
     HttpService.lift { req =>
       req.params.get(callbackParam) match {
         case Some(ValidCallback(callback)) =>
-          service(req).map { resp =>
-            resp.contentType.map(_.mediaType) match {
-              case Some(MediaType.`application/json`) =>
-                jsonp(resp, callback)
-              case _ =>
-                resp
-            }
+          service(req).map {
+            case resp: Response =>
+              resp.contentType.map(_.mediaType) match {
+                case Some(MediaType.`application/json`) =>
+                  jsonp(resp, callback)
+                case _ =>
+                  resp
+              }
+            case Pass => Pass
           }
         case Some(invalidCallback) =>
           logger.warn(s"Jsonp requested with invalid callback function name $invalidCallback")

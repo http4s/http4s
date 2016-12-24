@@ -104,10 +104,11 @@ class Http4sServlet(service: HttpService,
     }
   }
 
-  private def renderResponse(response: Task[Response],
+  private def renderResponse(response: Task[MaybeResponse],
                              servletResponse: HttpServletResponse,
                              bodyWriter: BodyWriter): Task[Unit] =
-    response.flatMap { r =>
+    response.flatMap { maybeResponse =>
+      val r = maybeResponse.orNotFound
       // Note: the servlet API gives us no undeprecated method to both set
       // a body and a status reason.  We sacrifice the status reason.
       servletResponse.setStatus(r.status.code)

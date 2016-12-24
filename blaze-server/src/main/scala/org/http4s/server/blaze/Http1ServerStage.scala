@@ -117,7 +117,8 @@ private class Http1ServerStage(service: HttpService,
     }
   }
 
-  protected def renderResponse(req: Request, resp: Response, bodyCleanup: () => Future[ByteBuffer]): Unit = {
+  protected def renderResponse(req: Request, maybeResponse: MaybeResponse, bodyCleanup: () => Future[ByteBuffer]): Unit = {
+    val resp = maybeResponse.orNotFound
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 

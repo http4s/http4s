@@ -13,10 +13,10 @@ import scalaz.concurrent.Task
 object AutoSlash {
   def apply(service: HttpService): HttpService = Service.lift { req =>
     service(req).flatMap {
-      case resp if resp.status == Status.NotFound =>
+      case Pass =>
         val p = req.uri.path
         if (p.isEmpty || p.charAt(p.length - 1) != '/')
-          Task.now(resp)
+          Pass.now
         else {
           val withSlash = req.copy(uri = req.uri.copy(path = p.substring(0, p.length - 1)))
           service.apply(withSlash)

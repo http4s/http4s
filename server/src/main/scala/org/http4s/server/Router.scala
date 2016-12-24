@@ -1,6 +1,8 @@
 package org.http4s
 package server
 
+import scalaz.syntax.monoid._
+
 object Router {
 
   import Service.{withFallback => fallback}
@@ -20,15 +22,14 @@ object Router {
     * The mappings are processed in descending order (longest first) of prefix length.
     */
   def define(mappings: (String, HttpService)*)
-            (default: HttpService = HttpService.empty)
-            (implicit fallthrough: Fallthrough[Response]): HttpService =
+            (default: HttpService = HttpService.empty): HttpService =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, service)) =>
-        if (prefix.isEmpty || prefix == "/") fallback(acc)(service)(fallthrough)
+        if (prefix.isEmpty || prefix == "/") service |+| acc
         else HttpService.lift {
           req => (
             if (req.pathInfo.startsWith(prefix))
-              fallback(acc)(translate(prefix)(service))(fallthrough)
+              translate(prefix)(service) |+| acc
             else
               acc
           ) (req)

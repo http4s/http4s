@@ -27,12 +27,12 @@ object ResourceService {
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
+  private[staticcontent] def apply(config: Config): HttpService= Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      Response.fallthrough
+      Pass.now
     else
       StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
-        .fold(Response.fallthrough)(config.cacheStrategy.cache(uriPath, _))
+        .fold(Pass.now)(config.cacheStrategy.cache(uriPath, _))
   }
 }

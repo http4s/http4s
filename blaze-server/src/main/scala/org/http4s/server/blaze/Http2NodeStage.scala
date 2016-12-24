@@ -212,7 +212,8 @@ private class Http2NodeStage(streamId: Int,
     }
   }
 
-  private def renderResponse(req: Request, resp: Response): Unit = {
+  private def renderResponse(req: Request, maybeResponse: MaybeResponse): Unit = {
+    val resp = maybeResponse.orNotFound
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
     resp.headers.foreach{ h =>

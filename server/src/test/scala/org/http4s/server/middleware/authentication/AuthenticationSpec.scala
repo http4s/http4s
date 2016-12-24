@@ -48,7 +48,7 @@ class AuthenticationSpec extends Http4sSpec {
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
       var isNuked = false
       val authedValidateNukeService = BasicAuth(realm, validatePassword _)(nukeService { isNuked = true })
-      val res = authedValidateNukeService.run(req).run
+      val res = authedValidateNukeService.orNotFound(req).run
       isNuked must_== false
       res.status must_== (Unauthorized)
     }
@@ -59,7 +59,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
-      val res = basicAuthedService.run(req).run
+      val res = basicAuthedService.orNotFound(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -67,7 +67,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with unknown username with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
-      val res = basicAuthedService.run(req).run
+      val res = basicAuthedService.orNotFound(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -75,7 +75,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
-      val res = basicAuthedService.run(req).run
+      val res = basicAuthedService.orNotFound(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -83,7 +83,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
-      val res = basicAuthedService.run(req).run
+      val res = basicAuthedService.orNotFound(req).run
 
       res.status must_== (Ok)
     }
@@ -96,7 +96,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to a request without authentication with 401" in {
       val authedService = DigestAuth(realm, authStore)(service)
       val req = Request(uri = Uri(path = "/"))
-      val res = authedService.run(req).run
+      val res = authedService.orNotFound(req).run
 
       res.status must_== (Status.Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -114,7 +114,7 @@ class AuthenticationSpec extends Http4sSpec {
     def doDigestAuth1(digest: HttpService) = {
       // Get auth data
       val req = Request(uri = Uri(path = "/"))
-      val res = digest.apply(req).run
+      val res = digest.orNotFound(req).run
 
       res.status must_== (Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -141,10 +141,10 @@ class AuthenticationSpec extends Http4sSpec {
       val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), params))
 
       val req2 = Request(uri = Uri(path = "/"), headers = Headers(header))
-      val res2 = digest.apply(req2).run
+      val res2 = digest.orNotFound(req2).run
 
       if (withReplay) {
-        val res3 = digest.apply(req2).run
+        val res3 = digest.orNotFound(req2).run
         (res2, res3)
       } else
         (res2, null)
@@ -228,7 +228,7 @@ class AuthenticationSpec extends Http4sSpec {
         val invalid_params = params.take(i) ++ params.drop(i + 1)
         val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), invalid_params))
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
-        val res = digestAuthService.run(req).run
+        val res = digestAuthService.orNotFound(req).run
 
         res.status
       })

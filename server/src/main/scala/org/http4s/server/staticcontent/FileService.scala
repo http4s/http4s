@@ -32,15 +32,15 @@ object FileService {
 
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
+  private[staticcontent] def apply(config: Config): HttpService = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      Response.fallthrough
+      Pass.now
     else
       getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
         .map { f => config.pathCollector(f, config, req) }
         .getOrElse(Task.now(None))
-        .flatMap(_.fold(Response.fallthrough)(config.cacheStrategy.cache(uriPath, _)))
+        .flatMap(_.fold(Pass.now)(config.cacheStrategy.cache(uriPath, _)))
   }
 
   /* Returns responses for static files.

@@ -29,6 +29,6 @@ package object metrics {
   def metricsService(registry: MetricRegistry, mapper: ObjectMapper = defaultMapper): HttpService =
     HttpService.lift { req =>
       if (req.method == Method.GET) metricsResponse(registry, mapper)
-      else Response.fallthrough
+      else Pass.now
     }
 }

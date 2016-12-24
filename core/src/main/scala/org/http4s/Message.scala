@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
+import scalaz.Monoid
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.text.utf8Decode
@@ -224,6 +225,53 @@ object Request {
   }
 }
 
+/**
+ * Represents that a service either returns a [[Response]] or a [[Pass]] to fall through
+ * to another service.
+ */
+sealed trait MaybeResponse {
+  def cata[A](f: Response => A, a: => A): A =
+    this match {
+      case r: Response => f(r)
+      case Pass => a
+    }
+
+  def orElse[B >: Response](b: => B): B =
+    this match {
+      case r: Response => r
+      case Pass => b
+    }
+
+  def orNotFound: Response =
+    orElse(Response(Status.NotFound))
+
+  def toOption: Option[Response] =
+    cata(Some(_), None)
+}
+
+object MaybeResponse {
+  implicit val instance: Monoid[MaybeResponse] =
+    new Monoid[MaybeResponse] {
+      def zero =
+        Pass
+      def append(a: MaybeResponse, b: => MaybeResponse) =
+        a orElse b
+    }
+
+  implicit val taskInstance: Monoid[Task[MaybeResponse]] =
+    new Monoid[Task[MaybeResponse]] {
+      def zero =
+        Pass.now
+      def append(ta: Task[MaybeResponse], tb: => Task[MaybeResponse]): Task[MaybeResponse] =
+        ta.flatMap(_.cata(Task.now, tb))
+    }
+}
+
+case object Pass extends MaybeResponse {
+  val now: Task[MaybeResponse] =
+    Task.now(Pass)
+}
+
 /** Representation of the HTTP response to send back to the client
  *
  * @param status [[Status]] code and message
@@ -237,7 +285,8 @@ final case class Response(
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
-  attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseOps {
+  attributes: AttributeMap = AttributeMap.empty)
+    extends Message with MaybeResponse with ResponseOps {
   type Self = Response
 
   override def withStatus(status: Status): Self =
@@ -251,32 +300,9 @@ final case class Response(
 }
 
 object Response {
-  private val theFallthrough = 
-    Response(Status.NotFound)
-      .withBody("404 Not Found")
-      .run
-
-  /** The default response to signifiy that a [[Service]] could not handle a
-    * response.  This generates a 404 response `r` such that
-    * `Fallthrough.isFallthrough(r.run)` is true.  This response is used todo
-    * preserve the totality of a [[Service]], while indicating that a better
-    * response may be obtained by falling through to another service via
-    * `orElse`.
-    * 
-    * See [[Fallthrough]] for more details.
-    */
-  val fallthrough: Task[Response] =
-    Task.now(theFallthrough)
-
-  /** A [[Response]] falls through if it is `Response.fallthrough`. */
-  implicit val instance: Fallthrough[Response] =
-    new Fallthrough[Response] {
-      val fallthrough: Response =
-        theFallthrough
-
-      def isFallthrough(r: Response): Boolean =
-        r eq theFallthrough
-    }
+  @deprecated("Use Pass.now instead", "0.16")
+  val fallthrough: Task[MaybeResponse] =
+    Pass.now
 
   def notFound(request: Request): Task[Response] = {
     val body = s"${request.pathInfo} not found"

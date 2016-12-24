@@ -13,6 +13,7 @@ organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.16.0-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
 scalaVersion in ThisBuild := "2.11.8"
+// scalaOrganization in ThisBuild := "org.typelevel"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
@@ -450,6 +451,7 @@ lazy val commonSettings = Seq(
     "-Xlint",
     "-Yinline-warnings",
     "-Yno-adapted-args",
+//    "-Ypartial-unification",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
