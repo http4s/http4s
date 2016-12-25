@@ -13,12 +13,12 @@
           <footer>
             <nav>
               <ul class="pager">
-                {{ if .Prev }}
-                <li class="previous"><a href="{{.Prev.Permalink}}"><i class="fa fa-arrow-left"></i> {{.Prev.Title}}</a></li>
+                {{ if .NextInSection }}
+                <li class="previous"><a href="{{.NextInSection.Permalink}}"><i class="fa fa-arrow-left"></i> {{.NextInSection.Title}}</a></li>
                 {{ end }}
                 <li><a href="https://github.com/http4s/http4s/edit/release-{{.Site.Params.version}}.x/docs/src/main/tut{{ replace .File.Path (print "v" .Site.Params.version) ""}}"><i class="fa fa-pencil"></i> Edit this page</a></li>
-                {{ if .Next }}
-                <li class="next"><a href="{{.Next.Permalink}}">{{.Next.Title}} <i class="fa fa-arrow-right"></i></a></li>
+                {{ if .PrevInSection }}
+                <li class="next"><a href="{{.PrevInSection.Permalink}}">{{.PrevInSection.Title}} <i class="fa fa-arrow-right"></i></a></li>
                 {{ end }}
               </ul>
             </nav>
