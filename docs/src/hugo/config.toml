@@ -3,7 +3,9 @@ languageCode = "en-us"
 title = "http4s"
 
 [params]
-version = "0.15"
+# TODO Render these as part of the build process
+apiVersion = "0.15"
+version = "0.15.1"
 
 [[menu.tut]]
     name = "Scaladoc"
