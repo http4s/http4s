@@ -1,6 +1,7 @@
 ---
-layout: default
-title: Dealing with Entity Bodies
+menu: tut
+weight: 300
+title: Entity handling
 ---
 
 ## Why Entity*

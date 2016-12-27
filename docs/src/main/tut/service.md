@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 100
 title: Service
 ---
 
@@ -11,7 +12,7 @@ Create a new directory, with the following build.sbt in the root:
 ```scala
 scalaVersion := "2.11.8" // Also supports 2.10.x
 
-val http4sVersion = "0.15.0a-SNAPSHOT"
+val http4sVersion = {{ .Site.Params.version }}
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")

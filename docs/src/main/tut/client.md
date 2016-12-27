@@ -1,9 +1,8 @@
 ---
-layout: default
+menu: tut
+weight: 200
 title: HTTP Client
 ---
-
-## Your first client
 
 How do we know the server is running?  Let's create a client with
 http4s to try our service.
@@ -24,7 +23,6 @@ import org.http4s.server.syntax._
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
 val server = builder.run
 ```
-
 
 ### Creating the client
 

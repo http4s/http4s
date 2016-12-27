@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 310
 title: JSON handling
 ---
 
@@ -9,12 +10,10 @@ title: JSON handling
 
 Argonaut-shapeless for automatic codec derivation.
 
-Note: argonaut-shapeless is not yet available for argonaut-6.2.
-
 ```scala
 libraryDependencies += Seq(
-  "org.http4s" %% "http4s-argonaut" % "0.15.0a",
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0"
+  "org.http4s" %% "http4s-argonaut" % "{{< version >}}",
+  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0-M4"
 )
 ```
 
@@ -24,8 +23,8 @@ Circe-generic for automatic codec derivation.
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-circe" % "0.15.0a",
-  "io.circe" %% "circe-generic" % "0.4.1"
+  "org.http4s" %% "http4s-circe" % "{{< version >}}",
+  "io.circe" %% "circe-generic" % "0.6.1"
 )
 ```
 
@@ -34,8 +33,8 @@ libraryDependencies ++= Seq(
 Json4s supports two backends.  Choose one of:
 
 ```scala
-libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "0.15.0a"
-libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "0.15.0a"
+libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "{{< version >}}"
+libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "{{< version >}}"
 ```
 
 ## Import it
