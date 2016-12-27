@@ -72,7 +72,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1a8310bb
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@8108859
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -109,7 +109,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@edfebf7
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@2de0b650
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -209,7 +209,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@8ea77ed
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@13b5d24b
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -226,7 +226,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@505f7836
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@74c6bc2b
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -417,7 +417,7 @@ implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
     QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@b5800fe
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@5ce07ce
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 // defined object YearQueryParamMatcher

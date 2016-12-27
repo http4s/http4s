@@ -63,24 +63,24 @@ scala> case class Video(body: String) extends Resp
 defined class Video
 
 scala> val response = Ok().withBody("").withContentType(Some(MediaType.`audio/ogg`))
-response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3382cd
+response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3e55375c
 
 scala> val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =>
      |   EitherT {
      |     msg.as[String].map(s => Audio(s).right[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@37b7dcce
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@329d5ce
 
 scala> val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =>
      |   EitherT {
      |     msg.as[String].map(s => Video(s).right[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@7cca6a2b
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@4e8a4445
 
 scala> val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@5054b3ba
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@db6dedb
 
 scala> println(response.as(bothDec).run)
 <console>:34: warning: method run in class Task is deprecated: use unsafePerformSync

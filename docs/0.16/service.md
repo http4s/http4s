@@ -118,7 +118,7 @@ val services = tweetService orElse helloWorldService
 // services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(<function1>)
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@1d6077cd
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@55d197d0
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
