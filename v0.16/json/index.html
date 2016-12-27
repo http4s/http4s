@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: JSON handling</title>
+
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="/css/style.css" >
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+</head>
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	  <li >
+	    <a href="/community/">Community</a>
+	  </li>
+	
+	  <li >
+	    <a href="/versions/">Versions</a>
+	  </li>
+	
+	  <li >
+	    <a href="/adopters/">Adopters</a>
+	  </li>
+	
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <body>
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1>JSON handling</h1>
+          </div>
+          
+
+<h2 id="pick-a-library">Pick a library</h2>
+
+<h3 id="argonaut">Argonaut</h3>
+
+<p>Argonaut-shapeless for automatic codec derivation.</p>
+
+<pre><code class="language-scala">libraryDependencies += Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % &quot;0.16.0-SNAPSHOT&quot;,
+  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M4&quot;
+)
+</code></pre>
+
+<h3 id="circe">Circe</h3>
+
+<p>Circe-generic for automatic codec derivation.</p>
+
+<pre><code class="language-scala">libraryDependencies ++= Seq(
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.16.0-SNAPSHOT&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.6.1&quot;
+)
+</code></pre>
+
+<h3 id="json4s">Json4s</h3>
+
+<p>Json4s supports two backends.  Choose one of:</p>
+
+<pre><code class="language-scala">libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % &quot;0.16.0-SNAPSHOT&quot;
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % &quot;0.16.0-SNAPSHOT&quot;
+</code></pre>
+
+<h2 id="import-it">Import it</h2>
+
+<p>The import statement is one of the following:</p>
+
+<pre><code class="language-scala">import org.http4s.argonaut._
+import org.http4s.circe._
+import org.http4s.json4s.jackson._
+import org.http4s.json4s.native._
+</code></pre>
+
+<h2 id="deriving-codecs">Deriving codecs</h2>
+
+<p>To use the functions provided by http4s, the corresponding implicit instances
+need to be in scope. For argonaut, there is <a href="https://github.com/alexarchambault/argonaut-shapeless">argonaut-shapeless</a>, circe has the
+<a href="https://github.com/travisbrown/circe#codec-derivation">circe-generic</a> module. With json4s, there&rsquo;s <a href="https://github.com/http4s/http4s/blob/master/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L29">jsonExtract</a>, with the
+corresponding drawbacks.</p>
+
+<h2 id="sending-json">Sending JSON</h2>
+
+<p>The usage is the same for client and server, both points use an
+<code>EntityEncoder[T]</code> to transform the outgoing data into a scala class.
+One of the imports above brings into scope an <code>EntityDecoder[Json]</code>
+(or <code>EntityDecoder[JValue]</code> in the case of json4s).</p>
+
+<p>In circe, when one has an <code>Encoder</code> instance, <code>.asJson</code> can be
+called to get to a <code>Json</code>.  In the example below, we convert the
+<code>Hello</code> case class to JSON for rendering in an <code>Ok</code> response.</p>
+
+<pre><code class="language-scala">import io.circe._
+// import io.circe._
+
+import io.circe.generic.auto._
+// import io.circe.generic.auto._
+
+import io.circe.syntax._
+// import io.circe.syntax._
+
+import org.http4s._
+// import org.http4s._
+
+import org.http4s.circe._
+// import org.http4s.circe._
+
+import org.http4s.dsl._
+// import org.http4s.dsl._
+
+case class User(name: String)
+// defined class User
+
+case class Hello(greeting: String)
+// defined class Hello
+
+val jsonService = HttpService {
+  case r @ POST -&gt; Root / &quot;hello&quot; =&gt;
+    r.as(jsonOf[User]).flatMap(user =&gt;
+      Ok(Hello(s&quot;Hello, ${user.name}&quot;).asJson)
+    )
+}
+// jsonService: org.http4s.HttpService = Kleisli(&lt;function1&gt;)
+
+import org.http4s.server.blaze._
+// import org.http4s.server.blaze._
+
+val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(jsonService, &quot;/&quot;)
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@5b349fde
+
+val blazeServer = builder.run
+// blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
+</code></pre>
+
+<h2 id="receiving-json">Receiving JSON</h2>
+
+<p>The <code>EntityDecoder[T]</code> instances work similarly to the <code>EntityEncoder[T]</code>
+instances, except it&rsquo;s <code>jsonOf</code> to create the instances.</p>
+
+<p>Let&rsquo;s talk to the server defined above.</p>
+
+<pre><code class="language-scala">import org.http4s.client.blaze._
+// import org.http4s.client.blaze._
+
+import org.http4s.Uri
+// import org.http4s.Uri
+
+val httpClient = PooledHttp1Client()
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@17d41213)
+
+val req = Request(uri = Uri.uri(&quot;http://localhost:8080/hello&quot;), method = Method.POST).withBody(User(&quot;Anabelle&quot;))(jsonEncoderOf)
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@62b1f481
+
+httpClient.expect(req)(jsonOf[Hello]).run
+// &lt;console&gt;:44: warning: method run in class Task is deprecated: use unsafePerformSync
+//        httpClient.expect(req)(jsonOf[Hello]).run
+//                                              ^
+// res0: Hello = Hello(Hello, Anabelle)
+</code></pre>
+
+<p>And clean everything up.</p>
+
+<pre><code class="language-scala">httpClient.shutdownNow()
+
+blazeServer.shutdownNow()
+</code></pre>
+
+<h2 id="talking-to-the-github-api">Talking to the Github API</h2>
+
+<p>As an example, we&rsquo;ll use the <a href="https://developer.github.com/v3/repos/#list-organization-repositories">github-orgs</a> endpoint. The data is shortened a bit
+for clarity.</p>
+
+<pre><code class="language-json">[
+  {
+    &quot;id&quot;: 3692188,
+    &quot;name&quot;: &quot;http4s&quot;,
+    &quot;full_name&quot;: &quot;http4s/http4s&quot;,
+    &quot;owner&quot;: {
+      &quot;login&quot;: &quot;http4s&quot;,
+      &quot;id&quot;: 1527492
+      // ...
+    },
+    &quot;private&quot;: false,
+    &quot;html_url&quot;: &quot;https://github.com/http4s/http4s&quot;,
+    &quot;description&quot;: &quot;A minimal, idiomatic Scala interface for HTTP&quot;,
+    &quot;size&quot;: 21365,
+    &quot;stargazers_count&quot;: 533,
+    &quot;language&quot;: &quot;Scala&quot;,
+    &quot;forks_count&quot;: 118,
+    &quot;open_issues_count&quot;: 69,
+    &quot;forks&quot;: 118,
+    &quot;open_issues&quot;: 69,
+    &quot;watchers&quot;: 533
+    // ...
+  }
+  // ...
+]
+</code></pre>
+
+<p>To capture this structure, we&rsquo;ll need corresponding case classes.</p>
+
+<pre><code class="language-scala">case class User(login: String, id: Long)
+// defined class User
+
+case class Repo(id: Long, name: String, full_name: String, owner: User, `private`: Boolean, html_url: String, description: String, size: Int, stargazers_count: Int, language: String, forks_count: Int, open_issues_count: Int, forks: Int, open_issues: Int, watchers: Int)
+// defined class Repo
+</code></pre>
+
+<p>This parts skips over the <a href="client.html">client</a> explanation. We&rsquo;ll use circe, with
+<a href="https://github.com/travisbrown/circe#codec-derivation">circe-generic</a> for codec derivation. The JSON decoder is provided by
+circe-generic, and passed to the <code>client.expect</code> method via the second
+argument, which is usually an implicit <code>EntityDecoder</code>.  In this case,
+we want to be more explicit.</p>
+
+<!-- For more information about the uri templating, visit [uri]. -->
+
+<pre><code class="language-scala">import scalaz.concurrent.Task
+// import scalaz.concurrent.Task
+
+import org.http4s.util.string._
+// import org.http4s.util.string._
+
+val httpClient = PooledHttp1Client()
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@5db76ecf)
+
+def repos(organization: String): Task[List[Repo]] = {
+  val uri = Uri.uri(&quot;https://api.github.com/orgs&quot;) / organization / &quot;repos&quot;
+  httpClient.expect(uri)(jsonOf[List[Repo]])
+}
+// repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
+
+val http4s = repos(&quot;http4s&quot;)
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@d82fd18
+
+http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
+// &lt;console&gt;:49: warning: method run in class Task is deprecated: use unsafePerformSync
+//        http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
+//                                                             ^
+// res3: String =
+// 626
+// 92
+// 9
+// 79
+// 1
+// 5
+// 0
+// 0
+
+httpClient.shutdownNow()
+</code></pre>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li class="previous"><a href="http://127.0.0.1:4000/v0.16/streaming/"><i class="fa fa-arrow-left"></i> Streaming</a></li>
+                
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/json.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                
+                <li class="next"><a href="http://127.0.0.1:4000/v0.16/uri/">URI handling <i class="fa fa-arrow-right"></i></a></li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+              <li >
+                <a href="/v0.16/">Quick Start</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/service/">Service</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/dsl/">The http4s DSL</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/middleware/">Middleware</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/auth/">Authentication</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/cors/">CORS</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/static/">Static Files</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/client/">HTTP Client</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/entity/">Entity handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/streaming/">Streaming</a>
+              </li>
+              
+              <li class="active">
+                <a href="/v0.16/json/">JSON handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/uri/">URI handling</a>
+              </li>
+              
+              <li >
+                <a href="/v0.16/api">Scaladoc</a>
+              </li>
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="/js/bootstrap.min.js"></script>    
+<script src="/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>
