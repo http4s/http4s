@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+	<meta name="generator" content="Hugo 0.18" />
+  <meta charset="utf-8">
+  <title>http4s: http4s</title>
+
+  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="/css/style.css" >
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+</head>
+
+  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	  <li >
+	    <a href="/community/">Community</a>
+	  </li>
+	
+	  <li >
+	    <a href="/versions/">Versions</a>
+	  </li>
+	
+	  <li >
+	    <a href="/adopters/">Adopters</a>
+	  </li>
+	
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://twitter.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  <body>
+    <div class="container">
+      <div class="content">
+	<div class="jumbotron">
+	  <h1>
+	    <img src="/images/http4s-logo.svg" alt="" />http4s
+	  </h1>
+	  <p>
+	    A typeful, purely functional, streaming library for HTTP
+	    clients and servers in Scala.
+	  </p>
+	  <p><a class="btn btn-primary btn-lg" href="/v0.15/" role="button">Get started</a></p>
+	</div>
+
+	<div class="row">
+	  
+	  <div class="col-md-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">Typeful</h2>
+    </div>
+    <div class="panel-body">
+      <p>http4s uses Scala&rsquo;s type system to increase self-documentation and
+compile-time verification.  Standard headers are lazily parsed to
+semantically meaningful types, and typeclasses are provided to
+encode and decode bodies to several common formats.</p>
+    </div>
+  </div>
+</div>
+
+	  
+	  <div class="col-md-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">Purely functional</h2>
+    </div>
+    <div class="panel-body">
+      <p>The pure functional side of Scala is favored to promote
+composability and easy reasoning about your code.  The core is
+built on an immutable case class model of HTTP requests and
+responses, shared by the client and the server.</p>
+    </div>
+  </div>
+</div>
+
+	  
+	  <div class="col-md-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h2 class="panel-title">Streaming</h2>
+    </div>
+    <div class="panel-body">
+      <p>http4s is built on <a href="https://github.com/scalaz/scalaz-stream">scalaz-streams</a><span data-footnote="1"/>,
+which provides the foundation for processing and emitting large
+payloads in constant space and implementing websockets.</p>
+
+<p>A port from scalaz-stream to <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a> and <a href="http://typelevel.org/cats">cats</a> is in progress.</p>
+    </div>
+  </div>
+</div>
+
+	  
+	</div>
+      </div>
+    </div>
+  </body>
+</html>
