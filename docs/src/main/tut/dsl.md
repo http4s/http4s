@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 110
 title: The http4s DSL
 ---
 
@@ -118,6 +119,58 @@ response:
 HttpService {
   case _ => NoContent()
 }.run(getRoot).run
+```
+
+### Headers
+
+http4s adds a minimum set of headers depending on the response, e.g:
+
+```tut
+Ok("Ok response.").run.headers
+```
+
+Extra headers can be added using `putHeaders`, for example to specify cache policies:
+
+```tut:book
+import org.http4s.headers.`Cache-Control`
+import org.http4s.CacheDirective.`no-cache`
+import org.http4s.util.NonEmptyList
+```
+
+```tut
+Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).run.headers
+```
+
+http4s defines all the well known headers directly, but sometimes you need to
+define custom headers, typically prefixed by an `X-`. In simple cases you can
+construct a `Header` instance by hand
+
+```tut
+Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).run.headers
+```
+
+### Cookies
+
+http4s has special support for Cookie headers using the `Cookie` type to add
+and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
+
+```tut
+Ok("Ok response.").addCookie(Cookie("foo", "bar")).run.headers
+```
+
+`Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
+
+```tut
+import java.time.Instant
+
+Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).run.headers
+```
+
+To request a cookie to be removed on the client, you need to set the cookie value
+to empty. http4s can do that with `removeCookie`
+
+```tut
+Ok("Ok response.").removeCookie("foo").run.headers
 ```
 
 ### Responding with a body

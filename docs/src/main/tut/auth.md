@@ -1,8 +1,8 @@
 ---
-layout: default
+menu: tut
+weight: 120
 title: Authentication
 ---
-## Authentication
 
 A [service] is a `Kleisli[Task, Request, Response]`, the composable version of
 `Request => Task[Response]`. http4s provides an alias called `Service[Request,

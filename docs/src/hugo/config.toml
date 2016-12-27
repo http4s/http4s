@@ -1,0 +1,13 @@
+baseurl = "http://http4s.org/"
+languageCode = "en-us"
+title = "http4s"
+
+[params]
+# TODO Render these as part of the build process
+apiVersion = "0.15"
+version = "0.15.1"
+
+[[menu.tut]]
+    name = "Scaladoc"
+    weight = 10000
+    url = "/v0.15/api"
