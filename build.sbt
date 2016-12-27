@@ -299,7 +299,7 @@ lazy val docs = http4sProject("docs")
         preserveLastModified = true)
       IO.copyDirectory(
         source = tutTargetDirectory.value,
-        target = siteStageDirectory.value / "content" / "v0.15",
+        target = siteStageDirectory.value / "content" / "v0.16",
         overwrite = false,
         preserveLastModified = true)
       IO.copyFile(
