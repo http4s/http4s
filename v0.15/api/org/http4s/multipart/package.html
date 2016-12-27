@@ -1,0 +1,239 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>multipart - org.http4s.multipart</title>
+          <meta name="description" content="multipart - org.http4s.multipart" />
+          <meta name="keywords" content="multipart org.http4s.multipart" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'org.http4s.multipart.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a></p>
+        <h1>multipart</h1><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">multipart</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>This package is the start of a multipart implementation for http4s.
+It is still deficient in a few ways:</p><p>- All encoding is chunked transfers, except for entities small
+enough to fit into the blaze buffer.  This irritates some server
+implementations.</p><p>- When decoding, chunks are kept in memory.  Large ones should be
+buffered to a temp file.</p><p>- It's a bit handwavy around character sets.  Things probably go
+horribly wrong if you're not UTF-8.</p><p>- This module is lightly tested, and its API should be considered
+experimental.</p><p>Enter this package at your own risk, but we'd love the feedback.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/multipart/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s.multipart"><span>multipart</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show All</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.multipart.Boundary" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BoundaryextendsAnyValwithProductwithSerializable"></a>
+      <a id="Boundary:Boundary"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Boundary.html"><span class="name">Boundary</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package@BoundaryextendsAnyValwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.multipart.Multipart" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MultipartextendsProductwithSerializable"></a>
+      <a id="Multipart:Multipart"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Multipart.html"><span class="name">Multipart</span></a><span class="params">(<span name="parts">parts: <span class="extype" name="scala.Vector">Vector</span>[<a href="Part.html" class="extype" name="org.http4s.multipart.Part">Part</a>]</span>, <span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a> = <span class="symbol"><span class="name"><a href="Boundary$.html">Boundary.create</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package@MultipartextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.multipart.Part" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PartextendsProductwithSerializable"></a>
+      <a id="Part:Part"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Part.html"><span class="name">Part</span></a><span class="params">(<span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="body">body: <a href="../package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package@PartextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.http4s.multipart.Boundary" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Boundary"></a>
+      <a id="Boundary:Boundary"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Boundary$.html"><span class="name">Boundary</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package@Boundary" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.multipart.MultipartParser" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MultipartParser"></a>
+      <a id="MultipartParser:MultipartParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MultipartParser$.html"><span class="name">MultipartParser</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package@MultipartParser" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A low-level multipart-parsing pipe.</p><div class="fullcomment"><div class="comment cmt"><p>A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart].</p></div></div>
+    </li><li name="org.http4s.multipart.Part" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Part"></a>
+      <a id="Part:Part"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Part$.html"><span class="name">Part</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.multipart.package@Part" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
