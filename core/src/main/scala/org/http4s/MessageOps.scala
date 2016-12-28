@@ -3,6 +3,7 @@ package org.http4s
 import java.time.{ZoneOffset, Instant}
 
 import org.http4s.headers.{`Set-Cookie`, `Content-Type`}
+import org.http4s.util.NonEmptyList._
 
 import scalaz.\/
 import scalaz.concurrent.Task
@@ -114,6 +115,16 @@ trait RequestOps extends Any with MessageOps {
     *               [[MediaType]] is not supported by the provided decoder
     */
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response]
+
+  /** Add a Cookie header for the provided [[Cookie]] */
+  final def addCookie(cookie: Cookie): Self =
+    putHeaders(org.http4s.headers.Cookie(nels(cookie)))
+
+  /** Add a Cookie header with the provided values */
+  final def addCookie(name: String,
+                      content: String,
+                      expires: Option[Instant] = None): Self =
+    addCookie(Cookie(name, content, expires))
 }
 
 trait ResponseOps extends Any with MessageOps {
