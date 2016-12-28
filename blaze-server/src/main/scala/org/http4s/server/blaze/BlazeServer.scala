@@ -16,7 +16,8 @@ import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
-import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
+import org.http4s.server.SSLSupport.{StoreInfo, KeyStoreBits}
+import org.http4s.server.SSLContextSupport.SSLContextBits
 
 import org.log4s.getLogger
 
@@ -40,6 +41,7 @@ class BlazeBuilder(
   extends ServerBuilder
   with IdleTimeoutSupport
   with SSLSupport
+  with SSLContextSupport
   with server.WebSocketSupport
 {
   type Self = BlazeBuilder
@@ -75,8 +77,12 @@ class BlazeBuilder(
   }
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
-    val bits = SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
+    val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
+  }
+
+  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self = {
+    copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
   }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
@@ -198,36 +204,39 @@ class BlazeBuilder(
     }
   }
 
-  private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map { bits =>
-
-    val ksStream = new FileInputStream(bits.keyStore.path)
-    val ks = KeyStore.getInstance("JKS")
-    ks.load(ksStream, bits.keyStore.password.toCharArray)
-    ksStream.close()
-
-    val tmf = bits.trustStore.map { auth =>
-      val ksStream = new FileInputStream(auth.path)
-
+  private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
+    case KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth) =>
+      val ksStream = new FileInputStream(keyStore.path)
       val ks = KeyStore.getInstance("JKS")
-      ks.load(ksStream, auth.password.toCharArray)
+      ks.load(ksStream, keyStore.password.toCharArray)
       ksStream.close()
 
-      val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+      val tmf = trustStore.map { auth =>
+        val ksStream = new FileInputStream(auth.path)
 
-      tmf.init(ks)
-      tmf.getTrustManagers
-    }
+        val ks = KeyStore.getInstance("JKS")
+        ks.load(ksStream, auth.password.toCharArray)
+        ksStream.close()
 
-    val kmf = KeyManagerFactory.getInstance(
-                  Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-                    .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+        val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
 
-    kmf.init(ks, bits.keyManagerPassword.toCharArray)
+        tmf.init(ks)
+        tmf.getTrustManagers
+      }
 
-    val context = SSLContext.getInstance(bits.protocol)
-    context.init(kmf.getKeyManagers(), tmf.orNull, null)
+      val kmf = KeyManagerFactory.getInstance(
+                    Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+                      .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
 
-    (context, bits.clientAuth)
+      kmf.init(ks, keyManagerPassword.toCharArray)
+
+      val context = SSLContext.getInstance(protocol)
+      context.init(kmf.getKeyManagers, tmf.orNull, null)
+
+      (context, clientAuth)
+
+    case SSLContextBits(context, clientAuth) =>
+      (context, clientAuth)
   }
 }
 

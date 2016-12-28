@@ -3,6 +3,7 @@ package server
 
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
+import javax.net.ssl.SSLContext
 
 import org.http4s.server.SSLSupport.StoreInfo
 
@@ -68,14 +69,26 @@ trait SSLSupport { this: ServerBuilder =>
               protocol: String = "TLS",
             trustStore: Option[StoreInfo] = None,
             clientAuth: Boolean = false): Self
+
 }
+
+trait SSLContextSupport { this: ServerBuilder =>
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self
+}
+
+sealed trait SSLBits
+
 object SSLSupport {
   final case class StoreInfo(path: String, password: String)
-  final case class SSLBits(keyStore: StoreInfo,
-                 keyManagerPassword: String,
-                           protocol: String,
-                         trustStore: Option[StoreInfo],
-                         clientAuth: Boolean)
+  final case class KeyStoreBits(keyStore: StoreInfo,
+                      keyManagerPassword: String,
+                                protocol: String,
+                              trustStore: Option[StoreInfo],
+                              clientAuth: Boolean) extends SSLBits
+}
+
+object SSLContextSupport {
+  final case class SSLContextBits(sslContext: SSLContext, clientAuth: Boolean) extends SSLBits
 }
 
 /*
