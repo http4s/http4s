@@ -66,7 +66,7 @@
 <h2 id="introduction">Introduction</h2>
 
 <p>Streaming lies at the heart of the http4s model of HTTP, in the literal sense that <code>EntityBody</code>
-is just a type alias for <code>Process[Task, ByteVector]</code>. Please see <a href="entity.html">entity</a> for details. This means
+is just a type alias for <code>Process[Task, ByteVector]</code>. Please see <a href="../entity">entity</a> for details. This means
 HTTP streaming is provided by both https&rsquo; service support and its client support.</p>
 
 <h2 id="streaming-responses-from-your-service">Streaming responses from your service</h2>
@@ -92,11 +92,11 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@1cf3baba[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@707bca32[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@32402072,&lt;function1&gt;,&lt;function1&gt;)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@7073c6a7,&lt;function1&gt;,&lt;function1&gt;)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
@@ -113,7 +113,7 @@ it converts a stream of JSON objects to a JSON array, which is friendlier to cli
 
 <h2 id="consuming-streams-with-the-client">Consuming streams with the client</h2>
 
-<p>The http4s <a href="client.html">client</a> supports consuming chunked HTTP responses as a stream, again because the
+<p>The http4s <a href="../client">client</a> supports consuming chunked HTTP responses as a stream, again because the
 <code>EntityBody</code> is a stream anyway. http4s&rsquo; <code>Client</code> interface consumes streams with the <code>streaming</code>
 function, which takes a <code>Request</code> and a <code>Response =&gt; Process[Task, A]</code> and returns a
 <code>Process[Task, A]</code>. Since an <code>EntityBody</code> is just a <code>Process[Task, ByteVector]</code>, then, the easiest way
@@ -131,7 +131,7 @@ to consume a stream is just:</p>
 <p>That gives you a <code>Process[Task, ByteVector], but you probably want something other than a</code>ByteVector`.
 Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/streaming/overview">Twitter&rsquo;s streaming APIs</a>, which return a stream of JSON.</p>
 
-<p>First, let&rsquo;s assume we want to use [Circe] for JSON support. Please see <a href="json.html">json</a> for details.</p>
+<p>First, let&rsquo;s assume we want to use [Circe] for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.15.1&quot;,
@@ -164,7 +164,7 @@ object twstream extends TaskApp {
   import scalaz.stream.io.stdOutLines
   import jawnstreamz._
   import io.circe.Json
-  
+
   // jawnstreamz needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 
