@@ -53,7 +53,7 @@ Wherever you are in your studies, let's create our first
 import org.http4s._, org.http4s.dsl._
 ```
 
-Using the [http4s-dsl], we can construct an `HttpService` by pattern
+Using the [http4s-dsl](dsl/), we can construct an `HttpService` by pattern
 matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
@@ -163,7 +163,7 @@ server.shutdownNow()
 ### Next steps
 
 Next, we'll take a deeper look at creating `HttpService`s with
-[http4s-dsl].
+[http4s-dsl](dsl/).
 
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
