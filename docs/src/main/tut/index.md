@@ -30,7 +30,7 @@ to make this a domain you own, in reverse order (i.e., TLD first).
 
 `http4s_version`
 : defaults to the latest stable release of http4s.  See
-the [releases](releases/) page for other suggestions.
+the [versions](/versions/) page for other suggestions.
 
 At the end of the process, you'll see:
 
