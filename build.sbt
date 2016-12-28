@@ -311,8 +311,8 @@ lazy val docs = http4sProject("docs")
     makeSite <<= makeSite.dependsOn(copySiteToStage),
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    includeFilter in makeSite := (
-      "*.html" | "*.css" |
+    includeFilter in Hugo := (
+        "*.html" |
         "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
         "*.js" | "*.swf" | "*.json" | "*.md" |
         "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
@@ -320,7 +320,14 @@ lazy val docs = http4sProject("docs")
     ),
     siteMappings := {
       if (Http4sGhPages.buildMainSite) siteMappings.value
-      else Seq.empty
+      else {
+        val (major, minor) = apiVersion.value
+        val prefix = s"/v${major}.${minor}/"
+        siteMappings.value.filter {
+          case (_, d) if d.startsWith(prefix) => true
+          case _ => false
+        }
+      }
     },
     siteMappings ++= {
       val m = (mappings in (ScalaUnidoc, packageDoc)).value
@@ -329,8 +336,7 @@ lazy val docs = http4sProject("docs")
     },
     cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
-    git.remoteRepo := "git@github.com:http4s/http4s.git",
-    ghpagesNoJekyll := true
+    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
