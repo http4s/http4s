@@ -89,7 +89,7 @@ object twstream extends TaskApp {
   import scalaz.stream.io.stdOutLines
   import jawnstreamz._
   import io.circe.Json
-  
+
   // jawnstreamz needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 
@@ -126,10 +126,10 @@ object twstream extends TaskApp {
 }
 ```
 
-[client]: client.html
-[entity]: entity.html
+[client]: ../client
+[entity]: ../entity
 [ScalaSyd 2015]: https://bitbucket.org/da_terry/scalasyd-doobie-http4s
-[json]: json.html
+[json]: ../json
 [jawn]: https://github.com/non/jawn
 [jawnstreamz]: https://github.com/rossabaker/jawn-fs2/tree/jawn-streamz
 [Twitter's streaming APIs]: https://dev.twitter.com/streaming/overview

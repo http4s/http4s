@@ -160,13 +160,8 @@ it down:
 server.shutdownNow()
 ```
 
-### Next steps
-
-Next, we'll take a deeper look at creating `HttpService`s with
-[http4s-dsl].
-
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
 [Kleisli: Composing monadic functions]: http://eed3si9n.com/learning-scalaz/Composing+monadic+functions.html
 [Scalaz Task: The Missing Documentation]: http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/
-[http4s-dsl]: dsl.html
+[http4s-dsl]: ../dsl
