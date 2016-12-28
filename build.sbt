@@ -311,8 +311,8 @@ lazy val docs = http4sProject("docs")
     makeSite <<= makeSite.dependsOn(copySiteToStage),
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    includeFilter in makeSite := (
-      "*.html" | "*.css" |
+    includeFilter in Hugo := (
+        "*.html" |
         "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
         "*.js" | "*.swf" | "*.json" | "*.md" |
         "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
