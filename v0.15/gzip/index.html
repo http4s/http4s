@@ -92,15 +92,9 @@ val request = Request(Method.GET, uri(&quot;/&quot;))
 
 // Do not call 'run' in your code - see note at bottom.
 val response = service(request).run
-// &lt;console&gt;:21: warning: method run in class Task is deprecated: use unsafePerformSync
-//        val response = service(request).run
-//                                        ^
 // response: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
 
 val body = response.as[String].run
-// &lt;console&gt;:21: warning: method run in class Task is deprecated: use unsafePerformSync
-//        val body = response.as[String].run
-//                                       ^
 // body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
 
 body.length
@@ -117,15 +111,9 @@ val zipService = GZip(service)
 
 // Do not call 'run' in your code - see note at bottom.
 val response = zipService(request).run
-// &lt;console&gt;:25: warning: method run in class Task is deprecated: use unsafePerformSync
-//        val response = zipService(request).run
-//                                           ^
 // response: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
 
 val body = response.as[String].run
-// &lt;console&gt;:25: warning: method run in class Task is deprecated: use unsafePerformSync
-//        val body = response.as[String].run
-//                                       ^
 // body: String = &quot;I repeat myself when I'm under stress. I repeat myself when I'm under stress. I repeat myself when I'm under stress. &quot;
 
 body.length
@@ -144,15 +132,9 @@ val zipRequest = request.putHeaders(acceptHeader)
 
 // Do not call 'run' in your code - see note at bottom.
 val response = zipService(zipRequest).run
-// &lt;console&gt;:27: warning: method run in class Task is deprecated: use unsafePerformSync
-//        val response = zipService(zipRequest).run
-//                                              ^
 // response: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip))
 
 val body = response.as[String].run
-// &lt;console&gt;:27: warning: method run in class Task is deprecated: use unsafePerformSync
-//        val body = response.as[String].run
-//                                       ^
 // body: String = &quot; �????????�T(J-HM,Qȭ,N�IS(�H�S�T�U(�KI-R(.)J-.�S�2????��&quot;
 
 body.length

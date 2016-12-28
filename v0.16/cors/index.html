@@ -92,9 +92,6 @@ val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 service(request).run
-// &lt;console&gt;:21: warning: method run in class Task is deprecated: use unsafePerformSync
-//        service(request).run
-//                         ^
 // res0: org.http4s.Response = Response(status=200, headers=Headers())
 </code></pre>
 
@@ -107,9 +104,6 @@ val corsService = CORS(service)
 // corsService: org.http4s.HttpService = Kleisli(&lt;function1&gt;)
 
 corsService(request).run
-// &lt;console&gt;:25: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsService(request).run
-//                             ^
 // res1: org.http4s.Response = Response(status=200, headers=Headers())
 </code></pre>
 
@@ -123,9 +117,6 @@ val corsRequest = request.putHeaders(originHeader)
 // corsRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Origin: somewhere.com)
 
 corsService(corsRequest).run
-// &lt;console&gt;:27: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsService(corsRequest).run
-//                                 ^
 // res2: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: somewhere.com, Access-Control-Max-Age: 86400))
 </code></pre>
 
@@ -170,21 +161,12 @@ val corsMethodSvc = CORS(service, methodConfig)
 // corsMethodSvc: org.http4s.HttpService = Kleisli(&lt;function1&gt;)
 
 corsMethodSvc(googleGet).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsMethodSvc(googleGet).run
-//                                 ^
 // res3: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
 
 corsMethodSvc(yahooPut).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsMethodSvc(yahooPut).run
-//                                ^
 // res4: org.http4s.Response = Response(status=200, headers=Headers())
 
 corsMethodSvc(duckPost).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsMethodSvc(duckPost).run
-//                                ^
 // res5: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
 </code></pre>
 
@@ -203,21 +185,12 @@ val corsOriginSvc = CORS(service, originConfig)
 // corsOriginSvc: org.http4s.HttpService = Kleisli(&lt;function1&gt;)
 
 corsOriginSvc(googleGet).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsOriginSvc(googleGet).run
-//                                 ^
 // res6: org.http4s.Response = Response(status=200, headers=Headers())
 
 corsOriginSvc(yahooPut).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsOriginSvc(yahooPut).run
-//                                ^
 // res7: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: PUT, Access-Control-Allow-Origin: yahoo.com, Access-Control-Max-Age: 86400))
 
 corsOriginSvc(duckPost).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated: use unsafePerformSync
-//        corsOriginSvc(duckPost).run
-//                                ^
 // res8: org.http4s.Response = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
 </code></pre>
 

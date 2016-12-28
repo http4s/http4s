@@ -88,7 +88,7 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@60c7c6ff
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@5f9373fe
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -104,16 +104,16 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@d207a96)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@6b466494)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
 
-<p>To execute a GET request, we can call <code>expect</code> with the type we expect
+<p>To execute a GET request, we can call <code>getAs</code> with the type we expect
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@6782c398
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@14962636
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>Task[String]</code>, to
@@ -146,7 +146,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@52a145eb
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@7ab2a9d5
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>Task[String]</code> returned
@@ -165,14 +165,11 @@ server.</li>
 </ul>
 
 <pre><code class="language-scala">greetingList.run.mkString(&quot;\n&quot;)
-// &lt;console&gt;:35: warning: method run in class Task is deprecated: use unsafePerformSync
-//        greetingList.run.mkString(&quot;\n&quot;)
-//                     ^
 // res0: String =
-// Hello, Jessica.
-// Hello, Ashley.
 // Hello, Michael.
+// Hello, Jessica.
 // Hello, Christopher.
+// Hello, Ashley.
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>
@@ -190,7 +187,7 @@ it down:</p>
 <h2 id="body-decoding-encoding">Body decoding / encoding</h2>
 
 <p>The reusable way to decode/encode a request is to write a custom <code>EntityDecoder</code>
-and <code>EntityEncoder</code>. For that topic, take a look at <a href="entity.html">entity</a>.</p>
+and <code>EntityEncoder</code>. For that topic, take a look at <a href="entity.md">entity</a>.</p>
 
 <p>If you prefer the quick &amp; dirty solution, some of the methods take a <code>Response
 =&gt; Task[A]</code> argument, which lets you add a function which includes the decoding

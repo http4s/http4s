@@ -1058,18 +1058,18 @@
     </span>
       
     </li><li name="scalaz.ValidationNel" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ValidationNel[E,+X]=scalaz.Validation[scalaz.NonEmptyList[E],X]"></a>
-      <a id="ValidationNel[E,+X]:ValidationNel[E,X]"></a>
+      <a id="ValidationNel[+E,+X]=scalaz.Validation[scalaz.NonEmptyList[E],X]"></a>
+      <a id="ValidationNel[+E,+X]:ValidationNel[E,X]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">ValidationNel</span><span class="tparams">[<span name="E">E</span>, <span name="X">+X</span>]</span><span class="result"> = <span class="extype" name="scalaz.Validation">Validation</span>[<span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<span class="extype" name="scalaz.ValidationNel.E">E</span>], <span class="extype" name="scalaz.ValidationNel.X">X</span>]</span>
+        <span class="name">ValidationNel</span><span class="tparams">[<span name="E">+E</span>, <span name="X">+X</span>]</span><span class="result"> = <span class="extype" name="scalaz.Validation">Validation</span>[<span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<span class="extype" name="scalaz.ValidationNel.E">E</span>], <span class="extype" name="scalaz.ValidationNel.X">X</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#scalaz.package@ValidationNel[E,+X]=scalaz.Validation[scalaz.NonEmptyList[E],X]" title="Permalink" target="_top">
+      <a href="../index.html#scalaz.package@ValidationNel[+E,+X]=scalaz.Validation[scalaz.NonEmptyList[E],X]" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1210,6 +1210,26 @@
       </a>
     </span>
       
+    </li><li name="scalaz.Cojoin" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Cojoin[F&lt;:&lt;?&gt;]=scalaz.Cobind[F]"></a>
+      <a id="Cojoin[F[_]]:Cojoin[F]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 7.1) Cojoin has been merged into Cobind">Cojoin</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> = <span class="extype" name="scalaz.Cobind">Cobind</span>[<span class="extype" name="scalaz.Cojoin.F">F</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#scalaz.package@Cojoin[F[_]]=scalaz.Cobind[F]" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 7.1)</i> Cojoin has been merged into Cobind</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -1405,18 +1425,18 @@
     </span>
       
     </li><li name="scalaz#idInstance" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="idInstance:scalaz.Traverse1[scalaz.Id.Id]withscalaz.Monad[scalaz.Id.Id]withscalaz.BindRec[scalaz.Id.Id]withscalaz.Comonad[scalaz.Id.Id]withscalaz.Distributive[scalaz.Id.Id]withscalaz.Zip[scalaz.Id.Id]withscalaz.Unzip[scalaz.Id.Id]withscalaz.Align[scalaz.Id.Id]withscalaz.Cozip[scalaz.Id.Id]withscalaz.Optional[scalaz.Id.Id]"></a>
-      <a id="idInstance:Traverse1[scalaz.Id.Id]withMonad[scalaz.Id.Id]withBindRec[scalaz.Id.Id]withComonad[scalaz.Id.Id]withDistributive[scalaz.Id.Id]withZip[scalaz.Id.Id]withUnzip[scalaz.Id.Id]withAlign[scalaz.Id.Id]withCozip[scalaz.Id.Id]withOptional[scalaz.Id.Id]"></a>
+      <a id="idInstance:scalaz.Traverse1[scalaz.Id.Id]withscalaz.Each[scalaz.Id.Id]withscalaz.Monad[scalaz.Id.Id]withscalaz.Comonad[scalaz.Id.Id]withscalaz.Distributive[scalaz.Id.Id]withscalaz.Zip[scalaz.Id.Id]withscalaz.Unzip[scalaz.Id.Id]withscalaz.Align[scalaz.Id.Id]withscalaz.Cozip[scalaz.Id.Id]"></a>
+      <a id="idInstance:Traverse1[scalaz.Id.Id]withEach[scalaz.Id.Id]withMonad[scalaz.Id.Id]withComonad[scalaz.Id.Id]withDistributive[scalaz.Id.Id]withZip[scalaz.Id.Id]withUnzip[scalaz.Id.Id]withAlign[scalaz.Id.Id]withCozip[scalaz.Id.Id]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">idInstance</span><span class="result">: <span class="extype" name="scalaz.Traverse1">Traverse1</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Monad">Monad</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.BindRec">BindRec</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Comonad">Comonad</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Distributive">Distributive</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Zip">Zip</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Unzip">Unzip</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Align">Align</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Cozip">Cozip</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Optional">Optional</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>]</span>
+        <span class="name">idInstance</span><span class="result">: <span class="extype" name="scalaz.Traverse1">Traverse1</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Each">Each</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Monad">Monad</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Comonad">Comonad</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Distributive">Distributive</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Zip">Zip</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Unzip">Unzip</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Align">Align</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>] with <span class="extype" name="scalaz.Cozip">Cozip</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../index.html#scalaz.package@idInstance:scalaz.Traverse1[scalaz.Id.Id]withscalaz.Monad[scalaz.Id.Id]withscalaz.BindRec[scalaz.Id.Id]withscalaz.Comonad[scalaz.Id.Id]withscalaz.Distributive[scalaz.Id.Id]withscalaz.Zip[scalaz.Id.Id]withscalaz.Unzip[scalaz.Id.Id]withscalaz.Align[scalaz.Id.Id]withscalaz.Cozip[scalaz.Id.Id]withscalaz.Optional[scalaz.Id.Id]" title="Permalink" target="_top">
+      <a href="../index.html#scalaz.package@idInstance:scalaz.Traverse1[scalaz.Id.Id]withscalaz.Each[scalaz.Id.Id]withscalaz.Monad[scalaz.Id.Id]withscalaz.Comonad[scalaz.Id.Id]withscalaz.Distributive[scalaz.Id.Id]withscalaz.Zip[scalaz.Id.Id]withscalaz.Unzip[scalaz.Id.Id]withscalaz.Align[scalaz.Id.Id]withscalaz.Cozip[scalaz.Id.Id]" title="Permalink" target="_top">
         <img src="../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1443,7 +1463,30 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="scalaz#Cojoin" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Cojoin:scalaz.Cobind.type"></a>
+      <a id="Cojoin:Cobind.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 7.1) Cojoin has been merged into Cobind">Cojoin</span><span class="result">: <span class="extype" name="scalaz.Cobind">Cobind</span>.type</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../index.html#scalaz.package@Cojoin:scalaz.Cobind.type" title="Permalink" target="_top">
+        <img src="../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 7.1)</i> Cojoin has been merged into Cobind</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
