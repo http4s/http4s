@@ -11,7 +11,7 @@ title: Adopters
 : Has about 10 services in production at thousands of requests per second.
 
 [Verizon](http://www.verizon.com)
-: Uses https extensively in its internal services and [open source projects](http://verizon.github.io).
+: Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 	
 ## Open Source
 
