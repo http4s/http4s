@@ -46,7 +46,7 @@
 	
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="https://twitter.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
         <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
         <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
       </ul>
@@ -123,24 +123,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@443653d0
+response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1ccf7944
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).right[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@15a2ec4b
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@628e1ef5
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).right[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@32cf9ae5
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@75a97909
 
 scala&gt; val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@446e99e4
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@71007185
 
 scala&gt; println(response.as(bothDec).run)
 &lt;console&gt;:34: warning: method run in class Task is deprecated: use unsafePerformSync

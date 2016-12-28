@@ -46,7 +46,7 @@
 	
       </ul>
       <ul class="nav navbar-nav navbar-right">
-        <li><a href="https://twitter.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
         <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
         <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
       </ul>
@@ -190,7 +190,7 @@ val services = tweetService orElse helloWorldService
 // services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(&lt;function1&gt;)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7664e39b
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@47d13226
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
