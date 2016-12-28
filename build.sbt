@@ -320,7 +320,14 @@ lazy val docs = http4sProject("docs")
     ),
     siteMappings := {
       if (Http4sGhPages.buildMainSite) siteMappings.value
-      else Seq.empty
+      else {
+        val (major, minor) = apiVersion.value
+        val prefix = s"/v${major}.${minor}/"
+        siteMappings.value.filter {
+          case (_, d) if d.startsWith(prefix) => true
+          case _ => false
+        }
+      }
     },
     siteMappings ++= {
       val m = (mappings in (ScalaUnidoc, packageDoc)).value
