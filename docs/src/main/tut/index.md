@@ -82,7 +82,7 @@ Content-Length: 26
 To shut down your server, simply press `^C` in your console.
 
 With just a few commands, we have a fully functional app for creating
-a simple JSON service.  We'll study [services](service.html) in
+a simple JSON service.  We'll study [services](service/) in
 greater depth next.
 
 [giter8 template]: https://github.com/http4s/http4s.g8
