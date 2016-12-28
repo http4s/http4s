@@ -329,8 +329,7 @@ lazy val docs = http4sProject("docs")
     },
     cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
-    git.remoteRepo := "git@github.com:http4s/http4s.git",
-    ghpagesNoJekyll := true
+    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
