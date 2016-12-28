@@ -134,6 +134,5 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-[entity]: entity.md
-[service]: service.html
-[json]: json.html
+[entity]: ../entity
+[json]: ../json
