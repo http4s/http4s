@@ -393,3 +393,5 @@ val averageTemperatureService = HttpService {
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
 ```
+
+[EntityEncoder]: ../api/#org.http4s.EntityEncoder$

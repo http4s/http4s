@@ -36,12 +36,13 @@ See the [MediaRange] companion object for ranges, and [MediaType] for specific
 types. Because of the implicit conversions, you can also use `(String, String)`
 for a `MediaType`.
 
-Decoders ignore content types by default - it would be rather unpleasant have
-unexpected runtime errors.
+By default, decoders content types are ignored since it could lead to unexpected
+runtime errors.
 
 ## Chaining Decoders
 
-However, the content types are used when chaining decoders with `orElse`.
+Decoders' content types are used when chaining decoders with `orElse` in order to
+determine which of the chained decoders are to be used.
 
 ```tut
 import org.http4s._
@@ -77,6 +78,7 @@ a full list.
 
 ### JSON
 With `jsonOf` for the `EntityDecoder`, and `jsonEncoderOf` for the `EntityEncoder`:
+
 - argonaut: `"org.http4s" %% "http4s-argonaut" % Http4sVersion`
 - circe: `"org.http4s" %% "http4s-circe" % Http4sVersion`
 - json4s-native: `"org.http4s" %% "http4s-json4s-native" % Http4sVersion`
