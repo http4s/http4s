@@ -96,12 +96,13 @@ type in that case.</p>
 types. Because of the implicit conversions, you can also use <code>(String, String)</code>
 for a <code>MediaType</code>.</p>
 
-<p>Decoders ignore content types by default - it would be rather unpleasant have
-unexpected runtime errors.</p>
+<p>By default, decoders content types are ignored since it could lead to unexpected
+runtime errors.</p>
 
 <h2 id="chaining-decoders">Chaining Decoders</h2>
 
-<p>However, the content types are used when chaining decoders with <code>orElse</code>.</p>
+<p>Decoders&rsquo; content types are used when chaining decoders with <code>orElse</code> in order to
+determine which of the chained decoders are to be used.</p>
 
 <pre><code class="language-scala">scala&gt; import org.http4s._
 import org.http4s._
@@ -123,24 +124,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@61e2afe5
+response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1de53640
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).right[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@1fe10a9e
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@2350411c
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).right[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@6d657e37
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@7a707add
 
 scala&gt; val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@449e152c
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@1de2e8d2
 
 scala&gt; println(response.as(bothDec).run)
 &lt;console&gt;:34: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -161,11 +162,14 @@ a full list.</p>
 
 <h3 id="json">JSON</h3>
 
-<p>With <code>jsonOf</code> for the <code>EntityDecoder</code>, and <code>jsonEncoderOf</code> for the <code>EntityEncoder</code>:
-- argonaut: <code>&quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % Http4sVersion</code>
-- circe: <code>&quot;org.http4s&quot; %% &quot;http4s-circe&quot; % Http4sVersion</code>
-- json4s-native: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % Http4sVersion</code>
-- json4s-jackson: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % Http4sVersion</code></p>
+<p>With <code>jsonOf</code> for the <code>EntityDecoder</code>, and <code>jsonEncoderOf</code> for the <code>EntityEncoder</code>:</p>
+
+<ul>
+<li>argonaut: <code>&quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % Http4sVersion</code></li>
+<li>circe: <code>&quot;org.http4s&quot; %% &quot;http4s-circe&quot; % Http4sVersion</code></li>
+<li>json4s-native: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % Http4sVersion</code></li>
+<li>json4s-jackson: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % Http4sVersion</code></li>
+</ul>
 
 <h3 id="xml">XML</h3>
 

@@ -339,7 +339,7 @@
       </a>
     </span>
       <p class="shortcomment cmt">Helper method for decoding <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>s</p><div class="fullcomment"><div class="comment cmt"><p>Helper method for decoding <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>s</p><p>Attempt to decode the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> and, if successful, execute the continuation to get a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.
-If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated.
+If decoding fails, an <code>UnprocessableEntity</code> <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a></dd></dl></div>
     </li><li name="org.http4s.RequestOps#decodeStrict" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="decodeStrict[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]"></a>
@@ -358,7 +358,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </a>
     </span>
       <p class="shortcomment cmt">Helper method for decoding <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>s</p><div class="fullcomment"><div class="comment cmt"><p>Helper method for decoding <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>s</p><p>Attempt to decode the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> and, if successful, execute the continuation to get a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.
-If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated. If the decoder does not support the
+If decoding fails, an <code>UnprocessableEntity</code> <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated. If the decoder does not support the
 <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, a <code>UnsupportedMediaType</code> <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated instead.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a></dd></dl></div>
     </li><li name="org.http4s.TaskRequestOps#decodeWith" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
