@@ -92,11 +92,11 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@732d7829[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@30adbeb0[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@77ba5321,&lt;function1&gt;,&lt;function1&gt;)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@251bff5e,&lt;function1&gt;,&lt;function1&gt;)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
@@ -131,7 +131,7 @@ to consume a stream is just:</p>
 <p>That gives you a <code>Process[Task, ByteVector], but you probably want something other than a</code>ByteVector`.
 Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/streaming/overview">Twitter&rsquo;s streaming APIs</a>, which return a stream of JSON.</p>
 
-<p>First, let&rsquo;s assume we want to use [Circe] for JSON support. Please see <a href="../json">json</a> for details.</p>
+<p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.15.1&quot;,
