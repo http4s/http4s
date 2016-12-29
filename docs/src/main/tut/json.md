@@ -59,7 +59,7 @@ corresponding drawbacks.
 
 The usage is the same for client and server, both points use an
 `EntityEncoder[T]` to transform the outgoing data into a scala class.
-One of the imports above brings into scope an `EntityDecoder[Json]` 
+One of the imports above brings into scope an `EntityDecoder[Json]`
 (or `EntityDecoder[JValue]` in the case of json4s).
 
 In circe, when one has an `Encoder` instance, `.asJson` can be
@@ -182,6 +182,5 @@ httpClient.shutdownNow()
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
 [jsonExtract]: https://github.com/http4s/http4s/blob/master/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L29
-[client]: client.html
+[client]: ../client
 [github-orgs]: https://developer.github.com/v3/repos/#list-organization-repositories
-[uri]: url.html

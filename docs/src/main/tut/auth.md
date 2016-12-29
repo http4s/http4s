@@ -133,6 +133,6 @@ val authUser: Service[Request, String \/ User] = Kleisli({ request =>
 })
 ```
 
-[service]: service.html
+[service]: ../service
 [SPA]: https://en.wikipedia.org/wiki/Single-page_application
 [ADT]: http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html

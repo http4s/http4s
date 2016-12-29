@@ -30,7 +30,7 @@ to make this a domain you own, in reverse order (i.e., TLD first).
 
 `http4s_version`
 : defaults to the latest stable release of http4s.  See
-the [releases](releases/) page for other suggestions.
+the [versions] page for other suggestions.
 
 At the end of the process, you'll see:
 
@@ -82,8 +82,7 @@ Content-Length: 26
 To shut down your server, simply press `^C` in your console.
 
 With just a few commands, we have a fully functional app for creating
-a simple JSON service.  We'll study [services](service.html) in
-greater depth next.
+a simple JSON service.
 
 [giter8 template]: https://github.com/http4s/http4s.g8
-
+[versions]: /versions/
