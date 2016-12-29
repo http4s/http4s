@@ -157,7 +157,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(jsonService, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@317ae33
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@5b9ca97b
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -177,12 +177,15 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@12fd7d05)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@1384d0bf)
 
 val req = Request(uri = Uri.uri(&quot;http://localhost:8080/hello&quot;), method = Method.POST).withBody(User(&quot;Anabelle&quot;))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@6f0a5935
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@973e89b
 
 httpClient.expect(req)(jsonOf[Hello]).run
+// &lt;console&gt;:44: warning: method run in class Task is deprecated: use unsafePerformSync
+//        httpClient.expect(req)(jsonOf[Hello]).run
+//                                              ^
 // res0: Hello = Hello(Hello, Anabelle)
 </code></pre>
 
@@ -234,7 +237,7 @@ case class Repo(id: Long, name: String, full_name: String, owner: User, `private
 // defined class Repo
 </code></pre>
 
-<p>This parts skips over the <a href="client.html">client</a> explanation. We&rsquo;ll use circe, with
+<p>This parts skips over the <a href="../client">client</a> explanation. We&rsquo;ll use circe, with
 <a href="https://github.com/travisbrown/circe#codec-derivation">circe-generic</a> for codec derivation. The JSON decoder is provided by
 circe-generic, and passed to the <code>client.expect</code> method via the second
 argument, which is usually an implicit <code>EntityDecoder</code>.  In this case,
@@ -249,7 +252,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@263feb2)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@178295a)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri(&quot;https://api.github.com/orgs&quot;) / organization / &quot;repos&quot;
@@ -258,9 +261,12 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos(&quot;http4s&quot;)
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@4048f444
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@2ee7ce5
 
 http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
+// &lt;console&gt;:49: warning: method run in class Task is deprecated: use unsafePerformSync
+//        http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
+//                                                             ^
 // res3: String =
 // 627
 // 92

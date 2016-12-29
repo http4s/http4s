@@ -63,7 +63,7 @@
           </div>
           
 
-<p>A <a href="service.html">service</a> is a <code>Kleisli[Task, Request, Response]</code>, the composable version of
+<p>A <a href="../service">service</a> is a <code>Kleisli[Task, Request, Response]</code>, the composable version of
 <code>Request =&gt; Task[Response]</code>. http4s provides an alias called <code>Service[Request,
 Response]</code>. A service with authentication also requires some kind of <code>User</code>
 object which identifies which user did the request. To store the <code>User</code> object
@@ -161,10 +161,10 @@ import java.time._
 // import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@4966aedd)
+// key: org.reactormonk.PrivateKey = PrivateKey([B@407eb046)
 
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@4966aedd))
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@407eb046))
 
 val clock = Clock.systemUTC
 // clock: java.time.Clock = SystemClock[Z]

@@ -113,7 +113,7 @@ can, uh, fork a task to read these introductions first:</p>
 // import org.http4s.dsl._
 </code></pre>
 
-<p>Using the <a href="dsl.html">http4s-dsl</a>, we can construct an <code>HttpService</code> by pattern
+<p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpService</code> by pattern
 matching the request.  Let&rsquo;s build a service that matches requests to
 <code>GET /hello/:name</code>, where <code>:name</code> is a path parameter for the person to
 greet.</p>
@@ -190,7 +190,7 @@ val services = tweetService orElse helloWorldService
 // services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(&lt;function1&gt;)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@f8c5357
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@3b08c074
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -234,11 +234,6 @@ it down:</p>
 
 <pre><code class="language-scala">server.shutdownNow()
 </code></pre>
-
-<h3 id="next-steps">Next steps</h3>
-
-<p>Next, we&rsquo;ll take a deeper look at creating <code>HttpService</code>s with
-<a href="dsl.html">http4s-dsl</a>.</p>
 
           <footer>
             <nav>
