@@ -157,7 +157,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(jsonService, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@288d059d
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@16bcb9b
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -177,10 +177,10 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@539792dd)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@3bd0870a)
 
 val req = Request(uri = Uri.uri(&quot;http://localhost:8080/hello&quot;), method = Method.POST).withBody(User(&quot;Anabelle&quot;))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@525b48fc
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@2aedf40b
 
 httpClient.expect(req)(jsonOf[Hello]).run
 // &lt;console&gt;:44: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -252,7 +252,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@3f54536e)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@619f09b3)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri(&quot;https://api.github.com/orgs&quot;) / organization / &quot;repos&quot;
@@ -261,14 +261,14 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos(&quot;http4s&quot;)
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@876ade6
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@78aa254a
 
 http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
 // &lt;console&gt;:49: warning: method run in class Task is deprecated: use unsafePerformSync
 //        http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
 //                                                             ^
 // res3: String =
-// 627
+// 626
 // 92
 // 9
 // 79
@@ -284,11 +284,11 @@ httpClient.shutdownNow()
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://127.0.0.1:4000/v0.15/streaming/"><i class="fa fa-arrow-left"></i> Streaming</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.15/streaming/"><i class="fa fa-arrow-left"></i> Streaming</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.15.x/docs/src/main/tut/json.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://127.0.0.1:4000/v0.15/uri/">URI handling <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.15/uri/">URI handling <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>

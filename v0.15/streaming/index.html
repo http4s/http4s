@@ -92,11 +92,11 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@59b71d99[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@62b6e901[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@74673b98,&lt;function1&gt;,&lt;function1&gt;)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@32da7ee7,&lt;function1&gt;,&lt;function1&gt;)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
@@ -205,11 +205,11 @@ object twstream extends TaskApp {
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://127.0.0.1:4000/v0.15/entity/"><i class="fa fa-arrow-left"></i> Entity handling</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.15/entity/"><i class="fa fa-arrow-left"></i> Entity handling</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.15.x/docs/src/main/tut/streaming.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://127.0.0.1:4000/v0.15/json/">JSON handling <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.15/json/">JSON handling <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>

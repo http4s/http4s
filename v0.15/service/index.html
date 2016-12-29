@@ -190,7 +190,7 @@ val services = tweetService orElse helloWorldService
 // services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(&lt;function1&gt;)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@78b53947
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@9f870b7
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -239,11 +239,11 @@ it down:</p>
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://127.0.0.1:4000/v0.15/"><i class="fa fa-arrow-left"></i> Quick Start</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.15/"><i class="fa fa-arrow-left"></i> Quick Start</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.15.x/docs/src/main/tut/service.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://127.0.0.1:4000/v0.15/dsl/">The http4s DSL <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.15/dsl/">The http4s DSL <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>
