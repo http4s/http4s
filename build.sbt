@@ -10,12 +10,10 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.15.2-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
-scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
 scalazVersion in ThisBuild := "7.1.11"
-crossScalaVersions in ThisBuild := Seq("2.10.6", scalaVersion.value, "2.12.1")
 
 // Root project
 name := "root"
@@ -309,6 +307,10 @@ lazy val docs = http4sProject("docs")
     },
     copySiteToStage <<= copySiteToStage.dependsOn(tutQuick),
     makeSite <<= makeSite.dependsOn(copySiteToStage),
+    baseURL in Hugo := {
+      if (isTravisBuild.value) new URI(s"http://http4s.org")
+      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
+    },
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
     includeFilter in Hugo := (
