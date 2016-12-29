@@ -127,7 +127,7 @@ and experiment directly in the REPL.</p>
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala&gt; val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@550d0ce5
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@15747137
 </code></pre>
 
 <p>Where is our <code>Response</code>?  It hasn&rsquo;t been created yet.  We wrapped it
@@ -162,7 +162,7 @@ generating <code>Task[Response]</code>s.</p>
 applying a status code:</p>
 
 <pre><code class="language-scala">scala&gt; val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5582bcbb
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6f1dd626
 
 scala&gt; val ok = okTask.run
 &lt;console&gt;:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -258,7 +258,7 @@ scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;b
 &lt;console&gt;:24: warning: method run in class Task is deprecated: use unsafePerformSync
        Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).run.headers
                                                                                                                        ^
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 29 Dec 2016 01:47:16 GMT; Secure; HttpOnly)
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 29 Dec 2016 02:17:57 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -331,7 +331,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
      |   println(&quot;I run when the future is constructed.&quot;)
      |   &quot;Greetings from the future!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@42f2eaf9
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7a3a431e
 
 scala&gt; task.run
 &lt;console&gt;:28: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -347,7 +347,7 @@ of course prefer to operate in [Task]s:</p>
      |   println(&quot;I run when the Task is run.&quot;)
      |   &quot;Mission accomplished!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@47175696
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@322f2227
 
 scala&gt; task.run
 &lt;console&gt;:28: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -530,7 +530,7 @@ implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
     QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@4ba4a2e4
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@255456f8
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
@@ -549,11 +549,11 @@ val averageTemperatureService = HttpService {
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://127.0.0.1:4000/v0.16/service/"><i class="fa fa-arrow-left"></i> Service</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.16/service/"><i class="fa fa-arrow-left"></i> Service</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/dsl.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://127.0.0.1:4000/v0.16/middleware/">Middleware <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.16/middleware/">Middleware <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>

@@ -88,7 +88,7 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@3abc2121
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@1179da79
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -104,7 +104,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@3d738d84)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@728c33c8)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -113,7 +113,7 @@ val httpClient = PooledHttp1Client()
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@283a3c49
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@5baa082a
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>Task[String]</code>, to
@@ -146,7 +146,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@641844eb
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@456387e8
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>Task[String]</code> returned
@@ -169,9 +169,9 @@ server.</li>
 //        greetingList.run.mkString(&quot;\n&quot;)
 //                     ^
 // res0: String =
+// Hello, Christopher.
 // Hello, Michael.
 // Hello, Jessica.
-// Hello, Christopher.
 // Hello, Ashley.
 </code></pre>
 
@@ -215,11 +215,11 @@ client.get[EntityBody](&quot;some-url&quot;)(response =&gt; response.body)
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://127.0.0.1:4000/v0.16/static/"><i class="fa fa-arrow-left"></i> Static Files</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.16/static/"><i class="fa fa-arrow-left"></i> Static Files</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/client.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://127.0.0.1:4000/v0.16/entity/">Entity handling <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.16/entity/">Entity handling <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>
