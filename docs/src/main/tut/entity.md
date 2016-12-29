@@ -36,12 +36,12 @@ See the [MediaRange] companion object for ranges, and [MediaType] for specific
 types. Because of the implicit conversions, you can also use `(String, String)`
 for a `MediaType`.
 
-By default, decoders content types are ignore since it could lead to unexpected
+By default, decoders content types are ignored since it could lead to unexpected
 runtime errors.
 
 ## Chaining Decoders
 
-Decoders content types are used when chaining decoders with `orElse` in order to
+Decoders' content types are used when chaining decoders with `orElse` in order to
 determine which of the chained decoders are to be used.
 
 ```tut
