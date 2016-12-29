@@ -96,7 +96,7 @@ trait RequestOps extends Any with MessageOps {
   /** Helper method for decoding [[Request]]s
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated.
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
   final def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
     decodeWith(decoder, strict = false)(f)
@@ -104,7 +104,7 @@ trait RequestOps extends Any with MessageOps {
   /** Helper method for decoding [[Request]]s
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated. If the decoder does not support the
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
   final def decodeStrict[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =

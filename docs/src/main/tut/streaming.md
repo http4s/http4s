@@ -133,3 +133,4 @@ object twstream extends TaskApp {
 [jawn]: https://github.com/non/jawn
 [jawnstreamz]: https://github.com/rossabaker/jawn-fs2/tree/jawn-streamz
 [Twitter's streaming APIs]: https://dev.twitter.com/streaming/overview
+[circe]: https://circe.github.io/circe/
