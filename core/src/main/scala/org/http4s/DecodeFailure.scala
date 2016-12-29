@@ -27,7 +27,10 @@ final case class DecodeFailureException(failure: DecodeFailure) extends RuntimeE
   *                version of the error.  This may freely echo a Request.
   */
 final case class ParseFailure(sanitized: String, details: String) extends DecodeFailure {
-  val msg = details
+  def msg: String =
+    if (sanitized.isEmpty) details
+    else if (details.isEmpty) sanitized
+    else s"$sanitized: $details"
 }
 
 final case class ParseException(failure: ParseFailure) extends RuntimeException(failure.sanitized)
