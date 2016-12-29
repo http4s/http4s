@@ -579,8 +579,6 @@ lazy val mimaSettings = Seq(
     import com.typesafe.tools.mima.core._
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(
-      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.this"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.Message.isBodyPure"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryIPv4"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryIPv6"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genSubDelims"),
@@ -589,7 +587,10 @@ lazy val mimaSettings = Seq(
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genHexDigit"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genPctEncoded"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryUri"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved")
+      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3")
     )
   }
 )
