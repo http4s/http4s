@@ -1,5 +1,6 @@
 resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 
+addSbtPlugin("com.dwijnand" % "sbt-travisci" % "1.0.0-M4")
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "2.1.0")
 addSbtPlugin("com.eed3si9n" % "sbt-buildinfo" % "0.5.0")
 addSbtPlugin("com.eed3si9n" % "sbt-unidoc" % "0.3.3")
@@ -17,5 +18,6 @@ addSbtPlugin("org.tpolecat" % "tut-plugin" % "0.4.7")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.6")
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
 addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "1.1")
+
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.7"
