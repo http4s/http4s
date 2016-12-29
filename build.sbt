@@ -305,8 +305,8 @@ lazy val docs = http4sProject("docs")
         targetFile = siteStageDirectory.value / "CHANGELOG.md",
         preserveLastModified = true)
     },
-    copySiteToStage <<= copySiteToStage.dependsOn(tutQuick),
-    makeSite <<= makeSite.dependsOn(copySiteToStage),
+    copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
+    makeSite := makeSite.dependsOn(copySiteToStage).value,
     baseURL in Hugo := {
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
