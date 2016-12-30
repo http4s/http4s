@@ -1,3 +1,6 @@
+# v0.15.2 (2016-12-29)
+* Add helpers to add cookies to requests
+
 # v0.15.1 (2016-12-20)
 * Fix GZip middleware to fallthrough non-matching responses
 * Fix UnsupportedOperationException in Arbitrary[Uri]

@@ -56,7 +56,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.1a</td>
+	    <td>0.15.2a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -66,7 +66,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.1</td>
+	    <td>0.15.2</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -126,7 +126,7 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.12.4</td>
+	    <td>0.12.6</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
