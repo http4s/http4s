@@ -142,8 +142,11 @@
 * Provide an optional external executor to blaze clients.
 * Fix Argonaut string interpolation
 
-# v0.12.5 (2016-12-29)
+# v0.12.6 (2016-12-29)
 * Backport rendering of details in `ParseFailure.getMessage`
+
+# v0.12.5 (2016-12-29)
+* ~~Backport rendering of details in `ParseFailure.getMessage`~~ Oops.
 
 # v0.12.4 (2016-03-10)
 * Fix bug on rejection of invalid URIs.
