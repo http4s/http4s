@@ -1,3 +1,11 @@
+# v0.15.2 (2016-12-29)
+* Add helpers to add cookies to requests
+
+# v0.15.1 (2016-12-20)
+* Fix GZip middleware to fallthrough non-matching responses
+* Fix UnsupportedOperationException in Arbitrary[Uri]
+* Upgrade to Scala 2.12.1 and Scalaz 7.2.
+
 # v0.15.0 (2016-11-30)
 * Add support for Scala 2.12
 * Added `Client.fromHttpService` to assist with testing.
