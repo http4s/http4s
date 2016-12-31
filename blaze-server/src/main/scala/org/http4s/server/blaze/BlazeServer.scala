@@ -16,8 +16,7 @@ import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
-import org.http4s.server.SSLSupport.{StoreInfo, KeyStoreBits}
-import org.http4s.server.SSLContextSupport.SSLContextBits
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 import org.log4s.getLogger
 
@@ -32,7 +31,7 @@ class BlazeBuilder(
   connectorPoolSize: Int,
   bufferSize: Int,
   enableWebSockets: Boolean,
-  sslBits: Option[SSLBits],
+  sslBits: Option[SSLConfig],
   isHttp2Enabled: Boolean,
   maxRequestLineLen: Int,
   maxHeadersLen: Int,
@@ -40,7 +39,7 @@ class BlazeBuilder(
 )
   extends ServerBuilder
   with IdleTimeoutSupport
-  with SSLSupport
+  with SSLKeyStoreSupport
   with SSLContextSupport
   with server.WebSocketSupport
 {
@@ -55,7 +54,7 @@ class BlazeBuilder(
                connectorPoolSize: Int = connectorPoolSize,
                       bufferSize: Int = bufferSize,
                 enableWebSockets: Boolean = enableWebSockets,
-                         sslBits: Option[SSLBits] = sslBits,
+                         sslBits: Option[SSLConfig] = sslBits,
                     http2Support: Boolean = isHttp2Enabled,
                maxRequestLineLen: Int = maxRequestLineLen,
                    maxHeadersLen: Int = maxHeadersLen,

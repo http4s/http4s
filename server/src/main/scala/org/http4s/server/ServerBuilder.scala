@@ -5,7 +5,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
-import org.http4s.server.SSLSupport.StoreInfo
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -17,12 +17,12 @@ trait ServerBuilder {
 
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
-  final def bindHttp(port: Int = DefaultHttpPort, host: String = DefaultHost) =
+  final def bindHttp(port: Int = DefaultHttpPort, host: String = DefaultHost): Self =
     bindSocketAddress(InetSocketAddress.createUnresolved(host, port))
 
-  final def bindLocal(port: Int) = bindHttp(port, DefaultHost)
+  final def bindLocal(port: Int): Self = bindHttp(port, DefaultHost)
 
-  final def bindAny(host: String = DefaultHost) = bindHttp(0, host)
+  final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
 
   def withServiceExecutor(executorService: ExecutorService): Self
 
@@ -63,32 +63,29 @@ object AsyncTimeoutSupport {
   val DefaultAsyncTimeout = 30.seconds
 }
 
-trait SSLSupport { this: ServerBuilder =>
+sealed trait SSLConfig
+
+final case class KeyStoreBits(keyStore: StoreInfo,
+  keyManagerPassword: String,
+  protocol: String,
+  trustStore: Option[StoreInfo],
+  clientAuth: Boolean) extends SSLConfig
+
+final case class SSLContextBits(sslContext: SSLContext, clientAuth: Boolean) extends SSLConfig
+
+trait SSLKeyStoreSupport { this: ServerBuilder =>
   def withSSL(keyStore: StoreInfo,
     keyManagerPassword: String,
               protocol: String = "TLS",
             trustStore: Option[StoreInfo] = None,
             clientAuth: Boolean = false): Self
-
+}
+object SSLKeyStoreSupport {
+  final case class StoreInfo(path: String, password: String)
 }
 
 trait SSLContextSupport { this: ServerBuilder =>
   def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self
-}
-
-sealed trait SSLBits
-
-object SSLSupport {
-  final case class StoreInfo(path: String, password: String)
-  final case class KeyStoreBits(keyStore: StoreInfo,
-                      keyManagerPassword: String,
-                                protocol: String,
-                              trustStore: Option[StoreInfo],
-                              clientAuth: Boolean) extends SSLBits
-}
-
-object SSLContextSupport {
-  final case class SSLContextBits(sslContext: SSLContext, clientAuth: Boolean) extends SSLBits
 }
 
 /*

@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService
 
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
-import org.http4s.server.SSLSupport.{KeyStoreBits, StoreInfo}
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
 import scala.collection.JavaConverters._
@@ -32,7 +32,7 @@ sealed class TomcatBuilder private (
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
-  with SSLSupport
+  with SSLKeyStoreSupport
 {
   type Self = TomcatBuilder
 

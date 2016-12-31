@@ -7,8 +7,7 @@ import javax.servlet.{DispatcherType, Filter}
 
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.http4s.server.SSLSupport.{StoreInfo, KeyStoreBits}
-import org.http4s.server.SSLContextSupport.SSLContextBits
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 import java.net.InetSocketAddress
 import javax.net.ssl.SSLContext
@@ -31,13 +30,13 @@ sealed class JettyBuilder private(
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
-  sslBits: Option[SSLBits],
+  sslBits: Option[SSLConfig],
   mounts: Vector[Mount]
 )
   extends ServerBuilder
     with ServletContainer
     with IdleTimeoutSupport
-    with SSLSupport
+    with SSLKeyStoreSupport
     with SSLContextSupport {
   type Self = JettyBuilder
 
@@ -47,7 +46,7 @@ sealed class JettyBuilder private(
     idleTimeout: Duration = idleTimeout,
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo = servletIo,
-    sslBits: Option[SSLBits] = sslBits,
+    sslBits: Option[SSLConfig] = sslBits,
     mounts: Vector[Mount] = mounts
   ): JettyBuilder =
     new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
