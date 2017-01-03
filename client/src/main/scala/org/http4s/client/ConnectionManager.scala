@@ -2,8 +2,7 @@ package org.http4s
 package client
 
 import java.util.concurrent.ExecutorService
-
-import scalaz.concurrent.Task
+import fs2.Task
 
 /** Type that is responsible for the client lifecycle
   *
@@ -22,7 +21,8 @@ trait ConnectionManager[A <: Connection] {
   def shutdown(): Task[Unit]
 
   /** Get a connection for the provided request key. */
-  def borrow(requestKey: RequestKey): Task[NextConnection]
+  // TODO fs2 rework
+  // def borrow(requestKey: RequestKey): Task[NextConnection]
 
   /**
     * Release a connection.  The connection manager may choose to keep the connection for
@@ -54,4 +54,3 @@ object ConnectionManager {
   def pool[A <: Connection](builder: ConnectionBuilder[A], maxTotal: Int, es: ExecutorService): ConnectionManager[A] =
     new PoolManager[A](builder, maxTotal, es)
 }
-

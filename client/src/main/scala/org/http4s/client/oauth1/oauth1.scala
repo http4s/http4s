@@ -3,16 +3,14 @@ package client
 
 import java.nio.charset.StandardCharsets
 import javax.crypto
-
 import org.http4s.headers.Authorization
 import org.http4s.util.string._
 import org.http4s.util.UrlCodingUtils
-
 import scala.collection.mutable.ListBuffer
-import scalaz.concurrent.Task
+import fs2.Task
 
 /** Basic OAuth1 message signing support
-  * 
+  *
   * This feature is not considered stable.
   */
 package object oauth1 {

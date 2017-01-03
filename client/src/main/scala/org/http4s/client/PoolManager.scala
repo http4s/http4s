@@ -2,14 +2,11 @@ package org.http4s
 package client
 
 import java.util.concurrent.ExecutorService
-
 import org.log4s.getLogger
-
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scalaz.{-\/, \/-}
-import scalaz.syntax.either._
-import scalaz.concurrent.Task
+import fs2._
+import cats.implicits._
 
 private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
                                                  maxTotal: Int,
@@ -17,6 +14,8 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
   extends ConnectionManager[A] {
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
+
+  implicit val strategy : Strategy = Strategy.fromFixedDaemonPool(maxTotal, "workerPool" )
 
   private[this] val logger = getLogger
   private var isClosed = false
@@ -27,66 +26,92 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
   private def stats =
     s"allocated=${allocated} idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
-  private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = {
-    if (allocated < maxTotal) {
-      allocated += 1
-      Task.fork(builder(key))(es).runAsync {
-        case \/-(fresh) =>
-          logger.debug(s"Received complete connection from pool: ${stats}")
-          callback(NextConnection(fresh, true).right)
-        case e@ -\/(t) =>
-          logger.error(t)(s"Error establishing client connection for key $key")
-          disposeConnection(key, None)
-          callback(e)
-      }
-    }
-    else {
+private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = {
+  Stream.eval{
+    if (allocated < maxTotal){
+      builder(key)
+    } else {
       val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
       val error = new Exception(message)
       logger.error(error)(message)
-      callback(-\/(error))
+      Task.now(callback(Left(error)))
     }
+  }.run.async(strategy).unsafeRunAsync{
+    case Right(_) => ()
+    case Left(throwable) =>
+      logger.error(throwable)(s"Error establishing client connection for key $key")
+      disposeConnection(key, None)
+      callback(Left(throwable))
   }
+}
+  //       disposeConnection(key, None)
+  //       callback(Left(throwable)))
 
-  def borrow(key: RequestKey): Task[NextConnection] = Task.async { callback =>
-    logger.debug(s"Requesting connection: ${stats}")
-    synchronized {
-      if (!isClosed) {
-        @tailrec
-        def go(): Unit = {
-          idleQueue.dequeueFirst(_.requestKey == key) match {
-            case Some(conn) if !conn.isClosed =>
-              logger.debug(s"Recycling connection: ${stats}")
-              callback(NextConnection(conn, false).right)
 
-            case Some(closedConn) =>
-              logger.debug(s"Evicting closed connection: ${stats}")
-              allocated -= 1
-              go()
+//   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = Stream.eval{
+//     if (allocated < maxTotal) {
+//       allocated += 1
+//       // builder(key).map{ fresh =>
+//       //   logger.debug(s"Received complete connection from pool: ${stats}")
+//       //   callback(NextConnection(fresh, true).right.toEither)
+//       // }
+//       builder(key)
+//     }
+//     else {
+      // val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
+      // val error = new Exception(message)
+      // logger.error(error)(message)
+      // Task.now(callback(Left(error)))
+//     }
+//   }.runLog.unsafeRunAsync{
+//     case Left(throwable : Throwable) =>
+      // logger.error(throwable)(s"Error establishing client connection for key $key")
+      // disposeConnection(key, None)
+      // callback(Left(throwable))
+//     case Right(fresh) =>
+//       callback(NextConnection(fresh, true).right.toEither)
+// }
 
-            case None if allocated < maxTotal =>
-              logger.debug(s"Active connection not found. Creating new one. ${stats}")
-              createConnection(key, callback)
+  // TODO fs2 rework
+  // def borrow(key: RequestKey)(callback: Callback[NextConnection]): Task[NextConnection] = Task.delay{
+  //   logger.debug(s"Requesting connection: ${stats}")
+  //   synchronized {
+  //     if (!isClosed) {
+  //       @tailrec
+  //       def go(): Task[NextConnection] = {
+  //         idleQueue.dequeueFirst(_.requestKey == key) match {
+  //           case Some(conn) if !conn.isClosed =>
+  //             logger.debug(s"Recycling connection: ${stats}")
+  //             callback(NextConnection(conn, false).right.toEither)
+  //
+  //           case Some(closedConn) =>
+  //             logger.debug(s"Evicting closed connection: ${stats}")
+  //             allocated -= 1
+  //             go()
+  //
+  //           case None if allocated < maxTotal =>
+  //             logger.debug(s"Active connection not found. Creating new one. ${stats}")
+  //             createConnection(key, callback)
+  //
+  //           case None if idleQueue.nonEmpty =>
+  //             logger.debug(s"No connections available for the desired key. Evicting oldest and creating a new connection: ${stats}")
+  //             allocated -= 1
+  //             idleQueue.dequeue().shutdown()
+  //             createConnection(key, callback)
+  //
+  //           case None => // we're full up. Add to waiting queue.
+  //             logger.debug(s"No connections available.  Waiting on new connection: ${stats}")
+  //             waitQueue.enqueue(Waiting(key, callback))
+  //         }
+  //       }
+  //       go()
+  //     }
+  //     else
+  //       callback(new IllegalStateException("Connection pool is closed").left.toEither)
+  //   }
+  // }
 
-            case None if idleQueue.nonEmpty =>
-              logger.debug(s"No connections available for the desired key. Evicting oldest and creating a new connection: ${stats}")
-              allocated -= 1
-              idleQueue.dequeue().shutdown()
-              createConnection(key, callback)
-
-            case None => // we're full up. Add to waiting queue.
-              logger.debug(s"No connections available.  Waiting on new connection: ${stats}")
-              waitQueue.enqueue(Waiting(key, callback))
-          }
-        }
-        go()
-      }
-      else
-        callback(new IllegalStateException("Connection pool is closed").left)
-    }
-  }
-
-  def release(connection: A) = Task.delay {
+  def release(connection: A): Task[Unit] = Task.delay {
     synchronized {
       if (!isClosed) {
         logger.debug(s"Recycling connection: ${stats}")
@@ -95,7 +120,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
           waitQueue.dequeueFirst(_.key == key) match {
             case Some(Waiting(_, callback)) =>
               logger.debug(s"Fulfilling waiting connection request: ${stats}")
-              callback(NextConnection(connection, false).right)
+              callback(NextConnection(connection, false).right.toEither)
 
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: ${stats}")

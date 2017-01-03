@@ -1,7 +1,6 @@
 package org.http4s.client.impl
 
 import java.util.concurrent.ExecutorService
-
 import org.http4s.util.threads._
 
 
