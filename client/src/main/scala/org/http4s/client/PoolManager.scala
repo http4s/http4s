@@ -120,7 +120,7 @@ private def createConnection(key: RequestKey, callback: Callback[NextConnection]
           waitQueue.dequeueFirst(_.key == key) match {
             case Some(Waiting(_, callback)) =>
               logger.debug(s"Fulfilling waiting connection request: ${stats}")
-              callback(NextConnection(connection, false).right.toEither)
+              callback(Right(NextConnection(connection, false)))
 
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: ${stats}")
