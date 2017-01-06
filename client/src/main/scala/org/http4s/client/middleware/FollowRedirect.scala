@@ -5,33 +5,29 @@ package middleware
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.string._
-import scalaz._
-import scalaz.concurrent.Task
-import scalaz.stream.Process._
-import scalaz.syntax.monad._
-import scodec.bits.ByteVector
+import fs2._
 
-/** 
+/**
   * Client middleware to follow redirect responses.
-  * 
+  *
   * A 301 or 302 response is followed by:
   * - a GET if the request was GET or POST
   * - a HEAD if the request was a HEAD
   * - the original request method and body if the body had no effects
   * - the redirect is not followed otherwise
-  * 
+  *
   * A 303 response is followed by:
   * - a HEAD if the request was a HEAD
   * - a GET for all other methods
-  * 
+  *
   * A 307 or 308 response is followed by:
   * - the original request method and body, if the body had no effects
   * - the redirect is not followed otherwise
-  * 
+  *
   * Whenever we follow with a GET or HEAD, an empty body is sent, and
   * all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
   * are stripped.
-  * 
+  *
   * If the response does not contain a valid Location header, the redirect is
   * not followed.
   */
@@ -63,23 +59,24 @@ object FollowRedirect {
           }
 
         // We can only resubmit a body if it was not effectful.
-        def pureBody = {
-          req.body.unemit match {
-            case (chunks, p) if p.isHalt =>
-              Some(chunks.fold(ByteVector.empty)(_ ++ _))
-            case _ =>
-              None
-          }
+        def pureBody: Option[Stream[Task,Byte]] = {
+
+          // We Are Propogating The Stream
+          Some(req.body)
+
+          // TODO fs2 port
+
+
         }
 
-        def dontRedirect =
+        def dontRedirect : Task[DisposableResponse] =
           Task.now(dr)
 
-        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[ByteVector]) =
+        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[Task,Byte]]) =
           bodyOpt match {
             case Some(body) =>
               // Assume that all the headers can be propagated
-              req.copy(method = method, uri = nextUri, body = emit(body))
+              req.copy(method = method, uri = nextUri, body = body)
             case None =>
               req.copy(
                 method = method,
@@ -89,7 +86,7 @@ object FollowRedirect {
                 headers = req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
           }
 
-        def doRedirect(method: Method) = {
+        def doRedirect(method: Method): Task[DisposableResponse] = {
           if (redirects < maxRedirects) {
             // If we get a redirect response without a location, then there is
             // nothing to redirect.
@@ -121,7 +118,7 @@ object FollowRedirect {
                 // redirect config.
                 doRedirect(GET)
 
-              case m => 
+              case m =>
                 doRedirect(m)
             }
 

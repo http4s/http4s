@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 140
 title: Static Files
 ---
 
@@ -43,4 +44,4 @@ val service = HttpService {
 }
 ```
 
-[StaticFile]: http://http4s.org/api/0.15/#org.http4s.StaticFile$
+[StaticFile]: ../api/#org.http4s.StaticFile$

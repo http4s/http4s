@@ -1,8 +1,8 @@
 ---
-layout: default
+menu: tut
+weight: 120
 title: Authentication
 ---
-## Authentication
 
 A [service] is a `Kleisli[Task, Request, Response]`, the composable version of
 `Request => Task[Response]`. http4s provides an alias called `Service[Request,
@@ -133,6 +133,6 @@ val authUser: Service[Request, String \/ User] = Kleisli({ request =>
 })
 ```
 
-[service]: service.html
+[service]: ../service
 [SPA]: https://en.wikipedia.org/wiki/Single-page_application
 [ADT]: http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html

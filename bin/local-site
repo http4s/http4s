@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd $(git rev-parse --show-toplevel)/docs/target/site
-jekyll serve --watch
+cd $(git rev-parse --show-toplevel)/docs/target/site-stage
+hugo serve -w -p 4000

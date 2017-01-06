@@ -112,8 +112,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   }
 
-  "Uri to String" should {
-
+  "Uri toString" should {
     "render default URI" in {
       Uri().toString must be_==("")
     }
@@ -261,10 +260,13 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt")
       foreach (examples) { e =>
-        Uri.fromString(e) must beRight.like { case u => u.toString must be_==(e) }
+        Uri.fromString(e).map(_.toString) must beRight(e)
       }
     }
 
+    "round trip with toString" in forAll { uri: Uri =>
+      Uri.fromString(uri.toString) must be (uri.toString)
+    }.pendingUntilFixed
   }
 
   "Uri parameters" should {

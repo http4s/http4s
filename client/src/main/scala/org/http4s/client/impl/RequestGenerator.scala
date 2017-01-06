@@ -1,10 +1,9 @@
 package org.http4s.client.impl
 
-import org.http4s.EntityEncoder.Entity
+import org.http4s.EntityEncoder
 import org.http4s._
 import org.http4s.headers.`Content-Length`
-
-import scalaz.concurrent.Task
+import fs2.Task
 
 sealed trait RequestGenerator extends Any {
   def method: Method

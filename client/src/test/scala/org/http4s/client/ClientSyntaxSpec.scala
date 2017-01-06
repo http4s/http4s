@@ -4,11 +4,8 @@ package client
 import org.http4s.Http4sSpec
 import org.http4s.headers.Accept
 import org.http4s.Status.InternalServerError
-
-import scalaz.-\/
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-
+import fs2._
+import fs2.Stream._
 import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
 import org.http4s.Method._
 
@@ -36,12 +33,14 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   object SadTrombone extends Exception("sad trombone")
 
+
+
   def assertDisposes(f: Client => Task[Unit]) = {
     var disposed = false
     val disposingClient = Client(
       route.map(DisposableResponse(_, Task.delay(disposed = true))),
       Task.now(()))
-    f(disposingClient).attemptRun
+    f(disposingClient).unsafeAttemptValue()
     disposed must beTrue
   }
 
@@ -111,7 +110,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "fetch on task that does not match results in failed task" in {
-      client.fetch(Task.now(req))(PartialFunction.empty).attempt.run must be_-\/ { e: Throwable => e must beAnInstanceOf[MatchError] }
+      client.fetch(Task.now(req))(PartialFunction.empty).attempt.unsafeRun must beLeft { e: Throwable => e must beAnInstanceOf[MatchError] }
     }
 
     "fetch Uris with expect" in {
@@ -127,7 +126,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "return an unexpected status when expect returns unsuccessful status" in {
-      client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(-\/(UnexpectedStatus(Status.InternalServerError)))
+      client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(Left(UnexpectedStatus(Status.InternalServerError)))
     }
 
     "add Accept header on expect" in {
@@ -142,39 +141,39 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       client.expect[String](GET(uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
-    "combine entity decoder media types correctly" in {
-      // This is more of an EntityDecoder spec
-      val edec = EntityDecoder.decodeBy(MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
-      client.expect(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec) must returnValue("Accept: text/*, image/jpeg")
-    }
+     "combine entity decoder media types correctly" in {
+       // This is more of an EntityDecoder spec
+       val edec = EntityDecoder.decodeBy(MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
+       client.expect(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec) must returnValue("Accept: text/*, image/jpeg")
+     }
 
-    "streaming returns a stream" in {
-      client.streaming(req)(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.run must_== Vector("hello")
-    }
+     "streaming returns a stream" in {
+       client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRun() must_== Vector("hello")
+     }
 
-    "streaming disposes of the response on success" in {
-      assertDisposes(_.streaming(req)(_.body).run)
-    }
+     "streaming disposes of the response on success" in {
+       assertDisposes(_.streaming(req)(_.body).run)
+     }
 
-    "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Process.fail(SadTrombone).toSource).run)
-    }
+     "streaming disposes of the response on failure" in {
+       assertDisposes(_.streaming(req)(_ => Stream.fail(SadTrombone)).run)
+     }
 
-    "toService disposes of the response on success" in {
-      assertDisposes(_.toService(_ => Task.now(())).run(req))
-    }
+     "toService disposes of the response on success" in {
+       assertDisposes(_.toService(_ => Task.now(())).run(req))
+     }
 
-    "toService disposes of the response on failure" in {
-      assertDisposes(_.toService(_ => Task.fail(SadTrombone)).run(req))
-    }
+     "toService disposes of the response on failure" in {
+       assertDisposes(_.toService(_ => Task.fail(SadTrombone)).run(req))
+     }
 
-    "toHttpService disposes the response if the body is run" in {
-      assertDisposes(_.toHttpService.flatMapK(_.body.run).run(req))
-    }
+     "toHttpService disposes the response if the body is run" in {
+       assertDisposes(_.toHttpService.flatMapF(_.body.run).run(req))
+     }
 
-    "toHttpService disposes of the response if the body is run, even if it fails" in {
-      assertDisposes(_.toHttpService.flatMapK(_.body.flatMap(_ => Process.fail(SadTrombone).toSource).run).run(req))
-    }
+     "toHttpService disposes of the response if the body is run, even if it fails" in {
+       assertDisposes(_.toHttpService.flatMapF(_.body.flatMap(_ => Stream.fail(SadTrombone)).run).run(req))
+     }
   }
 
   "RequestResponseGenerator" should {

@@ -2,15 +2,18 @@ package org.http4s
 package client
 
 import java.util.concurrent.atomic.AtomicBoolean
+
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.Status.ResponseClass.Successful
-import scala.util.control.NoStackTrace
 
+import scala.util.control.NoStackTrace
 import java.io.IOException
-import scalaz.concurrent.Task
-import scalaz.stream.{Process, Process1}
-import scalaz.stream.Process._
-import scodec.bits.ByteVector
+
+import fs2.interop.cats._
+import fs2.Task._
+import fs2._
+
+
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -25,7 +28,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     */
   def apply[A](f: Response => Task[A]): Task[A] = {
     val task = try f(response) catch { case e: Throwable => Task.fail(e) }
-    task.onFinish { case _ => dispose }
+    task.attempt.flatMap(result => dispose.flatMap( _ => result.fold[Task[A]](Task.fail, Task.now)))
   }
 }
 
@@ -40,16 +43,18 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   *                 open connections and freeing resources
   */
 final case class Client(open: Service[Request, DisposableResponse], shutdown: Task[Unit]) {
-  /** Submits a request, and provides a callback to process the response.
+   /** Submits a request, and provides a callback to process the response.
     *
     * @param req The request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
-    *          response body afterward will result in an error.
+    * @param f   A callback for the response to req.  The underlying HTTP connection
+    *            is disposed when the returned task completes.  Attempts to read the
+    *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
-  def fetch[A](req: Request)(f: Response => Task[A]): Task[A] =
+  def fetch[A](req: Request)(f: Response => Task[A]): Task[A] = {
     open.run(req).flatMap(_.apply(f))
+  }
+
 
   /**
     * Returns this client as a [[Service]].  All connections created by this
@@ -60,7 +65,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * or when a common response callback is used by many call sites.
     */
   def toService[A](f: Response => Task[A]): Service[Request, A] =
-    open.flatMapK(_.apply(f))
+    open.flatMapF(_.apply(f))
 
   /**
     * Returns this client as an [[HttpService]].  It is the responsibility of
@@ -71,15 +76,22 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * [[toService]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
-  def toHttpService: HttpService =
-    open.map { case DisposableResponse(response, dispose) =>
-      response.copy(body = response.body.onComplete(eval_(dispose)))
+  def toHttpService: HttpService = {
+    open.flatMapF{
+      case DisposableResponse(response, dispose) => dispose.flatMap(_ => Task.now(response))
     }
+  }
 
-  def streaming[A](req: Request)(f: Response => Process[Task, A]): Process[Task, A] =
-    eval(open(req).map { case DisposableResponse(response, dispose) =>
-      f(response).onComplete(eval_(dispose))
-    }).flatMap(identity)
+
+  def streaming[A](req: Request)(f: Response => Stream[Task, A]): Stream[Task, A] = {
+    Stream.eval(open(req))
+      .flatMap {
+        case DisposableResponse(response, dispose) =>
+          Stream.eval(dispose)
+            .flatMap(_ => f(response))
+      }
+  }
+
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
@@ -163,7 +175,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
 
   @deprecated("Use expect", "0.14")
   def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
-    Uri.fromString(s).fold(Task.fail, uri => getAs[A](uri))
+    Uri.fromString(s).fold(Task.fail, uri => expect[A](uri))
 
   /** Submits a request, and provides a callback to process the response.
     *
@@ -193,31 +205,41 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     fetchAs(req)(d)
 
   /** Shuts this client down, and blocks until complete. */
-  def shutdownNow(): Unit =
-    shutdown.run
+  def shutdownNow(): Unit = shutdown.unsafeRun()
+
 }
 
 object Client {
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
-    * 
+    *
     * @param service the service to respond to requests to this client
     */
   def fromHttpService(service: HttpService): Client = {
     val isShutdown = new AtomicBoolean(false)
 
-    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
-      def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
-        if (killed.get)
-          fail(new IOException(reason))
-        else
-          await1[ByteVector] ++ loop(reason, killed)
+    def interruptable(body: EntityBody, disposed: AtomicBoolean): Stream[Task, Byte]  = {
+      def killable[F[_]](reason: String, killed: AtomicBoolean): Pipe[F, Byte, Byte] = {
+        def go(killed: AtomicBoolean): Handle[F, Byte] => Pull[F, Byte, Unit] = {
+          _.receiveOption{
+            case Some((chunk, h)) =>
+              if (killed.get){
+                Pull.outputs[F, Byte](Stream.fail[F](new IOException(reason)))
+              } else {
+                Pull.output[F, Byte](chunk.toBytes) >> go(killed)(h)
+              }
+            case None => Pull.done
+          }
+        }
+
+        _.pull(go(killed))
       }
-      body.pipe(loop("response was disposed", disposed))
-        .pipe(loop("client was shut down", isShutdown))
+      body
+        .through(killable("response was disposed", disposed))
+        .through(killable("client was shut down", isShutdown))
     }
 
-    def disposableService(service: HttpService) =
+    def disposableService(service: HttpService): Service[Request, DisposableResponse] =
       Service.lift { req: Request =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.copy(body = interruptable(req.body, disposed))

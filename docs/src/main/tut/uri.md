@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 350
 title: URI handling
 ---
 
@@ -55,5 +56,5 @@ implicit val configuredUri = Configured[String].flatMap(s => Configured(_ => Uri
 ```
 
 [play http client]: https://www.playframework.com/documentation/2.5.x/api/scala/index.html#play.api.libs.ws.WS$
-[uri class]: http://http4s.org/api/0.15/#org.http4s.Uri
+[uri class]: ../api/#org.http4s.Uri
 [knobs]: https://github.com/Verizon/knobs

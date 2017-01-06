@@ -2,14 +2,11 @@ package org.http4s.client
 
 import java.net.{ServerSocket, InetSocketAddress, InetAddress}
 import javax.servlet.http.HttpServlet
-
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.http4s.Http4sSpec
 import org.specs2.specification.core.Fragments
-
 import scala.concurrent.duration._
-
 
 abstract class JettyScaffold(name: String) extends Http4sSpec {
 

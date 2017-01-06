@@ -3,6 +3,7 @@ package org.http4s
 import java.time.{ZoneOffset, Instant}
 
 import cats._
+import cats.data._
 import fs2._
 import org.http4s.batteries._
 import org.http4s.headers._
@@ -95,7 +96,7 @@ trait RequestOps extends Any with MessageOps {
   /** Helper method for decoding [[Request]]s
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated.
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
   final def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
     decodeWith(decoder, strict = false)(f)
@@ -103,7 +104,7 @@ trait RequestOps extends Any with MessageOps {
   /** Helper method for decoding [[Request]]s
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated. If the decoder does not support the
+    * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
   final def decodeStrict[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
@@ -114,6 +115,16 @@ trait RequestOps extends Any with MessageOps {
     *               [[MediaType]] is not supported by the provided decoder
     */
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response]
+
+  /** Add a Cookie header for the provided [[Cookie]] */
+  final def addCookie(cookie: Cookie): Self =
+    putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
+
+  /** Add a Cookie header with the provided values */
+  final def addCookie(name: String,
+                      content: String,
+                      expires: Option[Instant] = None): Self =
+    addCookie(Cookie(name, content, expires))
 }
 
 trait ResponseOps extends Any with MessageOps {
