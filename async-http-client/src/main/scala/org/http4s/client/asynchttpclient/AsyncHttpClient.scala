@@ -2,6 +2,12 @@ package org.http4s
 package client
 package asynchttpclient
 
+import cats._
+import fs2._
+import fs2.Stream._
+import fs2.io.toInputStream
+import org.http4s.batteries._
+
 import java.util.concurrent.{Callable, Executors, ExecutorService}
 
 import org.asynchttpclient.AsyncHandler.State
@@ -10,16 +16,12 @@ import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.http4s.client.impl.DefaultExecutor
 
+import org.http4s.util.bug
 import org.http4s.util.threads._
 
 import org.reactivestreams.Publisher
-import scodec.bits.ByteVector
 
 import scala.collection.JavaConverters._
-
-import scalaz.{-\/, \/-}
-import scalaz.stream.io._
-import scalaz.concurrent.Task
 
 import org.log4s.getLogger
 
@@ -45,6 +47,7 @@ object AsyncHttpClient {
             customExecutor: Option[ExecutorService] = None): Client = {
     val client = new DefaultAsyncHttpClient(config)
     val executorService = customExecutor.getOrElse(DefaultExecutor.newClientDefaultExecutorService("async-http-client-response"))
+    implicit val strategy = Strategy.fromExecutor(executorService)
     val close =
       if (customExecutor.isDefined)
         Task.delay { client.close() }
@@ -68,7 +71,7 @@ object AsyncHttpClient {
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var disposableResponse = DisposableResponse(Response(), Task.delay { state = State.ABORT })
-
+      implicit val strategy = Strategy.fromExecutor(executorService)
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         val subscriber = new QueueSubscriber[HttpResponseBodyPart](bufferSize) {
           override def whenNext(element: HttpResponseBodyPart): Boolean = {
@@ -94,9 +97,9 @@ object AsyncHttpClient {
                 // don't request what we're not going to process
             }
         }
-        val body = subscriber.process.map(part => ByteVector(part.getBodyPartBytes))
+        val body = subscriber.process.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
         val response = disposableResponse.response.copy(body = body)
-        execute(callback(\/-(DisposableResponse(response, Task.delay {
+        execute(callback(right(DisposableResponse(response, Task.delay {
           state = State.ABORT
           subscriber.killQueue()
         }))))
@@ -118,7 +121,7 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        execute(callback(-\/(throwable)))
+        execute(callback(left(throwable)))
 
       override def onCompleted(): Unit = {}
 
@@ -128,7 +131,7 @@ object AsyncHttpClient {
         })
     }
 
-  private def toAsyncRequest(request: Request): AsyncRequest =
+  private def toAsyncRequest(request: Request)(implicit S: Strategy): AsyncRequest =
     new RequestBuilder(request.method.toString)
       .setUrl(request.uri.toString)
       .setHeaders(request.headers
@@ -138,8 +141,12 @@ object AsyncHttpClient {
       ).setBody(getBodyGenerator(request.body))
       .build()
 
-  private def getBodyGenerator(body: EntityBody): BodyGenerator =
-    new InputStreamBodyGenerator(toInputStream(body))
+  private def getBodyGenerator(body: EntityBody)(implicit S: Strategy): BodyGenerator = {
+    val is = body.through(toInputStream).runLast
+      .unsafeRun // TODO fs2 port does this have to be synchronous?
+      .getOrElse(throw bug("expected an InputStream"))
+    new InputStreamBodyGenerator(is)
+  }
 
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
