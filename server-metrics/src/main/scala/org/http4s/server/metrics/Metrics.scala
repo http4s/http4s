@@ -1,20 +1,12 @@
-/** TODO fs2 port -- onHalt model changed, question pending in Gitter
 package org.http4s
 package server
 package metrics
 
 import java.util.concurrent.TimeUnit
 
-import cats.data._
-import com.codahale.metrics._
-import fs2._
-import org.http4s.batteries._
-
-import org.http4s.{Method, Response, Request}
-
-import scalaz.stream.Cause._
-import scalaz.stream.Process._
-import scalaz.concurrent.Task
+import cats.syntax.either._
+import fs2.util.Attempt
+import fs2.{Stream, Task}
 import com.codahale.metrics.MetricRegistry
 
 object Metrics {
@@ -63,15 +55,15 @@ object Metrics {
       active_requests.dec()
     }
 
-    def onFinish(method: Method, start: Long)(r: Throwable Xor Response): Attempt[Response] = {
+    def onFinish(method: Method, start: Long)(r: Attempt[Response]): Attempt[Response] = {
       val elapsed = System.nanoTime() - start
 
-      r match {
-        case Xor.Right(r) =>
-          headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-          val code = r.status.code
+      r.map { r =>
+        headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+        val code = r.status.code
 
-          val body = r.body.onHalt { cause =>
+        r.body.onFinalize[Task] {
+          Task.now {
             val elapsed = System.nanoTime() - start
 
             generalMetrics(method, elapsed)
@@ -81,30 +73,25 @@ object Metrics {
             else if (code < 400) resp3xx.update(elapsed, TimeUnit.NANOSECONDS)
             else if (code < 500) resp4xx.update(elapsed, TimeUnit.NANOSECONDS)
             else resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
-
-            cause match {
-              case End | Kill =>
-              case Error(_) =>
-                abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
-            }
-            Halt(cause)
           }
+        }.onError { cause =>
+          abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
+          Stream.fail(cause)
+        }
 
-          Right(r.copy(body = body))
-
-       case Xor.Left(e)       =>
-          generalMetrics(method, elapsed)
-          resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
-          service_failure.update(elapsed, TimeUnit.NANOSECONDS)
-          Left(e)
+        r
+      }.leftMap { e =>
+        generalMetrics(method, elapsed)
+        resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
+        service_failure.update(elapsed, TimeUnit.NANOSECONDS)
+        e
       }
     }
 
     Service.lift { req: Request =>
       val now = System.nanoTime()
       active_requests.inc()
-      new Task(service(req).get.map(onFinish(req.method, now)))
+      service(req).attempt.map(onFinish(req.method, now)).flatMap(_.fold(Task.fail, Task.now))
     }
   }
 }
-*/
