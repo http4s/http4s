@@ -91,7 +91,7 @@ object Metrics {
     Service.lift { req: Request =>
       val now = System.nanoTime()
       active_requests.inc()
-      service(req).attempt.map(onFinish(req.method, now)).flatMap(_.fold(Task.fail, Task.now))
+      service(req).attempt.flatMap(onFinish(req.method, now)(_).fold(Task.fail, Task.now))
     }
   }
 }
