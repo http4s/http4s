@@ -516,7 +516,7 @@ lazy val commonSettings = Seq(
   }.value,
   scalacOptions -= {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 12)) => "-Yinline-warnings"
+      case Some((2, n)) if n >= 12 => "-Yinline-warnings"
       case _ => ""
     }
   },
