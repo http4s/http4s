@@ -87,6 +87,14 @@ final class Headers private (headers: List[Header])
     }
     else super.++(that)
   }
+
+  override def hashCode(): Int = this.headers.hashCode()
+
+  override def equals(that: Any): Boolean = that match {
+    case otherheaders: Headers =>
+      this.hashCode() == otherheaders.hashCode()
+    case _ => false
+  }
 }
 
 object Headers {
