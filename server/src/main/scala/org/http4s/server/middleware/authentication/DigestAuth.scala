@@ -64,7 +64,7 @@ object DigestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  private def getChallenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[Challenge \/ AuthedRequest[A]] = {
+  def getChallenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[Challenge \/ AuthedRequest[A]] = {
     def paramsToChallenge(params: Map[String, String]) = -\/(Challenge("Digest", realm, params))
     checkAuth(realm, store, nonceKeeper, req).flatMap(_ match {
       case OK(authInfo) => Task.now(\/-(AuthedRequest(authInfo, req)))

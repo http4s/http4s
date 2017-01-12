@@ -34,7 +34,7 @@ object BasicAuth {
     })
   }
 
-  private def getChallenge[A](realm: String, validate: BasicAuthenticator[A], req: Request) =
+  def getChallenge[A](realm: String, validate: BasicAuthenticator[A], req: Request) =
     validatePassword(validate, req).map {
       case Some(authInfo) =>
         \/-(AuthedRequest(authInfo, req))
