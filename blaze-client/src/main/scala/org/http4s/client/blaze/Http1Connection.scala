@@ -120,7 +120,7 @@ private final class Http1Connection(val requestKey: RequestKey,
   override protected def contentComplete(): Boolean = parser.contentComplete()
 
   private def executeRequest(req: Request, flushPrelude: Boolean): Task[Response] = {
-    logger.debug(s"Beginning request: $req")
+    logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
       case Left(e)    => Task.fail(e)
       case Right(req) => Task.suspend {

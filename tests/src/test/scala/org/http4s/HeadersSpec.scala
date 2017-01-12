@@ -77,5 +77,19 @@ class HeadersSpec extends Specification {
       // Mapping to strings because Header equality is based on the *parsed* version
       (Headers(rawAuth) ++ base).map(_.toString) must contain(===(rawAuth.toString))
     }
+
+    "hash the same when constructed with the same contents" in {
+      val h1 = Headers(Header("Test-Header", "Value"))
+      val h2 = Headers(Header("Test-Header", "Value"))
+      val h3 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+      val h4 = Headers(List(Header("TestHeader", "other value"), Header("Test-Header", "Value")))
+      val h5 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+      h1.hashCode() must_== h2.hashCode()
+      h1.equals(h2) must_== true
+      h2.equals(h1) must_== true
+      h1.equals(h3) must_== false
+      h3.equals(h4) must_== false
+      h3.equals(h5) must_== true
+    }
   }
 }

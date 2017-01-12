@@ -125,5 +125,13 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
         case _ => Task.now(-1)
       }.unsafeRun() must_==(4)
     }
+
+    "Dispose of original response when redirecting" in {
+      var disposed = 0
+      val disposingService = service.map(DisposableResponse(_, Task.delay(disposed = disposed + 1)))
+      val client = FollowRedirect(3)(Client(disposingService, Task.now(())))
+      client.expect[String](uri("http://localhost/301")).attemptRun
+      disposed must_== 2 // one for the original, one for the redirect
+    }
   }
 }
