@@ -92,7 +92,7 @@ final class Headers private (headers: List[Header])
 
   override def equals(that: Any): Boolean = that match {
     case otherheaders: Headers =>
-      this.headers.equals(otherheaders.toList)
+      this.toList.equals(otherheaders.toList)
     case _ => false
   }
 }
