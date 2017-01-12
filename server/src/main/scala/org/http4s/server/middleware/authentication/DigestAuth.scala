@@ -56,13 +56,13 @@ object DigestAuth {
     nonceBits: Int = 160
   ): AuthMiddleware[A] = {
     val nonceKeeper = new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
-    challenged(getChallenge(realm, store, nonceKeeper))
+    challenged(challenge(realm, store, nonceKeeper))
   }
 
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  def getChallenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper): Service[Request, Challenge \/ AuthedRequest[A]] =
+  def challenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper): Service[Request, Challenge \/ AuthedRequest[A]] =
     Service.lift { req => {
       def paramsToChallenge(params: Map[String, String]) = -\/(Challenge("Digest", realm, params))
 
