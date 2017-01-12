@@ -83,7 +83,7 @@ title: Versions
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-ban"></i></td>
-	    <td>scalaz-7.1</td>
+	    <td>scalaz-7.2</td>
 	    <td>scalaz-stream-0.8a</td>
 	    <td>1.8+</td>
 	  </tr>
@@ -95,7 +95,7 @@ title: Versions
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-ban"></i></td>
-	    <td>scalaz-7.2</td>
+	    <td>scalaz-7.1</td>
 	    <td>scalaz-stream-0.8</td>
 	    <td>1.8+</td>
 	  </tr>
