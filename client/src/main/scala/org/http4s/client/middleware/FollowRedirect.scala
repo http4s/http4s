@@ -99,7 +99,7 @@ object FollowRedirect {
                 case _ =>
                   pureBody.map(body => nextRequest(method, nextUri, Some(body)))
               }
-              nextReq.fold(dontRedirect)(dr.dispose >> prepareLoop(_, redirects + 1))
+              nextReq.fold(dontRedirect)(req => dr.dispose.flatMap(_ => prepareLoop(req, redirects + 1)))
             }
           }
           else dontRedirect
