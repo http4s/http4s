@@ -82,13 +82,13 @@ val service = HttpService {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService = Kleisli(&lt;function1&gt;)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32046/1225527363@a3b67d2)
 
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@328df2be
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@6f0694aa
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -104,7 +104,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@322febcc)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$32081/832451716@419f8ee4),scalaz.concurrent.Task@a0486f4)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -113,7 +113,7 @@ val httpClient = PooledHttp1Client()
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@243dbc5
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@6c7a0d10
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>Task[String]</code>, to
@@ -146,7 +146,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@48ad1ddd
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@7aeafbe6
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>Task[String]</code> returned
@@ -165,13 +165,13 @@ server.</li>
 </ul>
 
 <pre><code class="language-scala">greetingList.run.mkString(&quot;\n&quot;)
-// &lt;console&gt;:35: warning: method run in class Task is deprecated: use unsafePerformSync
+// &lt;console&gt;:32: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
 //        greetingList.run.mkString(&quot;\n&quot;)
 //                     ^
 // res0: String =
+// Hello, Michael.
 // Hello, Ashley.
 // Hello, Christopher.
-// Hello, Michael.
 // Hello, Jessica.
 </code></pre>
 
