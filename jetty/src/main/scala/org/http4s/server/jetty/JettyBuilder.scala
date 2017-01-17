@@ -7,9 +7,10 @@ import javax.servlet.{DispatcherType, Filter}
 
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 import java.net.InetSocketAddress
+import javax.net.ssl.SSLContext
 import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.ServerConnector
@@ -23,20 +24,20 @@ import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletHolder, ServletContextHandler}
 
-sealed class JettyBuilder private (
+sealed class JettyBuilder private(
   socketAddress: InetSocketAddress,
   private val serviceExecutor: ExecutorService,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
-  sslBits: Option[SSLBits],
+  sslBits: Option[SSLConfig],
   mounts: Vector[Mount]
 )
   extends ServerBuilder
-  with ServletContainer
-  with IdleTimeoutSupport
-  with SSLSupport
-{
+    with ServletContainer
+    with IdleTimeoutSupport
+    with SSLKeyStoreSupport
+    with SSLContextSupport {
   type Self = JettyBuilder
 
   private def copy(
@@ -45,13 +46,23 @@ sealed class JettyBuilder private (
     idleTimeout: Duration = idleTimeout,
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo = servletIo,
-    sslBits: Option[SSLBits] = sslBits,
+    sslBits: Option[SSLConfig] = sslBits,
     mounts: Vector[Mount] = mounts
   ): JettyBuilder =
     new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 
-  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
-    copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+  override def withSSL(
+    keyStore: StoreInfo,
+    keyManagerPassword: String,
+    protocol: String,
+    trustStore: Option[StoreInfo],
+    clientAuth: Boolean
+  ): Self = {
+    copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+  }
+
+  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self = {
+    copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
   }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
@@ -64,15 +75,22 @@ sealed class JettyBuilder private (
     copy(mounts = mounts :+ Mount { (context, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
-    })
+    }
+    )
 
-  override def mountFilter(filter: Filter, urlMapping: String, name: Option[String], dispatches: util.EnumSet[DispatcherType]): JettyBuilder =
+  override def mountFilter(
+    filter: Filter,
+    urlMapping: String,
+    name: Option[String],
+    dispatches: util.EnumSet[DispatcherType]
+  ): JettyBuilder =
     copy(mounts = mounts :+ Mount { (context, index, _) =>
       val filterName = name.getOrElse(s"filter-$index")
       val filterHolder = new FilterHolder(filter)
       filterHolder.setName(filterName)
       context.addFilter(filterHolder, urlMapping, dispatches)
-    })
+    }
+    )
 
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
     copy(mounts = mounts :+ Mount { (context, index, builder) =>
@@ -85,7 +103,8 @@ sealed class JettyBuilder private (
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
-    })
+    }
+    )
 
   override def withIdleTimeout(idleTimeout: Duration): JettyBuilder =
     copy(idleTimeout = idleTimeout)
@@ -96,21 +115,8 @@ sealed class JettyBuilder private (
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
 
-  private def getConnector(jetty: JServer): ServerConnector = sslBits match {
-    case Some(sslBits) =>
-      // SSL Context Factory
-      val sslContextFactory = new SslContextFactory()
-      sslContextFactory.setKeyStorePath(sslBits.keyStore.path)
-      sslContextFactory.setKeyStorePassword(sslBits.keyStore.password)
-      sslContextFactory.setKeyManagerPassword(sslBits.keyManagerPassword)
-      sslContextFactory.setNeedClientAuth(sslBits.clientAuth)
-      sslContextFactory.setProtocol(sslBits.protocol)
-
-      sslBits.trustStore.foreach { trustManagerBits =>
-        sslContextFactory.setTrustStorePath(trustManagerBits.path)
-        sslContextFactory.setTrustStorePassword(trustManagerBits.password)
-      }
-
+  private def getConnector(jetty: JServer): ServerConnector = {
+    def serverConnector(sslContextFactory: SslContextFactory) = {
       // SSL HTTP Configuration
       val https_config = new HttpConfiguration()
 
@@ -120,12 +126,40 @@ sealed class JettyBuilder private (
 
       val connectionFactory = new HttpConnectionFactory(https_config)
       new ServerConnector(jetty, new SslConnectionFactory(sslContextFactory,
-        org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
-        connectionFactory)
+        org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()
+      ),
+        connectionFactory
+      )
+    }
 
-    case None =>
-      val connectionFactory = new HttpConnectionFactory
-      new ServerConnector(jetty, connectionFactory)
+    sslBits match {
+      case Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)) =>
+        // SSL Context Factory
+        val sslContextFactory = new SslContextFactory()
+        sslContextFactory.setKeyStorePath(keyStore.path)
+        sslContextFactory.setKeyStorePassword(keyStore.password)
+        sslContextFactory.setKeyManagerPassword(keyManagerPassword)
+        sslContextFactory.setNeedClientAuth(clientAuth)
+        sslContextFactory.setProtocol(protocol)
+
+        trustStore.foreach { trustManagerBits =>
+          sslContextFactory.setTrustStorePath(trustManagerBits.path)
+          sslContextFactory.setTrustStorePassword(trustManagerBits.password)
+        }
+
+        serverConnector(sslContextFactory)
+
+      case Some(SSLContextBits(sslContext, clientAuth)) =>
+        val sslContextFactory = new SslContextFactory()
+        sslContextFactory.setSslContext(sslContext)
+        sslContextFactory.setNeedClientAuth(clientAuth)
+
+        serverConnector(sslContextFactory)
+
+      case None =>
+        val connectionFactory = new HttpConnectionFactory
+        new ServerConnector(jetty, connectionFactory)
+    }
   }
 
   def start: Task[Server] = Task.delay {
@@ -156,9 +190,11 @@ sealed class JettyBuilder private (
         }
 
       override def onShutdown(f: => Unit): this.type = {
-        jetty.addLifeCycleListener { new AbstractLifeCycleListener {
-          override def lifeCycleStopped(event: LifeCycle): Unit = f
-        }}
+        jetty.addLifeCycleListener {
+          new AbstractLifeCycleListener {
+            override def lifeCycleStopped(event: LifeCycle): Unit = f
+          }
+        }
         this
       }
 
