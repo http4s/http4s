@@ -50,13 +50,15 @@ private final class Http1Connection(val requestKey: RequestKey,
 
   override def shutdown(): Unit = stageShutdown()
 
-  override def stageShutdown() = shutdownWithError(EOF)
+  override def stageShutdown(): Unit = {
+    shutdownWithError(EOF)
+  }
 
   override protected def fatalError(t: Throwable, msg: String): Unit = {
     val realErr = t match {
       case _: TimeoutException => EOF
       case EOF                 => EOF
-      case t                   => 
+      case t                   =>
         logger.error(t)(s"Fatal Error: $msg")
         t
     }
@@ -154,7 +156,7 @@ private final class Http1Connection(val requestKey: RequestKey,
             }(ec)
           }
 
-        next.flatMap{ rr =>
+        next.flatMap { rr =>
           val bodyTask = getChunkEncoder(req, mustClose, rr)
             .writeProcess(req.body)
             .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
