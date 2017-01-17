@@ -87,7 +87,7 @@ the world" varies by context:
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
-greetingList.run.mkString("\n")
+greetingList.unsafePerformSync.mkString("\n")
 ```
 
 ## Cleaning up
