@@ -29,17 +29,17 @@ object BasicAuth {
     * @return
     */
   def apply[A](realm: String, validate: BasicAuthenticator[A]): AuthMiddleware[A] = {
-    challenged(Service.lift { req =>
-      getChallenge(realm, validate, req)
-    })
+    challenged(challenge(realm, validate))
   }
 
-  private def getChallenge[A](realm: String, validate: BasicAuthenticator[A], req: Request) =
-    validatePassword(validate, req).map {
-      case Some(authInfo) =>
-        \/-(AuthedRequest(authInfo, req))
-      case None =>
-        -\/(Challenge("Basic", realm, Map.empty))
+  def challenge[A](realm: String, validate: BasicAuthenticator[A]): Service[Request, Challenge \/ AuthedRequest[A]] =
+    Service.lift { req =>
+      validatePassword(validate, req).map {
+        case Some(authInfo) =>
+          \/-(AuthedRequest(authInfo, req))
+        case None =>
+          -\/(Challenge("Basic", realm, Map.empty))
+      }
     }
 
   private def validatePassword[A](validate: BasicAuthenticator[A], req: Request): Task[Option[A]] = {
