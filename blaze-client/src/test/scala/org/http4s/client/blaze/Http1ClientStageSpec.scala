@@ -39,7 +39,7 @@ class Http1ClientStageSpec extends Specification {
 
   private def mkBuffer(s: String): ByteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  private def bracketResponse[T](req: Request, resp: String, flushPrelude: Boolean)(f: Response => Task[T]): Task[T] = {
+  private def bracketResponse[T](req: Request, resp: String)(f: Response => Task[T]): Task[T] = {
     val stage = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
     Task.suspend {
       val h = new SeqTestHead(resp.toSeq.map{ chr =>
@@ -50,7 +50,7 @@ class Http1ClientStageSpec extends Specification {
       LeafBuilder(stage).base(h)
 
       for {
-        resp <- stage.runRequest(req, flushPrelude)
+        resp <- stage.runRequest(req)
         t    <- f(resp)
         _    <- Task { stage.shutdown() }
       } yield t
@@ -58,7 +58,7 @@ class Http1ClientStageSpec extends Specification {
 
   }
 
-  private def getSubmission(req: Request, resp: String, stage: Http1Connection, flushPrelude: Boolean): (String, String) = {
+  private def getSubmission(req: Request, resp: String, stage: Http1Connection): (String, String) = {
     val h = new SeqTestHead(resp.toSeq.map{ chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
@@ -66,7 +66,7 @@ class Http1ClientStageSpec extends Specification {
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(stage.runRequest(req, flushPrelude)
+    val result = new String(stage.runRequest(req)
       .run
       .body
       .runLog
@@ -80,10 +80,10 @@ class Http1ClientStageSpec extends Specification {
     (request, result)
   }
 
-  private def getSubmission(req: Request, resp: String, flushPrelude: Boolean = false): (String, String) = {
+  private def getSubmission(req: Request, resp: String): (String, String) = {
     val key = RequestKey.fromRequest(req)
     val tail = mkConnection(key)
-    try getSubmission(req, resp, tail, flushPrelude)
+    try getSubmission(req, resp, tail)
     finally { tail.shutdown() }
   }
 
@@ -116,8 +116,8 @@ class Http1ClientStageSpec extends Specification {
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest, false).run  // we remain in the body
-        tail.runRequest(FooRequest, false).run must throwA[Http1Connection.InProgressException.type]
+        tail.runRequest(FooRequest).run  // we remain in the body
+        tail.runRequest(FooRequest).run must throwA[Http1Connection.InProgressException.type]
       }
       finally {
         tail.shutdown()
@@ -131,9 +131,9 @@ class Http1ClientStageSpec extends Specification {
         LeafBuilder(tail).base(h)
 
         // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest, false).run.body.run.run
+        tail.runRequest(FooRequest).run.body.run.run
 
-        val result = tail.runRequest(FooRequest, false).run
+        val result = tail.runRequest(FooRequest).run
         tail.shutdown()
 
         result.headers.size must_== 1
@@ -151,7 +151,7 @@ class Http1ClientStageSpec extends Specification {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest, false).run
+        val result = tail.runRequest(FooRequest).run
 
         result.body.run.run must throwA[InvalidBodyException]
       }
@@ -210,7 +210,7 @@ class Http1ClientStageSpec extends Specification {
       val tail = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
 
       try {
-        val (request, response) = getSubmission(FooRequest, resp, tail, false)
+        val (request, response) = getSubmission(FooRequest, resp, tail)
         tail.shutdown()
 
         val requestLines = request.split("\r\n").toList
@@ -241,7 +241,7 @@ class Http1ClientStageSpec extends Specification {
        * scenarios before we consume the body.  Make sure we can handle
        * it.  Ensure that we still get a well-formed response.
        */
-      val (request, response) = getSubmission(req, resp, true)
+      val (request, response) = getSubmission(req, resp)
       response must_==("done")
     }
 
@@ -254,7 +254,7 @@ class Http1ClientStageSpec extends Specification {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val response = tail.runRequest(headRequest, false).run
+        val response = tail.runRequest(headRequest).run
         response.contentLength must_== Some(contentLength)
 
         // connection reusable immediately after headers read
@@ -279,7 +279,7 @@ class Http1ClientStageSpec extends Specification {
       val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
       "Support trailer headers" in {
-        val hs: Task[Headers] = bracketResponse(req, resp, false){ response: Response =>
+        val hs: Task[Headers] = bracketResponse(req, resp){ response: Response =>
           for {
             body  <- response.as[String]
             hs <- response.trailerHeaders
@@ -290,7 +290,7 @@ class Http1ClientStageSpec extends Specification {
       }
 
       "Fail to get trailers before they are complete" in {
-        val hs: Task[Headers] = bracketResponse(req, resp, false){ response: Response =>
+        val hs: Task[Headers] = bracketResponse(req, resp){ response: Response =>
           for {
             //body  <- response.as[String]
             hs <- response.trailerHeaders

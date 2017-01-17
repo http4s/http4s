@@ -1,3 +1,10 @@
+# v0.15.3 (2016-01-17)
+* Dispose of redirect responses in `FollowRedirect`. Fixes client deadlock under heavy load
+* Refrain from logging headers with potentially sensitive info in blaze-client
+* Add `hashCode` and `equals` to `Headers`
+* Make `challenge` in auth middlewares public to facilitate composing multiple auth mechanisms
+* Fix blaze-client detection of stale connections
+
 # v0.15.2 (2016-12-29)
 * Add helpers to add cookies to requests
 

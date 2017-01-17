@@ -581,7 +581,10 @@ lazy val mimaSettings = Seq(
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved"),
       exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
       exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3")
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3"),
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
+      exclude[DirectAbstractMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest")
     )
   }
 )

@@ -55,21 +55,22 @@ object DigestAuth {
     nonceBits: Int = 160
   ): AuthMiddleware[A] = {
     val nonceKeeper = new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
-    challenged(Service.lift { req =>
-      getChallenge(realm, store, nonceKeeper, req)
-    })
+    challenged(challenge(realm, store, nonceKeeper))
   }
 
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  private def getChallenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[Either[Challenge, AuthedRequest[A]]] = {
-    def paramsToChallenge(params: Map[String, String]) = Left(Challenge("Digest", realm, params))
-    checkAuth(realm, store, nonceKeeper, req).flatMap(_ match {
-      case OK(authInfo) => Task.now(right(AuthedRequest(authInfo, req)))
-      case StaleNonce => getChallengeParams(nonceKeeper, true).map(paramsToChallenge)
-      case _          => getChallengeParams(nonceKeeper, false).map(paramsToChallenge)
-    })
+  def challenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper): Service[Request, Either[Challenge, AuthedRequest[A]]] =
+    Service.lift { req => {
+      def paramsToChallenge(params: Map[String, String]) = left(Challenge("Digest", realm, params))
+
+      checkAuth(realm, store, nonceKeeper, req).flatMap(_ match {
+        case OK(authInfo) => Task.now(right(AuthedRequest(authInfo, req)))
+        case StaleNonce => getChallengeParams(nonceKeeper, true).map(paramsToChallenge)
+        case _ => getChallengeParams(nonceKeeper, false).map(paramsToChallenge)
+      })
+    }
   }
 
   private def checkAuth[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[AuthReply[A]] = req.headers.get(Authorization) match {

@@ -174,7 +174,11 @@ def repos(organization: String): Task[List[Repo]] = {
 }
 
 val http4s = repos("http4s")
-http4s.map(_.map(_.stargazers_count).mkString("\n")).run
+
+val stargazers = http4s.map(_.map(_.stargazers_count).mkString("\n"))
+
+// Run has been separated into its own line for tut to compile without hanging. 
+stargazers.run
 httpClient.shutdownNow()
 ```
 
