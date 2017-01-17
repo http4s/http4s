@@ -50,9 +50,7 @@ private final class Http1Connection(val requestKey: RequestKey,
 
   override def shutdown(): Unit = stageShutdown()
 
-  override def stageShutdown(): Unit = {
-    shutdownWithError(EOF)
-  }
+  override def stageShutdown(): Unit = shutdownWithError(EOF)
 
   override protected def fatalError(t: Throwable, msg: String): Unit = {
     val realErr = t match {
@@ -97,16 +95,16 @@ private final class Http1Connection(val requestKey: RequestKey,
     }
   }
 
-  def runRequest(req: Request, flushPrelude: Boolean): Task[Response] = Task.suspend[Response] {
+  def runRequest(req: Request): Task[Response] = Task.suspend[Response] {
     stageState.get match {
       case Idle =>
         if (stageState.compareAndSet(Idle, Running)) {
           logger.debug(s"Connection was idle. Running.")
-          executeRequest(req, flushPrelude)
+          executeRequest(req)
         }
         else {
           logger.debug(s"Connection changed state since checking it was idle. Looping.")
-          runRequest(req, flushPrelude)
+          runRequest(req)
         }
       case Running =>
         logger.error(s"Tried to run a request already in running state.")
@@ -121,7 +119,7 @@ private final class Http1Connection(val requestKey: RequestKey,
 
   override protected def contentComplete(): Boolean = parser.contentComplete()
 
-  private def executeRequest(req: Request, flushPrelude: Boolean): Task[Response] = {
+  private def executeRequest(req: Request): Task[Response] = {
     logger.debug(s"Beginning request: ${req.method} ${req.uri}")
     validateRequest(req) match {
       case Left(e)    => Task.fail(e)
@@ -139,34 +137,15 @@ private final class Http1Connection(val requestKey: RequestKey,
           case None       => getHttpMinor(req) == 0
         }
 
-        val next: Task[StringWriter] = 
-          if (!flushPrelude) Task.now(rr)
-          else Task.async[StringWriter] { cb =>
-            val bb = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
-            channelWrite(bb).onComplete {
-              case Success(_)    => cb(\/-(new StringWriter))
-              case Failure(EOF)  => stageState.get match {
-                  case Idle | Running => shutdown(); cb(-\/(EOF))
-                  case Error(e)       => cb(-\/(e))
-                }
-
-              case Failure(t)    =>
-                fatalError(t, s"Error during phase: flush prelude")
-                cb(-\/(t))
-            }(ec)
+        val bodyTask = getChunkEncoder(req, mustClose, rr)
+          .writeProcess(req.body)
+          .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
+        val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
+        Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
+          .handleWith { case t =>
+            fatalError(t, "Error executing request")
+            Task.fail(t)
           }
-
-        next.flatMap { rr =>
-          val bodyTask = getChunkEncoder(req, mustClose, rr)
-            .writeProcess(req.body)
-            .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
-          val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
-          Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
-            .handleWith { case t =>
-              fatalError(t, "Error executing request")
-              Task.fail(t)
-            }
-        }
       }
     }
   }

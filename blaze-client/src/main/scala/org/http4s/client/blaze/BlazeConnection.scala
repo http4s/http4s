@@ -10,12 +10,8 @@ import scala.util.control.NonFatal
 import scalaz.concurrent.Task
 
 private trait BlazeConnection extends TailStage[ByteBuffer] with Connection {
-  final def runRequest(req: Request): Task[Response] =
-    runRequest(req, false)
 
-  /** If we flush the prelude, we can detect stale connections before we run the effect
-    * of the body.  This gives us a better retry story. */
-  def runRequest(req: Request, flushPrelude: Boolean): Task[Response]
+  def runRequest(req: Request): Task[Response]
 
   override protected def finalize(): Unit = {
     try if (!isClosed) {
