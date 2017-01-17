@@ -8,7 +8,7 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.15.3-SNAPSHOT", scalazVersion.value)
+version      in ThisBuild := scalazCrossBuild("0.15.3", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
@@ -592,7 +592,10 @@ lazy val mimaSettings = Seq(
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved"),
       exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
       exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3")
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3"),
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
+      exclude[DirectAbstractMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest")
     )
   }
 )
