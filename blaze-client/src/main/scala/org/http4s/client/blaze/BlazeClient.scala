@@ -33,13 +33,13 @@ object BlazeClient {
           case e => logger.error(e)("Error invalidating connection")
         }
 
-      def loop(next: manager.NextConnection, flushPrelude: Boolean): Task[DisposableResponse] = {
+      def loop(next: manager.NextConnection): Task[DisposableResponse] = {
         // Add the timeout stage to the pipeline
         val ts = new ClientTimeoutStage(config.idleTimeout, config.requestTimeout, bits.ClientTickWheel)
         next.connection.spliceBefore(ts)
         ts.initialize()
 
-        next.connection.runRequest(req, flushPrelude).attempt.flatMap {
+        next.connection.runRequest(req).attempt.flatMap {
           case \/-(r)  =>
             val dispose = Task.delay(ts.removeStage)
               .flatMap { _ => manager.release(next.connection) }
@@ -50,7 +50,7 @@ object BlazeClient {
               if (next.fresh) Task.fail(new java.io.IOException(s"Failed to connect to endpoint: $key"))
               else {
                 manager.borrow(key).flatMap { newConn =>
-                  loop(newConn, flushPrelude)
+                  loop(newConn)
                 }
               }
             }
@@ -61,8 +61,7 @@ object BlazeClient {
             }
         }
       }
-      val flushPrelude = !req.body.isHalt
-      manager.borrow(key).flatMap(loop(_, flushPrelude))
+      manager.borrow(key).flatMap(loop)
     }, onShutdown)
   }
 }
