@@ -27,7 +27,7 @@ trait ElemInstances {
   implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`){ msg =>
-      collectBinary(msg).flatMap[Elem] { arr =>
+      collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
         catch {
