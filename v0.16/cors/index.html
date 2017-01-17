@@ -86,7 +86,7 @@ import org.http4s.dsl._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$33257/1170149847@a2043fb)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$33601/66812934@779e2f36)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
@@ -104,7 +104,7 @@ service(request).run
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$33297/1950164713@52c81298)
+// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$33641/1999273575@23b586ba)
 
 corsService(request).run
 // &lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
@@ -167,7 +167,7 @@ val methodConfig = CORSConfig(
 // methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,None,Some(Set(GET, POST)),Some(Set(Content-Type, *)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$33297/1950164713@7acec3c8)
+// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$33641/1999273575@4844e2d6)
 
 corsMethodSvc(googleGet).run
 // &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
@@ -200,7 +200,7 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Some(Set(yahoo.com, duckduckgo.com)),None,Some(Set(Content-Type, *)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$33297/1950164713@5c8eebbe)
+// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$33641/1999273575@26f42075)
 
 corsOriginSvc(googleGet).run
 // &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync

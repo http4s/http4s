@@ -111,7 +111,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.2a</td>
+        <td>0.15.3a</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -121,7 +121,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.2</td>
+        <td>0.15.3</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -242,7 +242,17 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-15-2-2016-12-29">v0.15.2 (2016-12-29)</h1>
+      <h1 id="v0-15-3-2016-01-17">v0.15.3 (2016-01-17)</h1>
+
+<ul>
+<li>Dispose of redirect responses in <code>FollowRedirect</code>. Fixes client deadlock under heavy load</li>
+<li>Refrain from logging headers with potentially sensitive info in blaze-client</li>
+<li>Add <code>hashCode</code> and <code>equals</code> to <code>Headers</code></li>
+<li>Make <code>challenge</code> in auth middlewares public to facilitate composing multiple auth mechanisms</li>
+<li>Fix blaze-client detection of stale connections</li>
+</ul>
+
+<h1 id="v0-15-2-2016-12-29">v0.15.2 (2016-12-29)</h1>
 
 <ul>
 <li>Add helpers to add cookies to requests</li>
