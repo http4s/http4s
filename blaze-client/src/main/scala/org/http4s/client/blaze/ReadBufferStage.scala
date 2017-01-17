@@ -23,7 +23,7 @@ private final class ReadBufferStage[T] extends MidStage[T, T] {
   override def writeRequest(data: Seq[T]): Future[Unit] = channelWrite(data)
 
   override def readRequest(size: Int): Future[T] = lock.synchronized {
-    if (buffered == null) Future.failed(illegalState())
+    if (buffered == null) Future.failed(new IllegalStateException("Cannot have multiple pending reads"))
     else if (buffered.isCompleted) {
       // What luck: we can schedule a new read right now, without an intermediate future
       val r = buffered
@@ -52,16 +52,13 @@ private final class ReadBufferStage[T] extends MidStage[T, T] {
     if (buffered == null) {
       buffered = channelRead()
     } else {
+      val msg = "Tried to schedule a read when one is already pending"
+      val ex = org.http4s.util.bug(msg)
       // This should never happen, but if it does, lets scream about it
-      val ex = illegalState()
-      logger.error(ex)("Found ourselves in an illegal state, " +
-        "trying to schedule a read when one is already pending")
+      logger.error(ex)(msg)
       throw ex
     }
   }
-
-  private def illegalState(): Exception =
-    new IllegalStateException("Cannot have multiple pending reads")
 }
 
 
