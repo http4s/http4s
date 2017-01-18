@@ -103,7 +103,7 @@ import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
 val req = Request(uri = Uri.uri("http://localhost:8080/hello"), method = Method.POST).withBody(User("Anabelle"))(jsonEncoderOf)
-httpClient.expect(req)(jsonOf[Hello]).run
+httpClient.expect(req)(jsonOf[Hello]).unsafePerformSync
 ```
 
 And clean everything up.
@@ -177,8 +177,8 @@ val http4s = repos("http4s")
 
 val stargazers = http4s.map(_.map(_.stargazers_count).mkString("\n"))
 
-// Run has been separated into its own line for tut to compile without hanging. 
-stargazers.run
+// unsafePerformSync has been separated into its own line for tut to compile without hanging.
+stargazers.unsafePerformSync
 httpClient.shutdownNow()
 ```
 
