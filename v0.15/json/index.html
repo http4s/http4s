@@ -70,7 +70,7 @@
 <p>Argonaut-shapeless for automatic codec derivation.</p>
 
 <pre><code class="language-scala">libraryDependencies += Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % &quot;0.15.2&quot;,
+  &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % &quot;0.15.3&quot;,
   &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M4&quot;
 )
 </code></pre>
@@ -80,7 +80,7 @@
 <p>Circe-generic for automatic codec derivation.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.15.2&quot;,
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.15.3&quot;,
   &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.6.1&quot;
 )
 </code></pre>
@@ -89,8 +89,8 @@
 
 <p>Json4s supports two backends.  Choose one of:</p>
 
-<pre><code class="language-scala">libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % &quot;0.15.2&quot;
-libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % &quot;0.15.2&quot;
+<pre><code class="language-scala">libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % &quot;0.15.3&quot;
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % &quot;0.15.3&quot;
 </code></pre>
 
 <h2 id="import-it">Import it</h2>
@@ -157,7 +157,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(jsonService, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@4bc6b8df
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7c1f4d7f
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -177,10 +177,10 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@367e9c36)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@30e08b6e)
 
 val req = Request(uri = Uri.uri(&quot;http://localhost:8080/hello&quot;), method = Method.POST).withBody(User(&quot;Anabelle&quot;))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@3415bb23
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@6642f301
 
 httpClient.expect(req)(jsonOf[Hello]).run
 // &lt;console&gt;:44: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -252,7 +252,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@7fd78a8d)
+// httpClient: org.http4s.client.Client = Client(Kleisli(&lt;function1&gt;),scalaz.concurrent.Task@18be0806)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri(&quot;https://api.github.com/orgs&quot;) / organization / &quot;repos&quot;
@@ -261,7 +261,7 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos(&quot;http4s&quot;)
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@69f40814
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@11769f3f
 
 http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
 // &lt;console&gt;:49: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -271,8 +271,8 @@ http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;)).run
 // 644
 // 93
 // 9
-// 87
-// 1
+// 88
+// 2
 // 5
 // 0
 // 0
