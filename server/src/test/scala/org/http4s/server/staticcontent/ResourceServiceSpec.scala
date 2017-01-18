@@ -16,19 +16,19 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
       {
         val req = Request(uri = uri("foo/testresource.txt"))
-        s2(req) must returnBody(testResource)
-        s2(req) must returnStatus(Status.Ok)
+        s2.orNotFound(req) must returnBody(testResource)
+        s2.orNotFound(req) must returnStatus(Status.Ok)
       }
 
       {
         val req = Request(uri = uri("testresource.txt"))
-        s2(req) must returnStatus(Status.NotFound)
+        s2.orNotFound(req) must returnStatus(Status.NotFound)
       }
     }
 
     "Serve available content" in {
       val req = Request(uri = Uri.fromString("testresource.txt").yolo)
-      val rb = s(req)
+      val rb = s.orNotFound(req)
 
       rb must returnBody(testResource)
       rb must returnStatus(Status.Ok)
@@ -36,7 +36,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Generate non on missing content" in {
       val req = Request(uri = Uri.fromString("testresource.txtt").yolo)
-      s(req) must returnStatus(Status.NotFound)
+      s.orNotFound(req) must returnStatus(Status.NotFound)
     }
   }
 

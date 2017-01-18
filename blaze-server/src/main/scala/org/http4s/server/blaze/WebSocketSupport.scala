@@ -17,7 +17,8 @@ import scala.util.{Failure, Success}
 import scala.concurrent.Future
 
 private trait WebSocketSupport extends Http1ServerStage {
-  override protected def renderResponse(req: Request, resp: Response, cleanup: () => Future[ByteBuffer]): Unit = {
+  override protected def renderResponse(req: Request, maybeResponse: MaybeResponse, cleanup: () => Future[ByteBuffer]): Unit = {
+    val resp = maybeResponse.orNotFound
     val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey)
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 

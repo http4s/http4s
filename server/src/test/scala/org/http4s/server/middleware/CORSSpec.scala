@@ -34,26 +34,26 @@ class CORSSpec extends Http4sSpec {
   "CORS" should {
     "Be omitted when unrequested" in {
       val req = Request(uri = Uri(path = "foo"))
-      cors1(req).map(_.headers) must returnValue(contain(headerCheck _).not)
-      cors2(req).map(_.headers) must returnValue(contain(headerCheck _).not)
+      cors1.orNotFound(req).map(_.headers) must returnValue(contain(headerCheck _).not)
+      cors2.orNotFound(req).map(_.headers) must returnValue(contain(headerCheck _).not)
     }
 
     "Respect Access-Control-Allow-Credentials" in {
       val req = buildRequest("/foo")
-      cors1(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRun
-      cors2(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRun
+      cors1.orNotFound(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRun
+      cors2.orNotFound(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRun
     }
 
     "Offer a successful reply to OPTIONS on fallthrough" in {
       val req = buildRequest("/unexistant", OPTIONS)
-      cors1(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRun
-      cors2(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRun
+      cors1.orNotFound(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRun
+      cors2.orNotFound(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRun
     }
 
     "Always Respect unsuccesful replies to OPTIONS requests" in {
       val req = buildRequest("/bar", OPTIONS)
-      cors1(req).map(_.headers must not contain(headerCheck _)).unsafeRun
-      cors2(req).map(_.headers must not contain(headerCheck _)).unsafeRun
+      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafeRun
+      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafeRun
     }
   }
 }

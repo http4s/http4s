@@ -24,6 +24,7 @@ import org.specs2.specification.dsl.FragmentsDsl
 import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
 import org.specs2.specification.core.Fragments
 import org.scalacheck._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
 import org.typelevel.discipline.specs2.mutable.Discipline
@@ -50,6 +51,18 @@ trait Http4sSpec extends Specification
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
+
+  implicit class HttpServiceSyntax(service: HttpService) {
+    def orNotFound(req: Request): Task[Response] =
+      service.run(req).map(_.orNotFound)
+  }
+
+  /** This isn't really ours to provide publicly in implicit scope */
+  implicit lazy val arbitraryByteChunk: Arbitrary[Chunk[Byte]] =
+    Arbitrary {
+      Gen.containerOf[Array, Byte](arbitrary[Byte])
+        .map { b => Chunk.bytes(b) }
+    }
 
   def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
     Stream.eval(W.toEntity(a))
