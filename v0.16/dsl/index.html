@@ -114,7 +114,7 @@ anything.  The right hand side of the request must return a
   case _ =&gt;
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@1bf3a65d)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@75f80c24)
 </code></pre>
 
 <h2 id="testing-the-service">Testing the Service</h2>
@@ -127,7 +127,7 @@ and experiment directly in the REPL.</p>
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala&gt; val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6f1cb23a
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5891203
 </code></pre>
 
 <p>Where is our <code>Response</code>?  It hasn&rsquo;t been created yet.  We wrapped it
@@ -141,10 +141,7 @@ run it.</p>
 
 <p>But here in the REPL, it&rsquo;s up to us to run it:</p>
 
-<pre><code class="language-scala">scala&gt; val response = task.run
-&lt;console&gt;:20: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       val response = task.run
-                           ^
+<pre><code class="language-scala">scala&gt; val response = task.unsafePerformSync
 response: org.http4s.Response = Response(status=200, headers=Headers())
 </code></pre>
 
@@ -162,12 +159,9 @@ generating <code>Task[Response]</code>s.</p>
 applying a status code:</p>
 
 <pre><code class="language-scala">scala&gt; val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3318ab30
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@27539d85
 
-scala&gt; val ok = okTask.run
-&lt;console&gt;:20: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       val ok = okTask.run
-                       ^
+scala&gt; val ok = okTask.unsafePerformSync
 ok: org.http4s.Response = Response(status=200, headers=Headers())
 </code></pre>
 
@@ -176,10 +170,7 @@ service:</p>
 
 <pre><code class="language-scala">HttpService {
   case _ =&gt; Ok()
-}.run(getRoot).run
-// &lt;console&gt;:23: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        }.run(getRoot).run
-//                       ^
+}.run(getRoot).unsafePerformSync
 // res0: org.http4s.Response = Response(status=200, headers=Headers())
 </code></pre>
 
@@ -189,10 +180,7 @@ response:</p>
 
 <pre><code class="language-scala">HttpService {
   case _ =&gt; NoContent()
-}.run(getRoot).run
-// &lt;console&gt;:23: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        }.run(getRoot).run
-//                       ^
+}.run(getRoot).unsafePerformSync
 // res1: org.http4s.Response = Response(status=204, headers=Headers())
 </code></pre>
 
@@ -200,10 +188,7 @@ response:</p>
 
 <p>http4s adds a minimum set of headers depending on the response, e.g:</p>
 
-<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).run.headers
-&lt;console&gt;:20: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Ok response.&quot;).run.headers
-                          ^
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).unsafePerformSync.headers
 res2: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12)
 </code></pre>
 
@@ -219,10 +204,7 @@ import org.http4s.util.NonEmptyList
 // import org.http4s.util.NonEmptyList
 </code></pre>
 
-<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).run.headers
-&lt;console&gt;:23: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Ok response.&quot;).putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).run.headers
-                                                                                  ^
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).unsafePerformSync.headers
 res3: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Cache-Control: no-cache)
 </code></pre>
 
@@ -230,10 +212,7 @@ res3: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 define custom headers, typically prefixed by an <code>X-</code>. In simple cases you can
 construct a <code>Header</code> instance by hand</p>
 
-<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).putHeaders(Header(&quot;X-Auth-Token&quot;, &quot;value&quot;)).run.headers
-&lt;console&gt;:23: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Ok response.&quot;).putHeaders(Header(&quot;X-Auth-Token&quot;, &quot;value&quot;)).run.headers
-                                                                      ^
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).putHeaders(Header(&quot;X-Auth-Token&quot;, &quot;value&quot;)).unsafePerformSync.headers
 res4: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, X-Auth-Token: value)
 </code></pre>
 
@@ -242,10 +221,7 @@ res4: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 <p>http4s has special support for Cookie headers using the <code>Cookie</code> type to add
 and invalidate cookies. Adding a cookie will generate the correct <code>Set-Cookie</code> header:</p>
 
-<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;)).run.headers
-&lt;console&gt;:23: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;)).run.headers
-                                                          ^
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;)).unsafePerformSync.headers
 res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar)
 </code></pre>
 
@@ -254,20 +230,14 @@ res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 <pre><code class="language-scala">scala&gt; import java.time.Instant
 import java.time.Instant
 
-scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).run.headers
-&lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).run.headers
-                                                                                                                       ^
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Tue, 17 Jan 2017 06:01:54 GMT; Secure; HttpOnly)
+scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).unsafePerformSync.headers
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 18 Jan 2017 18:18:18 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with <code>removeCookie</code></p>
 
-<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).removeCookie(&quot;foo&quot;).run.headers
-&lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Ok response.&quot;).removeCookie(&quot;foo&quot;).run.headers
-                                              ^
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).removeCookie(&quot;foo&quot;).unsafePerformSync.headers
 res7: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0)
 </code></pre>
 
@@ -287,19 +257,13 @@ for now is that a response body can be generated for any type with an
 implicit <code>EntityEncoder</code> in scope.  http4s provides several out of the
 box:</p>
 
-<pre><code class="language-scala">scala&gt; Ok(&quot;Received request.&quot;).run
-&lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;Received request.&quot;).run
-                               ^
+<pre><code class="language-scala">scala&gt; Ok(&quot;Received request.&quot;).unsafePerformSync
 res8: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 17))
 
 scala&gt; import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.charset.StandardCharsets.UTF_8
 
-scala&gt; Ok(&quot;binary&quot;.getBytes(UTF_8)).run
-&lt;console&gt;:25: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(&quot;binary&quot;.getBytes(UTF_8)).run
-                                    ^
+scala&gt; Ok(&quot;binary&quot;.getBytes(UTF_8)).unsafePerformSync
 res9: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/octet-stream, Content-Length: 6))
 </code></pre>
 
@@ -331,12 +295,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
      |   println(&quot;I run when the future is constructed.&quot;)
      |   &quot;Greetings from the future!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@708f55dd
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@66a7f0e0
 
-scala&gt; task.run
-&lt;console&gt;:28: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       task.run
-            ^
+scala&gt; task.unsafePerformSync
 res11: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26))
 </code></pre>
 
@@ -347,12 +308,9 @@ of course prefer to operate in [Task]s:</p>
      |   println(&quot;I run when the Task is run.&quot;)
      |   &quot;Mission accomplished!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6b8bd270
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@26e5ea6b
 
-scala&gt; task.run
-&lt;console&gt;:28: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       task.run
-            ^
+scala&gt; task.unsafePerformSync
 I run when the Task is run.
 res12: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 21))
 </code></pre>
@@ -377,15 +335,12 @@ for one second:</p>
   implicit def defaultScheduler = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
   scalaz.stream.time.awakeEvery(100.millis).map(_.toString).take(10)
 }
-// drip: scalaz.stream.Process[scalaz.concurrent.Task,String] = Append(Halt(End),Vector(scalaz.stream.Process$Append$$Lambda$35355/629724527@486eb576))
+// drip: scalaz.stream.Process[scalaz.concurrent.Task,String] = Append(Halt(End),Vector(scalaz.stream.Process$Append$$Lambda$35375/1805151038@1aef889f))
 </code></pre>
 
 <p>We can see it for ourselves in the REPL:</p>
 
-<pre><code class="language-scala">scala&gt; drip.to(scalaz.stream.io.stdOutLines).run.run
-&lt;console&gt;:28: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       drip.to(scalaz.stream.io.stdOutLines).run.run
-                                                 ^
+<pre><code class="language-scala">scala&gt; drip.to(scalaz.stream.io.stdOutLines).run.unsafePerformSync
 </code></pre>
 
 <p>When wrapped in a <code>Response</code>, http4s will flush each chunk of a
@@ -393,10 +348,7 @@ for one second:</p>
 generally be anticipated before it runs, so this triggers chunked
 transfer encoding:</p>
 
-<pre><code class="language-scala">scala&gt; Ok(drip).run
-&lt;console&gt;:28: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-       Ok(drip).run
-                ^
+<pre><code class="language-scala">scala&gt; Ok(drip).unsafePerformSync
 res14: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Transfer-Encoding: chunked))
 </code></pre>
 
@@ -415,7 +367,7 @@ other side the path. Naturally, <code>_</code> is a valid matcher too, so any ca
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ _ -&gt; Root / &quot;api&quot; =&gt; Forbidden()
      | }
-res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@130927db)
+res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@4c2b7afb)
 </code></pre>
 
 <p>To also block all subcalls <code>/api/...</code>, you&rsquo;ll need <code>/:</code>, which is right
@@ -424,7 +376,7 @@ associative, and matches everything after, and not just the next element:</p>
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ _ -&gt; &quot;api&quot; /: _ =&gt; Forbidden()
      | }
-res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@2e67ac02)
+res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@5f54842)
 </code></pre>
 
 <p>For matching more than one <code>Method</code>, there&rsquo;s <code>|</code>:</p>
@@ -432,7 +384,7 @@ res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ (GET | POST) -&gt; Root / &quot;api&quot;  =&gt; ???
      | }
-res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@60a3cde3)
+res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@5d2d1c65)
 </code></pre>
 
 <p>Honorable mention: <code>~</code>, for matching file extensions.</p>
@@ -440,7 +392,7 @@ res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
      | }
-res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@13db5070)
+res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@7d500174)
 </code></pre>
 
 <h3 id="handling-path-parameters">Handling path parameters</h3>
@@ -459,7 +411,7 @@ val usersService = HttpService {
   case request @ GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
     Ok(getUserName(userId))
 }
-// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@47c93e41)
+// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@d75b79c)
 </code></pre>
 
 <p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
@@ -495,12 +447,9 @@ val dailyWeatherService = HttpService {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
     Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
 }
-// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@72cfe128)
+// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@3504a148)
 
-println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService).run)
-// &lt;console&gt;:35: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService).run)
-//                                                                                             ^
+println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService).unsafePerformSync)
 // Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
 </code></pre>
 
@@ -530,7 +479,7 @@ implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
     QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@24df849a
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@4ab71639
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
@@ -542,7 +491,7 @@ val averageTemperatureService = HttpService {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
 }
-// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35260/532079157@10063165)
+// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35280/1208054987@5f6f815f)
 </code></pre>
 
           <footer>

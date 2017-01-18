@@ -273,6 +273,12 @@ for serious static content serving.
                         </a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
+                        <a class="class" href="KeyStoreBits.html" title=""></a>
+                        <a href="KeyStoreBits.html" title="">
+                          KeyStoreBits
+                        </a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
                         <a class="object" href="package$$Middleware$.html" title=""></a>
                         <a href="package$$Middleware$.html" title="">
                           Middleware
@@ -284,10 +290,28 @@ for serious static content serving.
                           Router
                         </a>
                       </li><li class="current-entities indented3">
-                        <a class="object" href="SSLSupport$.html" title=""></a>
-                        <a class="trait" href="" title=""></a>
+                        <span class="separator"></span>
+                        <a class="trait" href="SSLConfig.html" title=""></a>
+                        <a href="SSLConfig.html" title="">
+                          SSLConfig
+                        </a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="" title=""></a>
                         <a href="" title="">
-                          SSLSupport
+                          SSLContextBits
+                        </a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="SSLContextSupport.html" title=""></a>
+                        <a href="SSLContextSupport.html" title="">
+                          SSLContextSupport
+                        </a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="SSLKeyStoreSupport$.html" title=""></a>
+                        <a class="trait" href="SSLKeyStoreSupport.html" title=""></a>
+                        <a href="SSLKeyStoreSupport.html" title="">
+                          SSLKeyStoreSupport
                         </a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
@@ -324,42 +348,35 @@ for serious static content serving.
             </div>
           </div>
           <div id="content">
-            <body class="trait type">
+            <body class="class type">
       <div id="definition">
-        <a href="SSLSupport$.html" title="See companion object"><div class="big-circle trait-companion-object">t</div></a>
+        <div class="big-circle class">c</div>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.server">server</a></p>
-        <h1><a href="SSLSupport$.html" title="See companion object">SSLSupport</a><span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html" title="Permalink">
+        <h1>SSLContextBits<span class="permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"><div>
-            Companion <a href="SSLSupport$.html" title="See companion object">object SSLSupport</a>
-          </div></span></h3>
+        <h3><span class="morelinks"></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">SSLSupport</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">SSLContextBits</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result"> extends <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> with <a href="ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">
-              Known Subclasses
-            </span>
-            <div class="subClasses hiddenContent"><a href="blaze/BlazeBuilder.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a>, <a href="blaze/BlazeBuilder$.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a>, <a href="jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -384,7 +401,7 @@ for serious static content serving.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.SSLSupport"><span>SSLSupport</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.SSLContextBits"><span>SSLContextBits</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.server.SSLConfig"><span>SSLConfig</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -407,38 +424,38 @@ for serious static content serving.
 
       <div id="template">
         <div id="allMembers">
-        
-
-        
-
-        <div class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.server.SSLSupport#withSSL" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="withSSL(keyStore:org.http4s.server.SSLSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLSupport.StoreInfo],clientAuth:Boolean):SSLSupport.this.Self"></a><a id="withSSL(StoreInfo,String,String,Option[StoreInfo],Boolean):(SSLSupport.this)#Self"></a>
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="org.http4s.server.SSLContextBits#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(sslContext:javax.net.ssl.SSLContext,clientAuth:Boolean):org.http4s.server.SSLContextBits"></a><a id="&lt;init&gt;:SSLContextBits"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#withSSL(keyStore:org.http4s.server.SSLSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLSupport.StoreInfo],clientAuth:Boolean):SSLSupport.this.Self" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#&lt;init&gt;(sslContext:javax.net.ssl.SSLContext,clientAuth:Boolean):org.http4s.server.SSLContextBits" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
+        <span class="modifier"></span>
+        <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">withSSL</span><span class="params">(<span name="keyStore">keyStore: <a href="SSLSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLSupport.StoreInfo">StoreInfo</a></span>, <span name="keyManagerPassword">keyManagerPassword: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="protocol">protocol: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;TLS&quot;</span></span>, <span name="trustStore">trustStore: <span class="extype" name="scala.Option">Option</span>[<a href="SSLSupport$$StoreInfo.html" class="extype" name="org.http4s.server.SSLSupport.StoreInfo">StoreInfo</a>] = <span class="symbol">None</span></span>, <span name="clientAuth">clientAuth: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>.this)#<span class="extype" name="org.http4s.server.ServerBuilder.Self">Self</span></span>
+        <span class="name">SSLContextBits</span><span class="params">(<span name="sslContext">sslContext: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>, <span name="clientAuth">clientAuth: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span>
       </span>
       
       
     </li></ol>
             </div>
 
+        
+
+        
+
         <div class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol>
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -454,7 +471,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html###():Int" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -470,7 +487,7 @@ for serious static content serving.
     </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="+(other:String):String"></a><a id="+(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#+(other:String):String" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#+(other:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -483,14 +500,14 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(SSLSupport,B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(SSLContextBits,B)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -499,12 +516,12 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -513,7 +530,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -529,7 +546,7 @@ for serious static content serving.
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -542,10 +559,26 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.server.SSLContextBits#clientAuth" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="clientAuth:Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#clientAuth:Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clientAuth</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#clone():Object" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -565,9 +598,9 @@ for serious static content serving.
               
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((SSLSupport)⇒Boolean,⇒Any):SSLSupport"></a>
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((SSLContextBits)⇒Boolean,⇒Any):SSLContextBits"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -576,18 +609,18 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((SSLSupport)⇒Boolean):SSLSupport"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((SSLContextBits)⇒Boolean):SSLContextBits"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -596,18 +629,18 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):SSLSupport"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):SSLContextBits"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -616,18 +649,18 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):SSLSupport"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):SSLContextBits"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#ensuring(cond:Boolean):A" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -636,18 +669,18 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -660,26 +693,10 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#equals(x$1:Any):Boolean" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#finalize():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -701,7 +718,7 @@ for serious static content serving.
     </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#formatted(fmtstr:String):String" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#formatted(fmtstr:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -714,8 +731,8 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -724,7 +741,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -737,26 +754,10 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#hashCode():Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -772,7 +773,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -788,7 +789,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#notify():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -804,7 +805,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -817,10 +818,26 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.server.SSLContextBits#sslContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="sslContext:javax.net.ssl.SSLContext"></a><a id="sslContext:SSLContext"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#sslContext:javax.net.ssl.SSLContext" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sslContext</span><span class="result">: <span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -833,26 +850,10 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#toString():String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#wait():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -874,7 +875,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -896,7 +897,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -916,9 +917,9 @@ for serious static content serving.
               
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(SSLSupport,B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(SSLContextBits,B)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/SSLSupport.html#→[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/server/SSLContextBits.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -927,12 +928,12 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -945,26 +946,36 @@ for serious static content serving.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="org.http4s.server.SSLConfig">
+              <h3>Inherited from <a href="SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>]
+                <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>]
+                <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>]
+                <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>]
+                <a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.SSLContextBits">SSLContextBits</a>]
               </h3>
             </div>
         </div>

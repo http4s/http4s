@@ -151,13 +151,13 @@ val jsonService = HttpService {
       Ok(Hello(s&quot;Hello, ${user.name}&quot;).asJson)
     )
 }
-// jsonService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$34074/701306675@5187a195)
+// jsonService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$34077/2006905793@6b50cc01)
 
 import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(jsonService, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@37619447
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@b548ea4
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -177,15 +177,12 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$34102/71165775@2291444a),scalaz.concurrent.Task@3aaa6b9f)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$34105/1738357419@17bcda66),scalaz.concurrent.Task@359cc49)
 
 val req = Request(uri = Uri.uri(&quot;http://localhost:8080/hello&quot;), method = Method.POST).withBody(User(&quot;Anabelle&quot;))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@6dae2b66
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@5f89e226
 
-httpClient.expect(req)(jsonOf[Hello]).run
-// &lt;console&gt;:42: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        httpClient.expect(req)(jsonOf[Hello]).run
-//                                              ^
+httpClient.expect(req)(jsonOf[Hello]).unsafePerformSync
 // res0: Hello = Hello(Hello, Anabelle)
 </code></pre>
 
@@ -252,7 +249,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$34102/71165775@36cc7e29),scalaz.concurrent.Task@49ed84db)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$34105/1738357419@5850d6f6),scalaz.concurrent.Task@6d715d74)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri(&quot;https://api.github.com/orgs&quot;) / organization / &quot;repos&quot;
@@ -261,21 +258,18 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos(&quot;http4s&quot;)
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@36955652
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@6edcfb9e
 
 val stargazers = http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;))
-// stargazers: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@7a6f7820
+// stargazers: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@6757b540
 
-// Run has been separated into its own line for tut to compile without hanging. 
-stargazers.run
-// &lt;console&gt;:44: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        stargazers.run
-//                   ^
+// unsafePerformSync has been separated into its own line for tut to compile without hanging.
+stargazers.unsafePerformSync
 // res4: String =
 // 644
 // 93
 // 9
-// 87
+// 88
 // 1
 // 5
 // 0
