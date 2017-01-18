@@ -52,7 +52,7 @@ to consume a stream is just:
 client.streaming(req)(resp => resp.body)
 ```
 
-That gives you a `Process[Task, ByteVector], but you probably want something other than a `ByteVector`.
+That gives you a `Process[Task, ByteVector]`, but you probably want something other than a `ByteVector`.
 Here's some code intended to consume [Twitter's streaming APIs], which return a stream of JSON.
 
 First, let's assume we want to use [Circe] for JSON support. Please see [json] for details.
