@@ -89,12 +89,15 @@ lazy val blazeServer = libraryProject("blaze-server")
 )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
+/* TODO fs2 port
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
   description := "blaze implementation for http4s clients"
 )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+ */
 
+/* TODO fs2 port
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
   description := "async http client implementation for http4s clients",
@@ -104,6 +107,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     )
 )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
+ */
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -338,7 +342,7 @@ lazy val docs = http4sProject("docs")
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+  .dependsOn(client, core, theDsl, blazeServer, /* TODO fs2 port blazeClient, */ circe)
 
 
 lazy val examples = http4sProject("examples")
