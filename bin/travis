@@ -32,6 +32,7 @@ JVM_OPTS_FILE=/tmp/jvmopts
 cp /etc/sbt/jvmopts "$JVM_OPTS_FILE"
 
 if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
+    echo
     echo "Using /dev/urandom in Travis CI to avoid hanging on /dev/random"
     echo "when VM or container entropy entropy is low.  Additional detail at"
     echo "https://github.com/http4s/http4s/issues/774#issuecomment-273981456 ."
