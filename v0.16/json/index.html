@@ -151,13 +151,13 @@ val jsonService = HttpService {
       Ok(Hello(s&quot;Hello, ${user.name}&quot;).asJson)
     )
 }
-// jsonService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$34077/2006905793@6b50cc01)
+// jsonService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$30644/1268986823@a3d98b2)
 
 import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(jsonService, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@b548ea4
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@5b7df4cd
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -177,10 +177,10 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$34105/1738357419@17bcda66),scalaz.concurrent.Task@359cc49)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$30672/535069108@5bbdefda),scalaz.concurrent.Task@68691a21)
 
 val req = Request(uri = Uri.uri(&quot;http://localhost:8080/hello&quot;), method = Method.POST).withBody(User(&quot;Anabelle&quot;))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@5f89e226
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@2dd6a26f
 
 httpClient.expect(req)(jsonOf[Hello]).unsafePerformSync
 // res0: Hello = Hello(Hello, Anabelle)
@@ -249,7 +249,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$34105/1738357419@5850d6f6),scalaz.concurrent.Task@6d715d74)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$30672/535069108@2326999d),scalaz.concurrent.Task@749d337e)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri(&quot;https://api.github.com/orgs&quot;) / organization / &quot;repos&quot;
@@ -258,16 +258,16 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos(&quot;http4s&quot;)
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@6edcfb9e
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@6e70f081
 
 val stargazers = http4s.map(_.map(_.stargazers_count).mkString(&quot;\n&quot;))
-// stargazers: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@6757b540
+// stargazers: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@4522d4dd
 
 // unsafePerformSync has been separated into its own line for tut to compile without hanging.
 stargazers.unsafePerformSync
 // res4: String =
-// 644
-// 93
+// 645
+// 94
 // 9
 // 88
 // 1
