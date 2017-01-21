@@ -52,7 +52,7 @@ object Method extends MethodInstances {
 
   import Semantics._
 
-  // Lookups will usually be on fromString, so we store it wrapped in a Xor.Right
+  // Lookups will usually be on fromString, so we store it wrapped in a Right
   private val registry = TrieMap[String, Right[Nothing, Method]]()
 
   private def register[M <: Method](method: M): method.type = {
@@ -60,7 +60,7 @@ object Method extends MethodInstances {
     method
   }
 
-  def registered: Iterable[Method] = registry.readOnlySnapshot().values.map(_.b)
+  def registered: Iterable[Method] = registry.readOnlySnapshot().values.map(_.right.get)
   // TODO: find out the rest of the body permissions. http://www.iana.org/assignments/http-methods/http-methods.xhtml#methods
   val ACL                = register(new Method("ACL")               with Idempotent)
   val `BASELINE-CONTROL` = register(new Method("BASELINE-CONTROL")  with Idempotent)

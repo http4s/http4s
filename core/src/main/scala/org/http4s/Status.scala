@@ -68,7 +68,7 @@ object Status {
   def fromInt(code: Int): ParseResult[Status] = lookup(code).getOrElse(mkStatus(code))
 
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
-    lookup(code).filter(_.b.reason == reason).getOrElse(mkStatus(code, reason))
+    lookup(code).filter(_.right.get.reason == reason).getOrElse(mkStatus(code, reason))
 
   // scalastyle:off magic.number
   private val registry =
@@ -77,7 +77,7 @@ object Status {
 
   def registered: Iterable[Status] = for {
     code <- 100 to 599
-    status <- Option(registry.get(code)).map(_.b)
+    status <- Option(registry.get(code)).map(_.right.get)
   } yield status
 
   def register(status: Status): status.type = {
