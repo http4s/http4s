@@ -138,7 +138,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
-      val result = tail.runRequest(FooRequest, false).as[String]
+      val result = tail.runRequest(FooRequest).as[String]
 
       c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
     }
@@ -149,7 +149,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 
-      val result = tail.runRequest(FooRequest, false).as[String]
+      val result = tail.runRequest(FooRequest).as[String]
 
       c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
     }

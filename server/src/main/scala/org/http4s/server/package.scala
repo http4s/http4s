@@ -33,6 +33,12 @@ package object server {
    */
   type AuthMiddleware[T] = Middleware[AuthedRequest[T], MaybeResponse, Request, MaybeResponse]
 
+  /**
+    * Old name for SSLConfig
+    */
+  @deprecated("Use SSLConfig", "2016-12-31")
+  type SSLBits = SSLConfig
+
   object AuthMiddleware {
     def apply[T](authUser: Service[Request, T]): AuthMiddleware[T] = {
       service => service.compose(AuthedRequest(authUser))

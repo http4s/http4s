@@ -9,7 +9,7 @@ import java.util.concurrent.ExecutorService
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.util.task
-import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.util.CaseInsensitiveString._
 
@@ -52,13 +52,14 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
     connectionManager.connect(addr, config.bufferSize).map { head =>
       val (builder, t) = buildStages(requestKey)
       builder.base(head)
+      head.inboundCommand(Command.Connected)
       t
     }(ec)
   }
 
   private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection) = {
     val t = new Http1Connection(requestKey, config, executor, ec)
-    val builder = LeafBuilder(t)
+    val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Https, auth) =>
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)

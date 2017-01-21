@@ -1,8 +1,6 @@
 import Http4sBuild._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtGit.GitKeys._
-import com.typesafe.sbt.SbtSite.site
-import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 
@@ -12,13 +10,11 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.16.0-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
-scalaVersion in ThisBuild := "2.11.8"
-// scalaOrganization in ThisBuild := "org.typelevel"
+
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
 scalazVersion in ThisBuild := "7.1.11"
-crossScalaVersions in ThisBuild := Seq("2.10.6", scalaVersion.value, "2.12.1")
 
 // Root project
 name := "root"
@@ -236,18 +232,24 @@ lazy val loadTest = http4sProject("load-test")
 )
   .enablePlugins(GatlingPlugin)
 
+lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incrementally on recently changed files")
+
+
+val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
+val siteStageDirectory    = SettingKey[File]("site-stage-directory")
+val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
 lazy val docs = http4sProject("docs")
   .settings(noPublishSettings)
   .settings(noCoverageSettings)
   .settings(unidocSettings)
-  .settings(site.settings)
   .settings(ghpages.settings)
   .settings(tutSettings)
+  .enablePlugins(HugoPlugin)
   .settings(
-  libraryDependencies ++= Seq(
-    circeGeneric,
-    cryptobits
-  ),
+    libraryDependencies ++= Seq(
+      circeGeneric,
+      cryptobits
+    ),
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -277,31 +279,70 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    includeFilter in makeSite := (
-      "*.html" | "*.css" |
+    preStageSiteDirectory := sourceDirectory.value / "hugo",
+    siteStageDirectory := target.value / "site-stage",
+    sourceDirectory in Hugo := siteStageDirectory.value,
+    watchSources := {
+      // nasty hack to remove the target directory from watched sources
+      watchSources.value
+        .filterNot(_.getAbsolutePath.startsWith(
+          target.value.getAbsolutePath))
+    },
+    copySiteToStage := {
+      streams.value.log.debug(s"copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value}")
+
+      IO.copyDirectory(
+        source = preStageSiteDirectory.value,
+        target = siteStageDirectory.value,
+        overwrite = false,
+        preserveLastModified = true)
+      IO.copyDirectory(
+        source = tutTargetDirectory.value,
+        target = siteStageDirectory.value / "content" / "v0.16",
+        overwrite = false,
+        preserveLastModified = true)
+      IO.copyFile(
+        sourceFile = baseDirectory.value / ".." / "CHANGELOG.md",
+        targetFile = siteStageDirectory.value / "CHANGELOG.md",
+        preserveLastModified = true)
+    },
+    copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
+    makeSite := makeSite.dependsOn(copySiteToStage).value,
+    baseURL in Hugo := {
+      if (isTravisBuild.value) new URI(s"http://http4s.org")
+      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
+    },
+    // all .md|markdown files go into `content` dir for hugo processing
+    ghpagesNoJekyll := true,
+    includeFilter in Hugo := (
+        "*.html" |
         "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
         "*.js" | "*.swf" | "*.json" | "*.md" |
+        "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
         "CNAME" | "_config.yml"
     ),
     siteMappings := {
       if (Http4sGhPages.buildMainSite) siteMappings.value
-      else Seq.empty
-    },
-    siteMappings ++= {
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- tut.value) yield (f, s"docs/$major.$minor/$d")
+      else {
+        val (major, minor) = apiVersion.value
+        val prefix = s"/v${major}.${minor}/"
+        siteMappings.value.filter {
+          case (_, d) if d.startsWith(prefix) => true
+          case _ => false
+        }
+      }
     },
     siteMappings ++= {
       val m = (mappings in (ScalaUnidoc, packageDoc)).value
       val (major, minor) = apiVersion.value
-      for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
+      for ((f, d) <- m) yield (f, s"v$major.$minor/api/$d")
     },
     cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
-    git.remoteRepo := "git@github.com:http4s/http4s.git",
-    ghpagesNoJekyll := false
-)
+    git.remoteRepo := "git@github.com:http4s/http4s.git"
+  )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+
 
 lazy val examples = http4sProject("examples")
   .settings(noPublishSettings)
@@ -477,7 +518,7 @@ lazy val commonSettings = Seq(
   }.value,
   scalacOptions -= {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, 12)) => "-Yinline-warnings"
+      case Some((2, n)) if n >= 12 => "-Yinline-warnings"
       case _ => ""
     }
   },
@@ -542,8 +583,6 @@ lazy val mimaSettings = Seq(
     import com.typesafe.tools.mima.core._
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(
-      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.this"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.Message.isBodyPure"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryIPv4"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryIPv6"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genSubDelims"),
@@ -552,7 +591,13 @@ lazy val mimaSettings = Seq(
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genHexDigit"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genPctEncoded"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryUri"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved")
+      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3"),
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
+      exclude[DirectAbstractMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest")
     )
   }
 )

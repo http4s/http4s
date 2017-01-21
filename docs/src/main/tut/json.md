@@ -1,5 +1,6 @@
 ---
-layout: default
+menu: tut
+weight: 310
 title: JSON handling
 ---
 
@@ -9,12 +10,10 @@ title: JSON handling
 
 Argonaut-shapeless for automatic codec derivation.
 
-Note: argonaut-shapeless is not yet available for argonaut-6.2.
-
 ```scala
 libraryDependencies += Seq(
-  "org.http4s" %% "http4s-argonaut" % "0.15.0a",
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0"
+  "org.http4s" %% "http4s-argonaut" % "{{< version >}}",
+  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0-M4"
 )
 ```
 
@@ -24,8 +23,8 @@ Circe-generic for automatic codec derivation.
 
 ```scala
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-circe" % "0.15.0a",
-  "io.circe" %% "circe-generic" % "0.4.1"
+  "org.http4s" %% "http4s-circe" % "{{< version >}}",
+  "io.circe" %% "circe-generic" % "0.6.1"
 )
 ```
 
@@ -34,8 +33,8 @@ libraryDependencies ++= Seq(
 Json4s supports two backends.  Choose one of:
 
 ```scala
-libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "0.15.0a"
-libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "0.15.0a"
+libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "{{< version >}}"
+libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "{{< version >}}"
 ```
 
 ## Import it
@@ -60,7 +59,7 @@ corresponding drawbacks.
 
 The usage is the same for client and server, both points use an
 `EntityEncoder[T]` to transform the outgoing data into a scala class.
-One of the imports above brings into scope an `EntityDecoder[Json]` 
+One of the imports above brings into scope an `EntityDecoder[Json]`
 (or `EntityDecoder[JValue]` in the case of json4s).
 
 In circe, when one has an `Encoder` instance, `.asJson` can be
@@ -104,7 +103,7 @@ import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
 val req = Request(uri = Uri.uri("http://localhost:8080/hello"), method = Method.POST).withBody(User("Anabelle"))(jsonEncoderOf)
-httpClient.expect(req)(jsonOf[Hello]).run
+httpClient.expect(req)(jsonOf[Hello]).unsafePerformSync
 ```
 
 And clean everything up.
@@ -175,7 +174,11 @@ def repos(organization: String): Task[List[Repo]] = {
 }
 
 val http4s = repos("http4s")
-http4s.map(_.map(_.stargazers_count).mkString("\n")).run
+
+val stargazers = http4s.map(_.map(_.stargazers_count).mkString("\n"))
+
+// unsafePerformSync has been separated into its own line for tut to compile without hanging.
+stargazers.unsafePerformSync
 httpClient.shutdownNow()
 ```
 
@@ -183,6 +186,5 @@ httpClient.shutdownNow()
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
 [jsonExtract]: https://github.com/http4s/http4s/blob/master/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L29
-[client]: client.html
+[client]: ../client
 [github-orgs]: https://developer.github.com/v3/repos/#list-organization-repositories
-[uri]: url.html

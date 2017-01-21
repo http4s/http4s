@@ -206,7 +206,7 @@ object Client {
   def fromHttpService(service: HttpService): Client = {
     val isShutdown = new AtomicBoolean(false)
 
-    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
+    def interruptible(body: EntityBody, disposed: AtomicBoolean) = {
       def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
         if (killed.get)
           fail(new IOException(reason))
@@ -220,11 +220,11 @@ object Client {
     def disposableService(service: HttpService) =
       Service.lift { req: Request =>
         val disposed = new AtomicBoolean(false)
-        val req0 = req.copy(body = interruptable(req.body, disposed))
+        val req0 = req.copy(body = interruptible(req.body, disposed))
         service(req0) map { maybeResp =>
           val resp = maybeResp.orNotFound
           DisposableResponse(
-            resp.copy(body = interruptable(resp.body, disposed)),
+            resp.copy(body = interruptible(resp.body, disposed)),
             Task.delay(disposed.set(true))
           )
         }

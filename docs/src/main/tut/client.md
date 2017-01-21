@@ -1,9 +1,8 @@
 ---
-layout: default
+menu: tut
+weight: 200
 title: HTTP Client
 ---
-
-## Your first client
 
 How do we know the server is running?  Let's create a client with
 http4s to try our service.
@@ -24,7 +23,6 @@ import org.http4s.server.syntax._
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
 val server = builder.run
 ```
-
 
 ### Creating the client
 
@@ -89,7 +87,7 @@ the world" varies by context:
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
-greetingList.run.mkString("\n")
+greetingList.unsafePerformSync.mkString("\n")
 ```
 
 ## Cleaning up
@@ -136,6 +134,5 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-[entity]: entity.html
-[service]: service.html
-[json]: json.html
+[entity]: ../entity
+[json]: ../json

@@ -20,7 +20,7 @@ class TwirlSpec extends Http4sSpec {
   }
 
   "HTML encoder" should {
-    "return Content-Type text/htmlwith proper charset" in prop { implicit cs: Charset =>
+    "return Content-Type text/html with proper charset" in prop { implicit cs: Charset =>
       val headers = EntityEncoder[Html].headers
       headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`text/html`, Some(cs)))
     }

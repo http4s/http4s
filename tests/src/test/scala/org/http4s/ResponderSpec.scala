@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.time.Instant
+
 import Http4s._
 import org.specs2.mutable.Specification
 import org.http4s.Charset._
@@ -26,7 +28,7 @@ class ResponderSpec extends Specification {
 
       c1.headers.count(_ is `Content-Type`) must_== (1)
       c1.headers.count(_ is `Content-Length`) must_== (1)
-      c1.headers should have length (3)
+      c1.headers must have length (3)
       c1.contentType must beSome(`Content-Type`(MediaType.`text/plain`))
 
       val c2 = c1.withContentType(Some(`Content-Type`(MediaType.`application/json`, `UTF-8`)))
@@ -37,16 +39,50 @@ class ResponderSpec extends Specification {
       c2.headers.count(_ is Host) must_== (1)
     }
 
-    "Replace headers" in {
+    "Remove headers" in {
       val wHeader = resp.putHeaders(Connection("close".ci))
       wHeader.headers.get(Connection) must beSome(Connection("close".ci))
 
       val newHeaders = wHeader.removeHeader(Connection)
-      newHeaders.headers.get(Connection) should be (None)
+      newHeaders.headers.get(Connection) must beNone
+    }
+
+    "Replace all headers" in {
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      wHeader.headers.toList must have length 3
+
+      val newHeaders = wHeader.replaceAllHeaders(Date(Instant.now))
+      newHeaders.headers.toList must have length 1
+      newHeaders.headers.get(Connection) must beNone
+    }
+
+    "Replace all headers II" in {
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      wHeader.headers.toList must have length 3
+
+      val newHeaders = wHeader.replaceAllHeaders(Headers(Date(Instant.now)))
+      newHeaders.headers.toList must have length 1
+      newHeaders.headers.get(Connection) must beNone
+    }
+
+    "Filter headers" in {
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      wHeader.headers.toList must have length 3
+
+      val newHeaders = wHeader.filterHeaders(_.name != "Connection".ci)
+      newHeaders.headers.toList must have length 2
+      newHeaders.headers.get(Connection) must beNone
     }
 
     "Set cookie" in {
       resp.addCookie("foo", "bar").headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
+      resp.addCookie(Cookie("foo", "bar")).headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
+    }
+
+    "Remove cookie" in {
+      val cookie = Cookie("foo", "bar")
+      resp.removeCookie(cookie).headers.get(`Set-Cookie`) must
+        beSome(`Set-Cookie`(org.http4s.Cookie("foo", "", expires = Option(Instant.ofEpochSecond(0)), maxAge = Some(0L))))
     }
   }
 }

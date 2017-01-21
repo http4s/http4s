@@ -1,3 +1,18 @@
+# v0.15.3 (2016-01-17)
+* Dispose of redirect responses in `FollowRedirect`. Fixes client deadlock under heavy load
+* Refrain from logging headers with potentially sensitive info in blaze-client
+* Add `hashCode` and `equals` to `Headers`
+* Make `challenge` in auth middlewares public to facilitate composing multiple auth mechanisms
+* Fix blaze-client detection of stale connections
+
+# v0.15.2 (2016-12-29)
+* Add helpers to add cookies to requests
+
+# v0.15.1 (2016-12-20)
+* Fix GZip middleware to fallthrough non-matching responses
+* Fix UnsupportedOperationException in Arbitrary[Uri]
+* Upgrade to Scala 2.12.1 and Scalaz 7.2.8
+
 # v0.15.0 (2016-11-30)
 * Add support for Scala 2.12
 * Added `Client.fromHttpService` to assist with testing.
@@ -133,6 +148,12 @@
 * Add trailer support in blaze client.
 * Provide an optional external executor to blaze clients.
 * Fix Argonaut string interpolation
+
+# v0.12.6 (2016-12-29)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# v0.12.5 (2016-12-29)
+* ~~Backport rendering of details in `ParseFailure.getMessage`~~ Oops.
 
 # v0.12.4 (2016-03-10)
 * Fix bug on rejection of invalid URIs.
