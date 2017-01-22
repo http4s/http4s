@@ -160,6 +160,20 @@ class EntityBodyWriterSpec extends Http4sSpec {
           |""".stripMargin.replaceAllLiterally("\n", "\r\n")
     }
 
+    "Elide empty chunks" in {
+      // n.b. We don't do anything special here.  This is a feature of
+      // fs2, but it's important enough we should check it here.
+      val p = chunk(Chunk.empty) ++ chunk(messageBuffer)
+      writeEntityBody(p.covary[Task])(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
+    }
+
     "Write a body that fails and falls back" in {
       val p = eval(Task.fail(Failed)).onError { _ =>
         chunk(messageBuffer)
