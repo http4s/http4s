@@ -16,7 +16,6 @@ import fs2.compress.deflate
 import org.http4s.blaze.TestHead
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
-import org.specs2.execute.PendingUntilFixed
 
 class ProcessWriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException
@@ -104,64 +103,75 @@ class ProcessWriterSpec extends Http4sSpec {
     def builder(tail: TailStage[ByteBuffer]) =
       new ChunkProcessWriter(new StringWriter(), tail, Task.now(Headers()))
 
-    "Not be fooled by zero length chunks" in {
-      val p1 = Stream(Chunk.empty, messageBuffer).flatMap(chunk)
-      writeProcess(p1)(builder) must_== "Content-Length: 12\r\n\r\n" + message
+    "Write a strict chunk" in {
+      // n.b. in the scalaz-stream version, we could introspect the
+      // stream, note the lack of effects, and write this with a
+      // Content-Length header.  In fs2, this must be chunked.
+      writeProcess(chunk(messageBuffer))(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
+    }
 
-      // here we have to use awaits or the writer will unwind all the components of the emitseq
-      val p2 = (eval(Task.delay(Chunk.empty)) ++
-         emit(messageBuffer) ++ eval(Task.delay(messageBuffer)))
-
-      writeProcess(p2.flatMap(chunk))(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "0\r\n" +
-        "\r\n"
-    }.pendingUntilFixed // TODO fs2 port: it doesn't know which chunk is last, and can't optimize
-
-    "Write a single emit with length header" in {
-      writeProcess(chunk(messageBuffer))(builder) must_== "Content-Length: 12\r\n\r\n" + message
-    }.pendingUntilFixed // TODO fs2 port: it doesn't know which chunk is last, and can't optimize
-
-    "Write two emits" in {
+    "Write two strict chunks" in {
       val p = chunk(messageBuffer) ++ chunk(messageBuffer)
-      writeProcess(p.covary[Task])(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "0\r\n" +
-        "\r\n"
+      writeProcess(p.covary[Task])(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
     }
 
-    "Write an await" in {
+    "Write an effectful chunk" in {
+      // n.b. in the scalaz-stream version, we could introspect the
+      // stream, note the chunk was followed by halt, and write this
+      // with a Content-Length header.  In fs2, this must be chunked.
       val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
-      writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
-    }.pendingUntilFixed // TODO fs2 port: it doesn't know which chunk is last, and can't optimize
-
-    "Write two awaits" in {
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
-      writeProcess(p ++ p)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "0\r\n" +
-        "\r\n"
+      writeProcess(p.covary[Task])(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
     }
 
-    // The Process adds a Halt to the end, so the encoding is chunked
+    "Write two effectful chunks" in {
+      val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
+      writeProcess(p ++ p)(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
+    }
+
     "Write a Process that fails and falls back" in {
       val p = eval(Task.fail(Failed)).onError { _ =>
         chunk(messageBuffer)
       }
-      writeProcess(p)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "0\r\n" +
-        "\r\n"
+      writeProcess(p)(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
     }
 
     "execute cleanup processes" in {
@@ -169,11 +179,14 @@ class ProcessWriterSpec extends Http4sSpec {
       val p = chunk(messageBuffer).onFinalize {
         Task.delay(clean = true)
       }
-      writeProcess(p)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
-        "c\r\n" +
-        message + "\r\n" +
-        "0\r\n" +
-        "\r\n"
+      writeProcess(p)(builder) must_==
+        """Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
       clean must_== true
 
       clean = false
