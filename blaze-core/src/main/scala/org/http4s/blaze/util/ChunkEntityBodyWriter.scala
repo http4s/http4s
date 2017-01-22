@@ -12,12 +12,12 @@ import org.http4s.batteries._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 
-class ChunkProcessWriter(private var headers: StringWriter,
+class ChunkEntityBodyWriter(private var headers: StringWriter,
                          pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers])
-                         (implicit val ec: ExecutionContext) extends ProcessWriter {
+                         (implicit val ec: ExecutionContext) extends EntityBodyWriter {
 
-  import org.http4s.blaze.util.ChunkProcessWriter._
+  import org.http4s.blaze.util.ChunkEntityBodyWriter._
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     if (chunk.isEmpty) Future.successful(())
@@ -90,7 +90,7 @@ class ChunkProcessWriter(private var headers: StringWriter,
   }
 }
 
-object ChunkProcessWriter {
+object ChunkEntityBodyWriter {
   private val CRLFBytes = "\r\n".getBytes(ISO_8859_1)
 
   private def CRLF = CRLFBuffer.duplicate()

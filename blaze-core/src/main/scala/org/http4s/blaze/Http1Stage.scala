@@ -53,7 +53,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   final protected def getEncoder(msg: Message,
                                  rr: StringWriter,
                                  minor: Int,
-                                 closeOnFinish: Boolean): ProcessWriter = {
+                                 closeOnFinish: Boolean): EntityBodyWriter = {
     val headers = msg.headers
     getEncoder(Connection.from(headers),
                `Transfer-Encoding`.from(headers),
@@ -72,7 +72,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                                           trailer: Task[Headers],
                                                rr: StringWriter,
                                             minor: Int,
-                                    closeOnFinish: Boolean): ProcessWriter = lengthHeader match {
+                                    closeOnFinish: Boolean): EntityBodyWriter = lengthHeader match {
     case Some(h) if bodyEncoding.map(!_.hasChunked).getOrElse(true) || minor == 0 =>
       // HTTP 1.1: we have a length and no chunked encoding
       // HTTP 1.0: we have a length
@@ -112,7 +112,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
             logger.warn(s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
           }
 
-          new ChunkProcessWriter(rr, this, trailer)
+          new ChunkEntityBodyWriter(rr, this, trailer)
 
         case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
           logger.trace("Using Caching Chunk Encoder")
@@ -123,7 +123,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
     * @param buffer starting `ByteBuffer` to use in parsing.
-    * @param eofCondition If the other end hangs up, this is the condition used in the Process for termination.
+    * @param eofCondition If the other end hangs up, this is the condition used in the stream for termination.
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and `Command.EOF` as the end of the body while a server cannot.
     */

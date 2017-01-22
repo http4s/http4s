@@ -10,7 +10,7 @@ import org.http4s.blaze.http.http20.NodeMsg._
 
 class Http2Writer(tail: TailStage[Http2Msg],
                   private var headers: Headers,
-                  protected val ec: ExecutionContext) extends ProcessWriter {
+                  protected val ec: ExecutionContext) extends EntityBodyWriter {
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f = if (headers == null) tail.channelWrite(DataFrame(true, chunk.toByteBuffer))

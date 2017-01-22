@@ -14,12 +14,12 @@ import org.http4s.util.chunk.ByteChunkMonoid
 object DumpingWriter {
   def dump(p: EntityBody): Array[Byte] = {
     val w = new DumpingWriter()
-    w.writeProcess(p).unsafeRun
+    w.writeEntityBody(p).unsafeRun
     w.toArray
   }
 }
 
-class DumpingWriter extends ProcessWriter {
+class DumpingWriter extends EntityBodyWriter {
   private val buffers = new ListBuffer[Chunk[Byte]]
 
   def toArray: Array[Byte] = buffers.synchronized {

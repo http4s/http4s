@@ -21,19 +21,19 @@ import org.http4s.blaze.pipeline._
   * @param ec an ExecutionContext which will be used to complete operations
   */
 class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Boolean)
-                    (implicit protected val ec: ExecutionContext) extends ProcessWriter {
+                    (implicit protected val ec: ExecutionContext) extends EntityBodyWriter {
 
   private implicit lazy val strategy: Strategy =
     Strategy.fromExecutionContext(ec)
 
   private lazy val doneFuture = Future.successful( () )
 
-  /** Doesn't write the process, just the headers and kills the process, if an error if necessary
+  /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *
-    * @param p Process[Task, Chunk] that will be killed
-    * @return the Task which when run will send the headers and kill the body process
+    * @param p an entity body that will be killed
+    * @return the Task which, when run, will send the headers and kill the entity body
     */
-  override def writeProcess(p: EntityBody): Task[Boolean] = Task.async { cb =>
+  override def writeEntityBody(p: EntityBody): Task[Boolean] = Task.async { cb =>
     val callback = cb.compose((t: Attempt[Unit]) => t.map(_ => close))
 
     pipe.channelWrite(headers).onComplete {

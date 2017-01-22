@@ -13,7 +13,7 @@ import org.log4s.getLogger
 class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
                           bufferSize: Int = 8*1024)
                          (implicit val ec: ExecutionContext)
-                          extends ProcessWriter {
+                          extends EntityBodyWriter {
   private[this] val logger = getLogger
 
   @volatile
