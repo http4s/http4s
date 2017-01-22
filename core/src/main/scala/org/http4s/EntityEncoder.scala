@@ -1,7 +1,6 @@
 package org.http4s
 
 import java.io._
-import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.file.Path
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -135,9 +134,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
   }
 
-  implicit def charBufferEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[CharBuffer] =
-    stringEncoder.contramap(_.toString)
-
   implicit def charArrayEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
@@ -146,12 +142,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] =
     chunkEncoder.contramap(Chunk.bytes)
-
-  // TODO fs2 port this is where we miss ByteVector
-  /*
-  implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] =
-    chunkEncoder.contramap(ByteVector.view)
-   */
 
   // TODO fs2 port this is gone in master but is needed by sourceEncoder.
   // That's troubling.  Make this go away.
@@ -214,7 +204,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     override def contramap[A, B](r: EntityEncoder[A])(f: (B) => A): EntityEncoder[B] = r.contramap(f)
   }
 
-  /* TODO fs2 port 
+  /* TODO fs2 port
   implicit val serverSentEventEncoder: EntityEncoder[EventStream] =
     sourceEncoder[ByteVector].contramap[EventStream] { _.pipe(ServerSentEvent.encoder) }
       .withContentType(MediaType.`text/event-stream`)
