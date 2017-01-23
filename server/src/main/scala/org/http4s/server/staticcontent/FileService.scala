@@ -47,7 +47,7 @@ object FileService {
     if (file.isDirectory()) Some(Response(Status.Unauthorized))
     else if (!file.isFile) None
     else getPartialContentFile(file, config, req) orElse
-      StaticFile.fromFile(file, config.bufferSize, Some(req))(config.executor)
+      StaticFile.fromFile(file, config.bufferSize, Some(req))
                 .map(_.putHeaders(AcceptRangeHeader))
   }
 
@@ -65,7 +65,7 @@ object FileService {
       val start = if (s >= 0) s else math.max(0, size + s)
       val end = math.min(size - 1, e getOrElse (size - 1))  // end is inclusive
 
-      StaticFile .fromFile(file, start, end + 1, config.bufferSize, Some(req))(config.executor)
+      StaticFile .fromFile(file, start, end + 1, config.bufferSize, Some(req))
                   .map { resp =>
                     val hs = resp.headers.put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
                     resp.copy(status = Status.PartialContent, headers = hs)

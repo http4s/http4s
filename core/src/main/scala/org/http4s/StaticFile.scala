@@ -20,18 +20,15 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString(url: String, req: Option[Request] = None)
-                (implicit es: ExecutorService): Option[Response] = {
+  def fromString(url: String, req: Option[Request] = None): Option[Response] = {
     fromFile(new File(url), req)
   }
 
-  def fromResource(name: String, req: Option[Request] = None)
-             (implicit es: ExecutorService): Option[Response] = {
+  def fromResource(name: String, req: Option[Request] = None): Option[Response] = {
     Option(getClass.getResource(name)).flatMap(fromURL(_, req))
   }
 
-  def fromURL(url: URL, req: Option[Request] = None)
-             (implicit es: ExecutorService): Option[Response] = {
+  def fromURL(url: URL, req: Option[Request] = None): Option[Response] = {
     val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified())
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`))
@@ -51,16 +48,14 @@ object StaticFile {
     } else Some(Response(NotModified))
   }
 
-  def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService): Option[Response] =
+  def fromFile(f: File, req: Option[Request] = None): Option[Response] =
     fromFile(f, DefaultBufferSize, req)
 
-  def fromFile(f: File, buffsize: Int, req: Option[Request])
-           (implicit es: ExecutorService): Option[Response] = {
+  def fromFile(f: File, buffsize: Int, req: Option[Request]): Option[Response] = {
     fromFile(f, 0, f.length(), buffsize, req)
   }
 
-  def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request])
-                        (implicit es: ExecutorService): Option[Response] = {
+  def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request]): Option[Response] = {
     if (!f.isFile) return None
 
     require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
@@ -106,7 +101,7 @@ object StaticFile {
   }}
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
-                (implicit es: ExecutorService): EntityBody = {
+                : EntityBody = {
     readInputStream[Task](Task.delay(new FileInputStream(f)), buffsize)
       .drop(start) // TODO this is sad if start is much bigger than 0
       .take(end - start)

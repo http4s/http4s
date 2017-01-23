@@ -357,7 +357,7 @@ lazy val examples = http4sProject("examples")
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, serverMetrics, theDsl /*, TODO fs2 port circe, scalaXml, twirl */)
+  .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
