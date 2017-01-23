@@ -144,6 +144,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
   }
 
+  @deprecated("Removed due to unpredictable semantics. Convert to a String first.", "0.16")
   implicit def charBufferEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[CharBuffer] =
     stringEncoder.contramap(_.toString)
 
@@ -155,6 +156,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
+  @deprecated("Removed due to unpredictable semantics. Wrap in a ByteVector first.", "0.16")
   implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
 
   implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
