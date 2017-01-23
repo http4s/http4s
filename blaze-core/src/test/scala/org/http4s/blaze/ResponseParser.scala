@@ -9,7 +9,9 @@ import fs2._
 import org.http4s.Status
 import org.http4s.batteries._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
+import org.http4s.util.ByteVectorChunk
 import org.http4s.util.chunk.ByteChunkMonoid
+import scodec.bits.ByteVector
 
 class ResponseParser extends Http1ClientParser {
 
@@ -23,7 +25,7 @@ class ResponseParser extends Http1ClientParser {
 
   /** Will not mutate the ByteBuffers in the Seq */
   def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header], String) = {
-    val b = ByteBuffer.wrap(buffs.map(b => ByteBufferChunk(b).toArray).toArray.flatten)
+    val b = ByteBuffer.wrap(buffs.map(b => ByteVectorChunk(ByteVector.view(b)).toArray).toArray.flatten)
     parseResponseBuffer(b)
   }
     
@@ -40,7 +42,7 @@ class ResponseParser extends Http1ClientParser {
     }
 
     val bp = {
-      val bytes = body.toList.foldMap(bb => ByteBufferChunk(bb))
+      val bytes = body.toList.foldMap[Chunk[Byte]](bb => ByteVectorChunk(ByteVector.view(bb)))
       new String(bytes.toBytes.values, StandardCharsets.ISO_8859_1)
     }
 

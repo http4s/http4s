@@ -30,7 +30,8 @@ lazy val core = libraryProject("core")
       log4s,
       macroCompat,
       parboiled,
-      scalaReflect(scalaVersion.value) % "provided"
+      scalaReflect(scalaVersion.value) % "provided",
+      scodecBits
     ),
     macroParadiseSetting
 )
@@ -603,8 +604,9 @@ def delambdafyOpts(v: String): Boolean = VersionNumber(v).numbers match {
 
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
-    "scalaz._",
-    "Scalaz._",
-    "scalaz.concurrent.Task",
-    "org.http4s._"
+    "fs2._",
+    "fs2.interop.cats._",
+    "cats._",
+    "cats.data._",
+    "cats.implicits.all._"
   ) ++ additionalImports).mkString("import ", ", ", "")
