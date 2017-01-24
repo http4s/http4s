@@ -11,12 +11,8 @@ import scala.util.control.NonFatal
 package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = { input =>
     val decoder = charset.nioCharset.newDecoder
-    input.repeatPull[String] {
-      _.receive {
-        case (chunk, handle) =>
-          val charBuffer = decoder.decode(ByteBuffer.wrap(chunk.toBytes.toArray))
-          Pull.output1(charBuffer.toString) as handle
-      }
+    input.mapChunks { bytes =>
+      Chunk.singleton(decoder.decode(ByteBuffer.wrap(bytes.toBytes.toArray)).toString)
     }
   }
 
