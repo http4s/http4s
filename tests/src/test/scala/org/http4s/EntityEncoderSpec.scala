@@ -88,7 +88,10 @@ class EntityEncoderSpec extends Http4sSpec {
       writeToString(reader) must_== "string reader"
     }
 
-    "render long readers" in {
+    "render very long readers" in {
+      skipped
+      // This tests is very slow. Debugging seems to indicate that the issue is at fs2
+      // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
       writeToString(reader) must_== longString
