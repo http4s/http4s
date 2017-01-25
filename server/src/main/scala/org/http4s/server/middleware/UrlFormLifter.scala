@@ -15,7 +15,7 @@ object UrlFormLifter {
 
   def apply(service: HttpService, strictDecode: Boolean = false): HttpService =  Service.lift { req =>
 
-    def addUrlForm(form: UrlForm): Task[Response] = {
+    def addUrlForm(form: UrlForm): Task[MaybeResponse] = {
       val flatForm = form.values.toVector.flatMap{ case (k, vs) => vs.map(v => (k,Some(v))) }
       val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
       val newQuery = Query(params :_*)

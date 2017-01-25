@@ -55,15 +55,18 @@ object Metrics {
       active_requests.dec()
     }
 
-    def onFinish(method: Method, start: Long)(r: Attempt[Response]): Attempt[Response] = {
+    def onFinish(method: Method, start: Long)(r: Attempt[MaybeResponse]): Attempt[MaybeResponse] = {
       val elapsed = System.nanoTime() - start
 
       r.map { r =>
         headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-        val code = r.status.code
+        val code = r.cata(_.status, Status.NotFound).code
 
         r.body.onFinalize[Task] {
           Task.now {
+          headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+
+          def capture(r: Response) = r.body.onHalt { cause =>
             val elapsed = System.nanoTime() - start
 
             generalMetrics(method, elapsed)

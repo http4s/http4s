@@ -23,22 +23,22 @@ class TimeoutSpec extends Http4sSpec {
 
   "Timeout Middleware" should {
     "Have no effect if the response is not delayed" in {
-      timeoutService.apply(fastReq) must returnStatus (Status.Ok)
+      timeoutService.orNotFound(fastReq) must returnStatus (Status.Ok)
     }
 
     "return a 500 error if the result takes too long" in {
-      timeoutService.apply(slowReq) must returnStatus (Status.InternalServerError)
+      timeoutService.orNotFound(slowReq) must returnStatus (Status.InternalServerError)
     }
 
     "return the provided response if the result takes too long" in {
       val customTimeout = Response(Status.GatewayTimeout) // some people return 504 here.
       val altTimeoutService = Timeout(1.nanosecond, Task.now(customTimeout))(myService)
-      altTimeoutService.apply(slowReq) must returnStatus (customTimeout.status)
+      altTimeoutService.orNotFound(slowReq) must returnStatus (customTimeout.status)
     }
 
     "Handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myService)
-      service.apply(slowReq) must returnStatus (Status.Ok)
+      service.orNotFound(slowReq) must returnStatus (Status.Ok)
     }
   }
 

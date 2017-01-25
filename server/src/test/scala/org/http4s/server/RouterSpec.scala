@@ -36,38 +36,38 @@ class RouterSpec extends Http4sSpec {
 
   "A router" should {
     "translate mount prefixes" in {
-      service.apply(Request(GET, uri("/numbers/1"))) must returnBody("one")
+      service.orNotFound(Request(GET, uri("/numbers/1"))) must returnBody("one")
     }
 
     "require the correct prefix" in {
-      val resp = service.apply(Request(GET, uri("/letters/1"))).unsafeRun
+      val resp = service.orNotFound(Request(GET, uri("/letters/1"))).unsafeRun
       resp must not(haveBody("bee"))
       resp must not(haveBody("one"))
       resp must haveStatus(NotFound)
     }
 
     "support root mappings" in {
-      service.apply(Request(GET, uri("/about"))) must returnBody("about")
+      service.orNotFound(Request(GET, uri("/about"))) must returnBody("about")
     }
 
     "match longer prefixes first" in {
-      service.apply(Request(GET, uri("/shadow/shadowed"))) must returnBody("visible")
+      service.orNotFound(Request(GET, uri("/shadow/shadowed"))) must returnBody("visible")
     }
 
     "404 on unknown prefixes" in {
-      service.apply(Request(GET, uri("/symbols/~"))) must returnStatus(NotFound)
+      service.orNotFound(Request(GET, uri("/symbols/~"))) must returnStatus(NotFound)
     }
 
     "Allow passing through of routes with identical prefixes" in {
-      Router("" -> letters, "" -> numbers).apply(Request(GET, uri("/1"))) must returnBody("one")
+      Router("" -> letters, "" -> numbers).orNotFound(Request(GET, uri("/1"))) must returnBody("one")
     }
 
     "Serve custom NotFound responses" in {
-      Router("/foo" -> notFound).apply(Request(uri = uri("/foo/bar"))) must returnBody("Custom NotFound")
+      Router("/foo" -> notFound).orNotFound(Request(uri = uri("/foo/bar"))) must returnBody("Custom NotFound")
     }
 
     "Return the fallthrough response if no route is found" in {
-      Router("/foo" -> notFound).apply(Request(uri = uri("/bar"))) must returnValue(beFallthrough[Response])
+      Router("/foo" -> notFound)(Request(uri = uri("/bar"))) must returnValue(Pass)
     }
   }
 }

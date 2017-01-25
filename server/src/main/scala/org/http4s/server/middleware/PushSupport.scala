@@ -47,16 +47,18 @@ object PushSupport {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route.flatMapF { response =>
-            response.attributes.get(pushLocationKey).map { pushed =>
-              collectResponse(pushed, req, verify, route)
-                .map(accumulated ++ _ :+ PushResponse(v.location, response))
-            }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
+          try route.flatMapF {
+            case response: Response =>
+              response.attributes.get(pushLocationKey).map { pushed =>
+                collectResponse(pushed, req, verify, route)
+                  .map(accumulated ++ _ :+ PushResponse(v.location, response))
+              }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
+            case Pass => Task.now(Vector.empty)
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         } else {
           try route.flatMapF { resp => // Need to make sure to catch exceptions
-            facc.map(_ :+ PushResponse(v.location, resp))
+            facc.map(_ :+ PushResponse(v.location, resp.orNotFound))
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         }
@@ -83,7 +85,7 @@ object PushSupport {
       }.getOrElse(resp)
     }
 
-    Service.lift { req => service(req).map(gather(req, _)) }
+    Service.lift { req => service(req).map(_.cata(gather(req, _), Pass)) }
   }
 
   private [PushSupport] final case class PushLocation(location: String, cascade: Boolean)

@@ -34,9 +34,9 @@ package object http4s { // scalastyle:ignore
     * [[Request]].  An HttpService can be run on any supported http4s
     * server backend, such as Blaze, Jetty, or Tomcat.
     */
-  type HttpService = Service[Request, Response]
+  type HttpService = Service[Request, MaybeResponse]
 
-  type AuthedService[T] = Service[AuthedRequest[T], Response]
+  type AuthedService[T] = Service[AuthedRequest[T], MaybeResponse]
 
   /* Lives here to work around https://issues.scala-lang.org/browse/SI-7139 */
   object HttpService {
@@ -45,39 +45,36 @@ package object http4s { // scalastyle:ignore
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
       * `apply` instead.
       */
-    def lift(f: Request => Task[Response]): HttpService = Service.lift(f)
+    def lift(f: Request => Task[MaybeResponse]): HttpService = Service.lift(f)
 
     /** Lifts a partial function to an `HttpService`.  Responds with
       * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
       * where `pf` is not defined.
       */
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
-      lift(req => pf.applyOrElse(req, Function.const(Response.fallthrough)))
-
-    @deprecated("Use Response.fallthrough instead", "0.15")
-    val notFound: Task[Response] =
-      Response.fallthrough
+      lift(req => pf.applyOrElse(req, Function.const(Pass.now)))
 
     val empty: HttpService =
-      Service.const(Response.fallthrough)
+      Service.const(Pass.now)
   }
 
   object AuthedService {
-    private [this] val _empty: AuthedService[Any] = Service.const(Response.fallthrough)
+    private [this] val _empty: AuthedService[Any] =
+      Service.const(Pass.now)
 
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
       * `apply` instead.
       */
-    def lift[T](f: AuthedRequest[T] => Task[Response]): AuthedService[T] = Service.lift(f)
+    def lift[T](f: AuthedRequest[T] => Task[MaybeResponse]): AuthedService[T] = Service.lift(f)
 
     /** Lifts a partial function to an `AuthedService`.  Responds with
       * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
       * where `pf` is not defined.
       */
     def apply[T](pf: PartialFunction[AuthedRequest[T], Task[Response]]): AuthedService[T] =
-      lift(req => pf.applyOrElse(req, Function.const(Response.fallthrough)))
+      lift(req => pf.applyOrElse(req, Function.const(Pass.now)))
 
     /**
       * The empty service (all requests fallthrough).
@@ -85,7 +82,8 @@ package object http4s { // scalastyle:ignore
       * @tparam T - ignored.
       * @return
       */
-    def empty[T]: AuthedService[T] = _empty.asInstanceOf[AuthedService[T]] // OK as `T` isn't used here.
+    def empty[T]: AuthedService[T] =
+      _empty.asInstanceOf[AuthedService[T]] // OK as `T` isn't used here.
   }
 
   type Callback[A] = Attempt[A] => Unit

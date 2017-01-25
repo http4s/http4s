@@ -11,24 +11,24 @@ class AutoSlashSpec extends Http4sSpec {
   "AutoSlash" should {
     "Auto remove a trailing slash" in {
       val req = Request(uri = uri("/ping/"))
-      route.apply(req) must returnStatus(Status.NotFound)
-      AutoSlash(route).apply(req) must returnStatus(Status.Ok)
+      route.orNotFound(req) must returnStatus(Status.NotFound)
+      AutoSlash(route).orNotFound(req) must returnStatus(Status.Ok)
     }
 
     "Match a route defined with a slash" in {
-      AutoSlash(route).apply(Request(uri = uri("/withslash"))) must returnStatus(Status.Ok)
-      AutoSlash(route).apply(Request(uri = uri("/withslash/"))) must returnStatus(Status.Accepted)
+      AutoSlash(route).orNotFound(Request(uri = uri("/withslash"))) must returnStatus(Status.Ok)
+      AutoSlash(route).orNotFound(Request(uri = uri("/withslash/"))) must returnStatus(Status.Accepted)
     }
 
     "Respect an absent trailing slash" in {
       val req = Request(uri = uri("/ping"))
-      route.apply(req) must returnStatus(Status.Ok)
-      AutoSlash(route).apply(req) must returnStatus(Status.Ok)
+      route.orNotFound(req) must returnStatus(Status.Ok)
+      AutoSlash(route).orNotFound(req) must returnStatus(Status.Ok)
     }
 
     "Not crash on empy path" in {
       val req = Request(uri = uri(""))
-      AutoSlash(route).apply(req) must returnStatus(Status.NotFound)
+      AutoSlash(route).orNotFound(req) must returnStatus(Status.NotFound)
     }
   }
 }
