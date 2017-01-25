@@ -45,6 +45,6 @@ class DefaultHeadSpec extends Http4sSpec {
       })
       service.run(Request(Method.HEAD)).flatMap(_.as[String]).unsafeRun
       cleanedUp must beTrue
-    }.pendingUntilFixed
+    }
   }
 }
