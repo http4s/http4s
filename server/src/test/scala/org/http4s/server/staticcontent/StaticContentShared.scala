@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 
 import fs2._
 
-private [staticcontent] trait StaticContentShared {
+private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
 
   def s: HttpService
 

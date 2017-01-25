@@ -1,14 +1,7 @@
-// TODO fs2 port
-/*
 package com.example.http4s.blaze
 
-import java.util.concurrent.TimeUnit
-
-import scalaz._, Scalaz._
 import com.codahale.metrics._
 import com.example.http4s.ExampleService
-import org.http4s._
-import org.http4s.dsl._
 import org.http4s.server.{Router, ServerApp}
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.metrics._
@@ -25,4 +18,3 @@ object BlazeMetricsExample extends ServerApp {
     .mountService(srvc, "/http4s")
     .start
 }
- */

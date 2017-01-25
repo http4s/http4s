@@ -30,7 +30,7 @@ object CORS {
   private[CORS] val logger = getLogger
 
   private[CORS] val ok =
-    Service.constVal[Request, Response](Response(Status.Ok))
+    Service.constVal[Request, MaybeResponse](Response(Status.Ok))
 
   def DefaultCORSConfig = CORSConfig(
     anyOrigin = true,
@@ -46,13 +46,17 @@ object CORS {
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
 
     def options(origin: Header, acrm: Header): HttpService =
-      Service.withFallback(ok)(service).map { resp =>
-        if (resp.status.isSuccess)
-          corsHeaders(origin.value, acrm.value)(resp)
-        else {
-          logger.info(s"CORS headers would have been allowed for ${req.method} ${req.uri}")
-          resp
-        }
+      (service |+| ok).map {
+        case resp: Response =>
+          if (resp.status.isSuccess)
+            corsHeaders(origin.value, acrm.value)(resp)
+          else {
+            logger.info(s"CORS headers would have been allowed for ${req.method} ${req.uri}")
+            resp
+          }
+        case Pass =>
+          logger.warn("Unexpected Pass in CORS. This is probably a bug.")
+          Pass
       }
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
@@ -83,7 +87,7 @@ object CORS {
         options(origin, acrm)(req)
       case (_, Some(origin), _) if allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString)) =>
         logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-        service(req).map(corsHeaders(origin.value, req.method.renderString))
+        service(req).map(_.cata(corsHeaders(origin.value, req.method.renderString), Pass))
       case _ =>
         logger.info(s"CORS headers were denied for ${req.method} ${req.uri}")
         service(req)

@@ -50,7 +50,7 @@ just as easily modify the request before we passed it to the service.
 Now, let's create a simple service. As mentioned in [service], because `Service`
 is implemented as a `Kleisli`, which is just a function at heart, we can test a
 service without a server. Because an `HttpService` returns a `Task[Response]`,
-we need to call `run` on the result of the function to extract the `Response`.
+we need to call `unsafePerformSync` on the result of the function to extract the `Response`.
 
 ```tut:book
 val service = HttpService {
@@ -63,8 +63,8 @@ val service = HttpService {
 val goodRequest = Request(Method.GET, uri("/"))
 val badRequest = Request(Method.GET, uri("/bad"))
 
-service(goodRequest).run
-service(badRequest).run
+service(goodRequest).unsafePerformSync
+service(badRequest).unsafePerformSync
 ```
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
@@ -72,8 +72,8 @@ Now, we'll wrap the service in our middleware to create a new service, and try i
 ```tut:book
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
-wrappedService(goodRequest).run
-wrappedService(badRequest).run
+wrappedService(goodRequest).unsafePerformSync
+wrappedService(badRequest).unsafePerformSync
 ```
 
 Note that the successful response has your header added to it.
@@ -93,8 +93,8 @@ object MyMiddle {
 
 val newService = MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-newService(goodRequest).run
-newService(badRequest).run
+newService(goodRequest).unsafePerformSync
+newService(badRequest).unsafePerformSync
 ```
 
 It is possible for the wrapped `Service` to have different `Request` and `Response`
@@ -124,8 +124,8 @@ val aggregateService = apiService orElse MyMiddle(service, Header("SomeKey", "So
 
 val apiRequest = Request(Method.GET, uri("/api"))
 
-aggregateService(goodRequest).run
-aggregateService(apiRequest).run
+aggregateService(goodRequest).unsafePerformSync
+aggregateService(apiRequest).unsafePerformSync
 ```
 
 Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` had

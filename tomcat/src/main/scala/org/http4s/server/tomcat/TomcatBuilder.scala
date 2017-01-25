@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer}
 import fs2.{Strategy, Task}
 
@@ -25,13 +26,13 @@ sealed class TomcatBuilder private (
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
-  sslBits: Option[SSLBits],
+  sslBits: Option[KeyStoreBits],
   mounts: Vector[Mount]
 )
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
-  with SSLSupport
+  with SSLKeyStoreSupport
 {
   type Self = TomcatBuilder
 
@@ -41,13 +42,13 @@ sealed class TomcatBuilder private (
     idleTimeout: Duration = idleTimeout,
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo = servletIo,
-    sslBits: Option[SSLBits] = sslBits,
+    sslBits: Option[KeyStoreBits] = sslBits,
     mounts: Vector[Mount] = mounts
   ): TomcatBuilder =
     new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
-    copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+    copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
   }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =

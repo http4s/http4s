@@ -29,6 +29,6 @@ object DefaultHead {
       // TODO fs2 port I think .open.close is a fair translation of
       // scalaz-stream's kill, but it doesn't run the cleanup.  Is
       // this a bug?
-      service(getReq).map(resp => resp.copy(body = resp.body.drain))
+      service(getReq).map(_.cata(resp => resp.copy(body = resp.body.drain), Pass))
     }
 }

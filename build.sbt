@@ -509,7 +509,7 @@ lazy val commonSettings = Seq(
   }.value,
   scalacOptions := (scalacOptions.value.filterNot {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, n)) if n >= 12 => Set("-Yinline-warnings", "-deprecation")
+      case Some((2, n)) if n >= 12 => Set("-Yinline-warnings")
       case _ => Set.empty
     }
   }),

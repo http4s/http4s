@@ -38,7 +38,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
   def assertDisposes(f: Client => Task[Unit]) = {
     var disposed = false
     val disposingClient = Client(
-      route.map(DisposableResponse(_, Task.delay(disposed = true))),
+      route.map(r => DisposableResponse(r.orNotFound, Task.delay(disposed = true))),
       Task.now(()))
     f(disposingClient).unsafeAttemptValue()
     disposed must beTrue
@@ -167,13 +167,23 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
        assertDisposes(_.toService(_ => Task.fail(SadTrombone)).run(req))
      }
 
+<<<<<<< HEAD
      "toHttpService disposes the response if the body is run" in {
-       assertDisposes(_.toHttpService.flatMapF(_.body.run).run(req))
+       assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.run).run(req))
      }
 
      "toHttpService disposes of the response if the body is run, even if it fails" in {
-       assertDisposes(_.toHttpService.flatMapF(_.body.flatMap(_ => Stream.fail(SadTrombone)).run).run(req))
+       assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.flatMap(_ => Stream.fail(SadTrombone)).run).run(req))
      }
+=======
+    "toHttpService disposes the response if the body is run" in {
+      assertDisposes(_.toHttpService.flatMapK(_.orNotFound.body.run).run(req))
+    }
+
+    "toHttpService disposes of the response if the body is run, even if it fails" in {
+      assertDisposes(_.toHttpService.flatMapK(_.orNotFound.body.flatMap(_ => Process.fail(SadTrombone).toSource).run).run(req))
+    }
+>>>>>>> master
   }
 
   "RequestResponseGenerator" should {

@@ -65,7 +65,7 @@ val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =>
   }
 }
 val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-println(response.as(bothDec).run)
+println(response.as(bothDec).unsafePerformSync)
 ```
 
 ## Presupplied Encoders/Decoders
