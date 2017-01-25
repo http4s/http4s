@@ -1,25 +1,24 @@
 package org
 
-import scalaz.{Kleisli, EitherT, \/}
-
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import org.http4s.util.CaseInsensitiveString
-import scodec.bits.ByteVector
+import cats.data._
+import fs2._
+import fs2.util.Attempt
 
 package object http4s { // scalastyle:ignore
 
-  type AuthScheme = CaseInsensitiveString
+  type AuthScheme = util.CaseInsensitiveString
 
-  type EntityBody = Process[Task, ByteVector]
+  type EntityBody = Stream[Task, Byte]
 
-  def EmptyBody: EntityBody = Process.halt
+  val EmptyBody: EntityBody =
+    Stream.empty
 
-  type DecodeResult[T] = EitherT[Task, DecodeFailure, T]
+  val ApiVersion: Http4sVersion =
+    Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
-  val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
+  type DecodeResult[A] = EitherT[Task, DecodeFailure, A]
 
-  type ParseResult[+A] = ParseFailure \/ A
+  type ParseResult[+A] = Either[ParseFailure, A]
 
   val DefaultCharset = Charset.`UTF-8`
 
@@ -87,8 +86,10 @@ package object http4s { // scalastyle:ignore
       _empty.asInstanceOf[AuthedService[T]] // OK as `T` isn't used here.
   }
 
-  type Callback[A] = Throwable \/ A => Unit
+  type Callback[A] = Attempt[A] => Unit
 
+  /* TODO fs2 port
   /** A stream of server-sent events */
-  type EventStream = Process[Task, ServerSentEvent]
+  type EventStream = Stream[Task, ServerSentEvent]
+   */
 }

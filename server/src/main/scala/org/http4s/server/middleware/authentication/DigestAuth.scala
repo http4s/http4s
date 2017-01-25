@@ -7,13 +7,12 @@ import java.security.SecureRandom
 import java.math.BigInteger
 import java.util.Date
 
-import org.http4s.headers.Authorization
-import org.http4s.{AuthedRequest, AuthedService}
-
 import scala.concurrent.duration._
 
-import scalaz.concurrent.Task
-import scalaz._
+import cats.data._
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers._
 
 /**
  * Provides Digest Authentication from RFC 2617.
@@ -62,12 +61,12 @@ object DigestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  def challenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper): Service[Request, Challenge \/ AuthedRequest[A]] =
+  def challenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper): Service[Request, Either[Challenge, AuthedRequest[A]]] =
     Service.lift { req => {
-      def paramsToChallenge(params: Map[String, String]) = -\/(Challenge("Digest", realm, params))
+      def paramsToChallenge(params: Map[String, String]) = left(Challenge("Digest", realm, params))
 
       checkAuth(realm, store, nonceKeeper, req).flatMap(_ match {
-        case OK(authInfo) => Task.now(\/-(AuthedRequest(authInfo, req)))
+        case OK(authInfo) => Task.now(right(AuthedRequest(authInfo, req)))
         case StaleNonce => getChallengeParams(nonceKeeper, true).map(paramsToChallenge)
         case _ => getChallengeParams(nonceKeeper, false).map(paramsToChallenge)
       })
@@ -83,7 +82,7 @@ object DigestAuth {
       Task.now(NoAuthorizationHeader)
   }
 
-  private def getChallengeParams(nonceKeeper: NonceKeeper, staleNonce: Boolean): Task[Map[String, String]] = Task {
+  private def getChallengeParams(nonceKeeper: NonceKeeper, staleNonce: Boolean): Task[Map[String, String]] = Task.delay {
     val nonce = nonceKeeper.newNonce()
     val m = Map("qop" -> "auth", "nonce" -> nonce)
     if (staleNonce)

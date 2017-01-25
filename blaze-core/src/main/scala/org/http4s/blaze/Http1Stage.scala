@@ -5,36 +5,34 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-import org.http4s.headers.{`Transfer-Encoding`, `Content-Length`}
-import org.http4s.{headers => H}
+import scala.concurrent.{Future, ExecutionContext, Promise}
+import scala.util.{Failure, Success}
+
+import cats.data._
+import fs2._
+import fs2.Stream._
+import org.http4s.headers._
+import org.http4s.batteries._
 import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util._
 import org.http4s.util.{Writer, StringWriter}
-import scodec.bits.ByteVector
-
-import scala.concurrent.{Future, ExecutionContext, Promise}
-import scala.util.{Failure, Success}
-
-import scalaz.stream.Process._
-import scalaz.stream.Cause.{Terminated, End}
-import scalaz.{-\/, \/-}
-import scalaz.concurrent.Task
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
 trait Http1Stage { self: TailStage[ByteBuffer] =>
-
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
   protected implicit def ec: ExecutionContext
+
+  private implicit def strategy: Strategy = Strategy.fromExecutionContext(ec)
 
   protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 
   protected def contentComplete(): Boolean
 
   /** Check Connection header and add applicable headers to response */
-  final protected def checkCloseConnection(conn: H.Connection, rr: StringWriter): Boolean = {
+  final protected def checkCloseConnection(conn: Connection, rr: StringWriter): Boolean = {
     if (conn.hasKeepAlive) {                          // connection, look to the request
       logger.trace("Found Keep-Alive header")
       false
@@ -57,9 +55,9 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                                  minor: Int,
                                  closeOnFinish: Boolean): ProcessWriter = {
     val headers = msg.headers
-    getEncoder(H.Connection.from(headers),
-               H.`Transfer-Encoding`.from(headers),
-               H.`Content-Length`.from(headers),
+    getEncoder(Connection.from(headers),
+               `Transfer-Encoding`.from(headers),
+               `Content-Length`.from(headers),
                msg.trailerHeaders,
                rr,
                minor,
@@ -68,9 +66,9 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** Get the proper body encoder based on the message headers,
     * adding the appropriate Connection and Transfer-Encoding headers along the way */
-  final protected def getEncoder(connectionHeader: Option[H.Connection],
-                                     bodyEncoding: Option[H.`Transfer-Encoding`],
-                                     lengthHeader: Option[H.`Content-Length`],
+  final protected def getEncoder(connectionHeader: Option[Connection],
+                                     bodyEncoding: Option[`Transfer-Encoding`],
+                                     lengthHeader: Option[`Content-Length`],
                                           trailer: Task[Headers],
                                                rr: StringWriter,
                                             minor: Int,
@@ -137,11 +135,11 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining()) doParseContent(buffer) match {
       case Some(chunk) if contentComplete() =>
-        emit(ByteVector(chunk)) -> Http1Stage.futureBufferThunk(buffer)
+        Stream.chunk(ByteBufferChunk(chunk)) -> Http1Stage.futureBufferThunk(buffer)
 
       case Some(chunk) =>
         val (rst,end) = streamingBody(buffer, eofCondition)
-        (emit(ByteVector(chunk)) ++ rst, end)
+        (Stream.chunk(ByteBufferChunk(chunk)) ++ rst, end)
 
       case None if contentComplete() =>
         if (buffer.hasRemaining) EmptyBody -> Http1Stage.futureBufferThunk(buffer)
@@ -158,7 +156,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = Task.async[ByteVector]{ cb =>
+    val t = Task.async[Option[Chunk[Byte]]]{ cb =>
       if (!contentComplete()) {
 
         def go(): Unit = try {
@@ -166,10 +164,10 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
           parseResult match {
             case Some(result) =>
-              cb(\/-(ByteVector(result)))
+              cb(right(ByteBufferChunk(result).some))
 
             case None if contentComplete() =>
-              cb(-\/(Terminated(End)))
+              cb(End)
 
             case None =>
               channelRead().onComplete {
@@ -178,28 +176,28 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                   go()
 
                 case Failure(Command.EOF) =>
-                  cb(-\/(eofCondition()))
+                  cb(left(eofCondition()))
 
                 case Failure(t)   =>
                   logger.error(t)("Unexpected error reading body.")
-                  cb(-\/(t))
+                  cb(left(t))
               }
           }
         } catch {
           case t: ParserException =>
             fatalError(t, "Error parsing request body")
-            cb(-\/(InvalidBodyException(t.getMessage())))
+            cb(left(InvalidBodyException(t.getMessage())))
 
           case t: Throwable =>
             fatalError(t, "Error collecting body")
-            cb(-\/(t))
+            cb(left(t))
         }
         go()
       }
-      else cb(-\/(Terminated(End)))
+      else cb(End)
     }
 
-    (repeatEval(t).onHalt(_.asHalt), () => drainBody(currentBuffer))
+    (pipe.unNoneTerminate(repeatEval(t)).flatMap(chunk), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred
@@ -251,14 +249,14 @@ object Http1Stage {
     var dateEncoded = false
     headers.foreach { h =>
         if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
-          if (isServer && h.name == H.Date.name) dateEncoded = true
+          if (isServer && h.name == Date.name) dateEncoded = true
           rr << h << "\r\n"
         }
 
       }
 
     if (isServer && !dateEncoded) {
-      rr << H.Date.name << ": " << Instant.now() << "\r\n"
+      rr << Date.name << ": " << Instant.now << "\r\n"
     }
     ()
   }

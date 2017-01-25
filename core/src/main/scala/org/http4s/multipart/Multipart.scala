@@ -5,19 +5,18 @@ import java.io.{ File, FileInputStream, InputStream }
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+
 import scala.util.Random
 
-import org.http4s._
+import fs2._
+import fs2.Stream._
+import fs2.io._
+import fs2.text._
 import org.http4s.EntityEncoder._
 import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string._
-import scalaz.std.string._
-import scalaz.stream.Process.{ constant, emit }
-import scalaz.stream.io.chunkR
-import scalaz.stream.text.utf8Encode
-import scodec.bits.{ BitVector, ByteVector }
 
 final case class Part(headers: Headers, body: EntityBody) {
   def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
@@ -30,7 +29,8 @@ object Part {
     Part(Headers.empty, EmptyBody)
 
   def formData(name: String, value: String, headers: Header*): Part =
-    Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers, emit(value) |> utf8Encode)
+    Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers,
+      emit(value).through(utf8Encode))
 
   def fileData(name: String, file: File, headers: Header*): Part =
     fileData(name, file.getName, new FileInputStream(file), headers:_*)
@@ -42,7 +42,7 @@ object Part {
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
            Header("Content-Transfer-Encoding", "binary") +:
            headers,
-         constant(ChunkSize).toSource through chunkR(in))
+         readInputStream(Task.delay(in), ChunkSize))
    }
 }
 
@@ -51,8 +51,8 @@ final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.cr
 }
 
 final case class Boundary(value: String) extends AnyVal {
-  def toByteVector: ByteVector =
-    ByteVector.view(value.getBytes(StandardCharsets.UTF_8))
+  def toChunk: Chunk[Byte] =
+    Chunk.bytes(value.getBytes(StandardCharsets.UTF_8))
 }
 
 object Boundary {
@@ -67,7 +67,7 @@ object Boundary {
   private val rand = new Random()
 
   private def nextChar = CHARS(rand.nextInt(nchars - 1))
-  private def stream: Stream[Char] = Stream continually (nextChar)
+  private def stream: scala.Stream[Char] = scala.Stream continually (nextChar)
   //Don't use filterNot it works for 2.11.4 and nothing else, it will hang.
   private def endChar: Char = stream.filter(_ != ' ').headOption.getOrElse('X')
   private def value(l: Int): String = (stream take l).mkString

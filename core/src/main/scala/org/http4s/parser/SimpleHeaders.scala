@@ -18,15 +18,14 @@
 package org.http4s
 package parser
 
-
-import headers._
 import java.net.InetAddress
 import java.time.Instant
 
+import cats.data.NonEmptyList
+import org.http4s.batteries._
+import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
-import org.http4s.util.CaseInsensitiveString._
 import org.parboiled2.Rule1
-import org.http4s.util.NonEmptyList
 
 /**
  * parser rules for all headers that can be parsed with one simple rule
@@ -38,7 +37,7 @@ private[parser] trait SimpleHeaders {
       def entry = rule {
         oneOrMore(Token).separatedBy(ListSep) ~ EOL ~>  { ts: Seq[String] =>
           val ms = ts.map(Method.fromString(_).getOrElse(sys.error("Impossible. Please file a bug report.")))
-          Allow(NonEmptyList(ms.head, ms.tail:_*))
+          Allow(NonEmptyList.of(ms.head, ms.tail:_*))
         }
       }
     }.parse
@@ -94,6 +93,7 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
+  /* TOOO fs2 port
   def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
     new Http4sHeaderParser[`Last-Event-Id`](value) {
       def entry = rule {
@@ -102,7 +102,8 @@ private[parser] trait SimpleHeaders {
         }
       }
     }.parse
-
+   */
+  
   def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = 
     new Http4sHeaderParser[`Last-Modified`](value) {
       def entry = rule {
@@ -124,7 +125,7 @@ private[parser] trait SimpleHeaders {
     def entry = rule {
       "*" ~ push(`If-None-Match`.`*`) |
       oneOrMore(EntityTag).separatedBy(ListSep) ~> { tags: Seq[EntityTag] =>
-        `If-None-Match`(Some(NonEmptyList(tags.head, tags.tail:_*)))
+        `If-None-Match`(Some(NonEmptyList.of(tags.head, tags.tail:_*)))
       }
     }
   }.parse

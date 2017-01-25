@@ -5,30 +5,24 @@ package blaze
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 
-import org.http4s.Header.Raw
-import org.http4s.Status._
-import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
-
-import org.http4s.{Method => HMethod, Headers => HHeaders, _}
-import org.http4s.blaze.pipeline.{ Command => Cmd }
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.blaze.util.Http2Writer
-import Http2Exception.{ PROTOCOL_ERROR, INTERNAL_ERROR }
-
-import scodec.bits.ByteVector
-
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.Cause.{Terminated, End}
-import scalaz.{\/-, -\/}
-
 import scala.collection.mutable.{ListBuffer, ArrayBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import scala.util.{Success, Failure}
+import scala.util._
 
-import org.http4s.util.CaseInsensitiveString._
+import cats.data._
+import fs2._
+import fs2.Stream._
+import org.http4s.{Method => HMethod, Headers => HHeaders, _}
+import org.http4s.Header.Raw
+import org.http4s.Status._
+import org.http4s.batteries._
+import org.http4s.blaze.http.Headers
+import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
+import org.http4s.blaze.http.http20.Http2Exception._
+import org.http4s.blaze.pipeline.{ Command => Cmd }
+import org.http4s.blaze.pipeline.TailStage
+import org.http4s.blaze.util._
 
 private class Http2NodeStage(streamId: Int,
                      timeout: Duration,
@@ -41,6 +35,7 @@ private class Http2NodeStage(streamId: Int,
   import NodeMsg.{ DataFrame, HeadersFrame }
 
   private implicit def ec = ExecutionContext.fromExecutor(executor)   // for all the onComplete calls
+  private implicit val strategy = Strategy.fromExecutionContext(ec)
 
   override def name = "Http2NodeStage"
 
@@ -77,8 +72,8 @@ private class Http2NodeStage(streamId: Int,
     var complete = false
     var bytesRead = 0L
 
-    val t = Task.async[ByteVector] { cb =>
-      if (complete) cb(-\/(Terminated(End)))
+    val t = Task.async[Option[Chunk[Byte]]] { cb =>
+      if (complete) cb(End)
       else channelRead(timeout = timeout).onComplete {
         case Success(DataFrame(last, bytes,_)) =>
           complete = last
@@ -90,41 +85,41 @@ private class Http2NodeStage(streamId: Int,
             val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
             val e = PROTOCOL_ERROR(msg, fatal = false)
             sendOutboundCommand(Cmd.Error(e))
-            cb(-\/(InvalidBodyException(msg)))
+            cb(left(InvalidBodyException(msg)))
           }
           else if (maxlen > 0 && bytesRead > maxlen) {
             val msg = s"Entity too large. Exepected $maxlen, received bytesRead"
             val e = PROTOCOL_ERROR(msg, fatal = false)
             sendOutboundCommand((Cmd.Error(e)))
-            cb(-\/(InvalidBodyException(msg)))
+            cb(left(InvalidBodyException(msg)))
           }
-          else cb(\/-(ByteVector.view(bytes)))
+          else cb(right(Some(Chunk.bytes(bytes.array))))
 
         case Success(HeadersFrame(_, true, ts)) =>
           logger.warn("Discarding trailers: " + ts)
-          cb(\/-(ByteVector.empty))
+          cb(right(Some(Chunk.empty)))
 
         case Success(other) =>  // This should cover it
           val msg = "Received invalid frame while accumulating body: " + other
           logger.info(msg)
           val e = PROTOCOL_ERROR(msg, fatal = true)
           shutdownWithCommand(Cmd.Error(e))
-          cb(-\/(InvalidBodyException(msg)))
+          cb(left(InvalidBodyException(msg)))
 
         case Failure(Cmd.EOF) =>
           logger.debug("EOF while accumulating body")
-          cb(-\/(InvalidBodyException("Received premature EOF.")))
+          cb(left(InvalidBodyException("Received premature EOF.")))
           shutdownWithCommand(Cmd.Disconnect)
 
         case Failure(t) =>
           logger.error(t)("Error in getBody().")
           val e = INTERNAL_ERROR(streamId, fatal = true)
-          cb(-\/(e))
+          cb(left(e))
           shutdownWithCommand(Cmd.Error(e))
       }
     }
 
-    Process.repeatEval(t).onHalt(_.asHalt)
+    repeatEval(t) through pipe.unNoneTerminate flatMap chunk
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
@@ -141,8 +136,8 @@ private class Http2NodeStage(streamId: Int,
       case (Method, v)    =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (method == null) org.http4s.Method.fromString(v) match {
-          case \/-(m) => method = m
-          case -\/(e) => error = s"$error Invalid method: $e "
+          case Right(m) => method = m
+          case Left(e) => error = s"$error Invalid method: $e "
         }
 
         else error += "Multiple ':method' headers defined. "
@@ -155,8 +150,8 @@ private class Http2NodeStage(streamId: Int,
       case (Path, v)      =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (path == null) Uri.requestTarget(v) match {
-          case \/-(p) => path = p
-          case -\/(e) => error = s"$error Invalid path: $e"
+          case Right(p) => path = p
+          case Left(e) => error = s"$error Invalid path: $e"
         }
         else error += "Multiple ':path' headers defined. "
 
@@ -200,12 +195,12 @@ private class Http2NodeStage(streamId: Int,
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      Task.fork(service(req))(executor).runAsync {
-        case \/-(resp) => renderResponse(req, resp)
-        case -\/(t) =>
+      service(req).unsafeRunAsync {
+        case Right(resp) => renderResponse(req, resp)
+        case Left(t) =>
           val resp = Response(InternalServerError)
                        .withBody("500 Internal Service Error\n" + t.getMessage)
-                       .run
+                       .unsafeRun // TODO Yuck
 
           renderResponse(req, resp)
       }
@@ -226,10 +221,10 @@ private class Http2NodeStage(streamId: Int,
       }
     }
 
-    new Http2Writer(this, hs, ec).writeProcess(resp.body).runAsync {
-      case \/-(_)       => shutdownWithCommand(Cmd.Disconnect)
-      case -\/(Cmd.EOF) => stageShutdown()
-      case -\/(t)       => shutdownWithCommand(Cmd.Error(t))
+    new Http2Writer(this, hs, ec).writeProcess(resp.body).unsafeRunAsync {
+      case Right(_)       => shutdownWithCommand(Cmd.Disconnect)
+      case Left(Cmd.EOF) => stageShutdown()
+      case Left(t)       => shutdownWithCommand(Cmd.Error(t))
     }    
   }
 }

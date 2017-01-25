@@ -4,11 +4,7 @@ package staticcontent
 
 import java.util.concurrent.ExecutorService
 
-import org.http4s.server._
-import org.http4s.{Response, Request, StaticFile}
-
-import scalaz.concurrent.{Strategy, Task}
-
+import fs2._
 
 object ResourceService {
 
@@ -23,11 +19,12 @@ object ResourceService {
   final case class Config(basePath: String,
                           pathPrefix: String = "",
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService = Strategy.DefaultExecutorService,
+                          executor: ExecutorService,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): HttpService= Service.lift { req =>
+  private[staticcontent] def apply(config: Config): HttpService = Service.lift { req =>
+    implicit val executor = config.executor
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
       Pass.now

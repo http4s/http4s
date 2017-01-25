@@ -1,13 +1,11 @@
 package org.http4s
 package parser
 
+import cats.data.NonEmptyList
 import org.http4s.{headers, RangeUnit}
 import org.http4s.headers.{`Accept-Ranges`, `Content-Range`, Range}
 import org.http4s.headers.Range.SubRange
 import org.parboiled2._
-
-import org.http4s.util.NonEmptyList
-
 
 private[parser] trait RangeParser {
 
@@ -16,7 +14,7 @@ private[parser] trait RangeParser {
 
     def entry = rule {
       capture(oneOrMore(Alpha)) ~ '=' ~ oneOrMore(byteRange).separatedBy(',') ~> { (s: String, rs: Seq[SubRange]) =>
-        Range(RangeUnit(s), NonEmptyList(rs.head, rs.tail:_*))
+        Range(RangeUnit(s), NonEmptyList.of(rs.head, rs.tail:_*))
       }
     }
   }.parse

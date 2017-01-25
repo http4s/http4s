@@ -1,9 +1,8 @@
-package org.http4s.server.staticcontent
+package org.http4s
+package server
+package staticcontent
 
-import org.http4s._
-
-import scalaz.concurrent.Task
-
+import fs2._
 
 /** Cache the body of a [[Response]] for future use
   *
@@ -12,7 +11,6 @@ import scalaz.concurrent.Task
   * the response has already been cached, needs caching, or to let it pass through.
   */
 trait CacheStrategy {
-
   /** Performs the caching operations */
   def cache(uriPath: String, resp: Response): Task[Response]
 }

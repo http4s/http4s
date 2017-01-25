@@ -2,21 +2,15 @@ package org.http4s
 package servlet
 
 import java.util.concurrent.atomic.AtomicReference
-import javax.servlet.{WriteListener, ReadListener}
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import javax.servlet.{ReadListener, WriteListener}
 
+import fs2.Task.Callback
+import fs2.{Chunk, Strategy, Stream, Task, io, pipe}
 import org.http4s.util.{TrampolineExecutionContext, bug}
-import scodec.bits.ByteVector
+import org.log4s.getLogger
 
 import scala.annotation.tailrec
-import scalaz.stream.Cause.{End, Terminated}
-import scalaz.{\/, -\/}
-import scalaz.concurrent.Task
-import scalaz.stream.Process._
-import scalaz.stream.io.chunkR
-import scalaz.syntax.either._
-
-import org.log4s.getLogger
 
 /**
  * Determines the mode of I/O used for reading request bodies and writing response bodies.
@@ -36,12 +30,12 @@ sealed trait ServletIo {
  */
 final case class BlockingServletIo(chunkSize: Int) extends ServletIo {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody =
-    chunkR(servletRequest.getInputStream).map(_(chunkSize)).eval
+    io.readInputStream[Task](Task.now(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = { response: Response =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
-    response.body.map { chunk =>
+    response.body.chunks.map { chunk =>
       out.write(chunk.toArray)
       if (flush)
         servletResponse.flushBuffer()
@@ -60,43 +54,45 @@ final case class BlockingServletIo(chunkSize: Int) extends ServletIo {
 final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val logger = getLogger
 
-  private[this] val LeftEnd = Terminated(End).left
-  private[this] val RightUnit = ().right
+  private[this] def rightSome[A](a: A) = Right(Some(a))
+  private[this] val rightNone = Right(None)
 
-  override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = suspend {
+  override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = Stream.suspend {
     sealed trait State
     case object Init extends State
     case object Ready extends State
     case object Complete extends State
     sealed case class Errored(t: Throwable) extends State
-    sealed case class Blocked(cb: Callback[ByteVector]) extends State
+    sealed case class Blocked(cb: Callback[Option[Chunk[Byte]]]) extends State
 
     val in = servletRequest.getInputStream
 
     val state = new AtomicReference[State](Init)
 
-    def read(cb: Callback[ByteVector]) = {
-      val buff = new Array[Byte](chunkSize)
-      val len = in.read(buff)
+    def read(cb: Callback[Option[Chunk[Byte]]]) = {
+      val buf = new Array[Byte](chunkSize)
+      val len = in.read(buf)
 
-      if (len == chunkSize) cb(ByteVector.view(buff).right)
+      if (len == chunkSize) cb(rightSome(Chunk.bytes(buf)))
       else if (len < 0) {
         state.compareAndSet(Ready, Complete) // will not overwrite an `Errored` state
-        cb(LeftEnd)
+        cb(rightNone)
       }
       else if (len == 0) {
         logger.warn("Encountered a read of length 0")
-        cb(ByteVector.empty.right)
+        cb(rightSome(Chunk.empty))
       }
-      else cb(ByteVector(buff, 0, len).right)
+      else cb(rightSome(Chunk.bytes(buf, 0, len)))
     }
 
-    if (in.isFinished) halt
+    if (in.isFinished) Stream.empty
     else {
+      implicit val strategy = Strategy.fromExecutionContext(TrampolineExecutionContext)
+
       // This Task sets the callback and waits for the first bytes to read
-      val registerRead = Task.async[ByteVector] { cb =>
+      val registerRead = Task.async[Option[Chunk[Byte]]] { cb =>
         if (!state.compareAndSet(Init, Blocked(cb))) {
-          cb(bug("Shouldn't have gotten here: I should be the first to set a state").left)
+          cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
         }
         else in.setReadListener(
           new ReadListener {
@@ -108,66 +104,63 @@ final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
 
             override def onError(t: Throwable): Unit =
               state.getAndSet(Errored(t)) match {
-                case Blocked(cb) => cb(t.left)
+                case Blocked(cb) => cb(Left(t))
                 case _ =>
               }
 
             override def onAllDataRead(): Unit =
               state.getAndSet(Complete) match {
-                case Blocked(cb) => cb(LeftEnd)
+                case Blocked(cb) => cb(rightNone)
                 case _ =>
               }
           }
         )
       }
 
-      eval(registerRead) ++ repeatEval ( // perform the initial set then transition into normal read mode
-        Task.fork {
-          Task.async[ByteVector] { cb =>
-            @tailrec
-            def go(): Unit = state.get match {
-              case Ready if in.isReady => read(cb)
+      val readStream = Stream.eval(registerRead) ++ Stream.repeatEval ( // perform the initial set then transition into normal read mode
+        Task.async[Option[Chunk[Byte]]] { cb =>
+          @tailrec
+          def go(): Unit = state.get match {
+            case Ready if in.isReady => read(cb)
 
-              case Ready => // wasn't ready so set the callback and double check that we're still not ready
-                val blocked = Blocked(cb)
-                if (state.compareAndSet(Ready, blocked)) {
-                  if (in.isReady && state.compareAndSet(blocked, Ready)) {
-                    read(cb) // data became available while we were setting up the callbacks
-                  }
-                  else { /* NOOP: our callback is either still needed or has been handled */ }
+            case Ready => // wasn't ready so set the callback and double check that we're still not ready
+              val blocked = Blocked(cb)
+              if (state.compareAndSet(Ready, blocked)) {
+                if (in.isReady && state.compareAndSet(blocked, Ready)) {
+                  read(cb) // data became available while we were setting up the callbacks
                 }
-                else go() // Our state transitioned so try again.
+                else { /* NOOP: our callback is either still needed or has been handled */ }
+              }
+              else go() // Our state transitioned so try again.
 
-              case Complete => cb(LeftEnd)
+            case Complete => cb(rightNone)
 
-              case e@Errored(t) => cb(t.left)
+            case e@Errored(t) => cb(Left(t))
 
-              // This should never happen so throw a huge fit if it does.
-              case Blocked(c1) =>
-                val t = bug("Two callbacks found in read state")
-                cb(t.left)
-                c1(t.left)
-                logger.error(t)("This should never happen. Please report.")
-                throw t
+            // This should never happen so throw a huge fit if it does.
+            case Blocked(c1) =>
+              val t = bug("Two callbacks found in read state")
+              cb(Left(t))
+              c1(Left(t))
+              logger.error(t)("This should never happen. Please report.")
+              throw t
 
-              case Init =>
-                cb(bug("Should have left Init state by now").left)
-            }
-            go()
+            case Init =>
+              cb(Left(bug("Should have left Init state by now")))
           }
-        }(TrampolineExecutionContext)
-      ) onHalt (_.asHalt)
+          go()
+        }
+      )
+      readStream.through(pipe.unNoneTerminate).unchunk.map(_(0))
     }
   }
 
   override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
-    type Callback[A] = Throwable \/ A => Unit
-
     sealed trait State
     case object Init extends State
     case object Ready extends State
     sealed case class Errored(t: Throwable) extends State
-    sealed case class Blocked(cb: Callback[ByteVector => Unit]) extends State
+    sealed case class Blocked(cb: Callback[Chunk[Byte] => Unit]) extends State
     sealed case class AwaitingLastWrite(cb: Callback[Unit]) extends State
 
     val out = servletResponse.getOutputStream
@@ -180,7 +173,7 @@ final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
     val state = new AtomicReference[State](Init)
     @volatile var autoFlush = false
 
-    val writeChunk = { chunk: ByteVector =>
+    val writeChunk = Right { chunk: Chunk[Byte] =>
       if (!out.isReady) {
         logger.error(s"writeChunk called while out was not ready, bytes will be lost!")
       } else {
@@ -188,21 +181,21 @@ final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
         if (autoFlush && out.isReady)
           out.flush()
       }
-    }.right
+    }
 
     val listener = new WriteListener {
       override def onWritePossible(): Unit = {
         state.getAndSet(Ready) match {
           case Blocked(cb) => cb(writeChunk)
-          case AwaitingLastWrite(cb) => cb(RightUnit)
+          case AwaitingLastWrite(cb) => cb(Right(()))
           case old =>
         }
       }
 
       override def onError(t: Throwable): Unit =  {
         state.getAndSet(Errored(t)) match {
-          case Blocked(cb) => cb(t.left)
-          case AwaitingLastWrite(cb) => cb(t.left)
+          case Blocked(cb) => cb(Left(t))
+          case AwaitingLastWrite(cb) => cb(Left(t))
           case _ =>
         }
       }
@@ -214,22 +207,20 @@ final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
      */
     out.setWriteListener(listener)
 
-    val awaitLastWrite = eval_ {
-      Task.fork {
-        Task.async[Unit] { cb =>
-          state.getAndSet(AwaitingLastWrite(cb)) match {
-            case Ready if out.isReady => cb(RightUnit)
-            case _ =>
-          }
+    val awaitLastWrite = Stream.eval_ {
+      Task.async[Unit] { cb =>
+        state.getAndSet(AwaitingLastWrite(cb)) match {
+          case Ready if out.isReady => cb(Right(()))
+          case _ =>
         }
-      }(TrampolineExecutionContext)
+      }(Strategy.fromExecutionContext(TrampolineExecutionContext))
     }
 
     { response: Response =>
       if (response.isChunked)
         autoFlush = true
-      response.body.evalMap { chunk =>
-        Task.fork(Task.async[ByteVector => Unit] { cb =>
+      response.body.chunks.evalMap { chunk =>
+        Task.async[Chunk[Byte] => Unit] { cb =>
           val blocked = Blocked(cb)
           state.getAndSet(blocked) match {
             case Ready if out.isReady =>
@@ -237,10 +228,10 @@ final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
                 cb(writeChunk)
             case e @ Errored(t) =>
               if (state.compareAndSet(blocked, e))
-                cb(-\/(t))
+                cb(Left(t))
             case _ =>
           }
-        }.map(_(chunk)))(TrampolineExecutionContext)
+        }(Strategy.fromExecutionContext(TrampolineExecutionContext)).map(_(chunk))
       }.append(awaitLastWrite).run
     }
   }

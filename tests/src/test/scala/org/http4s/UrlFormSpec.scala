@@ -1,13 +1,10 @@
 package org.http4s
 
+import cats.data.NonEmptyList
 import org.scalacheck.Arbitrary
-import org.specs2.ScalaCheck
 import org.specs2.scalacheck.Parameters
 
-import scalaz.\/-
-import org.http4s.util.NonEmptyList
-
-class UrlFormSpec extends Http4sSpec with ScalaCheck {
+class UrlFormSpec extends Http4sSpec {
 //  // TODO: arbitrary charsets would be nice
 //  /*
 //   * Generating arbitrary Strings valid in an arbitrary Charset is an expensive operation.
@@ -22,15 +19,15 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
     val charset = Charset.`UTF-8`
 
     "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
-      Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).flatMap { req =>
-        UrlForm.entityDecoder.decode(req, strict = false).run
-      } must returnValue(\/-(urlForm))
+      DecodeResult.success(Request().withBody(urlForm)(UrlForm.entityEncoder(charset))).flatMap { req =>
+        UrlForm.entityDecoder.decode(req, strict = false)
+      } must returnRight(urlForm)
     }
 
     "decodeString . encodeString == right" in prop{ (urlForm: UrlForm) =>
       UrlForm.decodeString(charset)(
         UrlForm.encodeString(charset)(urlForm)
-      ) must_== \/-(urlForm)
+      ) must beRight(urlForm)
     }
 
     "get returns elements matching key" in {
@@ -88,9 +85,9 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
           (k, vs) <- map.toSeq
-          v <- vs.list
+          v <- vs.toList
         } yield (k -> v)
-        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.list))
+        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.toList))
     }
   }
 }

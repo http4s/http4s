@@ -2,12 +2,9 @@ package org.http4s
 package client
 package blaze
 
-
+import fs2._
 import org.http4s.blaze.pipeline.Command
 import org.log4s.getLogger
-
-import scalaz.concurrent.Task
-import scalaz.{-\/, \/-}
 
 /** Blaze client implementation */
 object BlazeClient {

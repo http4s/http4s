@@ -8,13 +8,9 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.16.0-SNAPSHOT", scalazVersion.value)
+version      in ThisBuild := "0.16.0-SNAPSHOT"
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
-
-// The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
-// `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
-// is used to build the project.
-scalazVersion in ThisBuild := "7.1.11"
+scalaOrganization in ThisBuild := "org.typelevel"
 
 // Root project
 name := "root"
@@ -28,14 +24,13 @@ lazy val core = libraryProject("core")
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
+      fs2Cats,
+      fs2Io,
       http4sWebsocket,
       log4s,
       macroCompat,
       parboiled,
-      scalaCompiler(scalaVersion.value) % "provided",
-      scalaReflect(scalaVersion.value) % "provided",
-      scalazCore(scalazVersion.value),
-      scalazStream(scalazVersion.value)
+      scalaReflect(scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
 )
@@ -44,7 +39,8 @@ lazy val testing = libraryProject("testing")
   .settings(
   description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
-      scalacheck
+      scalacheck,
+      specs2Core
     )
 )
   .dependsOn(core)
@@ -84,7 +80,7 @@ lazy val blazeCore = libraryProject("blaze-core")
   .settings(
   description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze
-)
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
@@ -148,16 +144,17 @@ lazy val theDsl = libraryProject("dsl")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
-  description := "Base library to parse JSON to various ASTs for http4s",
-    libraryDependencies += jawnStreamz(scalazVersion.value)
-)
+    description := "Base library to parse JSON to various ASTs for http4s",
+    libraryDependencies += jawnFs2
+  )
   .dependsOn(core, testing % "test->test")
 
 lazy val argonaut = libraryProject("argonaut")
   .settings(
   description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sBuild.argonaut
+      Http4sBuild.argonaut,
+      jawnParser
     )
 )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -354,8 +351,8 @@ lazy val examples = http4sProject("examples")
       logbackClassic % "runtime",
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
-)
-  .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
+  )
+  .dependsOn(server, serverMetrics, theDsl /*, TODO fs2 port circe, scalaXml, twirl */)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -371,8 +368,8 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
         path = file.getAbsolutePath if path.contains("jetty.alpn")
       } yield { s"-Xbootclasspath/p:${path}" }
     }).value
-)
-  .dependsOn(blazeServer, blazeClient)
+  )
+  .dependsOn(blazeServer /* TODO fs2 port , blazeClient */)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
@@ -425,8 +422,8 @@ def exampleProject(name: String) = http4sProject(name)
   .dependsOn(examples)
 
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
+
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
-lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
@@ -472,6 +469,7 @@ lazy val projectMetadata = Seq(
   )
 )
 
+
 lazy val commonSettings = Seq(
   jvmTarget := scalaVersion.map {
     VersionNumber(_).numbers match {
@@ -492,54 +490,43 @@ lazy val commonSettings = Seq(
     "-Xlint",
     "-Yinline-warnings",
     "-Yno-adapted-args",
-//    "-Ypartial-unification",
+    "-Ypartial-unification",
     "-Ywarn-dead-code",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
     "-Xfuture"
   ),
   scalacOptions in (Compile, doc) -= "-Xfatal-warnings", // broken references to other modules
-  scalacOptions := {
-    // We're deprecation-clean across Scala versions, but not across scalaz
-    // versions.  This is not worth maintaining a branch.
-    VersionNumber(scalazVersion.value).numbers match {
-      case Seq(7, 1, _) =>
-        scalacOptions.value
-      case _ =>
-        // This filtering does not trigger when scalazVersion is changed in a
-        // running SBT session.  Help wanted.
-        scalacOptions.value filterNot (_ == "-Xfatal-warnings")
-    }
-  },
   scalacOptions ++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
       "-Ybackend:GenBCode"
     ) else Seq.empty
   }.value,
-  scalacOptions -= {
+  scalacOptions := (scalacOptions.value.filterNot {
     CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, n)) if n >= 12 => "-Yinline-warnings"
-      case _ => ""
+      case Some((2, n)) if n >= 12 => Set("-Yinline-warnings")
+      case _ => Set.empty
     }
-  },
+  }),
   javacOptions ++= Seq(
     "-source", jvmTarget.value,
     "-target", jvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
-  libraryDependencies ++= scalaVersion(v =>
-    if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0")
+  libraryDependencies ++= {
+    if (delambdafyOpts(scalaVersion.value)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0")
     else Seq.empty
-  ).value,
-  libraryDependencies ++= scalazVersion(sz => Seq(
+  },
+  libraryDependencies ++= Seq(
+    catsLaws,
+    catsKernelLaws,
     discipline,
     logbackClassic,
-    scalazScalacheckBinding(sz),
-    specs2Core(sz),
-    specs2MatcherExtra(sz),
-    specs2Scalacheck(sz)
-  ).map(_ % "test")).value,
+    scalacheck, // 0.13.3 fixes None.get
+    specs2Core,
+    specs2Scalacheck
+  ).map(_ % "test"),
   // don't include scoverage as a dependency in the pom
   // https://github.com/scoverage/sbt-scoverage/issues/153
   // this code was copied from https://github.com/mongodb/mongo-spark
@@ -575,8 +562,8 @@ lazy val noCoverageSettings = Seq(
 )
 
 lazy val mimaSettings = Seq(
-  mimaFailOnProblem := version.zipWith(scalazVersion)(compatibleVersion(_, _).isDefined).value,
-  mimaPreviousArtifacts := (compatibleVersion(version.value, scalazVersion.value) map {
+  mimaFailOnProblem := compatibleVersion(version.value).isDefined,
+  mimaPreviousArtifacts := (compatibleVersion(version.value) map {
     organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
   }).toSet,
   mimaBinaryIssueFilters ++= {

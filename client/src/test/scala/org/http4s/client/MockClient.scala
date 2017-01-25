@@ -3,27 +3,34 @@ package client
 
 import java.io._
 import java.util.concurrent.atomic._
-
-import scalaz.concurrent._
-import scalaz.stream._, Process._
-import scodec.bits.ByteVector
+import fs2._
 
 object MockClient {
-  def apply(service: HttpService, dispose: Task[Unit] = Task.now(())) = {
+  def apply(service: HttpService, dispose: Task[Unit] = Task.now(())): Client = {
     val isShutdown = new AtomicBoolean(false)
 
-    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
-      def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
-        if (killed.get)
-          fail(new IOException(reason))
-        else
-          await1[ByteVector] ++ loop(reason, killed)
+    def interruptable(body: EntityBody, disposed: AtomicBoolean): Stream[Task, Byte]  = {
+      def killable[F[_]](reason: String, killed: AtomicBoolean): Pipe[F, Byte, Byte] = {
+        def go(killed: AtomicBoolean): Handle[F, Byte] => Pull[F, Byte, Unit] = {
+          _.receiveOption{
+            case Some((chunk, h)) =>
+              if (killed.get){
+                Pull.outputs[F, Byte](Stream.fail[F](new IOException(reason)))
+              } else {
+                Pull.output[F, Byte](chunk.toBytes) >> go(killed)(h)
+              }
+            case None => Pull.done
+          }
+        }
+
+        _.pull(go(killed))
       }
-      body.pipe(loop("response was disposed", disposed))
-        .pipe(loop("client was shut down", isShutdown))
+      body
+        .through(killable("response was disposed", disposed))
+        .through(killable("client was shut down", isShutdown))
     }
 
-    def disposableService(service: HttpService) =
+    def disposableService(service: HttpService): Service[Request, DisposableResponse] =
       Service.lift { req: Request =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.copy(body = interruptable(req.body, disposed))

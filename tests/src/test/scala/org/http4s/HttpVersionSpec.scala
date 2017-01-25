@@ -1,15 +1,13 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
+import cats.kernel.laws._
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 
 class HttpVersionSpec extends Http4sSpec {
   import HttpVersion._
 
-  checkAll(ScalazProperties.equal.laws[HttpVersion])
-  checkAll(ScalazProperties.order.laws[HttpVersion])
+  checkAll("HttpVersion", OrderLaws[HttpVersion].order)
 
   "sort by descending major version" in {
     prop { (x: HttpVersion, y: HttpVersion) => x.major > y.major ==> (x > y) }
@@ -24,10 +22,10 @@ class HttpVersionSpec extends Http4sSpec {
   }
 
   "fromString is consistent with toString" in {
-    prop { v: HttpVersion => fromString(v.toString) must be_\/-(v) }
+    prop { v: HttpVersion => fromString(v.toString) must beRight(v) }
   }
 
   "protocol is case sensitive" in {
-    HttpVersion.fromString("http/1.0") must be_-\/
+    HttpVersion.fromString("http/1.0") must beLeft
   }
 }

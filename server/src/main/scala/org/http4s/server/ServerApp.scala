@@ -6,8 +6,10 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{ CountDownLatch, RejectedExecutionException }
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ Executors, ThreadFactory }
+
 import scala.annotation.tailrec
-import scalaz.concurrent.Task
+
+import fs2._
 import org.http4s.util.threads
 
 /**
@@ -47,7 +49,7 @@ trait ServerApp {
     state.get match {
       case _ if (state.compareAndSet(Started, Stopping)) =>
         logger.info(s"Shutting down server on ${s.address}")
-        try shutdown(s).run
+        try shutdown(s).unsafeRun
         finally state.set(Stopped)
         logger.info(s"Stopped server on ${s.address}")
       case Stopping | Stopped =>
@@ -81,7 +83,7 @@ trait ServerApp {
         doShutdown(s)
       }
       s
-    }.run
+    }.unsafeRun
     state.set(Started)
     logger.info(s"Started server on ${s.address}")
     latch.await()

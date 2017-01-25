@@ -3,6 +3,7 @@ package circe
 
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn.CirceSupportParser.facade
+import org.http4s.batteries._
 import org.http4s.headers.`Content-Type`
 
 // Originally based on ArgonautInstances
@@ -42,7 +43,7 @@ trait CirceInstances {
 
   implicit val decodeUri: Decoder[Uri] =
     Decoder.decodeString.emap { str =>
-      Uri.fromString(str).leftMap(_ => "Uri").toEither
+      Uri.fromString(str).leftMap(_ => "Uri")
     }
 }
 

@@ -36,39 +36,38 @@ class RouterSpec extends Http4sSpec {
 
   "A router" should {
     "translate mount prefixes" in {
-      service.orNotFound(Request(GET, uri("/numbers/1"))).run.as[String].run must_== ("one")
+      service.orNotFound(Request(GET, uri("/numbers/1"))) must returnBody("one")
     }
 
     "require the correct prefix" in {
-      val resp = service.orNotFound(Request(GET, uri("/letters/1"))).run
-      resp.as[String].run must_!= ("bee")
-      resp.as[String].run must_!= ("one")
-      resp.status must_== (NotFound)
+      val resp = service.orNotFound(Request(GET, uri("/letters/1"))).unsafeRun
+      resp must not(haveBody("bee"))
+      resp must not(haveBody("one"))
+      resp must haveStatus(NotFound)
     }
 
     "support root mappings" in {
-      service.orNotFound(Request(GET, uri("/about"))).run.as[String].run must_== ("about")
+      service.orNotFound(Request(GET, uri("/about"))) must returnBody("about")
     }
 
     "match longer prefixes first" in {
-      service.orNotFound(Request(GET, uri("/shadow/shadowed"))).run.as[String].run must_== ("visible")
+      service.orNotFound(Request(GET, uri("/shadow/shadowed"))) must returnBody("visible")
     }
 
     "404 on unknown prefixes" in {
-      service.orNotFound(Request(GET, uri("/symbols/~"))).run.status must_== (NotFound)
+      service.orNotFound(Request(GET, uri("/symbols/~"))) must returnStatus(NotFound)
     }
 
     "Allow passing through of routes with identical prefixes" in {
-      Router("" -> letters, "" -> numbers).orNotFound(Request(GET, uri("/1")))
-        .run.as[String].run must_== ("one")
+      Router("" -> letters, "" -> numbers).orNotFound(Request(GET, uri("/1"))) must returnBody("one")
     }
 
     "Serve custom NotFound responses" in {
-      Router("/foo" -> notFound).orNotFound(Request(uri = uri("/foo/bar"))).run.as[String].run must_== ("Custom NotFound")
+      Router("/foo" -> notFound).orNotFound(Request(uri = uri("/foo/bar"))) must returnBody("Custom NotFound")
     }
 
     "Return the fallthrough response if no route is found" in {
-      Router("/foo" -> notFound).apply(Request(uri = uri("/bar"))).run must be (Pass)
+      Router("/foo" -> notFound)(Request(uri = uri("/bar"))) must returnValue(Pass)
     }
   }
 }

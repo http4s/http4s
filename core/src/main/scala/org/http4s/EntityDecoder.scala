@@ -1,24 +1,14 @@
 package org.http4s
 
-import java.io.{File, FileOutputStream, StringReader}
-import javax.xml.parsers.SAXParser
+import java.io._
 
-import org.xml.sax.{InputSource, SAXParseException}
-import java.io.{File, FileOutputStream}
-import org.http4s.headers.`Content-Type`
-import org.http4s.multipart.{Multipart, MultipartDecoder}
-import scodec.bits.ByteVector
-
-import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
-import scalaz.Liskov.{<~<, refl}
-import scalaz.concurrent.Task
-import scalaz.std.string._
-import scalaz.stream.{io, process1}
-import scalaz.syntax.monad._
-import scalaz.{-\/, EitherT, \/, \/-}
 
-import util.byteVector._
+import fs2._
+import fs2.io._
+import org.http4s.headers._
+import org.http4s.batteries._
+import org.http4s.multipart._
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -53,16 +43,15 @@ trait EntityDecoder[T] { self =>
     * and if not, defer to the second [[EntityDecoder]]
     * @param other backup [[EntityDecoder]]
     */
-  def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
+  def orElse[T2 >: T](other: EntityDecoder[T2]): EntityDecoder[T2] =
     new EntityDecoder.OrDec(widen[T2], other)
 
   /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaType]] */
   def matchesMediaType(mediaType: MediaType): Boolean =
     consumes.exists(_.satisfiedBy(mediaType))
 
-  // shamelessly stolen from IList
-  def widen[B](implicit ev: T <~< B): EntityDecoder[B] =
-    ev.subst[({type λ[-α] = EntityDecoder[α @uncheckedVariance] <~< EntityDecoder[B]})#λ](refl)(this)
+  def widen[T2 >: T]: EntityDecoder[T2] =
+    this.asInstanceOf[EntityDecoder[T2]]
 }
 
 /** EntityDecoder is used to attempt to decode an [[EntityBody]]
@@ -131,12 +120,12 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary(msg: Message): DecodeResult[ByteVector] =
-    DecodeResult.success(msg.body.runFoldMap(identity))
+  def collectBinary(msg: Message): DecodeResult[Chunk[Byte]] =
+    DecodeResult.success(msg.body.chunks.runFoldMap[Chunk[Byte]](identity))
 
   /** Decodes a message to a String */
   def decodeString(msg: Message)(implicit defaultCharset: Charset = DefaultCharset): Task[String] =
-    msg.bodyAsText.foldMonoid.runLastOr("")
+    msg.bodyAsText.runFoldMap(identity)
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -148,12 +137,12 @@ trait EntityDecoderInstances {
   /** Provides a mechanism to fail decoding */
   def error[T](t: Throwable): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
-      DecodeResult(msg.body.kill.run.flatMap(_ => Task.fail(t)))
+      DecodeResult(msg.body.open.close.run.flatMap(_ => Task.fail(t)))
     }
     override def consumes: Set[MediaRange] = Set.empty
   }
 
-  implicit val binary: EntityDecoder[ByteVector] = {
+  implicit val binary: EntityDecoder[Chunk[Byte]] = {
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary)
   }
 
@@ -165,16 +154,19 @@ trait EntityDecoderInstances {
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`){ msg =>
-      val p = io.chunkW(new java.io.FileOutputStream(file))
-      DecodeResult.success(msg.body.to(p).run).map(_ => file)
+      val sink = writeOutputStream[Task](Task.delay(new FileOutputStream(file)))
+      DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-  def textFile(file: java.io.File): EntityDecoder[File] =
+  def textFile(file: File): EntityDecoder[File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`){ msg =>
-      val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(file)))
-      DecodeResult.success(msg.body.to(p).run).map(_ => file)
+      val sink = writeOutputStream[Task](Task.delay(new PrintStream(new FileOutputStream(file))))
+      DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
+// TODO fs2 port
+/*
   implicit def multipart: EntityDecoder[Multipart] =
     MultipartDecoder.decoder
+*/
 }

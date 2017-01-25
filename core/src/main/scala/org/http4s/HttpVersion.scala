@@ -1,11 +1,10 @@
 package org.http4s
 
-import scala.math.Ordered.orderingToOrdered
-import scalaz.{\/-, Order, Show, -\/}
-import scalaz.\/._
-
-import org.http4s.parser.{ScalazDeliverySchemes, Rfc2616BasicRules}
-import org.http4s.util.{Renderable, Writer}
+import cats._
+import cats.data.{Writer => _, _}
+import org.http4s.batteries._
+import org.http4s.parser._
+import org.http4s.util._
 import org.parboiled2._
 
 /**
@@ -26,7 +25,7 @@ object HttpVersion extends HttpVersionInstances {
   def fromString(s: String): ParseResult[HttpVersion] = s match {
     case "HTTP/1.1" => right(`HTTP/1.1`)
     case "HTTP/1.0" => right(`HTTP/1.0`)
-    case other => new Parser(s).HttpVersion.run()(ScalazDeliverySchemes.Disjunction).leftMap { _ =>
+    case other => new Parser(s).HttpVersion.run()(parseResultDeliveryScheme).leftMap { _ =>
       ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
     }
   }
@@ -47,6 +46,6 @@ object HttpVersion extends HttpVersionInstances {
 }
 
 trait HttpVersionInstances {
-  implicit val HttpVersionShow = Show.showFromToString[HttpVersion]
-  implicit val HttpVersionOrder = Order.fromScalaOrdering[HttpVersion]
+  implicit val HttpVersionShow = Show.fromToString[HttpVersion]
+  implicit val HttpVersionOrder = Order.fromOrdering[HttpVersion]
 }

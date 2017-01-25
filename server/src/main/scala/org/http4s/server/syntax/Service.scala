@@ -1,8 +1,8 @@
 package org.http4s
 package server
 
-import scalaz.Monoid
-import scalaz.concurrent.Task
+import cats.Monoid
+import fs2.Task
 
 package object syntax {
 

@@ -1,10 +1,10 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
+import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
-
-import org.http4s.util.NonEmptyList
 
 object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKey.Singleton {
 
@@ -12,7 +12,7 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
   val `*` = `If-None-Match`(None)
 
   def apply(first: ETag.EntityTag, rest: ETag.EntityTag*): `If-None-Match` = {
-    `If-None-Match`(Some(NonEmptyList(first, rest:_*)))
+    `If-None-Match`(Some(NonEmptyList.of(first, rest:_*)))
   }
 
   override def parse(s: String): ParseResult[`If-None-Match`] =

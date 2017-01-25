@@ -2,10 +2,12 @@ package org.http4s
 package server
 package middleware
 
-import org.http4s.headers.{`Content-Type`, `Content-Length`}
+import java.nio.charset.StandardCharsets
+
+import fs2._
+import fs2.Stream._
+import org.http4s.headers._
 import org.log4s.getLogger
-import scalaz.stream.Process._
-import scodec.bits.ByteVector
 
 /** Middleware to support wrapping json responses in jsonp.
   *
@@ -48,9 +50,9 @@ object Jsonp  {
   private def jsonp(resp: Response, callback: String) = {
     val begin = beginJsonp(callback)
     val end = EndJsonp
-    val jsonpBody = emit(begin) ++ resp.body ++ emit(end)
+    val jsonpBody = chunk(begin) ++ resp.body ++ chunk(end)
     val newLengthHeaderOption = resp.headers.get(`Content-Length`).map { old =>
-      old.copy(length = begin.length + old.length + end.length)
+      old.copy(length = begin.size + old.length + end.size)
     }
     resp.copy(body = jsonpBody).
       transformHeaders(_ ++ newLengthHeaderOption).
@@ -58,9 +60,8 @@ object Jsonp  {
   }
 
   private def beginJsonp(callback: String) =
-    ByteVector.view((callback + "(").getBytes("UTF-8"))
+    Chunk.bytes((callback + "(").getBytes(StandardCharsets.UTF_8))
 
   private val EndJsonp =
-    ByteVector.view(");".getBytes("UTF-8"))
-
+    Chunk.bytes(");".getBytes(StandardCharsets.UTF_8))
 }

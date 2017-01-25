@@ -3,14 +3,10 @@ package server
 package middleware
 package authentication
 
-import scalaz.concurrent.Task
-import scalaz._
-import org.http4s.headers.`WWW-Authenticate`
-import org.http4s.{AuthedRequest, AuthedService}
+import cats.data._
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers._
 
-/**
- * Authentication instances are middleware that provide a
- * {@link HttpService} with HTTP authentication.
- */
 object Authentication {
 }

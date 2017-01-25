@@ -2,9 +2,8 @@ package org.http4s
 package server
 package middleware
 
-import scalaz._, Scalaz._
-import scalaz.concurrent.Task
-import scalaz.stream.Process._
+import fs2._
+import fs2.Stream._
 import org.http4s.Uri.uri
 import org.http4s.dsl._
 
@@ -28,23 +27,23 @@ class DefaultHeadSpec extends Http4sSpec {
 
     "return truncated body of corresponding GET on fallthrough" in {
       val req = Request(Method.HEAD, uri = uri("/hello"))
-      service.orNotFound(req).flatMap(_.as[String]).run must_== ""
+      service.orNotFound(req) must returnBody("")
     }
 
     "retain all headers of corresponding GET on fallthrough" in {
       val get = Request(Method.GET, uri = uri("/hello"))      
       val head = get.copy(method = Method.HEAD)
-      service.orNotFound(get).map(_.headers).run must_== service.orNotFound(head).map(_.headers).run
+      service.orNotFound(get).map(_.headers).unsafeRun must_== service.orNotFound(head).map(_.headers).unsafeRun
     }
 
     "allow GET body to clean up on fallthrough" in {
       var cleanedUp = false
       val service = DefaultHead(HttpService {
         case GET -> _ =>
-          val body: EntityBody = halt.onComplete(eval_(Task.delay(cleanedUp = true)))
+          val body: EntityBody = eval_(Task.delay(cleanedUp = true))
           Ok(body)
       })
-      service.orNotFound(Request(Method.HEAD)).flatMap(_.as[String]).run
+      service.orNotFound(Request(Method.HEAD)).flatMap(_.as[String]).unsafeRun
       cleanedUp must beTrue
     }
   }

@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import scalaz.concurrent.Task
+import fs2._
 
 /** Removes a trailing slash from [[Request]] path
   *

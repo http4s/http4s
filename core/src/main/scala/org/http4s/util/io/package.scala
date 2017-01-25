@@ -1,3 +1,4 @@
+/** TODO fs2 port
 package org.http4s.util
 
 import java.io.{Writer => JWriter, _}
@@ -87,4 +88,4 @@ package object io {
     w.flush()
   }
 }
-
+  */

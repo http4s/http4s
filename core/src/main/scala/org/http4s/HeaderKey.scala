@@ -1,11 +1,10 @@
 package org.http4s
 
-import org.http4s.util.NonEmptyList
-
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
+import cats.data.NonEmptyList
+import org.http4s.batteries._
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.util.string._
 
 sealed trait HeaderKey {
   type HeaderT <: Header
@@ -41,21 +40,27 @@ object HeaderKey {
   trait Recurring extends Extractable {
     type HeaderT <: Header.Recurring
     type GetT = Option[HeaderT]
+
     def apply(values: NonEmptyList[HeaderT#Value]): HeaderT
-    def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
+
+    def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT =
+      apply(NonEmptyList(first, more.toList))
+
     def from(headers: Headers): Option[HeaderT] = {
       @tailrec def loop(hs: Headers, acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
         if (hs.nonEmpty) {
           matchHeader(hs.head) match {
-            case Some(header) => loop(hs.tail, acc append header.values)
-            case None => loop(hs.tail, acc)
+            case Some(header) =>
+              loop(hs.tail, acc.concat(header.values.widen[HeaderT#Value]))
+            case None =>
+              loop(hs.tail, acc)
           }
         }
         else acc
       @tailrec def start(hs: Headers): Option[HeaderT] =
         if (hs.nonEmpty) {
           matchHeader(hs.head) match {
-            case Some(header) => Some(apply(loop(hs.tail, header.values)))
+            case Some(header) => Some(apply(loop(hs.tail, header.values.widen[HeaderT#Value])))
             case None => start(hs.tail)
           }
         }

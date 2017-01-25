@@ -1,17 +1,13 @@
 package org.http4s
 
+import scala.concurrent.Future
+
 import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
-import org.http4s.EntityEncoder.Entity
-import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
-import org.specs2.mutable.Specification
-import scodec.bits.ByteVector
-
-import scala.concurrent.Future
-import scalaz.concurrent.Task
-import scalaz.stream.text.utf8Decode
-import scalaz.stream.Process
+import cats._
+import fs2._
+import org.http4s.headers._
 
 class EntityEncoderSpec extends Http4sSpec {
   "EntityEncoder" should {
@@ -40,12 +36,12 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "render processes" in {
-      val helloWorld = Process("hello", "world")
+      val helloWorld = Stream("hello", "world")
       writeToString(helloWorld) must_== "helloworld"
     }
 
     "render processes with chunked transfer encoding" in {
-      implicitly[EntityEncoder[Process[Task, String]]].headers.get(`Transfer-Encoding`) must beLike {
+      implicitly[EntityEncoder[Stream[Task, String]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding.hasChunked must beTrue
       }
     }
@@ -54,7 +50,7 @@ class EntityEncoderSpec extends Http4sSpec {
       trait Foo
       implicit val FooEncoder: EntityEncoder[Foo] =
         EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.gzip)) { _ => Task.now(Entity.empty) }
-      implicitly[EntityEncoder[Process[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+      implicitly[EntityEncoder[Stream[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
       }
     }
@@ -63,7 +59,7 @@ class EntityEncoderSpec extends Http4sSpec {
       trait Foo
       implicit val FooEncoder: EntityEncoder[Foo] =
         EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { _ => Task.now(Entity.empty) }
-      implicitly[EntityEncoder[Process[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+      implicitly[EntityEncoder[Stream[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
     }
@@ -83,29 +79,41 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "render input streams" in {
-      val inputStream = new ByteArrayInputStream(("input stream").getBytes(StandardCharsets.UTF_8))
+      val inputStream = Eval.always(new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8)))
       writeToString(inputStream) must_== "input stream"
     }
 
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(reader) must_== "string reader"
+      writeToString(Task.delay(reader)) must_== "string reader"
+    }
+
+    "render very long readers" in {
+      skipped
+      // This tests is very slow. Debugging seems to indicate that the issue is at fs2
+      // This is reproducible on input streams
+      val longString = "string reader" * 5000
+      val reader = new StringReader(longString)
+      writeToString(Task.delay(reader)) must_== longString
+    }
+
+    "render readers with UTF chars" in {
+      val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
+      val reader = new StringReader(utfString)
+      writeToString(Task.delay(reader)) must_== utfString
     }
 
     "give the content type" in {
       EntityEncoder[String].contentType must_== Some(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
-      EntityEncoder[ByteVector].contentType must_== Some(`Content-Type`(MediaType.`application/octet-stream`))
       EntityEncoder[Array[Byte]].contentType must_== Some(`Content-Type`(MediaType.`application/octet-stream`))
     }
 
     "work with local defined EntityEncoders" in {
-      import scodec.bits.ByteVector
-
       sealed case class ModelA(name: String, color: Int)
       sealed case class ModelB(name: String, id: Long)
 
-      implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA]()(_ => ByteVector.view("A".getBytes))
-      implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB]()(_ => ByteVector.view("B".getBytes))
+      implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA]()(_ => Chunk.bytes("A".getBytes))
+      implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB]()(_ => Chunk.bytes("B".getBytes))
 
       EntityEncoder[ModelA] must_== w1
       EntityEncoder[ModelB] must_== w2

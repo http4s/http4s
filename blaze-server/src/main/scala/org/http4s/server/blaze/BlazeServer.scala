@@ -5,11 +5,14 @@ package blaze
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.Security
-import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext}
-import java.util.concurrent.ExecutorService
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
+import java.util.concurrent.ExecutorService
+import javax.net.ssl._
 
+import scala.concurrent.duration._
+
+import fs2._
 import org.http4s.blaze.channel
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
@@ -17,11 +20,7 @@ import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-
 import org.log4s.getLogger
-
-import scala.concurrent.duration._
-import scalaz.concurrent.{Strategy, Task}
 
 class BlazeBuilder(
   socketAddress: InetSocketAddress,
@@ -241,7 +240,11 @@ class BlazeBuilder(
 
 object BlazeBuilder extends BlazeBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  serviceExecutor = Strategy.DefaultExecutorService,
+  // TODO fs2 port
+  // This is garbage how do we shut this down I just want it to compile argh
+  serviceExecutor = org.http4s.util.threads.newDefaultFixedThreadPool(
+    4, org.http4s.util.threads.threadFactory(i => s"org.http4s.blaze.server.DefaultExecutor-$i")
+  ),
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
   connectorPoolSize = channel.defaultPoolSize,

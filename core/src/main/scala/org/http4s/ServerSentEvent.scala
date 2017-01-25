@@ -1,3 +1,4 @@
+/* TODO fs2 port
 package org.http4s
 
 import java.util.regex.Pattern
@@ -115,3 +116,4 @@ object ServerSentEvent {
       .repeat
       .pipe(utf8Encode)
 }
+ */

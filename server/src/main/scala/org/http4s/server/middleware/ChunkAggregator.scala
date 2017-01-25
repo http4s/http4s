@@ -1,18 +1,17 @@
+/* TODO fs2 port what replaces unemit?
 package org.http4s
 package server
 package middleware
 
-import scalaz.stream.Process._
-import scalaz.stream.Cause.End
 import scala.annotation.tailrec
-import org.http4s.headers.`Content-Length`
-import scodec.bits.ByteVector
-import scalaz.Kleisli._
+
+import fs2._
+import org.http4s.headers._
 
 object ChunkAggregator {
 
   @tailrec
-  private[ChunkAggregator] def reduce(acc: ByteVector, chunks: Seq[ByteVector]): List[ByteVector] = {
+  private[ChunkAggregator] def reduce(acc: Chunk[Byte], chunks: Seq[Chunk[Byte]]): List[Chunk[Byte]] = {
     if (chunks.tail.nonEmpty) reduce(acc ++ chunks.head, chunks.tail)
     else (acc ++ chunks.head) :: Nil
   }
@@ -36,3 +35,4 @@ object ChunkAggregator {
     case Pass => Pass
   }
 }
+*/

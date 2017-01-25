@@ -5,12 +5,10 @@ package staticcontent
 import java.io.File
 import java.util.concurrent.ExecutorService
 
-import org.http4s.headers.{`Content-Range`, Range}
+import cats.data.{NonEmptyList, OneAnd}
+import fs2._
+import org.http4s.headers._
 import org.http4s.headers.Range.SubRange
-
-import scalaz.concurrent.{Strategy, Task}
-import org.http4s.util._
-
 
 object FileService {
 
@@ -27,9 +25,8 @@ object FileService {
                           pathPrefix: String = "",
                           pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService = Strategy.DefaultExecutorService,
+                          executor: ExecutorService,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
-
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
   private[staticcontent] def apply(config: Config): HttpService = Service.lift { req =>
@@ -63,7 +60,7 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile(file: File, config: Config, req: Request): Option[Response] = req.headers.get(Range).flatMap {
-    case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e))) if validRange(s, e, file.length) =>
+    case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)) if validRange(s, e, file.length) =>
       val size = file.length()
       val start = if (s >= 0) s else math.max(0, size + s)
       val end = math.min(size - 1, e getOrElse (size - 1))  // end is inclusive

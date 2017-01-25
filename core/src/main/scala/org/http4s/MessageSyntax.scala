@@ -1,7 +1,7 @@
 package org.http4s
 
-import scalaz.{EitherT, \/}
-import scalaz.concurrent.Task
+import cats._
+import fs2._
 
 object MessageSyntax extends MessageSyntax
 
@@ -39,9 +39,10 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
     * @tparam T type of the result
     * @return the `Task` which will generate the `ParseFailure\/T`
     */
-  override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] = EitherT(self.flatMap { msg =>
-    decoder.decode(msg, false).run
-  })
+  override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] =
+    DecodeResult(self.flatMap { msg =>
+      decoder.decode(msg, false).value
+    })
 }
 
 final class TaskRequestOps(val self: Task[Request]) extends AnyVal with TaskMessageOps[Request] with RequestOps {

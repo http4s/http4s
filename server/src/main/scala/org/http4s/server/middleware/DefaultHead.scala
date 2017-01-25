@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import scalaz.concurrent.Task
+import fs2._
 import org.http4s.server.syntax._
 
 /** Handles HEAD requests as a GET without a body.
@@ -26,6 +26,6 @@ object DefaultHead {
   private def headAsTruncatedGet(service: HttpService) =
     HttpService.lift { req =>
       val getReq = req.copy(method = Method.GET)
-      service(getReq).map(_.cata(resp => resp.copy(body = resp.body.kill), Pass))
+      service(getReq).map(_.cata(resp => resp.copy(body = resp.body.open.close), Pass))
     }
 }

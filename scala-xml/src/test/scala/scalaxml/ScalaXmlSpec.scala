@@ -1,22 +1,16 @@
 package org.http4s
 package scalaxml
 
-import scodec.bits.ByteVector
+import fs2.{Stream, Task}
+import org.http4s.Status.Ok
 
 import scala.xml.Elem
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.Process.emit
-import scalaz.stream.text.utf8Decode
-import Status.Ok
 
 class ScalaXmlSpec extends Http4sSpec {
 
-  def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
+  def getBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun.toArray
 
-  def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
-
-  implicit val byteVectorMonoid: scalaz.Monoid[ByteVector] = scalaz.Monoid.instance(_ ++ _, ByteVector.empty)
+  def strBody(body: String): EntityBody = Stream(body).through(fs2.text.utf8Encode)
 
   "xml" should {
     val server: Request => Task[Response] = { req =>
@@ -24,7 +18,7 @@ class ScalaXmlSpec extends Http4sSpec {
     }
 
     "parse the XML" in {
-      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
+      val resp = server(Request(body = strBody("<html><h1>h1</h1></html>"))).unsafeRun
       resp.status must_==(Ok)
       getBody(resp.body) must_== ("html".getBytes)
     }
@@ -32,7 +26,7 @@ class ScalaXmlSpec extends Http4sSpec {
     "return 400 on parse error" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request(body = body))
-      tresp.run.status must_== (Status.BadRequest)
+      tresp.unsafeRun.status must_== (Status.BadRequest)
     }
   }
 

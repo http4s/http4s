@@ -1,16 +1,16 @@
 package org.http4s.client.asynchttpclient
 
-import scalaz.concurrent.Task
-import scalaz.stream.async.boundedQueue
-import scalaz.stream.Process
-import scalaz.stream.Process.repeatEval
+import fs2._
+import fs2.Stream._
+import fs2.async.boundedQueue
 import org.log4s.getLogger
 
-class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
+class QueueSubscriber[A](bufferSize: Int = 8)(implicit S: Strategy) extends UnicastSubscriber[A] {
   private[this] val log = getLogger
 
   private val queue =
-    boundedQueue[A](bufferSize)
+    boundedQueue[Task, A](bufferSize)
+      .unsafeRun // TODO fs2 port why is queue creation an effect now?
 
   private val refillProcess =
     repeatEval {
@@ -20,22 +20,22 @@ class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
       }
     }
 
-  final val process: Process[Task, A] =
+  final val process: Stream[Task, A] =
     (refillProcess zipWith queue.dequeue)((_, a) => a)
 
   def whenNext(element: A): Boolean = {
-    queue.enqueueOne(element).run
+    queue.enqueue1(element).unsafeRun
     true
   }
 
   def closeQueue(): Unit = {
     log.debug("Closing queue subscriber")
-    queue.close.run
+    queue.close.unsafeRun
   }
 
   def killQueue(): Unit = {
     log.debug("Killing queue subscriber")
-    queue.kill.run
+    queue.kill.unsafeRun
   }
 
   override def onComplete(): Unit = {
@@ -46,6 +46,6 @@ class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
 
   override def onError(t: Throwable): Unit = {
     super.onError(t)
-    queue.fail(t).run
+    queue.fail(t).unsafeRun
   }
 }

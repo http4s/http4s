@@ -2,7 +2,16 @@ package org.http4s
 package server
 package blaze
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.ExecutorService
 
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{Try, Success, Failure}
+import scala.util.{Either, Left, Right}
+
+import cats.data._
+import fs2._
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.pipeline.{Command => Cmd, TailStage}
@@ -10,21 +19,9 @@ import org.http4s.blaze.util.BodylessWriter
 import org.http4s.blaze.util.Execution._
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
-
+import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
-import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
-
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{Try, Success, Failure}
-
-import scalaz.concurrent.{Strategy, Task}
-import scalaz.{\/-, -\/}
-import java.util.concurrent.ExecutorService
-
 
 private object Http1ServerStage {
 
@@ -34,8 +31,12 @@ private object Http1ServerStage {
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
             maxHeadersLen: Int): Http1ServerStage = {
+    // TODO fs2 port
+    /*
     if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen) with WebSocketSupport
     else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
+     */
+    new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
   }
 }
 
@@ -52,6 +53,9 @@ private class Http1ServerStage(service: HttpService,
   private[this] val parser = new Http1ServerParser(logger, maxRequestLineLen, maxHeadersLen)
 
   protected val ec = ExecutionContext.fromExecutorService(pool)
+
+  private implicit val strategy =
+    Strategy.fromExecutionContext(ec)
 
   val name = "Http4sServerStage"
 
@@ -106,14 +110,13 @@ private class Http1ServerStage(service: HttpService,
     val (body, cleanup) = collectBodyFromParser(buffer, () => InvalidBodyException("Received premature EOF."))
 
     parser.collectMessage(body, requestAttrs) match {
-      case \/-(req) =>
-        Task.fork(serviceFn(req))(pool)
-          .runAsync {
-          case \/-(resp) => renderResponse(req, resp, cleanup)
-          case -\/(t)    => internalServerError(s"Error running route: $req", t, req, cleanup)
+      case Right(req) =>
+        serviceFn(req).unsafeRunAsync {
+          case Right(resp) => renderResponse(req, resp, cleanup)
+          case Left(t) => internalServerError(s"Error running route: $req", t, req, cleanup)
         }
 
-      case -\/((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
+      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
     }
   }
 
@@ -161,8 +164,8 @@ private class Http1ServerStage(service: HttpService,
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)
     }
 
-    bodyEncoder.writeProcess(resp.body).runAsync {
-      case \/-(requireClose) =>
+    bodyEncoder.writeProcess(resp.body).unsafeRunAsync {
+      case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
           closeConnection()
           logger.trace("Request/route requested closing connection.")
@@ -176,10 +179,10 @@ private class Http1ServerStage(service: HttpService,
           case Failure(t) => fatalError(t, "Failure in body cleanup")
         }(directec)
 
-      case -\/(EOF) =>
+      case Left(EOF) =>
         closeConnection()
 
-      case -\/(t) =>
+      case Left(t) =>
         logger.error(t)("Error writing body")
         closeConnection()
     }

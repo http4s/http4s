@@ -2,7 +2,7 @@
 
 set -e
 
-if [[ $TRAVIS_SCALA_VERSION == 2.12* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
+if [[ $TRAVIS_SCALA_VERSION == 2.12* ]]; then
   SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
 else
   SBT_COMMAND=";test"
@@ -25,7 +25,6 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   fi
 fi
 
-
 # Put JVM options in a file where we can write to it without sudo,
 # for instance to adjust the JVM's entropy source.
 JVM_OPTS_FILE=/tmp/jvmopts
@@ -46,7 +45,7 @@ if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
     echo
 fi
 
-sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION -jvm-opts "$JVM_OPTS_FILE" $SBT_COMMAND
+sbt ++$TRAVIS_SCALA_VERSION -jvm-opts "$JVM_OPTS_FILE" $SBT_COMMAND
 
 echo "Uploading codecov"
 if [[ $SBT_COMMAND = *";coverage"* ]]; then

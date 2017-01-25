@@ -77,17 +77,17 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     "handle the optionality of jNumber" in {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
-      val req = Request().withBody(jNumberOrNull(157)).run
-      val body = req.decode { json: Json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString)}.run.body
+      def getBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun.toArray
+      val req = Request().withBody(jNumberOrNull(157)).unsafeRun
+      val body = req.decode { json: Json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString)}.unsafeRun.body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }
 
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).run, strict = true)
-      result.run.run must be_\/-(Foo(42))
+      val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).unsafeRun, strict = true)
+      result.value.unsafeRun must beRight(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -97,8 +97,8 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       val umlautDecoder = jsonOf[Umlaut]
       s"handle JSON with umlauts: $wort" >> {
         val json = Json("wort" -> jString(wort))
-        val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
-        result.run.run must be_\/-(Umlaut(wort))
+        val result = jsonOf[Umlaut].decode(Request().withBody(json).unsafeRun, strict = true)
+        result.value.unsafeRun must_== Right(Umlaut(wort))
       }
     }
   }

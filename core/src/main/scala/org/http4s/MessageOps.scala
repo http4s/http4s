@@ -2,11 +2,11 @@ package org.http4s
 
 import java.time.{ZoneOffset, Instant}
 
-import org.http4s.headers.{`Set-Cookie`, `Content-Type`}
-import org.http4s.util.NonEmptyList._
-
-import scalaz.\/
-import scalaz.concurrent.Task
+import cats._
+import cats.data._
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers._
 
 trait MessageOps extends Any {
   type Self
@@ -118,7 +118,7 @@ trait RequestOps extends Any with MessageOps {
 
   /** Add a Cookie header for the provided [[Cookie]] */
   final def addCookie(cookie: Cookie): Self =
-    putHeaders(org.http4s.headers.Cookie(nels(cookie)))
+    putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
 
   /** Add a Cookie header with the provided values */
   final def addCookie(name: String,

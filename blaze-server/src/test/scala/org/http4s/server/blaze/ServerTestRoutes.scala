@@ -6,10 +6,14 @@ import org.http4s.headers._
 import org.http4s.Http4s._
 import org.http4s.Status._
 import org.http4s.Charset._
-import scalaz.concurrent.Task
-import scalaz.stream.Process._
+
+import fs2._
+import fs2.Stream._
 
 object ServerTestRoutes {
+
+  implicit val fs2Strategy = fs2.Strategy.fromExecutionContext(
+    scala.concurrent.ExecutionContext.global)
 
   val textPlain: Header = `Content-Type`(MediaType.`text/plain`, `UTF-8`)
 

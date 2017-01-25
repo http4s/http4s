@@ -1,15 +1,12 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
-import scalaz.syntax.either._
+import cats.kernel.laws._
+import org.http4s.batteries._
 
 class QValueSpec extends Http4sSpec {
   import QValue._
 
-  checkAll(ScalazProperties.order.laws[QValue])
-
-  checkAll(ScalazProperties.equal.laws[QValue])
+  checkAll("QValue", OrderLaws[QValue].order)
 
   "sort by descending q-value" in {
     prop { (x: QValue, y: QValue) =>
@@ -30,9 +27,9 @@ class QValueSpec extends Http4sSpec {
   }
 
   "literal syntax should be consistent with successful fromDouble" in {
-    q(1.0).right must_== fromDouble(1.0)
-    q(0.5).right must_== fromDouble(0.5)
-    q(0.0).right must_== fromDouble(0.0)
+    Right(q(1.0)) must_== fromDouble(1.0)
+    Right(q(0.5)) must_== fromDouble(0.5)
+    Right(q(0.0)) must_== fromDouble(0.0)
     // q(2.0) // doesn't compile: out of range
     // q(0.5 + 0.1) // doesn't compile, not a literal
   }

@@ -1,7 +1,7 @@
+/* TODO fs2 port
 package org.http4s
 package headers
 
-import scalaz.\/._
 import org.http4s.ServerSentEvent._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
@@ -16,3 +16,4 @@ object `Last-Event-Id` extends HeaderKey.Internal[`Last-Event-Id`] with HeaderKe
   def parse(s: String): ParseResult[`Last-Event-Id`] =
     HttpHeaderParser.LAST_EVENT_ID(s)
 }
+ */

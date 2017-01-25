@@ -1,8 +1,8 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.NonEmptyList
 
 object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Cache-Control`] =

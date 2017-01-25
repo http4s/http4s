@@ -8,16 +8,13 @@
 package org.http4s
 package dsl
 
-import org.http4s.QueryParamDecoder
-import org.http4s.util.UrlCodingUtils
-
-import scalaz.ValidationNel
-import scalaz.syntax.traverse._
-import scalaz.std.list._
-import scalaz.std.option._
+import scala.util.Try
 
 import collection.immutable.BitSet
-import scala.util.Try
+
+import cats.data._, Validated._
+import org.http4s.batteries._
+import org.http4s.util.UrlCodingUtils
 
 /** Base class for path extractors. */
 abstract class Path {
@@ -150,12 +147,11 @@ case object Root extends Path {
  * }}}
  */
 object /: {
-  def unapply(path: Path): Option[(String, Path)] = {
+  def unapply(path: Path): Option[(String, Path)] =
     path.toList match {
       case head :: tail => Some(head -> Path(tail))
       case Nil => None
     }
-  }
 }
 
 // Base class for Integer and Long path variable extractors.
@@ -214,7 +210,7 @@ object +& {
 abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
     params.get(name).flatMap(values =>
-      values.toList.traverseU(s =>
+      values.toList.traverse(s =>
         QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption
       )
     )
@@ -244,7 +240,7 @@ abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
 
 abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(params: Map[String, Seq[String]]): Option[Option[T]] =
-    params.get(name).flatMap(_.headOption).traverseU(s =>
+    params.get(name).flatMap(_.headOption).traverse(s =>
       QueryParamDecoder[T].decode(QueryParameterValue(s))
     ).toOption
 }
@@ -270,23 +266,21 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
   * }}}
   */
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  import scalaz.{ValidationNel, Success, Failure}
-
-  def unapply(params: Map[String, Seq[String]]): Option[ValidationNel[ParseFailure, List[T]]] = {
+  def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] = {
     params.get(name) match {
       case Some(values) => {
-        val parses: Seq[ValidationNel[ParseFailure, T]] = values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
-        val parsed: ValidationNel[ParseFailure, Seq[T]] = parses.foldLeft(Success(Seq[T]()) : ValidationNel[ParseFailure, Seq[T]])((
-          acc: ValidationNel[ParseFailure, Seq[T]],
-          elem: ValidationNel[ParseFailure, T]
+        val parses: Seq[ValidatedNel[ParseFailure, T]] = values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+        val parsed: ValidatedNel[ParseFailure, Seq[T]] = parses.foldLeft(Valid(Seq[T]()) : ValidatedNel[ParseFailure, Seq[T]])((
+          acc: ValidatedNel[ParseFailure, Seq[T]],
+          elem: ValidatedNel[ParseFailure, T]
         ) => elem match {
-          case Success(a) => acc.map(v => v :+ a)
-          case Failure(f) => Failure(f)
+          case Valid(a) => acc.map(v => v :+ a)
+          case Invalid(f) => Invalid(f)
         })
 
         Some(parsed.map(_.toList))
       }
-      case None => Some(Success(Nil)) // absent
+      case None => Some(Valid(Nil)) // absent
     }
   }
 }
@@ -314,7 +308,7 @@ abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   * }}}
   */
 abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[ValidationNel[ParseFailure, T]] =
+  def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, T]] =
     params.get(name).flatMap(_.headOption).map {
       s => QueryParamDecoder[T].decode(QueryParameterValue(s))
     }
@@ -346,9 +340,9 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   * }}}
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidationNel[ParseFailure, T]]] =
+  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
-      params.get(name).flatMap(_.headOption).fold[Option[ValidationNel[ParseFailure, T]]](None) {
+      params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
         s => Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
       }
     }

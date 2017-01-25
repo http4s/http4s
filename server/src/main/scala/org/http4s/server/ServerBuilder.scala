@@ -8,7 +8,8 @@ import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 import scala.concurrent.duration._
-import scalaz.concurrent.{Strategy, Task}
+
+import fs2._
 
 trait ServerBuilder {
   import ServerBuilder._
@@ -37,7 +38,7 @@ trait ServerBuilder {
     * until the server is started.
     */
   final def run: Server =
-    start.run
+    start.unsafeRun
 }
 
 object ServerBuilder {
@@ -46,7 +47,6 @@ object ServerBuilder {
   val DefaultHost = LoopbackAddress
   val DefaultHttpPort = 8080
   val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
-  val DefaultServiceExecutor = Strategy.DefaultExecutorService
 }
 
 trait IdleTimeoutSupport { this: ServerBuilder =>

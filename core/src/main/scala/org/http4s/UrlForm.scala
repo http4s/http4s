@@ -1,12 +1,13 @@
 package org.http4s
 
-import org.http4s.headers.`Content-Type`
-import org.http4s.parser.QueryParser
-import org.http4s.util.UrlCodingUtils
-
-import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
-import scalaz.{ \/, Equal }
+
+import cats._
+import cats.data._
+import org.http4s.batteries._
+import org.http4s.headers._
+import org.http4s.parser._
+import org.http4s.util._
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -43,10 +44,8 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     * @param ev evidence of the existence of `QueryParamEncoder[T]`
     * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
     */
-  def updateFormField[T](key: String, value: Option[T])(implicit ev: QueryParamEncoder[T]): UrlForm = {
-    import scalaz.syntax.std.option._
-    value.cata[UrlForm](updateFormField(key, _)(ev), this)
-  }
+  def updateFormField[T](key: String, value: Option[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
+    value.fold(this)(updateFormField(key, _))
 
   /**
     * @param key name of the field
@@ -95,18 +94,13 @@ object UrlForm {
       )
     }
 
-  implicit val eqInstance: Equal[UrlForm] = new Equal[UrlForm] {
-    import scalaz.syntax.equal._
-    import scalaz.std.list._
-    import scalaz.std.string._
-    import scalaz.std.map._
-
-    def equal(x: UrlForm, y: UrlForm): Boolean =
+  implicit val eqInstance: Eq[UrlForm] = new Eq[UrlForm] {
+    def eqv(x: UrlForm, y: UrlForm): Boolean =
       x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(urlForm: String): MalformedMessageBodyFailure \/ UrlForm =
+  def decodeString(charset: Charset)(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(q.multiParams))
       .leftMap { parseFailure => MalformedMessageBodyFailure(parseFailure.message, None) }

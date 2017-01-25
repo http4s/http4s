@@ -1,24 +1,27 @@
 package org.http4s
 package testing
 
-import java.time.{Instant, LocalDateTime, ZoneId, ZonedDateTime}
-import java.time.temporal.ChronoUnit
+import cats._
 
-import org.http4s.headers._
-import org.http4s.util.{CaseInsensitiveString, NonEmptyList}
-import org.http4s.util.string._
 import java.nio.charset.{Charset => NioCharset}
-
-import org.scalacheck.Arbitrary._
-import org.scalacheck.Gen._
-import org.scalacheck.{Arbitrary, Gen}
+import java.time._
+import java.time.temporal.ChronoUnit
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
-import scodec.bits.ByteVector
 
-import scalaz.Scalaz._
-import scalaz._
+import cats.data.NonEmptyList
+import org.http4s.batteries._
+import org.http4s.headers._
+import org.http4s.util.CaseInsensitiveString
+
+import org.scalacheck.{Arbitrary, Cogen, Gen}
+import org.scalacheck.Arbitrary._
+import org.scalacheck.Gen._
+import org.scalacheck.rng.Seed
+
+import scala.collection.JavaConverters._
+import scala.collection.immutable.BitSet
 
 trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -29,7 +32,7 @@ trait ArbitraryInstances {
     Arbitrary { for {
       a <- arbitrary[A]
       list <- arbitrary[List[A]]
-    } yield NonEmptyList.nel(a, list) }
+    } yield NonEmptyList(a, list) }
 
   lazy val genTchar: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
@@ -69,6 +72,8 @@ trait ArbitraryInstances {
     10 -> genStandardMethod,
     1 -> genToken.map(Method.fromString(_).yolo)
   ))
+  implicit lazy val cogenMethod: Cogen[Method] =
+    Cogen[Int].contramap(_.##)
 
   lazy val genValidStatusCode =
     choose(100, 599)
@@ -85,6 +90,8 @@ trait ArbitraryInstances {
     10 -> genStandardStatus,
     1 -> genCustomStatus
   ))
+  implicit lazy val cogenStatus: Cogen[Status] =
+    Cogen[Int].contramap(_.code)
 
   implicit lazy val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
     Arbitrary { frequency(
@@ -107,21 +114,38 @@ trait ArbitraryInstances {
       major <- choose(0, 9)
       minor <- choose(0, 9)
     } yield HttpVersion.fromVersion(major, minor).yolo }
+  implicit lazy val cogenHttpVersion: Cogen[HttpVersion] =
+    Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit lazy val arbitraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+  implicit lazy val cogenNioCharset: Cogen[NioCharset] =
+    Cogen[String].contramap(_.name)
 
   implicit lazy val arbitraryCharset: Arbitrary[Charset] =
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
+  implicit lazy val cogenCharset: Cogen[Charset] =
+    Cogen[NioCharset].contramap(_.nioCharset)
 
   implicit lazy val arbitraryQValue: Arbitrary[QValue] =
-    Arbitrary { oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).yolo) }
+    Arbitrary { oneOf(const(0), const(1000), choose(0, 1000))
+      .map(QValue.fromThousandths(_).yolo)
+    }
+  implicit lazy val cogenQValue: Cogen[QValue] =
+    Cogen[Int].contramap(_.thousandths)
 
   implicit lazy val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { for {
       charsetRange <- charsetRangesNoQuality
       q <- arbitrary[QValue]
     } yield charsetRange.withQValue(q) }
+  implicit lazy val cogenCharsetRange: Cogen[CharsetRange] =
+    Cogen[Either[(Charset, QValue), QValue]].contramap {
+      case CharsetRange.Atom(charset, qValue) =>
+        Left((charset, qValue))
+      case CharsetRange.`*`(qValue) =>
+        Right(qValue)
+    }
 
   implicit lazy val arbitraryCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
     Arbitrary { for {
@@ -234,6 +258,7 @@ trait ArbitraryInstances {
       )
     }
 
+  /* TODO fs2 port
   implicit lazy val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
     def singleLineString: Gen[String] =
@@ -255,19 +280,20 @@ trait ArbitraryInstances {
       )
     } yield ServerSentEvent(data, event, id, retry))
   }
+   */
 
   // https://tools.ietf.org/html/rfc2234#section-6
   lazy val genHexDigit: Gen[Char] = oneOf(Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
 
   private implicit def semigroupGen[T: Semigroup]: Semigroup[Gen[T]] = new Semigroup[Gen[T]] {
-    def append(g1: Gen[T], g2: => Gen[T]): Gen[T] = for {t1 <- g1; t2 <- g2} yield t1 |+| t2
+    def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for {t1 <- g1; t2 <- g2} yield t1 |+| t2
   }
 
   private def timesBetween[T: Monoid](min: Int, max: Int, g: Gen[T]): Gen[T] =
     for {
       n <- choose(min, max)
       l <- listOfN(n, g).suchThat(_.length == n)
-    } yield l.fold(Monoid[T].zero)(_ |+| _)
+    } yield l.fold(Monoid[T].empty)(_ |+| _)
 
   private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
@@ -278,7 +304,8 @@ trait ArbitraryInstances {
   private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     timesBetween(min = 0, max = n, g)
 
-  private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] = oneOf(g, const(ev.zero))
+  private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] =
+    oneOf(g, const(ev.empty))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
   implicit lazy val arbitraryIPv4: Arbitrary[Uri.IPv4] = Arbitrary {
@@ -356,5 +383,4 @@ trait ArbitraryInstances {
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
   }
-
 }

@@ -1,10 +1,9 @@
 package org.http4s
 package server
 
-import scalaz.concurrent.Task
-
-import middleware.PushSupport._
-import Status._
+import fs2._
+import org.http4s.Status._
+import org.http4s.server.middleware.PushSupport._
 
 object MockRoute extends Http4s {
 

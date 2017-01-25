@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package com.example.http4s
 
 import java.time.Instant
@@ -142,3 +144,4 @@ object ScienceExperiments {
       InternalServerError("Tis but a scratch")
   }
 }
+*/

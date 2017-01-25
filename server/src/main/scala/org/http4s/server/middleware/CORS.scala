@@ -4,26 +4,12 @@ package middleware
 
 import Method.OPTIONS
 
-import org.http4s.headers.{
-  `Access-Control-Allow-Origin`,
-  `Access-Control-Allow-Credentials`,
-  `Access-Control-Allow-Methods`,
-  `Access-Control-Allow-Headers`,
-  `Access-Control-Expose-Headers`,
-  `Access-Control-Max-Age`,
-  `Access-Control-Request-Method`,
-  `Access-Control-Request-Headers`,
-  Origin
-}
-
-import org.log4s.getLogger
-
 import scala.concurrent.duration._
 
-import scalaz._
-import Scalaz._
-import scalaz.concurrent.Task
-import scalaz.Kleisli._
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers._
+import org.log4s.getLogger
 
 /**
   * CORS middleware config options.
@@ -74,26 +60,25 @@ object CORS {
       }
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
-      config.allowedHeaders.map(_.mkString("", ", ", "")).cata(
-        (hs: String) => resp.putHeaders(Header("Access-Control-Allow-Headers", hs)),
-        resp
-      ).putHeaders(
+      config.allowedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
+        resp.putHeaders(Header("Access-Control-Allow-Headers", hs))
+      }.putHeaders(
           Header("Vary", "Origin,Access-Control-Request-Methods"),
           Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
-          Header("Access-Control-Allow-Methods", config.allowedMethods.cata(_.mkString("", ", ", ""), acrm)),
+          Header("Access-Control-Allow-Methods", config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
           Header("Access-Control-Allow-Origin", origin),
           Header("Access-Control-Max-Age", config.maxAge.toString())
         )
 
     def allowCORS(origin: Header, acrm: Header): Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
       case (true, true, _, _) => true
-      case (true, false, _, acrm) => config.allowedMethods.map(_.contains(acrm)) | false
-      case (false, true, origin, _) => config.allowedOrigins.map(_.contains(origin)) | false
+      case (true, false, _, acrm) => config.allowedMethods.map(_.contains(acrm)).getOrElse(false)
+      case (false, true, origin, _) => config.allowedOrigins.map(_.contains(origin)).getOrElse(false)
       case (false, false, origin, acrm) =>
         (config.allowedMethods.map(_.contains(acrm)) |@|
-          config.allowedOrigins.map(_.contains(origin))) {
+          config.allowedOrigins.map(_.contains(origin))).map {
           _ && _
-        } | false
+        }.getOrElse(false)
     }
 
     (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {

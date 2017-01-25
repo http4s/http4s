@@ -1,20 +1,21 @@
 package org.http4s
 
-import scalaz.{\/, EitherT}
-import scalaz.concurrent.Task
+import cats.data._
+import fs2.Task
+import org.http4s.batteries._
 
 object DecodeResult {
-  def apply[A](task: Task[DecodeFailure \/ A]): DecodeResult[A] =
-    EitherT(task)
+  def apply[A](fa: Task[Either[DecodeFailure, A]]): DecodeResult[A] =
+    EitherT(fa)
 
   def success[A](a: Task[A]): DecodeResult[A] =
-    EitherT.right(a)
+    DecodeResult(a.map(right(_)))
 
   def success[A](a: A): DecodeResult[A] =
     success(Task.now(a))
 
   def failure[A](e: Task[DecodeFailure]): DecodeResult[A] =
-    EitherT.left(e)
+    DecodeResult(e.map(left(_)))
 
   def failure[A](e: DecodeFailure): DecodeResult[A] =
     failure(Task.now(e))

@@ -18,12 +18,11 @@
  */
 package org.http4s
 
-import org.http4s.util.NonEmptyList
-
-import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
-import org.http4s.util.string._
-
 import scala.util.hashing.MurmurHash3
+
+import cats.data.NonEmptyList
+import org.http4s.batteries._
+import org.http4s.util._
 
 /**
  * Abstract representation o the HTTP header

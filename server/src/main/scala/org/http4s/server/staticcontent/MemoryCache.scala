@@ -1,16 +1,13 @@
-package org.http4s.server.staticcontent
-
-import org.http4s._
-
-import scodec.bits.ByteVector
+package org.http4s
+package server
+package staticcontent
 
 import java.util.concurrent.ConcurrentHashMap
 
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-
+import fs2._
+import fs2.Stream._
+import org.http4s.batteries._
 import org.log4s.getLogger
-
 
 /** [[CacheStrategy]] that will cache __all__ [[Response]] bodies in local memory
   *
@@ -39,12 +36,9 @@ class MemoryCache extends CacheStrategy {
   ////////////// private methods //////////////////////////////////////////////
 
   private def collectResource(path: String, resp: Response): Task[Response] = {
-    resp.body
-      .runLog
+    resp.body.chunks.runFoldMap[Chunk[Byte]](identity)
       .map { bytes =>
-        // Collect the whole body to a primitive ByteVector view of a single Array[Byte]
-        val bv = ByteVector.view(bytes.foldLeft(ByteVector.empty)(_ ++ _).toArray)
-        val newResponse = resp.copy(body = Process.emit(bv))
+        val newResponse = resp.copy(body = chunk(bytes))
         cacheMap.put(path, newResponse)
         newResponse
       }

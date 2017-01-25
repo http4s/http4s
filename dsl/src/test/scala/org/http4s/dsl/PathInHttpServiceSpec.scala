@@ -1,8 +1,8 @@
 package org.http4s
 package dsl
 
-import scalaz.{ Failure, Success }
-import scalaz.concurrent.Task
+import cats.data.Validated._
+import fs2._
 
 object PathInHttpServiceSpec extends Http4sSpec {
 
@@ -50,26 +50,26 @@ object PathInHttpServiceSpec extends Http4sSpec {
       Ok(s"counter: $c")
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
-        errors => BadRequest(errors.list.toList.map(_.sanitized).mkString(",")),
+        errors => BadRequest(errors.map(_.sanitized).mkString(",")),
         vc => Ok(s"counter: $vc")
       )
     case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
-        case Some(Failure(errors)) => BadRequest(errors.list.toList.map(_.sanitized).mkString(","))
-        case Some(Success(cv)) => Ok(s"counter: $cv")
+        case Some(Invalid(errors)) => BadRequest(errors.map(_.sanitized).mkString(","))
+        case Some(Valid(cv)) => Ok(s"counter: $cv")
         case None => Ok("no counter")
       }
     case GET -> Root / "multiopt" :? MultiOptCounter(counters) => counters match {
-      case Success(cs @ (c :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
-      case Success(Nil) => Ok("absent")
-      case Failure(_) => BadRequest()
+      case Valid(cs @ (c :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
+      case Valid(Nil) => Ok("absent")
+      case Invalid(_) => BadRequest()
     }
     case r =>
       NotFound("404 Not Found: " + r.pathInfo)
   }
 
   def serve(req: Request): Response =
-    service.orNotFound(req).run
+    service.orNotFound(req).unsafeRun
 
   "Path DSL within HttpService" should {
     "GET /" in {

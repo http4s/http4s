@@ -1,6 +1,6 @@
 package org.http4s
 
-import scalaz.concurrent.Task
+import fs2.Task
 
 package object servlet {
   protected[servlet] type BodyWriter = Response => Task[Unit]

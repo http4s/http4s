@@ -3,13 +3,15 @@ package scalaxml
 
 import java.io.StringReader
 
+import fs2.interop.cats._
+import fs2.Task
 import headers.`Content-Type`
+
 import scala.util.control.NonFatal
 import scala.xml._
-import scalaz.concurrent.Task
 
 trait ElemInstances {
-  implicit def xmlEnocder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
+  implicit def xmlEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
     EntityEncoder.stringEncoder(charset)
       .contramap[Elem](xml => xml.buildString(false))
       .withContentType(`Content-Type`(MediaType.`application/xml`))
@@ -25,7 +27,7 @@ trait ElemInstances {
   implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`){ msg =>
-      collectBinary(msg).flatMap[Elem] { arr =>
+      collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
         catch {

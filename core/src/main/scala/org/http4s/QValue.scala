@@ -2,7 +2,8 @@ package org.http4s
 
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
-import scalaz._
+
+import cats._
 
 import macrocompat.bundle
 import org.http4s.util.{Renderable, Writer}
@@ -101,8 +102,8 @@ object QValue extends QValueInstances with QValueFunctions {
 }
 
 trait QValueInstances {
-  implicit val qValueOrder = Order.fromScalaOrdering[QValue]
-  implicit val qValueShow = Show.showA[QValue]
+  implicit val qValueOrder = Order.fromOrdering[QValue]
+  implicit val qValueShow = Show.fromToString[QValue]
 }
 
 trait QValueFunctions {

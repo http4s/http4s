@@ -2,13 +2,13 @@ package org.http4s
 
 import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
+
+import cats._
+import fs2._
+import fs2.text._
 import org.http4s.headers._
+import org.http4s.batteries._
 import org.http4s.server.ServerSoftware
-import scalaz.Monoid
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.text.utf8Decode
-import scalaz.syntax.monad._
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -24,20 +24,23 @@ sealed trait Message extends MessageOps { self =>
 
   def body: EntityBody
 
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Process[Task, String] = {
+  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[Task, String] = {
     (charset getOrElse defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
-        body |> utf8Decode
+        body.through(utf8Decode)
       case cs =>
-        body |> util.decode(cs)
+        body.through(util.decode(cs))
     }
   }
 
   /** True if and only if the body is composed solely of Emits and Halt.  This
     * indicates that the body can be re-run without side-effects. */
+  // TODO fs2 port need to replace unemit
+  /*
   def isBodyPure: Boolean =
     body.unemit._2.isHalt
+   */
   
   def attributes: AttributeMap
 
@@ -202,15 +205,18 @@ final case class Request(
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
-    decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
+    decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).flatten
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers}"""
 
   /** A request is idempotent if and only if its method is idempotent and its body
     * is pure.  If true, this request can be submitted multipe times. */
+  // TODO fs2 port uncomment when isBodyPure is back
+  /*
   def isIdempotent: Boolean =
     method.isIdempotent && isBodyPure
+   */
 }
 
 object Request {
@@ -252,17 +258,17 @@ sealed trait MaybeResponse {
 object MaybeResponse {
   implicit val instance: Monoid[MaybeResponse] =
     new Monoid[MaybeResponse] {
-      def zero =
+      def empty =
         Pass
-      def append(a: MaybeResponse, b: => MaybeResponse) =
+      def combine(a: MaybeResponse, b: MaybeResponse) =
         a orElse b
     }
 
   implicit val taskInstance: Monoid[Task[MaybeResponse]] =
     new Monoid[Task[MaybeResponse]] {
-      def zero =
+      def empty =
         Pass.now
-      def append(ta: Task[MaybeResponse], tb: => Task[MaybeResponse]): Task[MaybeResponse] =
+      def combine(ta: Task[MaybeResponse], tb: Task[MaybeResponse]): Task[MaybeResponse] =
         ta.flatMap(_.cata(Task.now, tb))
     }
 }

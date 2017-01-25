@@ -4,13 +4,15 @@ package util
 
 import java.nio.ByteBuffer
 
-import org.http4s.blaze.pipeline.TailStage
-import scodec.bits.ByteVector
+import scala.concurrent._
+import scala.util._
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-import scalaz.concurrent.Task
-import scalaz.stream.Process
+import fs2._
+import fs2.Stream._
+import fs2.interop.cats._
+import fs2.util.Attempt
+import org.http4s.batteries._
+import org.http4s.blaze.pipeline._
 
 /** Discards the body, killing it so as to clean up resources
   *
@@ -21,6 +23,9 @@ import scalaz.stream.Process
 class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Boolean)
                     (implicit protected val ec: ExecutionContext) extends ProcessWriter {
 
+  private implicit lazy val strategy: Strategy =
+    Strategy.fromExecutionContext(ec)
+
   private lazy val doneFuture = Future.successful( () )
 
   /** Doesn't write the process, just the headers and kills the process, if an error if necessary
@@ -29,15 +34,15 @@ class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Bo
     * @return the Task which when run will send the headers and kill the body process
     */
   override def writeProcess(p: EntityBody): Task[Boolean] = Task.async { cb =>
-    val callback = cb.compose((t: scalaz.\/[Throwable, Unit]) => t.map(_ => close))
+    val callback = cb.compose((t: Attempt[Unit]) => t.map(_ => close))
 
     pipe.channelWrite(headers).onComplete {
-      case Success(_) => p.kill.run.runAsync(callback)
-      case Failure(t) => p.kill.onComplete(Process.fail(t)).run.runAsync(callback)
+      case Success(_) => p.open.close.run.unsafeRunAsync(callback)
+      case Failure(t) => p.pull(_ => Pull.fail(t)).run.unsafeRunAsync(callback)
     }
   }
 
-  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = doneFuture.map(_ => close)
+  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = doneFuture.map(_ => close)
 
-  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = doneFuture
+  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = doneFuture
 }

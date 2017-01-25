@@ -1,8 +1,9 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
+import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.NonEmptyList
 
 object `Proxy-Authenticate` extends HeaderKey.Internal[`Proxy-Authenticate`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Proxy-Authenticate`] =

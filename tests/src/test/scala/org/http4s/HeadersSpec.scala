@@ -1,7 +1,7 @@
 package org.http4s
 
+import org.http4s.batteries._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString._
 import org.specs2.mutable.Specification
 
 class HeadersSpec extends Specification {

@@ -1,14 +1,10 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
-import org.http4s.CharsetRange.`*`
-import org.scalacheck.{Gen, Prop}
-import org.scalacheck.Prop.forAll
+import cats.kernel.laws._
+import org.http4s.CharsetRange._
+import org.scalacheck._
 import org.scalacheck.Arbitrary._
-import org.specs2.ScalaCheck
-import org.specs2.mutable.Specification
-import scalaz.syntax.order._
+import org.scalacheck.Prop._
 
 class CharsetRangeSpec extends Http4sSpec {
   "*" should {
@@ -39,5 +35,5 @@ class CharsetRangeSpec extends Http4sSpec {
     }
   }
 
-  checkAll(ScalazProperties.equal.laws[CharsetRange])
+  checkAll("CharsetRange", OrderLaws[CharsetRange].eqv)
 }

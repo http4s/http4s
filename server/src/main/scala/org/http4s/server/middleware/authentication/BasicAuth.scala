@@ -3,9 +3,9 @@ package server
 package middleware
 package authentication
 
+import fs2._
+import org.http4s.batteries._
 import org.http4s.headers.Authorization
-import scalaz._
-import scalaz.concurrent.Task
 
 /**
  * Provides Basic Authentication from RFC 2617.
@@ -32,13 +32,13 @@ object BasicAuth {
     challenged(challenge(realm, validate))
   }
 
-  def challenge[A](realm: String, validate: BasicAuthenticator[A]): Service[Request, Challenge \/ AuthedRequest[A]] =
+  def challenge[A](realm: String, validate: BasicAuthenticator[A]): Service[Request, Either[Challenge, AuthedRequest[A]]] =
     Service.lift { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>
-          \/-(AuthedRequest(authInfo, req))
+          right(AuthedRequest(authInfo, req))
         case None =>
-          -\/(Challenge("Basic", realm, Map.empty))
+          left(Challenge("Basic", realm, Map.empty))
       }
     }
 

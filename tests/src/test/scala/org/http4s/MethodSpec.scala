@@ -2,8 +2,7 @@ package org.http4s
 
 import java.util.Locale
 
-import scalaz.scalacheck.ScalazProperties
-
+import cats.kernel.laws._
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Prop.forAll
 
@@ -13,7 +12,7 @@ class MethodSpec extends Http4sSpec {
   import Method._
 
   "parses own string rendering to equal value" in {
-    forAll(genToken) { token => fromString(token).map(_.renderString) must be_\/-(token) }
+    forAll(genToken) { token => fromString(token).map(_.renderString) must beRight(token) }
   }
 
   "only tokens are valid methods" in {
@@ -28,10 +27,10 @@ class MethodSpec extends Http4sSpec {
     }}
   }
 
-  checkAll(ScalazProperties.equal.laws[Method])
+  checkAll("Method", OrderLaws[Method].eqv)
 
   "methods are equal by name" in {
-    prop { m: Method => Method.fromString(m.name) must be_\/-(m) }
+    prop { m: Method => Method.fromString(m.name) must beRight(m) }
   }
 
   "safety implies idempotence" in {

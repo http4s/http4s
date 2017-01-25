@@ -1,7 +1,7 @@
 package org.http4s
 package server
 
-import scalaz.syntax.monoid._
+import org.http4s.batteries._
 
 object Router {
 

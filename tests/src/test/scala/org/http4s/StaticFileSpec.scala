@@ -1,8 +1,10 @@
 package org.http4s
 
 import java.io.File
-import headers.`Content-Type`
+import java.util.concurrent.ExecutorService
 
+import org.http4s.Http4sSpec.TestPool
+import org.http4s.headers.`Content-Type`
 
 class StaticFileSpec extends Http4sSpec {
 

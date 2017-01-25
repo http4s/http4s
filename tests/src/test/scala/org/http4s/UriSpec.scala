@@ -1,9 +1,9 @@
 package org.http4s
 
+import cats.data._
 import org.http4s.Uri._
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
-import scalaz.{-\/, Maybe}
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -69,7 +69,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
-        Uri.fromString("http://example.org/a file") must_=== -\/(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
+        Uri.fromString("http://example.org/a file") must_=== Left(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
       }
     }
 
@@ -260,7 +260,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt")
       foreach (examples) { e =>
-        Uri.fromString(e).map(_.toString) must be_\/-(e)
+        Uri.fromString(e).map(_.toString) must beRight(e)
       }
     }
 
@@ -492,11 +492,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
     "add an optional query parameter (Just)" in {
-      val u = Uri() +?? ("param1", Maybe.just(2))
+      val u = Uri() +?? ("param1", Some(2))
       u must be_==(Uri(query = Query.fromString(s"param1=2")))
     }
     "add an optional query parameter (Empty)" in {
-      val u = Uri() +?? ("param1", Maybe.empty[Int])
+      val u = Uri() +?? ("param1", None: Option[Int])
       u must be_==(Uri(query = Query.empty))
     }
     "contains not a parameter" in {
@@ -723,7 +723,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "not make bad URIs" >> forAll { s: String =>
-      Uri.fromString((uri("http://example.com/") / s).toString) must be_\/-
+      Uri.fromString((uri("http://example.com/") / s).toString) must beRight
     }
   }
 }

@@ -1,7 +1,8 @@
 package org.http4s
 
-import scalaz._, Scalaz._
-import scalaz.concurrent.Task
+import cats.data._
+import fs2._
+import org.http4s.batteries._
 
 package object server {
   /**
@@ -28,6 +29,7 @@ package object server {
    * An HTTP middleware converts an [[HttpService]] to another.
    */
   type HttpMiddleware = Middleware[Request, MaybeResponse, Request, MaybeResponse]
+
   /**
    * An HTTP middleware that authenticates users.
    */
@@ -41,12 +43,15 @@ package object server {
 
   object AuthMiddleware {
     def apply[T](authUser: Service[Request, T]): AuthMiddleware[T] = {
-      service => service.compose(AuthedRequest(authUser))
+      service => service.compose(AuthedRequest(authUser.run))
     }
+
+    /** TODO fs2 port -- replace |||
     def apply[Err, T](authUser: Service[Request, Err \/ T], onFailure: Kleisli[Task, AuthedRequest[Err], MaybeResponse]): AuthMiddleware[T] = { service =>
       (onFailure ||| service)
-        .local({authed: AuthedRequest[Err \/ T] => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
-        .compose(AuthedRequest(authUser))
+        .local({authed: AuthedRequest[Either[Err, T]] => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
+        .compose(AuthedRequest(authUser.run))
     }
+     */
   }
 }

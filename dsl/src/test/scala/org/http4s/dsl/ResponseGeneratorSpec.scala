@@ -1,17 +1,14 @@
-package org.http4s.dsl
+package org.http4s
+package dsl
 
+import cats.data._
 import org.http4s.headers.{Accept, `Content-Length`, `Content-Type`}
-import org.http4s.Headers
-import org.http4s.MediaRange
-import org.http4s.MediaType
-import org.http4s.EntityEncoder
-import org.specs2.mutable.Specification
 
-class ResponseGeneratorSpec extends Specification {
+class ResponseGeneratorSpec extends Http4sSpec {
 
   "Add the EntityEncoder headers along with a content-length header" in {
     val body = "foo"
-    val resultheaders = Ok(body)(EntityEncoder.stringEncoder).run.headers
+    val resultheaders = Ok(body)(EntityEncoder.stringEncoder).unsafeRun.headers
     EntityEncoder.stringEncoder.headers.foldLeft(ok) { (old, h) =>
       old and (resultheaders.exists(_ == h) must_=== true)
     }
@@ -23,7 +20,7 @@ class ResponseGeneratorSpec extends Specification {
     val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.headers.put(Accept(MediaRange.`audio/*`)))(
                             EntityEncoder.stringEncoder.toEntity(_))
 
-    Ok("foo")(w).run.headers.get(Accept).get.values.list must_=== List(MediaRange.`audio/*`)
+    Ok("foo")(w).map(_.headers.get(Accept)) must returnValue(beSome(Accept(MediaRange.`audio/*`)))
   }
 
   "Explicitly added headers have priority" in {
@@ -31,8 +28,7 @@ class ResponseGeneratorSpec extends Specification {
       EntityEncoder.stringEncoder.toEntity(_)
     )
 
-    Ok("foo", Headers(`Content-Type`(MediaType.`application/json`)))(w)
-      .run.headers.get(`Content-Type`) must_=== Some(`Content-Type`(MediaType.`application/json`))
+    Ok("foo", Headers(`Content-Type`(MediaType.`application/json`)))(w) must returnValue(haveMediaType(MediaType.`application/json`))
   }
 
 }
