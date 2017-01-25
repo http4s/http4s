@@ -79,16 +79,29 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "render input streams" in {
-      val inputStream = Eval.always(new ByteArrayInputStream(("input stream").getBytes(StandardCharsets.UTF_8)))
+      val inputStream = Eval.always(new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8)))
       writeToString(inputStream) must_== "input stream"
     }
 
-    /* TODO fs2 port
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(reader) must_== "string reader"
+      writeToString(Task.delay(reader)) must_== "string reader"
     }
-     */
+
+    "render very long readers" in {
+      skipped
+      // This tests is very slow. Debugging seems to indicate that the issue is at fs2
+      // This is reproducible on input streams
+      val longString = "string reader" * 5000
+      val reader = new StringReader(longString)
+      writeToString(Task.delay(reader)) must_== longString
+    }
+
+    "render readers with UTF chars" in {
+      val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
+      val reader = new StringReader(utfString)
+      writeToString(Task.delay(reader)) must_== utfString
+    }
 
     "give the content type" in {
       EntityEncoder[String].contentType must_== Some(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))

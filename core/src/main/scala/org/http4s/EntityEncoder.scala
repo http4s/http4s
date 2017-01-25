@@ -1,6 +1,7 @@
 package org.http4s
 
 import java.io._
+import java.nio.CharBuffer
 import java.nio.file.Path
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -170,29 +171,39 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     }
 
   // TODO parameterize chunk size
-  // TODO fs2 port
-  /*
-  implicit def readerEncoder[A <: Reader](implicit charset: Charset = DefaultCharset): EntityEncoder[A] =
-    // TODO polish and contribute back to scalaz-stream
-    sourceEncoder[Array[Char]].contramap { r: Reader =>
-      val unsafeChunkR = io.resource(Task.delay(r))(
-        src => Task.delay(src.close())) { src =>
-        Task.now { buf: Array[Char] => Task.delay {
-          val m = src.read(buf)
-          m match {
-            case l if l == buf.length => buf
-            case -1 => throw Terminated(End)
-            case _ => buf.slice(0, m)
-          }
-        }}
+  implicit def readerEncoder[A <: Reader](implicit charset: Charset = DefaultCharset): EntityEncoder[Task[A]] =
+    sourceEncoder[Byte].contramap { r: Task[Reader] =>
+
+      // Shared buffer
+      val charBuffer = CharBuffer.allocate(DefaultChunkSize)
+      val readToBytes: Task[Option[Chunk[Byte]]] = r.map { r =>
+        // Read into the buffer
+        val readChars = r.read(charBuffer)
+
+        // Flip to read
+        charBuffer.flip()
+
+        if (readChars < 0) None
+        else if (readChars == 0) Some(Chunk.empty)
+        else {
+          // Encode to bytes according to the charset
+          val bb = charset.nioCharset.encode(charBuffer)
+          // Read into a Chunk
+          val b = new Array[Byte](bb.remaining())
+          bb.get(b)
+          Some(Chunk.bytes(b, 0, b.length))
+        }
       }
-      val chunkR = unsafeChunkR.map(f => (n: Int) => {
-        val buf = new Array[Char](n)
-        f(buf)
-      })
-      Process.constant(DefaultChunkSize).toSource.through(chunkR)
+
+      def useReader(is: Reader) =
+        Stream.eval(readToBytes)
+          .repeat
+          .through(pipe.unNoneTerminate)
+          .flatMap(Stream.chunk)
+
+      // The reader is closed at the end like InputStream
+      Stream.bracket(r)(useReader, t => Task.delay(t.close()))
     }
-  */
 
   // TODO fs2 port
   /*
