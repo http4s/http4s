@@ -85,7 +85,7 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(reader) must_== "string reader"
+      writeToString(Task.delay(reader)) must_== "string reader"
     }
 
     "render very long readers" in {
@@ -94,13 +94,13 @@ class EntityEncoderSpec extends Http4sSpec {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString(reader) must_== longString
+      writeToString(Task.delay(reader)) must_== longString
     }
 
     "render readers with UTF chars" in {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString(reader) must_== utfString
+      writeToString(Task.delay(reader)) must_== utfString
     }
 
     "give the content type" in {

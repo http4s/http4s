@@ -171,12 +171,12 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[A <: Reader](implicit charset: Charset = DefaultCharset): EntityEncoder[A] =
-    sourceEncoder[Byte].contramap { r: Reader =>
+  implicit def readerEncoder[A <: Reader](implicit charset: Charset = DefaultCharset): EntityEncoder[Task[A]] =
+    sourceEncoder[Byte].contramap { r: Task[Reader] =>
 
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
-      val readToBytes: Task[Option[Chunk[Byte]]] = Task.delay {
+      val readToBytes: Task[Option[Chunk[Byte]]] = r.map { r =>
         // Read into the buffer
         val readChars = r.read(charBuffer)
 
@@ -202,7 +202,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
           .flatMap(Stream.chunk)
 
       // The reader is closed at the end like InputStream
-      Stream.bracket(Task.delay(r))(useReader, t => Task.delay(t.close()))
+      Stream.bracket(r)(useReader, t => Task.delay(t.close()))
     }
 
   // TODO fs2 port
