@@ -31,7 +31,6 @@ object GZip {
                     nowrap = true,
                     bufferSize = bufferSize
                   ))
-
                 resp.removeHeader(`Content-Length`)
                   .putHeaders(`Content-Encoding`(ContentCoding.gzip))
                   .copy(body = b)

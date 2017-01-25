@@ -44,6 +44,7 @@ trait Http4sSpec extends Specification
   with FragmentsDsl
   with Discipline
   with Batteries0
+  with TaskMatchers
   with Http4sMatchers
 {
   implicit val params = Parameters(maxSize = 20)

@@ -8,6 +8,8 @@ import org.http4s.Status._
 import org.http4s.Method._
 import org.http4s.headers._
 
+import org.specs2.mutable.Specification
+
 class CORSSpec extends Http4sSpec {
 
   val service = HttpService {

@@ -4,7 +4,7 @@ title: CORS
 weight: 122
 ---
 
-Http4s provides [Middleware], named `CORS`, for adding the appropriate headers 
+Http4s provides [Middleware], named `CORS`, for adding the appropriate headers
 to responses to allow Cross Origin Resource Sharing.
 
 Examples in this document have the following dependencies.
@@ -33,7 +33,7 @@ val service = HttpService {
 
 val request = Request(Method.GET, uri("/"))
 
-service(request).run
+service(request).unsafePerformSync
 ```
 
 Now we can wrap the service in the `CORS` middleware.
@@ -42,7 +42,7 @@ Now we can wrap the service in the `CORS` middleware.
 import org.http4s.server.middleware._
 val corsService = CORS(service)
 
-corsService(request).run
+corsService(request).unsafePerformSync
 ```
 
 So far, there was no change. That's because an `Origin` header is required
@@ -52,10 +52,10 @@ in the requests. This, of course, is the responsibility of the caller.
 val originHeader = Header("Origin", "somewhere.com")
 val corsRequest = request.putHeaders(originHeader)
 
-corsService(corsRequest).run
+corsService(corsRequest).unsafePerformSync
 ```
 
-Notice how the response has the CORS headers added. How easy was 
+Notice how the response has the CORS headers added. How easy was
 that? And, as described in [Middleware], services and middleware can be
 composed such that only some of your endpoints are CORS enabled.
 
@@ -73,7 +73,7 @@ val yahooPut = Request(Method.PUT, uri("/"), headers = Headers(Header("Origin", 
 val duckPost = Request(Method.POST, uri("/"), headers = Headers(Header("Origin", "duckduckgo.com")))
 ```
 
-Now, we'll create a configuration that limits the allowed methods to `GET` 
+Now, we'll create a configuration that limits the allowed methods to `GET`
 and `POST`, pass that to the `CORS` middleware, and try it out on our requests.
 
 ```tut:book
@@ -88,9 +88,9 @@ val methodConfig = CORSConfig(
 
 val corsMethodSvc = CORS(service, methodConfig)
 
-corsMethodSvc(googleGet).run
-corsMethodSvc(yahooPut).run
-corsMethodSvc(duckPost).run
+corsMethodSvc(googleGet).unsafePerformSync
+corsMethodSvc(yahooPut).unsafePerformSync
+corsMethodSvc(duckPost).unsafePerformSync
 ```
 
 As you can see, the CORS headers were only added to the `GET` and `POST` requests.
@@ -106,15 +106,15 @@ val originConfig = CORSConfig(
 
 val corsOriginSvc = CORS(service, originConfig)
 
-corsOriginSvc(googleGet).run
-corsOriginSvc(yahooPut).run
-corsOriginSvc(duckPost).run
+corsOriginSvc(googleGet).unsafePerformSync
+corsOriginSvc(yahooPut).unsafePerformSync
+corsOriginSvc(duckPost).unsafePerformSync
 ```
 
-Again, the results are as expected. You can, of course, create a configuration that 
+Again, the results are as expected. You can, of course, create a configuration that
 combines limits on both HTTP method and origin.
 
-As described in [Middleware], services and middleware can be composed such 
+As described in [Middleware], services and middleware can be composed such
 that only some of your endpoints are CORS enabled.
 
 [Middleware]: ../middleware

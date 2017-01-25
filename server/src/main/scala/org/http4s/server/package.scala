@@ -35,13 +35,19 @@ package object server {
    */
   type AuthMiddleware[T] = Middleware[AuthedRequest[T], MaybeResponse, Request, MaybeResponse]
 
+  /**
+    * Old name for SSLConfig
+    */
+  @deprecated("Use SSLConfig", "2016-12-31")
+  type SSLBits = SSLConfig
+
   object AuthMiddleware {
     def apply[T](authUser: Service[Request, T]): AuthMiddleware[T] = {
       service => service.compose(AuthedRequest(authUser.run))
     }
 
     /** TODO fs2 port -- replace |||
-  def apply[Err, T](authUser: Service[Request, Either[Err, T]], onFailure: Kleisli[Task, AuthedRequest[Err], MaybeResponse]): AuthMiddleware[T] = { service =>
+    def apply[Err, T](authUser: Service[Request, Err \/ T], onFailure: Kleisli[Task, AuthedRequest[Err], MaybeResponse]): AuthMiddleware[T] = { service =>
       (onFailure ||| service)
         .local({authed: AuthedRequest[Either[Err, T]] => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
         .compose(AuthedRequest(authUser.run))

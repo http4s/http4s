@@ -81,7 +81,7 @@ run it.
 But here in the REPL, it's up to us to run it:
 
 ```tut
-val response = task.run
+val response = task.unsafePerformSync
 ```
 
 Cool.
@@ -99,7 +99,7 @@ applying a status code:
 
 ```tut
 val okTask = Ok()
-val ok = okTask.run
+val ok = okTask.unsafePerformSync
 ```
 
 This simple `Ok()` expression succinctly says what we mean in a
@@ -108,7 +108,7 @@ service:
 ```tut:book
 HttpService {
   case _ => Ok()
-}.run(getRoot).run
+}.run(getRoot).unsafePerformSync
 ```
 
 This syntax works for other status codes as well.  In our example, we
@@ -118,7 +118,7 @@ response:
 ```tut:book
 HttpService {
   case _ => NoContent()
-}.run(getRoot).run
+}.run(getRoot).unsafePerformSync
 ```
 
 ### Headers
@@ -126,7 +126,7 @@ HttpService {
 http4s adds a minimum set of headers depending on the response, e.g:
 
 ```tut
-Ok("Ok response.").run.headers
+Ok("Ok response.").unsafePerformSync.headers
 ```
 
 Extra headers can be added using `putHeaders`, for example to specify cache policies:
@@ -138,7 +138,7 @@ import org.http4s.util.NonEmptyList
 ```
 
 ```tut
-Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).run.headers
+Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).unsafePerformSync.headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
@@ -146,7 +146,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand
 
 ```tut
-Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).run.headers
+Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).unsafePerformSync.headers
 ```
 
 ### Cookies
@@ -155,7 +155,7 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```tut
-Ok("Ok response.").addCookie(Cookie("foo", "bar")).run.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafePerformSync.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
@@ -163,14 +163,14 @@ Ok("Ok response.").addCookie(Cookie("foo", "bar")).run.headers
 ```tut
 import java.time.Instant
 
-Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).run.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafePerformSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with `removeCookie`
 
 ```tut
-Ok("Ok response.").removeCookie("foo").run.headers
+Ok("Ok response.").removeCookie("foo").unsafePerformSync.headers
 ```
 
 ### Responding with a body
@@ -190,10 +190,10 @@ implicit `EntityEncoder` in scope.  http4s provides several out of the
 box:
 
 ```tut
-Ok("Received request.").run
+Ok("Received request.").unsafePerformSync
 
 import java.nio.charset.StandardCharsets.UTF_8
-Ok("binary".getBytes(UTF_8)).run
+Ok("binary".getBytes(UTF_8)).unsafePerformSync
 ```
 
 Per the HTTP specification, some status codes don't support a body.
@@ -221,7 +221,7 @@ val task = Ok(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })
-task.run
+task.unsafePerformSync
 ```
 
 As good functional programmers who like to delay our side effects, we
@@ -232,7 +232,7 @@ val task = Ok(Task {
   println("I run when the Task is run.")
   "Mission accomplished!"
 })
-task.run
+task.unsafePerformSync
 ```
 
 Note that in both cases, a `Content-Length` header is calculated.
@@ -261,7 +261,7 @@ val drip = {
 We can see it for ourselves in the REPL:
 
 ```tut
-drip.to(scalaz.stream.io.stdOutLines).run.run
+drip.to(scalaz.stream.io.stdOutLines).run.unsafePerformSync
 ```
 
 When wrapped in a `Response`, http4s will flush each chunk of a
@@ -270,7 +270,7 @@ generally be anticipated before it runs, so this triggers chunked
 transfer encoding:
 
 ```tut
-Ok(drip).run
+Ok(drip).unsafePerformSync
 ```
 
 ## Matching and extracting requests
@@ -358,7 +358,7 @@ val dailyWeatherService = HttpService {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService).run)
+println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService).unsafePerformSync)
 ```
 
 ### Handling query parameters
