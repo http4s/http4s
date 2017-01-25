@@ -29,7 +29,7 @@ object MockClient {
         val req0 = req.copy(body = interruptable(req.body, disposed))
         service(req0) map { resp =>
           DisposableResponse(
-            resp.copy(body = interruptable(resp.body, disposed)),
+            resp.orNotFound.copy(body = interruptable(resp.orNotFound.body, disposed)),
             Task.delay(disposed.set(true)).flatMap(_ => dispose)
           )
         }

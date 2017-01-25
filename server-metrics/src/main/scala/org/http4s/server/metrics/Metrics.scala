@@ -56,15 +56,15 @@ object Metrics {
       active_requests.dec()
     }
 
-    def onFinish(method: Method, start: Long)(r: Throwable \/ Response): Throwable \/ Response = {
+    def onFinish(method: Method, start: Long)(r: Throwable \/ MaybeResponse): Throwable \/ MaybeResponse = {
       val elapsed = System.nanoTime() - start
 
       r match {
-        case \/-(r) =>
+        case \/-(r: MaybeResponse) =>
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-          val code = r.status.code
 
-          val body = r.body.onHalt { cause =>
+          def capture(r: Response) = r.body.onHalt { cause =>
+            val code = r.cata(_.status, Status.NotFound).code
             val elapsed = System.nanoTime() - start
 
             generalMetrics(method, elapsed)
@@ -83,7 +83,7 @@ object Metrics {
             Halt(cause)
           }
 
-          \/-(r.copy(body = body))
+          \/-(r.cata(r => r.copy(body = capture(r)), Pass))
 
        case e@ -\/(_)       =>
           generalMetrics(method, elapsed)

@@ -221,7 +221,8 @@ object Client {
       Service.lift { req: Request =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.copy(body = interruptible(req.body, disposed))
-        service(req0) map { resp =>
+        service(req0) map { maybeResp =>
+          val resp = maybeResp.orNotFound
           DisposableResponse(
             resp.copy(body = interruptible(resp.body, disposed)),
             Task.delay(disposed.set(true))

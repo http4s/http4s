@@ -22,22 +22,24 @@ object GZip {
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip)
                                   || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
-          service.map { resp =>
-            if (isZippable(resp)) {
-              logger.trace("GZip middleware encoding content")
-              // Need to add the Gzip header
-              val b = emit(ByteVector.view(header)) ++
-                        resp.body.pipe(scalaz.stream.compress.deflate(
-                          level = level,
-                          nowrap = true,
-                          bufferSize = bufferSize
-                        ))
+          service.map {
+            case resp: Response =>
+              if (isZippable(resp)) {
+                logger.trace("GZip middleware encoding content")
+                // Need to add the Gzip header
+                val b = emit(ByteVector.view(header)) ++
+                resp.body.pipe(scalaz.stream.compress.deflate(
+                  level = level,
+                  nowrap = true,
+                  bufferSize = bufferSize
+                ))
 
-              resp.removeHeader(`Content-Length`)
-                .putHeaders(`Content-Encoding`(ContentCoding.gzip))
-                .copy(body = b)
-            }
-            else resp  // Don't touch it, Content-Encoding already set
+                resp.removeHeader(`Content-Length`)
+                  .putHeaders(`Content-Encoding`(ContentCoding.gzip))
+                  .copy(body = b)
+              }
+              else resp  // Don't touch it, Content-Encoding already set
+            case Pass => Pass
           }.apply(req)
 
         case _ => service(req)
@@ -46,8 +48,7 @@ object GZip {
 
   private def isZippable(resp: Response): Boolean = {
     val contentType = resp.headers.get(`Content-Type`)
-    !Fallthrough[Response].isFallthrough(resp) &&
-      resp.headers.get(`Content-Encoding`).isEmpty &&
+    resp.headers.get(`Content-Encoding`).isEmpty &&
       (contentType.isEmpty || contentType.get.mediaType.compressible ||
       (contentType.get.mediaType eq MediaType.`application/octet-stream`))
   }

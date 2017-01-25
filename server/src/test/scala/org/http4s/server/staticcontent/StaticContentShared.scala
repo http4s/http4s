@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 import scodec.bits.ByteVector
 
 
-private [staticcontent] trait StaticContentShared {
+private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
 
   def s: HttpService
 
@@ -22,7 +22,7 @@ private [staticcontent] trait StaticContentShared {
   }
 
   def runReq(req: Request): (ByteVector, Response) = {
-    val resp = s(req).run
+    val resp = s.orNotFound(req).run
     val body = resp.body.runLog.run.fold(ByteVector.empty)(_ ++ _)
     (body, resp)
   }

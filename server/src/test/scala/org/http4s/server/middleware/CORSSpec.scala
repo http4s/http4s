@@ -13,7 +13,7 @@ import org.specs2.mutable.Specification
 import scalaz._
 import Scalaz._
 
-class CORSSpec extends Specification {
+class CORSSpec extends Http4sSpec {
 
   val service = HttpService {
     case req if req.pathInfo == "/foo" => Response(Ok).withBody("foo")
@@ -39,26 +39,26 @@ class CORSSpec extends Specification {
   "CORS" should {
     "Be omitted when unrequested" in {
       val req = Request(uri = Uri(path = "foo"))
-      cors1(req).map(_.headers must not contain(headerCheck _)).run
-      cors2(req).map(_.headers must not contain(headerCheck _)).run
+      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
+      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
     }
 
     "Respect Access-Control-Allow-Credentials" in {
       val req = buildRequest("/foo")
-      cors1(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
-      cors2(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
+      cors1.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
+      cors2.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
     }
 
     "Offer a successful reply to OPTIONS on fallthrough" in {
       val req = buildRequest("/unexistant", OPTIONS)
-      cors1(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
-      cors2(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
+      cors1.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
+      cors2.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
     }
 
     "Always Respect unsuccesful replies to OPTIONS requests" in {
       val req = buildRequest("/bar", OPTIONS)
-      cors1(req).map(_.headers must not contain(headerCheck _)).run
-      cors2(req).map(_.headers must not contain(headerCheck _)).run
+      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
+      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
     }
 
   }
