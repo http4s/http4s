@@ -14,7 +14,7 @@ if [[ $SBT_COMMAND = *";makeSite"* ]]; then
   mv hugo_${HUGO_VERSION}_linux_amd64/hugo_${HUGO_VERSION}_linux_amd64 $HOME/bin/hugo
 fi
 
-if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "cats" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
   echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   SBT_COMMAND="$SBT_COMMAND ;publish"
   if [[ $SBT_COMMAND == *"makeSite"* ]]; then
