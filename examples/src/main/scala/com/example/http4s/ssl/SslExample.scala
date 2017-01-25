@@ -4,7 +4,7 @@ package ssl
 import java.nio.file.Paths
 
 import fs2._
-import org.http4s.server._, SSLSupport._
+import org.http4s.server._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.{ SSLKeyStoreSupport, Server, ServerApp, ServerBuilder }
 
