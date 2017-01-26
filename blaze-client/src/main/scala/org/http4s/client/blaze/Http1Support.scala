@@ -11,7 +11,7 @@ import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.util.task
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.syntax.string._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future

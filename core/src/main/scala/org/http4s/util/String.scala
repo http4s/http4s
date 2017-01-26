@@ -1,3 +1,5 @@
-package org.http4s.util
+package org.http4s
+package util
 
-object string extends CaseInsensitiveStringSyntax
+@deprecated("Moved to org.http4s.syntax.string", "0.16")
+object string extends syntax.StringSyntax

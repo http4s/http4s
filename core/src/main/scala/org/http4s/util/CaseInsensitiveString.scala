@@ -23,17 +23,7 @@ sealed class CaseInsensitiveString private (val value: String) extends CharSeque
   def subSequence(start: Int, end: Int): CaseInsensitiveString = apply(value.subSequence(start, end))
 }
 
-object CaseInsensitiveString extends CaseInsensitiveStringSyntax {
+object CaseInsensitiveString {
   def apply(cs: CharSequence): CaseInsensitiveString =
     new CaseInsensitiveString(cs.toString)
 }
-
-final class CaseInsensitiveStringOps(val self: CharSequence) extends AnyVal {
-  def ci: CaseInsensitiveString = CaseInsensitiveString(self)
-}
-
-trait CaseInsensitiveStringSyntax {
-  implicit def ToCaseInsensitiveStringSyntax(cs: CharSequence): CaseInsensitiveStringOps =
-    new CaseInsensitiveStringOps(cs)
-}
-

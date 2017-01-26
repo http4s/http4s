@@ -5,7 +5,7 @@ import org.http4s.util.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 sealed trait HeaderKey {
   type HeaderT <: Header

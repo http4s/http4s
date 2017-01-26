@@ -53,11 +53,6 @@ trait Http4sSpec extends Specification
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
-  implicit class HttpServiceSyntax(service: HttpService) {
-    def orNotFound(req: Request): Task[Response] =
-      service.run(req).map(_.orNotFound)
-  }
-
   /** This isn't really ours to provide publicly in implicit scope */
   implicit lazy val arbitraryByteVector: Arbitrary[ByteVector] =
     Arbitrary {

@@ -35,7 +35,7 @@ val service = HttpService {
 val request = Request(Method.GET, uri("/"))
 
 // Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = service(request).unsafePerformSync
+val response = service.orNotFound(request).unsafePerformSync
 val body = response.as[String].unsafePerformSync
 body.length
 ```
@@ -47,7 +47,7 @@ import org.http4s.server.middleware._
 val zipService = GZip(service)
 
 // Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = zipService(request).unsafePerformSync
+val response = zipService.orNotFound(request).unsafePerformSync
 val body = response.as[String].unsafePerformSync
 body.length
 ```
@@ -61,7 +61,7 @@ val acceptHeader = Header("Accept-Encoding", "gzip")
 val zipRequest = request.putHeaders(acceptHeader)
 
 // Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = zipService(zipRequest).unsafePerformSync
+val response = zipService.orNotFound(zipRequest).unsafePerformSync
 val body = response.as[String].unsafePerformSync
 body.length
 ```

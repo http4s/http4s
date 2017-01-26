@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import javax.crypto
 
 import org.http4s.headers.Authorization
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
 
 import scala.collection.mutable.ListBuffer

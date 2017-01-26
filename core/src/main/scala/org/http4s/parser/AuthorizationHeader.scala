@@ -20,7 +20,7 @@ package parser
 
 import org.parboiled2.{Rule0, Rule1, ParserInput}
 import org.http4s.headers.Authorization
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.syntax.string._
 
 private[parser] trait AuthorizationHeader {
   def AUTHORIZATION(value: String): ParseResult[`Authorization`] =

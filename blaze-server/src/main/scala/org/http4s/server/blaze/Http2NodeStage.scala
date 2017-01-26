@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.util.{Success, Failure}
 
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.syntax.string._
 
 private class Http2NodeStage(streamId: Int,
                      timeout: Duration,

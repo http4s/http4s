@@ -24,7 +24,7 @@ import scala.concurrent.duration._
 import org.parboiled2.{Rule1, ParserInput}
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective._
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 private[parser] trait CacheControlHeader {
 
