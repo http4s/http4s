@@ -4,13 +4,13 @@ package tomcat
 
 import java.net.InetSocketAddress
 import java.util.EnumSet
+import javax.net.ssl.SSLContext
 import javax.servlet.{DispatcherType, Filter, ServletContainerInitializer, ServletContext}
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer}
 import fs2.{Strategy, Task}

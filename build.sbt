@@ -8,9 +8,16 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := "0.16.0-SNAPSHOT"
-apiVersion   in ThisBuild := version.map(extractApiVersion).value
+http4sVersion in ThisBuild := VersionNumber("0.16.0-SNAPSHOT")
 scalaOrganization in ThisBuild := "org.typelevel"
+
+version in ThisBuild := (http4sVersion.value match {
+  case VersionNumber(numbers, tags, extras) =>
+    VersionNumber(numbers, "cats" +: tags, extras).toString
+})
+apiVersion in ThisBuild := http4sVersion.map {
+  case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
+}.value
 
 // Root project
 name := "root"
@@ -30,7 +37,8 @@ lazy val core = libraryProject("core")
       log4s,
       macroCompat,
       parboiled,
-      scalaReflect(scalaVersion.value) % "provided"
+      scalaReflect(scalaVersion.value) % "provided",
+      scodecBits
     ),
     macroParadiseSetting
 )
@@ -89,12 +97,15 @@ lazy val blazeServer = libraryProject("blaze-server")
 )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
+/* TODO fs2 port
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
   description := "blaze implementation for http4s clients"
 )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+ */
 
+/* TODO fs2 port
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
   description := "async http client implementation for http4s clients",
@@ -104,6 +115,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
     )
 )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
+ */
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -338,7 +350,7 @@ lazy val docs = http4sProject("docs")
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+  .dependsOn(client, core, theDsl, blazeServer, /* TODO fs2 port blazeClient, */ circe)
 
 
 lazy val examples = http4sProject("examples")
@@ -352,7 +364,7 @@ lazy val examples = http4sProject("examples")
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, serverMetrics, theDsl /*, TODO fs2 port circe, scalaXml, twirl */)
+  .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -421,6 +433,7 @@ def exampleProject(name: String) = http4sProject(name)
   .settings(noCoverageSettings)
   .dependsOn(examples)
 
+lazy val http4sVersion = settingKey[VersionNumber]("The base version of http4s, across cats/scalaz cross builds")
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
@@ -599,8 +612,9 @@ def delambdafyOpts(v: String): Boolean = VersionNumber(v).numbers match {
 
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
-    "scalaz._",
-    "Scalaz._",
-    "scalaz.concurrent.Task",
-    "org.http4s._"
+    "fs2._",
+    "fs2.interop.cats._",
+    "cats._",
+    "cats.data._",
+    "cats.implicits.all._"
   ) ++ additionalImports).mkString("import ", ", ", "")

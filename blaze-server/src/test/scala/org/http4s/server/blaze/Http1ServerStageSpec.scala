@@ -70,6 +70,12 @@ class Http1ServerStageSpec extends Specification {
 
   "Http1ServerStage: Common responses" should {
     Fragment.foreach(ServerTestRoutes.testRequestResults.zipWithIndex) { case ((req, (status,headers,resp)), i) =>
+      if (i == 7 || i == 8) // Awful temporary hack
+      s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
+        val result = Await.result(runRequest(Seq(req), ServerTestRoutes()), 5.seconds)
+        parseAndDropDate(result) must_== ((status, headers, resp))
+      }
+      else
       s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
         val result = Await.result(runRequest(Seq(req), ServerTestRoutes()), 5.seconds)
         parseAndDropDate(result) must_== ((status, headers, resp))

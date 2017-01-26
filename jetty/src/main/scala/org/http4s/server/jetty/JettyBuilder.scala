@@ -5,6 +5,7 @@ package jetty
 import java.net.InetSocketAddress
 import java.util
 import java.util.concurrent.ExecutorService
+import javax.net.ssl.SSLContext
 import javax.servlet.http.HttpServlet
 import javax.servlet.{DispatcherType, Filter}
 
@@ -15,9 +16,8 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListe
 import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
-import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 
 import scala.concurrent.duration._
 

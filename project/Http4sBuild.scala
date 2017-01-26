@@ -20,7 +20,7 @@ object Http4sBuild {
   def compatibleVersion(version: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
-    val targetVersion = s"${targetMajor}.${targetMinor}.0"
+    val targetVersion = s"${targetMajor}.${targetMinor}.0-cats"
     if (targetVersion != currentVersionWithoutSnapshot)
       Some(targetVersion)
     else
@@ -73,7 +73,7 @@ object Http4sBuild {
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalacheck          = "org.scalacheck"           %% "scalacheck"              % "1.13.4"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
-  lazy val scodecBits          = "org.scodec"               %% "scodec-bits"             % "1.1.0"
+  lazy val scodecBits          = "org.scodec"               %% "scodec-bits"             % "1.1.4"
   lazy val specs2Core          = "org.specs2"               %% "specs2-core"             % "3.8.6"
   lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2Core.revision
   lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2Core.revision

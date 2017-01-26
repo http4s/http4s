@@ -62,15 +62,9 @@ object Metrics {
         headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
         val code = r.cata(_.status, Status.NotFound).code
 
-        r.body.onFinalize[Task] {
-          Task.now {
-          headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-
-          def capture(r: Response) = r.body.onHalt { cause =>
-            val elapsed = System.nanoTime() - start
-
+        def capture(r: Response) = r.body.onFinalize[Task] {
+          Task.delay {
             generalMetrics(method, elapsed)
-
             if (code < 200) resp1xx.update(elapsed, TimeUnit.NANOSECONDS)
             else if (code < 300) resp2xx.update(elapsed, TimeUnit.NANOSECONDS)
             else if (code < 400) resp3xx.update(elapsed, TimeUnit.NANOSECONDS)
@@ -81,7 +75,6 @@ object Metrics {
           abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
           Stream.fail(cause)
         }
-
         r
       }.leftMap { e =>
         generalMetrics(method, elapsed)

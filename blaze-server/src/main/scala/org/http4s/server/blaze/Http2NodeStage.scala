@@ -221,7 +221,7 @@ private class Http2NodeStage(streamId: Int,
       }
     }
 
-    new Http2Writer(this, hs, ec).writeProcess(resp.body).unsafeRunAsync {
+    new Http2Writer(this, hs, ec).writeEntityBody(resp.body).unsafeRunAsync {
       case Right(_)       => shutdownWithCommand(Cmd.Disconnect)
       case Left(Cmd.EOF) => stageShutdown()
       case Left(t)       => shutdownWithCommand(Cmd.Error(t))

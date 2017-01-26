@@ -11,7 +11,7 @@ import org.log4s.getLogger
 
 class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])
                     (implicit val ec: ExecutionContext)
-    extends ProcessWriter {
+    extends EntityBodyWriter {
 
   private[this] val logger = getLogger
 

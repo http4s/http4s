@@ -164,7 +164,7 @@ private class Http1ServerStage(service: HttpService,
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)
     }
 
-    bodyEncoder.writeProcess(resp.body).unsafeRunAsync {
+    bodyEncoder.writeEntityBody(resp.body).unsafeRunAsync {
       case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
           closeConnection()

@@ -11,7 +11,7 @@ import fs2.Stream._
 import org.http4s.batteries._
 import org.http4s.util.task._
 
-trait ProcessWriter {
+trait EntityBodyWriter {
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
   implicit protected def ec: ExecutionContext
@@ -40,13 +40,13 @@ trait ProcessWriter {
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
   protected def exceptionFlush(): Future[Unit] = Future.successful(())
 
-  /** Creates a Task that writes the contents the Process to the output.
+  /** Creates a Task that writes the contents of the EntityBody to the output.
     * Cancelled exceptions fall through to the Task cb
     *
     * @param p EntityBody to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: EntityBody): Task[Boolean] = {
+  def writeEntityBody(p: EntityBody): Task[Boolean] = {
     // TODO fs2 port suboptimal vs. scalaz-stream version
     // TODO fs2 port onError is "not for resource cleanup".  This still feels wrong.
     val write = (p through sink).onError { e =>

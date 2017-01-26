@@ -13,7 +13,7 @@ class CachingChunkWriter(headers: StringWriter,
                          pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers],
                          bufferMaxSize: Int = 10*1024)(implicit ec: ExecutionContext)
-              extends ChunkProcessWriter(headers, pipe, trailer) {
+              extends ChunkEntityBodyWriter(headers, pipe, trailer) {
 
   private var bodyBuffer: Chunk[Byte] = null
 
