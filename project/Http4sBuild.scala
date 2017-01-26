@@ -20,7 +20,7 @@ object Http4sBuild {
   def compatibleVersion(version: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
-    val targetVersion = s"${targetMajor}.${targetMinor}.0"
+    val targetVersion = s"${targetMajor}.${targetMinor}.0-cats"
     if (targetVersion != currentVersionWithoutSnapshot)
       Some(targetVersion)
     else
