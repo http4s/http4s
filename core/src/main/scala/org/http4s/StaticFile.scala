@@ -29,11 +29,9 @@ object StaticFile {
   }
 
   def fromURL(url: URL, req: Option[Request] = None): Option[Response] = {
-    val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified())
+    val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified)
     val expired = req
-      .flatMap(_.headers.get(`If-Modified-Since`))
-      .map(_.date.compareTo(lastmod) < 0)
-      .getOrElse(true)
+      .flatMap(_.headers.get(`If-Modified-Since`)).forall(_.date.compareTo(lastmod) < 0)
 
     if (expired) {
       val mime    = MediaType.forExtension(url.getPath.split('.').last)
@@ -56,49 +54,53 @@ object StaticFile {
   }
 
   def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request]): Option[Response] = {
-    if (!f.isFile) return None
+    if (f.isFile) {
 
-    require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
+      require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
-    val lastModified = Instant.ofEpochMilli(f.lastModified())
+      val lastModified = Instant.ofEpochMilli(f.lastModified())
 
-    // See if we need to actually resend the file
-    val notModified = for {
-      r   <- req
-      h   <- r.headers.get(`If-Modified-Since`)
-      exp  = h.date.compareTo(lastModified) < 0
-      _    = logger.trace(s"Expired: ${exp}. Request age: ${h.date}, Modified: $lastModified")
-      nm   = Response(NotModified) if (!exp)
-    } yield nm
+      // See if we need to actually resend the file
+      val notModified = for {
+        r   <- req
+        h   <- r.headers.get(`If-Modified-Since`)
+        exp  = h.date.compareTo(lastModified) < 0
+        _    = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lastModified")
+        nm   = Response(NotModified) if !exp
+      } yield nm
 
-    notModified orElse {
+      notModified orElse {
 
-      val (body, contentLength) =
-        if (f.length() < end) (empty, 0L)
-        else (fileToBody(f, start, end, buffsize), (end - start).toLong)
+        val (body, contentLength) =
+          if (f.length() < end) (empty, 0L)
+          else (fileToBody(f, start, end, buffsize), end - start)
 
-      val contentType = {
-        val name = f.getName()
+        val contentType = {
+          val name = f.getName
 
-        name.lastIndexOf('.') match {
-          case -1 => None
-          case  i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
+          name.lastIndexOf('.') match {
+            case -1 => None
+            case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
+          }
         }
+
+        val hs = `Last-Modified`(lastModified) ::
+          `Content-Length`(contentLength) ::
+          contentType.toList
+
+        val r = Response(
+          headers = Headers(hs),
+          body = body,
+          attributes = AttributeMap.empty.put(staticFileKey, f)
+        )
+
+        logger.trace(s"Static file generated response: $r")
+        Some(r)
       }
-
-      val hs = `Last-Modified`(lastModified) ::
-               `Content-Length`(contentLength) ::
-               contentType.toList
-
-      val r = Response(
-        headers = Headers(hs),
-        body = body,
-        attributes = AttributeMap.empty.put(staticFileKey, f)
-      )
-
-      logger.trace(s"Static file generated response: $r")
-      Some(r)
-  }}
+    } else {
+      None
+    }
+  }
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
                 : EntityBody = {
