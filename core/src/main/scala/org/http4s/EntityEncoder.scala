@@ -215,9 +215,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     override def contramap[A, B](r: EntityEncoder[A])(f: (B) => A): EntityEncoder[B] = r.contramap(f)
   }
 
-  /* TODO fs2 port
   implicit val serverSentEventEncoder: EntityEncoder[EventStream] =
-    sourceEncoder[ByteVector].contramap[EventStream] { _.pipe(ServerSentEvent.encoder) }
+    sourceEncoder[Byte].contramap[EventStream] { _.through(ServerSentEvent.encoder) }
       .withContentType(MediaType.`text/event-stream`)
-   */
 }

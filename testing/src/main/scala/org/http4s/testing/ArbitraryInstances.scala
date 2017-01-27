@@ -258,7 +258,6 @@ trait ArbitraryInstances {
       )
     }
 
-  /* TODO fs2 port
   implicit lazy val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
     def singleLineString: Gen[String] =
@@ -280,7 +279,6 @@ trait ArbitraryInstances {
       )
     } yield ServerSentEvent(data, event, id, retry))
   }
-   */
 
   // https://tools.ietf.org/html/rfc2234#section-6
   lazy val genHexDigit: Gen[Char] = oneOf(Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))

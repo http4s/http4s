@@ -1,15 +1,10 @@
-/* TODO fs2 port
 package org.http4s
 
 import java.util.regex.Pattern
+
 import scala.util.Try
-
-import scalaz.stream.Process._
-import scalaz.stream.Process1
-import scalaz.stream.text.{utf8Decode, utf8Encode}
-
-import scodec.bits.ByteVector
-
+import fs2.{Chunk, Handle, Pipe, Pull, Stream}
+import fs2.text.{utf8Decode, utf8Encode}
 import ServerSentEvent._
 import util.{Renderable, Writer}
 
@@ -45,75 +40,64 @@ object ServerSentEvent {
   }
 
   // Pattern instead of Regex, because Regex doesn't have split with limit. :(
-  private val LineEnd =
-    Pattern.compile("""\r\n|\n|\r""")
   private val FieldSeparator =
     Pattern.compile(""": ?""")
 
-  val decoder: Process1[ByteVector, ServerSentEvent] = {
-    def splitLines(rest: String): Process1[String, String] =
-      LineEnd.split(rest, 2) match {
-        case Array(head, tail) =>
-          emit(head) ++ splitLines(tail)
-        case Array(head) =>
-          receive1Or[String, String](emit(rest)) { s => splitLines(rest + s) }
-      }
+  def decoder[F[_]]: Pipe[F, Byte, ServerSentEvent] =
+    _.through(utf8Decode andThen fs2.text.lines).open.flatMap { h =>
 
     def go(dataBuffer: StringBuilder,
            eventType: Option[String],
            id: Option[EventId],
-           retry: Option[Long]): Process1[String, ServerSentEvent] = {
-      def dispatch =
+           retry: Option[Long],
+           h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] = {
+
+      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
         dataBuffer.toString match {
           case "" =>
             // We just proved dataBuffer is empty, so we can reuse it
-            go(dataBuffer, None, None, None)
+            go(dataBuffer, None, None, None, h)
           case s =>
             val data = if (s.endsWith("\n")) s.dropRight(1) else s
             val sse = ServerSentEvent(data, eventType, id, retry)
-            emit(sse) ++ go(new StringBuilder, None, None, None)
+            Pull.output1(sse) >> go(new StringBuilder, None, None, None, h)
         }
 
-      def handleLine(field: String, value: String) =
+      def handleLine(field: String, value: String, h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
         field match {
           case "event" =>
-            go(dataBuffer, Some(value), id, retry)
+            go(dataBuffer, Some(value), id, retry, h)
           case "data" =>
-            go(dataBuffer.append(value).append("\n"), eventType, id, retry)
+            go(dataBuffer.append(value).append("\n"), eventType, id, retry, h)
           case "id" =>
             val newId = EventId(value)
-            go(dataBuffer, eventType, Some(newId), retry)
+            go(dataBuffer, eventType, Some(newId), retry, h)
           case "retry" =>
             val newRetry = Try(value.toLong).toOption.orElse(retry)
-            go(dataBuffer, eventType, id, newRetry)
+            go(dataBuffer, eventType, id, newRetry, h)
           case field =>
-            go(dataBuffer, eventType, id, retry)
+            go(dataBuffer, eventType, id, retry, h)
         }
 
-      await1[String].flatMap {
-        case "" =>
-          dispatch
-        case s if s.startsWith(":") =>
-          go(dataBuffer, eventType, id, retry)
-        case s =>
+      h.await1.flatMap {
+        case ("", h) =>
+          dispatch(h)
+        case (s, h) if s.startsWith(":") =>
+          go(dataBuffer, eventType, id, retry, h)
+        case (s, h) =>
           FieldSeparator.split(s, 2) match {
             case Array(field, value) =>
-              handleLine(field, value)
+              handleLine(field, value, h)
             case Array(line) =>
-              handleLine(line, "")
+              handleLine(line, "", h)
           }
       }
     }
 
-    utf8Decode
-      .pipe(splitLines(""))
-      .pipe(suspend(go(new StringBuilder, None, None, None)))
-  }
+    go(new StringBuilder, None, None, None, h)
+  }.close
 
-  val encoder: Process1[ServerSentEvent, ByteVector] =
-    await1[ServerSentEvent]
-      .map(_.renderString)
-      .repeat
-      .pipe(utf8Encode)
+  def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =
+    _.map(_.renderString).through(utf8Encode)
+
 }
- */
