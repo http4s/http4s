@@ -20,11 +20,11 @@ class StatusSpec extends Http4sSpec {
       case s => s.responseClass must_== responseClass
     }}
 
-  "codes from 100 to 199 are informational" in responseClassTest(100 to 199, ResponseClass.Informational)
-  "codes from 200 to 299 are successful" in responseClassTest(200 to 299, ResponseClass.Successful)
-  "codes from 300 to 399 are redirectional" in responseClassTest(300 to 399, ResponseClass.Redirection)
-  "codes from 400 to 499 are client errors" in responseClassTest(400 to 499, ResponseClass.ClientError)
-  "codes from 500 to 599 are server errors" in responseClassTest(500 to 599, ResponseClass.ServerError)
+  "codes from 100 to 199 are informational" in responseClassTest(100 to 199, Informational)
+  "codes from 200 to 299 are successful" in responseClassTest(200 to 299, Successful)
+  "codes from 300 to 399 are redirectional" in responseClassTest(300 to 399, Redirection)
+  "codes from 400 to 499 are client errors" in responseClassTest(400 to 499, ClientError)
+  "codes from 500 to 599 are server errors" in responseClassTest(500 to 599, ServerError)
 
   checkAll(ScalazProperties.order.laws[Status])
 

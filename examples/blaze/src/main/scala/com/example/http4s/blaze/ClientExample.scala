@@ -16,8 +16,7 @@ object ClientExample {
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
-    import org.http4s.Status.NotFound
-    import org.http4s.Status.ResponseClass.Successful
+    import org.http4s.Status.{NotFound, Successful}
     import io.circe._
     import io.circe.generic.auto._
     import org.http4s.circe.jsonOf

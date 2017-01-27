@@ -26,7 +26,6 @@ and some imports.
 ```tut:silent
 import org.http4s._
 import org.http4s.dsl._
-import org.http4s.Status.ResponseClass._
 ```
 
 Then, we can create a middleware that adds a header to successful responses from
@@ -35,7 +34,7 @@ the wrapped service like this.
 ```tut:book
 def myMiddle(service: HttpService, header: Header): HttpService = Service.lift { req =>
   service(req) map {
-    case Successful(resp) =>
+    case Status.Successful(resp) =>
       resp.putHeaders(header)
     case resp =>
       resp
@@ -86,7 +85,7 @@ it as an `object` and use the `apply` method.
 object MyMiddle {
   def addHeader(mResp: MaybeResponse, header: Header) =
     mResp match {
-      case Successful(resp) => resp.putHeaders(header)
+      case Status.Successful(resp) => resp.putHeaders(header)
       case resp => resp
     }
 
