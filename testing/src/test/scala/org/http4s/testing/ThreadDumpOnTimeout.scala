@@ -50,7 +50,8 @@ trait ThreadDumpOnTimeout extends EachContext {
       def around[T : AsResult](t: =>T): Result = {
         lazy val result = t
         val exp: Expectable[T] = createExpectable(result)
-        val outcome = terminate(retries = slices, sleep = (to.toMillis / slices).millis)(ee)(exp)
+        val msPerSlice = to.toMillis / slices
+        val outcome = terminate(retries = slices, sleep = msPerSlice.millis)(ee)(exp)
         threadDumpOnFailure(outcome)
         AsResult(result)
       }
