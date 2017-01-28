@@ -7,7 +7,6 @@ import java.nio.ByteBuffer
 
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.util.CaseInsensitiveString._
 import bits.DefaultUserAgent
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
@@ -18,7 +17,7 @@ import scalaz.\/-
 import scalaz.concurrent.{Strategy, Task}
 
 // TODO: this needs more tests
-class Http1ClientStageSpec extends Specification {
+class Http1ClientStageSpec extends Http4sSpec {
 
   val ec = org.http4s.blaze.util.Execution.trampoline
   val es = Strategy.DefaultExecutorService

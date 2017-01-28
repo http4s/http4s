@@ -4,7 +4,7 @@ package middleware
 
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._

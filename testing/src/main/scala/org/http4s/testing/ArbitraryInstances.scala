@@ -6,7 +6,7 @@ import java.time.temporal.ChronoUnit
 
 import org.http4s.headers._
 import org.http4s.util.{CaseInsensitiveString, NonEmptyList}
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 import java.nio.charset.{Charset => NioCharset}
 
 import org.scalacheck.Arbitrary._

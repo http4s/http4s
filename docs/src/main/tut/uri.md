@@ -33,8 +33,8 @@ val docs = uri.withPath("/docs/0.15/")
 ### URI Template
 
 ```tut:book
-import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
 import org.http4s.UriTemplate._
+import org.http4s.syntax.string._
 
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName("http4s.org"))),

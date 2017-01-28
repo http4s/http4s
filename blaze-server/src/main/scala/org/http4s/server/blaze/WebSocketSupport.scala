@@ -9,7 +9,7 @@ import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
 import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.websocket.Http4sWSStage
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.syntax.string._
 
 import scala.util.{Failure, Success}
 import scala.concurrent.Future

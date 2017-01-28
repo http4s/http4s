@@ -10,8 +10,6 @@ import org.http4s.{headers => H, _}
 import org.http4s.Status._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
-import org.http4s.util.CaseInsensitiveString._
-import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragment
 
 import scala.concurrent.{Await, Future}
@@ -24,7 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scodec.bits.ByteVector
 
-class Http1ServerStageSpec extends Specification {
+class Http1ServerStageSpec extends Http4sSpec {
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
     val a = new Array[Byte](b.remaining())

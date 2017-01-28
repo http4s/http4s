@@ -19,7 +19,7 @@
 package org.http4s
 
 import org.http4s.util._
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
   override def render(writer: Writer): writer.type = writer.append(coding.toString)

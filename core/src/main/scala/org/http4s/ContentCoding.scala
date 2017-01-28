@@ -19,7 +19,7 @@
 package org.http4s
 
 import org.http4s.util._
-import string._
+import org.http4s.syntax.string._
 
 final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with Renderable {
   def withQValue(q: QValue): ContentCoding = copy(coding, q)

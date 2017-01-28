@@ -21,7 +21,7 @@ package org.http4s
 import org.http4s.util.NonEmptyList
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 import scala.util.hashing.MurmurHash3
 

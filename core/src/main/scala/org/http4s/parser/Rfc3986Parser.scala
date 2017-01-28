@@ -6,8 +6,8 @@ import java.nio.charset.Charset
 import java.net.URLDecoder
 import shapeless.HNil
 import scalaz.syntax.std.option._
-import org.http4s.util.CaseInsensitiveString._
 import org.http4s.{ Query => Q }
+import org.http4s.syntax.string._
 
 private[parser] trait Rfc3986Parser { this: Parser =>
   // scalastyle:off public.methods.have.type

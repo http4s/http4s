@@ -1,7 +1,6 @@
 package org.http4s
 
-import util.string._
-
+import org.http4s.syntax.string._
 
 object AuthScheme {
   val Basic = "Basic".ci

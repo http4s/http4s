@@ -3,7 +3,7 @@ package headers
 
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Writer, CaseInsensitiveString}
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 import org.http4s.util.NonEmptyList
 

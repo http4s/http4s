@@ -24,9 +24,9 @@ import java.net.InetAddress
 import java.time.Instant
 
 import org.http4s.headers.ETag.EntityTag
-import org.http4s.util.CaseInsensitiveString._
-import org.parboiled2.Rule1
+import org.http4s.syntax.string._
 import org.http4s.util.NonEmptyList
+import org.parboiled2.Rule1
 
 /**
  * parser rules for all headers that can be parsed with one simple rule

@@ -12,7 +12,7 @@ import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 
 import org.http4s.util.StringWriter
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.syntax.string._
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 
 import java.nio.ByteBuffer
