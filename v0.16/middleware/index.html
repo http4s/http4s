@@ -90,10 +90,10 @@ import org.http4s.dsl._
 the wrapped service like this.</p>
 
 <pre><code class="language-scala">def myMiddle(service: HttpService, header: Header): HttpService = Service.lift { req =&gt;
-  service(req).map {resp =&gt;
-    if (resp.status.isSuccess)
+  service(req).map {
+    case Status.Successful(resp) =&gt;
       resp.putHeaders(header)
-    else
+    case resp =&gt;
       resp
   }
 }
@@ -116,7 +116,7 @@ we need to call <code>unsafePerformSync</code> on the result of the function to 
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31599/572721149@42c4e2d3)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36479/1086351219@73c8547a)
 
 val goodRequest = Request(Method.GET, uri(&quot;/&quot;))
 // goodRequest: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
@@ -125,22 +125,22 @@ val badRequest = Request(Method.GET, uri(&quot;/bad&quot;))
 // badRequest: org.http4s.Request = Request(method=GET, uri=/bad, headers=Headers()
 
 service(goodRequest).unsafePerformSync
-// res0: org.http4s.Response = Response(status=200, headers=Headers())
+// res0: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
 
 service(badRequest).unsafePerformSync
-// res1: org.http4s.Response = Response(status=400, headers=Headers())
+// res1: org.http4s.MaybeResponse = Response(status=400, headers=Headers())
 </code></pre>
 
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
 <pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
-// wrappedService: org.http4s.HttpService = Kleisli($$Lambda$31652/506715966@308da86e)
+// wrappedService: org.http4s.HttpService = Kleisli($$Lambda$36558/1849797241@219d78fc)
 
 wrappedService(goodRequest).unsafePerformSync
-// res2: org.http4s.Response = Response(status=200, headers=Headers(SomeKey: SomeValue))
+// res2: org.http4s.MaybeResponse = Response(status=200, headers=Headers(SomeKey: SomeValue))
 
 wrappedService(badRequest).unsafePerformSync
-// res3: org.http4s.Response = Response(status=400, headers=Headers())
+// res3: org.http4s.MaybeResponse = Response(status=400, headers=Headers())
 </code></pre>
 
 <p>Note that the successful response has your header added to it.</p>
@@ -149,9 +149,11 @@ wrappedService(badRequest).unsafePerformSync
 it as an <code>object</code> and use the <code>apply</code> method.</p>
 
 <pre><code class="language-scala">object MyMiddle {
-  def addHeader(resp: Response, header: Header) =
-    if (resp.status.isSuccess) resp.putHeaders(header)
-    else resp
+  def addHeader(mResp: MaybeResponse, header: Header) =
+    mResp match {
+      case Status.Successful(resp) =&gt; resp.putHeaders(header)
+      case resp =&gt; resp
+    }
 
   def apply(service: HttpService, header: Header) =
     service.map(addHeader(_, header))
@@ -159,13 +161,13 @@ it as an <code>object</code> and use the <code>apply</code> method.</p>
 // defined object MyMiddle
 
 val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// newService: scalaz.Kleisli[scalaz.concurrent.Task,org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$31656/401058008@187a41fd)
+// newService: scalaz.Kleisli[scalaz.concurrent.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(scalaz.Kleisli$$Lambda$36570/1543243838@12713695)
 
 newService(goodRequest).unsafePerformSync
-// res4: org.http4s.Response = Response(status=200, headers=Headers(SomeKey: SomeValue))
+// res4: org.http4s.MaybeResponse = Response(status=200, headers=Headers(SomeKey: SomeValue))
 
 newService(badRequest).unsafePerformSync
-// res5: org.http4s.Response = Response(status=400, headers=Headers())
+// res5: org.http4s.MaybeResponse = Response(status=400, headers=Headers())
 </code></pre>
 
 <p>It is possible for the wrapped <code>Service</code> to have different <code>Request</code> and <code>Response</code>
@@ -189,22 +191,22 @@ You can also wrap a single service in multiple layers of middleware. For example
   case GET -&gt; Root / &quot;api&quot; =&gt;
     Ok()
 }
-// apiService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31599/572721149@526670a8)
+// apiService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36479/1086351219@1c2362b7)
 
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val aggregateService = apiService orElse MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// aggregateService: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$31664/602033983@571d7b16)
+// aggregateService: org.http4s.Service[org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(scalaz.KleisliSemigroup$$Lambda$36578/23808224@53f53154)
 
 val apiRequest = Request(Method.GET, uri(&quot;/api&quot;))
 // apiRequest: org.http4s.Request = Request(method=GET, uri=/api, headers=Headers()
 
 aggregateService(goodRequest).unsafePerformSync
-// res6: org.http4s.Response = Response(status=200, headers=Headers(SomeKey: SomeValue))
+// res6: org.http4s.MaybeResponse = Response(status=200, headers=Headers(SomeKey: SomeValue))
 
 aggregateService(apiRequest).unsafePerformSync
-// res7: org.http4s.Response = Response(status=200, headers=Headers())
+// res7: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
 </code></pre>
 
 <p>Note that <code>goodRequest</code> ran through the <code>MyMiddle</code> middleware and the <code>Result</code> had

@@ -359,6 +359,24 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
+    </li><li name="org.http4s.syntax" visbl="pub" class="indented3 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="syntax"></a><a id="syntax:syntax"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#syntax" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="syntax/index.html">
+              <span class="name">syntax</span>
+            </a>
+      </span>
+      
+      
     </li><li name="org.http4s.testing" visbl="pub" class="indented3 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="testing"></a><a id="testing:testing"></a>
       <span class="permalink">
@@ -560,16 +578,6 @@ entire resulting A.">
                           EntityEncoderInstances0
                         </a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Fallthrough$.html" title="Houses the principal Fallthrough typeclass instances."></a>
-                        <a class="trait" href="Fallthrough.html" title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used."></a>
-                        <a href="Fallthrough.html" title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used.">
-                          Fallthrough
-                        </a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericCredentials.html" title=""></a>
                         <a href="GenericCredentials.html" title="">
@@ -636,12 +644,6 @@ then service.orElse can be used.">
                           Http4sInstances
                         </a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sSyntax$.html" title=""></a>
-                        <a class="trait" href="Http4sSyntax.html" title=""></a>
-                        <a href="Http4sSyntax.html" title="">
-                          Http4sSyntax
-                        </a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">
@@ -694,6 +696,14 @@ then service.orElse can be used.">
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
                         <a href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message.">
                           MalformedMessageBodyFailure
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="MaybeResponse$.html" title=""></a>
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
+to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
+to another service.">
+                          MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MediaRange$.html" title=""></a>
@@ -786,6 +796,12 @@ EntityDecoder was lenient enough to accept it.">
                         <a class="class" href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message."></a>
                         <a href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message.">
                           ParsingFailure
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="Pass$.html" title=""></a>
+                        <a href="Pass$.html" title="">
+                          Pass
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
@@ -926,24 +942,6 @@ Usually used in conjunction with QueryParamEncoder and QueryParamDecoder
                           StatusInstances
                         </a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="TaskMessageOps.html" title=""></a>
-                        <a href="TaskMessageOps.html" title="">
-                          TaskMessageOps
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="TaskRequestOps.html" title=""></a>
-                        <a href="TaskRequestOps.html" title="">
-                          TaskRequestOps
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="TaskResponseOps.html" title=""></a>
-                        <a href="TaskResponseOps.html" title="">
-                          TaskResponseOps
-                        </a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="TransferCoding$.html" title=""></a>
                         <a class="class" href="TransferCoding.html" title=""></a>
                         <a href="TransferCoding.html" title="">
@@ -980,6 +978,12 @@ conform string.">
                         <a class="class" href="UrlForm.html" title=""></a>
                         <a href="UrlForm.html" title="">
                           UrlForm
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="implicits$.html" title=""></a>
+                        <a href="implicits$.html" title="">
+                          implicits
                         </a>
                       </li>
               </ul>
@@ -1154,9 +1158,9 @@ for keys with the same label and same types.</p></div></div>
       
       
     </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.Response]"></a><a id="AuthedService[T]:AuthedService[T]"></a>
+      <a id="AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.MaybeResponse]"></a><a id="AuthedService[T]:AuthedService[T]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.Response]" title="Permalink">
+      <a href="../../org/http4s/index.html#AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.MaybeResponse]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1165,7 +1169,7 @@ for keys with the same label and same types.</p></div></div>
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthedService</span><span class="tparams">[<span name="T">T</span>]</span><span class="result alias"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">AuthedService</span><span class="tparams">[<span name="T">T</span>]</span><span class="result alias"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
       </span>
       
       
@@ -1512,28 +1516,6 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </span>
       
       <p class="shortcomment cmt">A stream of server-sent events</p>
-    </li><li name="org.http4s.Fallthrough" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Fallthrough[B]extendsAnyRef"></a><a id="Fallthrough[B]:Fallthrough[B]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#Fallthrough[B]extendsAnyRef" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used." href="Fallthrough.html">
-              <span class="name">Fallthrough</span>
-            </a><span class="tparams">[<span name="B">B</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then <code>service.orElse</code> can be used.</p>
     </li><li name="org.http4s.GenericCredentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a><a id="GenericCredentials:GenericCredentials"></a>
       <span class="permalink">
@@ -1679,9 +1661,9 @@ then <code>service.orElse</code> can be used.</p>
       
       <p class="shortcomment cmt">A collection of HTTP Headers</p>
     </li><li name="org.http4s.Http4s" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Http4sextendsHttp4sInstanceswithHttp4sFunctionswithHttp4sSyntax"></a><a id="Http4s:Http4s"></a>
+      <a id="Http4sextendsHttp4sInstanceswithHttp4sFunctionswithAllSyntax"></a><a id="Http4s:Http4s"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#Http4sextendsHttp4sInstanceswithHttp4sFunctionswithHttp4sSyntax" title="Permalink">
+      <a href="../../org/http4s/index.html#Http4sextendsHttp4sInstanceswithHttp4sFunctionswithAllSyntax" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1692,7 +1674,7 @@ then <code>service.orElse</code> can be used.</p>
       <span class="symbol">
         <a title="" href="Http4s.html">
               <span class="name">Http4s</span>
-            </a><span class="result"> extends <a href="Http4sInstances.html" class="extype" name="org.http4s.Http4sInstances">Http4sInstances</a> with <a href="Http4sFunctions.html" class="extype" name="org.http4s.Http4sFunctions">Http4sFunctions</a> with <a href="Http4sSyntax.html" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></span>
+            </a><span class="result"> extends <a href="Http4sInstances.html" class="extype" name="org.http4s.Http4sInstances">Http4sInstances</a> with <a href="Http4sFunctions.html" class="extype" name="org.http4s.Http4sFunctions">Http4sFunctions</a> with <a href="syntax/AllSyntax.html" class="extype" name="org.http4s.syntax.AllSyntax">AllSyntax</a></span>
       </span>
       
       
@@ -1732,24 +1714,6 @@ then <code>service.orElse</code> can be used.</p>
       </span>
       
       
-    </li><li name="org.http4s.Http4sSyntax" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Http4sSyntaxextendsCaseInsensitiveStringSyntaxwithMessageSyntax"></a><a id="Http4sSyntax:Http4sSyntax"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#Http4sSyntaxextendsCaseInsensitiveStringSyntaxwithMessageSyntax" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="Http4sSyntax.html">
-              <span class="name">Http4sSyntax</span>
-            </a><span class="result"> extends <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.Http4sVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Http4sVersionextendsProductwithSerializable"></a><a id="Http4sVersion:Http4sVersion"></a>
       <span class="permalink">
@@ -1769,9 +1733,9 @@ then <code>service.orElse</code> can be used.</p>
       
       
     </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]"></a><a id="HttpService:HttpService"></a>
+      <a id="HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="HttpService:HttpService"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" title="Permalink">
+      <a href="../../org/http4s/index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1780,7 +1744,7 @@ then <code>service.orElse</code> can be used.</p>
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpService</span><span class="result alias"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">HttpService</span><span class="result alias"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
       </span>
       
       <p class="shortcomment cmt">A <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces a Task to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
@@ -1915,6 +1879,26 @@ server backend, such as Blaze, Jetty, or Tomcat.
       </span>
       
       <p class="shortcomment cmt">Indicates an syntactic error decoding the body of an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p>
+    </li><li name="org.http4s.MaybeResponse" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MaybeResponseextendsAnyRef"></a><a id="MaybeResponse:MaybeResponse"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#MaybeResponseextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Represents that a service either returns a Response or a Pass to fall through
+to another service." href="MaybeResponse.html">
+              <span class="name">MaybeResponse</span>
+            </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Represents that a service either returns a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> or a <a href="Pass$.html" class="extype" name="org.http4s.Pass">Pass</a> to fall through
+to another service.</p>
     </li><li name="org.http4s.MediaRange" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MediaRangeextendsRenderable"></a><a id="MediaRange:MediaRange"></a>
       <span class="permalink">
@@ -2472,9 +2456,9 @@ status line, headers, and a possible request body.
       
       
     </li><li name="org.http4s.Response" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ResponseextendsMessagewithResponseOpswithProductwithSerializable"></a><a id="Response:Response"></a>
+      <a id="ResponseextendsMessagewithMaybeResponsewithResponseOpswithProductwithSerializable"></a><a id="Response:Response"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#ResponseextendsMessagewithResponseOpswithProductwithSerializable" title="Permalink">
+      <a href="../../org/http4s/index.html#ResponseextendsMessagewithMaybeResponsewithResponseOpswithProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2486,7 +2470,7 @@ status line, headers, and a possible request body.
         <a title="Representation of the HTTP response to send back to the client
 " href="Response.html">
               <span class="name">Response</span>
-            </a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> with <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Representation of the HTTP response to send back to the client
@@ -2583,60 +2567,6 @@ using Kleisli operations.
         <a title="" href="StatusInstances.html">
               <span class="name">StatusInstances</span>
             </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.TaskMessageOps" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="TaskMessageOps[M&lt;:org.http4s.Message]extendsAnywithMessageOps"></a><a id="TaskMessageOps[M&lt;:Message]:TaskMessageOps[M]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#TaskMessageOps[M&lt;:org.http4s.Message]extendsAnywithMessageOps" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskMessageOps.html">
-              <span class="name">TaskMessageOps</span>
-            </a><span class="tparams">[<span name="M">M &lt;: <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></span>]</span><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.TaskRequestOps" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TaskRequestOpsextendsAnyValwithTaskMessageOps[org.http4s.Request]withRequestOps"></a><a id="TaskRequestOps:TaskRequestOps"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#TaskRequestOpsextendsAnyValwithTaskMessageOps[org.http4s.Request]withRequestOps" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskRequestOps.html">
-              <span class="name">TaskRequestOps</span>
-            </a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>] with <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.TaskResponseOps" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TaskResponseOpsextendsAnyValwithTaskMessageOps[org.http4s.Response]withResponseOps"></a><a id="TaskResponseOps:TaskResponseOps"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#TaskResponseOpsextendsAnyValwithTaskMessageOps[org.http4s.Response]withResponseOps" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="TaskResponseOps.html">
-              <span class="name">TaskResponseOps</span>
-            </a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></span>
       </span>
       
       
@@ -2753,6 +2683,25 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </span>
       
       
+    </li><li name="org.http4s.Http4sSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Http4sSyntax=org.http4s.syntax.AllSyntax"></a><a id="Http4sSyntax:Http4sSyntax"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Http4sSyntax=org.http4s.syntax.AllSyntax" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.16) Moved to org.http4s.syntax.AllSyntax">Http4sSyntax</span><span class="result alias"> = <a href="syntax/AllSyntax.html" class="extype" name="org.http4s.syntax.AllSyntax">AllSyntax</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Moved to org.http4s.syntax.AllSyntax</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -3069,24 +3018,6 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
-    </li><li name="org.http4s.Fallthrough" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Fallthrough"></a><a id="Fallthrough:Fallthrough"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#Fallthrough" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="Houses the principal Fallthrough typeclass instances." href="Fallthrough$.html">
-              <span class="name">Fallthrough</span>
-            </a>
-      </span>
-      
-      <p class="shortcomment cmt">Houses the principal <a href="Fallthrough.html" class="extype" name="org.http4s.Fallthrough">Fallthrough</a> typeclass instances.</p>
     </li><li name="org.http4s.Header" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Header"></a><a id="Header:Header"></a>
       <span class="permalink">
@@ -3195,24 +3126,6 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
-    </li><li name="org.http4s.Http4sSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http4sSyntax"></a><a id="Http4sSyntax:Http4sSyntax"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#Http4sSyntax" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="Http4sSyntax$.html">
-              <span class="name">Http4sSyntax</span>
-            </a><span class="result"> extends <a href="Http4sSyntax.html" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpService"></a><a id="HttpService:HttpService"></a>
       <span class="permalink">
@@ -3264,6 +3177,24 @@ with some commonly used instances which can be resolved implicitly.</p>
         <a title="" href="LanguageTag$.html">
               <span class="name">LanguageTag</span>
             </a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.MaybeResponse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MaybeResponse"></a><a id="MaybeResponse:MaybeResponse"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#MaybeResponse" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="MaybeResponse$.html">
+              <span class="name">MaybeResponse</span>
+            </a>
       </span>
       
       
@@ -3390,6 +3321,24 @@ with some commonly used instances which can be resolved implicitly.</p>
         <a title="" href="ParseResult$.html">
               <span class="name">ParseResult</span>
             </a>
+      </span>
+      
+      
+    </li><li name="org.http4s.Pass" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Pass"></a><a id="Pass:Pass"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Pass" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Pass$.html">
+              <span class="name">Pass</span>
+            </a><span class="result"> extends <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -3717,13 +3666,53 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
+    </li><li name="org.http4s.implicits" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="implicits"></a><a id="implicits:implicits"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#implicits" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="implicits$.html">
+              <span class="name">implicits</span>
+            </a><span class="result"> extends <a href="syntax/AllSyntax.html" class="extype" name="org.http4s.syntax.AllSyntax">AllSyntax</a></span>
+      </span>
+      
+      
     </li>
               </ol>
             </div>
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s#Http4sSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Http4sSyntax:org.http4s.syntax.all.type"></a><a id="Http4sSyntax:all.type"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Http4sSyntax:org.http4s.syntax.all.type" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.16) Moved to org.http4s.syntax.all">Http4sSyntax</span><span class="result">: <a href="syntax/package$$all$.html" class="extype" name="org.http4s.syntax.all">all</a>.type</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Moved to org.http4s.syntax.all</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

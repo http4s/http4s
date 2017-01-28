@@ -361,6 +361,24 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.syntax" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="syntax"></a><a id="syntax:syntax"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#syntax" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="syntax/index.html">
+              <span class="name">syntax</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.testing" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="testing"></a><a id="testing:testing"></a>
       <span class="permalink">
@@ -562,16 +580,6 @@ entire resulting A.">
                           EntityEncoderInstances0
                         </a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Fallthrough$.html" title="Houses the principal Fallthrough typeclass instances."></a>
-                        <a class="trait" href="Fallthrough.html" title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used."></a>
-                        <a href="Fallthrough.html" title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used.">
-                          Fallthrough
-                        </a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericCredentials.html" title=""></a>
                         <a href="GenericCredentials.html" title="">
@@ -638,12 +646,6 @@ then service.orElse can be used.">
                           Http4sInstances
                         </a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sSyntax$.html" title=""></a>
-                        <a class="trait" href="" title=""></a>
-                        <a href="" title="">
-                          Http4sSyntax
-                        </a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">
@@ -696,6 +698,14 @@ then service.orElse can be used.">
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
                         <a href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message.">
                           MalformedMessageBodyFailure
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="MaybeResponse$.html" title=""></a>
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
+to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
+to another service.">
+                          MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MediaRange$.html" title=""></a>
@@ -788,6 +798,12 @@ EntityDecoder was lenient enough to accept it.">
                         <a class="class" href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message."></a>
                         <a href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message.">
                           ParsingFailure
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="" title=""></a>
+                        <a href="" title="">
+                          Pass
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
@@ -928,24 +944,6 @@ Usually used in conjunction with QueryParamEncoder and QueryParamDecoder
                           StatusInstances
                         </a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="TaskMessageOps.html" title=""></a>
-                        <a href="TaskMessageOps.html" title="">
-                          TaskMessageOps
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="TaskRequestOps.html" title=""></a>
-                        <a href="TaskRequestOps.html" title="">
-                          TaskRequestOps
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="TaskResponseOps.html" title=""></a>
-                        <a href="TaskResponseOps.html" title="">
-                          TaskResponseOps
-                        </a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="TransferCoding$.html" title=""></a>
                         <a class="class" href="TransferCoding.html" title=""></a>
                         <a href="TransferCoding.html" title="">
@@ -983,47 +981,46 @@ conform string.">
                         <a href="UrlForm.html" title="">
                           UrlForm
                         </a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="implicits$.html" title=""></a>
+                        <a href="implicits$.html" title="">
+                          implicits
+                        </a>
                       </li>
               </ul>
             </div>
           </div>
           <div id="content">
-            <body class="trait type">
+            <body class="object value">
       <div id="definition">
-        <a href="Http4sSyntax$.html" title="See companion object"><div class="big-circle trait-companion-object">t</div></a>
+        <div class="big-circle object">o</div>
         <p id="owner"><a href="../index.html" class="extype" name="org">org</a>.<a href="index.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1><a href="Http4sSyntax$.html" title="See companion object">Http4sSyntax</a><span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html" title="Permalink">
+        <h1>Pass<span class="permalink">
+      <a href="../../org/http4s/Pass$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"><div>
-            Companion <a href="Http4sSyntax$.html" title="See companion object">object Http4sSyntax</a>
-          </div></span></h3>
+        <h3><span class="morelinks"></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Http4sSyntax</span><span class="result"> extends <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a></span>
+        <span class="name">Pass</span><span class="result"> extends <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Http4s.scala" target="_blank">Http4s.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">
-              Known Subclasses
-            </span>
-            <div class="subClasses hiddenContent"><a href="Http4s.html" class="extype" name="org.http4s.Http4s">Http4s</a>, <a href="Http4s$.html" class="extype" name="org.http4s.Http4s">Http4s</a>, <a href="Http4sSyntax$.html" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -1048,12 +1045,7 @@ conform string.">
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.Http4sSyntax"><span>Http4sSyntax</span></li><li class="in" name="org.http4s.MessageSyntax"><span>MessageSyntax</span></li><li class="in" name="org.http4s.util.CaseInsensitiveStringSyntax"><span>CaseInsensitiveStringSyntax</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
-                  </ol>
-                </div><div class="ancestors">
-                  <span class="filtertype">Implicitly<br />
-                  </span>
-                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                    <li class="in" name="org.http4s.Pass"><span>Pass</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.MaybeResponse"><span>MaybeResponse</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -1083,7 +1075,7 @@ conform string.">
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1099,7 +1091,7 @@ conform string.">
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html###():Int" title="Permalink">
+      <a href="../../org/http4s/Pass$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1112,53 +1104,10 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="+(other:String):String"></a><a id="+(String):String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#+(other:String):String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method any2stringadd in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
-    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(Http4sSyntax,B)"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#-&gt;[B](y:B):(A,B)" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method ArrowAssoc in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
-                <span class="name">@inline</span><span class="args">()</span>
-              
-        </dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1171,26 +1120,10 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.util.CaseInsensitiveStringSyntax#ToCaseInsensitiveStringSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ToCaseInsensitiveStringSyntax(cs:CharSequence):org.http4s.util.CaseInsensitiveStringOps"></a><a id="ToCaseInsensitiveStringSyntax(CharSequence):CaseInsensitiveStringOps"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#ToCaseInsensitiveStringSyntax(cs:CharSequence):org.http4s.util.CaseInsensitiveStringOps" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ToCaseInsensitiveStringSyntax</span><span class="params">(<span name="cs">cs: <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>)</span><span class="result">: <a href="util/CaseInsensitiveStringOps.html" class="extype" name="org.http4s.util.CaseInsensitiveStringOps">CaseInsensitiveStringOps</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1203,10 +1136,26 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.MaybeResponse#cata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cata[A](f:org.http4s.Response=&gt;A,a:=&gt;A):A"></a><a id="cata[A]((Response)⇒A,⇒A):A"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Pass$.html#cata[A](f:org.http4s.Response=&gt;A,a:=&gt;A):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cata</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>, <span name="a">a: ⇒ <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#clone():Object" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1225,90 +1174,10 @@ conform string.">
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((Http4sSyntax)⇒Boolean,⇒Any):Http4sSyntax"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((Http4sSyntax)⇒Boolean):Http4sSyntax"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):Http4sSyntax"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):Http4sSyntax"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#ensuring(cond:Boolean):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1324,7 +1193,7 @@ conform string.">
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1340,7 +1209,7 @@ conform string.">
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#finalize():Unit" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1359,33 +1228,10 @@ conform string.">
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#formatted(fmtstr:String):String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method StringFormat in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
-                <span class="name">@inline</span><span class="args">()</span>
-              
-        </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#getClass():Class[_]" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1398,26 +1244,10 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#hashCode():Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1433,7 +1263,7 @@ conform string.">
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1449,7 +1279,7 @@ conform string.">
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#notify():Unit" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1465,7 +1295,7 @@ conform string.">
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#notifyAll():Unit" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1478,42 +1308,58 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.MessageSyntax#requestSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="requestSyntax(req:scalaz.concurrent.Task[org.http4s.Request]):org.http4s.TaskRequestOps"></a><a id="requestSyntax(Task[Request]):TaskRequestOps"></a>
+    </li><li name="org.http4s.Pass#now" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="now:scalaz.concurrent.Task[org.http4s.MaybeResponse]"></a><a id="now:Task[MaybeResponse]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#requestSyntax(req:scalaz.concurrent.Task[org.http4s.Request]):org.http4s.TaskRequestOps" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#now:scalaz.concurrent.Task[org.http4s.MaybeResponse]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
+        <span class="modifier"></span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">requestSyntax</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="result">: <a href="TaskRequestOps.html" class="extype" name="org.http4s.TaskRequestOps">TaskRequestOps</a></span>
+        <span class="name">now</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a></dd></dl></div>
-    </li><li name="org.http4s.MessageSyntax#responseSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="responseSyntax(resp:scalaz.concurrent.Task[org.http4s.Response]):org.http4s.TaskResponseOps"></a><a id="responseSyntax(Task[Response]):TaskResponseOps"></a>
+      
+    </li><li name="org.http4s.MaybeResponse#orElse" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="orElse[B&gt;:org.http4s.Response](b:=&gt;B):B"></a><a id="orElse[B&gt;:Response](⇒B):B"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#responseSyntax(resp:scalaz.concurrent.Task[org.http4s.Response]):org.http4s.TaskResponseOps" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#orElse[B&gt;:org.http4s.Response](b:=&gt;B):B" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">responseSyntax</span><span class="params">(<span name="resp">resp: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <a href="TaskResponseOps.html" class="extype" name="org.http4s.TaskResponseOps">TaskResponseOps</a></span>
+        <span class="name">orElse</span><span class="tparams">[<span name="B">B &gt;: <a href="Response.html" class="extype" name="org.http4s.Response">Response</a></span>]</span><span class="params">(<span name="b">b: ⇒ <span class="extype" name="org.http4s.MaybeResponse.orElse.B">B</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MaybeResponse.orElse.B">B</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
+    </li><li name="org.http4s.MaybeResponse#orNotFound" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="orNotFound:org.http4s.Response"></a><a id="orNotFound:Response"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Pass$.html#orNotFound:org.http4s.Response" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">orNotFound</span><span class="result">: <a href="Response.html" class="extype" name="org.http4s.Response">Response</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1526,10 +1372,10 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
+    </li><li name="org.http4s.MaybeResponse#toOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toOption:Option[org.http4s.Response]"></a><a id="toOption:Option[Response]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#toString():String" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#toOption:Option[org.http4s.Response]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1538,14 +1384,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+        <span class="name">toOption</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#wait():Unit" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1567,7 +1413,7 @@ conform string.">
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1589,7 +1435,7 @@ conform string.">
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../org/http4s/Pass$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1608,26 +1454,6 @@ conform string.">
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(Http4sSyntax,B)"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sSyntax.html#→[B](y:B):(A,B)" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>] performed by method ArrowAssoc in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
               </ol>
             </div>
@@ -1638,32 +1464,22 @@ conform string.">
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.MessageSyntax">
-              <h3>Inherited from <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a></h3>
-            </div><div class="parent" name="org.http4s.util.CaseInsensitiveStringSyntax">
-              <h3>Inherited from <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></h3>
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+            </div><div class="parent" name="org.http4s.MaybeResponse">
+              <h3>Inherited from <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
-        <div class="conversion" name="scala.Predef.any2stringadd">
-              <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>]
-              </h3>
-            </div><div class="conversion" name="scala.Predef.StringFormat">
-              <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>]
-              </h3>
-            </div><div class="conversion" name="scala.Predef.Ensuring">
-              <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>]
-              </h3>
-            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
-              <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.Http4sSyntax">Http4sSyntax</a>]
-              </h3>
-            </div>
+        
         </div>
 
         <div id="groupedMembers">

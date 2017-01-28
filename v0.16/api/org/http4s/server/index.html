@@ -577,6 +577,24 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.syntax" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="syntax"></a><a id="syntax:syntax"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#syntax" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="../syntax/index.html">
+              <span class="name">syntax</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.testing" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="testing"></a><a id="testing:testing"></a>
       <span class="permalink">
@@ -730,9 +748,9 @@ for serious static content serving.
       
       
     </li><li name="org.http4s.server.AuthMiddleware" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AuthMiddleware[T]=org.http4s.server.package.Middleware[org.http4s.AuthedRequest[T],org.http4s.Response,org.http4s.Request,org.http4s.Response]"></a><a id="AuthMiddleware[T]:AuthMiddleware[T]"></a>
+      <a id="AuthMiddleware[T]=org.http4s.server.package.Middleware[org.http4s.AuthedRequest[T],org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="AuthMiddleware[T]:AuthMiddleware[T]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/index.html#AuthMiddleware[T]=org.http4s.server.package.Middleware[org.http4s.AuthedRequest[T],org.http4s.Response,org.http4s.Request,org.http4s.Response]" title="Permalink">
+      <a href="../../../org/http4s/server/index.html#AuthMiddleware[T]=org.http4s.server.package.Middleware[org.http4s.AuthedRequest[T],org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -741,14 +759,14 @@ for serious static content serving.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthMiddleware</span><span class="tparams">[<span name="T">T</span>]</span><span class="result alias"> = (<a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.server.AuthMiddleware.T">T</span>], <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">AuthMiddleware</span><span class="tparams">[<span name="T">T</span>]</span><span class="result alias"> = (<a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.server.AuthMiddleware.T">T</span>], <a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]) ⇒ <a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
       </span>
       
       <p class="shortcomment cmt">An HTTP middleware that authenticates users.</p>
     </li><li name="org.http4s.server.HttpMiddleware" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]"></a><a id="HttpMiddleware:HttpMiddleware"></a>
+      <a id="HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="HttpMiddleware:HttpMiddleware"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/index.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]" title="Permalink">
+      <a href="../../../org/http4s/server/index.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -757,10 +775,10 @@ for serious static content serving.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpMiddleware</span><span class="result alias"> = (<a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">HttpMiddleware</span><span class="result alias"> = (<a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]) ⇒ <a href="../index.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">An HTTP middleware converts an <a href="../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to another.</p>
+      <p class="shortcomment cmt">An HTTP middleware converts an <a href="../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to another.</p>
     </li><li name="org.http4s.server.IdleTimeoutSupport" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="IdleTimeoutSupportextendsAnyRef"></a><a id="IdleTimeoutSupport:IdleTimeoutSupport"></a>
       <span class="permalink">

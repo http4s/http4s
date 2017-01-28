@@ -361,6 +361,24 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.syntax" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="syntax"></a><a id="syntax:syntax"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#syntax" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="syntax/index.html">
+              <span class="name">syntax</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.testing" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="testing"></a><a id="testing:testing"></a>
       <span class="permalink">
@@ -562,16 +580,6 @@ entire resulting A.">
                           EntityEncoderInstances0
                         </a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Fallthrough$.html" title="Houses the principal Fallthrough typeclass instances."></a>
-                        <a class="trait" href="Fallthrough.html" title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used."></a>
-                        <a href="Fallthrough.html" title="Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then service.orElse can be used.">
-                          Fallthrough
-                        </a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="GenericCredentials.html" title=""></a>
                         <a href="GenericCredentials.html" title="">
@@ -638,12 +646,6 @@ then service.orElse can be used.">
                           Http4sInstances
                         </a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="Http4sSyntax$.html" title=""></a>
-                        <a class="trait" href="Http4sSyntax.html" title=""></a>
-                        <a href="Http4sSyntax.html" title="">
-                          Http4sSyntax
-                        </a>
-                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">
@@ -696,6 +698,14 @@ then service.orElse can be used.">
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
                         <a href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message.">
                           MalformedMessageBodyFailure
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="MaybeResponse$.html" title=""></a>
+                        <a class="trait" href="" title="Represents that a service either returns a Response or a Pass to fall through
+to another service."></a>
+                        <a href="" title="Represents that a service either returns a Response or a Pass to fall through
+to another service.">
+                          MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MediaRange$.html" title=""></a>
@@ -788,6 +798,12 @@ EntityDecoder was lenient enough to accept it.">
                         <a class="class" href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message."></a>
                         <a href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message.">
                           ParsingFailure
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="Pass$.html" title=""></a>
+                        <a href="Pass$.html" title="">
+                          Pass
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
@@ -928,24 +944,6 @@ Usually used in conjunction with QueryParamEncoder and QueryParamDecoder
                           StatusInstances
                         </a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="" title=""></a>
-                        <a href="" title="">
-                          TaskMessageOps
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="TaskRequestOps.html" title=""></a>
-                        <a href="TaskRequestOps.html" title="">
-                          TaskRequestOps
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="TaskResponseOps.html" title=""></a>
-                        <a href="TaskResponseOps.html" title="">
-                          TaskResponseOps
-                        </a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="TransferCoding$.html" title=""></a>
                         <a class="class" href="TransferCoding.html" title=""></a>
                         <a href="TransferCoding.html" title="">
@@ -983,6 +981,12 @@ conform string.">
                         <a href="UrlForm.html" title="">
                           UrlForm
                         </a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="implicits$.html" title=""></a>
+                        <a href="implicits$.html" title="">
+                          implicits
+                        </a>
                       </li>
               </ul>
             </div>
@@ -990,37 +994,41 @@ conform string.">
           <div id="content">
             <body class="trait type">
       <div id="definition">
-        <div class="big-circle trait">t</div>
+        <a href="MaybeResponse$.html" title="See companion object"><div class="big-circle trait-companion-object">t</div></a>
         <p id="owner"><a href="../index.html" class="extype" name="org">org</a>.<a href="index.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1>TaskMessageOps<span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html" title="Permalink">
+        <h1><a href="MaybeResponse$.html" title="See companion object">MaybeResponse</a><span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="MaybeResponse$.html" title="See companion object">object MaybeResponse</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">sealed </span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">TaskMessageOps</span><span class="tparams">[<span name="M">M &lt;: <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></span>]</span><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
+        <span class="name">MaybeResponse</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/MessageSyntax.scala" target="_blank">MessageSyntax.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents that a service either returns a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> or a <a href="Pass$.html" class="extype" name="org.http4s.Pass">Pass</a> to fall through
+to another service.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
             </span>
-            <div class="subClasses hiddenContent"><a href="TaskRequestOps.html" class="extype" name="org.http4s.TaskRequestOps">TaskRequestOps</a>, <a href="TaskResponseOps.html" class="extype" name="org.http4s.TaskResponseOps">TaskResponseOps</a></div>
+            <div class="subClasses hiddenContent"><a href="Pass$.html" class="extype" name="org.http4s.Pass">Pass</a>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a></div>
           </div></div>
         
 
@@ -1046,7 +1054,7 @@ conform string.">
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.TaskMessageOps"><span>TaskMessageOps</span></li><li class="in" name="org.http4s.MessageOps"><span>MessageOps</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.MaybeResponse"><span>MaybeResponse</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -1071,71 +1079,17 @@ conform string.">
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.TaskMessageOps.Self" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Self=scalaz.concurrent.Task[M#Self]"></a><a id="Self:Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#Self=scalaz.concurrent.Task[M#Self]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Self</span><span class="result alias"> = <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.Message.Self">M.Self</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li></ol>
-            </div>
+        
+
+        
 
         <div class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="scala.Any#getClass" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="getClass():Class[_]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#getClass():Class[_]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.TaskMessageOps#self" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="self:scalaz.concurrent.Task[M]"></a><a id="self:Task[M]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#self:scalaz.concurrent.Task[M]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">self</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]</span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
-
-        <div class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol>
-                <li name="scala.Any#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+                <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1147,11 +1101,11 @@ conform string.">
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="scala.Any###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html###():Int" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1163,11 +1117,11 @@ conform string.">
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="+(other:String):String"></a><a id="+(String):String"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#+(other:String):String" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#+(other:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1180,14 +1134,14 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(TaskMessageOps[M],B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(MaybeResponse,B)"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1196,21 +1150,21 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="scala.Any#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1222,27 +1176,11 @@ conform string.">
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.MessageOps#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]"></a><a id="as[T](EntityDecoder[T]):Task[T]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">as</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.MessageOps.as.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.MessageOps.as.T">T</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the T</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1255,10 +1193,10 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.TaskMessageOps#attemptAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[T]):org.http4s.DecodeResult[T]"></a><a id="attemptAs[T](EntityDecoder[T]):DecodeResult[T]"></a>
+    </li><li name="org.http4s.MaybeResponse#cata" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="cata[A](f:org.http4s.Response=&gt;A,a:=&gt;A):A"></a><a id="cata[A]((Response)⇒A,⇒A):A"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[T]):org.http4s.DecodeResult[T]" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#cata[A](f:org.http4s.Response=&gt;A,a:=&gt;A):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1267,16 +1205,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.TaskMessageOps.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="index.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.TaskMessageOps.attemptAs.T">T</span>]</span>
+        <span class="name">cata</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>, <span name="a">a: ⇒ <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>
       </span>
       
-      <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
-</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the <code>ParseFailure\/T</code></p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((TaskMessageOps[M])⇒Boolean,⇒Any):TaskMessageOps[M]"></a>
+      
+    </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1285,18 +1221,40 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]</span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((MaybeResponse)⇒Boolean,⇒Any):MaybeResponse"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((TaskMessageOps[M])⇒Boolean):TaskMessageOps[M]"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((MaybeResponse)⇒Boolean):MaybeResponse"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1305,18 +1263,18 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):TaskMessageOps[M]"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):MaybeResponse"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1325,18 +1283,18 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):TaskMessageOps[M]"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):MaybeResponse"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#ensuring(cond:Boolean):A" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1345,18 +1303,34 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Any#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1368,29 +1342,33 @@ conform string.">
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.MessageOps#filterHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self"></a><a id="filterHeaders((Header)⇒Boolean):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Remove headers that satisfy the predicate
-</p><div class="fullcomment"><div class="comment cmt"><p>Remove headers that satisfy the predicate
-</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#formatted(fmtstr:String):String" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#formatted(fmtstr:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1403,17 +1381,33 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="scala.Any#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html#getClass():Class[_]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#hashCode():Int" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1425,11 +1419,11 @@ conform string.">
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1442,10 +1436,10 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.MessageOps#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="putHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a><a id="putHeaders(Header*):Self"></a>
+    </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#putHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1454,17 +1448,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
-      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
-The passed headers are assumed to contain no duplicate Singleton headers.</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name
-The passed headers are assumed to contain no duplicate Singleton headers.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#removeHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeHeader(key:org.http4s.HeaderKey):MessageOps.this.Self"></a><a id="removeHeader(HeaderKey):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#removeHeader(key:org.http4s.HeaderKey):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1473,14 +1464,14 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeHeader</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceAllHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a><a id="replaceAllHeaders(Header*):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#replaceAllHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1489,14 +1480,46 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a><a id="replaceAllHeaders(Headers):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.MaybeResponse#orElse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="orElse[B&gt;:org.http4s.Response](b:=&gt;B):B"></a><a id="orElse[B&gt;:Response](⇒B):B"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#orElse[B&gt;:org.http4s.Response](b:=&gt;B):B" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">orElse</span><span class="tparams">[<span name="B">B &gt;: <a href="Response.html" class="extype" name="org.http4s.Response">Response</a></span>]</span><span class="params">(<span name="b">b: ⇒ <span class="extype" name="org.http4s.MaybeResponse.orElse.B">B</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MaybeResponse.orElse.B">B</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.MaybeResponse#orNotFound" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="orNotFound:org.http4s.Response"></a><a id="orNotFound:Response"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html#orNotFound:org.http4s.Response" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">orNotFound</span><span class="result">: <a href="Response.html" class="extype" name="org.http4s.Response">Response</a></span>
+      </span>
+      
+      
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1505,16 +1528,30 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       
-      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="scala.Any#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.MaybeResponse#toOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="toOption:Option[org.http4s.Response]"></a><a id="toOption:Option[Response]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MaybeResponse.html#toOption:Option[org.http4s.Response]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toOption</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      
+      
+    </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#toString():String" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1526,79 +1563,11 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.TaskMessageOps#transformHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):TaskMessageOps.this.Self"></a><a id="transformHeaders((Headers)⇒Headers):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):TaskMessageOps.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">transformHeaders</span><span class="params">(<span name="f">f: (<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>) ⇒ <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.TaskMessageOps#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[A](key:org.http4s.AttributeKey[A],value:A):TaskMessageOps.this.Self"></a><a id="withAttribute[A](AttributeKey[A],A):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#withAttribute[A](key:org.http4s.AttributeKey[A],value:A):TaskMessageOps.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.TaskMessageOps.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.TaskMessageOps.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withAttribute" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[V](entry:org.http4s.AttributeEntry[V]):MessageOps.this.Self"></a><a id="withAttribute[V](AttributeEntry[V]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#withAttribute[V](entry:org.http4s.AttributeEntry[V]):MessageOps.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="V">V</span>]</span><span class="params">(<span name="entry">entry: <a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a>[<span class="extype" name="org.http4s.MessageOps.withAttribute.V">V</span>]</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">V</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.TaskMessageOps#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withBody[T](b:T)(implicitw:org.http4s.EntityEncoder[T]):TaskMessageOps.this.Self"></a><a id="withBody[T](T)(EntityEncoder[T]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#withBody[T](b:T)(implicitw:org.http4s.EntityEncoder[T]):TaskMessageOps.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.TaskMessageOps.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.TaskMessageOps.withBody.T">T</span>]</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Add a body to the message</p><div class="fullcomment"><div class="comment cmt"><p>Add a body to the message</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></span></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withContentType(contentType:Option[org.http4s.headers.Content-Type]):MessageOps.this.Self"></a><a id="withContentType(Option[Content-Type]):Self"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#withContentType(contentType:Option[org.http4s.headers.Content-Type]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1607,14 +1576,20 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <span class="extype" name="scala.Option">Option</span>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withTrailerHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withTrailerHeaders(trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]):MessageOps.this.Self"></a><a id="withTrailerHeaders(Task[Headers]):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#withTrailerHeaders(trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1623,14 +1598,20 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withTrailerHeaders</span><span class="params">(<span name="trailerHeaders">trailerHeaders: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withType(t:org.http4s.MediaType):MessageOps.this.Self"></a><a id="withType(MediaType):Self"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#withType(t:org.http4s.MediaType):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1639,14 +1620,20 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskMessageOps.Self">Self</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <p class="shortcomment cmt">Added the <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">org.http4s.headers.Content-Type</a> header to the response</p><div class="fullcomment"><div class="comment cmt"><p>Added the <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">org.http4s.headers.Content-Type</a> header to the response</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(TaskMessageOps[M],B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(MaybeResponse,B)"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TaskMessageOps.html#→[B](y:B):(A,B)" title="Permalink">
+      <a href="../../org/http4s/MaybeResponse.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1655,12 +1642,12 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -1673,26 +1660,26 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.MessageOps">
-              <h3>Inherited from <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></h3>
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]]
+                <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]]
+                <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]]
+                <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<span class="extype" name="org.http4s.TaskMessageOps.M">M</span>]]
+                <a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]
               </h3>
             </div>
         </div>

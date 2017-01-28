@@ -85,13 +85,13 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31310/1505274707@3b13d1d)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36188/253198138@25da23dd)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 // Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = service(request).unsafePerformSync
+val response = service.orNotFound(request).unsafePerformSync
 // response: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
 
 val body = response.as[String].unsafePerformSync
@@ -107,10 +107,10 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$31377/1860672508@589be6a)
+// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$36292/1527510737@522a0e7d)
 
 // Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = zipService(request).unsafePerformSync
+val response = zipService.orNotFound(request).unsafePerformSync
 // response: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 117))
 
 val body = response.as[String].unsafePerformSync
@@ -131,7 +131,7 @@ val zipRequest = request.putHeaders(acceptHeader)
 // zipRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Accept-Encoding: gzip)
 
 // Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = zipService(zipRequest).unsafePerformSync
+val response = zipService.orNotFound(zipRequest).unsafePerformSync
 // response: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Encoding: gzip))
 
 val body = response.as[String].unsafePerformSync

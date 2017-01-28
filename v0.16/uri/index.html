@@ -92,11 +92,11 @@ or you could use the URLTemplates.</p>
 
 <h3 id="uri-template">URI Template</h3>
 
-<pre><code class="language-scala">import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
-// import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
-
-import org.http4s.UriTemplate._
+<pre><code class="language-scala">import org.http4s.UriTemplate._
 // import org.http4s.UriTemplate._
+
+import org.http4s.syntax.string._
+// import org.http4s.syntax.string._
 
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName(&quot;http4s.org&quot;))),
