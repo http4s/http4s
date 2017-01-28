@@ -414,7 +414,7 @@ def http4sProject(name: String) = Project(name, file(name))
   .settings(publishSettings)
   .settings(
     moduleName := s"http4s-$name",
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"xonly", "failtrace"),
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"showtimes", "failtrace"),
     initCommands()
   )
 
