@@ -33,7 +33,7 @@ the wrapped service like this.
 
 ```tut:book
 def myMiddle(service: HttpService, header: Header): HttpService = Service.lift { req =>
-  service(req) map {
+  service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
     case resp =>
