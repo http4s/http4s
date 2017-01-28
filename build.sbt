@@ -8,13 +8,16 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.16.0-SNAPSHOT", scalazVersion.value)
-apiVersion   in ThisBuild := version.map(extractApiVersion).value
+http4sVersion in ThisBuild := VersionNumber("0.16.0-SNAPSHOT")
 
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
 scalazVersion in ThisBuild := "7.1.11"
+version in ThisBuild := scalazCrossBuild(http4sVersion.value.toString, scalazVersion.value)
+apiVersion in ThisBuild := http4sVersion.map {
+  case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
+}.value
 
 // Root project
 name := "root"
@@ -424,6 +427,7 @@ def exampleProject(name: String) = http4sProject(name)
   .settings(noCoverageSettings)
   .dependsOn(examples)
 
+lazy val http4sVersion = settingKey[VersionNumber]("The base version of http4s, across cats/scalaz cross builds")
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
 lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
