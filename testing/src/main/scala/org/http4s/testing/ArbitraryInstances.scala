@@ -25,6 +25,9 @@ trait ArbitraryInstances {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
 
+  implicit val arbitraryCaseInsensitiveString: Arbitrary[CaseInsensitiveString] =
+    Arbitrary(arbitrary[String].map(_.ci))
+
   implicit def arbitraryNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary { for {
       a <- arbitrary[A]
