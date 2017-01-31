@@ -107,8 +107,7 @@ trait EntityEncoderInstances0 {
   implicit def sourceEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Stream[Task, A]] =
     new EntityEncoder[Stream[Task, A]] {
       override def toEntity(a: Stream[Task, A]): Task[Entity] =
-        // TODO fs2 port I'm tired and hacked until this compiled
-        Task.now(Entity(a.flatMap(a => eval(W.toEntity(a).map(_.body))).flatMap(identity), None))
+        Task.now(Entity(a.evalMap(W.toEntity).flatMap(_.body)))
 
       override def headers: Headers =
         W.headers.get(`Transfer-Encoding`) match {
