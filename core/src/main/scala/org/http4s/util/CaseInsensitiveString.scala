@@ -6,6 +6,7 @@ import scala.collection.{AbstractSeq, IndexedSeqOptimized}
 import scala.collection.immutable.{IndexedSeq, StringLike, WrappedString}
 import scala.collection.mutable.{Builder, StringBuilder}
 import scala.reflect.ClassTag
+import scalaz.{Equal, Monoid, Order, Ordering, Show}
 
 /**
  * A String wrapper such that two strings `x` and `y` are equal if
@@ -55,7 +56,7 @@ sealed class CaseInsensitiveString private (val value: String)
     repr
 }
 
-object CaseInsensitiveString {
+object CaseInsensitiveString extends CaseInsensitiveStringInstances {
   val empty: CaseInsensitiveString =
     CaseInsensitiveString("")
 
@@ -70,4 +71,24 @@ object CaseInsensitiveString {
 
   def newBuilder: Builder[Char, CaseInsensitiveString] =
     StringBuilder.newBuilder.mapResult(CaseInsensitiveString(_))
+}
+
+private[http4s] sealed trait CaseInsensitiveStringInstances {
+  implicit val http4sInstancesForCaseInsensitiveString: Monoid[CaseInsensitiveString] with Order[CaseInsensitiveString] with Show[CaseInsensitiveString] =
+    new Monoid[CaseInsensitiveString] with Order[CaseInsensitiveString] with Show[CaseInsensitiveString] {
+      def zero: CaseInsensitiveString =
+        CaseInsensitiveString.empty
+      def append(f1: CaseInsensitiveString, f2: => CaseInsensitiveString) =
+        f1 ++ f2
+
+      def order(x: CaseInsensitiveString, y: CaseInsensitiveString): Ordering =
+        Ordering.fromInt(x.value.compareToIgnoreCase(y.value))
+      override def equal(x: CaseInsensitiveString, y: CaseInsensitiveString): Boolean =
+        x == y
+      override def equalIsNatural: Boolean =
+        true
+
+      override def shows(x: CaseInsensitiveString): String =
+        x.toString
+    }
 }
