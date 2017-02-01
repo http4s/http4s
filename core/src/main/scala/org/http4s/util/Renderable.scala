@@ -134,8 +134,8 @@ trait Writer {
 /** [[Writer]] that will result in a `String`
   * @param size initial buffer size of the underlying `StringBuilder`
   */
-class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
-  private val sb = new java.lang.StringBuilder(size)
+final class StringWriter(sizeHint: Int = 64) extends Writer {
+  private val sb = new java.lang.StringBuilder(sizeHint)
 
   def append(s: String): this.type = { sb.append(s); this }
   override def append(char: Char): this.type = { sb.append(char); this }
@@ -147,16 +147,10 @@ class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
   def result: String = sb.toString
 }
 
-object StringWriter {
-  private val InitialCapacity = 64
-}
-
 /** [[Writer]] that will result in a `ByteVector`
   * @param bv initial ByteVector`
   */
-final case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
-                            charset: Charset = StandardCharsets.UTF_8) extends Writer {
-
+final class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty, charset: Charset = StandardCharsets.UTF_8) extends Writer {
   override def append(s: String): this.type = {
     bv = bv ++ ByteVector(s.getBytes(charset))
     this

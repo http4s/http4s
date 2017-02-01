@@ -37,11 +37,11 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
                        delimiter(boundary)               <<
                        dash                        result
     val start:         Boundary => ByteVector = boundary =>
-                       ByteVectorWriter()                <<
+                       new ByteVectorWriter()            <<
                        dashBoundary(boundary)            <<
                        Boundary.CRLF         toByteVector
     val end:           Boundary => ByteVector = boundary =>
-                       ByteVectorWriter()                <<
+                       new ByteVectorWriter()            <<
                        closeDelimiter(boundary) toByteVector
     val encapsulation: Boundary => String =     boundary =>
                        new StringWriter()                <<
@@ -54,7 +54,7 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
     val _encapsulation = ByteVector(encapsulation(mp.boundary).getBytes)
 
     def renderPart(prelude: ByteVector, p: Part) =
-      Process.emit(prelude ++ (p.headers.foldLeft(ByteVectorWriter()) { (w, h) =>
+      Process.emit(prelude ++ (p.headers.foldLeft(new ByteVectorWriter()) { (w, h) =>
         w << h << Boundary.CRLF
       } << Boundary.CRLF).toByteVector) ++ p.body
 
