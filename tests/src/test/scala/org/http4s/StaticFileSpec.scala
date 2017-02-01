@@ -48,5 +48,23 @@ class StaticFileSpec extends Http4sSpec {
       response.map(_.status) must beSome(NotModified)
     }
 
+    "Send partial file" in {
+      def check(path: String): MatchResult[Any] = {
+        val f = new File(path)
+        val r = StaticFile.fromFile(f, 0, 1, StaticFile.DefaultBufferSize, None)
+
+        r must beSome[Response]
+        // Length is only 1 byte
+        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1)
+        // get the Body to check the actual size
+        r.map(_.body.runLog.unsafeRun.length) must beSome(1L)
+      }
+
+      val tests = List("./testing/src/test/resources/logback-test.xml",
+                      "./server/src/test/resources/testresource.txt",
+                      ".travis.yml")
+
+      forall(tests)(check)
+    }
   }
 }
