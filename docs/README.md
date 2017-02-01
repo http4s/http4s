@@ -23,7 +23,7 @@ repository.
 You can generate the site with:
 
 ```
-sbt docs/makeSite
+sbt "set scalazVersion in ThisBuild := \"7.2.8\"" docs/makeSite
 ```
 
 The site can be previewed locally by running the bin/local-site script
