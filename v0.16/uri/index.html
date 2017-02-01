@@ -86,8 +86,13 @@ or you could use the URLTemplates.</p>
 
 <p>Use the methods on the <a href="../api/#org.http4s.Uri">uri class</a>.</p>
 
-<pre><code class="language-scala">val docs = uri.withPath(&quot;/docs/0.15/&quot;)
-// docs: org.http4s.Uri = http://http4s.org/docs/0.15/
+<pre><code class="language-scala">val docs = uri.withPath(&quot;/docs/0.15&quot;)
+// docs: org.http4s.Uri = http://http4s.org/docs/0.15
+
+val docs2 = uri / &quot;docs&quot; / &quot;0.15&quot;
+// docs2: org.http4s.Uri = http://http4s.org/docs/0.15
+
+assert(docs == docs2)
 </code></pre>
 
 <h3 id="uri-template">URI Template</h3>
@@ -106,13 +111,14 @@ val template = UriTemplate(
 // template: org.http4s.UriTemplate = http://http4s.org/docs/0.15
 
 template.toUriIfPossible
-// res0: scala.util.Try[org.http4s.Uri] = Success(http://http4s.org/docs/0.15)
+// res1: scala.util.Try[org.http4s.Uri] = Success(http://http4s.org/docs/0.15)
 </code></pre>
 
 <h2 id="receiving-uris">Receiving URIs</h2>
 
 <p>URIs come in as strings from external routes or as data. Http4s provides
-encoders/decoders for <code>Uri</code> in the connector packages.</p>
+encoders/decoders for <code>Uri</code> in the connector packages. If you want to build your
+own, use <a href="../api/index.html#org.http4s.Uri$@fromString(s:String):org.http4s.ParseResult[org.http4s.Uri]"><code>Uri.fromString</code></a>.</p>
 
 <p>For example one for <a href="https://github.com/Verizon/knobs">knobs</a>:</p>
 
