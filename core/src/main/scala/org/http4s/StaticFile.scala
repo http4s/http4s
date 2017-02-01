@@ -80,7 +80,7 @@ object StaticFile {
 
           name.lastIndexOf('.') match {
             case -1 => None
-            case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
+            case i  => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
           }
         }
 
