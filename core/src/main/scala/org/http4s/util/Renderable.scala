@@ -157,12 +157,10 @@ object StringWriter {
 final case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
                             charset: Charset = StandardCharsets.UTF_8) extends Writer {
 
-  override def append(s: String): this.type       = { bv = bv ++ ByteVector(s.getBytes(charset)); this}
-  override def append(char: Char): this.type      = append(char.toString)
-  override def append(float: Float): this.type    = append(float.toString)
-  override def append(double: Double): this.type  = append(double.toString)
-  override def append(int: Int): this.type        = append(int.toString)
-  override def append(long: Long): this.type      = append(long.toString)
+  override def append(s: String): this.type = {
+    bv = bv ++ ByteVector(s.getBytes(charset))
+    this
+  }
 
   def toByteVector: ByteVector = bv
 }
