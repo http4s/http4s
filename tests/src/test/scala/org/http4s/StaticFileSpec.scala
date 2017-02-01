@@ -84,7 +84,7 @@ class StaticFileSpec extends Http4sSpec {
 
         r must beSome[Response]
         // Length of the body must match
-        //r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
+        r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
         // get the Body to check the actual size
         val body = r.map(_.body.runLog.unsafeRun)
         body.map(_.length) must beSome(fileSize - 1)

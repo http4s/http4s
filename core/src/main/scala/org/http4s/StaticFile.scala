@@ -2,14 +2,14 @@ package org.http4s
 
 import java.io._
 import java.net.URL
-import java.nio.ByteBuffer
-import java.nio.channels._
+import java.nio.file.{Path, StandardOpenOption}
 import java.time.Instant
-import java.util.concurrent.ExecutorService
 
 import fs2._
 import fs2.Stream._
 import fs2.io._
+import fs2.io.file.{FileHandle, pulls}
+import fs2.util.Suspendable
 import org.http4s.Status._
 import org.http4s.headers._
 import org.log4s.getLogger
@@ -102,67 +102,22 @@ object StaticFile {
     }
   }
 
-  private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
-                : EntityBody = {
-    readInputStream[Task](Task.delay(new FileInputStream(f)), buffsize)
-      .drop(start) // TODO this is sad if start is much bigger than 0
-      .take(end - start)
-    /*
-    val outer = Task {
+  private def fileToBody(f: File, start: Long, end: Long, buffsize: Int): EntityBody = {
+    // Based on fs2 handling of files
+    def readAllFromFileHandle[F[_]](chunkSize: Int, start: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
+      _readAllFromFileHandle0(chunkSize, start, end)(h)
 
-      val ch = AsynchronousFileChannel.open(f.toPath, Collections.emptySet(), es)
+    def _readAllFromFileHandle0[F[_]](chunkSize: Int, offset: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
+      for {
+        res  <- Pull.eval(h.read(math.min(chunkSize, (end - offset).toInt), offset))
+        next <- res.filter(_.nonEmpty)
+          .fold[Pull[F, Byte, Unit]](Pull.done)(o => Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
+      } yield next
 
-      val buff = ByteBuffer.allocate(buffsize)
-      var position = start
+    def readAll[F[_]: Suspendable](path: Path, chunkSize: Int): Stream[F, Byte] =
+      pulls.fromPath(path, List(StandardOpenOption.READ)).flatMap(readAllFromFileHandle(chunkSize, start, end)).close
 
-      val innerTask = Task.async[ByteVector]{ cb =>
-        // Check for ending condition
-        if (!ch.isOpen) cb(-\/(Terminated(End)))
-
-        else {
-          val remaining = end - position
-          if (buff.capacity() > remaining) buff.limit(remaining.toInt)
-
-          ch.read(buff, position, null: Null, new CompletionHandler[Integer, Null] {
-            def failed(t: Throwable, attachment: Null): Unit = {
-              logger.error(t)("Static file NIO process failed")
-              ch.close()
-              cb(-\/(t))
-            }
-
-            def completed(count: Integer, attachment: Null): Unit = {
-              logger.trace(s"Read $count bytes")
-              buff.flip()
-
-              // Don't make yet another copy unless we need to
-              val c = if (buffsize == count) {
-                ByteVector(buff.array())
-              } else ByteVector(buff)
-
-              buff.clear()
-              position += count
-              if (position >= end) ch.close()
-
-              cb(\/-(c))
-            }
-          })
-        }
-      }
-
-      val cleanup: Process[Task, Nothing] = eval_(Task[Unit]{
-        logger.trace(s"Cleaning up file: ensuring ${f.toURI} is closed")
-        if (ch.isOpen) ch.close()
-      })
-
-      def go(c: ByteVector): EntityBody = {
-        emit(c) ++ awaitOr(innerTask)(_ => cleanup)(go)
-      }
-
-      await(innerTask)(go)
-    }
-
-    await(outer)(identity)
-     */
+    readAll[Task](f.toPath, DefaultBufferSize)
   }
 
   private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")
