@@ -12,8 +12,12 @@ sealed class CaseInsensitiveString private (val value: String)
     with Ordered[CaseInsensitiveString] {
   import CaseInsensitiveString._
 
-  private var hash = 0
-
+  /* Lazily cache the hash code.  Uses the same strategy as
+   * java.lang.String.  By caching it ourselves, we avoid holding a
+   * reference to or recalculating the lower case String with the
+   * cache.
+   */
+  private[this] var hash = 0
   override def hashCode(): Int = {
     if (hash == 0 && value.length > 0) {
       hash = value.toLowerCase(Locale.ROOT).hashCode
