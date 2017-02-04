@@ -1,11 +1,6 @@
 package org.http4s.util
 
 import java.util.Locale
-import scala.collection.generic.CanBuildFrom
-import scala.collection.{AbstractSeq, IndexedSeqOptimized}
-import scala.collection.immutable.{IndexedSeq, StringLike, WrappedString}
-import scala.collection.mutable.{Builder, StringBuilder}
-import scala.reflect.ClassTag
 import scalaz.{Equal, Monoid, Order, Ordering, Show}
 
 /**
@@ -13,8 +8,7 @@ import scalaz.{Equal, Monoid, Order, Ordering, Show}
  * `x.value.equalsIgnoreCase(y.value)`
  */
 sealed class CaseInsensitiveString private (val value: String)
-    extends IndexedSeq[Char]
-    with IndexedSeqOptimized[Char, CaseInsensitiveString]
+    extends CharSequence
     with Ordered[CaseInsensitiveString] {
   import CaseInsensitiveString._
 
@@ -34,26 +28,17 @@ sealed class CaseInsensitiveString private (val value: String)
 
   override def toString: String = value
 
-  def apply(n: Int): Char =
+  override def charAt(n: Int): Char =
     toString.charAt(n)
-  def charAt(n: Int): Char =
-    apply(n)
 
-  def length: Int =
+  override def length(): Int =
     value.length
 
-  override def mkString: String =
-    value
+  override def subSequence(start: Int, end: Int): CaseInsensitiveString =
+    apply(value.subSequence(start, end))
 
   override def compare(other: CaseInsensitiveString): Int =
     value.compareToIgnoreCase(other.value)
-
-  override protected[this] def newBuilder =
-    CaseInsensitiveString.newBuilder
-  override protected[this] def thisCollection: CaseInsensitiveString =
-    this
-  override protected[this] def toCollection(repr: CaseInsensitiveString): CaseInsensitiveString =
-    repr
 }
 
 object CaseInsensitiveString extends CaseInsensitiveStringInstances {
@@ -62,15 +47,6 @@ object CaseInsensitiveString extends CaseInsensitiveStringInstances {
 
   def apply(cs: CharSequence): CaseInsensitiveString =
     new CaseInsensitiveString(cs.toString)
-
-  implicit def canBuildFrom: CanBuildFrom[CaseInsensitiveString, Char, CaseInsensitiveString] =
-    new CanBuildFrom[CaseInsensitiveString, Char, CaseInsensitiveString] {
-      def apply(from: CaseInsensitiveString) = newBuilder
-      def apply() = newBuilder
-    }
-
-  def newBuilder: Builder[Char, CaseInsensitiveString] =
-    StringBuilder.newBuilder.mapResult(CaseInsensitiveString(_))
 }
 
 private[http4s] sealed trait CaseInsensitiveStringInstances {
@@ -79,10 +55,10 @@ private[http4s] sealed trait CaseInsensitiveStringInstances {
       def zero: CaseInsensitiveString =
         CaseInsensitiveString.empty
       def append(f1: CaseInsensitiveString, f2: => CaseInsensitiveString) =
-        f1 ++ f2
+        CaseInsensitiveString(f1.value + f2.value)
 
       def order(x: CaseInsensitiveString, y: CaseInsensitiveString): Ordering =
-        Ordering.fromInt(x.value.compareToIgnoreCase(y.value))
+        Ordering.fromInt(x.value compare y.value)
       override def equal(x: CaseInsensitiveString, y: CaseInsensitiveString): Boolean =
         x == y
       override def equalIsNatural: Boolean =

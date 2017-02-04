@@ -56,23 +56,15 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
     }
   }
 
-  "slice" should {
-    "be consistent with the orignal's slice" in {
+  "subSequence" should {
+    "be consistent with the orignal's subSequence" in {
       def gen = for {
-        s <- Arbitrary.arbitrary[String]
-        i <- Arbitrary.arbitrary[Int]
-        j <- Arbitrary.arbitrary[Int]
+        s <- Arbitrary.arbitrary[String].suchThat(_.nonEmpty)
+        i <- Gen.choose(0, s.length - 1)
+        j <- Gen.choose(i, s.length - 1)
       } yield (s, i, j)
       Prop.forAll(gen) { case (s, i, j) =>
-        s.ci.slice(i, j) equals (s.slice(i,j).ci)
-      }
-    }
-  }
-
-  "building from a char" should {
-    "be consistent with building a string from a char" in {
-      prop { (s: String, c: Char) =>
-        (s.ci :+ c) == (s :+ c).ci
+        s.ci.subSequence(i, j) equals (s.subSequence(i, j).toString.ci)
       }
     }
   }
