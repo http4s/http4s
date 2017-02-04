@@ -11,7 +11,7 @@ private final class BasicManager[A <: Connection](builder: ConnectionBuilder[A])
     Task.now(())
 
   override def invalidate(connection: A): Task[Unit] =
-    Task.delay(connection.shutdown())
+    connection.shutdown()
 
   override def release(connection: A): Task[Unit] =
     invalidate(connection)
