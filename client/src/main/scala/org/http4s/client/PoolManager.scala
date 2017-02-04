@@ -9,7 +9,7 @@ import fs2.async.mutable.Queue._
 import fs2.async.immutable.Signal._
 import fs2.util.syntax._
 import fs2.util.Async
-import fs2.util.Functor
+import fs2.util.Monad
 
 private final class PoolManager[A <: Connection](
                                                   builder: ConnectionBuilder[A],
@@ -19,17 +19,26 @@ private final class PoolManager[A <: Connection](
 
   private[this] val logger = getLogger
 
+  private def stats : Task[String] = connectionBuffer.flatMap{ q =>
+    q.size.get.map{ bufferSize => s"Buffer Size: ${bufferSize}" }
+  }
+
+  private trait BuildDestroyQueue[F[_], B, C] extends Queue[F, C] {
+    def build(b: B): F[Unit]
+    def destroy(c: C): F[Unit]
+  }
+
   /**
     * A Circular Buffer That Does Not Block on Enqueue but,
     * will dequeue and shutdown the oldest connection in the buffer.
     */
-  private def connectionBuffer(implicit async: Async[Task]): Task[Queue[Task,A]] =
+  private def connectionBuffer(implicit async: Async[Task]): Task[BuildDestroyQueue[Task, RequestKey, A]] =
     Semaphore.apply(maxTotal.toLong).flatMap { permits =>
     unbounded[Task,A].map { q =>
-      new Queue[Task,A] {
+      new BuildDestroyQueue[Task,RequestKey, A] {
         def upperBound: Option[Int] = Some(maxTotal)
         def enqueue1(a:A): Task[Unit] =
-          permits.tryDecrement.flatMap { b => if (b) q.enqueue1(a) else q.dequeue1.flatMap(_.shutdown()) >> q.enqueue1(a) }
+          permits.tryDecrement.flatMap { b => if (b) q.enqueue1(a) else q.dequeue1.flatMap(destroy) >> q.enqueue1(a) }
         def offer1(a: A): Task[Boolean] =
           enqueue1(a).as(true)
         def dequeue1: Task[A] = cancellableDequeue1.flatMap { _._1 }
@@ -41,6 +50,16 @@ private final class PoolManager[A <: Connection](
         def size = q.size
         def full: Signal[Task, Boolean] = q.size.map(_ >= maxTotal)
         def available: Signal[Task, Int] = q.size.map(maxTotal - _)
+
+        override def build(key: RequestKey): Task[Unit] =
+          permits.tryDecrement.flatMap { b =>
+            if (b) builder(key).flatMap(connection => enqueue1(connection))
+            else q.dequeue1.flatMap(destroy) >> builder(key).flatMap(connection => enqueue1(connection))
+          }
+
+        override def destroy(connection: A): Task[Unit] =
+          connection.isClosed.flatMap{ closed => if (!closed) connection.shutdown() else Task.now(()) }
+
       }
     }}
 
@@ -63,16 +82,16 @@ private final class PoolManager[A <: Connection](
               Task.delay(NextConnection(conn, false))
             }
             else if (!closed) {
-              q.enqueue1(conn).flatMap(_ => borrow(key))
+              q.enqueue1(conn) >>  borrow(key)
             }
             else {
-              builder(key).flatMap(q.enqueue1).flatMap(_ => borrow(key))
+              q.build(key) >> borrow(key)
             }
           }
         }
       }
       else {
-        builder(key).flatMap(q.enqueue1).flatMap(_ => borrow(key))
+        q.build(key) >> borrow(key)
       }
     }
   }
