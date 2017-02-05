@@ -26,90 +26,57 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
   private def stats =
     s"allocated=${allocated} idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
-private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = {
-  Stream.eval{
+  private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Task[Unit] = {
     if (allocated < maxTotal){
-      builder(key)
-    } else {
+      builder(key).map(conn => callback(Right(NextConnection(conn, true))))
+    }
+    else {
       val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
       val error = new Exception(message)
-      logger.error(error)(message)
-      Task.now(callback(Left(error)))
-    }
-  }.run.async(strategy).unsafeRunAsync{
-    case Right(_) => ()
-    case Left(throwable) =>
-      logger.error(throwable)(s"Error establishing client connection for key $key")
       disposeConnection(key, None)
-      callback(Left(throwable))
+      logger.error(error)(message)
+      Task.fail(error)
+    }
   }
-}
-  //       disposeConnection(key, None)
-  //       callback(Left(throwable)))
 
+   def borrow(key: RequestKey): Task[NextConnection] = Task.async{ callback =>
+     logger.debug(s"Requesting connection: ${stats}")
+     synchronized {
+       if (!isClosed) {
+         @tailrec
+         def go(): Unit = {
+           idleQueue.dequeueFirst(_.requestKey == key) match {
+             case Some(conn) if !conn.isClosed =>
+               logger.debug(s"Recycling connection: ${stats}")
+               callback(Right(NextConnection(conn, false)))
 
-//   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = Stream.eval{
-//     if (allocated < maxTotal) {
-//       allocated += 1
-//       // builder(key).map{ fresh =>
-//       //   logger.debug(s"Received complete connection from pool: ${stats}")
-//       //   callback(NextConnection(fresh, true).right.toEither)
-//       // }
-//       builder(key)
-//     }
-//     else {
-      // val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
-      // val error = new Exception(message)
-      // logger.error(error)(message)
-      // Task.now(callback(Left(error)))
-//     }
-//   }.runLog.unsafeRunAsync{
-//     case Left(throwable : Throwable) =>
-      // logger.error(throwable)(s"Error establishing client connection for key $key")
-      // disposeConnection(key, None)
-      // callback(Left(throwable))
-//     case Right(fresh) =>
-//       callback(NextConnection(fresh, true).right.toEither)
-// }
+             case Some(closedConn) =>
+               logger.debug(s"Evicting closed connection: ${stats}")
+               allocated -= 1
+               go()
 
-  // TODO fs2 rework
-  // def borrow(key: RequestKey)(callback: Callback[NextConnection]): Task[NextConnection] = Task.delay{
-  //   logger.debug(s"Requesting connection: ${stats}")
-  //   synchronized {
-  //     if (!isClosed) {
-  //       @tailrec
-  //       def go(): Task[NextConnection] = {
-  //         idleQueue.dequeueFirst(_.requestKey == key) match {
-  //           case Some(conn) if !conn.isClosed =>
-  //             logger.debug(s"Recycling connection: ${stats}")
-  //             callback(NextConnection(conn, false).right.toEither)
-  //
-  //           case Some(closedConn) =>
-  //             logger.debug(s"Evicting closed connection: ${stats}")
-  //             allocated -= 1
-  //             go()
-  //
-  //           case None if allocated < maxTotal =>
-  //             logger.debug(s"Active connection not found. Creating new one. ${stats}")
-  //             createConnection(key, callback)
-  //
-  //           case None if idleQueue.nonEmpty =>
-  //             logger.debug(s"No connections available for the desired key. Evicting oldest and creating a new connection: ${stats}")
-  //             allocated -= 1
-  //             idleQueue.dequeue().shutdown()
-  //             createConnection(key, callback)
-  //
-  //           case None => // we're full up. Add to waiting queue.
-  //             logger.debug(s"No connections available.  Waiting on new connection: ${stats}")
-  //             waitQueue.enqueue(Waiting(key, callback))
-  //         }
-  //       }
-  //       go()
-  //     }
-  //     else
-  //       callback(new IllegalStateException("Connection pool is closed").left.toEither)
-  //   }
-  // }
+             case None if allocated < maxTotal =>
+               logger.debug(s"Active connection not found. Creating new one. ${stats}")
+               createConnection(key, callback).unsafeRun()
+
+             case None if idleQueue.nonEmpty =>
+               logger.debug(s"No connections available for the desired key. Evicting oldest and creating a new connection: ${stats}")
+               allocated -= 1
+               idleQueue.dequeue().shutdown()
+               createConnection(key, callback).unsafeRun()
+
+             case None => // we're full up. Add to waiting queue.
+               logger.debug(s"No connections available.  Waiting on new connection: ${stats}")
+               waitQueue.enqueue(Waiting(key, callback))
+           }
+         }
+         go()
+       }
+       else {
+         callback(Left(new IllegalStateException("Connection pool is closed")))
+       }
+     }
+   }
 
   def release(connection: A): Task[Unit] = Task.delay {
     synchronized {
@@ -131,7 +98,7 @@ private def createConnection(key: RequestKey, callback: Callback[NextConnection]
               connection.shutdown()
               allocated -= 1
               val Waiting(key, callback) = waitQueue.dequeue()
-              createConnection(key, callback)
+              createConnection(key, callback).unsafeRun()
           }
         }
         else {
@@ -145,7 +112,7 @@ private def createConnection(key: RequestKey, callback: Callback[NextConnection]
           if (waitQueue.nonEmpty) {
             logger.debug(s"Connection returned could not be recycled, new connection needed: ${stats}")
             val Waiting(key, callback) = waitQueue.dequeue()
-            createConnection(key, callback)
+            createConnection(key, callback).unsafeRun()
           }
           else logger.debug(s"Connection could not be recycled, no pending requests. Shrinking pool: ${stats}")
         }
@@ -161,7 +128,7 @@ private def createConnection(key: RequestKey, callback: Callback[NextConnection]
   override def invalidate(connection: A): Task[Unit] =
     Task.delay(disposeConnection(connection.requestKey, Some(connection)))
 
-  private def disposeConnection(key: RequestKey, connection: Option[A]) = {
+  private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
     logger.debug(s"Disposing of connection: ${stats}")
     synchronized {
       allocated -= 1
@@ -169,7 +136,7 @@ private def createConnection(key: RequestKey, callback: Callback[NextConnection]
     }
   }
 
-  def shutdown() = Task.delay {
+  def shutdown() : Task[Unit] = Task.delay {
     logger.info(s"Shutting down connection pool: ${stats}")
     synchronized {
       if (!isClosed) {

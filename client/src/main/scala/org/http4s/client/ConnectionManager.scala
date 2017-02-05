@@ -21,8 +21,7 @@ trait ConnectionManager[A <: Connection] {
   def shutdown(): Task[Unit]
 
   /** Get a connection for the provided request key. */
-  // TODO fs2 rework
-  // def borrow(requestKey: RequestKey): Task[NextConnection]
+   def borrow(requestKey: RequestKey): Task[NextConnection]
 
   /**
     * Release a connection.  The connection manager may choose to keep the connection for
