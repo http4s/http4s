@@ -2,7 +2,7 @@ package org.http4s.util
 
 import java.util.Locale
 
-sealed class CaseInsensitiveString private (val value: String) extends CharSequence {
+final class CaseInsensitiveString private (val value: String) extends CharSequence {
   import CaseInsensitiveString._
 
   private lazy val folded = value.toLowerCase(Locale.ROOT)
