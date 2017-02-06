@@ -15,7 +15,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
 
-  implicit val strategy : Strategy = Strategy.fromFixedDaemonPool(maxTotal, "workerPool" )
+  implicit val strategy : Strategy = Strategy.fromExecutor(es)
 
   private[this] val logger = getLogger
   private var isClosed = false
