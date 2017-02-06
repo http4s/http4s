@@ -35,7 +35,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
       val error = new Exception(message)
       disposeConnection(key, None)
       logger.error(error)(message)
-      Task.fail(error)
+      Task.now(callback(Left(error)))
     }
   }
 
