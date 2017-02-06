@@ -11,7 +11,9 @@ import scalaz.syntax.order._
 
 class CharsetRangeSpec extends Http4sSpec with ThreadDumpOnTimeout {
 
-  override def triggerThreadDumpAfter = 2.seconds
+  // wait for completion in 200ms intervals
+  override def triggerThreadDumpAfter = 4.seconds
+  override def slices = 20
 
   "*" should {
     "be satisfied by any charset when q > 0" in {
