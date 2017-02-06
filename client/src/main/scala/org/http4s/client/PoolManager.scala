@@ -26,16 +26,21 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
   private def stats =
     s"allocated=${allocated} idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
-  private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Task[Unit] = {
+  private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = {
     if (allocated < maxTotal){
-      builder(key).map(conn => callback(Right(NextConnection(conn, true))))
+      builder(key).unsafeRunAsync {
+        case Right(conn) => callback(Right(NextConnection(conn, true)))
+        case Left(error) =>
+          logger.error(error)(s"Error establishing client connection for key $key")
+          disposeConnection(key, None)
+          callback(Left(error))
+      }
     }
     else {
       val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
       val error = new Exception(message)
-      disposeConnection(key, None)
       logger.error(error)(message)
-      Task.now(callback(Left(error)))
+      callback(Left(error))
     }
   }
 
@@ -57,13 +62,13 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
 
              case None if allocated < maxTotal =>
                logger.debug(s"Active connection not found. Creating new one. ${stats}")
-               createConnection(key, callback).unsafeRun()
+               createConnection(key, callback)
 
              case None if idleQueue.nonEmpty =>
                logger.debug(s"No connections available for the desired key. Evicting oldest and creating a new connection: ${stats}")
                allocated -= 1
                idleQueue.dequeue().shutdown()
-               createConnection(key, callback).unsafeRun()
+               createConnection(key, callback)
 
              case None => // we're full up. Add to waiting queue.
                logger.debug(s"No connections available.  Waiting on new connection: ${stats}")
@@ -98,7 +103,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
               connection.shutdown()
               allocated -= 1
               val Waiting(key, callback) = waitQueue.dequeue()
-              createConnection(key, callback).unsafeRun()
+              createConnection(key, callback)
           }
         }
         else {
@@ -112,7 +117,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
           if (waitQueue.nonEmpty) {
             logger.debug(s"Connection returned could not be recycled, new connection needed: ${stats}")
             val Waiting(key, callback) = waitQueue.dequeue()
-            createConnection(key, callback).unsafeRun()
+            createConnection(key, callback)
           }
           else logger.debug(s"Connection could not be recycled, no pending requests. Shrinking pool: ${stats}")
         }
