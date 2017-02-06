@@ -23,7 +23,7 @@ object Retry {
     GatewayTimeout
   )
 
-  def apply(backoff: Int => Option[FiniteDuration])(client: Client) = {
+  def apply(backoff: Int => Option[FiniteDuration])(client: Client): Client = {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
         case \/-(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if req.isIdempotent && RetriableStatuses(status) =>
