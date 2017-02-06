@@ -19,11 +19,7 @@ import org.http4s.util.{StringWriter, Writer}
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
-import scalaz.concurrent.Task
-import scalaz.stream.Cause.{End, Terminated}
-import scalaz.stream.Process
-import scalaz.stream.Process.{Halt, halt}
-import scalaz.{-\/, \/-}
+import fs2.{Strategy, Task}
 
 private final class Http1Connection(val requestKey: RequestKey,
                             config: BlazeClientConfig,
@@ -37,6 +33,8 @@ private final class Http1Connection(val requestKey: RequestKey,
   private val parser =
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
                                config.maxChunkSize, config.lenientParser)
+
+  implicit val strategy = Strategy.fromExecutionContext(ec)
 
   private val stageState = new AtomicReference[State](Idle)
 
@@ -158,13 +156,13 @@ private final class Http1Connection(val requestKey: RequestKey,
     channelRead().onComplete {
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb)
       case Failure(EOF)  => stageState.get match {
-        case Idle | Running => shutdown(); cb(-\/(EOF))
-        case Error(e)       => cb(-\/(e))
+        case Idle | Running => shutdown(); cb(Left(EOF))
+        case Error(e)       => cb(Left(e))
       }
 
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
-        cb(-\/(t))
+        cb(Left(t))
     }(ec)
   }
 
@@ -234,7 +232,7 @@ private final class Http1Connection(val requestKey: RequestKey,
           }
         }
 
-        cb(\/-(
+        cb(Left(
           Response(status = status,
             httpVersion = httpVersion,
             headers = headers,
@@ -245,7 +243,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     } catch {
       case t: Throwable =>
         logger.error(t)("Error during client request decode loop")
-        cb(-\/(t))
+        cb(Left(t))
     }
   }
 

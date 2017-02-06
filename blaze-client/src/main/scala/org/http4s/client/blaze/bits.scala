@@ -13,7 +13,8 @@ import org.http4s.util.threads
 
 import scala.concurrent.duration._
 import scala.math.max
-import scalaz.concurrent.Task
+import fs2.Task
+import fs2.Strategy
 
 private[blaze] object bits {
   // Some default objects
@@ -29,6 +30,7 @@ private[blaze] object bits {
     case Some(exec) => (exec, Task.now(()))
     case None =>
       val exec = DefaultExecutor.newClientDefaultExecutorService("blaze-client")
+      implicit val strategy = Strategy.fromExecutor(exec)
       (exec, Task { exec.shutdown() })
   }
 
