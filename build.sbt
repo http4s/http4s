@@ -97,13 +97,11 @@ lazy val blazeServer = libraryProject("blaze-server")
 )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
-/* TODO fs2 port
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
   description := "blaze implementation for http4s clients"
 )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
- */
 
 /* TODO fs2 port
 lazy val asyncHttpClient = libraryProject("async-http-client")
