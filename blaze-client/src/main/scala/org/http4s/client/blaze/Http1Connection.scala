@@ -35,8 +35,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
                                config.maxChunkSize, config.lenientParser)
 
-  implicit val strategy = Strategy.fromExecutionContext(ec)
-
+  implicit private val strategy = Strategy.fromExecutionContext(ec)
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
