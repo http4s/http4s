@@ -12,7 +12,7 @@ import org.http4s.{headers => H}
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.util.ProcessWriter
+import org.http4s.blaze.util.EntityBodyWriter
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 
@@ -20,6 +20,7 @@ import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 import fs2.{Strategy, Task}
+import fs2._
 
 private final class Http1Connection(val requestKey: RequestKey,
                             config: BlazeClientConfig,
@@ -136,10 +137,10 @@ private final class Http1Connection(val requestKey: RequestKey,
         }
 
         val bodyTask = getChunkEncoder(req, mustClose, rr)
-          .writeProcess(req.body)
+          .writeEntityBody(req.body)
           .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
         val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
-        Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
+        bodyTask.flatMap(_ => respTask )
           .handleWith { case t =>
             fatalError(t, "Error executing request")
             Task.fail(t)
@@ -180,8 +181,8 @@ private final class Http1Connection(val requestKey: RequestKey,
         def terminationCondition() = stageState.get match {  // if we don't have a length, EOF signals the end of the body.
           case Error(e) if e != EOF => e
           case _ =>
-            if (parser.definedContentLength() || parser.isChunked()) InvalidBodyException("Received premature EOF.")
-            else Terminated(End)
+//            if (parser.definedContentLength() || parser.isChunked()) InvalidBodyException("Received premature EOF.")
+            InvalidBodyException("Received premature EOF.")
         }
 
         def cleanup(): Unit = {
@@ -216,23 +217,14 @@ private final class Http1Connection(val requestKey: RequestKey,
               ({ () => trailers.set(parser.getHeaders()) }, attrs)
             }
             else ({ () => () }, AttributeMap.empty)
-
           if (parser.contentComplete()) {
             trailerCleanup(); cleanup()
             attributes -> rawBody
           } else {
-            attributes -> rawBody.onHalt {
-              case End => Process.eval_(Task{ trailerCleanup(); cleanup(); }(executor))
-
-              case c => Process.await(Task {
-                logger.debug(c.asThrowable)("Response body halted. Closing connection.")
-                stageShutdown()
-              }(executor))(_ => Halt(c))
-            }
+            attributes -> rawBody.onFinalize( Stream.eval_(Task{ trailerCleanup(); cleanup(); stageShutdown() } ).run )
           }
         }
-
-        cb(Left(
+        cb(Right(
           Response(status = status,
             httpVersion = httpVersion,
             headers = headers,
@@ -255,8 +247,8 @@ private final class Http1Connection(val requestKey: RequestKey,
     val minor = getHttpMinor(req)
 
       // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
-    if (minor == 0 && !req.body.isHalt && `Content-Length`.from(req.headers).isEmpty) {
-      logger.warn(s"Request ${req.copy(body = halt)} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
+    if (minor == 0 && `Content-Length`.from(req.headers).isEmpty) {
+      logger.warn(s"Request ${req} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
       validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.1`))
     }
       // Ensure we have a host header for HTTP/1.1
@@ -269,7 +261,7 @@ private final class Http1Connection(val requestKey: RequestKey,
         }
         validateRequest(req.copy(uri = req.uri.copy(authority = Some(newAuth))))
       }
-      else if (req.body.isHalt || `Content-Length`.from(req.headers).nonEmpty) {  // translate to HTTP/1.0
+      else if ( `Content-Length`.from(req.headers).nonEmpty) {  // translate to HTTP/1.0
         validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.0`))
       } else {
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
@@ -279,7 +271,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     else Right(req) // All appears to be well
   }
 
-  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter =
+  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): EntityBodyWriter =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
 }
 
