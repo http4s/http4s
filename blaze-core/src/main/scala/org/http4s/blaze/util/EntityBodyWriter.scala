@@ -51,7 +51,7 @@ trait EntityBodyWriter {
     val writeBodyEnd : Task[Boolean] = Task.fromFuture(writeEnd(Chunk.empty))
     writeBody >> writeBodyEnd
   }
-
+  
   /** Writes each of the body chunks, if the write fails it returns
     * the failed future which throws an error.
     * If it errors the error stream becomes the stream, which performs an

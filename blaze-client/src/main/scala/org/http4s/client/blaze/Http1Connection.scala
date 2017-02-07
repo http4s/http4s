@@ -132,18 +132,20 @@ private final class Http1Connection(val requestKey: RequestKey,
 
         val mustClose = H.Connection.from(req.headers) match {
           case Some(conn) => checkCloseConnection(conn, rr)
-          case None       => getHttpMinor(req) == 0
+          case None => getHttpMinor(req) == 0
         }
 
         val bodyTask = getChunkEncoder(req, mustClose, rr)
           .writeEntityBody(req.body)
-          .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
+          .handle { case EOF => false }
+        // If we get a pipeline closed, we might still be good. Check response
         val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
-        bodyTask.flatMap(_ => respTask )
+        bodyTask.flatMap { _ => respTask
           .handleWith { case t =>
             fatalError(t, "Error executing request")
             Task.fail(t)
           }
+        }
       }
     }
   }

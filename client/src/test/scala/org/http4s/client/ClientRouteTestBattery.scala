@@ -91,10 +91,8 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     }
 
     val os = srv.getOutputStream
-    resp.body.flatMap { body =>
-      os.write(Array(body))
-      os.flush()
-      Stream.empty.asInstanceOf[Stream[Task, Unit]]
+    resp.body.evalMap[Task, Task, Unit]{ body =>
+      Task.now(os.write(Array(body))) >> Task.now(os.flush())
     }.run.unsafeRun()
   }
 
