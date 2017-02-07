@@ -1,4 +1,6 @@
-package org.http4s.client.blaze
+package org.http4s
+package client
+package blaze
 
 import java.security.{NoSuchAlgorithmException, SecureRandom}
 import java.security.cert.X509Certificate
@@ -30,8 +32,7 @@ private[blaze] object bits {
     case Some(exec) => (exec, Task.now(()))
     case None =>
       val exec = DefaultExecutor.newClientDefaultExecutorService("blaze-client")
-      implicit val strategy = Strategy.fromExecutor(exec)
-      (exec, Task { exec.shutdown() })
+      (exec, Task.delay{ exec.shutdown() })
   }
 
   /** The sslContext which will generate SSL engines for the pipeline

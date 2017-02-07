@@ -1,5 +1,6 @@
 package org.http4s
 package client
+package blaze
 
 
 

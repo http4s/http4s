@@ -1,4 +1,6 @@
-package org.http4s.client.blaze
+package org.http4s
+package client
+package blaze
 
 import scala.concurrent.duration._
 import fs2._
@@ -8,6 +10,8 @@ import org.http4s._
 // TODO: this should have a more comprehensive test suite
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
   private val timeout = 30.seconds
+
+  implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
 
   private val simpleClient = SimpleHttp1Client()
 
@@ -34,9 +38,9 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
 
     "Repeat a simple https request" in {
       val amtRequests = 10
-      val f : Seq[Task[Int]] = List.fill(amtRequests)(()).map{ _ =>
-          val resp = fetchBody.run(uri("https://github.com/"))
-          resp.map(_.length)
+      val f: Seq[Task[Int]] = List.fill(amtRequests)(()).map { _ =>
+        val resp = fetchBody.run(uri("https://github.com/"))
+        resp.map(_.length)
       }
 
       foreach(f){ _.unsafeRunFor(timeout) mustNotEqual 0 }

@@ -35,7 +35,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
                                config.maxChunkSize, config.lenientParser)
 
-  implicit private val strategy = Strategy.fromExecutionContext(ec)
+  implicit private val strategy = Strategy.fromExecutor(executor)
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
@@ -177,11 +177,11 @@ private final class Http1Connection(val requestKey: RequestKey,
         val httpVersion = parser.getHttpVersion()
 
         // we are now to the body
-        def terminationCondition() = stageState.get match {  // if we don't have a length, EOF signals the end of the body.
-          case Error(e) if e != EOF => e
+        def terminationCondition(): Either[Throwable, Option[Chunk[Byte]]] = stageState.get match {  // if we don't have a length, EOF signals the end of the body.
+          case Error(e) if e != EOF => Left(e)
           case _ =>
-//            if (parser.definedContentLength() || parser.isChunked()) InvalidBodyException("Received premature EOF.")
-            InvalidBodyException("Received premature EOF.")
+            if (parser.definedContentLength() || parser.isChunked()) Left(InvalidBodyException("Received premature EOF."))
+            else Right(None)
         }
 
         def cleanup(): Unit = {

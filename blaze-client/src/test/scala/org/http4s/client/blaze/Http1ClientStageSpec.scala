@@ -50,7 +50,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       for {
         resp <- stage.runRequest(req)
         t    <- f(resp)
-        _    <- Task.now{ stage.shutdown() }
+        _    <- Task.delay{ stage.shutdown() }
       } yield t
     }
 

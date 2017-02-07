@@ -74,13 +74,11 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Request timeout on slow POST body" in {
 
-      implicit val strategy = Strategy.fromExecutor(es)
-
       def dataStream(n: Int): EntityBody = {
-        implicit val defaultSecheduler = Scheduler.fromFixedDaemonPool(2)
+        implicit val defaultScheduler = Scheduler.fromFixedDaemonPool(2)
         val interval = 1000.millis
         time.awakeEvery(interval)
-          .map(_ => "".toByte)
+          .map(_ => "1".toByte)
           .take(n.toLong)
       }
 
@@ -96,13 +94,11 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Idle timeout on slow POST body" in {
 
-      implicit val strategy = Strategy.fromExecutor(es)
-
       def dataStream(n: Int): EntityBody = {
-        implicit val defaultSecheduler = Scheduler.fromFixedDaemonPool(2)
+        implicit val defaultScheduler = Scheduler.fromFixedDaemonPool(2)
         val interval = 2.seconds
         time.awakeEvery(interval)
-          .map(_ => "".toByte)
+          .map(_ => "1".toByte)
           .take(n.toLong)
       }
 
@@ -122,7 +118,7 @@ class ClientTimeoutSpec extends Http4sSpec {
         implicit val defaultSecheduler = Scheduler.fromFixedDaemonPool(2)
         val interval = 100.millis
         time.awakeEvery(interval)
-          .map(_ => "".toByte)
+          .map(_ => "1".toByte)
           .take(n.toLong)
       }
 
