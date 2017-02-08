@@ -71,7 +71,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).onFinalize(Task.delay(clean = true))
+      val p = chunk(messageBuffer).covary[Task].onFinalize[Task]( Task.delay(clean = true) )
       writeEntityBody(p.covary[Task])(builder) must_== "Content-Length: 12\r\n\r\n" + message
       clean must_== true
     }
@@ -190,7 +190,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).onFinalize {
+      val p = chunk(messageBuffer).onFinalize[Task] {
         Task.delay(clean = true)
       }
       writeEntityBody(p)(builder) must_==
