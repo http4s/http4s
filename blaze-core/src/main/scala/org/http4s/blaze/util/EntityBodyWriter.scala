@@ -2,10 +2,8 @@ package org.http4s
 package blaze
 package util
 
-import scala.annotation.tailrec
 import scala.concurrent._
 import scala.util._
-
 import fs2._
 import fs2.Stream._
 import org.http4s.batteries._
@@ -42,22 +40,28 @@ trait EntityBodyWriter {
 
   /** Creates a Task that writes the contents of the EntityBody to the output.
     * Cancelled exceptions fall through to the Task cb
+    * The writeBodyEnd triggers if there are no exceptions, and the result will
+    * be the result of the writeEnd call.
     *
     * @param p EntityBody to write out
     * @return the Task which when run will unwind the Process
     */
   def writeEntityBody(p: EntityBody): Task[Boolean] = {
-    // TODO fs2 port suboptimal vs. scalaz-stream version
-    // TODO fs2 port onError is "not for resource cleanup".  This still feels wrong.
-    val write = (p through sink).onError { e =>
-      eval(futureToTask(exceptionFlush)).flatMap(_ => fail(e))
-    } ++ eval(futureToTask[Boolean](writeEnd(Chunk.empty)))
-    write.runLast.map(_.getOrElse(false))
+    val writeBody : Task[Unit] = (p to writeSink).run
+    val writeBodyEnd : Task[Boolean] = futureToTask(writeEnd(Chunk.empty))
+    writeBody >> writeBodyEnd
   }
 
-  private val sink: Pipe[Task, Byte, Boolean] = { s =>
-    // TODO fs2 port a Pipe instead of a sink, and a map true, for type inference issues
-    // This is silly, but I'm racing toward something that compiles
-    s.chunks.evalMap(chunk => futureToTask(writeBodyChunk(chunk, false)).map(_ => true))
+  /** Writes each of the body chunks, if the write fails it returns
+    * the failed future which throws an error.
+    * If it errors the error stream becomes the stream, which performs an
+    * exception flush and then the stream fails.
+    */
+  private val writeSink: Sink[Task, Byte] = { s =>
+    val writeStream : Stream[Task, Unit] = s.chunks.evalMap[Task, Task, Unit](chunk =>
+      futureToTask(writeBodyChunk(chunk , false)))
+    val errorStream : Throwable => Stream[Task, Unit] = e =>
+      Stream.eval(futureToTask(exceptionFlush())).flatMap{_ => fail(e)}
+    writeStream.onError(errorStream)
   }
 }
