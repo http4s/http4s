@@ -30,4 +30,11 @@ trait TaskFunctions {
   }
 }
 
-object task extends TaskFunctions
+object task extends TaskFunctions {
+  implicit class TaskToFutureConverter[A](task: Task[A]){
+    def unsafeToFuture : Future[A] = unsafeTaskToFuture[A](task)
+  }
+  implicit class FutureToTaskConverter[A](future: => Future[A])(implicit ec: ExecutionContext) {
+    def toTask : Task[A] = futureToTask(future)(ec)
+  }
+}
