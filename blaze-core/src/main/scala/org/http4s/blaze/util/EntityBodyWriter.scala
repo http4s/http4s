@@ -40,6 +40,8 @@ trait EntityBodyWriter {
 
   /** Creates a Task that writes the contents of the EntityBody to the output.
     * Cancelled exceptions fall through to the Task cb
+    * The writeBodyEnd triggers if there are no exceptions, and the result will
+    * be the result of the writeEnd call.
     *
     * @param p EntityBody to write out
     * @return the Task which when run will unwind the Process
@@ -50,6 +52,11 @@ trait EntityBodyWriter {
     writeBody >> writeBodyEnd
   }
 
+  /** Writes each of the body chunks, if the write fails it returns
+    * the failed future which throws an error.
+    * If it errors the error stream becomes the stream, which performs an
+    * exception flush and then the stream fails.
+    */
   private val writeSink: Sink[Task, Byte] = { s =>
     val writeStream : Stream[Task, Unit] = s.chunks.evalMap[Task, Task, Unit](chunk =>
       futureToTask(writeBodyChunk(chunk , false)))
