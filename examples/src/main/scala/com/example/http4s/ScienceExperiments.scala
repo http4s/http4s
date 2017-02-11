@@ -3,11 +3,13 @@ package com.example.http4s
 import java.time.Instant
 
 import org.http4s._
+import org.http4s.circe._
 import org.http4s.dsl._
 import org.http4s.headers.Date
 import org.http4s.scalaxml._
-import scodec.bits.ByteVector
 
+import io.circe._
+import io.circe.syntax._
 import scala.xml.Elem
 import scala.concurrent.duration._
 import scalaz.{Reducer, Monoid}
@@ -16,6 +18,7 @@ import scalaz.stream.Process
 import scalaz.stream.Process._
 import scalaz.stream.text.utf8Encode
 import scalaz.stream.time.awakeEvery
+import scodec.bits.ByteVector
 
 /** These are routes that we tend to use for testing purposes
   * and will likely get folded into unit tests later in life */
@@ -140,5 +143,11 @@ object ScienceExperiments {
     case req @ GET -> Root / "black-knight" / _ =>
       // The servlet examples hide this.
       InternalServerError("Tis but a scratch")
+
+    case req @ POST -> Root / "echo-json" =>
+      req.as[Json].flatMap(Ok(_))
+
+    case req @ POST -> Root / "dont-care" =>
+      throw new InvalidMessageBodyFailure("lol, I didn't even read it")
   }
 }

@@ -83,7 +83,15 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response = Task.fork(serviceFn(request))(threadPool)
+    val response = Task.fork {
+      try serviceFn(request).handleWith {
+        // Handle message failures coming out of the service as failed tasks
+        case mf: MessageFailure => mf.toHttpResponse(request.httpVersion)
+      } catch {
+        // Handle message failures _thrown_ by the service, just in case
+        case mf: MessageFailure => mf.toHttpResponse(request.httpVersion)
+      }
+    }(threadPool)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }
