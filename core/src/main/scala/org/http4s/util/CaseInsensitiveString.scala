@@ -19,12 +19,14 @@ sealed class CaseInsensitiveString private (val value: String)
   private[this] var hash = 0
   override def hashCode(): Int = {
     if (hash == 0) {
+      var h = 0
       var i = 0
       val len = value.length
       while (i < len) {
-        hash = hash * 31 + Character.toLowerCase(value.charAt(i))
+        h = h * 31 + Character.toLowerCase(value.charAt(i))
         i += 1
       }
+      hash = h
     }
     hash
   }
