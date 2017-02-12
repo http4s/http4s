@@ -9,7 +9,7 @@ import org.http4s.blaze.pipeline.{Command => Cmd, TailStage}
 import org.http4s.blaze.util.BodylessWriter
 import org.http4s.blaze.util.Execution._
 import org.http4s.blaze.util.BufferTools.emptyBuffer
-import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
+import org.http4s.blaze.http.parser.BaseExceptions.{BadRequest, ParserException}
 
 import org.http4s.util.StringWriter
 import org.http4s.syntax.string._
