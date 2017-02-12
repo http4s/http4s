@@ -23,9 +23,6 @@ import org.http4s.blaze.pipeline._
 class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Boolean)
                     (implicit protected val ec: ExecutionContext) extends EntityBodyWriter {
 
-  private implicit lazy val strategy: Strategy =
-    Strategy.fromExecutionContext(ec)
-
   private lazy val doneFuture = Future.successful( () )
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
