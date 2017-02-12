@@ -13,6 +13,6 @@ object SimpleHttp1Client {
     val (ex, shutdown) = bits.getExecutor(config)
 
     val manager = ConnectionManager.basic(Http1Support(config, ex))
-    BlazeClient(manager, config, manager.shutdown())
+    BlazeClient(manager, config, manager.shutdown().flatMap(_ =>shutdown))
   }
 }

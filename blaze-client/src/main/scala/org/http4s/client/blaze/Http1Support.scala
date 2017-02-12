@@ -5,19 +5,16 @@ package blaze
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
-
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.syntax.string._
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
+import scala.util.Try
 import fs2.{Strategy, Task}
 import cats.implicits._
-
-import scala.util.Try
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]

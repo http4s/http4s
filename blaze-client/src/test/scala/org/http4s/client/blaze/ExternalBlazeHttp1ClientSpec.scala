@@ -1,6 +1,4 @@
-package org.http4s
-package client
-package blaze
+package org.http4s.client.blaze
 
 import scala.concurrent.duration._
 import fs2._
@@ -42,7 +40,6 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
         val resp = fetchBody.run(uri("https://github.com/"))
         resp.map(_.length)
       }
-
       foreach(f){ _.unsafeRunFor(timeout) mustNotEqual 0 }
     }
   }

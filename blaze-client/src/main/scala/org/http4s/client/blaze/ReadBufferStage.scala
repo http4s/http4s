@@ -1,6 +1,4 @@
-package org.http4s
-package client
-package blaze
+package org.http4s.client.blaze
 
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution

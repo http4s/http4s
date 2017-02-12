@@ -1,7 +1,6 @@
-package org.http4s
-package client
-package blaze
+package org.http4s.client.blaze
 
 import org.http4s.client.ClientRouteTestBattery
 
-class BlazeSimpleHttp1ClientSpec extends ClientRouteTestBattery("SimpleHttp1Client", SimpleHttp1Client(BlazeClientConfig.defaultConfig))
+class BlazeSimpleHttp1ClientSpec extends
+ClientRouteTestBattery("SimpleHttp1Client", SimpleHttp1Client(BlazeClientConfig.defaultConfig))

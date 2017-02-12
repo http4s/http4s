@@ -14,7 +14,6 @@ import scala.concurrent.duration._
 import fs2._
 import fs2.Task._
 
-
 class ClientTimeoutSpec extends Http4sSpec {
 
   val ec = scala.concurrent.ExecutionContext.global

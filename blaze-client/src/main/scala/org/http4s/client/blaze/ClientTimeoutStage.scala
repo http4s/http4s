@@ -1,6 +1,4 @@
-package org.http4s
-package client
-package blaze
+package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException

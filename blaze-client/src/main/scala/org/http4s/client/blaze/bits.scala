@@ -1,6 +1,4 @@
-package org.http4s
-package client
-package blaze
+package org.http4s.client.blaze
 
 import java.security.{NoSuchAlgorithmException, SecureRandom}
 import java.security.cert.X509Certificate
@@ -11,12 +9,9 @@ import org.http4s.BuildInfo
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.client.impl.DefaultExecutor
-import org.http4s.util.threads
 
 import scala.concurrent.duration._
-import scala.math.max
 import fs2.Task
-import fs2.Strategy
 
 private[blaze] object bits {
   // Some default objects
