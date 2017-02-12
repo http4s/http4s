@@ -8,8 +8,13 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
+<<<<<<< HEAD
 http4sVersion in ThisBuild := VersionNumber("0.16.0-SNAPSHOT")
 
+=======
+version      in ThisBuild := scalazCrossBuild("0.15.5-SNAPSHOT", scalazVersion.value)
+apiVersion   in ThisBuild := version.map(extractApiVersion).value
+>>>>>>> release-0.15.x
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
