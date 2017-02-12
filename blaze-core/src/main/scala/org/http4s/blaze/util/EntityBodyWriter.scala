@@ -7,12 +7,12 @@ import scala.util._
 import fs2._
 import fs2.Stream._
 import org.http4s.batteries._
-import org.http4s.util.task._
 
 trait EntityBodyWriter {
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
   implicit protected def ec: ExecutionContext
+  implicit val strategy : Strategy = Strategy.fromExecutionContext(ec)
 
   /** Write a ByteVector to the wire.
     * If a request is cancelled, or the stream is closed this method should
@@ -48,7 +48,7 @@ trait EntityBodyWriter {
     */
   def writeEntityBody(p: EntityBody): Task[Boolean] = {
     val writeBody : Task[Unit] = (p to writeSink).run
-    val writeBodyEnd : Task[Boolean] = futureToTask(writeEnd(Chunk.empty))
+    val writeBodyEnd : Task[Boolean] = Task.fromFuture(writeEnd(Chunk.empty))
     writeBody >> writeBodyEnd
   }
 
@@ -59,9 +59,9 @@ trait EntityBodyWriter {
     */
   private val writeSink: Sink[Task, Byte] = { s =>
     val writeStream : Stream[Task, Unit] = s.chunks.evalMap[Task, Task, Unit](chunk =>
-      futureToTask(writeBodyChunk(chunk , false)))
+      Task.fromFuture(writeBodyChunk(chunk , false)))
     val errorStream : Throwable => Stream[Task, Unit] = e =>
-      Stream.eval(futureToTask(exceptionFlush())).flatMap{_ => fail(e)}
+      Stream.eval(Task.fromFuture(exceptionFlush())).flatMap{_ => fail(e)}
     writeStream.onError(errorStream)
   }
 }
