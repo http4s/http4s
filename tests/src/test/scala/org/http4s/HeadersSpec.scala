@@ -2,9 +2,8 @@ package org.http4s
 
 import org.http4s.batteries._
 import org.http4s.headers._
-import org.specs2.mutable.Specification
 
-class HeadersSpec extends Specification {
+class HeadersSpec extends Http4sSpec {
 
   val clength = `Content-Length`(10)
   val raw = Header.Raw("raw-header".ci, "Raw value")

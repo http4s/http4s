@@ -1,8 +1,5 @@
 package org.http4s
 
-import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
-import org.specs2.mutable.Specification
-
 import Uri.Authority
 import Uri.IPv4
 import Uri.IPv6
@@ -20,7 +17,7 @@ import UriTemplate.ReservedExp
 import UriTemplate.SimpleFragmentExp
 import UriTemplate.VarExp
 
-object UriTemplateSpec extends Specification {
+object UriTemplateSpec extends Http4sSpec {
 
   "UriTemplate" should {
     "render /" in {

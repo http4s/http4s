@@ -27,14 +27,16 @@ or you could use the URLTemplates.
 Use the methods on the [uri class].
 
 ```tut:book
-val docs = uri.withPath("/docs/0.15/")
+val docs = uri.withPath("/docs/0.15")
+val docs2 = uri / "docs" / "0.15"
+assert(docs == docs2)
 ```
 
 ### URI Template
 
 ```tut:book
-import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
 import org.http4s.UriTemplate._
+import org.http4s.syntax.string._
 
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName("http4s.org"))),
@@ -47,7 +49,8 @@ template.toUriIfPossible
 
 ## Receiving URIs
 URIs come in as strings from external routes or as data. Http4s provides
-encoders/decoders for `Uri` in the connector packages.
+encoders/decoders for `Uri` in the connector packages. If you want to build your
+own, use [`Uri.fromString`].
 
 For example one for [knobs]:
 
@@ -58,3 +61,4 @@ implicit val configuredUri = Configured[String].flatMap(s => Configured(_ => Uri
 [play http client]: https://www.playframework.com/documentation/2.5.x/api/scala/index.html#play.api.libs.ws.WS$
 [uri class]: ../api/#org.http4s.Uri
 [knobs]: https://github.com/Verizon/knobs
+[`Uri.fromString`]: ../api/index.html#org.http4s.Uri$@fromString(s:String):org.http4s.ParseResult[org.http4s.Uri]

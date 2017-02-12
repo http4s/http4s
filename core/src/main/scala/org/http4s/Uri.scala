@@ -11,8 +11,6 @@ import org.http4s.Uri._
 import org.http4s.batteries._
 import org.http4s.parser._
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
-import org.http4s.util.string.ToCaseInsensitiveStringSyntax
-import org.http4s.util.option.ToOptionOps
 
 
 /** Representation of the [[Request]] URI
@@ -215,7 +213,7 @@ trait UriFunctions {
       case (Uri(s,a,p,q,_),  Uri(_,_,"",Query.empty,f)) => Uri(s,a,p,q,f)
       case (Uri(s,a,p,_,_),  Uri(_,_,"",q,f))           => Uri(s,a,p,q,f)
       case (Uri(s,a,bp,_,_), Uri(_,_,p,q,f)) =>
-        if (p.headOption.contains('/')) Uri(s,a,p,q,f)
+        if (p.headOption.fold(false)(_ == '/')) Uri(s,a,p,q,f)
         else Uri(s,a,merge(bp,p),q,f)
     }
 

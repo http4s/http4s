@@ -4,7 +4,7 @@ package headers
 import cats.data.NonEmptyList
 import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.{Writer, CaseInsensitiveString}
+import org.http4s.util.{CaseInsensitiveString, Writer}
 
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive

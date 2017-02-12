@@ -33,10 +33,10 @@ the wrapped service like this.
 
 ```tut:book
 def myMiddle(service: HttpService, header: Header): HttpService = Service.lift { req =>
-  service(req).map {resp =>
-    if (resp.status.isSuccess)
+  service(req).map {
+    case Status.Successful(resp) =>
       resp.putHeaders(header)
-    else
+    case resp =>
       resp
   }
 }
@@ -83,9 +83,11 @@ it as an `object` and use the `apply` method.
 
 ```tut:book
 object MyMiddle {
-  def addHeader(resp: Response, header: Header) =
-    if (resp.status.isSuccess) resp.putHeaders(header)
-    else resp
+  def addHeader(mResp: MaybeResponse, header: Header) =
+    mResp match {
+      case Status.Successful(resp) => resp.putHeaders(header)
+      case resp => resp
+    }
 
   def apply(service: HttpService, header: Header) =
     service.map(addHeader(_, header))

@@ -10,7 +10,7 @@ import org.http4s.CacheDirective.`min-fresh`
 import org.http4s.CacheDirective.`max-age`
 import org.http4s.CacheDirective.`private`
 import scala.concurrent.duration._
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] {
   def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)

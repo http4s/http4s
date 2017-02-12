@@ -62,4 +62,10 @@ package object util {
   private[http4s] def tryCatchNonFatal[A](f: => A): Attempt[A] =
     try Right(f)
     catch { case NonFatal(t) => Left(t) }
+
+  @deprecated("Moved to org.http4s.syntax.StringOps", "0.16")
+  type CaseInsensitiveStringOps = org.http4s.syntax.StringOps
+
+  @deprecated("Moved to org.http4s.syntax.StringSyntax", "0.16")
+  type CaseInsensitiveStringSyntax = org.http4s.syntax.StringSyntax
 }

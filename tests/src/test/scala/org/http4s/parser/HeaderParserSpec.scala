@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import util.CaseInsensitiveString._
+import org.http4s.syntax.string._
 
 import org.specs2.mutable.Specification
 

@@ -5,7 +5,7 @@ protected[http4s] trait Batteries0 extends AnyRef
     with cats.instances.AllInstances
     with fs2.interop.cats.Instances
     with util.ByteChunkSyntax
-    with util.CaseInsensitiveStringSyntax
+    with syntax.StringSyntax
     with util.ChunkInstances
     with util.NonEmptyListSyntax
 {

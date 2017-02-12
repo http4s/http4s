@@ -2,7 +2,7 @@ package org.http4s
 package client
 
 import org.http4s.Uri.{Authority, Scheme}
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 /** Represents a key for requests that can conceivably share a [[Connection]]. */
 final case class RequestKey(scheme: Scheme, authority: Authority)

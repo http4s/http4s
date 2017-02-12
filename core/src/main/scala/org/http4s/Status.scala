@@ -20,11 +20,11 @@ import org.http4s.util.Renderable
 final case class Status private (code: Int)(val reason: String = "", val isEntityAllowed: Boolean = true) extends Ordered[Status] with Renderable {
   // scalastyle:off magic.number
   val responseClass: ResponseClass =
-    if (code < 200) ResponseClass.Informational
-    else if (code < 300) ResponseClass.Successful
-    else if (code < 400) ResponseClass.Redirection
-    else if (code < 500) ResponseClass.ClientError
-    else ResponseClass.ServerError
+    if (code < 200) Status.Informational
+    else if (code < 300) Status.Successful
+    else if (code < 400) Status.Redirection
+    else if (code < 500) Status.ClientError
+    else Status.ServerError
   // scalastyle:on magic.number
 
   def compare(that: Status): Int = code - that.code
@@ -50,12 +50,23 @@ object Status {
       if (resp.status.responseClass == this) Some(resp) else None
   }
 
+  case object Informational extends ResponseClass { val isSuccess = true }
+  case object Successful extends ResponseClass { val isSuccess = true }
+  case object Redirection extends ResponseClass { val isSuccess = true }
+  case object ClientError extends ResponseClass { val isSuccess = false }
+  case object ServerError extends ResponseClass { val isSuccess = false }
+
   object ResponseClass {
-    case object Informational extends ResponseClass { val isSuccess = true }
-    case object Successful extends ResponseClass { val isSuccess = true }
-    case object Redirection extends ResponseClass { val isSuccess = true }
-    case object ClientError extends ResponseClass { val isSuccess = false }
-    case object ServerError extends ResponseClass { val isSuccess = false }
+    @deprecated("Moved to org.http4s.Status.Informational", "0.16")
+    val Informational = Status.Informational
+    @deprecated("Moved to org.http4s.Status.Successful", "0.16")
+    val Successful = Status.Successful
+    @deprecated("Moved to org.http4s.Status.Redirection", "0.16")
+    val Redirection = Status.Informational
+    @deprecated("Moved to org.http4s.Status.ClientError", "0.16")
+    val ClientError = Status.Informational
+    @deprecated("Moved to org.http4s.Status.ServerError", "0.16")
+    val ServerError = Status.Informational
   }
 
   private def mkStatus(code: Int, reason: String = ""): ParseResult[Status] =

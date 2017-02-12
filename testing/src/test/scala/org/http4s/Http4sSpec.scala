@@ -18,7 +18,7 @@ import org.http4s.testing._
 import org.specs2.ScalaCheck
 import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
-import org.specs2.matcher._
+import org.specs2.matcher.{TaskMatchers => _, _}
 import org.specs2.mutable.Specification
 import org.specs2.specification.dsl.FragmentsDsl
 import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
@@ -51,11 +51,6 @@ trait Http4sSpec extends Specification
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
-  }
-
-  implicit class HttpServiceSyntax(service: HttpService) {
-    def orNotFound(req: Request): Task[Response] =
-      service.run(req).map(_.orNotFound)
   }
 
   /** This isn't really ours to provide publicly in implicit scope */

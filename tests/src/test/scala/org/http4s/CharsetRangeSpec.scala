@@ -1,12 +1,20 @@
 package org.http4s
 
+import scala.concurrent.duration._
+
 import cats.kernel.laws._
 import org.http4s.CharsetRange._
+import org.http4s.testing.ThreadDumpOnTimeout
 import org.scalacheck._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Prop._
 
-class CharsetRangeSpec extends Http4sSpec {
+class CharsetRangeSpec extends Http4sSpec with ThreadDumpOnTimeout {
+
+  // wait for completion in 200ms intervals
+  override def triggerThreadDumpAfter = 4.seconds
+  override def slices = 20
+
   "*" should {
     "be satisfied by any charset when q > 0" in {
       prop { (range: CharsetRange.`*`, cs: Charset) =>

@@ -24,7 +24,7 @@ import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 
 import Header.Parsed
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 
 
 object HttpHeaderParser extends SimpleHeaders

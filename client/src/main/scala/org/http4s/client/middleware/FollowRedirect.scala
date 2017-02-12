@@ -4,7 +4,7 @@ package middleware
 
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.util.string._
+import org.http4s.syntax.string._
 import fs2._
 
 /**

@@ -21,7 +21,8 @@ import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.util.StringWriter
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.syntax.string._
+import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 
 private object Http1ServerStage {
 
@@ -111,11 +112,14 @@ private class Http1ServerStage(service: HttpService,
 
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
-        serviceFn(req).unsafeRunAsync {
+        (try serviceFn(req).handleWith {
+          case mf: MessageFailure => mf.toHttpResponse(req.httpVersion)
+        } catch {
+          case mf: MessageFailure => mf.toHttpResponse(req.httpVersion)
+        }).unsafeRunAsync {
           case Right(resp) => renderResponse(req, resp, cleanup)
-          case Left(t) => internalServerError(s"Error running route: $req", t, req, cleanup)
+          case Left(t)     => internalServerError(s"Error running route: $req", t, req, cleanup)
         }
-
       case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
     }
   }

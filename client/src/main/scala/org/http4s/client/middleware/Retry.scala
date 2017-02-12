@@ -25,7 +25,7 @@ object Retry {
     GatewayTimeout
   )
 
-  def apply(backoff: Int => Option[FiniteDuration])(client: Client) = {
+  def apply(backoff: Int => Option[FiniteDuration])(client: Client): Client = {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form

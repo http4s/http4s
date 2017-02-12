@@ -4,7 +4,7 @@ package client
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import org.http4s.Status.ResponseClass.Successful
+import org.http4s.Status.Successful
 
 import scala.util.control.NoStackTrace
 import java.io.IOException
