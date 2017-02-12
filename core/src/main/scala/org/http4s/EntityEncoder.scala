@@ -91,7 +91,8 @@ trait EntityEncoderInstances0 {
 
   implicit def futureEncoder[A](implicit W: EntityEncoder[A], ec: ExecutionContext): EntityEncoder[Future[A]] =
     new EntityEncoder[Future[A]] {
-      override def toEntity(a: Future[A]): Task[Entity] = util.task.futureToTask(a).flatMap(W.toEntity)
+      implicit val strategy : Strategy = Strategy.fromExecutionContext(ec)
+      override def toEntity(a: Future[A]): Task[Entity] = Task.fromFuture(a).flatMap(W.toEntity)
       override def headers: Headers = W.headers
     }
 
