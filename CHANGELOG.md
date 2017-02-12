@@ -1,4 +1,9 @@
-# v0.15.3 (2016-01-17)
+# v0.15.4 (2017-02-12)
+* Call `toHttpResponse` on tasks failed with `MessageFailure`s from
+  `HttpService`, to get proper 4xx handling instead of an internal
+  server error.
+
+# v0.15.3 (2017-01-17)
 * Dispose of redirect responses in `FollowRedirect`. Fixes client deadlock under heavy load
 * Refrain from logging headers with potentially sensitive info in blaze-client
 * Add `hashCode` and `equals` to `Headers`
