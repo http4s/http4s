@@ -7,9 +7,9 @@ import java.time.Instant
 
 import org.http4s.headers.{`Transfer-Encoding`, Date, `Content-Length`}
 import org.http4s.{headers => H, _}
-import org.http4s.Status._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
+import org.http4s.dsl._
 import org.specs2.specification.core.Fragment
 
 import scala.concurrent.{Await, Future}
@@ -79,8 +79,10 @@ class Http1ServerStageSpec extends Http4sSpec {
 
   "Http1ServerStage: Errors" should {
     val exceptionService = HttpService {
-      case r if r.uri.path == "/sync" => sys.error("Synchronous error!")
-      case r if r.uri.path == "/async" => Task.fail(new Exception("Asynchronous error!"))
+      case GET -> Root / "sync" => sys.error("Synchronous error!")
+      case GET -> Root / "async" => Task.fail(new Exception("Asynchronous error!"))
+      case GET -> Root / "sync" / "422" => throw InvalidMessageBodyFailure("lol, I didn't even look")
+      case GET -> Root / "async" / "422" => Task.fail(new InvalidMessageBodyFailure("lol, I didn't even look"))
     }
 
     def runError(path: String) = runRequest(List(path), exceptionService)
@@ -93,17 +95,29 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Deal with synchronous errors" in {
       val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       val (s,c,_) = Await.result(runError(path), 10.seconds)
-
       s must_== InternalServerError
       c must_== true
+    }
+
+    "Call toHttpResponse on synchronous errors" in {
+      val path = "GET /sync/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+      val (s,c,_) = Await.result(runError(path), 10.seconds)
+      s must_== UnprocessableEntity
+      c must_== false
     }
 
     "Deal with asynchronous errors" in {
       val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       val (s,c,_) = Await.result(runError(path), 10.seconds)
-
       s must_== InternalServerError
       c must_== true
+    }
+
+    "Call toHttpResponse on asynchronous errors" in {
+      val path = "GET /async/422 HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
+      val (s,c,_) = Await.result(runError(path), 10.seconds)
+      s must_== UnprocessableEntity
+      c must_== false
     }
   }
 
