@@ -8,7 +8,7 @@ import java.time.Instant
 import org.http4s.headers.{`Transfer-Encoding`, `Content-Length`}
 import org.http4s.{headers => H}
 import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
-import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
+import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util._
 import org.http4s.util.{Writer, StringWriter}
