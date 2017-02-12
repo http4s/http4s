@@ -8,14 +8,13 @@ import java.util.concurrent.ExecutorService
 
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.util.task
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.syntax.string._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import fs2.Task
+import fs2.{Strategy, Task}
 import cats.implicits._
 
 import scala.util.Try
@@ -40,13 +39,14 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
   import Http1Support._
 
   private val ec = ExecutionContext.fromExecutorService(executor)
+  private val strategy = Strategy.fromExecutionContext(ec)
   private val sslContext = config.sslContext.getOrElse(bits.sslContext)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): Task[BlazeConnection] = getAddress(requestKey) match {
-    case Right(a) => task.futureToTask(buildPipeline(requestKey, a))(ec)
+    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, ec)
     case Left(t) => Task.fail(t)
   }
 
