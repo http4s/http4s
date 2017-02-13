@@ -7,6 +7,7 @@ import java.nio.ByteBuffer
 
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.Http4sSpec.TestPool
 import bits.DefaultUserAgent
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
@@ -19,7 +20,7 @@ import fs2._
 class Http1ClientStageSpec extends Http4sSpec {
 
   val ec = org.http4s.blaze.util.Execution.trampoline
-  val es = impl.DefaultExecutor.newClientDefaultExecutorService("Http1ClientStageSpec")
+  val es = TestPool
 
   val www_foo_test = Uri.uri("http://www.foo.test")
   val FooRequest = Request(uri = www_foo_test)
@@ -221,16 +222,16 @@ class Http1ClientStageSpec extends Http4sSpec {
     }
 
     // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
-//    "Allow an HTTP/1.0 request without a Host header" in {
-//      val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
-//
-//      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
-//
-//      val (request, response) = getSubmission(req, resp)
-//
-//      request must not contain("Host:")
-//      response must_==("done")
-//    }
+    "Allow an HTTP/1.0 request without a Host header" in {
+      val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
+
+      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+
+      val (request, response) = getSubmission(req, resp)
+
+      request must not contain("Host:")
+      response must_==("done")
+    }.pendingUntilFixed
 
     "Support flushing the prelude" in {
       val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)

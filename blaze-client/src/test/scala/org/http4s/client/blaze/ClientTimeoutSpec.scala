@@ -13,12 +13,12 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 import fs2._
 import fs2.Task._
+import org.http4s.Http4sSpec.{TestPoolStrategy, TestPool, TestScheduler}
 
 class ClientTimeoutSpec extends Http4sSpec {
 
   val ec = scala.concurrent.ExecutionContext.global
-  val es = impl.DefaultExecutor.newClientDefaultExecutorService("Here")
-  implicit val strategy = Strategy.fromExecutor(es)
+  val es =  TestPool
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request(uri = www_foo_com)
@@ -74,7 +74,6 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Request timeout on slow POST body" in {
 
       def dataStream(n: Int): EntityBody = {
-        implicit val defaultScheduler = Scheduler.fromFixedDaemonPool(2)
         val interval = 1000.millis
         time.awakeEvery(interval)
           .map(_ => "1".toByte)
@@ -94,7 +93,6 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Idle timeout on slow POST body" in {
 
       def dataStream(n: Int): EntityBody = {
-        implicit val defaultScheduler = Scheduler.fromFixedDaemonPool(2)
         val interval = 2.seconds
         time.awakeEvery(interval)
           .map(_ => "1".toByte)
@@ -114,7 +112,6 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Not timeout on only marginally slow POST body" in {
 
       def dataStream(n: Int): EntityBody = {
-        implicit val defaultSecheduler = Scheduler.fromFixedDaemonPool(2)
         val interval = 100.millis
         time.awakeEvery(interval)
           .map(_ => "1".toByte)

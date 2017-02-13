@@ -9,8 +9,6 @@ import org.http4s._
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
   private val timeout = 30.seconds
 
-  implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
-
   private val simpleClient = SimpleHttp1Client()
 
   "Blaze Simple Http1 Client" should {

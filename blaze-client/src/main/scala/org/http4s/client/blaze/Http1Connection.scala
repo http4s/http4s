@@ -210,14 +210,14 @@ private final class Http1Connection(val requestKey: RequestKey,
           (AttributeMap.empty, EmptyBody)
         } else {
           // We are to the point of parsing the body and then cleaning up
-          val (rawBody, _): (EntityBody, () => Future[ByteBuffer] ) = collectBodyFromParser(buffer, terminationCondition _)
+          val (rawBody, _): (EntityBody, () => Future[ByteBuffer]) = collectBodyFromParser(buffer, terminationCondition _)
 
           // to collect the trailers we need a cleanup helper and a Task in the attribute map
           val (trailerCleanup, attributes) : (()=> Unit, AttributeMap) = {
             if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
-              val trailers: AtomicReference[Headers] = new AtomicReference(Headers.empty)
+              val trailers = new AtomicReference(Headers.empty)
 
-              val attrs: AttributeMap = AttributeMap.empty.put(Message.Keys.TrailerHeaders, Task.suspend {
+              val attrs = AttributeMap.empty.put(Message.Keys.TrailerHeaders, Task.suspend {
                 if (parser.contentComplete()) Task.now(trailers.get())
                 else Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
               })
