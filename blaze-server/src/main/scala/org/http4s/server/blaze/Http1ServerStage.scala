@@ -10,7 +10,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{Try, Success, Failure}
 import scala.util.{Either, Left, Right}
 
-import cats.data._
+import cats.syntax.either._
 import fs2._
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.Http1Stage
@@ -108,7 +108,7 @@ private class Http1ServerStage(service: HttpService,
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
-    val (body, cleanup) = collectBodyFromParser(buffer, () => Left(InvalidBodyException("Received premature EOF.")))
+    val (body, cleanup) = collectBodyFromParser(buffer, () => Either.left(InvalidBodyException("Received premature EOF.")))
 
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>

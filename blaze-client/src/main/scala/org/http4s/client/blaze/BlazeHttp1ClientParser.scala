@@ -5,6 +5,7 @@ import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
+import cats.syntax.either._
 
 /** http/1.x parser for the blaze client */
 private object BlazeHttp1ClientParser {
@@ -63,11 +64,11 @@ private final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
                                             scheme: String,
                                             majorversion: Int,
                                             minorversion: Int): Unit = {
-    status = Status.fromIntAndReason(code, reason).fold(fail => throw fail, status => status )
+    status = Status.fromIntAndReason(code, reason).valueOr(throw _)
     httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`
-      else HttpVersion.fromVersion(majorversion, minorversion).fold(_ => HttpVersion.`HTTP/1.0`, httpVersion => httpVersion)
+      else HttpVersion.fromVersion(majorversion, minorversion).getOrElse(HttpVersion.`HTTP/1.0`)
     }
   }
 

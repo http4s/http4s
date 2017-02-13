@@ -12,9 +12,8 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.syntax.string._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scala.util.Try
 import fs2.{Strategy, Task}
-import cats.implicits._
+import cats.syntax.either._
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
@@ -81,7 +80,7 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
       case RequestKey(s, auth) =>
         val port = auth.port getOrElse { if (s == Https) 443 else 80 }
         val host = auth.host.value
-        Either.fromTry(Try(new InetSocketAddress(host, port)))
+        Either.catchNonFatal(new InetSocketAddress(host, port))
     }
   }
 }
