@@ -37,12 +37,12 @@ object BlazeClient {
         ts.initialize()
 
         next.connection.runRequest(req).attempt.flatMap {
-          case \/-(r)  =>
+          case Right(r)  =>
             val dispose = Task.delay(ts.removeStage)
               .flatMap { _ => manager.release(next.connection) }
             Task.now(DisposableResponse(r, dispose))
 
-          case -\/(Command.EOF) =>
+          case Left(Command.EOF) =>
             invalidate(next.connection).flatMap { _ =>
               if (next.fresh) Task.fail(new java.io.IOException(s"Failed to connect to endpoint: $key"))
               else {
@@ -52,7 +52,7 @@ object BlazeClient {
               }
             }
 
-          case -\/(e) =>
+          case Left(e) =>
             invalidate(next.connection).flatMap { _ =>
               Task.fail(e)
             }

@@ -128,7 +128,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and `Command.EOF` as the end of the body while a server cannot.
     */
-  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Throwable): (EntityBody, () => Future[ByteBuffer]) = {
+  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Either[Throwable, Option[Chunk[Byte]]]): (EntityBody, () => Future[ByteBuffer]) = {
     if (contentComplete()) {
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
@@ -153,7 +153,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   }
 
   // Streams the body off the wire
-  private def streamingBody(buffer: ByteBuffer, eofCondition:() => Throwable): (EntityBody, () => Future[ByteBuffer]) = {
+  private def streamingBody(buffer: ByteBuffer, eofCondition:() => Either[Throwable, Option[Chunk[Byte]]]): (EntityBody, () => Future[ByteBuffer]) = {
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
@@ -177,7 +177,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                   go()
 
                 case Failure(Command.EOF) =>
-                  cb(left(eofCondition()))
+                  cb(eofCondition())
 
                 case Failure(t)   =>
                   logger.error(t)("Unexpected error reading body.")

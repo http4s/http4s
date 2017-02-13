@@ -2,14 +2,13 @@ package org.http4s
 package client
 
 import java.net.InetSocketAddress
+import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
-import org.specs2.specification.core.{ Fragments, Fragment }
+import org.specs2.specification.core.{Fragment, Fragments}
 import scala.concurrent.duration.FiniteDuration
 import fs2._
-import fs2.Task
-import fs2.Stream._
 
 abstract class ClientRouteTestBattery(name: String, client: Client)
   extends JettyScaffold(name) with GetRoutes
@@ -90,12 +89,13 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
       srv.addHeader(h.name.toString, h.value)
     }
 
-    val os = srv.getOutputStream
-    resp.body.flatMap { body =>
-      os.write(Array(body))
-      os.flush()
-      Stream.empty.asInstanceOf[Stream[Task, Unit]]
-    }.run.unsafeRun()
+    val os : ServletOutputStream = srv.getOutputStream
+
+    val writeBody : Task[Unit] = resp.body
+      .evalMap{ byte => Task.delay(os.write(Array(byte))) }
+      .run
+    val flushOutputStream : Task[Unit] = Task.delay(os.flush())
+    (writeBody >> flushOutputStream).unsafeRun()
   }
 
   private def collectBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun().toArray

@@ -11,15 +11,14 @@ import scodec.bits.ByteVector
 
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
-import scalaz.concurrent.{Strategy, Task}
-import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-import scalaz.stream.Process
-import scalaz.stream.time
+import fs2._
+import fs2.Task._
+import org.http4s.Http4sSpec.{TestPoolStrategy, TestPool, TestScheduler}
 
 class ClientTimeoutSpec extends Http4sSpec {
 
   val ec = scala.concurrent.ExecutionContext.global
-  val es = Strategy.DefaultExecutorService
+  val es =  TestPool
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request(uri = www_foo_com)
@@ -42,10 +41,10 @@ class ClientTimeoutSpec extends Http4sSpec {
 
   "Http1ClientStage responses" should {
     "Timeout immediately with an idle timeout of 0 seconds" in {
-      val c = mkClient(new SlowTestHead(List(mkBuffer(resp)), 0.seconds), 
+      val c = mkClient(new SlowTestHead(List(mkBuffer(resp)), 0.seconds),
                        mkConnection())(0.milli, Duration.Inf)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRun() must throwA[TimeoutException]
     }
 
     "Timeout immediately with a request timeout of 0 seconds" in {
@@ -53,7 +52,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds)
       val c = mkClient(h, tail)(Duration.Inf, 0.milli)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRun() must throwA[TimeoutException]
     }
 
     "Idle timeout on slow response" in {
@@ -61,7 +60,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRun() must throwA[TimeoutException]
     }
 
     "Request timeout on slow response" in {
@@ -69,17 +68,16 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRun() must throwA[TimeoutException]
     }
 
     "Request timeout on slow POST body" in {
 
       def dataStream(n: Int): EntityBody = {
-        implicit def defaultSecheduler = DefaultTimeoutScheduler
         val interval = 1000.millis
         time.awakeEvery(interval)
-          .map(_ => ByteVector.empty)
-          .take(n)
+          .map(_ => "1".toByte)
+          .take(n.toLong)
       }
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
@@ -89,17 +87,16 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
-      c.fetchAs[String](req).run must throwA[TimeoutException]
+      c.fetchAs[String](req).unsafeRun() must throwA[TimeoutException]
     }
 
     "Idle timeout on slow POST body" in {
 
       def dataStream(n: Int): EntityBody = {
-        implicit def defaultSecheduler = DefaultTimeoutScheduler
         val interval = 2.seconds
         time.awakeEvery(interval)
-          .map(_ => ByteVector.empty)
-          .take(n)
+          .map(_ => "1".toByte)
+          .take(n.toLong)
       }
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
@@ -109,17 +106,16 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 
-      c.fetchAs[String](req).run must throwA[TimeoutException]
+      c.fetchAs[String](req).unsafeRun() must throwA[TimeoutException]
     }
 
     "Not timeout on only marginally slow POST body" in {
 
       def dataStream(n: Int): EntityBody = {
-        implicit def defaultSecheduler = DefaultTimeoutScheduler
         val interval = 100.millis
         time.awakeEvery(interval)
-          .map(_ => ByteVector.empty)
-          .take(n)
+          .map(_ => "1".toByte)
+          .take(n.toLong)
       }
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
@@ -129,7 +125,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(10.second, 30.seconds)
 
-      c.fetchAs[String](req).run must_== ("done")
+      c.fetchAs[String](req).unsafeRun() must_== ("done")
     }
 
     "Request timeout on slow response body" in {
@@ -140,7 +136,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val result = tail.runRequest(FooRequest).as[String]
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRun must throwA[TimeoutException]
     }
 
     "Idle timeout on slow response body" in {
@@ -151,7 +147,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val result = tail.runRequest(FooRequest).as[String]
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafeRun must throwA[TimeoutException]
     }
   }
 }

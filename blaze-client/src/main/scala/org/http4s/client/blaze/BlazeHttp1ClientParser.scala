@@ -5,6 +5,7 @@ import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
+import cats.syntax.either._
 
 /** http/1.x parser for the blaze client */
 private object BlazeHttp1ClientParser {

@@ -5,18 +5,15 @@ package blaze
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
-
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.util.task
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.syntax.string._
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-import scalaz.concurrent.Task
-import scalaz.{-\/, \/, \/-}
+import fs2.{Strategy, Task}
+import cats.syntax.either._
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
@@ -38,14 +35,15 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
   import Http1Support._
 
   private val ec = ExecutionContext.fromExecutorService(executor)
+  private val strategy = Strategy.fromExecutionContext(ec)
   private val sslContext = config.sslContext.getOrElse(bits.sslContext)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): Task[BlazeConnection] = getAddress(requestKey) match {
-    case \/-(a) => task.futureToTask(buildPipeline(requestKey, a))(ec)
-    case -\/(t) => Task.fail(t)
+    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, ec)
+    case Left(t) => Task.fail(t)
   }
 
   private def buildPipeline(requestKey: RequestKey, addr: InetSocketAddress): Future[BlazeConnection] = {
@@ -77,12 +75,12 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
     }
   }
 
-  private def getAddress(requestKey: RequestKey): Throwable \/ InetSocketAddress = {
+  private def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] = {
     requestKey match {
       case RequestKey(s, auth) =>
         val port = auth.port getOrElse { if (s == Https) 443 else 80 }
         val host = auth.host.value
-        \/.fromTryCatchNonFatal(new InetSocketAddress(host, port))
+        Either.catchNonFatal(new InetSocketAddress(host, port))
     }
   }
 }

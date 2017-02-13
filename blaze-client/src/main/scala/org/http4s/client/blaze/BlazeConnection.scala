@@ -7,7 +7,7 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 
 import scala.util.control.NonFatal
-import scalaz.concurrent.Task
+import fs2.Task
 
 private trait BlazeConnection extends TailStage[ByteBuffer] with Connection {
 
