@@ -184,7 +184,7 @@ sealed class JettyBuilder private(
     jetty.start()
 
     new Server {
-      override def shutdown: Task[Unit] =
+      override protected def destroy: Task[Unit] =
         Task.delay {
           jetty.stop()
         }

@@ -150,7 +150,7 @@ sealed class TomcatBuilder private (
     tomcat.start()
 
     new Server {
-      override def shutdown: Task[Unit] =
+      override protected def destroy: Task[Unit] =
         Task.delay {
           tomcat.stop()
         }
