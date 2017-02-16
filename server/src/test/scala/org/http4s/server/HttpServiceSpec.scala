@@ -1,8 +1,6 @@
 package org.http4s
 package server
 
-import syntax.ServiceOps
-
 class HttpServiceSpec extends Http4sSpec {
 
  val srvc1 = HttpService {
@@ -24,7 +22,7 @@ class HttpServiceSpec extends Http4sSpec {
      Response(Status.Ok).withBody("srvc2conflict")
   }
 
-  val aggregate1 = srvc1 orElse srvc2
+  val aggregate1 = srvc1 |+| srvc2
 
   "HttpService" should {
     "Return a valid Response from the first service of an aggregate" in {

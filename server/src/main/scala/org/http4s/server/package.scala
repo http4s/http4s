@@ -4,6 +4,7 @@ import cats.arrow.Choice
 import cats.data._
 import fs2._
 import org.http4s.batteries._
+import Service.serviceChoice
 
 package object server {
   /**
@@ -47,35 +48,21 @@ package object server {
       service => service.compose(AuthedRequest(authUser.run))
     }
 
-    implicit def serviceChoice: Choice[Service] = new Choice[Service] {
-      override def choice[A, B, C](
-        f: Service[A, C],
-        g: Service[B, C]): Service[Either[A, B], C] = Kleisli(
-                                                               (a: Either[A, B]) =>
-                                                                 a match {
-                                                                   case Right(r) => g(r)
-                                                                   case Left(l) => f(l)
-                                                                 }
-                                                             )
-      override def id[A]: Service[A, A] = Kleisli[Task, A, A](Task.now)
-      override def compose[A, B, C](f: Service[B, C],
-        g: Service[A, B]): Service[A, C] =
-        Kleisli((r: A) => g(r).flatMap(x => f(x)))
-    }
-
-    def apply[Err, T](authUser: Service[Request, Either[Err, T]],
-      onFailure: Service[AuthedRequest[Err], MaybeResponse])
-    : AuthMiddleware[T] = {
+    def apply[Err, T](
+      authUser: Service[Request, Either[Err, T]],
+      onFailure: Service[AuthedRequest[Err], MaybeResponse]
+    ): AuthMiddleware[T] = {
       service: Service[AuthedRequest[T], MaybeResponse] =>
         Choice[Service]
           .choice(onFailure, service)
           .local({ authed: AuthedRequest[Either[Err, T]] =>
-            authed.authInfo.bimap(err => AuthedRequest(err, authed.req),
-                                  suc => AuthedRequest(suc, authed.req)
+            authed.authInfo.bimap(
+                                   err => AuthedRequest(err, authed.req),
+                                   suc => AuthedRequest(suc, authed.req)
                                  )
-                 }
-                )
+                 })
           .compose(AuthedRequest(authUser.run))
     }
+
   }
 }

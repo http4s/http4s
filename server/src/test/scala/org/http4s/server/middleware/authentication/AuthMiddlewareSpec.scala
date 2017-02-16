@@ -8,40 +8,52 @@ import org.http4s.dsl._
 
 class AuthMiddlewareSpec extends Http4sSpec {
 
-  "AuthMiddleware" should {
-    "work" in {
+  type User = Long
 
-      type User = Long
-      val userId: User = 42
+  "AuthMiddleware" should {
+    "fall back to onAuthFailure when authentication returns a Either.Left" in {
 
       val authUser: Service[Request, Either[String, User]] =
-        Kleisli(
-          r =>
-            if (r.pathInfo.contains("pass"))
-              Task.now(Right(userId))
-            else
-              Task.now(Left("Unauthorized")))
+        Kleisli(_ => Task.now(Left("Unauthorized")))
 
       val onAuthFailure: AuthedService[String] =
         Kleisli(req => Forbidden(req.authInfo))
 
       val authedService: AuthedService[User] =
         AuthedService {
-          case GET -> Root / path as user => Ok(user.toString)
+          case _ => Ok()
         }
 
       val middleWare = AuthMiddleware(authUser, onAuthFailure)
 
       val service = middleWare(authedService)
 
-      val authedResponse: Task[MaybeResponse] = service.run(Request(uri = Uri(path = "/pass")))
-      val resp = authedResponse.unsafeValue().get.orNotFound.status.code
-      resp must be_==(200)
+      service.orNotFound(Request()) must returnStatus(Forbidden)
+      service.orNotFound(Request()) must returnBody("Unauthorized")
+    }
 
-      val unauthedResponse: Task[MaybeResponse] = service.run(Request(uri = Uri(path = "/")))
-      val unauthResponse = unauthedResponse.unsafeValue().get.orNotFound.status.code
-      unauthResponse must be_==(403)
+    "enrich the request with a user when authentication returns Either.Right" in {
 
+
+      val userId: User = 42
+
+      val authUser: Service[Request, Either[String, User]] =
+        Kleisli(_ => Task.now(Right(userId)))
+
+      val onAuthFailure: AuthedService[String] =
+        Kleisli(req => Forbidden(req.authInfo))
+
+      val authedService: AuthedService[User] =
+        AuthedService {
+          case GET -> Root as user => Ok(user.toString)
+        }
+
+      val middleWare = AuthMiddleware(authUser, onAuthFailure)
+
+      val service = middleWare(authedService)
+
+      service.orNotFound(Request()) must returnStatus(Ok)
+      service.orNotFound(Request()) must returnBody("42")
     }
   }
 

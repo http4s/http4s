@@ -3,7 +3,8 @@ package server
 package middleware
 
 import fs2._
-import org.http4s.server.syntax._
+import cats._
+import org.http4s.batteries._
 
 /** Handles HEAD requests as a GET without a body.
   * 
@@ -13,11 +14,11 @@ import org.http4s.server.syntax._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply(service: HttpService): HttpService =
+  def apply(service: HttpService)(implicit M: Monoid[Task[MaybeResponse]]): HttpService =
     HttpService.lift { req =>
       req.method match {
         case Method.HEAD =>
-          (service orElse headAsTruncatedGet(service))(req)
+          (service |+| headAsTruncatedGet(service))(req)
         case _ =>
           service(req)
     }

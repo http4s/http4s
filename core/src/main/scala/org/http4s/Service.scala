@@ -1,11 +1,33 @@
 package org.http4s
 
 import cats._
+import cats.arrow.Choice
 import cats.data._
 import fs2._
 import org.http4s.batteries._
 
 object Service {
+
+  implicit def serviceChoice: Choice[Service] = new Choice[Service] {
+    override def choice[A, B, C](
+      f: Service[A, C],
+      g: Service[B, C]
+    ): Service[Either[A, B], C] =
+      Kleisli(
+               (a: Either[A, B]) =>
+                 a match {
+                   case Right(r) => g(r)
+                   case Left(l) => f(l)
+                 }
+             )
+    override def id[A]: Service[A, A] = Kleisli[Task, A, A](Task.now)
+    override def compose[A, B, C](
+      f: Service[B, C],
+      g: Service[A, B]
+    ): Service[A, C] =
+      Kleisli((r: A) => g(r).flatMap(x => f(x)))
+  }
+
   /**
     * Lifts a total function to a `Service`. The function is expected to handle
     * all requests it is given.  If `f` is a `PartialFunction`, use `apply`
