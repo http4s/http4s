@@ -1,5 +1,3 @@
-// TODO fs2 port
-/*
 package com.example.http4s.blaze
 
 object ClientExample {
@@ -7,14 +5,14 @@ object ClientExample {
   def getSite() = {
 
     import org.http4s.Http4s._
-    import scalaz.concurrent.Task
+    import fs2.Task
 
     val client = org.http4s.client.blaze.SimpleHttp1Client()
 
     val page: Task[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.map(_.take(72)).run)   // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).unsafeRun())   // each execution of the Task will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
@@ -35,7 +33,7 @@ object ClientExample {
       case resp             => Task.now("Failed: " + resp.status)
     }
 
-    println(page2.run)
+    println(page2.unsafeRun())
 
     client.shutdownNow()
   }
@@ -43,4 +41,3 @@ object ClientExample {
   def main(args: Array[String]): Unit = getSite()
 
 }
-*/

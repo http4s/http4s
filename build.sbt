@@ -348,7 +348,7 @@ lazy val docs = http4sProject("docs")
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
-  .dependsOn(client, core, theDsl, blazeServer, /* TODO fs2 port blazeClient, */ circe)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
 
 lazy val examples = http4sProject("examples")
@@ -379,7 +379,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
       } yield { s"-Xbootclasspath/p:${path}" }
     }).value
   )
-  .dependsOn(blazeServer /* TODO fs2 port , blazeClient */)
+  .dependsOn(blazeServer, blazeClient)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
