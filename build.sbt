@@ -31,6 +31,19 @@ lazy val parboiled2 = libraryProject("parboiled2")
     libraryDependencies ++= Seq(
       scalaReflect(scalaVersion.value) % "provided"
     ),
+    unmanagedSourceDirectories in Compile ++= {
+      scalaBinaryVersion.value match {
+        // The 2.12 branch is compatible with 2.11
+        case "2.12" => Seq((sourceDirectory in Compile).value / "scala-2.11")
+        case _ => Seq.empty
+      }
+    },
+    scalacOptions -= {
+      scalaBinaryVersion.value match {
+        case "2.10" => "-Ywarn-numeric-widen" // it doesn't like case classes with Char
+        case _ => ""
+      }
+    },
     macroParadiseSetting
   )
 
