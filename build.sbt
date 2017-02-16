@@ -34,7 +34,6 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       macroCompat,
-      parboiled,
       scalaCompiler(scalaVersion.value) % "provided",
       scalaReflect(scalaVersion.value) % "provided",
       scalazCore(scalazVersion.value),
@@ -48,7 +47,8 @@ lazy val testing = libraryProject("testing")
   description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       scalacheck
-    )
+    ),
+    macroParadiseSetting
 )
   .dependsOn(core)
 
@@ -488,6 +488,7 @@ lazy val commonSettings = Seq(
     "-encoding", "UTF-8",
     "-feature",
     "-language:existentials",
+    "-language:experimental.macros",
     "-language:higherKinds",
     "-language:implicitConversions",
     s"-target:jvm-${jvmTarget.value}",

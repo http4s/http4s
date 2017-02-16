@@ -8,7 +8,7 @@ import scala.collection.{ IndexedSeqOptimized, mutable }
 import org.http4s.Query._
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlCodingUtils, Writer, Renderable}
-import org.parboiled2.CharPredicate
+import org.http4s.internal.parboiled2.CharPredicate
 
 /** Collection representation of a query string
   *
