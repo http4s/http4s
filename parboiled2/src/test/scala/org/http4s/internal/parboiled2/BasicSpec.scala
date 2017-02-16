@@ -16,7 +16,7 @@
 
 package org.http4s.internal.parboiled2
 
-import org.http4s.illTyped
+import org.http4s.internal.illTyped
 import org.specs2.specification.Scope
 
 class BasicSpec extends TestParserSpec {

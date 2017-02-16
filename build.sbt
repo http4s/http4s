@@ -24,6 +24,16 @@ name := "root"
 description := "A minimal, Scala-idiomatic library for HTTP"
 noPublishSettings
 
+// This defines macros that we use in core, so it needs to be split out
+lazy val parboiled2 = libraryProject("parboiled2")
+  .settings(noPublishSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      scalaReflect(scalaVersion.value) % "provided"
+    ),
+    macroParadiseSetting
+  )
+
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -35,12 +45,15 @@ lazy val core = libraryProject("core")
       log4s,
       macroCompat,
       scalaCompiler(scalaVersion.value) % "provided",
-      scalaReflect(scalaVersion.value) % "provided",
       scalazCore(scalazVersion.value),
       scalazStream(scalazVersion.value)
     ),
-    macroParadiseSetting
-)
+    macroParadiseSetting,
+    mappings in (Compile, packageBin) ++= (mappings in (parboiled2.project, Compile, packageBin)).value,
+    mappings in (Compile, packageSrc) ++= (mappings in (parboiled2.project, Compile, packageSrc)).value,
+    mappings in (Compile, packageDoc) ++= (mappings in (parboiled2.project, Compile, packageDoc)).value
+  )
+  .dependsOn(parboiled2)
 
 lazy val testing = libraryProject("testing")
   .settings(
@@ -554,10 +567,10 @@ lazy val commonSettings = Seq(
         override def transform(node: xml.Node): Seq[xml.Node] = node match {
           case e: xml.Elem
               if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
+          case e: xml.Elem
+              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text == "parboiled2") => Nil
           case _ => Seq(node)
-
         }
-
       }).transform(node).head
   },
   coursierVerbosity := 0,

@@ -601,7 +601,7 @@ trait OpTreeContext[OpTreeCtx <: ParserMacros.ParserContext] {
       }
     def renderInner(wrapped: Boolean) = call match {
       case Left(a) => a.render(wrapped)
-      case Right(b) => throw org.http4s.util.bug(s"Expected Left, got Right($b)")
+      case Right(b) => throw new AssertionError(s"Expected Left, got Right($b)")
     }
   }
 
