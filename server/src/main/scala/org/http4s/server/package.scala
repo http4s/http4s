@@ -4,7 +4,6 @@ import cats.arrow.Choice
 import cats.data._
 import fs2._
 import org.http4s.batteries._
-import Service.serviceChoice
 
 package object server {
   /**
