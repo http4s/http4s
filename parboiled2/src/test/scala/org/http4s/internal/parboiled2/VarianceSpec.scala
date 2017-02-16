@@ -16,7 +16,8 @@
 
 package org.http4s.internal.parboiled2
 
-import org.http4s.illTyped
+import org.specs2.execute._
+import org.specs2.execute.Typecheck.typecheck
 import support._
 
 //// pure compile-time-only test
@@ -53,7 +54,7 @@ class VarianceSpec {
           def A: Rule2[String, Any] = ???
           def B: PopRule[Int :: HNil] = ???
         }
-        illTyped("""class P extends Par { def C = rule { A ~ B } }""", "Illegal rule composition")
+        typecheck("""class P extends Par { def C = rule { A ~ B } }""")
       }
 
       // invalid example 3
@@ -62,7 +63,7 @@ class VarianceSpec {
           def A: Rule1[String] = ???
           def B: PopRule[Int :: HNil] = ???
         }
-        illTyped("""class P extends Par { def C = rule { A ~ B } }""", "Illegal rule composition")
+        typecheck("""class P extends Par { def C = rule { A ~ B } }""")
       }
     }
 
@@ -83,7 +84,7 @@ class VarianceSpec {
           def A: Rule0 = ???
           def B: Rule1[Any] = ???
         }
-        illTyped("""class P extends Par { def C: Rule1[Int] = rule { A ~ B } }""", "type mismatch;.*")
+        typecheck("""class P extends Par { def C: Rule1[Int] = rule { A ~ B } }""")
       }
     }
   }
