@@ -2,16 +2,15 @@ package org.http4s
 package multipart
 
 import scodec.bits.ByteVector
+
+import cats.syntax.either._
 import fs2._
 import fs2.Stream._
-//import fs2.Pull._
-import fs2.util.{Async,Attempt,Free,Functor,Sub1}
-import cats.syntax.either._
-import fs2.util.syntax._
+
+
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
-  import Process._
 
   private[this] val logger = org.log4s.getLogger
 
@@ -20,7 +19,7 @@ object MultipartParser {
 
   private final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse(boundary: Boundary): Pipe[Task, Byte, Either[Headers, ByteVector]] = { s =>
+  def parse(boundary: Boundary): Pipe[Task, Byte, Either[Headers, Byte]] = { s =>
     val boundaryBytes = boundary.toByteVector
     val startLine = DASHDASH ++ boundaryBytes
     val endLine = startLine ++ DASHDASH
@@ -212,7 +211,10 @@ object MultipartParser {
       leading.map(bv => pre(bv)(h)) getOrElse h.receive1((bv, h) => pre(bv)(h))
     }
 
-    s.mapChunks(chunk => Chunk.singleton(ByteVector(chunk.toArray))).pull(start)
+    s.mapChunks(chunk => Chunk.singleton(ByteVector(chunk.toArray))).pull(start).flatMap{
+      case Right(bv) => Stream.emits(bv.toSeq.map(Either.right))
+      case Left(headers) => Stream.emit(Either.left(headers))
+    }
   }
 
 }

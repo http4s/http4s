@@ -18,14 +18,14 @@ private[http4s] object MultipartDecoder {
 
   val decoder: EntityDecoder[Multipart] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      def gatherParts : Pipe[Task, Either[Headers, ByteVector], Part] = s => {
+      def gatherParts : Pipe[Task, Either[Headers, Byte], Part] = s => {
 
-        def go(part: Part): Handle[Task, Either[Headers, ByteVector]] => Pull[Task, Part, Unit] =
+        def go(part: Part): Handle[Task, Either[Headers, Byte]] => Pull[Task, Part, Unit] =
           _.receive1Option{
             case Some((Left(headers), handle)) =>
                 Pull.output1(part) >> go(Part(headers, EmptyBody))(handle)
             case Some((Right(chunk), handle)) =>
-                go(part.copy(body = part.body ++ Stream.emits(chunk.toSeq)))(handle)
+                go(part.copy(body = part.body ++ Stream.emit(chunk)))(handle)
             case None => Pull.output1(part)
           }
 

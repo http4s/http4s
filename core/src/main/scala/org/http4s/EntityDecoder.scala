@@ -164,11 +164,8 @@ trait EntityDecoderInstances {
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-// TODO fs2 port
-/*
   implicit def multipart: EntityDecoder[Multipart] =
     MultipartDecoder.decoder
-*/
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit val void: EntityDecoder[Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg => 

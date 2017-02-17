@@ -16,6 +16,7 @@ import org.http4s.Status.Ok
 import scodec.bits._
 
 import org.http4s.EntityEncoder._
+import org.http4s.EntityDecoder._
 import Entity._
 import org.specs2.Specification
 import org.specs2.matcher.DisjunctionMatchers

@@ -6,12 +6,20 @@ import org.specs2.mutable._
 
 import fs2._
 import fs2.Stream._
+import cats.syntax.either._
 
 import scodec.bits.ByteVector
 
 object MultipartParserSpec extends Specification {
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
+
+  def byteStreamtoStreamByteVector: Pipe[Task, Byte, ByteVector] = _.mapChunks(chunk => Chunk.singleton(ByteVector(chunk.toArray)))
+  def byteVectorStreamtoStreamByte: Pipe[Task, ByteVector, Byte] = _.flatMap(bv => Stream.emits(bv.toSeq))
+  def eitherByteVectorStreamtoStreamByte : Pipe[Task, Either[Headers, ByteVector], Either[Headers, Byte]] = _.flatMap{
+    case Right(bv) => Stream.emits(bv.toSeq.map(Either.right))
+    case Left(headers) => Stream.emit(Either.left(headers))
+  }
 
   def ruinDelims(str: String) = augmentString(str) flatMap {
     case '\n' => "\r\n"
@@ -58,7 +66,11 @@ object MultipartParserSpec extends Specification {
         }
       }
 
-      val results: Stream[Task, Either[Headers, Byte]] = unspool(input) through MultipartParser.parse(boundary)
+      val results: Stream[Task, Either[Headers, Byte]] =
+        unspool(input)
+        .through(MultipartParser.parse(boundary))
+
+
 
       val (headers, byteStream) = results.runLog.map{_.foldLeft((Headers.empty, Stream.empty[Task, Byte])) {
         case ((hsAcc, bsAcc), Right(byte)) => (hsAcc, bsAcc ++ emit(byte))
