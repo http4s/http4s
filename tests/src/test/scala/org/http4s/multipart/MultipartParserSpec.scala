@@ -14,13 +14,6 @@ object MultipartParserSpec extends Specification {
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
-  def byteStreamtoStreamByteVector: Pipe[Task, Byte, ByteVector] = _.mapChunks(chunk => Chunk.singleton(ByteVector(chunk.toArray)))
-  def byteVectorStreamtoStreamByte: Pipe[Task, ByteVector, Byte] = _.flatMap(bv => Stream.emits(bv.toSeq))
-  def eitherByteVectorStreamtoStreamByte : Pipe[Task, Either[Headers, ByteVector], Either[Headers, Byte]] = _.flatMap{
-    case Right(bv) => Stream.emits(bv.toSeq.map(Either.right))
-    case Left(headers) => Stream.emit(Either.left(headers))
-  }
-
   def ruinDelims(str: String) = augmentString(str) flatMap {
     case '\n' => "\r\n"
     case c => c.toString
@@ -79,7 +72,7 @@ object MultipartParserSpec extends Specification {
 
 
       headers mustEqual (expectedHeaders)
-      byteStream.runLog.attemptFold(e => Left(e), v => Right(v.foldLeft("")(_ + _))) mustEqual Right(expected)
+      byteStream.runLog.attemptFold(e => Left(e), v => Right(v.foldLeft("")(_ + _))).unsafeRun() mustEqual Right(expected)
     }
 
     "produce the body from a single part input without limit" in {
@@ -119,7 +112,7 @@ object MultipartParserSpec extends Specification {
       }
 
       headers mustEqual (expectedHeaders)
-      byteStream.runLog.attemptFold(e => Left(e), v => Right(v.foldLeft("")(_ + _))) mustEqual Right(expected)
+      byteStream.runLog.attemptFold(e => Left(e), v => Right(v.foldLeft("")(_ + _))).unsafeRun() mustEqual Right(expected)
     }
 
     "produce the body from a two-part input" in {
@@ -160,7 +153,8 @@ object MultipartParserSpec extends Specification {
         case ((hsAcc, bsAcc), Left(hs)) => (hsAcc ++ hs, bsAcc)
       }
 
-      byteStream.runLog.attemptFold(e => Left(e), v => Right(v.foldLeft("")(_ + _))) mustEqual Right(expected)
+      byteStream.runLog.attemptFold(e => Left(e), v => Right(v.foldLeft("")(_ + _))).unsafeRun() mustEqual Right(expected)
+      headers mustEqual expectedHeaders
     }
 
     "fail with an MalformedMessageBodyFailure without an end line" in {
