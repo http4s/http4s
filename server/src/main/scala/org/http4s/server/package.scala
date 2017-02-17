@@ -1,5 +1,6 @@
 package org.http4s
 
+import cats.arrow.Choice
 import cats.data._
 import fs2._
 import org.http4s.batteries._
@@ -46,12 +47,21 @@ package object server {
       service => service.compose(AuthedRequest(authUser.run))
     }
 
-    /** TODO fs2 port -- replace |||
-    def apply[Err, T](authUser: Service[Request, Err \/ T], onFailure: Kleisli[Task, AuthedRequest[Err], MaybeResponse]): AuthMiddleware[T] = { service =>
-      (onFailure ||| service)
-        .local({authed: AuthedRequest[Either[Err, T]] => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
-        .compose(AuthedRequest(authUser.run))
+    def apply[Err, T](
+      authUser: Service[Request, Either[Err, T]],
+      onFailure: Service[AuthedRequest[Err], MaybeResponse]
+    ): AuthMiddleware[T] = {
+      service: Service[AuthedRequest[T], MaybeResponse] =>
+        Choice[Service]
+          .choice(onFailure, service)
+          .local({ authed: AuthedRequest[Either[Err, T]] =>
+            authed.authInfo.bimap(
+                                   err => AuthedRequest(err, authed.req),
+                                   suc => AuthedRequest(suc, authed.req)
+                                 )
+                 })
+          .compose(AuthedRequest(authUser.run))
     }
-     */
+
   }
 }

@@ -1,11 +1,13 @@
 package org.http4s
 
 import cats._
+import cats.arrow.Choice
 import cats.data._
 import fs2._
 import org.http4s.batteries._
 
 object Service {
+
   /**
     * Lifts a total function to a `Service`. The function is expected to handle
     * all requests it is given.  If `f` is a `PartialFunction`, use `apply`

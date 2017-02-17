@@ -9,7 +9,7 @@ import org.http4s.headers._
 class GZipSpec extends Http4sSpec {
   "GZip" should {
     "fall through if the route doesn't match" in {
-      val service = GZip(HttpService.empty) || HttpService {
+      val service = GZip(HttpService.empty) |+| HttpService {
         case GET -> Root =>
           Ok("pong")
       }
