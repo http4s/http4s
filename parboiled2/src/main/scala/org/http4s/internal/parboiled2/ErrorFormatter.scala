@@ -36,7 +36,7 @@ import scala.collection.immutable.VectorBuilder
  *                   Set to a value < 0 to disable tab expansion.
  * @param traceCutOff the maximum number of (trailing) characters shown for a rule trace
  */
-class ErrorFormatter(showExpected: Boolean = true,
+private[http4s] class ErrorFormatter(showExpected: Boolean = true,
                      showPosition: Boolean = true,
                      showLine: Boolean = true,
                      showTraces: Boolean = false,

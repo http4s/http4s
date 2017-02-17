@@ -20,7 +20,7 @@ import scala.annotation.compileTimeOnly
 import scala.collection.immutable
 import org.http4s.internal.parboiled2.support._
 
-trait RuleDSLCombinators {
+private[http4s] trait RuleDSLCombinators {
 
   /**
    * Runs its inner rule and succeeds even if the inner rule doesn't.

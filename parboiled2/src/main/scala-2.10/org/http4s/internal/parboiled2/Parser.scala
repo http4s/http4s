@@ -22,7 +22,7 @@ import scala.util.{ Failure, Success, Try }
 import scala.util.control.{ NonFatal, NoStackTrace }
 import org.http4s.internal.parboiled2.support._
 
-abstract class Parser(initialValueStackSize: Int = 16,
+private[http4s] abstract class Parser(initialValueStackSize: Int = 16,
                       maxValueStackSize: Int = 1024) extends RuleDSL {
   import Parser._
 
@@ -512,7 +512,7 @@ abstract class Parser(initialValueStackSize: Int = 16,
   }
 }
 
-object Parser {
+private[http4s] object Parser {
 
   trait DeliveryScheme[L <: HList] {
     type Result
@@ -623,7 +623,7 @@ object Parser {
   }
 }
 
-object ParserMacros {
+private[http4s] object ParserMacros {
   import scala.reflect.macros.Context
 
   /**

@@ -21,8 +21,8 @@ import org.http4s.internal.parboiled2.Rule
 // provides the supported `~>` "overloads" for rules of type `Rule[I, O]` as `Out`
 // as a phantom type, which is only used for rule DSL typing
 
-sealed trait ActionOps[I <: HList, O <: HList] { type Out }
-object ActionOps {
+private[http4s] sealed trait ActionOps[I <: HList, O <: HList] { type Out }
+private[http4s] object ActionOps {
   private type SJoin[I <: HList, O <: HList, R] = Join[I, HNil, O, R]
 
   implicit def ops0[II <: HList, OO <: HNil]: ActionOps[II, OO] { type Out = Ops0[II] } = `n/a`

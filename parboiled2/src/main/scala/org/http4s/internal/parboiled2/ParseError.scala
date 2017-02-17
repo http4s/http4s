@@ -19,7 +19,7 @@ package org.http4s.internal.parboiled2
 import scala.annotation.tailrec
 import scala.collection.immutable
 
-case class ParseError(position: Position,
+private[http4s] case class ParseError(position: Position,
                       principalPosition: Position,
                       traces: immutable.Seq[RuleTrace]) extends RuntimeException {
   require(principalPosition.index >= position.index, "principalPosition must be > position")
@@ -45,9 +45,9 @@ case class ParseError(position: Position,
  * @param line the text line the error occurred in (1-based)
  * @param column the text column the error occurred in (1-based)
  */
-case class Position(index: Int, line: Int, column: Int)
+private[http4s] case class Position(index: Int, line: Int, column: Int)
 
-object Position {
+private[http4s] object Position {
   def apply(index: Int, input: ParserInput): Position = {
     @tailrec def rec(ix: Int, line: Int, col: Int): Position =
       if (ix >= index) Position(index, line, col)
@@ -57,7 +57,7 @@ object Position {
   }
 }
 
-case class RuleTrace(prefix: List[RuleTrace.NonTerminal], terminal: RuleTrace.Terminal) {
+private[http4s] case class RuleTrace(prefix: List[RuleTrace.NonTerminal], terminal: RuleTrace.Terminal) {
   import RuleTrace._
 
   /**
@@ -87,7 +87,7 @@ case class RuleTrace(prefix: List[RuleTrace.NonTerminal], terminal: RuleTrace.Te
   }
 }
 
-object RuleTrace {
+private[http4s] object RuleTrace {
 
   def commonNonAtomicPrefixLength(traces: Seq[RuleTrace]): Int =
     if (traces.size > 1) {

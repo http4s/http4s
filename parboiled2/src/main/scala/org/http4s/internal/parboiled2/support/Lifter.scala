@@ -20,13 +20,13 @@ import scala.annotation.implicitNotFound
 
 @implicitNotFound("The `optional`, `zeroOrMore`, `oneOrMore` and `times` modifiers " +
   "can only be used on rules of type `Rule0`, `Rule1[T]` and `Rule[I, O <: I]`!")
-sealed trait Lifter[M[_], I <: HList, O <: HList] {
+private[http4s] sealed trait Lifter[M[_], I <: HList, O <: HList] {
   type In <: HList
   type StrictOut <: HList
   type OptionalOut <: HList
 }
 
-object Lifter extends LowerPriorityLifter {
+private[http4s] object Lifter extends LowerPriorityLifter {
   implicit def forRule0[M[_]]: Lifter[M, HNil, HNil] {
     type In = HNil
     type StrictOut = HNil
@@ -40,7 +40,7 @@ object Lifter extends LowerPriorityLifter {
   } = `n/a`
 }
 
-sealed abstract class LowerPriorityLifter {
+private[http4s] sealed abstract class LowerPriorityLifter {
   implicit def forReduction[M[_], L <: HList, R <: L]: Lifter[M, L, R] {
     type In = L
     type StrictOut = R

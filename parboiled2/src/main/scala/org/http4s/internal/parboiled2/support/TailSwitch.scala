@@ -28,10 +28,10 @@ import org.http4s.internal.parboiled2.support.HList.ReversePrepend
  *     (L dropRight T) ::: R  if L has a tail of type T
  */
 @implicitNotFound("Illegal rule composition")
-sealed trait TailSwitch[L <: HList, T <: HList, R <: HList] {
+private[http4s] sealed trait TailSwitch[L <: HList, T <: HList, R <: HList] {
   type Out <: HList
 }
-object TailSwitch {
+private[http4s] object TailSwitch {
   implicit def tailSwitch[L <: HList, T <: HList, R <: HList, Out0 <: HList]
   (implicit ts: Aux[L, L, T, T, R, HNil, Out0]): TailSwitch[L, T, R] { type Out = Out0 } = `n/a`
 

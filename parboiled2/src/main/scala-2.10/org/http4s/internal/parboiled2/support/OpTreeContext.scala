@@ -19,7 +19,7 @@ package org.http4s.internal.parboiled2.support
 import scala.annotation.tailrec
 import org.http4s.internal.parboiled2._
 
-trait OpTreeContext[OpTreeCtx <: ParserMacros.ParserContext] {
+private[http4s] trait OpTreeContext[OpTreeCtx <: ParserMacros.ParserContext] {
   val c: OpTreeCtx
   import c.universe._
 

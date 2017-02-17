@@ -16,15 +16,15 @@
 
 package org.http4s.internal.parboiled2.support
 
-trait HListable[T] {
+private[http4s] trait HListable[T] {
   type Out <: HList
 }
 
-object HListable extends LowerPriorityHListable {
+private[http4s] object HListable extends LowerPriorityHListable {
   implicit def fromUnit: HListable[Unit] { type Out = HNil } = `n/a`
   implicit def fromHList[T <: HList]: HListable[T] { type Out = T } = `n/a`
 }
 
-abstract class LowerPriorityHListable {
+private[http4s] abstract class LowerPriorityHListable {
   implicit def fromAnyRef[T]: HListable[T] { type Out = T :: HNil } = `n/a`
 }

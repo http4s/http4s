@@ -25,7 +25,7 @@ import org.http4s.internal.parboiled2.support._
  * should allow you a safer and easier way to interact with the stack.
  * However, in some cases, when you know what you are doing, direct access can be helpful.
  */
-class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends Iterable[Any] {
+private[http4s] class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends Iterable[Any] {
 
   private[this] var buffer = new Array[Any](initialSize)
   private[this] var _size = 0
@@ -251,5 +251,5 @@ class ValueStack private[parboiled2] (initialSize: Int, maxSize: Int) extends It
       } else throw new ValueStackOverflowException
 }
 
-class ValueStackOverflowException extends RuntimeException
-class ValueStackUnderflowException extends RuntimeException
+private[http4s] class ValueStackOverflowException extends RuntimeException
+private[http4s] class ValueStackUnderflowException extends RuntimeException

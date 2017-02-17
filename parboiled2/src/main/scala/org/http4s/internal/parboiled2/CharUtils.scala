@@ -19,7 +19,7 @@ package org.http4s.internal.parboiled2
 import java.lang.{ StringBuilder ⇒ JStringBuilder }
 import scala.annotation.tailrec
 
-object CharUtils {
+private[http4s] object CharUtils {
   /**
    * Returns the int value of a given hex digit char.
    * Note: this implementation is very fast (since it's branchless) and therefore

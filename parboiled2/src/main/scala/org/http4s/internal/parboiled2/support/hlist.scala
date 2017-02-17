@@ -26,14 +26,14 @@ package support
  * 
  * @author Miles Sabin
  */
-sealed trait HList extends Product with Serializable
+private[http4s] sealed trait HList extends Product with Serializable
 
 /**
  * Non-empty `HList` element type.
  * 
  * @author Miles Sabin
  */
-final case class ::[+H, +T <: HList](head : H, tail : T) extends HList {
+private[http4s] final case class ::[+H, +T <: HList](head : H, tail : T) extends HList {
   override def toString = head match {
     case _: ::[_, _] => "("+head+") :: "+tail.toString
     case _ => head+" :: "+tail.toString
@@ -45,7 +45,7 @@ final case class ::[+H, +T <: HList](head : H, tail : T) extends HList {
  * 
  * @author Miles Sabin
  */
-sealed trait HNil extends HList {
+private[http4s] sealed trait HNil extends HList {
   def ::[H](h : H) = support.::(h, this)
   override def toString = "HNil"
 }
@@ -55,9 +55,9 @@ sealed trait HNil extends HList {
  * 
  * @author Miles Sabin
  */
-case object HNil extends HNil
+private[http4s] case object HNil extends HNil
 
-object HList {
+private[http4s] object HList {
   implicit def hlistOps[L <: HList](l: L): HListOps[L] = new HListOps(l)
 
   /**
@@ -192,7 +192,7 @@ object HList {
  *
  * @author Miles Sabin
  */
-final class HListOps[L <: HList](l : L) extends Serializable {
+private[http4s] final class HListOps[L <: HList](l : L) extends Serializable {
   import HList._
 
   /**

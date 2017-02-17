@@ -19,7 +19,7 @@ package org.http4s.internal.parboiled2
 import scala.annotation.tailrec
 import java.nio.ByteBuffer
 
-trait ParserInput {
+private[http4s] trait ParserInput {
   /**
    * Returns the character at the given (zero-based) index.
    * Note: this method is hot and should be small and efficient.
@@ -50,7 +50,7 @@ trait ParserInput {
   def getLine(line: Int): String
 }
 
-object ParserInput {
+private[http4s] object ParserInput {
   val Empty = apply(Array.empty[Byte])
 
   implicit def apply(bytes: Array[Byte]): ByteArrayBasedParserInput = new ByteArrayBasedParserInput(bytes)

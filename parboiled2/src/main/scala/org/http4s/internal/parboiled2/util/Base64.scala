@@ -71,7 +71,7 @@
 
 package org.http4s.internal.parboiled2.util
 
-object Base64 {
+private[http4s] object Base64 {
   private var RFC2045: Base64 = _
   private var CUSTOM: Base64 = _
 
@@ -90,7 +90,7 @@ object Base64 {
   }
 }
 
-class Base64(alphabet: String) {
+private[http4s] class Base64(alphabet: String) {
   if (alphabet == null || alphabet.length() != 65) {
     throw new IllegalArgumentException()
   }

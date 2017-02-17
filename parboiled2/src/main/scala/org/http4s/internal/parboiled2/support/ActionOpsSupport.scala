@@ -27,8 +27,8 @@ import org.http4s.internal.parboiled2.support.HList.ReversePrepend
 // we want to support the "short case class notation" `... ~> Foo`
 // unfortunately the Tree for the function argument to the `apply` overloads above does *not* allow us to inspect the
 // function type which is why we capture it separately with this helper type
-sealed trait FCapture[T]
-object FCapture {
+private[http4s] sealed trait FCapture[T]
+private[http4s] object FCapture {
   implicit def apply[T]: FCapture[T] = `n/a`
 }
 
@@ -41,11 +41,11 @@ object FCapture {
 //    In = TailSwitch[I2, L1 ::: L2, I], Out = TailSwitch[L1 ::: L2, I2, O2]
 //  else
 //    In = I, Out = L1 ::: L2 ::: R :: HNil
-sealed trait Join[I <: HList, L1 <: HList, L2 <: HList, R] {
+private[http4s] sealed trait Join[I <: HList, L1 <: HList, L2 <: HList, R] {
   type In <: HList
   type Out <: HList
 }
-object Join {
+private[http4s] object Join {
   implicit def join[I <: HList, L1 <: HList, L2 <: HList, R, In0 <: HList, Out0 <: HList](implicit x: Aux[I, L1, L2, R, HNil, In0, Out0]): Join[I, L1, L2, R] { type In = In0; type Out = Out0 } = `n/a`
 
   sealed trait Aux[I <: HList, L1 <: HList, L2 <: HList, R, Acc <: HList, In <: HList, Out <: HList]

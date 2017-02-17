@@ -20,7 +20,7 @@ import scala.reflect.internal.annotations.compileTimeOnly
 import org.http4s.internal.parboiled2.support._
 import org.http4s.internal.parboiled2.support.HList.Prepend
 
-trait RuleDSLActions {
+private[http4s] trait RuleDSLActions {
 
   /**
    * Pushes the input text matched by its inner rule onto the value stack

@@ -44,6 +44,7 @@ lazy val parboiled2 = libraryProject("parboiled2")
         case _ => ""
       }
     },
+    scalacOptions -= "-Xlint", // https://issues.scala-lang.org/browse/SI-9490
     macroParadiseSetting
   )
 

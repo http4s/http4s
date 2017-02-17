@@ -21,7 +21,7 @@ import scala.reflect.internal.annotations.compileTimeOnly
 import scala.collection.immutable
 import org.http4s.internal.parboiled2.support._
 
-sealed trait RuleX
+private[http4s] sealed trait RuleX
 
 /**
  * The general model of a parser rule.
@@ -32,7 +32,7 @@ sealed trait RuleX
  * At runtime there are only two instances of this class which signal whether the rule has matched (or mismatched)
  * at the current point in the input.
  */
-sealed class Rule[-I <: HList, +O <: HList] extends RuleX {
+private[http4s] sealed class Rule[-I <: HList, +O <: HList] extends RuleX {
   // Note: we could model `Rule` as a value class, however, tests have shown that this doesn't result in any measurable
   // performance benefit and, in addition, comes with other drawbacks (like generated bridge methods)
 
@@ -112,7 +112,7 @@ sealed class Rule[-I <: HList, +O <: HList] extends RuleX {
 /**
  * THIS IS NOT PUBLIC API and might become hidden in future. Use only if you know what you are doing!
  */
-object Rule extends Rule0 {
+private[http4s] object Rule extends Rule0 {
   /**
    * THIS IS NOT PUBLIC API and might become hidden in future. Use only if you know what you are doing!
    */
@@ -121,10 +121,10 @@ object Rule extends Rule0 {
   }
 }
 
-abstract class RuleDSL
+private[http4s] abstract class RuleDSL
   extends RuleDSLBasics
   with RuleDSLCombinators
   with RuleDSLActions
 
 // phantom type for WithSeparatedBy pimp
-trait Repeated
+private[http4s] trait Repeated

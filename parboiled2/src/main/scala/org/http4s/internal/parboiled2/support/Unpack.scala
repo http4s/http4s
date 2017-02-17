@@ -25,12 +25,12 @@ package org.http4s.internal.parboiled2.support
  *
  *  You can `import Unpack.dontUnpack` if you'd like to circumvent this unpacking logic.
  */
-sealed trait Unpack[L <: HList] {
+private[http4s] sealed trait Unpack[L <: HList] {
   type Out
   def apply(hlist: L): Out
 }
 
-object Unpack extends AlternativeUnpacks {
+private[http4s] object Unpack extends AlternativeUnpacks {
 
   implicit def fromAux[L <: HList, Out0](implicit aux: Aux[L, Out0]) = new Unpack[L] {
     type Out = Out0
@@ -52,7 +52,7 @@ object Unpack extends AlternativeUnpacks {
   }
 }
 
-sealed abstract class AlternativeUnpacks {
+private[http4s] sealed abstract class AlternativeUnpacks {
   /**
    * Import if you'd like to *always* deliver the valueStack as an `HList`
    * at the end of the parsing run, even if it has only zero or one element(s).
