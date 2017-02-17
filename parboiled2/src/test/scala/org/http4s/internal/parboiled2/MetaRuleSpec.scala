@@ -21,8 +21,8 @@ class MetaRuleSpec extends TestParserSpec {
   "Rule transformation should be possible" >> {
 
     "using vals and `run`" in new TestParser0 {
-      val ab = () ⇒ rule { "ab" }
-      val cd = () ⇒ rule { "cd" }
+      val ab = () ⇒ namedRule("ab") { "ab" }
+      val cd = () ⇒ namedRule("cd") { "cd" }
       def targetRule = rule { bracketed(ab) ~ bracketed(cd) }
       def bracketed(inner: () ⇒ Rule0) = rule { '[' ~ inner() ~ ']' }
 
