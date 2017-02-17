@@ -1,5 +1,3 @@
-// TODO fs2 port
-/*
 package org.http4s
 package multipart
 
@@ -15,19 +13,16 @@ import org.http4s.Http4s._
 import org.http4s.Uri._
 import org.http4s.util._
 import org.http4s.Status.Ok
-import scalaz.Equal
-import scalaz.concurrent.Task
 import scodec.bits._
 
 import org.http4s.EntityEncoder._
 import Entity._
-import scalaz.stream.Process
-import scalaz.std.string._
-import scalaz.std.vector._
-import scalaz.stream.text._
-import scalaz.syntax.equal._
 import org.specs2.Specification
 import org.specs2.matcher.DisjunctionMatchers
+
+import fs2._
+import cats._
+import cats.implicits._
 
 
 class MultipartSpec extends Specification with DisjunctionMatchers {
@@ -46,16 +41,16 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
       authority = Some(Authority(host = RegName("example.com"))),
       path = "/path/to/some/where")
 
-  implicit lazy val MultiPartEq: Equal[Multipart] =
-    Equal.equalBy[Multipart, Vector[Part]](_.parts)
+  implicit lazy val MultiPartEq: Eq[Multipart] =
+    Eq.by[Multipart, Vector[Part]](_.parts)
 
   // a.headers == b.headers doesn't do what I expected.
-  implicit lazy val PartEq: Equal[Part] =
-    Equal.equal { (a, b) => a.headers.size == b.headers.size && (a.headers zip b.headers).forall { case (ah, bh) => ah == bh } && a.body === b.body }
+  implicit lazy val PartEq: Eq[Part] =
+    Eq.instance { (a, b) => a.headers.size == b.headers.size && (a.headers zip b.headers).forall { case (ah, bh) => ah == bh } && a.body.run.unsafeRun() === b.body.run.unsafeRun() }
 
   // This one is shady.
-  implicit lazy val EntityBodyEq: Equal[EntityBody] =
-    Equal.equalBy[EntityBody, String](_.pipe(utf8Decode).runFoldMap(identity).run)
+  implicit lazy val EntityBodyEq: Eq[EntityBody] =
+    Eq.by[EntityBody, String](_.through(fs2.text.utf8Decode).runFold("")((acc, st) => acc + st).unsafeRun())
 
   def encodeAndDecodeMultipart = {
 
@@ -63,15 +58,15 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val field2     = Part.formData("field2", "Text_Field_2")
     val multipart  = Multipart(Vector(field1,field2))
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body
+    val body       = entity.unsafeRun().body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.value.unsafeRun
     
-    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
+    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
   }
 
   def encodeAndDecodeMultipartMissingContentType = {
@@ -80,15 +75,15 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val multipart  = Multipart(Vector(field1))
 
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body
+    val body       = entity.unsafeRun().body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
-                             headers = multipart.headers )                             
+                             headers = multipart.headers )
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.value.unsafeRun
 
-    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
+    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
   }
 
   def encodeAndDecodeMultipartWithBinaryFormData = {
@@ -104,14 +99,14 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val multipart  = Multipart(Vector(field1,field2))
     
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body
+    val body       = entity.unsafeRun.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
                                        
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.value.unsafeRun
 
     result must beRight.like { case mp => multipart === mp }
   }
@@ -138,11 +133,11 @@ Content-Type: application/pdf
     val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body).pipe(utf8Encode),
+                             body    = Stream.emit[Task, String](body).through(fs2.text.utf8Encode),
                              headers = header)
 
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.value.unsafeRun
     
    result must beRight
   }
@@ -165,19 +160,17 @@ I am a big moose
     val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body).pipe(utf8Encode),
+                             body    = Stream.emit[Task,String](body).through(fs2.text.utf8Encode),
                              headers = header)
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.value.unsafeRun
     
    result must beRight
   }  
 
- 
   private def fileToEntity(f: File): Entity = {
     val bitVector = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
-    Entity(body = Process.emit(ByteVector(bitVector.toBase64.getBytes)))
-  }  
+    Entity(body = Stream.emits(bitVector.toBase64.getBytes))
+  }
   
 }
- */
