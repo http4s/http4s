@@ -5,7 +5,7 @@ import fs2.Chunk
 import scala.reflect.{ClassTag, classTag}
 import scodec.bits.ByteVector
 
-// This will exist in fs2-1.0.  That version is more optimial, because
+// This will exist in fs2-1.0.  That version is more optimal, because
 // it has a smarter concatAll.  This will do for now.
 private[http4s] class ByteVectorChunk private (val toByteVector: ByteVector)
     extends Chunk[Byte] {
