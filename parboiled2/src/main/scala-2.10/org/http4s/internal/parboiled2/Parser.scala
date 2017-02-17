@@ -670,7 +670,7 @@ object ParserMacros {
       val matched =
         if (__inErrorAnalysis) wrapped
         else ${opTree.render(wrapped = false)}
-      if (matched) org.parboiled2.Rule else null""" // we encode the "matched" boolean as 'ruleResult ne null'
+      if (matched) org.http4s.internal.parboiled2.Rule else null""" // we encode the "matched" boolean as 'ruleResult ne null'
 
     reify { ctx.Expr[RuleX](ruleTree).splice.asInstanceOf[Rule[I, O]] }
   }
