@@ -5,6 +5,7 @@ import java.util.Locale
 import org.http4s.Http4sSpec
 import org.scalacheck.{Prop, Arbitrary, Gen}
 import scalaz.scalacheck.ScalazProperties
+import scalaz.Show
 
 class CaseInsensitiveStringSpec extends Http4sSpec {
   "equals" should {
@@ -12,6 +13,14 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
       prop { s: String =>
         val lc = s.toLowerCase(Locale.ROOT)
         (s.equalsIgnoreCase(lc)) == (s.ci == lc.ci)
+      }
+    }
+  }
+
+  "compareTo" should {
+    "be consistent with compareToIgnoreCase" in {
+      prop { (a: String, b: String) =>
+        a.compareToIgnoreCase(b) == a.ci.compareTo(b.ci)
       }
     }
   }
@@ -59,5 +68,13 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
       }
     }
   }
-}
 
+  checkAll(ScalazProperties.monoid.laws[CaseInsensitiveString])
+  checkAll(ScalazProperties.order.laws[CaseInsensitiveString])
+
+  "Show[CaseInsensitiveString]" should {
+    "be consistent with toString" in prop { s: CaseInsensitiveString =>
+      Show[CaseInsensitiveString].shows(s) must_== s.toString
+    }
+  }
+}
