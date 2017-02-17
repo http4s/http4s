@@ -20,7 +20,7 @@ object MultipartParser {
 
   private final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse(boundary: Boundary): Pipe[Task, ByteVector, Either[Headers, ByteVector]] = { s =>
+  def parse(boundary: Boundary): Pipe[Task, Byte, Either[Headers, ByteVector]] = { s =>
     val boundaryBytes = boundary.toByteVector
     val startLine = DASHDASH ++ boundaryBytes
     val endLine = startLine ++ DASHDASH
@@ -212,7 +212,7 @@ object MultipartParser {
       leading.map(bv => pre(bv)(h)) getOrElse h.receive1((bv, h) => pre(bv)(h))
     }
 
-    s.pull(start)
+    s.mapChunks(chunk => Chunk.singleton(ByteVector(chunk.toArray))).pull(start)
   }
 
 }

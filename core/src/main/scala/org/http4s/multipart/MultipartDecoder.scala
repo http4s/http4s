@@ -1,5 +1,3 @@
-// TODO fs2 port
-/*
 package org.http4s
 package multipart
 
@@ -20,34 +18,36 @@ private[http4s] object MultipartDecoder {
 
   val decoder: EntityDecoder[Multipart] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      def gatherParts = {
-        def go(part: Part): Process1[Headers \/ ByteVector, Part] =
-          receive1Or[Headers \/ ByteVector, Part](emit(part)) {
-            case -\/(headers) =>
-              emit(part) fby go(Part(headers, EmptyBody))
-            case \/-(chunk) =>
-              go(part.copy(body = part.body ++ emit(chunk)))
+      def gatherParts : Pipe[Task, Either[Headers, ByteVector], Part] = s => {
+
+        def go(part: Part): Handle[Task, Either[Headers, ByteVector]] => Pull[Task, Part, Unit] =
+          _.receive1Option{
+            case Some((Left(headers), handle)) =>
+                Pull.output1(part) >> go(Part(headers, EmptyBody))(handle)
+            case Some((Right(chunk), handle)) =>
+                go(part.copy(body = part.body ++ Stream.emits(chunk.toSeq)))(handle)
+            case None => Pull.output1(part)
           }
 
-        receive1[Headers \/ ByteVector, Part] {
-          case -\/(headers) =>
-            go(Part(headers, EmptyBody))
-          case \/-(chunk) =>
-            Process.fail(InvalidMessageBodyFailure("No headers in first part"))
-        }
+        s.open.flatMap(_.receive1{
+          case (Left(headers), handle) =>
+            go(Part(headers, EmptyBody))(handle)
+          case (Right(chunk), handle) =>
+            Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
+        }).close
       }
 
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
             msg.body
-              .pipe(MultipartParser.parse(Boundary(boundary)))
-              .pipe(gatherParts)
+              .through(MultipartParser.parse(Boundary(boundary)))
+              .through(gatherParts)
               .runLog
-              .map(parts => \/-(Multipart(parts, Boundary(boundary))))
+              .map(parts => Right(Multipart(parts, Boundary(boundary))))
               .handle {
-                case e: InvalidMessageBodyFailure => -\/(e)
-                case e => -\/(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
+                case e: InvalidMessageBodyFailure => Left(e)
+                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
             }
           }
         case None =>
@@ -55,4 +55,3 @@ private[http4s] object MultipartDecoder {
       }
     }
 }
-*/*/
