@@ -18,16 +18,15 @@ package org.http4s.internal.parboiled2
 
 import org.specs2.execute._
 import org.specs2.execute.Typecheck.typecheck
+import org.specs2.matcher.TypecheckMatchers
 import support._
 
-//// pure compile-time-only test
-class VarianceSpec {
+class VarianceSpec extends TestParserSpec with TypecheckMatchers {
 
-  // the Parsing DSL should
+  "The Parsing DSL" should
   {
 
-    // honor contravariance on the 1st type param of the `Rule` type
-    {
+    "honor contravariance on the 1st type param of the `Rule` type" in {
       // valid example
       test {
         abstract class Par extends Parser {
@@ -54,7 +53,7 @@ class VarianceSpec {
           def A: Rule2[String, Any] = ???
           def B: PopRule[Int :: HNil] = ???
         }
-        typecheck("""class P extends Par { def C = rule { A ~ B } }""")
+        typecheck("""class P extends Par { def C = rule { A ~ B } }""") must failWith("Illegal rule composition")
       }
 
       // invalid example 3
@@ -63,12 +62,11 @@ class VarianceSpec {
           def A: Rule1[String] = ???
           def B: PopRule[Int :: HNil] = ???
         }
-        typecheck("""class P extends Par { def C = rule { A ~ B } }""")
+        typecheck("""class P extends Par { def C = rule { A ~ B } }""") must failWith("Illegal rule composition")
       }
     }
 
-    // honor covariance on the 2nd type param of the `Rule` type
-    {
+    "honor covariance on the 2nd type param of the `Rule` type" in {
       // valid example
       test {
         abstract class Par extends Parser {
@@ -84,10 +82,10 @@ class VarianceSpec {
           def A: Rule0 = ???
           def B: Rule1[Any] = ???
         }
-        typecheck("""class P extends Par { def C: Rule1[Int] = rule { A ~ B } }""")
+        typecheck("""class P extends Par { def C: Rule1[Int] = rule { A ~ B } }""") must failWith("type mismatch;.*")
       }
     }
   }
 
-  def test(x: Any): Unit = () // prevent "a pure expression does nothing in statement position" warnings
+  def test[A](x: => A): A = x
 }

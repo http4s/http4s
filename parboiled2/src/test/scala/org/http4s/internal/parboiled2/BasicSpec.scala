@@ -18,9 +18,10 @@ package org.http4s.internal.parboiled2
 
 import org.specs2.execute._
 import org.specs2.execute.Typecheck.typecheck
+import org.specs2.matcher.TypecheckMatchers
 import org.specs2.specification.Scope
 
-class BasicSpec extends TestParserSpec {
+class BasicSpec extends TestParserSpec with TypecheckMatchers {
 
   "The Parser should correctly recognize/reject input for" >> {
 
@@ -174,11 +175,11 @@ class BasicSpec extends TestParserSpec {
   "The Parser" should {
     "disallow compilation of an illegal character range" in new Parser with Scope {
       def input = ParserInput.Empty
-      typecheck("""rule { "00" - "5" }""")
-      typecheck("""rule { "0" - "55" }""")
-      typecheck("""rule { "" - "5" }""")
-      typecheck("""rule { "0" - "" }""")
-      typecheck("""rule { "5" - "1" }""")
+      typecheck("""def foo = rule { "00" - "5" }""") must failWith("lower bound must be a single char string")
+      typecheck("""def foo = rule { "0" - "55" }""") must failWith("upper bound must be a single char string")
+      typecheck("""def foo = rule { "" - "5" }""") must failWith("lower bound must be a single char string")
+      typecheck("""def foo = rule { "0" - "" }""") must failWith("upper bound must be a single char string")
+      typecheck("""def foo = rule { "5" - "1" }""") must failWith("lower bound must not be > upper bound")
       success
     }
   }
