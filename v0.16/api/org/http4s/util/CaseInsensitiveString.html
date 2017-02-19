@@ -139,8 +139,12 @@
                         </a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="CaseInsensitiveString$.html" title=""></a>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">
+                        <a class="class" href="" title="A String wrapper such that two strings x and y are equal if
+x.value.equalsIgnoreCase(y.value)
+"></a>
+                        <a href="" title="A String wrapper such that two strings x and y are equal if
+x.value.equalsIgnoreCase(y.value)
+">
                           CaseInsensitiveString
                         </a>
                       </li><li class="current-entities indented3">
@@ -252,16 +256,18 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">CaseInsensitiveString</span><span class="result"> extends <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>
+        <span class="name">CaseInsensitiveString</span><span class="result"> extends <span class="extype" name="java.lang.CharSequence">CharSequence</span> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/util/CaseInsensitiveString.scala" target="_blank">CaseInsensitiveString.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A String wrapper such that two strings <code>x</code> and <code>y</code> are equal if
+<code>x.value.equalsIgnoreCase(y.value)</code>
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/util/CaseInsensitiveString.scala" target="_blank">CaseInsensitiveString.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="java.lang.CharSequence">CharSequence</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>], <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>], <span class="extype" name="java.lang.CharSequence">CharSequence</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -287,12 +293,12 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.util.CaseInsensitiveString"><span>CaseInsensitiveString</span></li><li class="in" name="java.lang.CharSequence"><span>CharSequence</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.util.CaseInsensitiveString"><span>CaseInsensitiveString</span></li><li class="in" name="scala.math.Ordered"><span>Ordered</span></li><li class="in" name="java.lang.Comparable"><span>Comparable</span></li><li class="in" name="java.lang.CharSequence"><span>CharSequence</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
                   </span>
-                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                  <ol id="implicits"> <li class="in" name="scala.math.Ordered.orderingToOrdered" data-hidden="false"><span>by orderingToOrdered</span></li><li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -394,6 +400,38 @@
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="scala.math.Ordered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&lt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less" class="name">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&lt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less$eq" class="name">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
@@ -410,6 +448,38 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.math.Ordered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&gt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater" class="name">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&gt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater$eq" class="name">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -427,9 +497,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.util.CaseInsensitiveString#charAt" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="charAt(index:Int):Char"></a><a id="charAt(Int):Char"></a>
+      <a id="charAt(n:Int):Char"></a><a id="charAt(Int):Char"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/CaseInsensitiveString.html#charAt(index:Int):Char" title="Permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#charAt(n:Int):Char" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -438,7 +508,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">charAt</span><span class="params">(<span name="index">index: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Char">Char</span></span>
+        <span class="name">charAt</span><span class="params">(<span name="n">n: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Char">Char</span></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → CharSequence</dd></dl></div>
@@ -496,6 +566,38 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>CharSequence</dd></dl></div>
+    </li><li name="org.http4s.util.CaseInsensitiveString#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compare(other:org.http4s.util.CaseInsensitiveString):Int"></a><a id="compare(CaseInsensitiveString):Int"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#compare(other:org.http4s.util.CaseInsensitiveString):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">compare</span><span class="params">(<span name="other">other: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compareTo(that:A):Int"></a><a id="compareTo(CaseInsensitiveString):Int"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#compareTo(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((CaseInsensitiveString)⇒Boolean,⇒Any):CaseInsensitiveString"></a>
       <span class="permalink">
@@ -919,20 +1021,151 @@
               </ol>
             </div>
 
-        
+        <div class="values members">
+              <h3>Shadowed Implicit Value Members</h3>
+              <ol><li name="scala.math.Ordered.orderingToOrdered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&lt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less" class="implicit shadowed">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to
+            <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(caseInsensitiveString: Ordered[CaseInsensitiveString]).&lt;(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&lt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less$eq" class="implicit shadowed">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to
+            <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(caseInsensitiveString: Ordered[CaseInsensitiveString]).&lt;=(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&gt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater" class="implicit shadowed">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to
+            <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(caseInsensitiveString: Ordered[CaseInsensitiveString]).&gt;(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(CaseInsensitiveString):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#&gt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater$eq" class="implicit shadowed">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to
+            <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(caseInsensitiveString: Ordered[CaseInsensitiveString]).&gt;=(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compare(that:A):Int"></a><a id="compare(CaseInsensitiveString):Int"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#compare(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit shadowed">compare</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to
+            <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(caseInsensitiveString: Ordered[CaseInsensitiveString]).compare(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compareTo(that:A):Int"></a><a id="compareTo(CaseInsensitiveString):Int"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/CaseInsensitiveString.html#compareTo(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit shadowed">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to
+            <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(caseInsensitiveString: Ordered[CaseInsensitiveString]).compareTo(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
+    </li></ol>
+            </div>
 
         
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="java.lang.CharSequence">
+        <div class="parent" name="scala.math.Ordered">
+              <h3>Inherited from <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</h3>
+            </div><div class="parent" name="java.lang.Comparable">
+              <h3>Inherited from <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</h3>
+            </div><div class="parent" name="java.lang.CharSequence">
               <h3>Inherited from <span class="extype" name="java.lang.CharSequence">CharSequence</span></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
-        <div class="conversion" name="scala.Predef.any2stringadd">
+        <div class="conversion" name="scala.math.Ordered.orderingToOrdered">
+              <h3>Inherited by implicit conversion orderingToOrdered from
+                <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to <span class="extype" name="scala.math.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
                 <a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]
               </h3>

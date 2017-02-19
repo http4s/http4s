@@ -117,7 +117,7 @@
       </tr>
       <tr>
         <td>0.16.0a-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-primary">Development</span></td>
+        <td class="text-center"><span class="label label-warning">Development</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -127,7 +127,7 @@
       </tr>
       <tr>
         <td>0.16.0-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-primary">Development</span></td>
+        <td class="text-center"><span class="label label-warning">Development</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -136,7 +136,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.3a</td>
+        <td>0.15.4a</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -146,7 +146,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.3</td>
+        <td>0.15.4</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -267,7 +267,15 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-15-3-2016-01-17">v0.15.3 (2016-01-17)</h1>
+      <h1 id="v0-15-4-2017-02-12">v0.15.4 (2017-02-12)</h1>
+
+<ul>
+<li>Call <code>toHttpResponse</code> on tasks failed with <code>MessageFailure</code>s from
+<code>HttpService</code>, to get proper 4xx handling instead of an internal
+server error.</li>
+</ul>
+
+<h1 id="v0-15-3-2017-01-17">v0.15.3 (2017-01-17)</h1>
 
 <ul>
 <li>Dispose of redirect responses in <code>FollowRedirect</code>. Fixes client deadlock under heavy load</li>

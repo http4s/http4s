@@ -445,8 +445,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         </a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="CaseInsensitiveString$.html" title=""></a>
-                        <a class="class" href="CaseInsensitiveString.html" title=""></a>
-                        <a href="CaseInsensitiveString.html" title="">
+                        <a class="class" href="CaseInsensitiveString.html" title="A String wrapper such that two strings x and y are equal if
+x.value.equalsIgnoreCase(y.value)
+"></a>
+                        <a href="CaseInsensitiveString.html" title="A String wrapper such that two strings x and y are equal if
+x.value.equalsIgnoreCase(y.value)
+">
                           CaseInsensitiveString
                         </a>
                       </li><li class="current-entities indented3">
@@ -650,9 +654,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <p class="shortcomment cmt"><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> that will result in a <code>ByteVector</code></p><div class="fullcomment"><div class="comment cmt"><p><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> that will result in a <code>ByteVector</code></p></div><dl class="paramcmts block"><dt class="param">bv</dt><dd class="cmt"><p>initial ByteVector<code></code></p></dd></dl></div>
     </li><li name="org.http4s.util.CaseInsensitiveString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CaseInsensitiveStringextendsCharSequence"></a><a id="CaseInsensitiveString:CaseInsensitiveString"></a>
+      <a id="CaseInsensitiveStringextendsCharSequencewithOrdered[org.http4s.util.CaseInsensitiveString]"></a><a id="CaseInsensitiveString:CaseInsensitiveString"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/index.html#CaseInsensitiveStringextendsCharSequence" title="Permalink">
+      <a href="../../../org/http4s/util/index.html#CaseInsensitiveStringextendsCharSequencewithOrdered[org.http4s.util.CaseInsensitiveString]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -661,12 +665,16 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="CaseInsensitiveString.html">
+        <a title="A String wrapper such that two strings x and y are equal if
+x.value.equalsIgnoreCase(y.value)
+" href="CaseInsensitiveString.html">
               <span class="name">CaseInsensitiveString</span>
-            </a><span class="result"> extends <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>
+            </a><span class="result"> extends <span class="extype" name="java.lang.CharSequence">CharSequence</span> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">A String wrapper such that two strings <code>x</code> and <code>y</code> are equal if
+<code>x.value.equalsIgnoreCase(y.value)</code>
+</p>
     </li><li name="org.http4s.util.NonEmptyList" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NonEmptyList[+A]extendsAnyRef"></a><a id="NonEmptyList[+A]:NonEmptyList[A]"></a>
       <span class="permalink">
@@ -923,7 +931,7 @@ one based on <code>List</code>.
       <span class="symbol">
         <a title="" href="CaseInsensitiveString$.html">
               <span class="name">CaseInsensitiveString</span>
-            </a>
+            </a><span class="result"> extends <span class="extype" name="org.http4s.util.CaseInsensitiveStringInstances">CaseInsensitiveStringInstances</span></span>
       </span>
       
       

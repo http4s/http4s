@@ -124,24 +124,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@444b5e7
+response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7607b146
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).right[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@e3fee2d
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@5bda8718
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).right[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@7127d969
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@251151d1
 
 scala&gt; val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@a0002ed
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@34e5e75d
 
 scala&gt; println(response.as(bothDec).unsafePerformSync)
 Audio()
