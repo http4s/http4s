@@ -6,6 +6,7 @@ import cats._
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
@@ -27,6 +28,11 @@ trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
+
+  implicit val arbitraryCaseInsensitiveString: Arbitrary[CaseInsensitiveString] =
+    Arbitrary(arbitrary[String].map(_.ci))
+  implicit val cogenCaseInsensitiveString: Cogen[CaseInsensitiveString] =
+    Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
   implicit def arbitraryNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
     Arbitrary { for {

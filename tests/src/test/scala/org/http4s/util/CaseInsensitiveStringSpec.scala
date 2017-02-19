@@ -2,6 +2,8 @@ package org.http4s.util
 
 import java.util.Locale
 
+import cats.Show
+import cats.kernel.laws.{GroupLaws, OrderLaws}
 import org.http4s.Http4sSpec
 import org.scalacheck.{Prop, Arbitrary, Gen}
 
@@ -11,6 +13,14 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
       prop { s: String =>
         val lc = s.toLowerCase(Locale.ROOT)
         (s.equalsIgnoreCase(lc)) == (s.ci == lc.ci)
+      }
+    }
+  }
+
+  "compareTo" should {
+    "be consistent with compareToIgnoreCase" in {
+      prop { (a: String, b: String) =>
+        a.compareToIgnoreCase(b) == a.ci.compareTo(b.ci)
       }
     }
   }
@@ -58,5 +68,13 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
       }
     }
   }
-}
 
+  checkAll("monoid", GroupLaws[CaseInsensitiveString].monoid)
+  checkAll("order", OrderLaws[CaseInsensitiveString].order)
+
+  "Show[CaseInsensitiveString]" should {
+    "be consistent with toString" in prop { s: CaseInsensitiveString =>
+      Show[CaseInsensitiveString].show(s) must_== s.toString
+    }
+  }
+}
