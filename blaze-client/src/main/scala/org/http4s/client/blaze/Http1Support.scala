@@ -5,6 +5,7 @@ package blaze
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
+import javax.net.ssl.SSLContext
 
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
@@ -38,7 +39,7 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
   import Http1Support._
 
   private val ec = ExecutionContext.fromExecutorService(executor)
-  private val sslContext = config.sslContext.getOrElse(bits.sslContext)
+  private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
