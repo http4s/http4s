@@ -21,8 +21,6 @@ private[blaze] object bits {
 
   val ClientTickWheel = new TickWheelExecutor()
 
-
-
   def getExecutor(config: BlazeClientConfig): (ExecutorService, Task[Unit]) = config.customExecutor match {
     case Some(exec) => (exec, Task.now(()))
     case None =>
@@ -30,22 +28,15 @@ private[blaze] object bits {
       (exec, Task.delay{ exec.shutdown() })
   }
 
-  /** The sslContext which will generate SSL engines for the pipeline
-    * Override to provide more specific SSL managers */
-  lazy val sslContext = defaultTrustManagerSSLContext()
-
-  private class DefaultTrustManager extends X509TrustManager {
-    def getAcceptedIssuers(): Array[X509Certificate] =  new Array[java.security.cert.X509Certificate](0)
-    def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
-    def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
-  }
-
-  private def defaultTrustManagerSSLContext(): SSLContext = try {
+  /** Caution: trusts all certificates and disables endpoint identification */
+  lazy val TrustingSslContext: SSLContext = {
+    val trustManager = new X509TrustManager {
+      def getAcceptedIssuers(): Array[X509Certificate] = Array.empty
+      def checkClientTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+      def checkServerTrusted(certs: Array[X509Certificate], authType: String): Unit = {}
+    }
     val sslContext = SSLContext.getInstance("TLS")
-    sslContext.init(null, Array(new DefaultTrustManager()), new SecureRandom())
+    sslContext.init(null, Array(trustManager), new SecureRandom)
     sslContext
-  } catch {
-    case e: NoSuchAlgorithmException => throw new ExceptionInInitializerError(e)
-    case e: ExceptionInInitializerError => throw new ExceptionInInitializerError(e)
   }
 }

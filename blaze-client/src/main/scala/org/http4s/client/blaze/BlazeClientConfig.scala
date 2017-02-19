@@ -15,8 +15,13 @@ import scala.concurrent.duration.Duration
   * @param idleTimeout duration that a connection can wait without traffic before timeout
   * @param requestTimeout maximum duration for a request to complete before a timeout
   * @param userAgent optional custom user agent header
-  * @param sslContext optional custom `SSLContext` to use to replace the default
-  * @param endpointAuthentication require endpoint authentication for encrypted connections
+  * @param sslContext optional custom `SSLContext` to use to replace
+  * the default, `SSLContext.getDefault`.
+  * @param endpointAuthentication require endpoint identification for
+  * secure requests.  If the certificate presented does not match the
+  * hostname of the request, the request fails with a CertificateException.
+  * This setting does not affect checking the validity of the cert via the
+  * `sslContext`'s trust managers.
   * @param maxResponseLineSize maximum length of the request line
   * @param maxHeaderLength maximum length of headers
   * @param maxChunkSize maximum size of chunked content chunks
@@ -47,8 +52,7 @@ final case class BlazeClientConfig(// HTTP properties
                                   )
 
 object BlazeClientConfig {
-  /** Default user configuration
-    */
+  /** Default configuration of a blaze client. */
   val defaultConfig =
     BlazeClientConfig(
       idleTimeout = bits.DefaultTimeout,
@@ -67,4 +71,13 @@ object BlazeClientConfig {
       customExecutor = None,
       group = None
     )
+
+  /**
+   * Creates an SSLContext that trusts all certificates and disables
+   * endpoint identification.  This is convenient in some development
+   * environments for testing with untrusted certificates, but is
+   * not recommended for production use.
+   */
+  val insecure: BlazeClientConfig =
+    defaultConfig.copy(sslContext = Some(bits.TrustingSslContext), endpointAuthentication = false)
 }
