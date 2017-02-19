@@ -30,6 +30,7 @@ private[blaze] object bits {
       (exec, Task { exec.shutdown() })
   }
 
+  /** Caution: trusts all certificates and disables endpoint identification */
   lazy val TrustingSslContext: SSLContext = {
     val trustManager = new X509TrustManager {
       def getAcceptedIssuers(): Array[X509Certificate] = Array.empty
