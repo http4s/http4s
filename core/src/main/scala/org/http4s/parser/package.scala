@@ -2,10 +2,9 @@ package org.http4s
 
 import cats.data._
 import org.http4s.batteries._
-import org.parboiled2._
-import org.parboiled2.Parser.DeliveryScheme
-import org.parboiled2.support.Unpack
-import shapeless._
+import org.http4s.internal.parboiled2._
+import org.http4s.internal.parboiled2.Parser.DeliveryScheme
+import org.http4s.internal.parboiled2.support._
 
 package object parser {
   private[this] val errorFormatter = new ErrorFormatter

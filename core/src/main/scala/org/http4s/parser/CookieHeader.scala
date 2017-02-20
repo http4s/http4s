@@ -20,9 +20,9 @@ package parser
 
 import java.time.Instant
 
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import org.http4s.headers.`Set-Cookie`
-import shapeless.{HNil, ::}
+import org.http4s.internal.parboiled2.support.{HNil, ::}
 
 private[parser] trait CookieHeader {
 

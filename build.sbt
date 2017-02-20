@@ -24,6 +24,30 @@ name := "root"
 description := "A minimal, Scala-idiomatic library for HTTP"
 noPublishSettings
 
+// This defines macros that we use in core, so it needs to be split out
+lazy val parboiled2 = libraryProject("parboiled2")
+  .settings(noPublishSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      scalaReflect(scalaVersion.value) % "provided"
+    ),
+    unmanagedSourceDirectories in Compile ++= {
+      scalaBinaryVersion.value match {
+        // The 2.12 branch is compatible with 2.11
+        case "2.12" => Seq((sourceDirectory in Compile).value / "scala-2.11")
+        case _ => Seq.empty
+      }
+    },
+    scalacOptions -= {
+      scalaBinaryVersion.value match {
+        case "2.10" => "-Ywarn-numeric-widen" // it doesn't like case classes with Char
+        case _ => ""
+      }
+    },
+    scalacOptions -= "-Xlint", // https://issues.scala-lang.org/browse/SI-9490
+    macroParadiseSetting
+  )
+
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -36,12 +60,15 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       macroCompat,
-      parboiled,
       scalaReflect(scalaVersion.value) % "provided",
       scodecBits
     ),
-    macroParadiseSetting
-)
+    macroParadiseSetting,
+    mappings in (Compile, packageBin) ++= (mappings in (parboiled2.project, Compile, packageBin)).value,
+    mappings in (Compile, packageSrc) ++= (mappings in (parboiled2.project, Compile, packageSrc)).value,
+    mappings in (Compile, packageDoc) ++= (mappings in (parboiled2.project, Compile, packageDoc)).value
+  )
+  .dependsOn(parboiled2)
 
 lazy val testing = libraryProject("testing")
   .settings(
@@ -49,8 +76,9 @@ lazy val testing = libraryProject("testing")
     libraryDependencies ++= Seq(
       scalacheck,
       specs2Core
-    )
-)
+    ),
+    macroParadiseSetting
+  )
   .dependsOn(core)
 
 // Defined outside core/src/test so it can depend on published testing
@@ -493,6 +521,7 @@ lazy val commonSettings = Seq(
     "-encoding", "UTF-8",
     "-feature",
     "-language:existentials",
+    "-language:experimental.macros",
     "-language:higherKinds",
     "-language:implicitConversions",
     s"-target:jvm-${jvmTarget.value}",
@@ -548,10 +577,10 @@ lazy val commonSettings = Seq(
         override def transform(node: xml.Node): Seq[xml.Node] = node match {
           case e: xml.Elem
               if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
+          case e: xml.Elem
+              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text == "parboiled2") => Nil
           case _ => Seq(node)
-
         }
-
       }).transform(node).head
   },
   coursierVerbosity := 0,

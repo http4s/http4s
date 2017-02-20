@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import org.http4s.{ Query => Q }
 import java.nio.charset.Charset
 import org.http4s.util.string._

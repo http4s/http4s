@@ -19,7 +19,7 @@ package org.http4s
 package parser
 
 import org.http4s.batteries._
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import CharsetRange._
 
 private[parser] trait AcceptCharsetHeader {

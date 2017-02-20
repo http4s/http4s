@@ -25,7 +25,8 @@ import cats.data.NonEmptyList
 import org.http4s.batteries._
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
-import org.parboiled2.Rule1
+
+import org.http4s.internal.parboiled2.Rule1
 
 /**
  * parser rules for all headers that can be parsed with one simple rule

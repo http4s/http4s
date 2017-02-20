@@ -66,7 +66,6 @@ object Http4sBuild {
   lazy val macroCompat         = "org.typelevel"            %% "macro-compat"            % "1.1.1"
   lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.1.2"
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
-  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.3"
   lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
   def scalaCompiler(sv: String) = "org.scala-lang"           % "scala-compiler"          % sv

@@ -11,7 +11,7 @@ import fs2._
 import org.http4s.parser._
 import org.http4s.headers._
 import org.log4s.getLogger
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import scodec.bits.ByteVector
 
 private[http4s] object MultipartDecoder {

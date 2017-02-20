@@ -5,7 +5,7 @@ import cats.data.{Writer => _, _}
 import org.http4s.batteries._
 import org.http4s.parser._
 import org.http4s.util._
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 
 /**
  * An HTTP version, as seen on the start line of an HTTP request or response.
@@ -30,7 +30,7 @@ object HttpVersion extends HttpVersionInstances {
     }
   }
 
-  private class Parser(val input: ParserInput) extends org.parboiled2.Parser with Rfc2616BasicRules {
+  private class Parser(val input: ParserInput) extends org.http4s.internal.parboiled2.Parser with Rfc2616BasicRules {
     def HttpVersion: Rule1[org.http4s.HttpVersion] = rule {
       "HTTP/" ~ capture(Digit) ~ "." ~ capture(Digit) ~> { (major: String, minor: String) => new HttpVersion(major.toInt, minor.toInt) }
     }

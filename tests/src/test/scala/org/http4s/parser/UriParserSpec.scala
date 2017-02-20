@@ -5,7 +5,7 @@ import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 import org.http4s.Uri._
 import org.http4s._
 
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 
 class IpParser(val input: ParserInput, val charset: NioCharset) extends Parser with Rfc3986Parser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }

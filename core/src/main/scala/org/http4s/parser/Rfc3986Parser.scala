@@ -6,8 +6,8 @@ import java.net.URLDecoder
 
 import org.http4s.{ Query => Q }
 import org.http4s.batteries._
-import org.parboiled2._
-import shapeless.HNil
+import org.http4s.internal.parboiled2._
+import org.http4s.internal.parboiled2.support.HNil
 
 private[parser] trait Rfc3986Parser { this: Parser =>
   // scalastyle:off public.methods.have.type
