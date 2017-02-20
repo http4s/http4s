@@ -1,3 +1,8 @@
+# v0.15.5 (2017-02-20)
+* Allow services wrapped in CORS middleware to fall through
+* Don't log message about invalid CORS headers when no `Origin` header present
+* Soften log about invalid CORS headers from info to debug
+
 # v0.15.4 (2017-02-12)
 * Call `toHttpResponse` on tasks failed with `MessageFailure`s from
   `HttpService`, to get proper 4xx handling instead of an internal
