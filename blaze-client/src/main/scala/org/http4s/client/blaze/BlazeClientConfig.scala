@@ -17,10 +17,11 @@ import scala.concurrent.duration.Duration
   * @param userAgent optional custom user agent header
   * @param sslContext optional custom `SSLContext` to use to replace
   * the default, `SSLContext.getDefault`.
-  * @param endpointAuthentication require endpoint identification for
-  * secure requests.  If the certificate presented does not match the
-  * hostname of the request, the request fails with a CertificateException.
-  * This setting does not affect checking the validity of the cert via the
+  * @param checkEndpointIdentification require endpoint identification
+  * for secure requests according to RFC 2818, Section 3.1.  If the
+  * certificate presented does not match the hostname of the request,
+  * the request fails with a CertificateException.  This setting does
+  * not affect checking the validity of the cert via the
   * `sslContext`'s trust managers.
   * @param maxResponseLineSize maximum length of the request line
   * @param maxHeaderLength maximum length of headers
@@ -37,7 +38,7 @@ final case class BlazeClientConfig(// HTTP properties
 
                                    // security options
                                    sslContext: Option[SSLContext],
-                                   endpointAuthentication: Boolean,
+                                   @deprecatedName('endpointAuthentication) checkEndpointIdentification: Boolean,
 
                                    // parser options
                                    maxResponseLineSize: Int,
@@ -49,7 +50,10 @@ final case class BlazeClientConfig(// HTTP properties
                                    bufferSize: Int,
                                    customExecutor: Option[ExecutorService],
                                    group: Option[AsynchronousChannelGroup]
-                                  )
+) {
+  @deprecated("Parameter has been renamed to `checkEndpointIdentification`", "0.16")
+  def endpointAuthentication: Boolean = checkEndpointIdentification
+}
 
 object BlazeClientConfig {
   /** Default configuration of a blaze client. */
@@ -60,7 +64,7 @@ object BlazeClientConfig {
       userAgent = bits.DefaultUserAgent,
 
       sslContext = None,
-      endpointAuthentication = true,
+      checkEndpointIdentification = true,
 
       maxResponseLineSize = 4*1024,
       maxHeaderLength = 40*1024,
@@ -79,5 +83,5 @@ object BlazeClientConfig {
    * not recommended for production use.
    */
   val insecure: BlazeClientConfig =
-    defaultConfig.copy(sslContext = Some(bits.TrustingSslContext), endpointAuthentication = false)
+    defaultConfig.copy(sslContext = Some(bits.TrustingSslContext), checkEndpointIdentification = false)
 }
