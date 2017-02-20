@@ -127,7 +127,7 @@ and experiment directly in the REPL.</p>
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala&gt; val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7142e7c1
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@47e90e35
 </code></pre>
 
 <p>Where is our <code>Response</code>?  It hasn&rsquo;t been created yet.  We wrapped it
@@ -162,7 +162,7 @@ generating <code>Task[Response]</code>s.</p>
 applying a status code:</p>
 
 <pre><code class="language-scala">scala&gt; val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1f60ea77
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@4edb8a30
 
 scala&gt; val ok = okTask.run
 &lt;console&gt;:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -258,7 +258,7 @@ scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;b
 &lt;console&gt;:24: warning: method run in class Task is deprecated: use unsafePerformSync
        Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).run.headers
                                                                                                                        ^
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Mon, 20 Feb 2017 13:56:31 GMT; Secure; HttpOnly)
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Mon, 20 Feb 2017 16:14:30 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -331,7 +331,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
      |   println(&quot;I run when the future is constructed.&quot;)
      |   &quot;Greetings from the future!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6f70f93e
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@649651c8
 
 scala&gt; task.run
 &lt;console&gt;:28: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -347,7 +347,7 @@ of course prefer to operate in [Task]s:</p>
      |   println(&quot;I run when the Task is run.&quot;)
      |   &quot;Mission accomplished!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@187edf74
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@2240c8fa
 
 scala&gt; task.run
 &lt;console&gt;:28: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -530,7 +530,7 @@ implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
     QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@146ab375
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@56b3e092
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
