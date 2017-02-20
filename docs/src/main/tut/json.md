@@ -4,69 +4,197 @@ weight: 310
 title: JSON handling
 ---
 
-## Pick a library
+## Add the JSON support module(s)
 
-### Argonaut
-
-Argonaut-shapeless for automatic codec derivation.
-
-```scala
-libraryDependencies += Seq(
-  "org.http4s" %% "http4s-argonaut" % "{{< version >}}",
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0-M4"
-)
-```
+http4s-core does not include JSON support, but integration with three
+popular Scala JSON libraries are supported as modules.
 
 ### Circe
 
-Circe-generic for automatic codec derivation.
+The http4s team recommends circe.  Only http4s-circe is required for
+basic interop with circe, but to follow this tutorial, install all three:
 
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % "{{< version >}}",
-  "io.circe" %% "circe-generic" % "0.6.1"
+  // Optional for auto-derivation of JSON codecs
+  "io.circe" %% "circe-generic" % "0.6.1",
+  // Optional for string interpolation to JSON model
+  "io.circe" %% "circe-literal" % "0.6.1"
 )
 ```
 
+### Argonaut
+
+Circe is a fork of argonaut, another popular JSON library in the Scala
+community.  The functionality is similar:
+
+```scala
+libraryDependencies += Seq(
+  "org.http4s" %% "http4s-argonaut" % "{{< version >}}",
+  // Optional for auto-derivation of JSON codecs
+  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0-M4"
+)
+```
+
+For those not ready to upgrade to argonaut-6.2, an `http4s-argonaut61`
+is also available.  It is source compatible, but compiled against
+Argonaut 6.1.
+
 ### Json4s
 
-Json4s supports two backends.  Choose one of:
+Json4s is less functionally pure than Circe or Argonaut, but older and
+integrated with many Scala libraries.  It comes with two backends.
+You should pick one of these dependencies:
 
 ```scala
 libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "{{< version >}}"
 libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "{{< version >}}"
 ```
 
-## Import it
+There is no extra codec derivation library for json4s, as it generally
+bases its codecs on runtime reflection.
 
-The import statement is one of the following:
+## Sending raw JSON
 
-```scala
-import org.http4s.argonaut._
-import org.http4s.circe._
-import org.http4s.json4s.jackson._
-import org.http4s.json4s.native._
-```
-
-## Deriving codecs
-
-To use the functions provided by http4s, the corresponding implicit instances
-need to be in scope. For argonaut, there is [argonaut-shapeless], circe has the
-[circe-generic] module. With json4s, there's [jsonExtract], with the
-corresponding drawbacks.
-
-## Sending JSON
-
-The usage is the same for client and server, both points use an
-`EntityEncoder[T]` to transform the outgoing data into a scala class.
-One of the imports above brings into scope an `EntityDecoder[Json]`
-(or `EntityDecoder[JValue]` in the case of json4s).
-
-In circe, when one has an `Encoder` instance, `.asJson` can be
-called to get to a `Json`.  In the example below, we convert the
-`Hello` case class to JSON for rendering in an `Ok` response.
+Let's create a function to produce a simple JSON greeting with circe:
 
 ```tut:book
+import io.circe._
+import io.circe.literal._
+import org.http4s._
+import org.http4s.dsl._
+
+def hello(name: String): Json =
+  json"""{"hello": $name}"""
+  
+val greeting = hello("world")
+```
+
+We now have a JSON value, but we don't have enough to render it:
+
+```tut:fail
+Ok(greeting).run
+```
+
+To encode a Scala value of type `A` into an entity, we need an
+`EntityEncoder[A]` in scope.  The http4s-circe module includes a
+`org.http4s.circe` object, which gives us exactly this for an
+`io.circe.Json` value:
+
+```tut:book
+import org.http4s.circe._
+
+Ok(greeting).run
+```
+
+The same `EntityEncoder[Json]` we use on server responses is also
+useful on client requests:
+
+```tut:book
+import org.http4s.client._
+
+POST(uri("/hello"), json"""{"name": "Alice"}""").run
+```
+
+## Encoding case classes as JSON
+
+These JSON literals are nice, but in real apps, we prefer to operate
+on case classes and use JSON as a serialization format near the edge
+of the world.
+
+Let's define a couple case classes:
+
+```tut:silent
+case class Hello(name: String)
+case class User(name: String)
+```
+
+To transform a value of type `A` into `Json`, circe uses an
+`io.circe.Encoder[A]`.  With circe's syntax, we can convert any value
+to JSON as long as an implicit `Encoder` is in scope:
+
+```tut:silent
+import io.circe.syntax._
+```
+
+```tut:fail
+Hello("Alice").asJson
+```
+
+Oops!  We haven't told Circe how we want to encode our case class.
+Let's provide an encoder:
+
+```tut:book
+implicit val HelloEncoder: Encoder[Hello] =
+  Encoder.instance { hello: Hello => 
+    json"""{"hello": ${hello.name}}"""
+  }
+  
+Hello("Alice").asJson
+```
+
+That was easy, but gets tedious for applications dealing in lots of
+types.  Fortunately, circe can automatically derive an encoder for us,
+using the field names of the case class as key names in a JSON object:
+
+```tut:book
+import io.circe.generic.auto._
+
+User("Alice").asJson
+```
+
+Equipped with an `Encoder` and `.asJson`, we can send JSON in requests
+and responses for our case classes:
+
+```tut:book
+Ok(Hello("Alice").asJson).run
+POST(uri("/hello"), User("Bob").asJson).run
+```
+
+## Receiving raw JSON
+
+Just as we needed an `EntityEncoder[JSON]` to send JSON from a server
+or client, we need an `EntityDecoder[JSON]` to receive it.
+
+The `org.http4s.circe._` package provides an implicit
+`EntityDecoder[Json]`.  This makes it very easy to decode a request or
+response body to JSON using the `as` syntax:
+
+```tut:book
+Ok("""{"name":"Alice"}""").as[Json].run
+POST(uri("/hello"),"""{"name":"Bob"}""").as[Json].run
+```
+
+Like sending raw JSON, this is useful to a point, but we typically
+want to get to a typed model as quickly as we can.
+
+## Decoding JSON to a case class
+
+To get from an HTTP entity to `Json`, we use an `EntityDecoder[Json]`.
+To get from `Json` to any type `A`, we need an `io.circe.Decoder[A]`.
+http4s-circe provides the `jsonOf` function to make the connection all
+the way from HTTP to your type `A`.  Specifically, `jsonOf[A]` takes
+an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
+
+```tut:book
+Ok("""{"name":"Alice"}""").as(jsonOf[User]).run
+POST(uri("/hello"), """{"name":"Bob"}""").as(jsonOf[User]).run
+```
+
+Note the argument to `as` is in parentheses instead of square
+brackets, as it's a function call instead of a type.  We are
+_implicitly_ summoning a `Decoder[A]`, but _explicitly_ declaring that
+`A` is encoded as JSON.
+
+## Putting it all together
+
+### A Hello world service
+
+Our hello world service will parse a `User` from a request and offer a
+proper greeting.
+
+```tut:silent
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -79,108 +207,50 @@ case class User(name: String)
 case class Hello(greeting: String)
 
 val jsonService = HttpService {
-  case r @ POST -> Root / "hello" =>
-    r.as(jsonOf[User]).flatMap(user =>
-      Ok(Hello(s"Hello, ${user.name}").asJson)
-    )
+  case req @ POST -> Root / "hello" =>
+    for {
+	  // Decode a User request
+	  user <- req.as(jsonOf[User])
+	  // Encode a hello response
+	  resp <- Ok(Hello(user.name).asJson)
+    } yield (resp)
 }
 
 import org.http4s.server.blaze._
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(jsonService, "/")
+val builder = BlazeBuilder.bindHttp(8080).mountService(jsonService, "/")
 val blazeServer = builder.run
 ```
 
-## Receiving JSON
+## A Hello world client
 
-The `EntityDecoder[T]` instances work similarly to the `EntityEncoder[T]`
-instances, except it's `jsonOf` to create the instances.
+Now let's make a client for the service above:
 
-Let's talk to the server defined above.
-
-```tut:book
+```tut:silent
 import org.http4s.client.blaze._
-import org.http4s.Uri
+import scalaz.concurrent.Task
 
 val httpClient = PooledHttp1Client()
-val req = Request(uri = Uri.uri("http://localhost:8080/hello"), method = Method.POST).withBody(User("Anabelle"))(jsonEncoderOf)
-httpClient.expect(req)(jsonOf[Hello]).run
+// Decode the Hello response
+def helloClient(name: String): Task[Hello] = {
+  // Encode a User request
+  val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
+  // Decode a Hello response
+  httpClient.expect(req)(jsonOf[Hello])
+}
 ```
 
-And clean everything up.
+Finally, we post `User("Alice")` to our Hello service and expect
+`Hello("Alice")` back:
 
 ```tut:book
+helloClient("Alice").run
+```
+
+```tut:invisible
 httpClient.shutdownNow()
 blazeServer.shutdownNow()
 ```
 
-## Talking to the Github API
-
-As an example, we'll use the [github-orgs] endpoint. The data is shortened a bit
-for clarity.
-
-```json
-[
-  {
-    "id": 3692188,
-    "name": "http4s",
-    "full_name": "http4s/http4s",
-    "owner": {
-      "login": "http4s",
-      "id": 1527492
-      // ...
-    },
-    "private": false,
-    "html_url": "https://github.com/http4s/http4s",
-    "description": "A minimal, idiomatic Scala interface for HTTP",
-    "size": 21365,
-    "stargazers_count": 533,
-    "language": "Scala",
-    "forks_count": 118,
-    "open_issues_count": 69,
-    "forks": 118,
-    "open_issues": 69,
-    "watchers": 533
-    // ...
-  }
-  // ...
-]
-```
-
-To capture this structure, we'll need corresponding case classes.
-
-```tut:book
-case class User(login: String, id: Long)
-case class Repo(id: Long, name: String, full_name: String, owner: User, `private`: Boolean, html_url: String, description: String, size: Int, stargazers_count: Int, language: String, forks_count: Int, open_issues_count: Int, forks: Int, open_issues: Int, watchers: Int)
-```
-
-This parts skips over the [client] explanation. We'll use circe, with
-[circe-generic] for codec derivation. The JSON decoder is provided by
-circe-generic, and passed to the `client.expect` method via the second
-argument, which is usually an implicit `EntityDecoder`.  In this case,
-we want to be more explicit.
-
-<!-- For more information about the uri templating, visit [uri]. -->
-
-```tut:book
-import scalaz.concurrent.Task
-
-import org.http4s.util.string._
-
-val httpClient = PooledHttp1Client()
-
-def repos(organization: String): Task[List[Repo]] = {
-  val uri = Uri.uri("https://api.github.com/orgs") / organization / "repos"
-  httpClient.expect(uri)(jsonOf[List[Repo]])
-}
-
-val http4s = repos("http4s")
-http4s.map(_.map(_.stargazers_count).mkString("\n")).run
-httpClient.shutdownNow()
-```
-
-
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
 [jsonExtract]: https://github.com/http4s/http4s/blob/master/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L29
-[client]: ../client
-[github-orgs]: https://developer.github.com/v3/repos/#list-organization-repositories
