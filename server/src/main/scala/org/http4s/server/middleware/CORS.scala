@@ -96,16 +96,22 @@ object CORS {
       case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
         logger.debug(s"Serving OPTIONS with CORS headers for ${acrm} ${req.uri}")
         options(origin, acrm)(req)
-      case (_, Some(origin), _) if allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString)) =>
-        service(req).map { resp =>
-          if (Fallthrough[Response].isFallthrough(resp)) resp
-          else {
-            logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-            corsHeaders(origin.value, req.method.renderString)(resp)
+      case (_, Some(origin), _) =>
+        if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString))) {
+          service(req).map { resp =>
+            if (Fallthrough[Response].isFallthrough(resp)) resp
+            else {
+              logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
+              corsHeaders(origin.value, req.method.renderString)(resp)
+            }
           }
         }
+        else {
+          logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
+          service(req)
+        }
       case _ =>
-        logger.info(s"CORS headers were denied for ${req.method} ${req.uri}")
+        // This request is out of scope for CORS
         service(req)
     }
   }
