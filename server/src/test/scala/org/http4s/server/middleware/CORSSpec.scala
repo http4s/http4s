@@ -4,10 +4,8 @@ package middleware
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.Status._
-import org.http4s.Method._
+import org.http4s.dsl._
 import org.http4s.headers._
-
 import org.specs2.mutable.Specification
 
 class CORSSpec extends Http4sSpec {
@@ -56,6 +54,13 @@ class CORSSpec extends Http4sSpec {
       val req = buildRequest("/bar", OPTIONS)
       cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafeRun
       cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafeRun
+    }
+
+    "Fall through" in {
+      val req = buildRequest("/2")
+      val s1 = CORS(HttpService { case GET -> Root / "1" => Ok() })
+      val s2 = CORS(HttpService { case GET -> Root / "2" => Ok() })
+      (s1 |+| s2).orNotFound(req) must returnStatus(Ok)
     }
   }
 }
