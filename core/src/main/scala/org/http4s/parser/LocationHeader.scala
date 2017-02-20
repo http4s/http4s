@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets
 
 import org.http4s.headers.Location
 import org.http4s._
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 
 trait LocationHeader {
 

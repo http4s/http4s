@@ -3,10 +3,10 @@ package org.http4s.parser
 import scalaz._
 
 import org.http4s.ParseFailure
-import org.parboiled2.{ ErrorFormatter, ParseError }
-import org.parboiled2.Parser.DeliveryScheme
-import org.parboiled2.support.Unpack
-import shapeless.HList
+import org.http4s.internal.parboiled2.{ ErrorFormatter, ParseError }
+import org.http4s.internal.parboiled2.Parser.DeliveryScheme
+import org.http4s.internal.parboiled2.support.Unpack
+import org.http4s.internal.parboiled2.support.HList
 
 private[http4s] object ScalazDeliverySchemes {
   private val errorFormattter = new ErrorFormatter()

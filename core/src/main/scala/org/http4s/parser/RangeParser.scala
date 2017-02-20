@@ -4,7 +4,7 @@ package parser
 import org.http4s.{headers, RangeUnit}
 import org.http4s.headers.{`Accept-Ranges`, `Content-Range`, Range}
 import org.http4s.headers.Range.SubRange
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 
 import org.http4s.util.NonEmptyList
 

@@ -13,7 +13,7 @@ import scala.collection.immutable.BitSet
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
-import org.parboiled2.CharPredicate
+import org.http4s.internal.parboiled2.CharPredicate
 
 private[http4s] object UrlCodingUtils {
 

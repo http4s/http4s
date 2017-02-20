@@ -1,10 +1,10 @@
 package org.http4s
 package parser
 
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import java.nio.charset.Charset
 import java.net.URLDecoder
-import shapeless.HNil
+import org.http4s.internal.parboiled2.support.HNil
 import scalaz.syntax.std.option._
 import org.http4s.{ Query => Q }
 import org.http4s.syntax.string._

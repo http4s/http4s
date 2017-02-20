@@ -20,9 +20,9 @@ package parser
 
 import java.time.{ZonedDateTime, ZoneOffset, Instant}
 
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import scala.util.Try
-import shapeless.{HNil, ::}
+import org.http4s.internal.parboiled2.support.{HNil, ::}
 import java.net.InetAddress
 
 private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>

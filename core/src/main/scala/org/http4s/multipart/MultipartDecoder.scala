@@ -16,7 +16,7 @@ import scalaz._
 import Scalaz._
 import scalaz.stream._
 import scalaz.stream.Process._
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import org.log4s.getLogger
 
 private[http4s] object MultipartDecoder {

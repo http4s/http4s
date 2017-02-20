@@ -1,7 +1,7 @@
 package org.http4s.parser
 
 import org.http4s.{MediaType, MediaRange}
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 
 private[parser] trait MediaParser { self: Http4sHeaderParser[_] =>
 

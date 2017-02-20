@@ -18,7 +18,7 @@
 package org.http4s
 package parser
 
-import org.parboiled2._
+import org.http4s.internal.parboiled2._
 import headers.`Content-Type`
 
 private[parser] trait ContentTypeHeader {
@@ -27,7 +27,7 @@ private[parser] trait ContentTypeHeader {
     new ContentTypeParser(value).parse
 
   private class ContentTypeParser(input: ParserInput) extends Http4sHeaderParser[`Content-Type`](input) with MediaParser {
-    def entry: org.parboiled2.Rule1[`Content-Type`] = rule {
+    def entry: org.http4s.internal.parboiled2.Rule1[`Content-Type`] = rule {
       (MediaRangeDef ~ optional(zeroOrMore(MediaTypeExtension)) ~ EOL) ~> { (range: MediaRange, exts: Option[Seq[(String, String)]]) =>
         val mediaType = range match {
           case m: MediaType => m
