@@ -1,5 +1,6 @@
 package org.http4s.client.blaze
 
+import scala.concurrent.duration._
 import scalaz.concurrent.Task
 
 import org.http4s._
@@ -8,12 +9,13 @@ import org.specs2.mutable.After
 
 // TODO: this should have a more comprehensive test suite
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
+  private val timeout = 30.seconds
 
   private val simpleClient = SimpleHttp1Client()
 
   "Blaze Simple Http1 Client" should {
     "Make simple https requests" in {
-      val resp = simpleClient.expect[String](uri("https://github.com/")).run
+      val resp = simpleClient.expect[String](uri("https://httpbin.org/get")).runFor(timeout)
       resp.length mustNotEqual 0
     }
   }
