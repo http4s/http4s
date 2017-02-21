@@ -247,6 +247,7 @@ lazy val docs = http4sProject("docs")
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
+      circeLiteral,
       cryptobits
     ),
     description := "Documentation for http4s",
