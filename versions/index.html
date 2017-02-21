@@ -267,7 +267,15 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-15-4-2017-02-12">v0.15.4 (2017-02-12)</h1>
+      <h1 id="v0-15-5-2017-02-20">v0.15.5 (2017-02-20)</h1>
+
+<ul>
+<li>Allow services wrapped in CORS middleware to fall through</li>
+<li>Don&rsquo;t log message about invalid CORS headers when no <code>Origin</code> header present</li>
+<li>Soften log about invalid CORS headers from info to debug</li>
+</ul>
+
+<h1 id="v0-15-4-2017-02-12">v0.15.4 (2017-02-12)</h1>
 
 <ul>
 <li>Call <code>toHttpResponse</code> on tasks failed with <code>MessageFailure</code>s from
