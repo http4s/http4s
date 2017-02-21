@@ -29,7 +29,7 @@ abstract class JettyScaffold(name: String) extends Http4sSpec {
     server.stop()
   }
 
-  protected def timeout: Duration = 10.seconds
+  protected def timeout: FiniteDuration = 10.seconds
 
   protected def initializeServer(): InetSocketAddress = {
     val address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
