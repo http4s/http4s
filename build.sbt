@@ -65,7 +65,9 @@ lazy val core = libraryProject("core")
     macroParadiseSetting,
     mappings in (Compile, packageBin) ++= (mappings in (parboiled2.project, Compile, packageBin)).value,
     mappings in (Compile, packageSrc) ++= (mappings in (parboiled2.project, Compile, packageSrc)).value,
-    mappings in (Compile, packageDoc) ++= (mappings in (parboiled2.project, Compile, packageDoc)).value
+    mappings in (Compile, packageDoc) ++= (mappings in (parboiled2.project, Compile, packageDoc)).value,
+    mappings in (Compile, packageBin) ~= (_.groupBy(_._2).toSeq.map(_._2.head)), // filter duplicate outputs
+    mappings in (Compile, packageDoc) ~= (_.groupBy(_._2).toSeq.map(_._2.head)) // filter duplicate outputs
   )
   .dependsOn(parboiled2)
 
