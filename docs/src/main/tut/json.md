@@ -159,7 +159,7 @@ or client, we need an `EntityDecoder[JSON]` to receive it.
 
 The `org.http4s.circe._` package provides an implicit
 `EntityDecoder[Json]`.  This makes it very easy to decode a request or
-response body to JSON using the `as` syntax:
+response body to JSON using the [`as` syntax]:
 
 ```tut:book
 Ok("""{"name":"Alice"}""").as[Json].run
@@ -254,3 +254,4 @@ blazeServer.shutdownNow()
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
 [jsonExtract]: https://github.com/http4s/http4s/blob/master/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L29
+[`as` syntax]: ../api/index.html#org.http4s.MessageOps@as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]
