@@ -584,7 +584,7 @@ lazy val commonSettings = Seq(
           case e: xml.Elem
               if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
           case e: xml.Elem
-              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text == "parboiled2") => Nil
+              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text.contains("parboiled2")) => Nil
           case _ => Seq(node)
         }
       }).transform(node).head
