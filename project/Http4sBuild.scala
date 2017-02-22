@@ -29,7 +29,7 @@ object Http4sBuild {
 
   val macroParadiseSetting =
     libraryDependencies ++= Seq(
-      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)),
+      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)),
       VersionNumber(scalaVersion.value).numbers match {
         case Seq(2, 10, _*) => Seq(quasiquotes)
         case _ => Seq.empty
