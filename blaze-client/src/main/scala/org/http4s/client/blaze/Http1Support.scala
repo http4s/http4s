@@ -65,7 +65,7 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)
         eng.setUseClientMode(true)
 
-        if (config.endpointAuthentication) {
+        if (config.checkEndpointIdentification) {
           val sslParams = eng.getSSLParameters
           sslParams.setEndpointIdentificationAlgorithm("HTTPS")
           eng.setSSLParameters(sslParams)

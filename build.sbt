@@ -29,7 +29,7 @@ lazy val parboiled2 = libraryProject("parboiled2")
   .settings(noPublishSettings)
   .settings(
     libraryDependencies ++= Seq(
-      scalaReflect(scalaVersion.value) % "provided"
+      scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     unmanagedSourceDirectories in Compile ++= {
       scalaBinaryVersion.value match {
@@ -60,8 +60,9 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       macroCompat,
-      scalaReflect(scalaVersion.value) % "provided",
-      scodecBits
+      scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
+      scodecBits,
+      scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting,
     mappings in (Compile, packageBin) ++= (mappings in (parboiled2.project, Compile, packageBin)).value,
@@ -285,6 +286,7 @@ lazy val docs = http4sProject("docs")
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
+      circeLiteral,
       cryptobits
     ),
     description := "Documentation for http4s",
@@ -580,7 +582,7 @@ lazy val commonSettings = Seq(
           case e: xml.Elem
               if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
           case e: xml.Elem
-              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text == "parboiled2") => Nil
+              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text.contains("parboiled2")) => Nil
           case _ => Seq(node)
         }
       }).transform(node).head
