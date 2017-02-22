@@ -29,7 +29,7 @@ object Http4sBuild {
 
   val macroParadiseSetting =
     libraryDependencies ++= Seq(
-      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)),
+      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)),
       VersionNumber(scalaVersion.value).numbers match {
         case Seq(2, 10, _*) => Seq(quasiquotes)
         case _ => Seq.empty
@@ -44,6 +44,7 @@ object Http4sBuild {
   lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.9.0"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
   lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.7.0"
+  lazy val circeLiteral        = "io.circe"                 %% "circe-literal"           % circeJawn.revision
   lazy val cryptobits          = "org.reactormonk"          %% "cryptobits"              % "1.1"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.7.2"
   lazy val fs2Cats             = "co.fs2"                   %% "fs2-cats"                % "0.3.0"
@@ -68,8 +69,8 @@ object Http4sBuild {
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
   lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
-  def scalaCompiler(sv: String) = "org.scala-lang"           % "scala-compiler"          % sv
-  def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
+  def scalaCompiler(so: String, sv: String)     = so                      % "scala-compiler"            % sv
+  def scalaReflect(so: String, sv: String)      = so                      % "scala-reflect"             % sv
   lazy val scalacheck          = "org.scalacheck"           %% "scalacheck"              % "1.13.4"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   lazy val scodecBits          = "org.scodec"               %% "scodec-bits"             % "1.1.4"
