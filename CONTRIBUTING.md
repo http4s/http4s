@@ -72,11 +72,11 @@ build a better http4s for you.
 
 ### Code of Conduct
 
-Discussion around http4s is currently happening on the [Gitter] as
-well as on [Github issues].  We hope that our community will be
+Discussion around http4s is currently happening on [Gitter] as
+well as [Github issues].  We hope that our community will be
 respectful, helpful, and kind.  People are expected to follow the
-[Typelevel Code of Conduct] when discussing http4s on the Github page,
-Gitter channel, or other venues.  If you find yourself embroiled in a
+[Typelevel Code of Conduct] when discussing http4s on Github,
+Gitter, or in other venues.  If you find yourself embroiled in a
 situation that becomes heated, or that fails to live up to our
 expectations, you should disengage and contact one of the [community
 staff] in private. We hope to avoid letting minor aggressions and
@@ -91,10 +91,11 @@ This document is heavily based on the [Cats contributor's guide].
 
 [issues page]: https://github.com/http4s/http4s/issues
 [create a GitHub issue]: https://github.com/http4s/http4s/issues/new
+[Github issues]: https://github.com/http4s/http4s/issues
 [http4s.org]: http://http4s.org/
 [adopters list]: http://http4s.org/adopters/
 [add yourself as an adopter]: https://github.com/http4s/http4s/edit/master/docs/src/hugo/content/adopters.md
-[Gitter room]: http://gitter.im/http4s/http4s
+[Gitter]: http://gitter.im/http4s/http4s
 [Typelevel Code of Conduct]: http://typelevel.org/conduct.html
 [community staff]: http://http4s.org/community/conduct.html#community-staff
 [Apache License 2.0]: https://github.com/http4s/http4s/blob/master/LICENSE
