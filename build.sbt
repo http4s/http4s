@@ -29,7 +29,7 @@ lazy val parboiled2 = libraryProject("parboiled2")
   .settings(noPublishSettings)
   .settings(
     libraryDependencies ++= Seq(
-      scalaReflect(scalaVersion.value) % "provided"
+      scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     unmanagedSourceDirectories in Compile ++= {
       scalaBinaryVersion.value match {
@@ -58,7 +58,7 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       macroCompat,
-      scalaCompiler(scalaVersion.value) % "provided",
+      scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided",
       scalazCore(scalazVersion.value),
       scalazStream(scalazVersion.value)
     ),
