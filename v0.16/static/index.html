@@ -15,7 +15,8 @@
   <script src="/js/bootstrap.min.js"></script>
 </head>
 
-  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -54,7 +55,6 @@
   </div>
 </nav>
 
-  <body>
     <div class="container">
       <div class="content">
         <div class="col-md-10" role="main">
@@ -95,7 +95,7 @@ val service = HttpService {
       .map(Task.now) // This one is require to make the types match up
       .getOrElse(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32148/85503979@506c17f3)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$42525/1604709915@897208d)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -111,7 +111,7 @@ val service = HttpService {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32148/85503979@528bf264)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$42525/1604709915@56344ba2)
 </code></pre>
 
           <footer>

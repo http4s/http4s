@@ -15,7 +15,8 @@
   <script src="/js/bootstrap.min.js"></script>
 </head>
 
-  <nav class="navbar navbar-inverse navbar-fixed-top">
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -54,7 +55,6 @@
   </div>
 </nav>
 
-  <body>
     <div class="container">
       <div class="content">
         <div class="col-md-10" role="main">
@@ -206,7 +206,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@3afc7ff
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@6ff8deb2
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
