@@ -27,7 +27,7 @@ My change is...                               | Branch
 ----------------------------------------------|-------------------
 Documentation of existing features            | [release-0.15.x]
 Documentation of unreleased features          | [master]
-Change to docs/src/site                       | [master]
+Change to docs/src/hugo                       | [master]
 Specific to cats or fs2                       | [cats]
 Binary compatible with current release        | [release-0.15.x]
 Binary incompatible with current release      | [master]
