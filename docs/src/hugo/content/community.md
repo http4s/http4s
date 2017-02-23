@@ -45,7 +45,7 @@ to improve.  Here's how you can help:
 
 * [Submit an issue or pull request](http://github.com/http4s/http4s/issues/new).
 * If we helped you, improve a doc. See the edit links at the bottom of each page.
-* See the [contributors' guide](http://github.com/http4s/http4s/CONTRIBUTING.md)
+* See the [contributors' guide](https://github.com/http4s/http4s/blob/master/CONTRIBUTING.md)
   for more.
 {{% /panel %}}
 
