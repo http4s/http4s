@@ -1,44 +1,54 @@
-// TODO fs2 port
-/*
+
 package com.example.http4s.blaze
 
+import fs2.async.mutable.{Queue, Signal}
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.websocket._
 import org.http4s.server.blaze.BlazeBuilder
-import org.http4s.util.ProcessApp
+import org.http4s.util.StreamApp
 import org.http4s.websocket.WebsocketBits._
 
 import scala.concurrent.duration._
+import fs2.{Chunk, NonEmptyChunk, Pipe, Scheduler, Sink, Strategy, Stream, Task, async, pipe}
+import fs2.time.awakeEvery
+import fs2.util.Async
 
-import scalaz.concurrent.Task
-import scalaz.concurrent.Strategy
-import scalaz.stream.async.unboundedQueue
-import scalaz.stream.{Process, Sink}
-import scalaz.stream.{DefaultScheduler, Exchange}
-import scalaz.stream.time.awakeEvery
+import scala.concurrent.ExecutionContext
 
-object BlazeWebSocketExample extends ProcessApp {
+object BlazeWebSocketExample extends StreamApp {
+  implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
+  implicit val strategy = Strategy.fromFixedDaemonPool(8, threadName = "worker")
 
   val route = HttpService {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 
-    case req@ GET -> Root / "ws" =>
-      val src = awakeEvery(1.seconds)(Strategy.DefaultStrategy, DefaultScheduler).map{ d => Text(s"Ping! $d") }
-      val sink: Sink[Task, WebSocketFrame] = Process.constant {
-        case Text(t, _) => Task.delay( println(t))
-        case f       => Task.delay(println(s"Unknown type: $f"))
-      }
-      WS(Exchange(src, sink))
+    case GET -> Root / "ws" =>
+      val toClient: Stream[Task, WebSocketFrame] = awakeEvery[Task](1.seconds).map{ d => Text(s"Ping! $d") }
+      val fromClient: Sink[Task, WebSocketFrame] = _.evalMap { (ws: WebSocketFrame) => ws match {
+        case Text(t, _) => Task.delay(println(t))
+        case f          => Task.delay(println(s"Unknown type: $f"))
+      }}
+      WS(toClient, fromClient)
 
     case req@ GET -> Root / "wsecho" =>
-      val q = unboundedQueue[WebSocketFrame]
-      val src = q.dequeue.collect {
+      val queue = async.unboundedQueue[Task, WebSocketFrame]
+      val fromClient = for {
+        q <- Stream.eval(queue)
+        d <- q.dequeue
+      } yield d match {
         case Text(msg, _) => Text("You sent the server: " + msg)
+        case _ =>            Text("Something new")
       }
+      val fromClient1: Stream[Task, (Stream[Task, WebSocketFrame], Sink[Task, WebSocketFrame])] = for {
+        q <- Stream.eval(queue)
+      } yield (q.dequeue, q.enqueue)
 
-      WS(Exchange(src, q.enqueue))
+      val toClient: Sink[Task, WebSocketFrame] = _.evalMap((f: WebSocketFrame) => queue.flatMap(q => q.enqueue1(f)))
+
+      // I don't know how to produce a proper sink for this result
+      WS(fromClient, toClient)
   }
 
   def stream(args: List[String]) = BlazeBuilder.bindHttp(8080)
@@ -46,4 +56,4 @@ object BlazeWebSocketExample extends ProcessApp {
     .mountService(route, "/http4s")
     .serve
 }
- */
+

@@ -1,5 +1,3 @@
-// TODO fs2 port
-/*
 package org.http4s.server.blaze
 
 import java.nio.ByteBuffer
@@ -33,7 +31,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               .map(_.replaceAllHeaders(
                  Connection("close".ci),
                  Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
-              )).run
+              )).unsafeRun
 
             super.renderResponse(req, resp, cleanup)
 
@@ -62,4 +60,3 @@ private trait WebSocketSupport extends Http1ServerStage {
     } else super.renderResponse(req, resp, cleanup)
   }
 }
-*/
