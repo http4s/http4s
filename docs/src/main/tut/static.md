@@ -58,20 +58,18 @@ libraryDependencies ++= Seq(
 Then, mount the `WebjarService` like any other service:
 
 ```tut:book
-import org.http4s.server.{Server, ServerApp}
-import org.http4s.server.blaze.BlazeBuilder
-import org.http4s.server.staticcontent.{WebjarService, webjarService}
+import org.http4s.server.staticcontent.webjarService
+import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 
-// starts the server
-object WebServer extends ServerApp {
+// only allow js assets
+def isJsAsset(asset: WebjarAsset): Boolean =
+  asset.asset.endsWith(".js")
 
-    override def server(args: List[String]): Task[Server] =
-      BlazeBuilder
-        .bindHttp(8080, "127.0.0.1")
-        // ...
-        .mountService(webjarService(WebjarService.Config()), "/webjars")
-        .start
-}
+val webjars: HttpService = webjarService(
+  Config(
+    filter = isJsAsset
+  )
+)
 ```
 
 [StaticFile]: ../api/#org.http4s.StaticFile$

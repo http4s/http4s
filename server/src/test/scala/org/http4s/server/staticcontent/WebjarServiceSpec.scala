@@ -2,8 +2,9 @@ package org.http4s
 package server
 package staticcontent
 
-import org.http4s.Method.GET
+import org.http4s.Method.{GET, POST}
 import org.http4s.server.staticcontent.WebjarService.Config
+import org.http4s.server.staticcontent.WebjarServiceFilterSpec.{runReq, throwA}
 
 object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
 
@@ -45,6 +46,12 @@ object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
     "Not find missing asset" in {
       val req = Request(uri = uri("test-lib/1.0.0/"))
       runReq(req)._2.status must_== Status.NotFound
+    }
+
+    "Not match a request with POST" in {
+      val req = Request(POST, Uri(path = "test-lib/1.0.0/testresource.txt"))
+
+      runReq(req) must throwA[MatchError]
     }
 
   }
