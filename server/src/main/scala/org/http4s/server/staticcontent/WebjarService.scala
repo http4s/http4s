@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService
 import scalaz.concurrent.{Strategy, Task}
 
 /**
-  * Constructs new services to serve files from Webjars
+  * Constructs new services to serve assets from Webjars
   */
 object WebjarService {
 
@@ -30,13 +30,13 @@ object WebjarService {
     * @param version The version of the webjar
     * @param asset The asset name inside the webjar
     */
-  case class WebjarAsset(library: String, version: String, asset: String, pathPrefix: String) {
+  final case class WebjarAsset(library: String, version: String, asset: String, pathPrefix: String) {
 
     private[staticcontent] def webPath: String =
       s"$pathPrefix/$library/$version/$asset"
 
     /**
-      * Constructs a full path for an asset inside a webjar file
+      * Constructs a full path for an asset inside a webjar asset
       *
       * @return The full name in the Webjar
       */
@@ -46,8 +46,8 @@ object WebjarService {
   }
 
   /**
-    * A filter callback for Webjar files
-    * It's a function that takes the WebjarFile and returns whether or not the file
+    * A filter callback for Webjar asset
+    * It's a function that takes the WebjarAsset and returns whether or not the asset
     * should be served to the client.
     */
   type WebjarAssetFilter = WebjarAsset => Boolean
@@ -60,25 +60,25 @@ object WebjarService {
     */
   def apply(config: Config): HttpService = Service.lift { request =>
 
-    // Intercepts the routes that match webjar file names
+    // Intercepts the routes that match webjar asset names
     Option(request.pathInfo)
         .filter(_.startsWith(config.pathPrefix))
         .map(getSubPath(_, config.pathPrefix))
         .map(sanitize)
-        .flatMap(toWebjarFile(_, config))
+        .flatMap(toWebjarAsset(_, config))
         .filter(config.filter)
-        .flatMap(serveWebjarFile(request, _, config))
+        .flatMap(serveWebjarAsset(request, _, config))
         .getOrElse(Pass.now)
 
   }
 
   /**
-    * Returns an Option(WebjarFile) for a Request, or None if it couldn't be mapped
+    * Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
     *
     * @param subPath The request path without the prefix
-    * @return The Webjar file, or none if it couldn't be mapped
+    * @return The WebjarAsset, or None if it couldn't be mapped
     */
-  private def toWebjarFile(subPath: String, config: Config): Option[WebjarAsset] =
+  private def toWebjarAsset(subPath: String, config: Config): Option[WebjarAsset] =
     Option(subPath)
       .map(_.split('/').toList)
       .filter(_.size >= 3)
@@ -88,13 +88,13 @@ object WebjarService {
       .filter(_.asset.nonEmpty)
 
   /**
-    * Returns a file that matched the request if it's found in the webjar path
+    * Returns an asset that matched the request if it's found in the webjar path
     *
     * @param request The Request
     * @param webjarAsset The WebjarAsset
-    * @return Either the the file, if it exist, or Pass
+    * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarFile(request: Request, webjarAsset: WebjarAsset, config: Config): Option[Task[MaybeResponse]] =
+  private def serveWebjarAsset(request: Request, webjarAsset: WebjarAsset, config: Config): Option[Task[MaybeResponse]] =
     Some(
       StaticFile
         .fromResource(webjarAsset.pathInJar, Some(request))
