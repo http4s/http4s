@@ -32,15 +32,20 @@ object WebjarService {
     */
   final case class WebjarAsset(library: String, version: String, asset: String, pathPrefix: String) {
 
-    private[staticcontent] def webPath: String =
-      s"$pathPrefix/$library/$version/$asset"
+    /**
+      * The path under which the asset is reachable in the web
+      *
+      * @return The path where the asset is reachable on the web
+      */
+    private lazy val webPath: String =
+      s"${ensureSlash(pathPrefix)}$library/$version/$asset"
 
     /**
       * Constructs a full path for an asset inside a webjar asset
       *
       * @return The full name in the Webjar
       */
-    private[staticcontent] def pathInJar: String =
+    private[staticcontent] lazy val pathInJar: String =
       s"/META-INF/resources/webjars/$library/$version/$asset"
 
   }
@@ -58,27 +63,61 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply(config: Config): HttpService = Service.lift { request =>
+  def apply(config: Config): HttpService = Service.lift {
 
     // Intercepts the routes that match webjar asset names
-    Option(request.pathInfo)
-        .filter(_.startsWith(config.pathPrefix))
-        .map(getSubPath(_, config.pathPrefix))
-        .map(sanitize)
-        .flatMap(toWebjarAsset(_, config))
-        .filter(config.filter)
-        .flatMap(serveWebjarAsset(request, _, config))
-        .getOrElse(Pass.now)
+    case request if request.method == Method.GET =>
+      Option(request.pathInfo)
+          .filter(filterPathPrefix(config))
+          .map(removePathPrefix(config))
+          .map(sanitize)
+          .flatMap(toWebjarAsset(config))
+          .filter(config.filter)
+          .map(serveWebjarAsset(config, request))
+          .getOrElse(Pass.now)
 
   }
 
   /**
+    * Returns whether the path starts with the pathPrefix
+    *
+    * @param config The configuration
+    * @param path The path
+    * @return true, if the path starts with the pathPrefix
+    */
+  private def filterPathPrefix(config: Config)(path: String): Boolean =
+    path.startsWith(ensureSlash(config.pathPrefix))
+
+  /**
+    * Ensures there is a slash at the end of the path
+    *
+    * @param path The path
+    * @return The path, ending with a slash
+    */
+  private def ensureSlash(path: String): String =
+    if(path.nonEmpty && !path.endsWith("/"))
+      path + "/"
+    else
+      path
+
+  /**
+    * Removes the pathPrefix from a path
+    *
+    * @param config The configuration
+    * @param path The path to remove the pathPrefix from
+    * @return The path without the pathPrefix
+    */
+  private def removePathPrefix(config: Config)(path: String): String =
+    getSubPath(path, config.pathPrefix)
+
+  /**
     * Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
     *
+    * @param config The configuration
     * @param subPath The request path without the prefix
     * @return The WebjarAsset, or None if it couldn't be mapped
     */
-  private def toWebjarAsset(subPath: String, config: Config): Option[WebjarAsset] =
+  private def toWebjarAsset(config: Config)(subPath: String): Option[WebjarAsset] =
     Option(subPath)
       .map(_.split('/').toList)
       .filter(_.size >= 3)
@@ -90,15 +129,14 @@ object WebjarService {
   /**
     * Returns an asset that matched the request if it's found in the webjar path
     *
-    * @param request The Request
     * @param webjarAsset The WebjarAsset
+    * @param config The configuration
+    * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset(request: Request, webjarAsset: WebjarAsset, config: Config): Option[Task[MaybeResponse]] =
-    Some(
-      StaticFile
-        .fromResource(webjarAsset.pathInJar, Some(request))
-        .fold(Pass.now)(config.cacheStrategy.cache(request.pathInfo, _))
-    )
+  private def serveWebjarAsset(config: Config, request: Request)(webjarAsset: WebjarAsset): Task[MaybeResponse] =
+    StaticFile
+      .fromResource(webjarAsset.pathInJar, Some(request))
+      .fold(Pass.now)(config.cacheStrategy.cache(request.pathInfo, _))
 
 }
