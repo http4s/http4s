@@ -44,4 +44,34 @@ val service = HttpService {
 }
 ```
 
+## Webjars
+
+A special service exists to load files from [WebJars](http://www.webjars.org). Add your WebJar to the
+class path, as you usually would:
+
+```tut:book:nofail
+libraryDependencies ++= Seq(
+  "org.webjars" % "jquery" % "3.1.1-1"
+)
+```
+
+Then, mount the `WebjarService` like any other service:
+
+```tut:book
+import org.http4s.server.{Server, ServerApp}
+import org.http4s.server.blaze.BlazeBuilder
+import org.http4s.server.staticcontent.{WebjarService, webjarService}
+
+// starts the server
+object WebServer extends ServerApp {
+
+    override def server(args: List[String]): Task[Server] =
+      BlazeBuilder
+        .bindHttp(8080, "127.0.0.1")
+        // ...
+        .mountService(webjarService(WebjarService.Config()), "/webjars")
+        .start
+}
+```
+
 [StaticFile]: ../api/#org.http4s.StaticFile$
