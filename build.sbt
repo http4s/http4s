@@ -552,6 +552,16 @@ lazy val commonSettings = Seq(
       case _ => Set.empty
     }
   }),
+  scalacOptions ++= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, n)) if n >= 12 => List(
+        // until it leaves catch blocks alone
+        // https://github.com/typelevel/scala/issues/129#issuecomment-276484324
+        "-Xlint:-strict-unsealed-patmat"
+      )
+      case _ => Nil
+    }
+  },
   javacOptions ++= Seq(
     "-source", jvmTarget.value,
     "-target", jvmTarget.value,
