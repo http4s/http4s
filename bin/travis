@@ -33,10 +33,6 @@ fi
 # maximum was ~3.2gb with OpenJDK 1.8.0_121.
 SBT_EXTRA_OPTS="-J-Xms1536M -J-Xmx1536M -J-XX:MaxMetaspaceSize=768M"
 
-# Put JVM options in a file where we can write to it without sudo,
-# for instance to adjust the JVM's entropy source.
-JVM_OPTS_FILE=/tmp/jvmopts
-cp /etc/sbt/jvmopts "$JVM_OPTS_FILE"
 
 if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
     echo
@@ -44,13 +40,7 @@ if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
     echo "when VM or container entropy entropy is low.  Additional detail at"
     echo "https://github.com/http4s/http4s/issues/774#issuecomment-273981456 ."
 
-    echo "-Djava.security.egd=file:/dev/./urandom" >> "$JVM_OPTS_FILE"
-    echo
-    echo "JVM_OPTS:"
-    for opt in $(grep -v -e '^#' -e '^$' "$JVM_OPTS_FILE"); do
-        echo "  $opt"
-    done
-    echo
+    SBT_EXTRA_OPTS="$SBT_EXTRA_OPTS -Djava.security.egd=file:/dev/./urandom"
 fi
 
 sbt $SBT_EXTRA_OPTS 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
