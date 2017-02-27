@@ -25,6 +25,13 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   fi
 fi
 
+# Make sure JVM resident memory stays below 4gb allowed by Travis
+# container infrastructure.
+# https://docs.travis-ci.com/user/migrating-from-legacy/#More-available-resources
+#
+# With 1536m of heap, 768m of metaspace, and 6m stack size, observed
+# maximum was ~3.2gb with OpenJDK 1.8.0_121.
+SBT_EXTRA_OPTS="-J-Xms1536M -J-Xmx1536M -J-XX:MaxMetaspaceSize=768M"
 
 # Put JVM options in a file where we can write to it without sudo,
 # for instance to adjust the JVM's entropy source.
@@ -46,7 +53,7 @@ if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
     echo
 fi
 
-sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION -jvm-opts "$JVM_OPTS_FILE" $SBT_COMMAND
+sbt $SBT_EXTRA_OPTS 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
 echo "Uploading codecov"
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
