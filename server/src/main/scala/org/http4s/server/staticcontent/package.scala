@@ -17,6 +17,9 @@ package object staticcontent {
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
   def fileService(config: FileService.Config): HttpService = FileService(config)
 
+  /** Make a new [[org.http4s.HttpService]] that serves static files from webjars */
+  def webjarService(config: WebjarService.Config): HttpService = WebjarService(config)
+
   private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
 
   private[staticcontent] val AcceptRangeHeader = `Accept-Ranges`(RangeUnit.Bytes)
