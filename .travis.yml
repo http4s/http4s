@@ -33,12 +33,6 @@ before_install:
   # Record minimal build information via the Git user ident
   - git config --global user.name "$USER"
   - git config --global user.email "$TRAVIS_BUILD_NUMBER@$TRAVIS_COMMIT"
-  # Decrypt the secret deploy key using instructions from `travis encrypt-file`
-  - openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc -out project/travis-deploy-key -d
-  - chmod 600 project/travis-deploy-key
-  # Start ssh-agent in the background and load the deploy key
+  # Add secret deploy key to ssh-agent for deploy
   - eval "$(ssh-agent -s)"
-  - ssh-add project/travis-deploy-key
-
-
-
+  - openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh add -
