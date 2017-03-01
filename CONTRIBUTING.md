@@ -6,20 +6,20 @@ to improve.  We are thrilled that you are interested in helping!
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-generate-toc again -->
 **Table of Contents**
 
-    - [Submitting issues](#submitting-issues)
-    - [Submitting pull requests](#submitting-pull-requests)
-        - [Claim an issue](#claim-an-issue)
-        - [Build the project](#build-the-project)
-        - [Testing](#testing)
-        - [Contributing documentation](#contributing-documentation)
-        - [Targeting a branch](#targeting-a-branch)
-        - [Attributions](#attributions)
-        - [Grant of license](#grant-of-license)
-    - [Building the Community](#building-the-community)
-        - [Join the adopters list](#join-the-adopters-list)
-        - [Spread the word](#spread-the-word)
-        - [Code of Conduct](#code-of-conduct)
-    - [Acknowledgements](#acknowledgements)
+- [Submitting issues](#submitting-issues)
+- [Submitting pull requests](#submitting-pull-requests)
+    - [Claim an issue](#claim-an-issue)
+    - [Build the project](#build-the-project)
+    - [Testing](#testing)
+    - [Contributing documentation](#contributing-documentation)
+    - [Targeting a branch](#targeting-a-branch)
+    - [Attributions](#attributions)
+    - [Grant of license](#grant-of-license)
+- [Building the Community](#building-the-community)
+    - [Join the adopters list](#join-the-adopters-list)
+    - [Spread the word](#spread-the-word)
+    - [Code of Conduct](#code-of-conduct)
+- [Acknowledgements](#acknowledgements)
 
 <!-- markdown-toc end -->
 
