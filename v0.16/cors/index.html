@@ -10,9 +10,6 @@
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
   <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
   <link rel="stylesheet" type="text/css" href="/css/style.css" >
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  <script src="/js/bootstrap.min.js"></script>
 </head>
 
   <body>
@@ -49,7 +46,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
         <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
       </ul>
     </div>
   </div>
@@ -86,7 +83,7 @@ import org.http4s.dsl._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$40007/1777975103@f4256fc)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$29496/1559927652@218ef998)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
@@ -101,7 +98,7 @@ service(request).unsafePerformSync
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$40073/532951723@77370219)
+// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$29562/1993372149@1a183432)
 
 corsService(request).unsafePerformSync
 // res1: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
@@ -158,7 +155,7 @@ val methodConfig = CORSConfig(
 // methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,None,Some(Set(GET, POST)),Some(Set(Content-Type, *)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$40073/532951723@26c790e7)
+// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$29562/1993372149@3c423930)
 
 corsMethodSvc(googleGet).unsafePerformSync
 // res3: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
@@ -182,7 +179,7 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Some(Set(yahoo.com, duckduckgo.com)),None,Some(Set(Content-Type, *)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$40073/532951723@453025d2)
+// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$29562/1993372149@365dfa0a)
 
 corsOriginSvc(googleGet).unsafePerformSync
 // res6: org.http4s.MaybeResponse = Response(status=200, headers=Headers())

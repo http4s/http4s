@@ -10,9 +10,6 @@
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
   <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
   <link rel="stylesheet" type="text/css" href="/css/style.css" >
-
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-  <script src="/js/bootstrap.min.js"></script>
 </head>
 
   <body>
@@ -49,7 +46,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
         <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
       </ul>
     </div>
   </div>
@@ -82,13 +79,13 @@ val service = HttpService {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$38804/285788831@5efc1293)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$28636/676324235@6135ad72)
 
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@16b6052f
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@67a0c62
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -104,7 +101,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$38842/1251105599@6557191a),scalaz.concurrent.Task@29b5030b)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$28674/1208708193@576285af),scalaz.concurrent.Task@5c5a1084)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -113,7 +110,7 @@ val httpClient = PooledHttp1Client()
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@50fcce48
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@73b28fb3
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>Task[String]</code>, to
@@ -146,7 +143,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@3e6e84fc
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@46d1bf3a
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>Task[String]</code> returned
@@ -166,10 +163,10 @@ server.</li>
 
 <pre><code class="language-scala">greetingList.unsafePerformSync.mkString(&quot;\n&quot;)
 // res0: String =
-// Hello, Christopher.
-// Hello, Jessica.
 // Hello, Michael.
 // Hello, Ashley.
+// Hello, Jessica.
+// Hello, Christopher.
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>

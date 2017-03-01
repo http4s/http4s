@@ -171,15 +171,15 @@ for serious static content serving.
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title=""></a>
-                        <a href="" title="">
+                        <a class="object" href="ResourceService$.html" title=""></a>
+                        <a href="ResourceService$.html" title="">
                           ResourceService
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="WebjarService$.html" title="Constructs new services to serve assets from Webjars
+                        <a class="object" href="" title="Constructs new services to serve assets from Webjars
 "></a>
-                        <a href="WebjarService$.html" title="Constructs new services to serve assets from Webjars
+                        <a href="" title="Constructs new services to serve assets from Webjars
 ">
                           WebjarService
                         </a>
@@ -192,8 +192,8 @@ for serious static content serving.
       <div id="definition">
         <div class="big-circle object">o</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.server">server</a>.<a href="index.html" class="extype" name="org.http4s.server.staticcontent">staticcontent</a></p>
-        <h1>ResourceService<span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html" title="Permalink">
+        <h1>WebjarService<span class="permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -206,12 +206,13 @@ for serious static content serving.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">ResourceService</span>
+        <span class="name">WebjarService</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/staticcontent/ResourceService.scala" target="_blank">ResourceService.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Constructs new services to serve assets from Webjars
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/staticcontent/WebjarService.scala" target="_blank">WebjarService.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -241,7 +242,7 @@ for serious static content serving.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.staticcontent.ResourceService"><span>ResourceService</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.staticcontent.WebjarService"><span>WebjarService</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -263,10 +264,10 @@ for serious static content serving.
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.staticcontent.ResourceService.Config" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.server.staticcontent.WebjarService.Config" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ConfigextendsProductwithSerializable"></a><a id="Config:Config"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#ConfigextendsProductwithSerializable" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#ConfigextendsProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -275,15 +276,54 @@ for serious static content serving.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="org.http4s.server.staticcontent.ResourceService configuration
-" href="ResourceService$$Config.html">
+        <a title="org.http4s.server.staticcontent.WebjarService configuration
+" href="WebjarService$$Config.html">
               <span class="name">Config</span>
-            </a><span class="params">(<span name="basePath">basePath: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="pathPrefix">pathPrefix: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="bufferSize">bufferSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">50*1024</span></span>, <span name="executor">executor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span> = <span class="symbol"><span class="name"><a href="../../../../scalaz/index.html">Strategy.DefaultExecutorService</a></span></span></span>, <span name="cacheStrategy">cacheStrategy: <a href="CacheStrategy.html" class="extype" name="org.http4s.server.staticcontent.CacheStrategy">CacheStrategy</a> = <span class="symbol"><span class="name"><a href="NoopCacheStrategy$.html">NoopCacheStrategy</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="filter">filter: <a href="#WebjarAssetFilter=org.http4s.server.staticcontent.WebjarService.WebjarAsset=&gt;Boolean" class="extmbr" name="org.http4s.server.staticcontent.WebjarService.WebjarAssetFilter">WebjarAssetFilter</a> = <span class="symbol">_ =&gt; true</span></span>, <span name="cacheStrategy">cacheStrategy: <a href="CacheStrategy.html" class="extype" name="org.http4s.server.staticcontent.CacheStrategy">CacheStrategy</a> = <span class="symbol"><span class="name"><a href="NoopCacheStrategy$.html">NoopCacheStrategy</a></span></span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
-      <p class="shortcomment cmt"><a href="" class="extype" name="org.http4s.server.staticcontent.ResourceService">org.http4s.server.staticcontent.ResourceService</a> configuration
-</p><div class="fullcomment"><div class="comment cmt"><p><a href="" class="extype" name="org.http4s.server.staticcontent.ResourceService">org.http4s.server.staticcontent.ResourceService</a> configuration
-</p></div><dl class="paramcmts block"><dt class="param">basePath</dt><dd class="cmt"><p>prefix of the path files will be served from</p></dd><dt class="param">pathPrefix</dt><dd class="cmt"><p>prefix of the Uri that content will be served from</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>size hint of internal buffers to use when serving resources</p></dd><dt class="param">executor</dt><dd class="cmt"><p><code>ExecutorService</code> to use when collecting content</p></dd><dt class="param">cacheStrategy</dt><dd class="cmt"><p>strategy to use for caching purposes. Default to no caching.</p></dd></dl></div>
+      <p class="shortcomment cmt"><a href="" class="extype" name="org.http4s.server.staticcontent.WebjarService">org.http4s.server.staticcontent.WebjarService</a> configuration
+</p><div class="fullcomment"><div class="comment cmt"><p><a href="" class="extype" name="org.http4s.server.staticcontent.WebjarService">org.http4s.server.staticcontent.WebjarService</a> configuration
+</p></div><dl class="paramcmts block"><dt class="param">filter</dt><dd class="cmt"><p>To filter which assets from the webjars should be served</p></dd><dt class="param">cacheStrategy</dt><dd class="cmt"><p>strategy to use for caching purposes. Default to no caching.</p></dd></dl></div>
+    </li><li name="org.http4s.server.staticcontent.WebjarService.WebjarAsset" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="WebjarAssetextendsProductwithSerializable"></a><a id="WebjarAsset:WebjarAsset"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#WebjarAssetextendsProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="Contains the information about an asset inside a webjar
+" href="WebjarService$$WebjarAsset.html">
+              <span class="name">WebjarAsset</span>
+            </a><span class="params">(<span name="library">library: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="version">version: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="asset">asset: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Contains the information about an asset inside a webjar
+</p><div class="fullcomment"><div class="comment cmt"><p>Contains the information about an asset inside a webjar
+</p></div><dl class="paramcmts block"><dt class="param">library</dt><dd class="cmt"><p>The webjar's library name</p></dd><dt class="param">version</dt><dd class="cmt"><p>The version of the webjar</p></dd><dt class="param">asset</dt><dd class="cmt"><p>The asset name inside the webjar</p></dd></dl></div>
+    </li><li name="org.http4s.server.staticcontent.WebjarService.WebjarAssetFilter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WebjarAssetFilter=org.http4s.server.staticcontent.WebjarService.WebjarAsset=&gt;Boolean"></a><a id="WebjarAssetFilter:WebjarAssetFilter"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#WebjarAssetFilter=org.http4s.server.staticcontent.WebjarService.WebjarAsset=&gt;Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">WebjarAssetFilter</span><span class="result alias"> = (<a href="WebjarService$$WebjarAsset.html" class="extype" name="org.http4s.server.staticcontent.WebjarService.WebjarAsset">WebjarAsset</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">A filter callback for Webjar asset
+It's a function that takes the WebjarAsset and returns whether or not the asset
+should be served to the client.</p>
     </li></ol>
             </div>
 
@@ -295,7 +335,7 @@ for serious static content serving.
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -311,7 +351,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -327,7 +367,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -340,10 +380,28 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.server.staticcontent.WebjarService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(config:org.http4s.server.staticcontent.WebjarService.Config):org.http4s.HttpService"></a><a id="apply(Config):HttpService"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#apply(config:org.http4s.server.staticcontent.WebjarService.Config):org.http4s.HttpService" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="config">config: <a href="WebjarService$$Config.html" class="extype" name="org.http4s.server.staticcontent.WebjarService.Config">Config</a></span>)</span><span class="result">: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Creates a new HttpService that will filter the webjars
+</p><div class="fullcomment"><div class="comment cmt"><p>Creates a new HttpService that will filter the webjars
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>The configuration for this service</p></dd><dt>returns</dt><dd class="cmt"><p>The HttpService</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -359,7 +417,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -381,7 +439,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -397,7 +455,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -413,7 +471,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -435,7 +493,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -451,7 +509,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -467,7 +525,7 @@ for serious static content serving.
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -483,7 +541,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -499,7 +557,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -515,7 +573,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -531,7 +589,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -547,7 +605,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -563,7 +621,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -585,7 +643,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -607,7 +665,7 @@ for serious static content serving.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/ResourceService$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/WebjarService$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
