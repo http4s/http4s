@@ -33,7 +33,8 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   SBT_COMMAND="$SBT_COMMAND ;publish"
   if [[ $SBT_COMMAND == *"makeSite"* ]]; then
     SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
-    export SBT_GHPAGES_COMMIT_MESSAGE=$(gh_pages_update_commit_message)
+    SBT_GHPAGES_COMMIT_MESSAGE=$(gh_pages_commit_message)
+    export SBT_GHPAGES_COMMIT_MESSAGE
   fi
 fi
 
