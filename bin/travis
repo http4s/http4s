@@ -2,6 +2,21 @@
 
 set -e
 
+# Build git commit message to be used when Travis updates the
+# gh-pages branch to publish a new version of the website.
+function gh_pages_commit_message() {
+    local SHORT_COMMIT=$(printf "%.8s" "$TRAVIS_COMMIT")
+    cat <<EOM
+updated site
+
+   Job: $TRAVIS_JOB_NUMBER
+Commit: $SHORT_COMMIT
+Detail: $TRAVIS_BUILD_ID
+EOM
+}
+
+
+
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
   SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
 else
@@ -18,6 +33,7 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   SBT_COMMAND="$SBT_COMMAND ;publish"
   if [[ $SBT_COMMAND == *"makeSite"* ]]; then
     SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
+    export SBT_GHPAGES_COMMIT_MESSAGE=$(gh_pages_update_commit_message)
   fi
 fi
 
