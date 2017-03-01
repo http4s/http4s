@@ -1,9 +1,39 @@
-import sbt._
-import Keys._
+package org.http4s.build
 
+import sbt._, Keys._
+
+import sbtrelease._
+import sbtrelease.ReleasePlugin.autoImport._
 import scala.util.Properties.envOrNone
+import verizon.build.RigPlugin, RigPlugin._
 
-object Http4sBuild {
+object Http4sPlugin extends AutoPlugin {
+  object autoImport {
+    lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
+  }
+  import autoImport._
+
+  override def trigger = allRequirements
+
+  override def requires = RigPlugin
+
+  override lazy val projectSettings: Seq[Setting[_]] = Seq(
+    // Override rig's default of the Travis build number being the bugfix number
+    releaseVersion := { ver =>
+      Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
+    },
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.1"),
+    scalazVersion := (sys.env.get("SCALAZ_VERSION") getOrElse "7.2.8"),
+    unmanagedSourceDirectories in Compile += (sourceDirectory in Compile).value / VersionNumber(scalazVersion.value).numbers.take(2).mkString("scalaz-", ".", ""),
+
+    // https://issues.scala-lang.org/browse/SI-8340
+    scalacOptions in Compile -= {
+      scalaBinaryVersion.value match {
+        case "2.10" => "-Ywarn-numeric-widen" // it doesn't like case classes with Char
+        case _ => ""
+      }
+    }
+  )
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -11,11 +41,6 @@ object Http4sBuild {
       case VersionExtractor(major, minor) => (major.toInt, minor.toInt)
     }
   }
-
-  lazy val sonatypeEnvCredentials = (for {
-    user <- envOrNone("SONATYPE_USER")
-    pass <- envOrNone("SONATYPE_PASS")
-  } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
 
   def compatibleVersion(version: String, scalazVersion: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")

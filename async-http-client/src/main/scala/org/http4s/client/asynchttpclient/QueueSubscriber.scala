@@ -4,6 +4,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.async.boundedQueue
 import scalaz.stream.Process
 import scalaz.stream.Process.repeatEval
+import org.http4s.internal.compatibility._
 import org.log4s.getLogger
 
 class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
@@ -24,18 +25,18 @@ class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
     (refillProcess zipWith queue.dequeue)((_, a) => a)
 
   def whenNext(element: A): Boolean = {
-    queue.enqueueOne(element).run
+    queue.enqueueOne(element).unsafePerformSync
     true
   }
 
   def closeQueue(): Unit = {
     log.debug("Closing queue subscriber")
-    queue.close.run
+    queue.close.unsafePerformSync
   }
 
   def killQueue(): Unit = {
     log.debug("Killing queue subscriber")
-    queue.kill.run
+    queue.kill.unsafePerformSync
   }
 
   override def onComplete(): Unit = {
@@ -46,6 +47,6 @@ class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
 
   override def onError(t: Throwable): Unit = {
     super.onError(t)
-    queue.fail(t).run
+    queue.fail(t).unsafePerformSync
   }
 }

@@ -11,24 +11,24 @@ class AutoSlashSpec extends Http4sSpec {
   "AutoSlash" should {
     "Auto remove a trailing slash" in {
       val req = Request(uri = uri("/ping/"))
-      route.orNotFound(req).run.status must_== (Status.NotFound)
-      AutoSlash(route).orNotFound(req).run.status must_== (Status.Ok)
+      route.orNotFound(req).unsafePerformSync.status must_== (Status.NotFound)
+      AutoSlash(route).orNotFound(req).unsafePerformSync.status must_== (Status.Ok)
     }
 
     "Match a route defined with a slash" in {
-      AutoSlash(route).orNotFound(Request(uri = uri("/withslash"))).run.status must_== (Status.Ok)
-      AutoSlash(route).orNotFound(Request(uri = uri("/withslash/"))).run.status must_== (Status.Accepted)
+      AutoSlash(route).orNotFound(Request(uri = uri("/withslash"))).unsafePerformSync.status must_== (Status.Ok)
+      AutoSlash(route).orNotFound(Request(uri = uri("/withslash/"))).unsafePerformSync.status must_== (Status.Accepted)
     }
 
     "Respect an absent trailing slash" in {
       val req = Request(uri = uri("/ping"))
-      route.orNotFound(req).run.status must_== (Status.Ok)
-      AutoSlash(route).orNotFound(req).run.status must_== (Status.Ok)
+      route.orNotFound(req).unsafePerformSync.status must_== (Status.Ok)
+      AutoSlash(route).orNotFound(req).unsafePerformSync.status must_== (Status.Ok)
     }
 
     "Not crash on empy path" in {
       val req = Request(uri = uri(""))
-      AutoSlash(route).orNotFound(req).run.status must_== (Status.NotFound)
+      AutoSlash(route).orNotFound(req).unsafePerformSync.status must_== (Status.NotFound)
     }
   }
 }

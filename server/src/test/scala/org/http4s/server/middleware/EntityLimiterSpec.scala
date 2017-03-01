@@ -4,6 +4,7 @@ package middleware
 
 import java.nio.charset.StandardCharsets
 
+import org.http4s.internal.compatibility._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
@@ -25,14 +26,14 @@ class EntityLimiterSpec extends Specification {
     "Allow reasonable entities" in {
       EntityLimiter(s, 100).apply(Request(POST, uri("/echo"), body = b))
         .map(_ => -1)
-        .run must be_==(-1)
+        .unsafePerformSync must be_==(-1)
     }
 
     "Limit the maximum size of an EntityBody" in {
       EntityLimiter(s, 3).apply(Request(POST, uri("/echo"), body = b))
         .map(_ => -1)
         .handle { case EntityTooLarge(i) => i }
-        .run must be_==(3)
+        .unsafePerformSync must be_==(3)
     }
 
     "Chain correctly with other HttpServices" in {
@@ -43,11 +44,11 @@ class EntityLimiterSpec extends Specification {
       val st = EntityLimiter(s, 3)
       (st.apply(Request(POST, uri("/echo2"), body = b))
         .map(_ => -1)
-        .run must be_==(-1)) &&
+        .unsafePerformSync must be_==(-1)) &&
         (st.apply(Request(POST, uri("/echo"), body = b))
           .map(_ => -1)
           .handle { case EntityTooLarge(i) => i }
-          .run must be_==(3))
+          .unsafePerformSync must be_==(3))
     }
   }
 

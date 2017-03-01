@@ -83,17 +83,17 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // From ArgonautSpec, which tests similar things:
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
-      val req = Request().withBody(Json.fromDoubleOrNull(157)).run
-      val body = req.decode { json: Json => Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)}.run.body
+      def getBody(body: EntityBody): Array[Byte] = body.runLog.unsafePerformSync.reduce(_ ++ _).toArray
+      val req = Request().withBody(Json.fromDoubleOrNull(157)).unsafePerformSync
+      val body = req.decode { json: Json => Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)}.unsafePerformSync.body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }
 
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).run, strict = true)
-      result.run.run must be_\/-(Foo(42))
+      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).unsafePerformSync, strict = true)
+      result.run.unsafePerformSync must be_\/-(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -103,8 +103,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         Decoder.forProduct1("wort")(Umlaut.apply)
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
-        val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
-        result.run.run must be_\/-(Umlaut(wort))
+        val result = jsonOf[Umlaut].decode(Request().withBody(json).unsafePerformSync, strict = true)
+        result.run.unsafePerformSync must be_\/-(Umlaut(wort))
       }
     }
   }

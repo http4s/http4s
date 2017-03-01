@@ -26,7 +26,7 @@ extends ClientRouteTestBattery("Blaze PooledHttp1Client - recycling", client) wi
         }
 
         "Make simple requests" in {
-          val resp = fetchBody.run(url).runFor(timeout)
+          val resp = fetchBody.run(url).unsafePerformSyncFor(timeout)
           resp.length mustNotEqual 0
         }
 
@@ -36,7 +36,7 @@ extends ClientRouteTestBattery("Blaze PooledHttp1Client - recycling", client) wi
             resp.map(_.length)
           })
 
-          foreach(Task.gatherUnordered(f).runFor(timeout)) { length =>
+          foreach(Task.gatherUnordered(f).unsafePerformSyncFor(timeout)) { length =>
             length mustNotEqual 0
           }
         }

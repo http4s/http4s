@@ -45,7 +45,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val c = mkClient(new SlowTestHead(List(mkBuffer(resp)), 0.seconds), 
                        mkConnection())(0.milli, Duration.Inf)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Timeout immediately with a request timeout of 0 seconds" in {
@@ -53,7 +53,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds)
       val c = mkClient(h, tail)(Duration.Inf, 0.milli)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Idle timeout on slow response" in {
@@ -61,7 +61,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Request timeout on slow response" in {
@@ -69,7 +69,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Request timeout on slow POST body" in {
@@ -89,7 +89,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
-      c.fetchAs[String](req).run must throwA[TimeoutException]
+      c.fetchAs[String](req).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Idle timeout on slow POST body" in {
@@ -109,7 +109,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 
-      c.fetchAs[String](req).run must throwA[TimeoutException]
+      c.fetchAs[String](req).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Not timeout on only marginally slow POST body" in {
@@ -129,7 +129,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(10.second, 30.seconds)
 
-      c.fetchAs[String](req).run must_== ("done")
+      c.fetchAs[String](req).unsafePerformSync must_== ("done")
     }
 
     "Request timeout on slow response body" in {
@@ -140,7 +140,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val result = tail.runRequest(FooRequest).as[String]
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
 
     "Idle timeout on slow response body" in {
@@ -151,7 +151,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val result = tail.runRequest(FooRequest).as[String]
 
-      c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
+      c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
   }
 }

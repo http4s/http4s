@@ -7,6 +7,7 @@ import org.http4s.websocket.WebsocketBits._
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
+import org.http4s.internal.compatibility._
 import org.http4s.{websocket => ws4s}
 
 import scalaz.stream._
@@ -38,7 +39,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
       def go(): Unit = channelRead().onComplete {
         case Success(ws) => ws match {
             case Close(_)    =>
-              dead.set(true).run
+              dead.set(true).unsafePerformSync
               sendOutboundCommand(Command.Disconnect)
               cb(-\/(Cause.Terminated(Cause.End)))
 
@@ -82,7 +83,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
         sendOutboundCommand(Command.Disconnect)
     }
     
-    (dead.discrete).wye(ws.exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
+    (dead.discrete).wye(ws.exchange.read.to(snk))(wye.interrupt).run.unsafePerformAsync(onFinish)
 
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
@@ -94,11 +95,11 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
       case s => s ++ Process.await(Task{onFinish(\/-(()))})(_ => discard)
     }
     
-    inputstream.to(routeSink).run.runAsync(onFinish)
+    inputstream.to(routeSink).run.unsafePerformAsync(onFinish)
   }
 
   override protected def stageShutdown(): Unit = {
-    dead.set(true).run
+    dead.set(true).unsafePerformSync
     super.stageShutdown()
   }
 }

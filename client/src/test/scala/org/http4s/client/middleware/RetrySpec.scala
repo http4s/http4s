@@ -35,7 +35,7 @@ class RetrySpec extends Http4sSpec with Tables {
       }
       val retryClient = Retry(policy)(client)
       val req = Request(method, uri("http://localhost/") / status.code.toString).withBody(body)
-      val resp = retryClient.fetch(req){ _ => Task.now(()) }.attemptRun
+      val resp = retryClient.fetch(req){ _ => Task.now(()) }.unsafePerformSyncAttempt
       attemptsCounter
     }
 

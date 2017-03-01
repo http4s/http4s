@@ -11,8 +11,8 @@ trait ServerAddressSpec extends Http4sSpec {
 
   trait ServerContext extends After {
     val address = new InetSocketAddress(0)
-    val server = Task.fork(builder.bindSocketAddress(address).start).run
-    def after = server.shutdown.run
+    val server = Task.fork(builder.bindSocketAddress(address).start).unsafePerformSync
+    def after = server.shutdown.unsafePerformSync
   }
 
   "A server configured with port 0" should {

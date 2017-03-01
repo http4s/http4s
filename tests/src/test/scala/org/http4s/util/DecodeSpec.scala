@@ -21,8 +21,8 @@ class DecodeSpec extends Http4sSpec with ScalaCheck {
             .map(ByteVector.view)
             .toSeq
         }.toSource
-        val utf8Decoded = (source |> utf8Decode).runLog.run
-        val decoded = (source |> decode(Charset.`UTF-8`)).runLog.run
+        val utf8Decoded = (source |> utf8Decode).runLog.unsafePerformSync
+        val decoded = (source |> decode(Charset.`UTF-8`)).runLog.unsafePerformSync
         decoded must_== utf8Decoded
       }
     }
@@ -39,10 +39,10 @@ class DecodeSpec extends Http4sSpec with ScalaCheck {
         val expected = source.foldMonoid
           .runLastOr(ByteVector.empty)
           .map(bs => new String(bs.toArray, cs.nioCharset))
-          .run
+          .unsafePerformSync
         !expected.contains("\ufffd") ==> {
           // \ufffd means we generated a String unrepresentable by the charset
-          val decoded = (source |> decode(cs)).foldMonoid.runLastOr("").run
+          val decoded = (source |> decode(cs)).foldMonoid.runLastOr("").unsafePerformSync
           decoded must_== expected
         }
       }

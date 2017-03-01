@@ -10,10 +10,12 @@ import scalaz.concurrent.Task
 
 import scalaz.stream.Process
 
+import org.http4s.internal.compatibility._
+
 object DumpingWriter {
   def dump(p: EntityBody): ByteVector = {
     val w = new DumpingWriter()
-    w.writeProcess(p).run
+    w.writeProcess(p).unsafePerformSync
     w.getVector()
   }
 }

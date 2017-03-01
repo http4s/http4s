@@ -20,7 +20,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data: +2
       |data: 10
       |""".stripMargin('|'))
-      stream.pipe(ServerSentEvent.decoder).runLog.run must_== Vector(
+      stream.pipe(ServerSentEvent.decoder).runLog.unsafePerformSync must_== Vector(
         ServerSentEvent(data = "YHOO\n+2\n10")
       )
     }
@@ -37,7 +37,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data:  third event
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.pipe(ServerSentEvent.decoder).runLog.run must_== Vector(
+      stream.pipe(ServerSentEvent.decoder).runLog.unsafePerformSync must_== Vector(
         ServerSentEvent(data = "first event", id = Some(EventId("1"))),
         ServerSentEvent(data = "second event", id = Some(EventId.reset)),
         ServerSentEvent(data = " third event", id = None)                
@@ -54,7 +54,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data:
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.pipe(ServerSentEvent.decoder).runLog.run must_== Vector(
+      stream.pipe(ServerSentEvent.decoder).runLog.unsafePerformSync must_== Vector(
         ServerSentEvent(data = ""),
         ServerSentEvent(data = "\n"),
         ServerSentEvent(data = "")                
@@ -68,7 +68,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data: test
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.pipe(ServerSentEvent.decoder).runLog.run must_== Vector(
+      stream.pipe(ServerSentEvent.decoder).runLog.unsafePerformSync must_== Vector(
         ServerSentEvent(data = "test"),
         ServerSentEvent(data = "test")
       )
@@ -81,26 +81,26 @@ class ServerSentEventSpec extends Http4sSpec {
         .pipe(ServerSentEvent.encoder)
         .pipe(ServerSentEvent.decoder)
         .runLog
-        .run
+        .unsafePerformSync
       roundTrip must_== sses
     }
 
     "handle leading spaces" in {
       // This is a pathological case uncovered by scalacheck
       val sse = ServerSentEvent(" a",Some(" b"),Some(EventId(" c")),Some(1L))
-      emit(sse).toSource.pipe(ServerSentEvent.encoder).pipe(ServerSentEvent.decoder).runLast.run must beSome(sse)
+      emit(sse).toSource.pipe(ServerSentEvent.encoder).pipe(ServerSentEvent.decoder).runLast.unsafePerformSync must beSome(sse)
     }
   }
 
   "EntityEncoder[ServerSentEvent]" should {
     val eventStream = Process.range(0, 5).map(i => ServerSentEvent(data = i.toString)).toSource
     "set Content-Type to text/event-stream" in {
-      Response().withBody(eventStream).run.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
+      Response().withBody(eventStream).unsafePerformSync.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
     }
 
     "decode to original event stream" in {
-      val resp = Response().withBody(eventStream).run
-      resp.body.pipe(ServerSentEvent.decoder).runLog.run must_== eventStream.runLog.run
+      val resp = Response().withBody(eventStream).unsafePerformSync
+      resp.body.pipe(ServerSentEvent.decoder).runLog.unsafePerformSync must_== eventStream.runLog.unsafePerformSync
     }
   }
 }

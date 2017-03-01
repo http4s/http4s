@@ -5,6 +5,7 @@ package util
 import java.nio.ByteBuffer
 
 import org.http4s.blaze.pipeline.TailStage
+import org.http4s.internal.compatibility._
 import scodec.bits.ByteVector
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,8 +33,8 @@ class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Bo
     val callback = cb.compose((t: scalaz.\/[Throwable, Unit]) => t.map(_ => close))
 
     pipe.channelWrite(headers).onComplete {
-      case Success(_) => p.kill.run.runAsync(callback)
-      case Failure(t) => p.kill.onComplete(Process.fail(t)).run.runAsync(callback)
+      case Success(_) => p.kill.run.unsafePerformAsync(callback)
+      case Failure(t) => p.kill.onComplete(Process.fail(t)).run.unsafePerformAsync(callback)
     }
   }
 

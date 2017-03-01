@@ -64,8 +64,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
       }
 
-      val decoded = decoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).run.run
-      val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.status).toEither
+      val decoded = decoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).run.unsafePerformSync
+      val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafePerformSync.status).toEither
 
       status must beLeft(Status.UnprocessableEntity)
     }
@@ -87,7 +87,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         (httpVersion: HttpVersion) =>
         Response(Status.BadRequest, httpVersion).withBody(ErrorJson("""{"error":"parse error"}""")))
 
-      val contentType = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).run.headers.get(`Content-Type`)
+      val contentType = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafePerformSync.headers.get(`Content-Type`)
 
       "the content type is application/json" ==> {
         contentType must beSome(`Content-Type`(MediaType.`application/json`))
@@ -99,7 +99,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         (httpVersion: HttpVersion) =>
           Response(Status.UnsupportedMediaType, httpVersion).withBody("not on a Sunday"))
 
-      val body = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).run.body.runLast.run.flatMap(_.decodeUtf8.right.toOption)
+      val body = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).flatMap(_.body.runLast).unsafePerformSync.flatMap(_.decodeUtf8.right.toOption)
 
       "the content type is application/json" ==> {
         body must beSome("not on a Sunday")
@@ -117,8 +117,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         }
       }
 
-      val decoded = decoder.decode(Request().replaceAllHeaders(`Content-Type`(MediaType.`text/plain`)), strict = true).run.run
-      val contentType = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.headers.get(`Content-Type`)).toEither
+      val decoded = decoder.decode(Request().replaceAllHeaders(`Content-Type`(MediaType.`text/plain`)), strict = true).run.unsafePerformSync
+      val contentType = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafePerformSync.headers.get(`Content-Type`)).toEither
 
       "the content type is application/json instead of text/plain" ==> {
         contentType must beLeft(Some(`Content-Type`(MediaType.`application/json`)))
@@ -160,10 +160,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val reqMediaType = MediaType.`text/x-h`
         val expectedMediaRanges = decoder1.consumes ++ decoder2.consumes ++ failDecoder.consumes
         val reqSomeOtherMediaType = Request(headers = Headers(`Content-Type`(reqMediaType)))
-        (decoder1 orElse decoder2 orElse failDecoder).decode(reqSomeOtherMediaType, strict = true).run.run must_==
-          DecodeResult.failure(MediaTypeMismatch(reqMediaType, expectedMediaRanges)).run.run
-        (decoder1 orElse decoder2 orElse failDecoder).decode(Request(), strict = true).run.run must_==
-          DecodeResult.failure(MediaTypeMissing(expectedMediaRanges)).run.run
+        (decoder1 orElse decoder2 orElse failDecoder).decode(reqSomeOtherMediaType, strict = true).run.unsafePerformSync must_==
+          DecodeResult.failure(MediaTypeMismatch(reqMediaType, expectedMediaRanges)).run.unsafePerformSync
+        (decoder1 orElse decoder2 orElse failDecoder).decode(Request(), strict = true).run.unsafePerformSync must_==
+          DecodeResult.failure(MediaTypeMissing(expectedMediaRanges)).run.unsafePerformSync
       }
     }
   }
@@ -174,14 +174,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "invoke the function with  the right on a success" in {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
-        request.decodeWith(happyDecoder, strict = false) { s => cb(\/-(s)); Task.now(Response()) }.run
+        request.decodeWith(happyDecoder, strict = false) { s => cb(\/-(s)); Task.now(Response()) }.unsafePerformSync
         ()
       } must returnValue("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(MalformedMessageBodyFailure("Bah!"))))
-      val resp = request.decodeWith(grumpyDecoder, strict = false) { _ => Task.now(Response())}.run
+      val resp = request.decodeWith(grumpyDecoder, strict = false) { _ => Task.now(Response())}.unsafePerformSync
       resp.status must_== (Status.BadRequest)
     }
   }
@@ -239,7 +239,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
             req.decodeWith(textFile(tmpFile), strict = false) { _ =>
               Response(Ok).withBody("Hello")
             }
-        }.run
+        }.unsafePerformSync
 
         readTextFile(tmpFile) must_== (new String(binData))
         response.status must_== (Status.Ok)
@@ -256,7 +256,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) {
           case req => req.decodeWith(binFile(tmpFile), strict = false) { _ => Response(Ok).withBody("Hello")}
-        }.run
+        }.unsafePerformSync
 
         response must beStatus(Status.Ok)
         getBody(response.body) must returnValue("Hello".getBytes)
@@ -272,7 +272,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request()
-      binary.decode(msg, strict = false).run.run must be_\/-.like { case ByteVector.empty => ok }
+      binary.decode(msg, strict = false).run.unsafePerformSync must be_\/-.like { case ByteVector.empty => ok }
     }
 
     "concat ByteVectors" in {

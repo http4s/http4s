@@ -2,6 +2,7 @@ package org.http4s.client.oauth1
 
 import org.http4s._
 import org.http4s.client.oauth1
+import org.http4s.internal.compatibility._
 import org.http4s.util.CaseInsensitiveString
 import org.specs2.mutable.Specification
 
@@ -72,10 +73,10 @@ class OAuthTest extends Specification {
     val \/-(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
     val \/-(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
 
-    val req = Request(method = Method.POST, uri = uri).withBody(body).run
+    val req = Request(method = Method.POST, uri = uri).withBody(body).unsafePerformSync
 
     "Collect proper params, pg 22" in {
-      oauth1.getUserParams(req).run._2.sorted must_== Seq(
+      oauth1.getUserParams(req).unsafePerformSync._2.sorted must_== Seq(
         "b5" -> "=%3D",
         "a3" -> "a",
         "c@" -> "",

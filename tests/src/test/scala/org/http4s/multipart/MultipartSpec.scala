@@ -9,6 +9,7 @@ import java.io.FileOutputStream
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.headers._
+import org.http4s.internal.compatibility._
 import org.http4s.Http4s._
 import org.http4s.Uri._
 import org.http4s.util._
@@ -53,7 +54,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
   // This one is shady.
   implicit lazy val EntityBodyEq: Equal[EntityBody] =
-    Equal.equalBy[EntityBody, String](_.pipe(utf8Decode).runFoldMap(identity).run)
+    Equal.equalBy[EntityBody, String](_.pipe(utf8Decode).runFoldMap(identity).unsafePerformSync)
 
   def encodeAndDecodeMultipart = {
 
@@ -61,13 +62,13 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val field2     = Part.formData("field2", "Text_Field_2")
     val multipart  = Multipart(Vector(field1,field2))
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body
+    val body       = entity.unsafePerformSync.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.run.unsafePerformSync
     
     result must be_\/-.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
   }
@@ -78,13 +79,13 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val multipart  = Multipart(Vector(field1))
 
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body
+    val body       = entity.unsafePerformSync.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )                             
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.run.unsafePerformSync
 
     result must be_\/-.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
   }
@@ -102,14 +103,14 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val multipart  = Multipart(Vector(field1,field2))
     
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body
+    val body       = entity.unsafePerformSync.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
                                        
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.run.unsafePerformSync
 
     result must be_\/-.like { case mp => multipart === mp }
   }
@@ -140,7 +141,7 @@ Content-Type: application/pdf
                              headers = header)
 
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.run.unsafePerformSync
     
    result must be_\/-
   }
@@ -166,7 +167,7 @@ I am a big moose
                              body    = Process.emit(body).pipe(utf8Encode),
                              headers = header)
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.run.run
+    val result     = decoded.run.unsafePerformSync
     
    result must be_\/-
   }  

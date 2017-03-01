@@ -9,6 +9,7 @@
 
 package org.http4s
 
+import org.http4s.internal.CompatibilitySyntax
 import org.http4s.testing._
 import org.http4s.util.byteVector._
 import org.specs2.ScalaCheck
@@ -46,6 +47,7 @@ trait Http4sSpec extends Specification
   with FragmentsDsl
   with TaskMatchers
   with Http4sMatchers
+  with CompatibilitySyntax
 {
   implicit val params = Parameters(maxSize = 20)
 
@@ -67,7 +69,7 @@ trait Http4sSpec extends Specification
       .fold1Monoid
       .pipe(utf8Decode)
       .runLastOr("")
-      .run
+      .unsafePerformSync
 
   def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): ByteVector =
     Process.eval(W.toEntity(a))
@@ -75,7 +77,7 @@ trait Http4sSpec extends Specification
       .flatMap(identity)
       .fold1Monoid
       .runLastOr(ByteVector.empty)
-      .run
+      .unsafePerformSync
 
   def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
@@ -109,7 +111,7 @@ trait Http4sSpec extends Specification
     private def runMatcher(m: Matcher[T]): Matcher[Task[T]] =
       new Matcher[Task[T]] {
         def apply[S <: Task[T]](a: Expectable[S]) = {
-          a.value.attemptRun match {
+          a.value.unsafePerformSyncAttempt match {
             case \/-(v) =>
               val r = AsResult(createExpectable(v).applyMatcher(m))
               result(r.isSuccess, r.message, r.message, a)

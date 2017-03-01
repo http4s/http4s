@@ -8,6 +8,8 @@ import scalaz.stream.async.{boundedQueue, unboundedQueue}
 import scalaz.stream.async.mutable.Queue
 import scodec.bits.ByteVector
 
+import org.http4s.internal.compatibility._
+
 /** Utilities for converting java.io APIs to scalaz-streams */
 package object io {
   /** Passes an OutputStream to an action that captures the output as a Process.
@@ -42,13 +44,13 @@ package object io {
       val q = makeQueue
       val os = new OutputStream {
         override def close(): Unit =
-          q.close.run
+          q.close.unsafePerformSync
         override def write(bytes: Array[Byte]): Unit =
-          q.enqueueOne(ByteVector(bytes)).run
+          q.enqueueOne(ByteVector(bytes)).unsafePerformSync
         override def write(bytes: Array[Byte], off: Int, len: Int): Unit =
-          q.enqueueOne(ByteVector(bytes, off, len)).run
+          q.enqueueOne(ByteVector(bytes, off, len)).unsafePerformSync
         def write(b: Int): Unit =
-          q.enqueueOne(ByteVector(b.toByte)).run
+          q.enqueueOne(ByteVector(b.toByte)).unsafePerformSync
       }
       val start = Process.eval_(Task(f(os))).onComplete(Process eval_ q.close)
       q.dequeue.merge(start.drain)

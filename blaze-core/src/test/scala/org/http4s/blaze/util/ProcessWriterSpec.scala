@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.Headers
 import org.http4s.blaze.TestHead
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.internal.compatibility._
 import org.http4s.util.StringWriter
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
@@ -39,7 +40,7 @@ class ProcessWriterSpec extends Specification {
     LeafBuilder(tail).base(head)
     val w = builder(tail)
 
-    w.writeProcess(p).run
+    w.writeProcess(p).unsafePerformSync
     head.stageShutdown()
     Await.ready(head.result, Duration.Inf)
     new String(head.getBytes(), StandardCharsets.ISO_8859_1)
@@ -204,7 +205,7 @@ class ProcessWriterSpec extends Specification {
     // Some tests for the raw unwinding process without HTTP encoding.
     "write a deflated stream" in {
       val p = eval(Task(messageBuffer)) |> scalaz.stream.compress.deflate()
-      DumpingWriter.dump(p) must_== p.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)
+      DumpingWriter.dump(p) must_== p.runLog.unsafePerformSync.foldLeft(ByteVector.empty)(_ ++ _)
     }
 
     val resource = scalaz.stream.io.resource(Task.delay("foo"))(_ => Task.now(())){ str =>
@@ -217,19 +218,19 @@ class ProcessWriterSpec extends Specification {
 
     "write a resource" in {
       val p = resource
-      DumpingWriter.dump(p) must_== p.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)
+      DumpingWriter.dump(p) must_== p.runLog.unsafePerformSync.foldLeft(ByteVector.empty)(_ ++ _)
     }
 
     "write a deflated resource" in {
       val p = resource |> scalaz.stream.compress.deflate()
-      DumpingWriter.dump(p) must_== p.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)
+      DumpingWriter.dump(p) must_== p.runLog.unsafePerformSync.foldLeft(ByteVector.empty)(_ ++ _)
     }
 
     "ProcessWriter must be stack safe" in {
       val p = Process.repeatEval(Task.async[ByteVector]{ _(\/-(ByteVector.empty))}).take(300000)
 
       // the scalaz.stream built of Task.async's is not stack safe
-      p.run.run must throwA[StackOverflowError]
+      p.run.unsafePerformSync must throwA[StackOverflowError]
 
       // The dumping writer is stack safe when using a trampolining EC
       DumpingWriter.dump(p) must_== ByteVector.empty
@@ -242,7 +243,7 @@ class ProcessWriterSpec extends Specification {
           clean = true
         }))
 
-        (new FailingWriter().writeProcess(p).attempt.run).isLeft must_== true
+        (new FailingWriter().writeProcess(p).attempt.unsafePerformSync).isLeft must_== true
         clean must_== true
       }
 
@@ -252,7 +253,7 @@ class ProcessWriterSpec extends Specification {
           clean = true
         }))
 
-        (new FailingWriter().writeProcess(p).attempt.run).isLeft must_== true
+        (new FailingWriter().writeProcess(p).attempt.unsafePerformSync).isLeft must_== true
         clean must_== true
       }
 

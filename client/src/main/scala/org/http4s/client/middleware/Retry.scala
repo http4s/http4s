@@ -8,6 +8,7 @@ import scala.math.{pow, min, random}
 import scalaz._
 import scalaz.concurrent.Task
 import org.http4s.Status._
+import org.http4s.internal.compatibility._
 import org.log4s.getLogger
 
 object Retry {
@@ -54,7 +55,7 @@ object Retry {
 
     def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] =
       // TODO honor Retry-After header
-      Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1).get after duration).runAsync }
+      Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1).get after duration).unsafePerformAsync }
 
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }

@@ -1,4 +1,4 @@
-import Http4sBuild._
+import Http4sPlugin._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
@@ -22,11 +22,11 @@ apiVersion in ThisBuild := http4sVersion.map {
 // Root project
 name := "root"
 description := "A minimal, Scala-idiomatic library for HTTP"
-noPublishSettings
+enablePlugins(DisablePublishingPlugin)
 
 // This defines macros that we use in core, so it needs to be split out
 lazy val parboiled2 = libraryProject("parboiled2")
-  .settings(noPublishSettings)
+  .enablePlugins(DisablePublishingPlugin)
   .settings(
     libraryDependencies ++= Seq(
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
@@ -38,13 +38,8 @@ lazy val parboiled2 = libraryProject("parboiled2")
         case _ => Seq.empty
       }
     },
-    scalacOptions -= {
-      scalaBinaryVersion.value match {
-        case "2.10" => "-Ywarn-numeric-widen" // it doesn't like case classes with Char
-        case _ => ""
-      }
-    },
-    scalacOptions -= "-Xlint", // https://issues.scala-lang.org/browse/SI-9490
+    // https://issues.scala-lang.org/browse/SI-9490
+    (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint:inaccessible"),
     macroParadiseSetting
   )
 
@@ -135,7 +130,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
-      Http4sBuild.asyncHttpClient,
+      Http4sPlugin.asyncHttpClient,
       reactiveStreamsTck % "test"
     )
   )
@@ -189,7 +184,7 @@ lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sBuild.argonaut
+      Http4sPlugin.argonaut
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
@@ -214,14 +209,14 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
-    libraryDependencies += Http4sBuild.json4sNative
+    libraryDependencies += Http4sPlugin.json4sNative
   )
   .dependsOn(json4s % "compile;test->test")
 
 lazy val json4sJackson = libraryProject("json4s-jackson")
   .settings(
     description := "Provides json4s-jackson codecs for http4s",
-    libraryDependencies += Http4sBuild.json4sJackson
+    libraryDependencies += Http4sPlugin.json4sJackson
   )
   .dependsOn(json4s % "compile;test->test")
 
@@ -229,7 +224,7 @@ lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
     libraryDependencies ++= scalaVersion (VersionNumber(_).numbers match {
-      case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sBuild.scalaXml)
+      case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
       case _ => Seq.empty
     }).value
   )
@@ -245,7 +240,7 @@ lazy val twirl = http4sProject("twirl")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
-  .settings(noPublishSettings)
+  .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(
     description := "Benchmarks for http4s"
@@ -253,7 +248,7 @@ lazy val bench = http4sProject("bench")
   .dependsOn(core)
 
 lazy val loadTest = http4sProject("load-test")
-  .settings(noPublishSettings)
+  .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(
     description := "Load tests for http4s servers",
@@ -271,7 +266,7 @@ val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
 val siteStageDirectory    = SettingKey[File]("site-stage-directory")
 val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
 lazy val docs = http4sProject("docs")
-  .settings(noPublishSettings)
+  .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(unidocSettings)
   .settings(ghpages.settings)
@@ -378,7 +373,7 @@ lazy val docs = http4sProject("docs")
 
 
 lazy val examples = http4sProject("examples")
-  .settings(noPublishSettings)
+  .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(
     description := "Common code for http4s examples",
@@ -440,8 +435,6 @@ lazy val examplesWar = exampleProject("examples-war")
 
 def http4sProject(name: String) = Project(name, file(name))
   .settings(commonSettings)
-  .settings(projectMetadata)
-  .settings(publishSettings)
   .settings(
     moduleName := s"http4s-$name",
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"showtimes", "failtrace"),
@@ -453,58 +446,13 @@ def libraryProject(name: String) = http4sProject(name)
 
 def exampleProject(name: String) = http4sProject(name)
   .in(file(name.replace("examples-", "examples/")))
-  .settings(noPublishSettings)
+  .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .dependsOn(examples)
 
 lazy val http4sVersion = settingKey[VersionNumber]("The base version of http4s, across cats/scalaz cross builds")
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
-lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
-
-lazy val projectMetadata = Seq(
-  homepage := Some(url("http://http4s.org/")),
-  startYear := Some(2013),
-  licenses := Seq(
-    "Apache License, Version 2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")
-  ),
-  scmInfo := {
-    val base = "github.com/http4s/http4s"
-    Some(ScmInfo(url(s"https://$base"), s"scm:git:https://$base", Some(s"scm:git:git@$base")))
-  },
-  pomExtra := (
-    <developers>
-      <developer>
-      <id>rossabaker</id>
-      <name>Ross A. Baker</name>
-      <email>ross@rossabaker.com</email>
-      </developer>
-      <developer>
-      <id>casualjim</id>
-      <name>Ivan Porto Carrero</name>
-      <email>ivan@flanders.co.nz</email>
-      <url>http://flanders.co.nz</url>
-        </developer>
-      <developer>
-      <id>brycelane</id>
-      <name>Bryce L. Anderson</name>
-      <email>bryce.anderson22@gmail.com</email>
-      </developer>
-      <developer>
-      <id>before</id>
-      <name>André Rouél</name>
-      </developer>
-      <developer>
-      <id>julien-truffaut</id>
-      <name>Julien Truffaut</name>
-      </developer>
-      <developer>
-      <id>kryptt</id>
-      <name>Rodolfo Hansen</name>
-      </developer>
-      </developers>
-  )
-)
 
 lazy val commonSettings = Seq(
   jvmTarget := scalaVersion.map {
@@ -513,50 +461,17 @@ lazy val commonSettings = Seq(
       case _ => "1.8"
     }
   }.value,
-  scalacOptions := Seq(
-    "-deprecation",
-    "-encoding", "UTF-8",
-    "-feature",
-    "-language:existentials",
-    "-language:experimental.macros",
-    "-language:higherKinds",
-    "-language:implicitConversions",
+  scalacOptions in Compile ++= Seq(
     s"-target:jvm-${jvmTarget.value}",
-    "-unchecked",
-    "-Xfatal-warnings",
-    "-Xlint",
-    "-Yinline-warnings",
-    "-Yno-adapted-args",
-    //    "-Ypartial-unification",
-    "-Ywarn-dead-code",
-    "-Ywarn-numeric-widen",
-    "-Ywarn-value-discard",
-    "-Xfuture"
+    "-Yno-adapted-args", // curiously missing from rigplugin
+    "-Ywarn-numeric-widen" // curiously missing from rigplugin
   ),
-  scalacOptions in (Compile, doc) -= "-Xfatal-warnings", // broken references to other modules
-  scalacOptions := {
-    // We're deprecation-clean across Scala versions, but not across scalaz
-    // versions.  This is not worth maintaining a branch.
-    VersionNumber(scalazVersion.value).numbers match {
-      case Seq(7, 1, _) =>
-        scalacOptions.value
-      case _ =>
-        // This filtering does not trigger when scalazVersion is changed in a
-        // running SBT session.  Help wanted.
-        scalacOptions.value filterNot (_ == "-Xfatal-warnings")
-    }
-  },
+  scalacOptions in (Compile, doc) += "-no-link-warnings",
   scalacOptions ++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
       "-Ybackend:GenBCode"
     ) else Seq.empty
   }.value,
-  scalacOptions -= {
-    CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, n)) if n >= 12 => "-Yinline-warnings"
-      case _ => ""
-    }
-  },
   javacOptions ++= Seq(
     "-source", jvmTarget.value,
     "-target", jvmTarget.value,
@@ -592,17 +507,6 @@ lazy val commonSettings = Seq(
   },
   coursierVerbosity := 0,
   ivyLoggingLevel := UpdateLogging.Quiet // This doesn't seem to work? We see this in MiMa
-)
-
-lazy val publishSettings = Seq(
-  credentials ++= sonatypeEnvCredentials
-)
-
-lazy val noPublishSettings = Seq(
-  publish := (),
-  publishSigned := (),
-  publishLocal := (),
-  publishArtifact := false
 )
 
 lazy val noCoverageSettings = Seq(
@@ -652,3 +556,5 @@ def initCommands(additionalImports: String*) =
     "scalaz.concurrent.Task",
     "org.http4s._"
   ) ++ additionalImports).mkString("import ", ", ", "")
+
+addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")

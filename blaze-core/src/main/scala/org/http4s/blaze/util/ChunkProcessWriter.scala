@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets.ISO_8859_1
 
 import org.http4s.Headers
 import org.http4s.blaze.pipeline.TailStage
+import org.http4s.internal.compatibility._
 import org.http4s.util.StringWriter
 
 import scodec.bits.ByteVector
@@ -37,7 +38,7 @@ class ChunkProcessWriter(private var headers: StringWriter,
           ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
         }
         else ChunkEndBuffer
-      }.runAsync {
+      }.unsafePerformAsync {
         case \/-(buffer) =>
           promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
           ()

@@ -24,22 +24,22 @@ class ClientSpec extends Http4sSpec {
 
   "mock client" should {
     "read body before dispose" in {
-      client.expect[String](Request(POST).withBody("foo")).run must_== "foo"
+      client.expect[String](Request(POST).withBody("foo")).unsafePerformSync must_== "foo"
     }
 
     "fail to read body after dispose" in {
       Request(POST).withBody("foo").flatMap { req =>
         // This is bad.  Don't do this.
         client.fetch(req)(Task.now).flatMap(_.as[String])
-      }.attemptRun must be_-\/.like {
+      }.unsafePerformSyncAttempt must be_-\/.like {
         case e: IOException => e.getMessage == "response was disposed"
       }
     }
 
     "fail to read body after client shutdown" in {
       val client = Client.fromHttpService(service)
-      client.shutdown.run
-      client.expect[String](Request(POST).withBody("foo")).attemptRun must be_-\/.like {
+      client.shutdown.unsafePerformSync
+      client.expect[String](Request(POST).withBody("foo")).unsafePerformSyncAttempt must be_-\/.like {
         case e: IOException => e.getMessage == "client was shut down"
       }
     }

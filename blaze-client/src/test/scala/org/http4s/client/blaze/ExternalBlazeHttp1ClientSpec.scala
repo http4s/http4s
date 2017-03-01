@@ -12,12 +12,12 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
 
   "Blaze Simple Http1 Client" should {
     "Make simple https requests" in {
-      val resp = simpleClient.expect[String](uri("https://httpbin.org/get")).runFor(timeout)
+      val resp = simpleClient.expect[String](uri("https://httpbin.org/get")).unsafePerformSyncFor(timeout)
       resp.length mustNotEqual 0
     }
   }
 
   step {
-    simpleClient.shutdown.run
+    simpleClient.shutdown.unsafePerformSync
   }
 }

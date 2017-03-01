@@ -3,6 +3,7 @@ package client
 
 import java.util.concurrent.ExecutorService
 
+import org.http4s.internal.compatibility._
 import org.log4s.getLogger
 
 import scala.annotation.tailrec
@@ -30,7 +31,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = {
     if (allocated < maxTotal) {
       allocated += 1
-      Task.fork(builder(key))(es).runAsync {
+      Task.fork(builder(key))(es).unsafePerformAsync {
         case \/-(fresh) =>
           logger.debug(s"Received complete connection from pool: ${stats}")
           callback(NextConnection(fresh, true).right)

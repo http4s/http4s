@@ -3,7 +3,7 @@
 set -e
 
 if [[ $TRAVIS_SCALA_VERSION == 2.12* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
+  SBT_COMMAND=";coverage ;clean ;validate ;coverageReport ;coverageOff"
 else
   SBT_COMMAND=";test"
 fi

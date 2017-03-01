@@ -17,8 +17,8 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       val s2 = URITranslation.translateRoot("/foo")(s)
 
       def runReq(req: Request): (ByteVector, Response) = {
-        val resp = s2.orNotFound(req).run
-        val body = resp.body.runLog.run.fold(ByteVector.empty)(_ ++ _)
+        val resp = s2.orNotFound(req).unsafePerformSync
+        val body = resp.body.runLog.unsafePerformSync.fold(ByteVector.empty)(_ ++ _)
         (body, resp)
       }
 

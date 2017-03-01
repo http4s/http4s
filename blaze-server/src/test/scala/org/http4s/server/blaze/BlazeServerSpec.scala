@@ -11,7 +11,7 @@ class BlazeServerSpec extends ServerAddressSpec {
     "Startup and shutdown without blocking" in {
       val s = BlazeBuilder
         .bindAny()
-        .start.run
+        .start.unsafePerformSync
 
       s.shutdownNow()
 
