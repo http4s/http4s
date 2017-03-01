@@ -218,6 +218,11 @@ trait ArbitraryInstances {
       instant <- genHttpExpireInstant
     } yield headers.Expires(instant) }
 
+  implicit lazy val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
+    Arbitrary { for {
+      instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), Gen.posNum[Int].map(Right(_)))
+    } yield headers.`Retry-After`(instant) }
+
   implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
