@@ -31,8 +31,8 @@ cache:
   - "$HOME/.sbt/boot"
 before_install:
   # Record minimal build information via the Git user ident
-  - git config --global user.name "$USER"
-  - git config --global user.email "$TRAVIS_BUILD_NUMBER@$TRAVIS_COMMIT"
+  - git config --global user.name "Travis CI"
+  - git config --global user.email "travis-ci@http4s.org"
   # Add secret deploy key to ssh-agent for deploy
   - eval "$(ssh-agent -s)"
   - openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -
