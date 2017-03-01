@@ -26,11 +26,14 @@ object Http4sPlugin extends AutoPlugin {
     scalazVersion := (sys.env.get("SCALAZ_VERSION") getOrElse "7.2.8"),
     unmanagedSourceDirectories in Compile += (sourceDirectory in Compile).value / VersionNumber(scalazVersion.value).numbers.take(2).mkString("scalaz-", ".", ""),
 
-    // https://issues.scala-lang.org/browse/SI-8340
-    scalacOptions in Compile -= {
-      scalaBinaryVersion.value match {
-        case "2.10" => "-Ywarn-numeric-widen" // it doesn't like case classes with Char
-        case _ => ""
+    // Curiously missing from RigPlugin
+    scalacOptions in Compile ++= Seq(
+      "-Yno-adapted-args"
+    ) ++ {
+      // https://issues.scala-lang.org/browse/SI-8340
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 11 => Seq("-Ywarn-numeric-widen")
+        case _ => Seq.empty
       }
     }
   )

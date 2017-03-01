@@ -462,9 +462,7 @@ lazy val commonSettings = Seq(
     }
   }.value,
   scalacOptions in Compile ++= Seq(
-    s"-target:jvm-${jvmTarget.value}",
-    "-Yno-adapted-args", // curiously missing from rigplugin
-    "-Ywarn-numeric-widen" // curiously missing from rigplugin
+    s"-target:jvm-${jvmTarget.value}"
   ),
   scalacOptions in (Compile, doc) += "-no-link-warnings",
   scalacOptions ++= scalaVersion.map { v =>
