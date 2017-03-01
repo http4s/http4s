@@ -11,7 +11,7 @@ updated site
 
    Job: $TRAVIS_JOB_NUMBER
 Commit: $SHORT_COMMIT
-Detail: $TRAVIS_BUILD_ID
+Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
 }
 
