@@ -15,6 +15,7 @@ import org.scalacheck.{Arbitrary, Gen}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
+import scala.concurrent.duration._
 import scodec.bits.ByteVector
 
 import scalaz.Scalaz._
@@ -213,6 +214,10 @@ trait ArbitraryInstances {
     choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
   }
 
+  lazy val genFiniteDuration: Gen[FiniteDuration] =
+    // Only consider positive durations
+    Gen.posNum[Long].map(_.seconds)
+
   implicit lazy val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
     Arbitrary { for {
       instant <- genHttpExpireInstant
@@ -220,7 +225,7 @@ trait ArbitraryInstances {
 
   implicit lazy val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
     Arbitrary { for {
-      instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), Gen.posNum[Int].map(Right(_)))
+      instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), genFiniteDuration.map(Right(_)))
     } yield headers.`Retry-After`(instant) }
 
   implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =

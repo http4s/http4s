@@ -38,11 +38,6 @@ object Renderer {
 
   }
 
-  implicit val IntRenderer: Renderer[Int] = new Renderer[Int] {
-    override def render(writer: Writer, i: Int): writer.type =
-      writer << i.toString
-  }
-
   implicit def eitherRenderer[A, B](implicit ra: Renderer[A], rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {
     override def render(writer: Writer, e: Either[A, B]): writer.type =
       e match {
