@@ -1,5 +1,3 @@
-// TODO fs2 port
-/*
 package org.http4s
 package multipart
 
@@ -10,7 +8,7 @@ import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.util._
-import scodec.bits.ByteVector
+import fs2._
 
 private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
 
@@ -33,13 +31,13 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
                        new StringWriter()                <<
                        delimiter(boundary)               <<
                        dash                        result
-    val start:         Boundary => ByteVector = boundary =>
-                       ByteVectorWriter()                <<
+    val start:         Boundary => Chunk[Byte] = boundary =>
+                       ChunkWriter()                     <<
                        dashBoundary(boundary)            <<
-                       Boundary.CRLF         toByteVector
-    val end:           Boundary => ByteVector = boundary =>
-                       ByteVectorWriter()                <<
-                       closeDelimiter(boundary) toByteVector
+                       Boundary.CRLF                toChunk
+    val end:           Boundary => Chunk[Byte] = boundary =>
+                       ChunkWriter()                     <<
+                       closeDelimiter(boundary)     toChunk
     val encapsulation: Boundary => String =     boundary =>
                        new StringWriter()                <<
                        Boundary.CRLF                     <<
@@ -48,19 +46,20 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
 
     val _start         = start(mp.boundary)
     val _end           = end(mp.boundary)
-    val _encapsulation = ByteVector(encapsulation(mp.boundary).getBytes)
+    val _encapsulation = Chunk.bytes(encapsulation(mp.boundary).getBytes)
 
-    def renderPart(prelude: ByteVector, p: Part) =
-      Process.emit(prelude ++ (p.headers.foldLeft(ByteVectorWriter()) { (w, h) =>
-        w << h << Boundary.CRLF
-      } << Boundary.CRLF).toByteVector) ++ p.body
+    def renderPart(prelude: Chunk[Byte], p: Part) =
+      Stream.chunk(prelude) ++
+        Stream.chunk(p.headers.foldLeft(ChunkWriter()) { (w, h) =>
+          w << h << Boundary.CRLF
+        } << Boundary.CRLF toChunk) ++
+        p.body
 
     val parts = mp.parts
     val body = parts.tail.foldLeft(renderPart(_start, parts.head)) { (acc, part) =>
       acc ++ renderPart(_encapsulation, part)
-    } ++ Process.emit(_end)
+    } ++ Stream.chunk(_end)
 
     Task.now(Entity(body, None))
   }
 }
- */
