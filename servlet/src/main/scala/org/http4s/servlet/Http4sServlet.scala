@@ -24,6 +24,7 @@ class Http4sServlet(service: HttpService,
   extends HttpServlet
 {
   private[this] val logger = getLogger
+  private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
 
@@ -84,13 +85,12 @@ class Http4sServlet(service: HttpService,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
     val response = Task.fork {
-      try serviceFn(request).handleWith {
+      try serviceFn(request)
         // Handle message failures coming out of the service as failed tasks
-        case mf: MessageFailure => mf.toHttpResponse(request.httpVersion)
-      } catch {
+        .handleWith(messageFailureHandler(request))
+      catch
         // Handle message failures _thrown_ by the service, just in case
-        case mf: MessageFailure => mf.toHttpResponse(request.httpVersion)
-      }
+        messageFailureHandler(request)
     }(threadPool)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)

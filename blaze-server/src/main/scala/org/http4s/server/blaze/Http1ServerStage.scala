@@ -108,9 +108,7 @@ private class Http1ServerStage(service: HttpService,
     parser.collectMessage(body, requestAttrs) match {
       case \/-(req) =>
         Task.fork(serviceFn(req))(pool)
-          .handleWith {
-            case mf: MessageFailure => mf.toHttpResponse(req.httpVersion)
-          }
+          .handleWith(messageFailureHandler(req))
           .runAsync {
             case \/-(resp) => renderResponse(req, resp, cleanup)
             case -\/(t)    => internalServerError(s"Error running route: $req", t, req, cleanup)
