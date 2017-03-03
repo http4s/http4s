@@ -20,10 +20,10 @@ class RetryAfterSpec extends HeaderLaws {
 
   "parse" should {
     "accept http date" in {
-      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must be_\/-(Left(Instant.from(gmtDate)))
+      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must beRight(Left(Instant.from(gmtDate)))
     }
     "accept duration on seconds" in {
-      `Retry-After`.parse("120").map(_.retry) must be_\/-(Right(120.seconds))
+      `Retry-After`.parse("120").map(_.retry) must beRight(Right(120.seconds))
     }
   }
 }
