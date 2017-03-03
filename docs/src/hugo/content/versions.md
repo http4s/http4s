@@ -1,6 +1,5 @@
 ---
 type: common
-menu: main
 weight: 100
 title: Versions
 ---
