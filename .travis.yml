@@ -21,7 +21,7 @@ script: bash bin/travis
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/053866704df09e101f16
+      - $GITTER_WEBHOOK_URL
     on_success: change
     on_failure: always
     on_start: never
