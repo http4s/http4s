@@ -4,6 +4,7 @@ scala:
 - 2.11.8
 - 2.10.6
 jdk: oraclejdk8
+dist: trusty
 env:
   global:
   - HUGO_VERSION=0.18
