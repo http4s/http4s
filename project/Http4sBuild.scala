@@ -13,8 +13,8 @@ object Http4sBuild {
   }
 
   lazy val sonatypeEnvCredentials = (for {
-    user <- envOrNone("SONATYPE_USER")
-    pass <- envOrNone("SONATYPE_PASS")
+    user <- envOrNone("SONATYPE_USERNAME")
+    pass <- envOrNone("SONATYPE_PASSWORD")
   } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
 
   def compatibleVersion(version: String, scalazVersion: String) = {
