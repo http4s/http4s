@@ -13,6 +13,7 @@ import scalaz.stream.Process._
 import scalaz.stream.Cause._
 import scalaz.{-\/, \/, \/-}
 
+import org.http4s.internal.compatibility._
 
 trait ProcessWriter {
 
@@ -74,7 +75,7 @@ trait ProcessWriter {
 
     case Await(t, f, _) => ec.execute(
       new Runnable {
-        override def run(): Unit = t.runAsync { // Wait for it to finish, then continue to unwind
+        override def run(): Unit = t.unsafePerformAsync { // Wait for it to finish, then continue to unwind
           case r@ \/-(_) => bounce(Try(f(r).run), stack, cb)
           case    -\/(e) => bounce(Try(f(-\/(Error(e))).run), stack, cb)
         }

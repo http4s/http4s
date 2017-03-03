@@ -41,7 +41,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     val disposingClient = Client(
       route.map(r => DisposableResponse(r.orNotFound, Task.delay(disposed = true))),
       Task.now(()))
-    f(disposingClient).attemptRun
+    f(disposingClient).unsafePerformSyncAttempt
     disposed must beTrue
   }
 
@@ -111,7 +111,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "fetch on task that does not match results in failed task" in {
-      client.fetch(Task.now(req))(PartialFunction.empty).attempt.run must be_-\/ { e: Throwable => e must beAnInstanceOf[MatchError] }
+      client.fetch(Task.now(req))(PartialFunction.empty).attempt.unsafePerformSync must be_-\/ { e: Throwable => e must beAnInstanceOf[MatchError] }
     }
 
     "fetch Uris with expect" in {
@@ -149,7 +149,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "streaming returns a stream" in {
-      client.streaming(req)(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.run must_== Vector("hello")
+      client.streaming(req)(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.unsafePerformSync must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {

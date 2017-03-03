@@ -7,7 +7,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
-
+import org.http4s.internal.compatibility._
 import org.specs2.specification.core.{ Fragments, Fragment }
 
 import scalaz.concurrent.Task
@@ -23,7 +23,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
   override def cleanup() = {
     super.cleanup() // shuts down the jetty server
-    client.shutdown.run
+    client.shutdown.unsafePerformSync
   }
 
   override def runAllTests(): Fragments = {
@@ -56,7 +56,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   private def runTest[A](req: Request, address: InetSocketAddress)(f: Response => Task[A]): A = {
     val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
       port = Some(address.getPort)))))
-    client.fetch(newreq)(f).runFor(timeout)
+    client.fetch(newreq)(f).unsafePerformSyncFor(timeout)
   }
 
   private def checkResponse(rec: Response, expected: Response) = {
@@ -90,8 +90,8 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
       os.write(body.toArray)
       os.flush()
       Process.halt.asInstanceOf[Process[Task, Unit]]
-    }.run.run
+    }.run.unsafePerformSync
   }
 
-  private def collectBody(body: EntityBody): Array[Byte] = body.runLog.run.toArray.map(_.toArray).flatten
+  private def collectBody(body: EntityBody): Array[Byte] = body.runLog.unsafePerformSync.toArray.map(_.toArray).flatten
 }

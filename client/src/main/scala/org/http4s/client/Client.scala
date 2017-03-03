@@ -2,8 +2,9 @@ package org.http4s
 package client
 
 import java.util.concurrent.atomic.AtomicBoolean
-import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.Status.Successful
+import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.internal.compatibility._
 import scala.util.control.NoStackTrace
 
 import java.io.IOException
@@ -194,7 +195,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
 
   /** Shuts this client down, and blocks until complete. */
   def shutdownNow(): Unit =
-    shutdown.run
+    shutdown.unsafePerformSync
 }
 
 object Client {

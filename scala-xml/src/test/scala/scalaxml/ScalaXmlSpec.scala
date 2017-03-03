@@ -12,7 +12,7 @@ import Status.Ok
 
 class ScalaXmlSpec extends Http4sSpec {
 
-  def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
+  def getBody(body: EntityBody): Array[Byte] = body.runLog.unsafePerformSync.reduce(_ ++ _).toArray
 
   def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
 
@@ -24,7 +24,7 @@ class ScalaXmlSpec extends Http4sSpec {
     }
 
     "parse the XML" in {
-      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
+      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).unsafePerformSync
       resp.status must_==(Ok)
       getBody(resp.body) must_== ("html".getBytes)
     }
@@ -32,7 +32,7 @@ class ScalaXmlSpec extends Http4sSpec {
     "return 400 on parse error" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request(body = body))
-      tresp.run.status must_== (Status.BadRequest)
+      tresp.unsafePerformSync.status must_== (Status.BadRequest)
     }
   }
 

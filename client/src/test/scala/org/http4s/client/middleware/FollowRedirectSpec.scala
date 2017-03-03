@@ -58,7 +58,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
             body.map(RedirectResponse(method, _))
           case resp =>
             Task.fail(UnexpectedStatus(resp.status))
-        }.attemptRun must_== (response)
+        }.unsafePerformSyncAttempt must_== (response)
       }
 
       "method" | "status"          | "body"    | "pure" | "response"                               |>
@@ -106,7 +106,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       client.fetch(req) {
         case Ok(resp) =>
           resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[Task]
-      }.attemptRun must be_\/-(Some("0"))
+      }.unsafePerformSyncAttempt must be_\/-(Some("0"))
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {
@@ -119,7 +119,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       client.fetch(GET(uri("http://localhost/loop"))) {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => Task.now(-1)
-      }.run must_==(4)
+      }.unsafePerformSync must_==(4)
     }
 
     "Dispose of original response when redirecting" in {
@@ -128,7 +128,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
         DisposableResponse(mr.orNotFound, Task.delay(disposed = disposed + 1))
       }
       val client = FollowRedirect(3)(Client(disposingService, Task.now(())))
-      client.expect[String](uri("http://localhost/301")).attemptRun
+      client.expect[String](uri("http://localhost/301")).unsafePerformSyncAttempt
       disposed must_== 2 // one for the original, one for the redirect
     }
   }

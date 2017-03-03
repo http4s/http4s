@@ -2,6 +2,7 @@ package org.http4s.client.asynchttpclient
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import org.http4s.internal.compatibility._
 import org.reactivestreams.{Subscription, Publisher, Subscriber}
 import org.reactivestreams.tck.SubscriberWhiteboxVerification.WhiteboxSubscriberProbe
 import org.reactivestreams.tck.{SubscriberWhiteboxVerification, TestEnvironment}
@@ -31,7 +32,7 @@ class QueueSubscriberTest extends SubscriberWhiteboxVerification[Integer](new Te
     val publisher = createHelperPublisher(10)
     val subscriber = createSubscriber()
     publisher.subscribe(subscriber)
-    assertEquals(subscriber.process.runLog.run.size, 10)
+    assertEquals(subscriber.process.runLog.unsafePerformSync.size, 10)
   }
 
   @Test
@@ -48,7 +49,7 @@ class QueueSubscriberTest extends SubscriberWhiteboxVerification[Integer](new Te
     }
     val subscriber = createSubscriber()
     publisher.subscribe(subscriber)
-    assertEquals(subscriber.process.runLog.attemptRun, -\/(SadTrombone))
+    assertEquals(subscriber.process.runLog.unsafePerformSyncAttempt, -\/(SadTrombone))
   }
 
   @Test
@@ -65,6 +66,6 @@ class QueueSubscriberTest extends SubscriberWhiteboxVerification[Integer](new Te
     }
     val subscriber = createSubscriber()
     publisher.subscribe(subscriber)
-    assertEquals(subscriber.process.runLog.run, Vector.empty)
+    assertEquals(subscriber.process.runLog.unsafePerformSync, Vector.empty)
   }
 }

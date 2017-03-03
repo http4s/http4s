@@ -14,6 +14,7 @@ import org.http4s.{Method => HMethod, Headers => HHeaders, _}
 import org.http4s.blaze.pipeline.{ Command => Cmd }
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util.Http2Writer
+import org.http4s.internal.compatibility._
 import Http2Exception.{ PROTOCOL_ERROR, INTERNAL_ERROR }
 
 import scodec.bits.ByteVector
@@ -200,12 +201,12 @@ private class Http2NodeStage(streamId: Int,
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      Task.fork(service(req))(executor).runAsync {
+      Task.fork(service(req))(executor).unsafePerformAsync {
         case \/-(resp) => renderResponse(req, resp)
         case -\/(t) =>
           val resp = Response(InternalServerError)
                        .withBody("500 Internal Service Error\n" + t.getMessage)
-                       .run
+                       .unsafePerformSync
 
           renderResponse(req, resp)
       }
@@ -226,7 +227,7 @@ private class Http2NodeStage(streamId: Int,
       }
     }
 
-    new Http2Writer(this, hs, ec).writeProcess(resp.body).runAsync {
+    new Http2Writer(this, hs, ec).writeProcess(resp.body).unsafePerformAsync {
       case \/-(_)       => shutdownWithCommand(Cmd.Disconnect)
       case -\/(Cmd.EOF) => stageShutdown()
       case -\/(t)       => shutdownWithCommand(Cmd.Error(t))

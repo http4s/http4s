@@ -38,33 +38,33 @@ class CORSSpec extends Http4sSpec {
   "CORS" should {
     "Be omitted when unrequested" in {
       val req = Request(uri = Uri(path = "foo"))
-      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
-      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
+      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafePerformSync
+      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafePerformSync
     }
 
     "Respect Access-Control-Allow-Credentials" in {
       val req = buildRequest("/foo")
-      cors1.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
-      cors2.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
+      cors1.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafePerformSync
+      cors2.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafePerformSync
     }
 
     "Offer a successful reply to OPTIONS on fallthrough" in {
       val req = buildRequest("/unexistant", OPTIONS)
-      cors1.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
-      cors2.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
+      cors1.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafePerformSync
+      cors2.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafePerformSync
     }
 
     "Always Respect unsuccesful replies to OPTIONS requests" in {
       val req = buildRequest("/bar", OPTIONS)
-      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
-      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).run
+      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafePerformSync
+      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafePerformSync
     }
 
     "Fall through" in {
       val req = buildRequest("/2")
       val s1 = CORS(HttpService { case GET -> Root / "1" => Ok() })
       val s2 = CORS(HttpService { case GET -> Root / "2" => Ok() })
-      (s1 orElse s2).orNotFound(req).run.status must_== Ok
+      (s1 orElse s2).orNotFound(req).unsafePerformSync.status must_== Ok
     }
   }
 }

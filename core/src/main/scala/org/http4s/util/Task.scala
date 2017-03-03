@@ -6,10 +6,12 @@ import scalaz.{-\/, \/-}
 import scalaz.syntax.either._
 import scalaz.concurrent.Task
 
+import org.http4s.internal.compatibility._
+
 trait TaskFunctions {
   def unsafeTaskToFuture[A](task: Task[A]): Future[A] = {
     val p = Promise[A]()
-    task.runAsync {
+    task.unsafePerformAsync {
       case \/-(a) =>
         p.success(a)
         ()

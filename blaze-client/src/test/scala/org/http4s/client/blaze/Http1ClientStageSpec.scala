@@ -66,10 +66,8 @@ class Http1ClientStageSpec extends Http4sSpec {
     LeafBuilder(stage).base(h)
 
     val result = new String(stage.runRequest(req)
-      .run
-      .body
-      .runLog
-      .run
+      .flatMap(_.body.runLog)
+      .unsafePerformSync
       .foldLeft(ByteVector.empty)(_ ++ _)
       .toArray)
 
@@ -115,8 +113,8 @@ class Http1ClientStageSpec extends Http4sSpec {
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest).run  // we remain in the body
-        tail.runRequest(FooRequest).run must throwA[Http1Connection.InProgressException.type]
+        tail.runRequest(FooRequest).unsafePerformSync  // we remain in the body
+        tail.runRequest(FooRequest).unsafePerformSync must throwA[Http1Connection.InProgressException.type]
       }
       finally {
         tail.shutdown()
@@ -130,9 +128,9 @@ class Http1ClientStageSpec extends Http4sSpec {
         LeafBuilder(tail).base(h)
 
         // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).run.body.run.run
+        tail.runRequest(FooRequest).flatMap(_.body.run).unsafePerformSync
 
-        val result = tail.runRequest(FooRequest).run
+        val result = tail.runRequest(FooRequest).unsafePerformSync
         tail.shutdown()
 
         result.headers.size must_== 1
@@ -150,9 +148,9 @@ class Http1ClientStageSpec extends Http4sSpec {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest).run
+        val result = tail.runRequest(FooRequest).unsafePerformSync
 
-        result.body.run.run must throwA[InvalidBodyException]
+        result.body.run.unsafePerformSync must throwA[InvalidBodyException]
       }
       finally {
         tail.shutdown()
@@ -253,14 +251,14 @@ class Http1ClientStageSpec extends Http4sSpec {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val response = tail.runRequest(headRequest).run
+        val response = tail.runRequest(headRequest).unsafePerformSync
         response.contentLength must_== Some(contentLength)
 
         // connection reusable immediately after headers read
         tail.isRecyclable must_=== true
 
         // body is empty due to it being HEAD request
-        response.body.runLog.run.foldLeft(0L)(_ + _.length) must_== 0L
+        response.body.runLog.unsafePerformSync.foldLeft(0L)(_ + _.length) must_== 0L
       } finally {
         tail.shutdown()
       }
@@ -285,7 +283,7 @@ class Http1ClientStageSpec extends Http4sSpec {
           } yield hs
         }
 
-        hs.run.mkString must_== "Foo: Bar"
+        hs.unsafePerformSync.mkString must_== "Foo: Bar"
       }
 
       "Fail to get trailers before they are complete" in {
@@ -296,7 +294,7 @@ class Http1ClientStageSpec extends Http4sSpec {
           } yield hs
         }
 
-        hs.run must throwA[IllegalStateException]
+        hs.unsafePerformSync must throwA[IllegalStateException]
       }
     }
   }

@@ -3,6 +3,7 @@ package servlet
 
 import java.util.concurrent.ExecutorService
 import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.internal.compatibility._
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
@@ -65,7 +66,7 @@ class Http4sServlet(service: HttpService,
       toRequest(servletRequest).fold(
         onParseFailure(_, servletResponse, bodyWriter),
         handleRequest(ctx, _, bodyWriter)
-      ).runAsync {
+      ).unsafePerformAsync {
         case \/-(()) => ctx.complete()
         case -\/(t) => errorHandler(servletRequest, servletResponse)(t)
       }
@@ -102,7 +103,7 @@ class Http4sServlet(service: HttpService,
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       if (!servletResponse.isCommitted) {
         val response = Response(Status.InternalServerError).withBody("Service timed out.")
-        renderResponse(response, servletResponse, bodyWriter).run
+        renderResponse(response, servletResponse, bodyWriter).unsafePerformSync
       }
       else {
         val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
@@ -134,7 +135,7 @@ class Http4sServlet(service: HttpService,
       val response = Task.now(Response(Status.InternalServerError))
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      renderResponse(response, servletResponse, NullBodyWriter).run
+      renderResponse(response, servletResponse, NullBodyWriter).unsafePerformSync
       if (servletRequest.isAsyncStarted)
         servletRequest.getAsyncContext.complete()
   }

@@ -28,23 +28,23 @@ class HttpServiceSpec extends Http4sSpec {
 
   "HttpService" should {
     "Return a valid Response from the first service of an aggregate" in {
-      aggregate1.orNotFound(Request(uri = uri("/match"))).run.as[String].run must_== ("match")
+      aggregate1.orNotFound(Request(uri = uri("/match"))).as[String].unsafePerformSync must_== ("match")
     }
 
     "Return a custom NotFound from the first service of an aggregate" in {
-      aggregate1.orNotFound(Request(uri = uri("/notfound"))).run.as[String].run must_== ("notfound")
+      aggregate1.orNotFound(Request(uri = uri("/notfound"))).as[String].unsafePerformSync must_== ("notfound")
     }
 
     "Accept the first matching route in the case of overlapping paths" in {
-      aggregate1.orNotFound(Request(uri = uri("/conflict"))).run.as[String].run must_== ("srvc1conflict")
+      aggregate1.orNotFound(Request(uri = uri("/conflict"))).as[String].unsafePerformSync must_== ("srvc1conflict")
     }
 
     "Fall through the first service that doesn't match to a second matching service" in {
-      aggregate1.orNotFound(Request(uri = uri("/srvc2"))).run.as[String].run must_== ("srvc2")
+      aggregate1.orNotFound(Request(uri = uri("/srvc2"))).as[String].unsafePerformSync must_== ("srvc2")
     }
 
     "Properly fall through two aggregated service if no path matches" in {
-      aggregate1.apply(Request(uri = uri("/wontMatch"))).run must be (Pass)
+      aggregate1.apply(Request(uri = uri("/wontMatch"))).unsafePerformSync must be (Pass)
     }
   }
 }

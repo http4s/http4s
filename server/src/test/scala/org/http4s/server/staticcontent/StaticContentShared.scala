@@ -44,8 +44,8 @@ private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
   }
 
   def runReq(req: Request): (ByteVector, Response) = {
-    val resp = s.orNotFound(req).run
-    val body = resp.body.runLog.run.fold(ByteVector.empty)(_ ++ _)
+    val resp = s.orNotFound(req).unsafePerformSync
+    val body = resp.body.runLog.unsafePerformSync.fold(ByteVector.empty)(_ ++ _)
     (body, resp)
   }
 

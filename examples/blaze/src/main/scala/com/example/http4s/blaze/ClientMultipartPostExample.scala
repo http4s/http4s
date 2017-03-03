@@ -33,7 +33,7 @@ object ClientMultipartPostExample {
                                 ))
 
     val request = Method.POST(url,multipart).map(_.replaceAllHeaders(multipart.headers))
-    client.expect[String](request).run
+    client.expect[String](request).unsafePerformSync
   }
 
   def main(args: Array[String]): Unit = println(go)

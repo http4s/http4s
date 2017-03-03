@@ -15,23 +15,18 @@ Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
 }
 
-
-
-if [[ $TRAVIS_SCALA_VERSION == 2.12* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
-else
-  SBT_COMMAND=";test"
-fi
-
-if [[ $SBT_COMMAND = *";makeSite"* ]]; then
+if [[ $TRAVIS_BUILD_NUMBER == 1 ]]; then
   curl -s -L https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz | tar xzf -
   mv hugo_${HUGO_VERSION}_linux_amd64/hugo_${HUGO_VERSION}_linux_amd64 $HOME/bin/hugo
+  SBT_COMMAND=";coverage ;clean ;validate ;coverageReport ;coverageOff"
+else
+  SBT_COMMAND=";test"
 fi
 
 if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
   echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   SBT_COMMAND="$SBT_COMMAND ;publish"
-  if [[ $SBT_COMMAND == *"makeSite"* ]] && [[ ! -z $encrypted_8735ae5b3321_key ]]; then
+  if [[ $TRAVIS_BUILD_NUMBER == 1 ]] && [[ ! -z $encrypted_8735ae5b3321_key ]]; then
     # Record minimal build information via the Git user ident
     git config --global user.name "Travis CI";
     git config --global user.email "travis-ci@http4s.org";
@@ -58,6 +53,6 @@ fi
 sbt $SBT_EXTRA_OPTS 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
 echo "Uploading codecov"
-if [[ $SBT_COMMAND = *";coverage"* ]]; then
+if [[ $TRAVIS_BUILD_NUMBER == 1 ]]; then
    bash <(curl -s https://codecov.io/bash)
 fi

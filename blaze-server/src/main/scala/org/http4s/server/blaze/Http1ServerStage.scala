@@ -11,6 +11,7 @@ import org.http4s.blaze.util.Execution._
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 
+import org.http4s.internal.compatibility._
 import org.http4s.util.StringWriter
 import org.http4s.syntax.string._
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
@@ -111,7 +112,7 @@ private class Http1ServerStage(service: HttpService,
           .handleWith {
             case mf: MessageFailure => mf.toHttpResponse(req.httpVersion)
           }
-          .runAsync {
+          .unsafePerformAsync {
             case \/-(resp) => renderResponse(req, resp, cleanup)
             case -\/(t)    => internalServerError(s"Error running route: $req", t, req, cleanup)
           }
@@ -164,7 +165,7 @@ private class Http1ServerStage(service: HttpService,
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)
     }
 
-    bodyEncoder.writeProcess(resp.body).runAsync {
+    bodyEncoder.writeProcess(resp.body).unsafePerformAsync {
       case \/-(requireClose) =>
         if (closeOnFinish || requireClose) {
           closeConnection()

@@ -69,7 +69,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
   }
 
   def serve(req: Request): Response =
-    service.orNotFound(req).run
+    service.orNotFound(req).unsafePerformSync
 
   "Path DSL within HttpService" should {
     "GET /" in {

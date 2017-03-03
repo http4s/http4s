@@ -4,6 +4,7 @@ package testing
 import scalaz.EitherT
 import scalaz.concurrent.Task
 import org.http4s.headers._
+import org.http4s.internal.compatibility._
 import org.specs2.matcher._
 
 /** This might be useful in a testkit spinoff.  Let's see what they do for us. */
@@ -16,7 +17,7 @@ trait Http4sMatchers extends Matchers with TaskMatchers {
 
   def returnStatus(s: Status): Matcher[Task[Response]] =
     haveStatus(s) ^^ { r: Task[Response] =>
-      r.run aka "the returned"
+      r.unsafePerformSync aka "the returned"
     }
 
   def haveBody[A: EntityDecoder](a: ValueCheck[A]): Matcher[Message] =
@@ -41,11 +42,11 @@ trait Http4sMatchers extends Matchers with TaskMatchers {
 
   def returnRight[A, B](m: ValueCheck[B]): Matcher[EitherT[Task, A, B]] =
     beRight(m) ^^ { et: EitherT[Task, A, B] =>
-      et.run.run.toEither aka "the either task"
+      et.run.unsafePerformSync.toEither aka "the either task"
     }
 
   def returnLeft[A, B](m: ValueCheck[A]): Matcher[EitherT[Task, A, B]] =
     beLeft(m) ^^ { et: EitherT[Task, A, B] =>
-      et.run.run.toEither aka "the either task"
+      et.run.unsafePerformSync.toEither aka "the either task"
     }
 }

@@ -5,6 +5,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
+import org.http4s.internal.compatibility._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
 import scala.concurrent.duration._
@@ -37,7 +38,7 @@ trait ServerBuilder {
     * until the server is started.
     */
   final def run: Server =
-    start.run
+    start.unsafePerformSync
 }
 
 object ServerBuilder {

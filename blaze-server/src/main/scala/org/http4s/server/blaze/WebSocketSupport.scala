@@ -9,6 +9,7 @@ import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
 import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.websocket.Http4sWSStage
+import org.http4s.internal.compatibility._
 import org.http4s.syntax.string._
 
 import scala.util.{Failure, Success}
@@ -31,7 +32,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               .map(_.replaceAllHeaders(
                  Connection("close".ci),
                  Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
-              )).run
+              )).unsafePerformSync
 
             super.renderResponse(req, resp, cleanup)
 
