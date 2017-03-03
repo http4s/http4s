@@ -28,7 +28,7 @@ import org.http4s.syntax.string._
 import org.http4s.util.NonEmptyList
 import org.http4s.internal.parboiled2.Rule1
 
-import scala.concurrent.duration._
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
 /**
  * parser rules for all headers that can be parsed with one simple rule
@@ -89,7 +89,7 @@ private[parser] trait SimpleHeaders {
   def RETRY_AFTER(value: String): ParseResult[`Retry-After`] = new Http4sHeaderParser[`Retry-After`](value) {
     def entry = rule {
       HttpDate ~ EOL ~> ((t: Instant) => `Retry-After`(Left(t))) | // Date value
-      Digits ~ EOL ~> ((t: String) => `Retry-After`(Right(t.toInt.seconds)))
+      Digits ~ EOL ~> ((t: String) => `Retry-After`(Right(FiniteDuration(t.toLong, SECONDS))))
     }
   }.parse
 
