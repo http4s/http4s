@@ -1,5 +1,6 @@
 package org.http4s
 
+import org.log4s.getLogger
 import scalaz._, Scalaz._
 import scalaz.concurrent.Task
 
@@ -42,5 +43,12 @@ package object server {
         .local({authed: AuthedRequest[Err \/ T] => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
         .compose(AuthedRequest(authUser))
     }
+  }
+
+  private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
+  def messageFailureHandler(req: Request): PartialFunction[Throwable, Task[Response]] = {
+    case mf: MessageFailure =>
+      messageFailureLogger.debug(mf)(s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}""")
+      mf.toHttpResponse(req.httpVersion)
   }
 }
