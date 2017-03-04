@@ -2,7 +2,7 @@
 <html>
   <head>
   <meta charset="utf-8">
-  <title>http4s: URI handling</title>
+  <title>http4s: Error handling</title>
 
   <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
@@ -59,73 +59,52 @@
       <div class="content">
         <div class="col-md-10" role="main">
           <div class="page-header">
-            <h1>URI handling</h1>
+            <h1>Error handling</h1>
           </div>
           
 
-<h2 id="literals">Literals</h2>
+<p>A <code>MessageFailure</code> indicates an error handling an HTTP message.  These
+include:</p>
 
-<p>http4s is a bit more strict with handling URIs than e.g. the <a href="https://www.playframework.com/documentation/2.5.x/api/scala/index.html#play.api.libs.ws.WS$">play http client</a>.
-Instead of passing plain <code>String</code>s, http4s operates on URIs. You can construct
-literal URI with</p>
+<ul>
+<li><code>ParsingFailure</code>: indicative of a malformed HTTP message in the
+request line or headers.</li>
+<li><code>MalformedMessageBodyFailure</code>: indicative of a message that has a
+syntactic error in its body.  For example, trying to decode <code>{
+&quot;broken:&quot;</code> as JSON will result in a <code>MalforedMessageBodyFailure</code>.</li>
+<li><code>InvalidMessageBodyFailure</code>: indicative of a message that is
+syntactically correct, but semantically incorrect.  A well-formed
+JSON request that is missing expected fields may generate this
+failure.</li>
+<li><code>MediaTypeMissing</code>: indiciates that the message had no media type,
+and the server wasn&rsquo;t willing to infer it.</li>
+<li><code>MediaTypeMismatch</code>: indiciates that the server received a media
+type that it wasn&rsquo;t prepared to handle.</li>
+</ul>
 
-<pre><code class="language-scala">import org.http4s._
-// import org.http4s._
+<h2 id="logging">Logging</h2>
 
-val uri = Uri.uri(&quot;http://http4s.org&quot;)
-// uri: org.http4s.Uri = http://http4s.org
-</code></pre>
+<p>If a <code>MessageFailure</code> is not handled by your HTTP service, it reaches
+the backend in the form of a failed task, where it is transformed into
+an HTTP response.  To guard against XSS attacks, care is taken in each
+of these renderings to not reflect information back from the request.
+Diagnostic information about syntax errors or missing fields,
+including a full stack trace, is logged to the
+<code>org.http4s.server.message-failures</code> category at <code>DEBUG</code> level.</p>
 
-<h2 id="building-uris">Building URIs</h2>
+<h2 id="customizing-error-handling">Customizing error handling</h2>
 
-<p>Naturally, that&rsquo;s not enough if you want dynamic URIs. There&rsquo;s a few different
-ways to build URIs, you can either use a predefined URI and call methods on it,
-or you could use the URLTemplates.</p>
-
-<h3 id="uri">URI</h3>
-
-<p>Use the methods on the <a href="../api/#org.http4s.Uri">uri class</a>.</p>
-
-<pre><code class="language-scala">val docs = uri.withPath(&quot;/docs/0.15/&quot;)
-// docs: org.http4s.Uri = http://http4s.org/docs/0.15/
-</code></pre>
-
-<h3 id="uri-template">URI Template</h3>
-
-<pre><code class="language-scala">import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
-// import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
-
-import org.http4s.UriTemplate._
-// import org.http4s.UriTemplate._
-
-val template = UriTemplate(
-  authority = Some(Uri.Authority(host = Uri.RegName(&quot;http4s.org&quot;))),
-  scheme = Some(&quot;http&quot;.ci),
-  path = List(PathElm(&quot;docs&quot;), PathElm(&quot;0.15&quot;))
-)
-// template: org.http4s.UriTemplate = http://http4s.org/docs/0.15
-
-template.toUriIfPossible
-// res0: scala.util.Try[org.http4s.Uri] = Success(http://http4s.org/docs/0.15)
-</code></pre>
-
-<h2 id="receiving-uris">Receiving URIs</h2>
-
-<p>URIs come in as strings from external routes or as data. Http4s provides
-encoders/decoders for <code>Uri</code> in the connector packages.</p>
-
-<p>For example one for <a href="https://github.com/Verizon/knobs">knobs</a>:</p>
-
-<pre><code>implicit val configuredUri = Configured[String].flatMap(s =&gt; Configured(_ =&gt; Uri.fromString(s).toOption))
-</code></pre>
+<p>TODO</p>
 
           <footer>
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://http4s.org/v0.15/error-handling/"><i class="fa fa-arrow-left"></i> Error handling</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.15/json/"><i class="fa fa-arrow-left"></i> JSON handling</a></li>
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.15.x/docs/src/main/tut/uri.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.15.x/docs/src/main/tut/error-handling.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                
+                <li class="next"><a href="http://http4s.org/v0.15/uri/">URI handling <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>
@@ -184,7 +163,7 @@ encoders/decoders for <code>Uri</code> in the connector packages.</p>
                 <a href="/v0.15/json/">JSON handling</a>
               </li>
               
-              <li class="active">
+              <li >
                 <a href="/v0.15/uri/">URI handling</a>
               </li>
               
