@@ -24,7 +24,6 @@ class Http4sServlet(service: HttpService,
   extends HttpServlet
 {
   private[this] val logger = getLogger
-  private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
 
