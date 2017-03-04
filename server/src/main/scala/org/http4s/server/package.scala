@@ -48,7 +48,7 @@ package object server {
   private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
   def messageFailureHandler(req: Request): PartialFunction[Throwable, Task[Response]] = {
     case mf: MessageFailure =>
-      messageFailureLogger.debug(mf)(s"Message failure handling request: ${req.method} ${req.pathInfo}")
+      messageFailureLogger.debug(mf)(s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
   }
 }
