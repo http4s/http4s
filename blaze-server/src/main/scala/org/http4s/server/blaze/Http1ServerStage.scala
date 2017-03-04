@@ -110,7 +110,7 @@ private class Http1ServerStage(service: HttpService,
       case \/-(req) =>
         Task.fork(serviceFn(req))(pool)
           .handleWith(messageFailureHandler(req))
-          .unsafePerformSync {
+          .unsafePerformAsync {
             case \/-(resp) => renderResponse(req, resp, cleanup)
             case -\/(t)    => internalServerError(s"Error running route: $req", t, req, cleanup)
           }
