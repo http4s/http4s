@@ -35,13 +35,26 @@
 	  </li>
 	
 	  <li >
-	    <a href="/versions/">Versions</a>
-	  </li>
-	
-	  <li >
 	    <a href="/adopters/">Adopters</a>
 	  </li>
 	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (unreleased)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/">Scaladoc</a></li>
+  </ul>
+</li>
+
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
@@ -92,7 +105,7 @@ val service = HttpService {
       .map(Task.now) // This one is require to make the types match up
       .getOrElse(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$43935/1722586559@4350c204)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$46934/237826311@675e4379)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -108,7 +121,7 @@ val service = HttpService {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$43935/1722586559@65d00a87)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$46934/237826311@1abe2b0)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -145,7 +158,7 @@ val webjars: HttpService = webjarService(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$43938/1955993748@4747b407)
+// webjars: org.http4s.HttpService = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$46937/1991914424@6abb08a4)
 </code></pre>
 
           <footer>

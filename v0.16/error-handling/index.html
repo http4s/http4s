@@ -2,7 +2,7 @@
 <html>
   <head>
   <meta charset="utf-8">
-  <title>http4s: Get http4s</title>
+  <title>http4s: Error handling</title>
 
   <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
@@ -69,36 +69,52 @@
       <div class="content">
         <div class="col-md-10" role="main">
           <div class="page-header">
-            <h1>Get http4s</h1>
+            <h1>Error handling</h1>
           </div>
-          <p>Create a new directory, with the following build.sbt in the root:</p>
+          
 
-<pre><code class="language-scala">scalaVersion := &quot;2.11.8&quot; // Also supports 2.10.x, or 2.12.1
+<p>A <code>MessageFailure</code> indicates an error handling an HTTP message.  These
+include:</p>
 
-val http4sVersion = &quot;0.15.0a&quot;
+<ul>
+<li><code>ParsingFailure</code>: indicative of a malformed HTTP message in the
+request line or headers.</li>
+<li><code>MalformedMessageBodyFailure</code>: indicative of a message that has a
+syntactic error in its body.  For example, trying to decode <code>{
+&quot;broken:&quot;</code> as JSON will result in a <code>MalforedMessageBodyFailure</code>.</li>
+<li><code>InvalidMessageBodyFailure</code>: indicative of a message that is
+syntactically correct, but semantically incorrect.  A well-formed
+JSON request that is missing expected fields may generate this
+failure.</li>
+<li><code>MediaTypeMissing</code>: indiciates that the message had no media type,
+and the server wasn&rsquo;t willing to infer it.</li>
+<li><code>MediaTypeMismatch</code>: indiciates that the server received a media
+type that it wasn&rsquo;t prepared to handle.</li>
+</ul>
 
-// If you prefer snapshots
-// val http4sVersion = &quot;0.15.0a-SNAPSHOT&quot;
-// resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
+<h2 id="logging">Logging</h2>
 
-libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-dsl&quot; % http4sVersion,
-  &quot;org.http4s&quot; %% &quot;http4s-blaze-server&quot; % http4sVersion,
-  &quot;org.http4s&quot; %% &quot;http4s-blaze-client&quot; % http4sVersion
-)
-</code></pre>
+<p>If a <code>MessageFailure</code> is not handled by your HTTP service, it reaches
+the backend in the form of a failed task, where it is transformed into
+an HTTP response.  To guard against XSS attacks, care is taken in each
+of these renderings to not reflect information back from the request.
+Diagnostic information about syntax errors or missing fields,
+including a full stack trace, is logged to the
+<code>org.http4s.server.message-failures</code> category at <code>DEBUG</code> level.</p>
 
-<p>The <code>a</code> is for scalaz 7.2, without would be 7.1 - see <a href="/#getting-started">the matrix</a> on the main
-page. This convention exists because of the binary incompatibility between scalaz
-7.1 and 7.2.</p>
+<h2 id="customizing-error-handling">Customizing error handling</h2>
+
+<p>TODO</p>
 
           <footer>
             <nav>
               <ul class="pager">
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/build.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.16/json/"><i class="fa fa-arrow-left"></i> JSON handling</a></li>
                 
-                <li class="next"><a href="http://http4s.org/v0.16/">Quick Start <i class="fa fa-arrow-right"></i></a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/error-handling.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                
+                <li class="next"><a href="http://http4s.org/v0.16/uri/">URI handling <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>

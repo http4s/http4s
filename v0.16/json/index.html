@@ -35,13 +35,26 @@
 	  </li>
 	
 	  <li >
-	    <a href="/versions/">Versions</a>
-	  </li>
-	
-	  <li >
 	    <a href="/adopters/">Adopters</a>
 	  </li>
 	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (unreleased)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/">Scaladoc</a></li>
+  </ul>
+</li>
+
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
@@ -137,9 +150,9 @@ val greeting = hello(&quot;world&quot;)
 
 <p>We now have a JSON value, but we don&rsquo;t have enough to render it:</p>
 
-<pre><code class="language-scala">scala&gt; Ok(greeting).run
+<pre><code class="language-scala">scala&gt; Ok(greeting).unsafePerformSync
 &lt;console&gt;:26: error: could not find implicit value for parameter w: org.http4s.EntityEncoder[io.circe.Json]
-       Ok(greeting).run
+       Ok(greeting).unsafePerformSync
          ^
 </code></pre>
 
@@ -151,10 +164,7 @@ val greeting = hello(&quot;world&quot;)
 <pre><code class="language-scala">import org.http4s.circe._
 // import org.http4s.circe._
 
-Ok(greeting).run
-// &lt;console&gt;:29: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        Ok(greeting).run
-//                     ^
+Ok(greeting).unsafePerformSync
 // res1: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
 </code></pre>
 
@@ -164,10 +174,7 @@ useful on client requests:</p>
 <pre><code class="language-scala">import org.http4s.client._
 // import org.http4s.client._
 
-POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).run
-// &lt;console&gt;:31: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-// POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).run
-//                                                  ^
+POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).unsafePerformSync
 // res2: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16)
 </code></pre>
 
@@ -203,7 +210,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@43d3401a
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@2ea969f3
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -229,16 +236,10 @@ User(&quot;Alice&quot;).asJson
 <p>Equipped with an <code>Encoder</code> and <code>.asJson</code>, we can send JSON in requests
 and responses for our case classes:</p>
 
-<pre><code class="language-scala">Ok(Hello(&quot;Alice&quot;).asJson).run
-// &lt;console&gt;:40: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        Ok(Hello(&quot;Alice&quot;).asJson).run
-//                                  ^
+<pre><code class="language-scala">Ok(Hello(&quot;Alice&quot;).asJson).unsafePerformSync
 // res6: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
 
-POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).run
-// &lt;console&gt;:40: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).run
-//                                                ^
+POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).unsafePerformSync
 // res7: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14)
 </code></pre>
 
@@ -251,19 +252,13 @@ or client, we need an <code>EntityDecoder[JSON]</code> to receive it.</p>
 <code>EntityDecoder[Json]</code>.  This makes it very easy to decode a request or
 response body to JSON using the <a href="../api/index.html#org.http4s.MessageOps@as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]"><code>as</code> syntax</a>:</p>
 
-<pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].run
-// &lt;console&gt;:38: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-// Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].run
-//                                     ^
+<pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].unsafePerformSync
 // res8: io.circe.Json =
 // {
 //   &quot;name&quot; : &quot;Alice&quot;
 // }
 
-POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[Json].run
-// &lt;console&gt;:38: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-// POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[Json].run
-//                                                   ^
+POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[Json].unsafePerformSync
 // res9: io.circe.Json =
 // {
 //   &quot;name&quot; : &quot;Bob&quot;
@@ -281,16 +276,10 @@ http4s-circe provides the <code>jsonOf</code> function to make the connection al
 the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</code> takes
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
-<pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as(jsonOf[User]).run
-// &lt;console&gt;:40: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-// Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as(jsonOf[User]).run
-//                                             ^
+<pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as(jsonOf[User]).unsafePerformSync
 // res10: User = User(Alice)
 
-POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as(jsonOf[User]).run
-// &lt;console&gt;:40: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-// POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as(jsonOf[User]).run
-//                                                            ^
+POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as(jsonOf[User]).unsafePerformSync
 // res11: User = User(Bob)
 </code></pre>
 
@@ -352,10 +341,7 @@ def helloClient(name: String): Task[Hello] = {
 <p>Finally, we post <code>User(&quot;Alice&quot;)</code> to our Hello service and expect
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
-<pre><code class="language-scala">helloClient(&quot;Alice&quot;).run
-// &lt;console&gt;:64: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
-//        helloClient(&quot;Alice&quot;).run
-//                             ^
+<pre><code class="language-scala">helloClient(&quot;Alice&quot;).unsafePerformSync
 // res18: Hello = Hello(Alice)
 </code></pre>
 
@@ -367,7 +353,7 @@ def helloClient(name: String): Task[Hello] = {
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tut/json.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://http4s.org/v0.16/uri/">URI handling <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.16/error-handling/">Error handling <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>
