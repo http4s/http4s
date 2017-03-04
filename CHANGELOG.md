@@ -1,3 +1,6 @@
+# v0.15.6 (2017-03-03)
+* Log unhandled MessageFailures to `org.http4s.server.message-failures`
+
 # v0.15.5 (2017-02-20)
 * Allow services wrapped in CORS middleware to fall through
 * Don't log message about invalid CORS headers when no `Origin` header present
@@ -158,6 +161,12 @@
 * Add trailer support in blaze client.
 * Provide an optional external executor to blaze clients.
 * Fix Argonaut string interpolation
+
+# v0.12.6 (2016-12-29)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# v0.12.5 (2016-12-29)
+* ~~Backport rendering of details in `ParseFailure.getMessage`~~ Oops.
 
 # v0.12.4 (2016-03-10)
 * Fix bug on rejection of invalid URIs.
