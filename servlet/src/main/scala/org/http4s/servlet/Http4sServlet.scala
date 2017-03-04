@@ -87,7 +87,7 @@ class Http4sServlet(service: HttpService,
         .handleWith(messageFailureHandler(request))
       catch
         // Handle message failures _thrown_ by the service, just in case
-        messageFailureHandler(req)
+        messageFailureHandler(request)
     }(Strategy.fromExecutor(threadPool)).flatten
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
