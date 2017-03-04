@@ -1,4 +1,8 @@
 language: scala
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 scala:
 - 2.12.1
 - 2.11.8
