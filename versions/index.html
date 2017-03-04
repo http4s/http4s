@@ -34,14 +34,27 @@
 	    <a href="/community/">Community</a>
 	  </li>
 	
-	  <li class="active">
-	    <a href="/versions/">Versions</a>
-	  </li>
-	
 	  <li >
 	    <a href="/adopters/">Adopters</a>
 	  </li>
 	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16 (unreleased)</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/">Scaladoc</a></li>
+  </ul>
+</li>
+
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
@@ -264,7 +277,13 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-15-5-2017-02-20">v0.15.5 (2017-02-20)</h1>
+      <h1 id="v0-15-6-2017-03-03">v0.15.6 (2017-03-03)</h1>
+
+<ul>
+<li>Log unhandled MessageFailures to <code>org.http4s.server.message-failures</code></li>
+</ul>
+
+<h1 id="v0-15-5-2017-02-20">v0.15.5 (2017-02-20)</h1>
 
 <ul>
 <li>Allow services wrapped in CORS middleware to fall through</li>
