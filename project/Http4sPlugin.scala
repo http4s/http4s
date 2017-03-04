@@ -23,6 +23,12 @@ object Http4sPlugin extends AutoPlugin {
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
     },
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.1"),
+    scalaOrganization := {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 11 => "org.typelevel"
+        case _ => "org.scala-lang"
+      }
+    },
     scalazVersion := (sys.env.get("SCALAZ_VERSION") getOrElse "7.2.8"),
     unmanagedSourceDirectories in Compile += (sourceDirectory in Compile).value / VersionNumber(scalazVersion.value).numbers.take(2).mkString("scalaz-", ".", ""),
 

@@ -112,11 +112,10 @@ private class Http1ServerStage(service: HttpService,
 
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
-        (try serviceFn(req).handleWith {
-          case mf: MessageFailure => mf.toHttpResponse(req.httpVersion)
-        } catch {
-          case mf: MessageFailure => mf.toHttpResponse(req.httpVersion)
-        }).unsafeRunAsync {
+        {
+          try serviceFn(req).handleWith(messageFailureHandler(req))
+          catch messageFailureHandler(req)
+        }.unsafeRunAsync {
           case Right(resp) => renderResponse(req, resp, cleanup)
           case Left(t)     => internalServerError(s"Error running route: $req", t, req, cleanup)
         }
