@@ -19,7 +19,7 @@ object CentralRequirementsPlugin extends AutoPlugin {
       Developer("cencarnacion"         , "Carlos Encarnacion"    , ""                                 , url("https://github.com/cencarnacion")),
       Developer("ChristopherDavenport" , "Christopher Davenport" , "chris@christopherdavenport.tech"  , url("https://github.com/ChristopherDavenport")),
       Developer("cquiroz"              , "Carlos Quiroz"         , ""                                 , url("https://github.com/cquiroz")),
-      Developer("hveselai"             , "Heikki Vesalainen"     , ""                                 , url("https://github.com/hveselai")),
+      Developer("hvesalai"             , "Heikki Vesalainen"     , ""                                 , url("https://github.com/hvesalai")),
       Developer("jedesah"              , "Jean-Rémi Desjardins"  , ""                                 , url("https://github.com/jedesah")),
       Developer("julien-truffaut"      , "Julien Truffaut"       , ""                                 , url("https://github.com/julien-truffaut")),
       Developer("kryptt"               , "Rodolfo Hansen"        , ""                                 , url("https://github.com/kryptt")),
