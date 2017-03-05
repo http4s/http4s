@@ -587,6 +587,7 @@ lazy val mimaSettings = Seq(
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genSubDelims"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryUriHost"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryAuthority"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genCharsetRangeNoQuality"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genHexDigit"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genPctEncoded"),
       exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryUri"),
