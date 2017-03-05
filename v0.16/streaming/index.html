@@ -102,17 +102,17 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@5ae2b0e0[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@414daad2[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@2bb06ab6,scalaz.stream.Process$$$Lambda$41406/1124701486@44338cc3,scalaz.stream.Process$Await$$$Lambda$41407/146375715@751c8b5e)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@ac42cf3,scalaz.stream.Process$$$Lambda$38231/1405316303@33c16679,scalaz.stream.Process$Await$$$Lambda$38232/238472901@2eb94a0b)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$41410/1457621649@c67d3a0)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$38235/625132580@4bc90852)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
