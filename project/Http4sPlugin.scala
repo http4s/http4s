@@ -32,9 +32,9 @@ object Http4sPlugin extends AutoPlugin {
     scalazVersion := (sys.env.get("SCALAZ_VERSION") getOrElse "7.2.8"),
     unmanagedSourceDirectories in Compile += (sourceDirectory in Compile).value / VersionNumber(scalazVersion.value).numbers.take(2).mkString("scalaz-", ".", ""),
 
-    // Curiously missing from RigPlugin
     scalacOptions in Compile ++= Seq(
-      "-Yno-adapted-args"
+      "-Yno-adapted-args", // Curiously missing from RigPlugin
+      "-Ypartial-unification" // Needed on 2.11 for Either, good idea in general
     ) ++ {
       // https://issues.scala-lang.org/browse/SI-8340
       CrossVersion.partialVersion(scalaVersion.value) match {
