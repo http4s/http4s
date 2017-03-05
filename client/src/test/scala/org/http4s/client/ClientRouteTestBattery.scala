@@ -4,12 +4,9 @@ package client
 import java.net.InetSocketAddress
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-
-import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
 
-import org.specs2.mutable.Specification
-import org.specs2.specification.core.{ Fragments, Fragment }
+import org.specs2.specification.core.Fragments
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
