@@ -5,9 +5,7 @@ import javax.servlet.http.HttpServlet
 
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import org.http4s.Http4sSpec
 import org.specs2.mutable.SpecificationLike
-import org.specs2.specification.BeforeAfterAll
 import org.specs2.specification.core.Fragments
 
 import scala.concurrent.duration._
