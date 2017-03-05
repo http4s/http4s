@@ -123,7 +123,7 @@ trait ArbitraryInstances {
 
   implicit lazy val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { for {
-      charsetRange <- charsetRangesNoQuality
+      charsetRange <- genCharsetRangeNoQuality
       q <- arbitrary[QValue]
     } yield charsetRange.withQValue(q) }
 
@@ -136,16 +136,20 @@ trait ArbitraryInstances {
   implicit lazy val arbitraryCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
     Arbitrary { arbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
 
-  lazy val charsetRangesNoQuality: Gen[CharsetRange] =
+  def genCharsetRangeNoQuality: Gen[CharsetRange] =
     frequency(
       3 -> arbitrary[Charset].map(CharsetRange.fromCharset),
       1 -> const(CharsetRange.`*`)
     )
 
+  @deprecated("Use genCharsetRangeNoQuality. This one may cause deadlocks.", "0.15.7")
+  lazy val charsetRangesNoQuality: Gen[CharsetRange] =
+    genCharsetRangeNoQuality
+
   implicit lazy val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { for {
       // make a set first so we don't have contradictory q-values
-      charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](charsetRangesNoQuality).map(_.toVector)
+      charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](genCharsetRangeNoQuality).map(_.toVector)
       qValues <- containerOfN[Vector, QValue](charsetRanges.size, arbitraryQValue.arbitrary)
       charsetRangesWithQ = charsetRanges.zip(qValues).map { case (range, q) => range.withQValue(q) }
     } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail:_*) }
