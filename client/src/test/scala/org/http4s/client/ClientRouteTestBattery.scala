@@ -13,9 +13,9 @@ import scalaz.stream.Process
 
 
 abstract class ClientRouteTestBattery(name: String, client: Client)
-  extends Http4sSpec with JettyScaffold with GetRoutes
+  extends Http4sSpec with JettyScaffold
 {
-  Fragments.foreach(getPaths.toSeq) { case (path, expected) =>
+  Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>
     s"Execute GET: $path" in {
       val name = address.getHostName
       val port = address.getPort
@@ -31,7 +31,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
   def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-      getPaths.get(req.getRequestURI) match {
+      GetRoutes.getPaths.get(req.getRequestURI) match {
         case Some(r) => renderResponse(srv, r)
         case None    => srv.sendError(404)
       }

@@ -2,13 +2,14 @@ package org.http4s
 package client
 package blaze
 
+import org.http4s.client.testroutes.GetRoutes
 import scalaz.concurrent.Task
 
 class BlazePooledHttp1ClientSpec
   extends { val client = PooledHttp1Client() }
     with ClientRouteTestBattery("Blaze PooledHttp1Client", client) {
 
-  val path = "/simple"
+  val path = GetRoutes.SimplePath
 
   def fetchBody = client.toService(_.as[String]).local { uri: Uri =>
     Request(uri = uri)

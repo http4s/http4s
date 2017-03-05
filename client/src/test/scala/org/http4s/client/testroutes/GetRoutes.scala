@@ -5,16 +5,15 @@ import org.http4s.{TransferCoding, Response}
 
 import scalaz.stream.Process
 
-trait GetRoutes {
+object GetRoutes {
+  val SimplePath = "/simple"
+  val ChunkedPath = "/chunked"
 
-  /////////////// Test routes for clients ////////////////////////////////
-
-  protected val getPaths: Map[String, Response] = {
+  val getPaths: Map[String, Response] = {
     import org.http4s.headers._
     Map(
-      "/simple" -> Response(Ok).withBody("simple path").run,
-      "/chunked" -> Response(Ok).withBody(Process.emit("chunk1")).map(_.putHeaders(`Transfer-Encoding`(TransferCoding.chunked))).run
+      SimplePath -> Response(Ok).withBody("simple path").run,
+      ChunkedPath -> Response(Ok).withBody(Process.emit("chunk1")).map(_.putHeaders(`Transfer-Encoding`(TransferCoding.chunked))).run
     )
   }
-
 }
