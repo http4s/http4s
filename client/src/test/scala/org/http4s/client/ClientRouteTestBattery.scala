@@ -4,59 +4,38 @@ package client
 import java.net.InetSocketAddress
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-
-import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
 
-import org.specs2.specification.core.{ Fragments, Fragment }
+import org.specs2.specification.core.Fragments
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 
 abstract class ClientRouteTestBattery(name: String, client: Client)
-  extends JettyScaffold(name) with GetRoutes
+  extends Http4sSpec with JettyScaffold
 {
-  // Travis has been timing out intermittently.  Let's see if having All The Threads helps.
-  sequential
-  isolated
-
-  override def cleanup() = {
-    super.cleanup() // shuts down the jetty server
-    client.shutdown.run
+  Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>
+    s"Execute GET: $path" in {
+      val name = address.getHostName
+      val port = address.getPort
+      val req = Request(uri = Uri.fromString(s"http://$name:$port$path").yolo)
+      client.fetch(req) { resp =>
+        Task.delay(checkResponse(resp, expected))
+      }.runFor(timeout)
+    }
   }
 
-  override def runAllTests(): Fragments = {
-    val address = initializeServer()
-    val gets = translateTests(address, Method.GET, getPaths)
-    val frags = gets.map { case (req, resp) => runTest(req, resp, address) }
-                    .toSeq
-                    .foldLeft(Fragments())(_ append _)
+  override def map(fs: => Fragments) =
+    super.map(fs ^ step(client.shutdown.run))
 
-    frags
-  }
-
-  override def testServlet() = new HttpServlet {
+  def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-      getPaths.get(req.getRequestURI) match {
+      GetRoutes.getPaths.get(req.getRequestURI) match {
         case Some(r) => renderResponse(srv, r)
         case None    => srv.sendError(404)
       }
     }
-  }
-
-  private def runTest(req: Request, expected: Response, address: InetSocketAddress): Fragment = {
-    s"Execute ${req.method}: ${req.uri}" in {
-      runTest(req, address) { resp =>
-        Task.delay(checkResponse(resp, expected))
-      }
-    }
-  }
-
-  private def runTest[A](req: Request, address: InetSocketAddress)(f: Response => Task[A]): A = {
-    val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
-      port = Some(address.getPort)))))
-    client.fetch(newreq)(f).runFor(timeout)
   }
 
   private def checkResponse(rec: Response, expected: Response) = {
