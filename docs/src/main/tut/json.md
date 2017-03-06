@@ -74,7 +74,7 @@ val greeting = hello("world")
 We now have a JSON value, but we don't have enough to render it:
 
 ```tut:fail
-Ok(greeting).run
+Ok(greeting).unsafePerformSync
 ```
 
 To encode a Scala value of type `A` into an entity, we need an

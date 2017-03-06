@@ -1,11 +1,14 @@
 language: scala
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 scala:
 - 2.12.1
 - 2.11.8
 jdk: oraclejdk8
 env:
   global:
-  - secure: d1FSl5YJDbNXvOY7185WfF8PbiccHA1oyb8/qyBJcKX070ovNNA1HYl09DR+62ZxkYDWPuFx4f1FfL8OiGWdCRJC2qfBe5SDLOzjGJE8wvD0oyHp4h71XLJ6mbtInixYzgJwpDfW8c+lmODo6Z7MGr5JSlxagXpiTVu9Gv4dygw=
   - HUGO_VERSION=0.18
   - LOGBACK_ROOT_LEVEL=OFF
   - SBT_VERSION=0.13.13
@@ -15,18 +18,16 @@ before_script:
 - mkdir $HOME/bin
 - export PATH=$HOME/bin:$PATH
 script: bash bin/travis
-webhooks:
-  urls:
-  - https://webhooks.gitter.im/e/aadbcad1ca1e91b5a189
-  on_success: change
-  on_failure: always
-  on_start: false
+notifications:
+  webhooks:
+    urls:
+      - $GITTER_WEBHOOK_URL
+    on_success: change
+    on_failure: always
+    on_start: never
 sudo: false
 cache:
   directories:
   - "$HOME/.coursier/cache"
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
-before_install:
-- openssl aes-256-cbc -K $encrypted_cb02ffa32b87_key -iv $encrypted_cb02ffa32b87_iv
-  -in bin/prebuild.enc -d | sh

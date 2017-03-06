@@ -23,6 +23,8 @@ import org.scalacheck.rng.Seed
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
+import scala.concurrent.duration._
+import scodec.bits.ByteVector
 
 trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -142,7 +144,7 @@ trait ArbitraryInstances {
 
   implicit lazy val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { for {
-      charsetRange <- charsetRangesNoQuality
+      charsetRange <- genCharsetRangeNoQuality
       q <- arbitrary[QValue]
     } yield charsetRange.withQValue(q) }
   implicit lazy val cogenCharsetRange: Cogen[CharsetRange] =
@@ -162,16 +164,20 @@ trait ArbitraryInstances {
   implicit lazy val arbitraryCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
     Arbitrary { arbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
 
-  lazy val charsetRangesNoQuality: Gen[CharsetRange] =
+  def genCharsetRangeNoQuality: Gen[CharsetRange] =
     frequency(
       3 -> arbitrary[Charset].map(CharsetRange.fromCharset),
       1 -> const(CharsetRange.`*`)
     )
 
+  @deprecated("Use genCharsetRangeNoQuality. This one may cause deadlocks.", "0.15.7")
+  lazy val charsetRangesNoQuality: Gen[CharsetRange] =
+    genCharsetRangeNoQuality
+
   implicit lazy val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { for {
       // make a set first so we don't have contradictory q-values
-      charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](charsetRangesNoQuality).map(_.toVector)
+      charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](genCharsetRangeNoQuality).map(_.toVector)
       qValues <- containerOfN[Vector, QValue](charsetRanges.size, arbitraryQValue.arbitrary)
       charsetRangesWithQ = charsetRanges.zip(qValues).map { case (range, q) => range.withQValue(q) }
     } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail:_*) }
@@ -240,10 +246,19 @@ trait ArbitraryInstances {
     choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
   }
 
+  lazy val genFiniteDuration: Gen[FiniteDuration] =
+    // Only consider positive durations
+    Gen.posNum[Long].map(_.seconds)
+
   implicit lazy val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
     Arbitrary { for {
       instant <- genHttpExpireInstant
     } yield headers.Expires(instant) }
+
+  implicit lazy val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
+    Arbitrary { for {
+      instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), genFiniteDuration.map(Right(_)))
+    } yield headers.`Retry-After`(instant) }
 
   implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {

@@ -17,6 +17,7 @@
 package org.http4s.internal.parboiled2
 
 import scala.annotation.unchecked.uncheckedVariance
+import scala.language.experimental.macros
 import scala.reflect.internal.annotations.compileTimeOnly
 import scala.collection.immutable
 import org.http4s.internal.parboiled2.support._

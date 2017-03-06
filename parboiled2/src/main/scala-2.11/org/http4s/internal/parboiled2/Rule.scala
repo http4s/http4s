@@ -19,6 +19,7 @@ package org.http4s.internal.parboiled2
 import scala.annotation.unchecked.uncheckedVariance
 import scala.annotation.compileTimeOnly
 import scala.collection.immutable
+import scala.language.experimental.macros
 import org.http4s.internal.parboiled2.support._
 
 private[http4s] sealed trait RuleX

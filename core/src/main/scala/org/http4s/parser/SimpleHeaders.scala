@@ -28,6 +28,8 @@ import org.http4s.headers.ETag.EntityTag
 
 import org.http4s.internal.parboiled2.Rule1
 
+import scala.concurrent.duration.{FiniteDuration, SECONDS}
+
 /**
  * parser rules for all headers that can be parsed with one simple rule
  */
@@ -84,6 +86,13 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
+  def RETRY_AFTER(value: String): ParseResult[`Retry-After`] = new Http4sHeaderParser[`Retry-After`](value) {
+    def entry = rule {
+      HttpDate ~ EOL ~> ((t: Instant) => `Retry-After`(Left(t))) | // Date value
+      Digits ~ EOL ~> ((t: String) => `Retry-After`(Right(FiniteDuration(t.toLong, SECONDS))))
+    }
+  }.parse
+
 //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
@@ -105,7 +114,7 @@ private[parser] trait SimpleHeaders {
     }.parse
    */
   
-  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = 
+  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] =
     new Http4sHeaderParser[`Last-Modified`](value) {
       def entry = rule {
         HttpDate ~ EOL ~> (`Last-Modified`(_))
