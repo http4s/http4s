@@ -15,7 +15,7 @@ function primary_build() {
 # Publishing to Sonatype or gh-pages only done from select branches and
 # never from pull requests.
 function publish_site() {
-    if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "release-"* ]] && [[ $TRAVIS_PULL_REQUEST == "false" ]]; then
+    if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "release-"* ]] && [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_REPO_SLUG == "http4s/http4s" ]]; then
         return 0
     else
         return 1
@@ -50,7 +50,7 @@ function find_sbt_pid() {
 function start_watchdog() {
     echo "Watchdog will wake up in $1"
     (sleep "$1" && echo "Watchdog launched jstack." && jstack $(find_sbt_pid)) &
-    WATCHDOG_PID=$(pgrep --newest sleep)
+    WATCHDOG_PID=$(pgrep -n sleep)
 }
 
 function stop_watchdog() {

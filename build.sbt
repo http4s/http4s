@@ -471,21 +471,12 @@ lazy val commonSettings = Seq(
     s"-target:jvm-${jvmTarget.value}"
   ),
   scalacOptions in (Compile, doc) += "-no-link-warnings",
-  scalacOptions ++= scalaVersion.map { v =>
-    if (delambdafyOpts(v)) Seq(
-      "-Ybackend:GenBCode"
-    ) else Seq.empty
-  }.value,
   javacOptions ++= Seq(
     "-source", jvmTarget.value,
     "-target", jvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
-  libraryDependencies ++= {
-    if (delambdafyOpts(scalaVersion.value)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0")
-    else Seq.empty
-  },
   libraryDependencies ++= Seq(
     catsLaws,
     catsKernelLaws,
@@ -522,7 +513,7 @@ lazy val noCoverageSettings = Seq(
 lazy val mimaSettings = Seq(
   mimaFailOnProblem := compatibleVersion(version.value).isDefined,
   mimaPreviousArtifacts := (compatibleVersion(version.value) map {
-    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+r    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
   }).toSet,
   mimaBinaryIssueFilters ++= {
     import com.typesafe.tools.mima.core._
@@ -547,14 +538,6 @@ lazy val mimaSettings = Seq(
     )
   }
 )
-
-// Check whether to enable java 8 type lambdas
-// https://github.com/scala/make-release-notes/blob/2.11.x/experimental-backend.md
-// Minimum scala version is 2.11.8 due to sbt/sbt#2076
-def delambdafyOpts(v: String): Boolean = VersionNumber(v).numbers match {
-  case Seq(2, 11, x, _*) if x > 7 => true
-  case _ => false
-}
 
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
