@@ -85,7 +85,7 @@ To encode a Scala value of type `A` into an entity, we need an
 ```tut:book
 import org.http4s.circe._
 
-Ok(greeting).run
+Ok(greeting).unsafeRun
 ```
 
 The same `EntityEncoder[Json]` we use on server responses is also
@@ -94,7 +94,7 @@ useful on client requests:
 ```tut:book
 import org.http4s.client._
 
-POST(uri("/hello"), json"""{"name": "Alice"}""").run
+POST(uri("/hello"), json"""{"name": "Alice"}""").unsafeRun
 ```
 
 ## Encoding case classes as JSON
@@ -148,8 +148,8 @@ Equipped with an `Encoder` and `.asJson`, we can send JSON in requests
 and responses for our case classes:
 
 ```tut:book
-Ok(Hello("Alice").asJson).run
-POST(uri("/hello"), User("Bob").asJson).run
+Ok(Hello("Alice").asJson).unsafeRun
+POST(uri("/hello"), User("Bob").asJson).unsafeRun
 ```
 
 ## Receiving raw JSON
@@ -162,8 +162,8 @@ The `org.http4s.circe._` package provides an implicit
 response body to JSON using the [`as` syntax]:
 
 ```tut:book
-Ok("""{"name":"Alice"}""").as[Json].run
-POST(uri("/hello"),"""{"name":"Bob"}""").as[Json].run
+Ok("""{"name":"Alice"}""").as[Json].unsafeRun
+POST(uri("/hello"),"""{"name":"Bob"}""").as[Json].unsafeRun
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -178,8 +178,8 @@ the way from HTTP to your type `A`.  Specifically, `jsonOf[A]` takes
 an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 
 ```tut:book
-Ok("""{"name":"Alice"}""").as(jsonOf[User]).run
-POST(uri("/hello"), """{"name":"Bob"}""").as(jsonOf[User]).run
+Ok("""{"name":"Alice"}""").as(jsonOf[User]).unsafeRun
+POST(uri("/hello"), """{"name":"Bob"}""").as(jsonOf[User]).unsafeRun
 ```
 
 Note the argument to `as` is in parentheses instead of square
@@ -227,7 +227,7 @@ Now let's make a client for the service above:
 
 ```tut:silent
 import org.http4s.client.blaze._
-import scalaz.concurrent.Task
+import fs2.Task
 
 val httpClient = PooledHttp1Client()
 // Decode the Hello response
@@ -243,7 +243,7 @@ Finally, we post `User("Alice")` to our Hello service and expect
 `Hello("Alice")` back:
 
 ```tut:book
-helloClient("Alice").run
+//helloClient("Alice").unsafeRun
 ```
 
 ```tut:invisible

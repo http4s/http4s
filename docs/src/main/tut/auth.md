@@ -16,7 +16,8 @@ come from a database. We can convert that into an `AuthMiddleware` and apply it.
 Or in code:
 
 ```tut:book
-import scalaz._, Scalaz._, scalaz.concurrent.Task
+import fs2.Task
+import cats._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server._
@@ -42,11 +43,11 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 ### With Kleisli
 
 To allow for failure, the `authUser` function has to be adjusted to a `Request
-=> Task[String \/ User]`. So we'll need to handle that possibility. For advanced
+=> Task[String Either User]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```tut:book
-val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ => Task.delay(???))
+val authUser: Kleisli[Task, Request, String Either User] = Kleisli(_ => Task.delay(???))
 
 val onFailure: AuthedService[String] = Kleisli(req => Forbidden(req.authInfo))
 val middleware = AuthMiddleware(authUser, onFailure)
@@ -85,12 +86,12 @@ val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(2
 val crypto = CryptoBits(key)
 val clock = Clock.systemUTC
 
-def verifyLogin(request: Request): Task[String \/ User] = ??? // gotta figure out how to do the form
+def verifyLogin(request: Request): Task[String Either User] = ??? // gotta figure out how to do the form
 val logIn: Service[Request, Response] = Kleisli({ request =>
   verifyLogin(request: Request).flatMap(_ match {
-    case -\/(error) =>
+    case Left(error) =>
       Forbidden(error)
-    case \/-(user) => {
+    case Right(user) => {
       val message = crypto.signToken(user.id.toString, clock.millis.toString)
       Ok("Logged in!").addCookie(Cookie("authcookie", message))
     }
@@ -101,15 +102,17 @@ val logIn: Service[Request, Response] = Kleisli({ request =>
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
 ```tut:book
+import fs2.interop.cats._ 
+
 def retrieveUser: Service[Long, User] = Kleisli(id => Task.delay(???))
-val authUser: Service[Request, String \/ User] = Kleisli({ request =>
+val authUser: Service[Request, String Either User] = Kleisli({ request =>
   val message = for {
-    header <- headers.Cookie.from(request.headers).toRightDisjunction("Cookie parsing error")
-    cookie <- header.values.list.find(_.name == "authcookie").toRightDisjunction("Couldn't find the authcookie")
-    token <- crypto.validateSignedToken(cookie.content).toRightDisjunction("Cookie invalid")
-    message <- \/.fromTryCatchNonFatal(token.toLong).leftMap(_.toString)
+    header <- headers.Cookie.from(request.headers).toRight("Cookie parsing error")
+    cookie <- header.values.toList.find(_.name == "authcookie").toRight("Couldn't find the authcookie")
+    token <- crypto.validateSignedToken(cookie.content).toRight("Cookie invalid")
+    message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message
-  message.traverse(retrieveUser)
+  message.traverse(retrieveUser.run)
 })
 ```
 
@@ -123,13 +126,13 @@ function.
 import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
-val authUser: Service[Request, String \/ User] = Kleisli({ request =>
+val authUser: Service[Request, String Either User] = Kleisli({ request =>
   val message = for {
-    header <- request.headers.get(Authorization).toRightDisjunction("Couldn't find an Authorization header")
-    token <- crypto.validateSignedToken(header.value).toRightDisjunction("Cookie invalid")
-    message <- \/.fromTryCatchNonFatal(token.toLong).leftMap(_.toString)
+    header <- request.headers.get(Authorization).toRight("Couldn't find an Authorization header")
+    token <- crypto.validateSignedToken(header.value).toRight("Cookie invalid")
+    message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message
-  message.traverse(retrieveUser)
+  message.traverse(retrieveUser.run)
 })
 ```
 

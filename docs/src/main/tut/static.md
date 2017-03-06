@@ -20,7 +20,7 @@ Http4s provides a few helpers to handle ETags for you, they're located in [Stati
 import org.http4s._
 import org.http4s.dsl._
 import java.io.File
-import scalaz.concurrent.Task
+import fs2.Task
 
 val service = HttpService {
   case request @ GET -> Root / "index.html" =>

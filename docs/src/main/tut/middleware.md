@@ -50,7 +50,7 @@ just as easily modify the request before we passed it to the service.
 Now, let's create a simple service. As mentioned in [service], because `Service`
 is implemented as a `Kleisli`, which is just a function at heart, we can test a
 service without a server. Because an `HttpService` returns a `Task[Response]`,
-we need to call `unsafePerformSync` on the result of the function to extract the `Response`.
+we need to call `unsafeRun` on the result of the function to extract the `Response`.
 
 ```tut:book
 val service = HttpService {
@@ -63,8 +63,8 @@ val service = HttpService {
 val goodRequest = Request(Method.GET, uri("/"))
 val badRequest = Request(Method.GET, uri("/bad"))
 
-service(goodRequest).unsafePerformSync
-service(badRequest).unsafePerformSync
+service(goodRequest).unsafeRun
+service(badRequest).unsafeRun
 ```
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
@@ -72,8 +72,8 @@ Now, we'll wrap the service in our middleware to create a new service, and try i
 ```tut:book
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
-wrappedService(goodRequest).unsafePerformSync
-wrappedService(badRequest).unsafePerformSync
+wrappedService(goodRequest).unsafeRun
+wrappedService(badRequest).unsafeRun
 ```
 
 Note that the successful response has your header added to it.
@@ -82,6 +82,8 @@ If you intend to use you middleware in multiple places,  you may want to impleme
 it as an `object` and use the `apply` method.
 
 ```tut:book
+import fs2.interop.cats._
+
 object MyMiddle {
   def addHeader(mResp: MaybeResponse, header: Header) =
     mResp match {
@@ -95,8 +97,8 @@ object MyMiddle {
 
 val newService = MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-newService(goodRequest).unsafePerformSync
-newService(badRequest).unsafePerformSync
+newService(goodRequest).unsafeRun
+newService(badRequest).unsafeRun
 ```
 
 It is possible for the wrapped `Service` to have different `Request` and `Response`
@@ -121,13 +123,13 @@ val apiService = HttpService {
     Ok()
 }
 
-import org.http4s.server.syntax._
-val aggregateService = apiService orElse MyMiddle(service, Header("SomeKey", "SomeValue"))
+import cats.implicits._
+val aggregateService = apiService |+| MyMiddle(service, Header("SomeKey", "SomeValue"))
 
 val apiRequest = Request(Method.GET, uri("/api"))
 
-aggregateService(goodRequest).unsafePerformSync
-aggregateService(apiRequest).unsafePerformSync
+aggregateService(goodRequest).unsafeRun
+aggregateService(apiRequest).unsafeRun
 ```
 
 Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` had

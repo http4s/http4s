@@ -12,8 +12,8 @@ streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don't have to load the full body into memory to submit the
 request either. Taking a look at `Request` and `Response`, both have a body of
-type `EntityBody`, which is simply an alias to `Process[Task, ByteVector]`. To
-understand `Process`, take a look at the [streams-tutorial].
+type `EntityBody`, which is simply an alias to `Stream[Task, ByteVector]`. To
+understand `Stream`, take a look at the [streams-tutorial].
 
 The `EntityDecoder` and `EntityEncoder` help with the streaming nature of the
 data in a http body, and they also have additional logic to deal with media
@@ -47,7 +47,9 @@ determine which of the chained decoders are to be used.
 ```tut
 import org.http4s._
 import org.http4s.dsl._
-import scalaz._, Scalaz._
+import cats._
+import cats.implicits._
+import cats.data._
 
 sealed trait Resp
 case class Audio(body: String) extends Resp
@@ -56,16 +58,16 @@ case class Video(body: String) extends Resp
 val response = Ok().withBody("").withContentType(Some(MediaType.`audio/ogg`))
 val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =>
   EitherT {
-    msg.as[String].map(s => Audio(s).right[DecodeFailure])
+    msg.as[String].map(s => Audio(s).asRight[DecodeFailure])
   }
 }
 val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =>
   EitherT {
-    msg.as[String].map(s => Video(s).right[DecodeFailure])
+    msg.as[String].map(s => Video(s).asRight[DecodeFailure])
   }
 }
 val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-println(response.as(bothDec).unsafePerformSync)
+println(response.as(bothDec).unsafeRun)
 ```
 
 ## Presupplied Encoders/Decoders

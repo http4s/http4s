@@ -60,7 +60,10 @@ Let's describe how we're going to greet a collection of people in
 parallel:
 
 ```tut:book
-import scalaz.concurrent.Task
+import fs2.Task
+import fs2.interop.cats._
+import cats._
+import cats.implicits._
 import org.http4s.Uri
 
 def hello(name: String): Task[String] = {
@@ -70,7 +73,7 @@ def hello(name: String): Task[String] = {
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 
-val greetingList = Task.gatherUnordered(people.map(hello))
+val greetingList = people.map(hello).sequence
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -87,7 +90,7 @@ the world" varies by context:
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
-greetingList.unsafePerformSync.mkString("\n")
+//greetingList.unsafeRun.mkString("\n")
 ```
 
 ## Cleaning up

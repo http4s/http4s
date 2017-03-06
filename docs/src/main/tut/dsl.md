@@ -37,7 +37,7 @@ We'll need the following imports to get started:
 
 ```tut:book
 import org.http4s._, org.http4s.dsl._
-import scalaz.concurrent.Task
+import fs2.Task
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -81,7 +81,7 @@ run it.
 But here in the REPL, it's up to us to run it:
 
 ```tut
-val response = task.unsafePerformSync
+val response = task.unsafeRun
 ```
 
 Cool.
@@ -99,7 +99,7 @@ applying a status code:
 
 ```tut
 val okTask = Ok()
-val ok = okTask.unsafePerformSync
+val ok = okTask.unsafeRun
 ```
 
 This simple `Ok()` expression succinctly says what we mean in a
@@ -108,7 +108,7 @@ service:
 ```tut:book
 HttpService {
   case _ => Ok()
-}.run(getRoot).unsafePerformSync
+}.run(getRoot).unsafeRun
 ```
 
 This syntax works for other status codes as well.  In our example, we
@@ -118,7 +118,7 @@ response:
 ```tut:book
 HttpService {
   case _ => NoContent()
-}.run(getRoot).unsafePerformSync
+}.run(getRoot).unsafeRun
 ```
 
 ### Headers
@@ -126,7 +126,7 @@ HttpService {
 http4s adds a minimum set of headers depending on the response, e.g:
 
 ```tut
-Ok("Ok response.").unsafePerformSync.headers
+Ok("Ok response.").unsafeRun.headers
 ```
 
 Extra headers can be added using `putHeaders`, for example to specify cache policies:
@@ -134,11 +134,12 @@ Extra headers can be added using `putHeaders`, for example to specify cache poli
 ```tut:book
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.`no-cache`
-import org.http4s.util.NonEmptyList
+import cats.data.NonEmptyList
+import org.http4s.util.nonEmptyList
 ```
 
 ```tut
-Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`()))).unsafePerformSync.headers
+Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRun.headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
@@ -146,7 +147,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand
 
 ```tut
-Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).unsafePerformSync.headers
+Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).unsafeRun.headers
 ```
 
 ### Cookies
@@ -155,7 +156,7 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```tut
-Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafePerformSync.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafeRun.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
@@ -163,14 +164,14 @@ Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafePerformSync.headers
 ```tut
 import java.time.Instant
 
-Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafePerformSync.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafeRun.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with `removeCookie`
 
 ```tut
-Ok("Ok response.").removeCookie("foo").unsafePerformSync.headers
+Ok("Ok response.").removeCookie("foo").unsafeRun.headers
 ```
 
 ### Responding with a body
@@ -179,7 +180,7 @@ Ok("Ok response.").removeCookie("foo").unsafePerformSync.headers
 
 Most status codes take an argument as a body.  In http4s, `Request`
 and `Response` bodies are represented as a
-`scalaz.stream.Process[Task, ByteVector]`.  It's also considered good
+`fs2.Stream[Task, ByteVector]`.  It's also considered good
 HTTP manners to provide a `Content-Type` and, where known in advance,
 `Content-Length` header in one's responses.
 
@@ -190,10 +191,10 @@ implicit `EntityEncoder` in scope.  http4s provides several out of the
 box:
 
 ```tut
-Ok("Received request.").unsafePerformSync
+Ok("Received request.").unsafeRun
 
 import java.nio.charset.StandardCharsets.UTF_8
-Ok("binary".getBytes(UTF_8)).unsafePerformSync
+Ok("binary".getBytes(UTF_8)).unsafeRun
 ```
 
 Per the HTTP specification, some status codes don't support a body.
@@ -221,18 +222,19 @@ val task = Ok(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })
-task.unsafePerformSync
+task.unsafeRun
 ```
 
 As good functional programmers who like to delay our side effects, we
 of course prefer to operate in [Task]s:
 
 ```tut
+implicit val strategy = fs2.Strategy.fromFixedDaemonPool(2, threadName = "strategy")
 val task = Ok(Task {
   println("I run when the Task is run.")
   "Mission accomplished!"
 })
-task.unsafePerformSync
+task.unsafeRun
 ```
 
 Note that in both cases, a `Content-Length` header is calculated.
@@ -242,35 +244,35 @@ in its HTTP envelope, and thus has what it needs to calculate a
 
 #### Streaming bodies
 
-Streaming bodies are supported by returning a `scalaz.stream.Process`.
+Streaming bodies are supported by returning a `fs2.Stream`.
 Like `Future`s and `Task`s, the stream may be of any type that has an
 `EntityEncoder`.
 
-An intro to scalaz-stream is out of scope, but we can glimpse the
+An intro to `Stream` is out of scope, but we can glimpse the
 power here.  This stream emits the elapsed time every 100 milliseconds
 for one second:
 
 ```tut:book
+implicit val scheduler = fs2.Scheduler.fromFixedDaemonPool(2, threadName = "scheduler")
 val drip = {
   import scala.concurrent.duration._
-  implicit def defaultScheduler = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-  scalaz.stream.time.awakeEvery(100.millis).map(_.toString).take(10)
+  fs2.time.awakeEvery[Task](100.millis).map(_.toString).take(10)
 }
 ```
 
 We can see it for ourselves in the REPL:
 
 ```tut
-drip.to(scalaz.stream.io.stdOutLines).run.unsafePerformSync
+drip.through(fs2.text.lines).through(_.evalMap(s => {Task.delay{println(s); s}})).run.unsafeRun
 ```
 
 When wrapped in a `Response`, http4s will flush each chunk of a
-`Process` as they are emitted.  Note that a stream's length can't
+`Stream` as they are emitted.  Note that a stream's length can't
 generally be anticipated before it runs, so this triggers chunked
 transfer encoding:
 
 ```tut
-Ok(drip).unsafePerformSync
+Ok(drip).unsafeRun
 ```
 
 ## Matching and extracting requests
@@ -322,7 +324,7 @@ Path params can be extracted and converted to a specific type but are
 of `IntVar` and `LongVar`.
 
 ```tut:book
-import scalaz.concurrent.Task
+import fs2.Task
 
 def getUserName(userId: Int): Task[String] = ???
 
@@ -339,7 +341,7 @@ in which `IntVar` does it.
 ```tut:book
 import java.time.LocalDate
 import scala.util.Try
-import scalaz.concurrent.Task
+import fs2.Task
 import org.http4s.client._
 
 object LocalDateVar {
@@ -358,7 +360,7 @@ val dailyWeatherService = HttpService {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService).unsafePerformSync)
+println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService(_)).unsafeRun)
 ```
 
 ### Handling query parameters
@@ -374,12 +376,12 @@ then parsing them as a `String` and `java.time.Year`.
 
 ```tut:book
 import java.time.Year
-import scalaz.ValidationNel
+import cats.data.ValidatedNel
 
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
 implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
-  def decode(queryParamValue: QueryParameterValue): ValidationNel[ParseFailure, Year] = {
+  def decode(queryParamValue: QueryParameterValue): ValidatedNel[ParseFailure, Year] = {
     QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
