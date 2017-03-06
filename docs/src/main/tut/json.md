@@ -243,7 +243,8 @@ Finally, we post `User("Alice")` to our Hello service and expect
 `Hello("Alice")` back:
 
 ```tut:book
-//helloClient("Alice").unsafeRun
+val helloAlice = helloClient("Alice")
+helloAlice.unsafeRun
 ```
 
 ```tut:invisible
