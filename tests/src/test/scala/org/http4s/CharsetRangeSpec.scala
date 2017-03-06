@@ -4,8 +4,8 @@ import scala.concurrent.duration._
 
 import cats.kernel.laws._
 import org.http4s.CharsetRange.`*`
-import org.http4s.testing.ThreadDumpOnTimeout
 import org.scalacheck._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 
 class CharsetRangeSpec extends Http4sSpec {

@@ -3,7 +3,7 @@ package client
 package blaze
 
 import org.http4s.client.testroutes.GetRoutes
-import scalaz.concurrent.Task
+import fs2.{Strategy, Task}
 
 class BlazePooledHttp1ClientSpec
   extends { val client = PooledHttp1Client() }
@@ -19,14 +19,10 @@ class BlazePooledHttp1ClientSpec
     "Repeat a simple request" in {
       val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
 
-      val f = (0 until 10).map(_ => Task.fork {
-        val resp = fetchBody.run(url)
-        resp.map(_.length)
-      })
-
-      foreach(Task.gatherUnordered(f).unsafePerformSyncFor(timeout)) { length =>
-        length mustNotEqual 0
-      }
+      implicit val S: Strategy = Http4sSpec.TestPoolStrategy
+      Task.parallelTraverse((0 until 10).toVector)(_ =>
+        fetchBody.run(url).map(_.length)
+      ).unsafeRunFor(timeout).forall(_ mustNotEqual 0)
     }
   }
 }

@@ -7,7 +7,6 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import fs2._
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
-import org.http4s.internal.compatibility._
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration.FiniteDuration
 
@@ -26,7 +25,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   }
 
   override def map(fs: => Fragments) =
-    super.map(fs ^ step(client.shutdown.unsafePerformSync))
+    super.map(fs ^ step(client.shutdown.unsafeRun()))
 
   def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
