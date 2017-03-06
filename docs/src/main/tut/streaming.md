@@ -7,7 +7,7 @@ weight: 305
 ## Introduction
 
 Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody`
-is just a type alias for `Process[Task, ByteVector]`. Please see [entity] for details. This means
+is just a type alias for `Stream[Task, Byte]`. Please see [entity] for details. This means
 HTTP streaming is provided by both https' service support and its client support.
 
 ## Streaming responses from your service
@@ -20,13 +20,19 @@ import scala.concurrent.duration._
 import org.http4s.server.{Server, ServerApp}
 import org.http4s.server.blaze._
 import org.http4s._, org.http4s.dsl._
-import scalaz.stream.time
+import fs2.time
+import fs2.Scheduler
+import fs2.Strategy
+import fs2.Task
 
-// scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
-implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+// fs2's `time` module needs an implicit `Scheduler`
+implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
+
+// fs2 `Async` needs an implicit `Strategy`
+implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
 
 // An infinite stream of the periodic elapsed time
-val seconds = time.awakeEvery(1.second)
+val seconds = time.awakeEvery[Task](1.second)
 
 val service = HttpService {
   case GET -> Root / "seconds" =>
@@ -44,15 +50,15 @@ it converts a stream of JSON objects to a JSON array, which is friendlier to cli
 
 The http4s [client] supports consuming chunked HTTP responses as a stream, again because the
 `EntityBody` is a stream anyway. http4s' `Client` interface consumes streams with the `streaming`
-function, which takes a `Request` and a `Response => Process[Task, A]` and returns a
-`Process[Task, A]`. Since an `EntityBody` is just a `Process[Task, ByteVector]`, then, the easiest way
+function, which takes a `Request` and a `Response => Stream[Task, A]` and returns a
+`Stream[Task, A]`. Since an `EntityBody` is just a `Stream[Task, Byte]`, then, the easiest way
 to consume a stream is just:
 
 ```tut:fail
 client.streaming(req)(resp => resp.body)
 ```
 
-That gives you a `Process[Task, ByteVector]`, but you probably want something other than a `ByteVector`.
+That gives you a `Stream[Task, Byte]`, but you probably want something other than a `Byte`.
 Here's some code intended to consume [Twitter's streaming APIs], which return a stream of JSON.
 
 First, let's assume we want to use [Circe] for JSON support. Please see [json] for details.
@@ -66,11 +72,11 @@ libraryDependencies ++= Seq(
 
 Next, we want _streaming_ JSON. Because http4s is streaming in its bones, it relies on [jawn] for
 streaming JSON support. Most popular JSON libraries, including Circe, provide jawn support, as
-the code below shows. What's left is to integrate jawn's streaming parsing with scalaz-stream.
-That's done by [jawnstreamz], which http4s' Circe module depends on transitively.
+the code below shows. What's left is to integrate jawn's streaming parsing with fs2's Stream.
+That's done by [jawnfs2], which http4s' Circe module depends on transitively.
 
 Because Twitter's Streaming APIs literally return a stream of JSON objects, _not_ a JSON array,
-we want to use jawnstreamz's `parseJsonStream`.
+we want to use jawnfs2's `parseJsonStream`.
 
 Finally, Twitter's Streaming APIs also require OAuth authentication. So our example is an OAuth
 example as a bonus!
@@ -78,16 +84,16 @@ example as a bonus!
 Putting it all together into a small app that will print the JSON objects forever:
 
 ```tut:book
-import scalaz.concurrent.TaskApp
 
-object twstream extends TaskApp {
+object twstream {
   import org.http4s._
   import org.http4s.client.blaze._
   import org.http4s.client.oauth1
-  import scalaz.concurrent.Task
-  import scalaz.stream.Process
-  import scalaz.stream.io.stdOutLines
-  import jawnstreamz._
+  import fs2.Task
+  import fs2.Stream
+  import fs2.io.stdout
+  import fs2.text.{lines, utf8Encode}
+  import jawnfs2._
   import io.circe.Json
 
   // jawnstreamz needs to know what JSON AST you want
@@ -106,24 +112,32 @@ object twstream extends TaskApp {
   }
 
   /* Sign the incoming `Request`, stream the `Response`, and `parseJsonStream` the `Response`.
-   * `sign` returns a `Task`, so we need to `Process.eval` it to use a for-comprehension.
+   * `sign` returns a `Task`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def stream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request): Process[Task, Json] = for {
-    sr  <- Process.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-    res <- client.streaming(sr)(resp => resp.body.parseJsonStream)
+  def stream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request): Stream[Task, Json] = for {
+    sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
+    res <- client.streaming(sr)(resp => resp.body.chunks.parseJsonStream)
   } yield res
 
   /* Stream the sample statuses.
    * Plug in your four Twitter API values here.
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
-   * Then we `to` them to scalaz-stream's `stdOutLines` `Sink` to print them.
+   * Then we `to` them to fs2's `lines` and the to `stdout` `Sink` to print them.
    * Finally, when the stream is complete (you hit <crtl-C>), `shutdown` the `client`.
-  override def runc = {
+   */
+  def runc = {
     val req = Request(Method.GET, Uri.uri("https://stream.twitter.com/1.1/statuses/sample.json"))
     val s   = stream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
-    s.map(_.spaces2).to(stdOutLines).onComplete(Process.eval_(client.shutdown)).run
+    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout).onFinalize(client.shutdown).run
   }
+  
+  // Uncomment To Run App
+  // def main(args: Array[String]): Unit = runc.unsafeRun 
 }
+```
+
+```tut:book:invisible
+twstream.client.shutdownNow
 ```
 
 [client]: ../client
@@ -131,6 +145,6 @@ object twstream extends TaskApp {
 [ScalaSyd 2015]: https://bitbucket.org/da_terry/scalasyd-doobie-http4s
 [json]: ../json
 [jawn]: https://github.com/non/jawn
-[jawnstreamz]: https://github.com/rossabaker/jawn-fs2/tree/jawn-streamz
+[jawnfs2]: https://github.com/rossabaker/jawn-fs2
 [Twitter's streaming APIs]: https://dev.twitter.com/streaming/overview
 [circe]: https://circe.github.io/circe/

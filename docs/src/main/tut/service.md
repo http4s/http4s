@@ -79,7 +79,7 @@ reference it when serving the response, which can be seen as
 `Ok(getPopularTweets())`.
 
 ```tut:book
-import scalaz.concurrent.Task
+import fs2.Task
 
 case class Tweet(id: Int, message: String)
 
@@ -114,8 +114,9 @@ importing `org.http4s.server.syntax._`.
 ```tut:book
 import org.http4s.server.blaze._
 import org.http4s.server.syntax._
+import cats.implicits._
 
-val services = tweetService orElse helloWorldService
+val services = tweetService |+| helloWorldService
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api")
 ```
 

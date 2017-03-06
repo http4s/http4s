@@ -34,9 +34,9 @@ val service = HttpService {
 
 val request = Request(Method.GET, uri("/"))
 
-// Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = service.orNotFound(request).unsafePerformSync
-val body = response.as[String].unsafePerformSync
+// Do not call 'unsafeRun' in your code - see note at bottom.
+val response = service.orNotFound(request).unsafeRun
+val body = response.as[String].unsafeRun
 body.length
 ```
 
@@ -46,9 +46,9 @@ Now we can wrap the service in the `GZip` middleware.
 import org.http4s.server.middleware._
 val zipService = GZip(service)
 
-// Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = zipService.orNotFound(request).unsafePerformSync
-val body = response.as[String].unsafePerformSync
+// Do not call 'unsafeRun' in your code - see note at bottom.
+val response = zipService.orNotFound(request).unsafeRun
+val body = response.as[String].unsafeRun
 body.length
 ```
 
@@ -60,9 +60,9 @@ values for the `Accept-Encoding` header are **"gzip"**, **"x-gzip"**, and **"*"*
 val acceptHeader = Header("Accept-Encoding", "gzip")
 val zipRequest = request.putHeaders(acceptHeader)
 
-// Do not call 'unsafePerformSync' in your code - see note at bottom.
-val response = zipService.orNotFound(zipRequest).unsafePerformSync
-val body = response.as[String].unsafePerformSync
+// Do not call 'unsafeRun' in your code - see note at bottom.
+val response = zipService.orNotFound(zipRequest).unsafeRun
+val body = response.as[String].unsafeRun
 body.length
 ```
 
@@ -73,8 +73,7 @@ of **"gzip"**.
 As described in [Middleware], services and middleware can be composed such
 that only some of your endpoints are GZip enabled.
 
-**NOTE:** In this documentation, we are calling `unsafePerformSync` to extract values out of a
-`Task` so that they will be printed out. You should **not** call `unsafePerformSync` in your
+**NOTE:** In this documentation, we are calling `unsafeRun` to extract values out of a
 service or middleware code. You can work with values while keeping them inside the
 Task using `map`, `flatMap` and/or `for`. Remember, your service returns a
 `Task[Response]`.
