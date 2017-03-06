@@ -15,7 +15,7 @@ function primary_build() {
 # Publishing to Sonatype or gh-pages only done from select branches and
 # never from pull requests.
 function publish_site() {
-    if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "release-"* ]] && [[ $TRAVIS_PULL_REQUEST == "false" ]]; then
+    if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "release-"* ]] && [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_REPO_SLUG == "http4s/http4s" ]]; then
         return 0
     else
         return 1
