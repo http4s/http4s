@@ -43,7 +43,7 @@ def myMiddle(service: HttpService, header: Header): HttpService = Service.lift {
 ```
 
 All we do here is pass the request to the service,
-which returns a `Task[Rresponse]`. So, we use `map` to get the request out of the task,
+which returns a `Task[Response]`. So, we use `map` to get the request out of the task,
 add the header if the response is a success, and then pass the response on. We could
 just as easily modify the request before we passed it to the service.
 
