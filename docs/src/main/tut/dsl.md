@@ -263,7 +263,8 @@ val drip = {
 We can see it for ourselves in the REPL:
 
 ```tut
-drip.through(fs2.text.lines).through(_.evalMap(s => {Task.delay{println(s); s}})).run.unsafeRun
+val dripOutTask = drip.through(fs2.text.lines).through(_.evalMap(s => {Task.delay{println(s); s}})).run
+dripOutTask.unsafeRun
 ```
 
 When wrapped in a `Response`, http4s will flush each chunk of a

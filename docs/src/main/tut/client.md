@@ -61,10 +61,14 @@ parallel:
 
 ```tut:book
 import fs2.Task
+import fs2.Strategy
 import fs2.interop.cats._
 import cats._
 import cats.implicits._
 import org.http4s.Uri
+
+// fs2 `Async` needs an implicit `Strategy`
+implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
 
 def hello(name: String): Task[String] = {
   val target = Uri.uri("http://localhost:8080/hello/") / name
@@ -73,7 +77,7 @@ def hello(name: String): Task[String] = {
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 
-val greetingList = people.map(hello).sequence
+val greetingList = Task.parallelTraverse(people)(hello)
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -90,7 +94,8 @@ the world" varies by context:
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
-//greetingList.unsafeRun.mkString("\n")
+val greetingsStringTask = greetingList.map(_.mkString("\n"))
+greetingsStringTask.unsafeRun
 ```
 
 ## Cleaning up
