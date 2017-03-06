@@ -153,6 +153,7 @@ sealed class TomcatBuilder private (
       override def shutdown: Task[Unit] =
         Task.delay {
           tomcat.stop()
+          tomcat.destroy()
         }
 
       override def onShutdown(f: => Unit): this.type = {

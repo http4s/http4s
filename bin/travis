@@ -2,34 +2,94 @@
 
 set -e
 
-if [[ $TRAVIS_SCALA_VERSION == 2.12* ]]; then
-  # TODO fs2 port makeSite goes after test when it's ready
-  SBT_COMMAND=";coverage ;clean ;test ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
+# Extra tasks are run for one build in the Trais matrix.  Currently includes:
+# `makeSite` `mimaReportBinaryIssues` via the `validate` alias and `publish`.
+function primary_build() {
+    if [[ $TRAVIS_SCALA_VERSION == 2.12* ]] && [[ $SCALAZ_VERSION == 7.2* ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Publishing to Sonatype or gh-pages only done from select branches and
+# never from pull requests.
+function publish_site() {
+    if [[ $TRAVIS_BRANCH == "master" || $TRAVIS_BRANCH == "release-"* ]] && [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_REPO_SLUG == "http4s/http4s" ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Install hugo static site generator from GitHub releases page.
+function install_hugo() {
+    curl -s -L "https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz" | tar xzf -
+    mv "hugo_${HUGO_VERSION}_linux_amd64/hugo_${HUGO_VERSION}_linux_amd64" "$HOME/bin/hugo"
+}
+
+# Build git commit message to be used when Travis updates the
+# gh-pages branch to publish a new version of the website.
+function gh_pages_commit_message() {
+    local SHORT_COMMIT=$(printf "%.8s" "$TRAVIS_COMMIT")
+    cat <<EOM
+updated site
+
+   Job: $TRAVIS_JOB_NUMBER
+Commit: $SHORT_COMMIT
+Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
+EOM
+}
+
+# Add jstack watchdog timer in case #774 shows itself again.
+WATCHDOG_PID=""
+function find_sbt_pid() {
+    pgrep -f sbt-launch
+}
+
+function start_watchdog() {
+    echo "Watchdog will wake up in $1"
+    (sleep "$1" && echo "Watchdog launched jstack." && jstack $(find_sbt_pid)) &
+    WATCHDOG_PID=$(pgrep -n sleep)
+}
+
+function stop_watchdog() {
+    ([ -n "$WATCHDOG_PID" ] && kill "$WATCHDOG_PID") || true
+}
+
+
+
+
+# Real work starts here.  Configure sbt with the right tasks and
+# options.  If we're going to publish the site, configure git, ssh,
+# and the gh-pages commit message first.
+
+if primary_build; then
+  install_hugo
+  SBT_COMMAND=";coverage ;clean ;validate ;coverageReport ;coverageOff"
 else
   SBT_COMMAND=";test"
 fi
 
-if [[ $SBT_COMMAND = *";makeSite"* ]]; then
-  curl -s -L https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz | tar xzf -
-  mv hugo_${HUGO_VERSION}_linux_amd64/hugo_${HUGO_VERSION}_linux_amd64 $HOME/bin/hugo
-fi
-
-if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "cats" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+if publish_site; then
   echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   SBT_COMMAND="$SBT_COMMAND ;publish"
-  if [[ $SBT_COMMAND == *"makeSite"* ]]; then
-    export GIT_AUTHOR_NAME="Travis CI"
-    export GIT_AUTHOR_EMAIL="travis-ci@http4s.org"
-    export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
-    export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
+  if primary_build && [[ ! -z $encrypted_8735ae5b3321_key ]]; then
+    # Record minimal build information via the Git user ident
+    git config --global user.name "Travis CI";
+    git config --global user.email "travis-ci@http4s.org";
+    SBT_GHPAGES_COMMIT_MESSAGE=$(gh_pages_commit_message)
+    export SBT_GHPAGES_COMMIT_MESSAGE
+    # Add secret deploy key to ssh-agent for deploy
+    eval "$(ssh-agent -s)";
+    openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
+    # TODO fs2 port we don't build the site yet
+    # SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
     SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
   fi
 fi
 
-# Put JVM options in a file where we can write to it without sudo,
-# for instance to adjust the JVM's entropy source.
-JVM_OPTS_FILE=/tmp/jvmopts
-cp /etc/sbt/jvmopts "$JVM_OPTS_FILE"
+SBT_EXTRA_OPTS=""
 
 if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
     echo
@@ -37,18 +97,14 @@ if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
     echo "when VM or container entropy entropy is low.  Additional detail at"
     echo "https://github.com/http4s/http4s/issues/774#issuecomment-273981456 ."
 
-    echo "-Djava.security.egd=file:/dev/./urandom" >> "$JVM_OPTS_FILE"
-    echo
-    echo "JVM_OPTS:"
-    for opt in $(grep -v -e '^#' -e '^$' "$JVM_OPTS_FILE"); do
-        echo "  $opt"
-    done
-    echo
+    SBT_EXTRA_OPTS="$SBT_EXTRA_OPTS -Djava.security.egd=file:/dev/./urandom"
 fi
 
-sbt ++$TRAVIS_SCALA_VERSION -jvm-opts "$JVM_OPTS_FILE" $SBT_COMMAND
+start_watchdog 13m
+sbt $SBT_EXTRA_OPTS ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
+stop_watchdog
 
 echo "Uploading codecov"
-if [[ $SBT_COMMAND = *";coverage"* ]]; then
+if primary_build; then
    bash <(curl -s https://codecov.io/bash)
 fi

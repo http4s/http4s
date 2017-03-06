@@ -4,39 +4,28 @@ import java.net.{ServerSocket, InetSocketAddress, InetAddress}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import org.http4s.Http4sSpec
+import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
-abstract class JettyScaffold(name: String) extends Http4sSpec {
-
+trait JettyScaffold extends SpecificationLike {
   private val server = new JServer()
+  var address: InetSocketAddress = null
 
-  def testServlet(): HttpServlet
+  def testServlet: HttpServlet
 
-  protected def runAllTests(): Fragments
-
-  // Start the tests
-  name >> {
-    step(startup()) ^
-      runAllTests()   ^
-      step(cleanup())
-  }
-
-  def startup() = {}
-
-  def cleanup() = {
-    server.stop()
+  override def map(fs: => Fragments) = {
+    step(startServer()) ^ fs ^ step(server.stop())
   }
 
   protected def timeout: FiniteDuration = 10.seconds
 
-  protected def initializeServer(): InetSocketAddress = {
-    val address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
+  private def startServer(): InetSocketAddress = {
+    address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
 
     val context = new ServletContextHandler()
     context.setContextPath("/")
-    context.addServlet(new ServletHolder("Test-servlet", testServlet()), "/*")
+    context.addServlet(new ServletHolder("Test-servlet", testServlet), "/*")
 
     server.setHandler(context)
 

@@ -18,6 +18,7 @@ package org.http4s.internal.parboiled2
 
 import scala.annotation.tailrec
 import scala.collection.immutable.VectorBuilder
+import scala.language.experimental.macros
 import scala.util.{ Failure, Success, Try }
 import scala.util.control.{ NonFatal, NoStackTrace }
 import org.http4s.internal.parboiled2.support._

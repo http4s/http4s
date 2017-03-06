@@ -44,4 +44,32 @@ val service = HttpService {
 }
 ```
 
+## Webjars
+
+A special service exists to load files from [WebJars](http://www.webjars.org). Add your WebJar to the
+class path, as you usually would:
+
+```tut:book:nofail
+libraryDependencies ++= Seq(
+  "org.webjars" % "jquery" % "3.1.1-1"
+)
+```
+
+Then, mount the `WebjarService` like any other service:
+
+```tut:book
+import org.http4s.server.staticcontent.webjarService
+import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
+
+// only allow js assets
+def isJsAsset(asset: WebjarAsset): Boolean =
+  asset.asset.endsWith(".js")
+
+val webjars: HttpService = webjarService(
+  Config(
+    filter = isJsAsset
+  )
+)
+```
+
 [StaticFile]: ../api/#org.http4s.StaticFile$

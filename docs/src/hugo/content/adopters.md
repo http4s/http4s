@@ -29,3 +29,6 @@ title: Adopters
 
 [rho (ρ)](http://github.com/http4s/rho)
 : a self-documenting HTTP server DSL built upon http4s
+
+[0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
+: A simple link-shortener

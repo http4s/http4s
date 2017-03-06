@@ -1,3 +1,6 @@
+# v0.15.6 (2017-03-03)
+* Log unhandled MessageFailures to `org.http4s.server.message-failures`
+
 # v0.15.5 (2017-02-20)
 * Allow services wrapped in CORS middleware to fall through
 * Don't log message about invalid CORS headers when no `Origin` header present
