@@ -240,10 +240,8 @@ class BlazeBuilder(
 
 object BlazeBuilder extends BlazeBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  // TODO fs2 port
-  // This is garbage how do we shut this down I just want it to compile argh
   serviceExecutor = org.http4s.util.threads.newDefaultFixedThreadPool(
-    4, org.http4s.util.threads.threadFactory(i => s"org.http4s.blaze.server.DefaultExecutor-$i")
+    4, org.http4s.util.threads.threadFactory(i => s"org.http4s.blaze.server.DefaultExecutor-$i", daemon = true)
   ),
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
