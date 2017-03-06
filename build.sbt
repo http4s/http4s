@@ -513,7 +513,7 @@ lazy val noCoverageSettings = Seq(
 lazy val mimaSettings = Seq(
   mimaFailOnProblem := compatibleVersion(version.value).isDefined,
   mimaPreviousArtifacts := (compatibleVersion(version.value) map {
-r    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
   }).toSet,
   mimaBinaryIssueFilters ++= {
     import com.typesafe.tools.mima.core._
