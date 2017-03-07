@@ -55,7 +55,37 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.4a</td>
+	    <td>0.16.0a-SNAPSHOT</td>
+	    <td class="text-center"><span class="label label-warning">Development</span></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td>scalaz-7.2</td>
+	    <td>scalaz-stream-0.8a</td>
+	    <td>1.8+</td>
+	  </tr>
+	  <tr>
+	    <td>0.16.0-SNAPSHOT</td>
+	    <td class="text-center"><span class="label label-warning">Development</span></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td>scalaz-7.1</td>
+	    <td>scalaz-stream-0.8</td>
+	    <td>1.8+</td>
+	  </tr>
+      <tr>
+        <td>0.16.0-cats-SNAPSHOT</td>
+        <td class="text-center"><span class="label label-warning">Development</span></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td>cats-0.9.0</td>
+        <td>fs2-0.9.4</td>
+        <td>1.8+</td>
+      </tr>
+	  <tr>
+	    <td>0.15.6a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -65,7 +95,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.4</td>
+	    <td>0.15.6</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
