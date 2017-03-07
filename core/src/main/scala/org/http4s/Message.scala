@@ -210,8 +210,8 @@ final case class Request(
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers}"""
 
-  /** A request is idempotent if and only if its method is idempotent and its body
-    * is pure.  If true, this request can be submitted multipe times. */
+  // A request is idempotent if and only if its method is idempotent and its body
+  // is pure.  If true, this request can be submitted multipe times.
   // TODO fs2 port uncomment when isBodyPure is back
   /*
   def isIdempotent: Boolean =
