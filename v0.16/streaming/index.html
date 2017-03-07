@@ -44,10 +44,17 @@
   </a>
   <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
     <li><a href="/versions/">Versions</a></li>
+    
     <li role="separator" class="divider"></li>
     <li class="dropdown-header">v0.16 (unreleased)</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16-cats (unreleased)</li>
+    <li><a href="/v0.16-cats/">Tutorial</a></li>
+    <li><a href="/v0.16-cats/api/org/http4s/">Scaladoc</a></li>
+    
     <li role="separator" class="divider"></li>
     <li class="dropdown-header">v0.15</li>
     <li><a href="/v0.15/">Tutorial</a></li>
@@ -102,17 +109,17 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@4b41bfe2[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@4690964e[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@56e3c6c4,scalaz.stream.Process$$$Lambda$37622/108974229@753253a7,scalaz.stream.Process$Await$$$Lambda$37623/142583271@2456e08d)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@55187cc3,scalaz.stream.Process$$$Lambda$37899/1932411463@6f838372,scalaz.stream.Process$Await$$$Lambda$37900/863828931@50a009af)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37626/208291075@6606612b)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37903/614580798@5555b8e2)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>

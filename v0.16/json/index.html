@@ -44,10 +44,17 @@
   </a>
   <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
     <li><a href="/versions/">Versions</a></li>
+    
     <li role="separator" class="divider"></li>
     <li class="dropdown-header">v0.16 (unreleased)</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16-cats (unreleased)</li>
+    <li><a href="/v0.16-cats/">Tutorial</a></li>
+    <li><a href="/v0.16-cats/api/org/http4s/">Scaladoc</a></li>
+    
     <li role="separator" class="divider"></li>
     <li class="dropdown-header">v0.15</li>
     <li><a href="/v0.15/">Tutorial</a></li>
@@ -210,7 +217,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@6559ea7c
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@4c3403eb
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
