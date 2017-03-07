@@ -548,6 +548,5 @@ def initCommands(additionalImports: String*) =
     "cats.implicits.all._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
-// TODO fs2 port bring back makeSite
-addCommandAlias("validate", ";test ;mimaReportBinaryIssues")
+addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")
 
