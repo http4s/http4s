@@ -5,7 +5,7 @@ set -e
 # Extra tasks are run for one build in the Trais matrix.  Currently includes:
 # `makeSite` `mimaReportBinaryIssues` via the `validate` alias and `publish`.
 function primary_build() {
-    if [[ $TRAVIS_SCALA_VERSION == 2.12* ]] && [[ $SCALAZ_VERSION == 7.2* ]]; then
+    if [[ $TRAVIS_SCALA_VERSION == 2.12* ]]; then
         return 0
     else
         return 1
@@ -83,8 +83,6 @@ if publish_site; then
     # Add secret deploy key to ssh-agent for deploy
     eval "$(ssh-agent -s)";
     openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
-    # TODO fs2 port we don't build the site yet
-    # SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
     SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
   fi
 fi
