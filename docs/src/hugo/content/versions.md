@@ -80,6 +80,26 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
+	    <td>0.15.6a</td>
+	    <td class="text-center"><span class="label label-primary">Stable</span></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td>scalaz-7.2</td>
+	    <td>scalaz-stream-0.8a</td>
+	    <td>1.8+</td>
+	  </tr>
+	  <tr>
+	    <td>0.15.6</td>
+	    <td class="text-center"><span class="label label-primary">Stable</span></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td>scalaz-7.1</td>
+	    <td>scalaz-stream-0.8</td>
+	    <td>1.8+</td>
+	  </tr>
+	  <tr>
 	    <td>0.15.5a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
