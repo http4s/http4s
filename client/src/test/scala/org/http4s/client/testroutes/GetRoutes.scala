@@ -13,7 +13,7 @@ object GetRoutes {
     import org.http4s.headers._
     Map(
       SimplePath -> Response(Ok).withBody("simple path"),
-      ChunkedPath -> Response(Ok).withBody(Process.emit("chunk1")).map(_.putHeaders(`Transfer-Encoding`(TransferCoding.chunked)))
+      ChunkedPath -> Response(Ok).withBody(Process.emitAll("chunk".toSeq.map(_.toString)))
     ).mapValues(_.unsafePerformSync)
   }
 }

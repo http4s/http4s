@@ -30,7 +30,7 @@ abstract class UnicastSubscriber[A](bufferSize: Int = 8) extends Subscriber[A] {
       // We have to assign it locally before we use it, if we want to be a synchronous `Subscriber`
       // Because according to rule 3.10, the Subscription is allowed to call `onNext` synchronously from within `request`
       subscription = s
-      request(1)
+      request(bufferSize)
     }
   }
 
