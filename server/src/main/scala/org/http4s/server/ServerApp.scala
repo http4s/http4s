@@ -1,19 +1,15 @@
 package org.http4s
 package server
 
-import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.{ CountDownLatch, RejectedExecutionException }
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ Executors, ThreadFactory }
+import java.util.concurrent.CountDownLatch
 import scala.annotation.tailrec
 import scalaz.concurrent.Task
-import org.http4s.util.threads
 
 /**
  * Apps extending the server app trait get a graceful shutdown.  The
- * 
- */ 
+ *
+ */
 trait ServerApp {
   private[this] val logger = org.log4s.getLogger
 
@@ -21,10 +17,10 @@ trait ServerApp {
   def server(args: List[String]): Task[Server]
 
   /** Return a task to shutdown the application.
-   * 
+   *
    *  This task is run as a JVM shutdown hook, or when
    *  [[org.http4s.server.ServerApp.requestShutdown]] is explicitly called.
-   *  
+   *
    *  The default implementation shuts down the server, and waits for
    *  it to finish.  Other resources may shutdown by flatMapping this
    *  task.
@@ -45,7 +41,7 @@ trait ServerApp {
   @tailrec
   private def doShutdown(s: Server): Unit =
     state.get match {
-      case _ if (state.compareAndSet(Started, Stopping)) =>
+      case _ if state.compareAndSet(Started, Stopping) =>
         logger.info(s"Shutting down server on ${s.address}")
         try shutdown(s).run
         finally state.set(Stopped)
@@ -62,7 +58,7 @@ trait ServerApp {
     new CountDownLatch(1)
 
   /** Explicitly request a graceful shutdown of the service.
-   *  
+   *
    *  There is no operational standard for this, but some common
    *  implementations include:
    *  - an admin port receiving a connection
@@ -76,7 +72,7 @@ trait ServerApp {
   }
 
   private def run(args: List[String]): Unit = {
-    val s = server(args.toList).map { s =>
+    val s = server(args).map { s =>
       sys.addShutdownHook {
         doShutdown(s)
       }
