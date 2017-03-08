@@ -2,4 +2,5 @@ package org.http4s.client.asynchttpclient
 
 import org.http4s.client.ClientRouteTestBattery
 
-class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient", AsyncHttpClient())
+class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient",
+  AsyncHttpClient(bufferSize = 1))
