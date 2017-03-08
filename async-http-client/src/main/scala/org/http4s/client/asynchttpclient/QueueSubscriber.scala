@@ -1,51 +1,50 @@
 package org.http4s.client.asynchttpclient
 
+import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
-import scalaz.stream.async.boundedQueue
+import scalaz.stream.async.unboundedQueue
+import scalaz.stream.async.mutable.Queue
 import scalaz.stream.Process
 import scalaz.stream.Process.repeatEval
 import org.log4s.getLogger
 
-class QueueSubscriber[A](bufferSize: Int = 8) extends UnicastSubscriber[A] {
+class QueueSubscriber[A] private[http4s] (bufferSize: Int, val queue: Queue[A]) extends UnicastSubscriber[A](bufferSize) {
   private[this] val log = getLogger
 
-  private val queue =
-    boundedQueue[A](bufferSize)
-
-  private val refillProcess =
-    repeatEval {
-      Task.delay {
-        log.trace("Requesting another element")
-        request(1)
-      }
-    }
+  @deprecated("Triggers the scalaz.stream.DefaultExecutor. This class will be made private in 0.16.", "0.15.7")
+  def this(bufferSize: Int = 8) =
+    this(bufferSize, unboundedQueue[A])
 
   final val process: Process[Task, A] =
-    (refillProcess zipWith queue.dequeue)((_, a) => a)
+    queue.dequeue.observe(Process.constant { _: Any => Task.delay(request(1)) })
 
   def whenNext(element: A): Boolean = {
+    log.debug(s"Enqueuing element: $this")
     queue.enqueueOne(element).run
     true
   }
 
-  def closeQueue(): Unit = {
-    log.debug("Closing queue subscriber")
-    queue.close.run
-  }
+  def closeQueue(): Unit =
+    queue.close.runAsync {
+      case \/-(_) => log.debug(s"Closed queue subscriber $this")
+      case -\/(t) => log.error(t)(s"Error closing queue subscriber $this")
+    }
 
-  def killQueue(): Unit = {
-    log.debug("Killing queue subscriber")
-    queue.kill.run
-  }
+  def killQueue(): Unit =
+    queue.close.runAsync {
+      case \/-(_) => log.debug(s"Killed queue subscriber $this")
+      case -\/(t) => log.error(t)(s"Error killing queue subscriber $this")
+    }
 
   override def onComplete(): Unit = {
-    log.debug(s"Completed queue subscriber")
+    log.debug(s"Completed queue subscriber $this")
     super.onComplete()
     closeQueue()
   }
 
   override def onError(t: Throwable): Unit = {
     super.onError(t)
+    log.debug(s"Failing queue subscriber $this")
     queue.fail(t).run
   }
 }
