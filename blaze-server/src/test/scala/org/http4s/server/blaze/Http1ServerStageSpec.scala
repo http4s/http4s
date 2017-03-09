@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import scodec.bits.ByteVector
 
-class Http1ServerStageSpec extends Specification {
+class Http1ServerStageSpec extends Http4sSpec {
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
     val a = new Array[Byte](b.remaining())
@@ -41,7 +41,7 @@ class Http1ServerStageSpec extends Specification {
 
   def runRequest(req: Seq[String], service: HttpService, maxReqLine: Int = 4*1024, maxHeaders: Int = 16*1024): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService, true, maxReqLine, maxHeaders)
+    val httpStage = Http1ServerStage(service, AttributeMap.empty, testPool, true, maxReqLine, maxHeaders)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
