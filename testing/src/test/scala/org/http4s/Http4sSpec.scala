@@ -10,7 +10,9 @@
 package org.http4s
 
 import org.http4s.testing._
+import org.http4s.testing.concurrent.TestStrategy
 import org.http4s.util.byteVector._
+import org.http4s.util.threads._
 import org.specs2.ScalaCheck
 import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
@@ -24,7 +26,7 @@ import org.scalacheck.Arbitrary._
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
 import scalaz.{ -\/, \/- }
-import scalaz.concurrent.Task
+import scalaz.concurrent.{Strategy, Task}
 import scalaz.std.AllInstances
 import scalaz.stream.Process
 import scalaz.stream.text.utf8Decode
@@ -46,6 +48,8 @@ trait Http4sSpec extends Specification
   with FragmentsDsl
   with TaskMatchers
 {
+  implicit def strategy: Strategy = TestStrategy
+
   implicit val params = Parameters(maxSize = 20)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -128,5 +132,3 @@ trait Http4sSpec extends Specification
     }
   }
 }
-
-
