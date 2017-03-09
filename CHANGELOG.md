@@ -1,3 +1,12 @@
+# v0.15.7 (unreleased)
+* Fix deadlocks in async-http-client under load
+* Bring scofflaw async-http-client to justice for its brazen
+  violations of Reactive Streams Rule 3.16, requesting of a null
+  subscription.
+* Destroy Tomcat instances after stopping, so they don't hold the port
+* Deprecate `ArbitraryInstances.genCharsetRangeNoQuality`, which can
+  cause deadlocks
+
 # v0.15.6 (2017-03-03)
 * Log unhandled MessageFailures to `org.http4s.server.message-failures`
 
