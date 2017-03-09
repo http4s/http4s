@@ -91,9 +91,8 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
   def encodeAndDecodeMultipartWithBinaryFormData = {
 
-    val path       = "./tests/src/test/resources/Animated_PNG_example_bouncing_beach_ball.png"
-    val file       = new File(path)
-    
+    val file       = new File(getClass.getResource("/Animated_PNG_example_bouncing_beach_ball.png").toURI)
+
     val field1     = Part.formData("field1", "Text_Field_1")
     
     val ef2        = fileToEntity(file)

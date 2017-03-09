@@ -15,11 +15,12 @@ import scala.concurrent.duration.Duration
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.{-\/, \/-}
 import scala.util.control.NonFatal
+import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    threadPool: ExecutorService = Strategy.DefaultExecutorService,
+                    threadPool: ExecutorService = DefaultPool,
                     private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
   extends HttpServlet
 {

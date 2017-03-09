@@ -8,6 +8,7 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.util.CaseInsensitiveString._
+import org.http4s.util.threads.DefaultPool
 import bits.DefaultUserAgent
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
@@ -21,7 +22,7 @@ import scalaz.concurrent.{Strategy, Task}
 class Http1ClientStageSpec extends Specification {
 
   val ec = org.http4s.blaze.util.Execution.trampoline
-  val es = Strategy.DefaultExecutorService
+  val es = DefaultPool
 
   val www_foo_test = Uri.uri("http://www.foo.test")
   val FooRequest = Request(uri = www_foo_test)
