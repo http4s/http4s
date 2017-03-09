@@ -21,7 +21,7 @@ script: bash bin/travis
 notifications:
   webhooks:
     urls:
-      - $GITTER_WEBHOOK_URL
+      - secure: "aD5b1XnAbGJi6YYofSUdradQngsxkG+xlrbev2kv/xSxD3LtzEiUrewODYmDCPiAL3biTi9/4Ye5mkC7g0ksW1X5ZpW46c5cxpuICE14Ke8EdGF4xK7HW70GvK4We9s8xDddHR4QrNk6G216B+9IPgrnT/VkCaJ327AM5oGWoDY="
     on_success: change
     on_failure: always
     on_start: never

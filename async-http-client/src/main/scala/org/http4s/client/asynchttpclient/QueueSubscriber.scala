@@ -5,47 +5,43 @@ import fs2.Stream._
 import fs2.async.boundedQueue
 import org.log4s.getLogger
 
-class QueueSubscriber[A](bufferSize: Int = 8)(implicit S: Strategy) extends UnicastSubscriber[A] {
+class QueueSubscriber[A] private[http4s] (bufferSize: Int, val queue: Queue[A]) extends UnicastSubscriber[A](bufferSize) {
   private[this] val log = getLogger
 
-  private val queue =
-    boundedQueue[Task, A](bufferSize)
-      .unsafeRun // TODO fs2 port why is queue creation an effect now?
+  @deprecated("Triggers the scalaz.stream.DefaultExecutor. This class will be made private in 0.16.", "0.15.7")
+  def this(bufferSize: Int = 8) =
+    this(bufferSize, unboundedQueue[A])
 
-  private val refillProcess =
-    repeatEval {
-      Task.delay {
-        log.trace("Requesting another element")
-        request(1)
-      }
-    }
-
-  final val process: Stream[Task, A] =
-    (refillProcess zipWith queue.dequeue)((_, a) => a)
+  final val process: Process[Task, A] =
+    queue.dequeue.observe(Process.constant { _: Any => Task.delay(request(1)) })
 
   def whenNext(element: A): Boolean = {
-    queue.enqueue1(element).unsafeRun
+    log.debug(s"Enqueuing element: $this")
+    queue.enqueueOne(element).unsafePerformSync
     true
   }
 
-  def closeQueue(): Unit = {
-    log.debug("Closing queue subscriber")
-    queue.close.unsafeRun
-  }
+  def closeQueue(): Unit =
+    queue.close.unsafePerformAsync {
+      case \/-(_) => log.debug(s"Closed queue subscriber $this")
+      case -\/(t) => log.error(t)(s"Error closing queue subscriber $this")
+    }
 
-  def killQueue(): Unit = {
-    log.debug("Killing queue subscriber")
-    queue.kill.unsafeRun
-  }
+  def killQueue(): Unit =
+    queue.close.unsafePerformAsync {
+      case \/-(_) => log.debug(s"Killed queue subscriber $this")
+      case -\/(t) => log.error(t)(s"Error killing queue subscriber $this")
+    }
 
   override def onComplete(): Unit = {
-    log.debug(s"Completed queue subscriber")
+    log.debug(s"Completed queue subscriber $this")
     super.onComplete()
     closeQueue()
   }
 
   override def onError(t: Throwable): Unit = {
     super.onError(t)
+    log.debug(s"Failing queue subscriber $this")
     queue.fail(t).unsafeRun
   }
 }

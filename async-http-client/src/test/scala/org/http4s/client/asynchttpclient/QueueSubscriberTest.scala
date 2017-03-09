@@ -9,19 +9,20 @@ import org.testng.annotations._
 import org.testng.Assert._
 
 import scalaz.-\/
+import scalaz.stream.async.unboundedQueue
 
 class QueueSubscriberTest extends SubscriberWhiteboxVerification[Integer](new TestEnvironment) {
   private lazy val counter = new AtomicInteger
 
   override def createSubscriber(theProbe: WhiteboxSubscriberProbe[Integer]): Subscriber[Integer] = {
-    val subscriber = new QueueSubscriber[Integer](2) with WhiteboxSubscriber[Integer] {
+    val subscriber = new QueueSubscriber[Integer](2, unboundedQueue[Integer]) with WhiteboxSubscriber[Integer] {
       override def probe: WhiteboxSubscriberProbe[Integer] = theProbe
     }
     subscriber
   }
 
   def createSubscriber(): QueueSubscriber[Integer] =
-    new QueueSubscriber[Integer](1)
+    new QueueSubscriber[Integer](1, unboundedQueue[Integer])
 
   override def createElement(element: Int): Integer =
     counter.getAndIncrement

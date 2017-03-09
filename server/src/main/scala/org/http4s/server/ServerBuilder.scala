@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.util.threads.DefaultPool
 
 import scala.concurrent.duration._
 

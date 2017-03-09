@@ -9,11 +9,12 @@ import javax.servlet.{DispatcherType, Filter, ServletContainerInitializer, Servl
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
+import fs2.{Strategy, Task}
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer}
-import fs2.{Strategy, Task}
+import org.http4s.util.threads.DefaultPool
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -179,9 +180,7 @@ object TomcatBuilder extends TomcatBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   // TODO fs2 port
   // This is garbage how do we shut this down I just want it to compile argh
-  serviceExecutor = org.http4s.util.threads.newDefaultFixedThreadPool(
-    4, org.http4s.util.threads.threadFactory(i => s"org.http4s.server.tomcat.DefaultExecutor-$i")
-  ),
+  serviceExecutor = DefaultPool,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,

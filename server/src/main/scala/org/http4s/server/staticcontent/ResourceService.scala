@@ -5,6 +5,9 @@ package staticcontent
 import java.util.concurrent.ExecutorService
 
 import fs2._
+import org.http4s.server._
+import org.http4s.{Response, Request, StaticFile}
+import org.http4s.util.threads.DefaultPool
 
 object ResourceService {
 
@@ -19,7 +22,7 @@ object ResourceService {
   final case class Config(basePath: String,
                           pathPrefix: String = "",
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService,
+                          executor: ExecutorService = DefaultPool,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */

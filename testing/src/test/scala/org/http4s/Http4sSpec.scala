@@ -9,12 +9,11 @@
 
 package org.http4s
 
-import java.util.concurrent.ExecutorService
-
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import fs2._
 import fs2.text._
-import org.http4s.util.threads._
 import org.http4s.testing._
+import org.http4s.util.threads.{newDaemonPool, threadFactory}
 import org.specs2.ScalaCheck
 import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
@@ -28,7 +27,6 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
 import org.typelevel.discipline.specs2.mutable.Discipline
-import org.typelevel.discipline.Laws
 
 /**
  * Common stack for http4s' own specs.
@@ -47,6 +45,13 @@ trait Http4sSpec extends Specification
   with TaskMatchers
   with Http4sMatchers
 {
+  def testPool: ExecutorService =
+    Http4sSpec.TestPool
+  implicit def testStrategy: Strategy =
+    Http4sSpec.TestStrategy
+  implicit def testScheduler: Scheduler =
+    Http4sSpec.TestScheduler
+
   implicit val params = Parameters(maxSize = 20)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -105,15 +110,12 @@ trait Http4sSpec extends Specification
 }
 
 object Http4sSpec {
-  // This is probably in poor taste, but I want to get things working.
-  implicit val TestPool: ExecutorService = {
-    val tf = threadFactory(l => s"http4s-spec-$l", daemon = true)
-    newDefaultFixedThreadPool(8, tf)
-  }
+  val TestPool: ExecutorService =
+    newDaemonPool("http4s-spec", timeout = true)
 
-  implicit val TestPoolStrategy: Strategy =
+  val TestStrategy: Strategy =
     Strategy.fromExecutor(TestPool)
 
-  implicit val TestScheduler: Scheduler =
+  val TestScheduler: Scheduler =
     Scheduler.fromFixedDaemonPool(4)
 }

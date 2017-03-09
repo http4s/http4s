@@ -10,8 +10,9 @@ import fs2.Stream._
 import fs2.io._
 import fs2.io.file.{FileHandle, pulls}
 import fs2.util.Suspendable
-import org.http4s.Status._
+import org.http4s.Status.NotModified
 import org.http4s.headers._
+import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 
 // TODO: consider using the new scalaz.stream.nio.file operations
