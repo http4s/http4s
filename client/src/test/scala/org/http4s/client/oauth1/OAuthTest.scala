@@ -62,7 +62,6 @@ class OAuthTest extends Specification {
     }
   }
 
-  // TODO fs2 rework
    "RFC 5849 example" should {
 
      implicit def urlFormEncoder : EntityEncoder[UrlForm] = UrlForm.entityEncoder(Charset.`US-ASCII`)
@@ -81,6 +80,6 @@ class OAuthTest extends Specification {
          "c2" -> "",
          "a3" -> "2 q"
        ).sorted
-     }.pendingUntilFixed
+     }
    }
 }
