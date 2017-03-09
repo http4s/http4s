@@ -17,6 +17,7 @@ import Process._
 
 import org.http4s.headers._
 import org.http4s.Status.NotModified
+import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 import scodec.bits.ByteVector
 
@@ -27,17 +28,17 @@ object StaticFile {
   val DefaultBufferSize = 10240
 
   def fromString(url: String, req: Option[Request] = None)
-                (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+                (implicit es: ExecutorService = DefaultPool): Option[Response] = {
     fromFile(new File(url), req)
   }
 
   def fromResource(name: String, req: Option[Request] = None)
-             (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+             (implicit es: ExecutorService = DefaultPool): Option[Response] = {
     Option(getClass.getResource(name)).flatMap(fromURL(_, req))
   }
 
   def fromURL(url: URL, req: Option[Request] = None)
-             (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+             (implicit es: ExecutorService = DefaultPool): Option[Response] = {
     val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified())
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`))
@@ -57,7 +58,7 @@ object StaticFile {
     } else Some(Response(NotModified))
   }
 
-  def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
+  def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = DefaultPool): Option[Response] =
     fromFile(f, DefaultBufferSize, req)
 
   def fromFile(f: File, buffsize: Int, req: Option[Request])

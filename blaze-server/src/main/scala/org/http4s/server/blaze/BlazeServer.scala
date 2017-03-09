@@ -17,6 +17,7 @@ import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
+import org.http4s.util.threads.DefaultPool
 
 import org.log4s.getLogger
 
@@ -233,7 +234,7 @@ class BlazeBuilder(
 
 object BlazeBuilder extends BlazeBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  serviceExecutor = Strategy.DefaultExecutorService,
+  serviceExecutor = DefaultPool,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
   connectorPoolSize = channel.defaultPoolSize,

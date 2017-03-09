@@ -5,6 +5,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 
 import org.http4s.server.SSLSupport.StoreInfo
+import org.http4s.util.threads.DefaultPool
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -45,7 +46,7 @@ object ServerBuilder {
   val DefaultHost = LoopbackAddress
   val DefaultHttpPort = 8080
   val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
-  val DefaultServiceExecutor = Strategy.DefaultExecutorService
+  val DefaultServiceExecutor: ExecutorService = DefaultPool
 }
 
 trait IdleTimeoutSupport { this: ServerBuilder =>
