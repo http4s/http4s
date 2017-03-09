@@ -9,7 +9,6 @@ trait ServerAddressSpec extends Http4sSpec {
   def builder: ServerBuilder
 
   trait ServerContext extends After {
-    import Http4sSpec.TestPoolStrategy
     val address = new InetSocketAddress(0)
     val server = builder.bindSocketAddress(address).start.async.unsafeRun
     def after = server.shutdown.unsafeRun

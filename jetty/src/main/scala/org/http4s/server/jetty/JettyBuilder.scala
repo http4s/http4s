@@ -18,6 +18,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+import org.http4s.util.threads._
 
 import scala.concurrent.duration._
 
@@ -206,11 +207,7 @@ sealed class JettyBuilder private(
 
 object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  // TODO fs2 port
-  // This is garbage how do we shut this down I just want it to compile argh
-  serviceExecutor = org.http4s.util.threads.newDefaultFixedThreadPool(
-    4, org.http4s.util.threads.threadFactory(i => s"org.http4s.server.tomcat.DefaultExecutor-$i")
-  ),
+  serviceExecutor = DefaultPool,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,

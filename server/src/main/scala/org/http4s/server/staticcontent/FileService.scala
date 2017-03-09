@@ -9,6 +9,8 @@ import cats.data.{NonEmptyList, OneAnd}
 import fs2._
 import org.http4s.headers._
 import org.http4s.headers.Range.SubRange
+import org.http4s.util._
+import org.http4s.util.threads.DefaultPool
 
 object FileService {
 
@@ -25,7 +27,7 @@ object FileService {
                           pathPrefix: String = "",
                           pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService,
+                          executor: ExecutorService = DefaultPool,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */

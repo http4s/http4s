@@ -10,6 +10,7 @@ import fs2.{Strategy, Task}
 import org.http4s.batteries._
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server._
+import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -17,7 +18,7 @@ import scala.concurrent.duration.Duration
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    threadPool: ExecutorService,
+                    threadPool: ExecutorService = DefaultPool,
                     private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
   extends HttpServlet
 {

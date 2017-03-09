@@ -8,6 +8,7 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.Http4sSpec.TestPool
+import org.http4s.util.threads.DefaultPool
 import bits.DefaultUserAgent
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector

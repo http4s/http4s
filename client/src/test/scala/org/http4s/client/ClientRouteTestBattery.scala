@@ -24,6 +24,19 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     }
   }
 
+  name should {
+    "Repeat a simple request" in {
+      val path = GetRoutes.SimplePath
+      def fetchBody = client.toService(_.as[String]).local { uri: Uri =>
+        Request(uri = uri)
+      }
+      val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
+      Task.parallelTraverse((0 until 10).toVector)(_ =>
+        fetchBody.run(url).map(_.length)
+      ).unsafeRunFor(timeout).forall(_ mustNotEqual 0)
+    }
+  }
+
   override def map(fs: => Fragments) =
     super.map(fs ^ step(client.shutdown.unsafeRun()))
 
