@@ -9,7 +9,6 @@ import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, Bod
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.reactivestreams.Subscription
-import org.http4s.client.impl.DefaultExecutor
 
 import org.http4s.util.threads._
 
@@ -46,7 +45,7 @@ object AsyncHttpClient {
             bufferSize: Int = 8,
             customExecutor: Option[ExecutorService] = None): Client = {
     val client = new DefaultAsyncHttpClient(config)
-    val executorService = customExecutor.getOrElse(DefaultExecutor.newClientDefaultExecutorService("async-http-client-response"))
+    val executorService = customExecutor.getOrElse(newDaemonPool("http4s-async-http-client-response"))
     val close =
       if (customExecutor.isDefined)
         Task.delay { client.close() }

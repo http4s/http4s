@@ -8,7 +8,6 @@ import java.util.concurrent._
 import org.http4s.BuildInfo
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.client.impl.DefaultExecutor
 import org.http4s.util.threads
 
 import scala.concurrent.duration._
@@ -26,7 +25,7 @@ private[blaze] object bits {
   def getExecutor(config: BlazeClientConfig): (ExecutorService, Task[Unit]) = config.customExecutor match {
     case Some(exec) => (exec, Task.now(()))
     case None =>
-      val exec = DefaultExecutor.newClientDefaultExecutorService("blaze-client")
+      val exec = threads.newDaemonPool("http4s-blaze-client")
       (exec, Task { exec.shutdown() })
   }
 

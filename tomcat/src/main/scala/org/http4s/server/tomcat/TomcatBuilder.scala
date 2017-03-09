@@ -12,6 +12,7 @@ import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
+import org.http4s.util.threads.DefaultPool
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._

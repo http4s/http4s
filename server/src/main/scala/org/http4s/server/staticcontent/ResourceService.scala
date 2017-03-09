@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService
 
 import org.http4s.server._
 import org.http4s.{Response, Request, StaticFile}
+import org.http4s.util.threads.DefaultPool
 
 import scalaz.concurrent.{Strategy, Task}
 
@@ -23,7 +24,7 @@ object ResourceService {
   final case class Config(basePath: String,
                           pathPrefix: String = "",
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService = Strategy.DefaultExecutorService,
+                          executor: ExecutorService = DefaultPool,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */

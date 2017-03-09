@@ -1,3 +1,22 @@
+# v0.15.7 (unreleased)
+* Change default server and client executors to a minimum of four
+  threads.
+* Bring scofflaw async-http-client to justice for its brazen
+  violations of Reactive Streams Rule 3.16, requesting of a null
+  subscription.
+* Destroy Tomcat instances after stopping, so they don't hold the port
+* Deprecate `ArbitraryInstances.genCharsetRangeNoQuality`, which can
+  cause deadlocks
+* Patch-level upgrades to dependencies:
+    * async-http-client-2.0.30
+    * jetty-9.3.16.v20170120
+    * logback-1.1.11
+    * metrics-3.1.3
+    * scala-xml-1.0.6
+    * scalaz-7.2.9
+    * tomcat-8.0.41
+    * twirl-1.2.1
+
 # v0.15.6 (2017-03-03)
 * Log unhandled MessageFailures to `org.http4s.server.message-failures`
 

@@ -11,8 +11,6 @@ import scalaz.syntax.foldable._
 import scodec.bits.ByteVector
 
 class IoSpec extends Http4sSpec {
-  implicit val s: Strategy = Strategy.DefaultStrategy
-
   case class ChunkOffsetLen(chunk: ByteVector, offset: Int, len: Int)
 
   implicit val arbitraryChunkOffsetLen = Arbitrary {

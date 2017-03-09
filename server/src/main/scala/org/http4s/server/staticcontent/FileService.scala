@@ -10,6 +10,7 @@ import org.http4s.headers.Range.SubRange
 
 import scalaz.concurrent.{Strategy, Task}
 import org.http4s.util._
+import org.http4s.util.threads.DefaultPool
 
 
 object FileService {
@@ -27,7 +28,7 @@ object FileService {
                           pathPrefix: String = "",
                           pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService = Strategy.DefaultExecutorService,
+                          executor: ExecutorService = DefaultPool,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
 
