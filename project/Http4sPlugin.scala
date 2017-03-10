@@ -29,7 +29,7 @@ object Http4sPlugin extends AutoPlugin {
         case _ => "org.scala-lang"
       }
     },
-    scalazVersion := (sys.env.get("SCALAZ_VERSION") getOrElse "7.2.8"),
+    scalazVersion := (sys.env.get("SCALAZ_VERSION") getOrElse "7.2.9"),
     unmanagedSourceDirectories in Compile += (sourceDirectory in Compile).value / VersionNumber(scalazVersion.value).numbers.take(2).mkString("scalaz-", ".", ""),
 
     scalacOptions in Compile ++= Seq(
@@ -90,16 +90,16 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.10.4"
   lazy val jawnFs2             = "org.http4s"               %% "jawn-fs2"                % "0.10.1"
-  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.16.v20170120"
+  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.4.2.v20170220"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.5.0"
   lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
   lazy val json4sNative        = "org.json4s"               %% "json4s-native"           % json4sCore.revision
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
-  lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.3.3"
-  lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.11"
+  lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.3.4"
+  lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.2.1"
   lazy val macroCompat         = "org.typelevel"            %% "macro-compat"            % "1.1.1"
-  lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.1.3"
+  lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.2.0"
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
   lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"

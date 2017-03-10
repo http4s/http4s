@@ -1,4 +1,4 @@
-# v0.15.7 (unreleased)
+# v0.15.7 (2017-03-09)
 * Change default server and client executors to a minimum of four
   threads.
 * Bring scofflaw async-http-client to justice for its brazen
