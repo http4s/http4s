@@ -7,7 +7,7 @@
 
 DEFAULT_CPU_COUNT = 2
 DEFAULT_MEMORY = 4096
-EXECUTION_CAP = 100       # set below zero to simulate sluggins Travis build
+EXECUTION_CAP = 100       # reduce below 100 to simulate a sluggish Travis container
 BOX = "ubuntu/precise64"  # 12.04 LTS
 
 $script = <<SCRIPT
