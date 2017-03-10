@@ -1,6 +1,10 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# VM configuration below is intended to imitate the Travis CI
+# "container-based" infrastructure where the http4s builds run.
+# https://docs.travis-ci.com/user/ci-environment/#Virtualization-environments
+
 DEFAULT_CPU_COUNT = 2
 DEFAULT_MEMORY = 4096
 EXECUTION_CAP = 100       # set below zero to simulate sluggins Travis build
