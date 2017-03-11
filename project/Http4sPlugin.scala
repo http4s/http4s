@@ -4,6 +4,7 @@ import sbt._, Keys._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
 import org.http4s.build.ScalazPlugin.autoImport._
+import org.http4s.build.ScalazPlugin.scalazVersionRewriters
 import sbtrelease._
 import sbtrelease.ReleasePlugin.autoImport._
 import scala.util.Properties.envOrNone
@@ -20,6 +21,8 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = RigPlugin && MimaPlugin && ScalazPlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
+    scalazVersionRewriter := scalazVersionRewriters.scalazStream_0_8,
+
     // Override rig's default of the Travis build number being the bugfix number
     releaseVersion := { ver =>
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
@@ -105,7 +108,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val reactiveStreamsTck               = "org.reactivestreams"    %  "reactive-streams-tck"      % "1.0.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.4"
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
-  def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
+  def scalaReflect(so: String, sv: String)  = so                %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
   def scalazCore(szv: String)               = "org.scalaz"             %% "scalaz-core"               % szv
   def scalazScalacheckBinding(szv: String)  = "org.scalaz"             %% "scalaz-scalacheck-binding" % szv
