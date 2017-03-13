@@ -8,14 +8,8 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-http4sVersion in ThisBuild := VersionNumber("0.16.0-SNAPSHOT")
 
-// The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
-// `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
-// is used to build the project.
-scalazVersion in ThisBuild := "7.1.11"
-version in ThisBuild := scalazCrossBuild(http4sVersion.value.toString, scalazVersion.value)
-apiVersion in ThisBuild := http4sVersion.map {
+apiVersion in ThisBuild := (version in ThisBuild).map {
   case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
 }.value
 
@@ -442,7 +436,6 @@ def http4sProject(name: String) = Project(name, file(name))
   )
 
 def libraryProject(name: String) = http4sProject(name)
-  .settings(mimaSettings)
 
 def exampleProject(name: String) = http4sProject(name)
   .in(file(name.replace("examples-", "examples/")))
@@ -450,7 +443,6 @@ def exampleProject(name: String) = http4sProject(name)
   .settings(noCoverageSettings)
   .dependsOn(examples)
 
-lazy val http4sVersion = settingKey[VersionNumber]("The base version of http4s, across cats/scalaz cross builds")
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
 
@@ -500,35 +492,6 @@ lazy val commonSettings = Seq(
 
 lazy val noCoverageSettings = Seq(
   coverageExcludedPackages := ".*"
-)
-
-lazy val mimaSettings = Seq(
-  mimaFailOnProblem := version.zipWith(scalazVersion)(compatibleVersion(_, _).isDefined).value,
-  mimaPreviousArtifacts := (compatibleVersion(version.value, scalazVersion.value) map {
-    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-  }).toSet,
-  mimaBinaryIssueFilters ++= {
-    import com.typesafe.tools.mima.core._
-    import com.typesafe.tools.mima.core.ProblemFilters._
-    Seq(
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryIPv4"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryIPv6"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genSubDelims"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryUriHost"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryAuthority"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genCharsetRangeNoQuality"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genHexDigit"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genPctEncoded"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.arbitraryUri"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.testing.ArbitraryInstances.genUnreserved"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie"),
-      exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3"),
-      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
-      exclude[DirectAbstractMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
-      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest")
-    )
-  }
 )
 
 def initCommands(additionalImports: String*) =
