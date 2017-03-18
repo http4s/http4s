@@ -18,6 +18,8 @@ name := "root"
 description := "A minimal, Scala-idiomatic library for HTTP"
 enablePlugins(DisablePublishingPlugin)
 
+cancelable in Global := true
+
 // This defines macros that we use in core, so it needs to be split out
 lazy val parboiled2 = libraryProject("parboiled2")
   .enablePlugins(DisablePublishingPlugin)
