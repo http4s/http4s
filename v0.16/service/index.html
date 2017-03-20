@@ -139,7 +139,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37211/1855677072@309f03c0)
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$38243/454814448@31015254)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -180,7 +180,7 @@ val tweetService = HttpService {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37211/1855677072@66bf5b61)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$38243/454814448@55a00830)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -194,8 +194,8 @@ path of <code>/api</code>. The services can be mounted in any order as the reque
 matched against the longest base paths first. The <code>BlazeBuilder</code> is immutable
 with chained methods, each returning a new builder.</p>
 
-<p>Multiple <code>HttpService</code>s can be chained together with the <code>orElse</code> method by
-importing <code>org.http4s.server.syntax._</code>.</p>
+<p>Multiple <code>HttpService</code>s can be combined with the <code>orElse</code> method by importing
+<code>org.http4s.server.syntax._</code>.</p>
 
 <pre><code class="language-scala">import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
@@ -204,10 +204,10 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val services = tweetService orElse helloWorldService
-// services: org.http4s.Service[org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(scalaz.KleisliSemigroup$$Lambda$37218/974196686@2f69ad5e)
+// services: org.http4s.Service[org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(scalaz.KleisliSemigroup$$Lambda$38250/594587863@44489266)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@17343c38
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@11bc2481
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
