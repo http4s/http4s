@@ -108,8 +108,8 @@ path of `/api`. The services can be mounted in any order as the request will be
 matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
-Multiple `HttpService`s can be chained together with the `orElse` method by
-importing `org.http4s.server.syntax._`.
+Multiple `HttpService`s can be combined with the `orElse` method by importing
+`org.http4s.server.syntax._`.
 
 ```tut:book
 import org.http4s.server.blaze._
