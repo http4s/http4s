@@ -109,19 +109,19 @@ case class User(id: Long, name: String)
 // defined class User
 
 val authUser: Service[Request, User] = Kleisli(_ =&gt; Task.delay(???))
-// authUser: org.http4s.Service[org.http4s.Request,User] = Kleisli($$Lambda$40180/1358212609@78bd9919)
+// authUser: org.http4s.Service[org.http4s.Request,User] = Kleisli($$Lambda$39131/502019770@13b114fb)
 
 val middleware = AuthMiddleware(authUser)
-// middleware: org.http4s.server.AuthMiddleware[User] = org.http4s.server.package$AuthMiddleware$$$Lambda$40181/531100556@3aea6a1
+// middleware: org.http4s.server.AuthMiddleware[User] = org.http4s.server.package$AuthMiddleware$$$Lambda$39132/1117839918@369acbaa
 
 val authedService: AuthedService[User] =
   AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
-// authedService: org.http4s.AuthedService[User] = Kleisli(org.http4s.package$AuthedService$$$Lambda$40186/343198045@61d5f1cc)
+// authedService: org.http4s.AuthedService[User] = Kleisli(org.http4s.package$AuthedService$$$Lambda$39137/980982261@63a1615c)
 
 val service: HttpService = middleware(authedService)
-// service: org.http4s.HttpService = Kleisli(scalaz.Kleisli$$Lambda$40188/1271222562@11c1f5cf)
+// service: org.http4s.HttpService = Kleisli(scalaz.Kleisli$$Lambda$39139/995234761@35d2d5ae)
 </code></pre>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
@@ -138,16 +138,16 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 error handling, we recommend an error <a href="http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
 
 <pre><code class="language-scala">val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ =&gt; Task.delay(???))
-// authUser: scalaz.Kleisli[scalaz.concurrent.Task,org.http4s.Request,String \/ User] = Kleisli($$Lambda$40189/873334276@7ba4151)
+// authUser: scalaz.Kleisli[scalaz.concurrent.Task,org.http4s.Request,String \/ User] = Kleisli($$Lambda$39140/2060468518@74d34282)
 
 val onFailure: AuthedService[String] = Kleisli(req =&gt; Forbidden(req.authInfo))
-// onFailure: org.http4s.AuthedService[String] = Kleisli($$Lambda$40190/11132994@40c66a31)
+// onFailure: org.http4s.AuthedService[String] = Kleisli($$Lambda$39141/1341807825@76165c10)
 
 val middleware = AuthMiddleware(authUser, onFailure)
-// middleware: org.http4s.server.AuthMiddleware[User] = org.http4s.server.package$AuthMiddleware$$$Lambda$40191/495755684@64c3ec15
+// middleware: org.http4s.server.AuthMiddleware[User] = org.http4s.server.package$AuthMiddleware$$$Lambda$39142/1929663307@5c0f94c8
 
 val service: HttpService = middleware(authedService)
-// service: org.http4s.HttpService = Kleisli(scalaz.Kleisli$$Lambda$40188/1271222562@43aca27b)
+// service: org.http4s.HttpService = Kleisli(scalaz.Kleisli$$Lambda$39139/995234761@83d6d3)
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
@@ -178,10 +178,10 @@ import java.time._
 // import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@17512d90)
+// key: org.reactormonk.PrivateKey = PrivateKey([B@3500547a)
 
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@17512d90))
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@3500547a))
 
 val clock = Clock.systemUTC
 // clock: java.time.Clock = SystemClock[Z]
@@ -199,7 +199,7 @@ val logIn: Service[Request, Response] = Kleisli({ request =&gt;
     }
   })
 })
-// logIn: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli($$Lambda$40198/530319033@291e8489)
+// logIn: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli($$Lambda$39149/1982274166@212cd06b)
 </code></pre>
 
 <p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
@@ -216,7 +216,7 @@ val authUser: Service[Request, String \/ User] = Kleisli({ request =&gt;
   } yield message
   message.traverse(retrieveUser)
 })
-// authUser: org.http4s.Service[org.http4s.Request,String \/ User] = Kleisli($$Lambda$40199/281508509@38de3c6c)
+// authUser: org.http4s.Service[org.http4s.Request,String \/ User] = Kleisli($$Lambda$39150/1322759206@7ac03105)
 </code></pre>
 
 <h3 id="authorization-header">Authorization Header</h3>
@@ -239,7 +239,7 @@ val authUser: Service[Request, String \/ User] = Kleisli({ request =&gt;
   } yield message
   message.traverse(retrieveUser)
 })
-// authUser: org.http4s.Service[org.http4s.Request,String \/ User] = Kleisli($$Lambda$40200/1886727247@6e7a971b)
+// authUser: org.http4s.Service[org.http4s.Request,String \/ User] = Kleisli($$Lambda$39151/1890224737@687776a0)
 </code></pre>
 
           <footer>
