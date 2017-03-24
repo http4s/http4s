@@ -23,9 +23,9 @@ title: Versions
 After deliberations both internally and with <a href="https://github.com/http4s/fp-ecosystem">other projects in the Scala ecosystem</a>, we are bringing this transition to its conclusion:
 
 <ul>
-  <li>http4s-0.16 will be the final release series based on scalaz-stream.  We will continue to support this branch with bugfixes over the next several months, but not new development.</li>
-  <li>http4s-0.17 will be the first official release on Cats and fs2.  Users of <pre>0.16.0-cats-SNAPSHOT</pre> should transition to <pre>0.17.0-SNAPSHOT</pre></li>
-  <li>We intend publish http4s-1.0 on top of the eventual cats-1.0 and fs2-1.0</li>
+  <li>http4s-0.16 will be the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes over the next several months, but not new development.</li>
+  <li>http4s-0.17 will be the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  Users of <pre>0.16.0-cats-SNAPSHOT</pre> should transition to <pre>0.17.0-SNAPSHOT</pre></li>
+  <li>We intend to publish http4s-1.0 on top of the eventual cats-1.0 and fs2-1.0</li>
 </ul>
 
 <h2>Matrix</h2>
