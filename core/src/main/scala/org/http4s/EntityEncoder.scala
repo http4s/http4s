@@ -4,6 +4,7 @@ import java.io.{File, InputStream, Reader}
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.file.Path
 
+import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
@@ -20,6 +21,7 @@ import scalaz.stream.Process.emit
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
+@implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.")
 trait EntityEncoder[A] { self =>
 
   /** Convert the type `A` to an [[EntityEncoder.Entity]] in the `Task` monad */
