@@ -5,7 +5,7 @@ package blaze
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.Security
-import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext}
+import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext, SSLEngine}
 import java.util.concurrent.ExecutorService
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -125,51 +125,50 @@ class BlazeBuilder(
   def start: Task[Server] = Task.delay {
     val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service }: _*)
 
-    val pipelineFactory = getContext() match {
-      case Some((ctx, clientAuth)) =>
-        (conn: SocketConnection) => {
-          val eng = ctx.createSSLEngine()
-          val requestAttrs = {
-            var requestAttrs = AttributeMap.empty
-            (conn.local,conn.remote) match {
-              case (l: InetSocketAddress, r: InetSocketAddress) =>
-                requestAttrs = requestAttrs.put(Request.Keys.ConnectionInfo, Request.Connection(l,r, true))
+    def resolveAddress(address: InetSocketAddress) =
+      if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
+      else address
 
-              case _ => /* NOOP */
-            }
-            requestAttrs
-          }
 
-          val l1 =
-            if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttrs, serviceExecutor))
-            else LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen))
-
-          val l2 = if (idleTimeout.isFinite) l1.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-                   else l1
-
-          eng.setUseClientMode(false)
-          eng.setNeedClientAuth(clientAuth)
-
-          l2.prepend(new SSLStage(eng))
+    val pipelineFactory = { conn: SocketConnection =>
+      val requestAttributes =
+        (conn.local, conn.remote) match {
+          case (l: InetSocketAddress, r: InetSocketAddress) =>
+            AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, Request.Connection(l,r, true)))
+          case _ =>
+            AttributeMap.empty
         }
 
-      case None =>
-        if (isHttp2Enabled) logger.warn("Http2 support requires TLS.")
-        (conn: SocketConnection) => {
-          val requestAttrs = {
-            var requestAttrs = AttributeMap.empty
-            (conn.local,conn.remote) match {
-              case (l: InetSocketAddress, r: InetSocketAddress) =>
-                requestAttrs = requestAttrs.put(Request.Keys.ConnectionInfo, Request.Connection(l,r, false))
+      def http1Stage =
+        Http1ServerStage(aggregateService, requestAttributes, serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
 
-              case _ => /* NOOP */
-            }
-            requestAttrs
-          }
-          val leaf = LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen))
-          if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-          else leaf
-        }
+      def http2Stage(engine: SSLEngine) =
+        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes, serviceExecutor)
+
+      def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
+        if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+        else lb
+      }
+
+      getContext() match {
+        case Some((ctx, clientAuth)) =>
+          val engine = ctx.createSSLEngine()
+          engine.setUseClientMode(false)
+          engine.setNeedClientAuth(clientAuth)
+
+          var lb = LeafBuilder(
+            if (isHttp2Enabled) http2Stage(engine)
+            else http1Stage
+          )
+          lb = prependIdleTimeout(lb)
+          lb.prepend(new SSLStage(engine))
+
+        case None =>
+          if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS.")
+          var lb = LeafBuilder(http1Stage)
+          lb = prependIdleTimeout(lb)
+          lb
+      }
     }
 
     val factory =
@@ -178,9 +177,7 @@ class BlazeBuilder(
       else
         NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
 
-    var address = socketAddress
-    if (address.isUnresolved)
-      address = new InetSocketAddress(address.getHostString, address.getPort)
+    val address = resolveAddress(socketAddress)
 
     // if we have a Failure, it will be caught by the Task
     val serverChannel = factory.bind(address, pipelineFactory).get
