@@ -9,6 +9,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scodec.bits.ByteVector
 
+import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 import scalaz.Liskov.{<~<, refl}
@@ -27,6 +28,7 @@ import util.byteVector._
   * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
+@implicitNotFound("Cannot decode into a value of type ${T}, because no EntityDecoder[${T}] instance could be found.")
 trait EntityDecoder[T] { self =>
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message, strict: Boolean): DecodeResult[T]
@@ -179,7 +181,7 @@ trait EntityDecoderInstances {
     MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit val void: EntityDecoder[Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg => 
+  implicit val void: EntityDecoder[Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg =>
     DecodeResult.success(msg.body.kill.run)
   )
 }
