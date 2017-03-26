@@ -24,7 +24,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 
 <ul>
   <li>http4s-0.16 will be the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes over the next several months, but not new development.</li>
-  <li>http4s-0.17 will be the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  Users of <pre>0.16.0-cats-SNAPSHOT</pre> should transition to <pre>0.17.0-SNAPSHOT</pre></li>
+  <li>http4s-0.17 will be the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  Users of <pre>0.16.0-cats-SNAPSHOT</pre> should transition to <pre>0.17.0-SNAPSHOT</pre>.  Interop for Scalaz-based apps will be provided through <a href="https://github.com/djspiewak/shims">Shims</a> or <a href="https://github.com/shawjef3/Harmony">Harmony</a>.</li>
   <li>We intend to publish http4s-1.0 on top of the eventual cats-1.0 and fs2-1.0</li>
 </ul>
 
