@@ -1427,7 +1427,13 @@ entire resulting A.</p><div class="fullcomment"><div class="comment cmt"><p>A ty
 EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
 entire resulting A. If an error occurs it will result in a failed Task
 The default decoders provided here are not streaming, but one could implement
-a streaming decoder by having the value of A be some kind of streaming construct.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl></div>
+a streaming decoder by having the value of A be some kind of streaming construct.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@implicitNotFound</span><span class="args">(<span>
+      
+      <span class="defval" name="&quot;Cannot decode into a value of type ${T}, because no EntityDecoder[${T}] instance could be found.&quot;">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="EntityDecoderInstancesextendsAnyRef"></a><a id="EntityDecoderInstances:EntityDecoderInstances"></a>
       <span class="permalink">
@@ -1446,7 +1452,7 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </span>
       
       <p class="shortcomment cmt">Implementations of the EntityDecoder instances</p>
-    </li><li name="org.http4s.EntityEncoder" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.EntityEncoder" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="EntityEncoder[A]extendsAnyRef"></a><a id="EntityEncoder[A]:EntityEncoder[A]"></a>
       <span class="permalink">
       <a href="../../org/http4s/index.html#EntityEncoder[A]extendsAnyRef" title="Permalink">
@@ -1463,7 +1469,13 @@ a streaming decoder by having the value of A be some kind of streaming construct
             </a><span class="tparams">[<span name="A">A</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@implicitNotFound</span><span class="args">(<span>
       
+      <span class="defval" name="&quot;Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.&quot;">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="EntityEncoderInstancesextendsEntityEncoderInstances0"></a><a id="EntityEncoderInstances:EntityEncoderInstances"></a>
       <span class="permalink">

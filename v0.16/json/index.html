@@ -158,7 +158,7 @@ val greeting = hello(&quot;world&quot;)
 <p>We now have a JSON value, but we don&rsquo;t have enough to render it:</p>
 
 <pre><code class="language-scala">scala&gt; Ok(greeting).unsafePerformSync
-&lt;console&gt;:26: error: could not find implicit value for parameter w: org.http4s.EntityEncoder[io.circe.Json]
+&lt;console&gt;:26: error: Cannot convert from io.circe.Json to an Entity, because no EntityEncoder[io.circe.Json] instance could be found.
        Ok(greeting).unsafePerformSync
          ^
 </code></pre>
@@ -217,7 +217,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@57b884c9
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@6754f9e4
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
