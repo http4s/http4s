@@ -19,8 +19,6 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = RigPlugin && MimaPlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    version := s"${(version in ThisBuild).value}-cats",
-
     // Override rig's default of the Travis build number being the bugfix number
     releaseVersion := { ver =>
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
