@@ -299,7 +299,44 @@ After deliberations both internally and with <a href="https://github.com/http4s/
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-15-7-2017-03-09">v0.15.7 (2017-03-09)</h1>
+      <h1 id="v0-16-0-unreleased">v0.16.0 (unreleased)</h1>
+
+<ul>
+<li>Fix type of <code>AuthedService.empty</code></li>
+<li>Eliminate <code>Fallthrough</code> typeclass.  An <code>HttpService</code> now returns
+<code>MaybeResponse</code>, which can be a <code>Response</code> or <code>Pass</code>.  There is a
+<code>Semigroup[MaybeResponse]</code> instance that allows <code>HttpService</code>s to be
+chained as a semigroup.  <code>service orElse anotherService</code> is
+deprecated in favor of <code>service |+| anotherService</code>.</li>
+<li>Support configuring blaze and Jetty servers with a custom
+<code>SSLContext</code>.</li>
+<li>Upgraded dependencies for various modules:
+
+<ul>
+<li>circe-0.7.0</li>
+<li>jetty-9.4.2.v20170220</li>
+<li>logback-1.2.1</li>
+<li>log4s-1.3.4</li>
+<li>metrics-3.2.0</li>
+</ul></li>
+<li>Deprecate <code>EntityEncoder[ByteBuffer]</code> and
+<code>EntityEncoder[CharBuffer]</code>.</li>
+<li>Add <code>EntityDecoder[Unit]</code>.</li>
+<li>Move <code>ResponseClass</code>es into <code>Status</code>.</li>
+<li>Use <code>SSLContext.getDefault</code> by default in blaze-client.  Use
+<code>BlazeServerConfig.insecure</code> to ignore certificate validity.  But
+please don&rsquo;t.</li>
+<li>Move <code>CaseInsensitiveString</code> syntax to <code>org.http4s.syntax</code>.</li>
+<li>Bundle an internal version of parboiled2.  This decouples core from
+shapeless, allowing applications to use their preferred version of
+shapeless.</li>
+<li>Rename <code>endpointAuthentication</code> to <code>checkEndpointAuthentication</code>.</li>
+<li>Add a <code>WebjarService</code> for serving files out of web jars.</li>
+<li>Implement <code>Retry-After</code> header.</li>
+<li>Stop building with <code>delambdafy</code> on Scala 2.11.</li>
+</ul>
+
+<h1 id="v0-15-7-2017-03-09">v0.15.7 (2017-03-09)</h1>
 
 <ul>
 <li>Change default server and client executors to a minimum of four
