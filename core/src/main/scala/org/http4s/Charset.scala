@@ -19,6 +19,8 @@
 package org.http4s
 
 import java.nio.charset.{Charset => NioCharset, StandardCharsets}
+import java.util.Locale
+import scala.collection.JavaConverters._
 import org.http4s.util._
 import scalaz.\/
 
@@ -39,11 +41,20 @@ object Charset {
   val `UTF-16BE`     = Charset(StandardCharsets.UTF_16BE)
   val `UTF-16LE`     = Charset(StandardCharsets.UTF_16LE)
 
+  // Charset.forName caches a whopping two values and then
+  // synchronizes.  We can prevent this by pre-caching all the lookups
+  // that will succeed.
+  private val cache: Map[String, NioCharset] =
+    (for {
+      cs <- NioCharset.availableCharsets.values.asScala
+      name <- cs.name :: cs.aliases.asScala.toList
+    } yield (name.toLowerCase(Locale.ROOT), cs)).toMap
+
   def fromNioCharset(nioCharset: NioCharset): Charset = Charset(nioCharset)
 
   def fromString(name: String): ParseResult[Charset] =
-    \/.fromTryCatchNonFatal(NioCharset.forName(name)).bimap(
-      _ => ParseFailure("Invalid charset", s"$name is not a supported Charset"),
-      Charset.apply
-    )
+    cache.get(name.toLowerCase(Locale.ROOT)) match {
+      case Some(nioCharset) => \/.right(Charset.apply(nioCharset))
+      case None => \/.left(ParseFailure("Invalid charset", s"$name is not a supported Charset"))
+    }
 }
