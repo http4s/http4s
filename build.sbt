@@ -354,7 +354,7 @@ lazy val docs = http4sProject("docs")
       if (Http4sGhPages.buildMainSite) siteMappings.value
       else {
         val (major, minor) = apiVersion.value
-        val prefix = s"/v${major}.${minor}-cats/"
+        val prefix = s"/v${major}.${minor}/"
         siteMappings.value.filter {
           case (_, d) if d.startsWith(prefix) => true
           case _ => false
