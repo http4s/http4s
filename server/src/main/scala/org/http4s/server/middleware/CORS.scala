@@ -58,10 +58,8 @@ object CORS {
    * Currently, you cannot make permissions depend on request details
    */
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
-
-    /**
-     * Always reply with success for an OPTIONS request. The headers to send back are determined by the config.
-     */
+    
+    //Always reply with success for an OPTIONS request. The headers to send back are determined by the config.
     def options(origin: Header, acrm: Header): HttpService = ok.map(corsHeaders(origin.value, acrm.value)(_))
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
