@@ -319,7 +319,6 @@ lazy val docs = http4sProject("docs")
     },
     copySiteToStage := {
       streams.value.log.debug(s"copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value}")
-
       IO.copyDirectory(
         source = preStageSiteDirectory.value,
         target = siteStageDirectory.value,
@@ -327,7 +326,7 @@ lazy val docs = http4sProject("docs")
         preserveLastModified = true)
       IO.copyDirectory(
         source = tutTargetDirectory.value,
-        target = siteStageDirectory.value / "content" / "v0.16-cats",
+        target = siteStageDirectory.value / "content" / "v${apiVersion.value._1}.${apiVersion.value._2}",
         overwrite = false,
         preserveLastModified = true)
       IO.copyFile(
@@ -364,7 +363,7 @@ lazy val docs = http4sProject("docs")
     siteMappings ++= {
       val m = (mappings in (ScalaUnidoc, packageDoc)).value
       val (major, minor) = apiVersion.value
-      for ((f, d) <- m) yield (f, s"v$major.$minor-cats/api/$d")
+      for ((f, d) <- m) yield (f, s"v$major.$minor/api/$d")
     },
     cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
     synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
