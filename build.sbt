@@ -318,7 +318,8 @@ lazy val docs = http4sProject("docs")
           target.value.getAbsolutePath))
     },
     copySiteToStage := {
-      streams.value.log.debug(s"copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value}")
+      val (major, minor) = apiVersion.value
+      streams.value.log.debug(s"copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value} for v$major.$minor")
       IO.copyDirectory(
         source = preStageSiteDirectory.value,
         target = siteStageDirectory.value,
@@ -326,7 +327,7 @@ lazy val docs = http4sProject("docs")
         preserveLastModified = true)
       IO.copyDirectory(
         source = tutTargetDirectory.value,
-        target = siteStageDirectory.value / "content" / "v${apiVersion.value._1}.${apiVersion.value._2}",
+        target = siteStageDirectory.value / "content" / s"v$major.$minor",
         overwrite = false,
         preserveLastModified = true)
       IO.copyFile(
