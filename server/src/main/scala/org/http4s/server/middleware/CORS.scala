@@ -44,7 +44,7 @@ object CORS {
   private[CORS] val logger = getLogger
 
   private[CORS] val ok =
-    Service.constVal[Request, MaybeResponse](Response(Status.Ok))
+    Service.constVal[Request, Response](Response(Status.Ok))
 
   def DefaultCORSConfig = CORSConfig(
     anyOrigin = true,
@@ -59,19 +59,10 @@ object CORS {
    */
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
 
-    def options(origin: Header, acrm: Header): HttpService =
-      (service |+| ok).map {
-        case resp: Response =>
-          if (resp.status.isSuccess)
-            corsHeaders(origin.value, acrm.value)(resp)
-          else {
-            logger.info(s"CORS headers would have been allowed for ${req.method} ${req.uri}")
-            resp
-          }
-        case Pass =>
-          logger.warn("Unexpected Pass in CORS. This is probably a bug.")
-          Pass
-      }
+    /**
+     * Always reply with success for an OPTIONS request. The headers to send back are determined by the config.
+     */
+    def options(origin: Header, acrm: Header): HttpService = ok.map(corsHeaders(origin.value, acrm.value)(_))
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
       config.allowedHeaders.map(_.mkString("", ", ", "")).cata(
