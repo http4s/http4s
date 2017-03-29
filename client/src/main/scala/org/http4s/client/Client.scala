@@ -87,8 +87,8 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     Stream.eval(open(req))
       .flatMap {
         case DisposableResponse(response, dispose) =>
-          Stream.eval(dispose)
-            .flatMap(_ => f(response))
+          f(response)
+          .onFinalize(dispose)
       }
   }
 
