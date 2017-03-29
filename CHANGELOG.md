@@ -1,3 +1,34 @@
+# v0.16.0 (unreleased)
+* Fix type of `AuthedService.empty`
+* Eliminate `Fallthrough` typeclass.  An `HttpService` now returns
+  `MaybeResponse`, which can be a `Response` or `Pass`.  There is a
+  `Semigroup[MaybeResponse]` instance that allows `HttpService`s to be
+  chained as a semigroup.  `service orElse anotherService` is
+  deprecated in favor of `service |+| anotherService`.
+* Support configuring blaze and Jetty servers with a custom
+  `SSLContext`.
+* Upgraded dependencies for various modules:
+    * circe-0.7.0
+	* jetty-9.4.2.v20170220
+	* logback-1.2.1
+	* log4s-1.3.4
+	* metrics-3.2.0
+* Deprecate `EntityEncoder[ByteBuffer]` and
+  `EntityEncoder[CharBuffer]`.
+* Add `EntityDecoder[Unit]`.
+* Move `ResponseClass`es into `Status`.
+* Use `SSLContext.getDefault` by default in blaze-client.  Use
+  `BlazeServerConfig.insecure` to ignore certificate validity.  But
+  please don't.
+* Move `CaseInsensitiveString` syntax to `org.http4s.syntax`.
+* Bundle an internal version of parboiled2.  This decouples core from
+  shapeless, allowing applications to use their preferred version of
+  shapeless.
+* Rename `endpointAuthentication` to `checkEndpointAuthentication`.
+* Add a `WebjarService` for serving files out of web jars.
+* Implement `Retry-After` header.
+* Stop building with `delambdafy` on Scala 2.11.
+
 # v0.15.7 (2017-03-09)
 * Change default server and client executors to a minimum of four
   threads.

@@ -4,6 +4,7 @@ import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
 
+import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 
 import cats._
@@ -15,6 +16,7 @@ import org.http4s.headers._
 import org.http4s.batteries._
 import org.http4s.multipart._
 
+@implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.")
 trait EntityEncoder[A] { self =>
   import EntityEncoder._
 

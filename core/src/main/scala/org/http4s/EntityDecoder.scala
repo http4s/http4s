@@ -1,14 +1,17 @@
 package org.http4s
 
-import java.io._
+import java.io.{File, FileOutputStream, PrintStream}
 
+import scala.annotation.implicitNotFound
+import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 
 import fs2._
 import fs2.io._
-import org.http4s.headers._
 import org.http4s.batteries._
-import org.http4s.multipart._
+import org.http4s.headers.`Content-Type`
+// TODO fs2 import org.http4s.multipart.{Multipart, MultipartDecoder}
+import scodec.bits.ByteVector
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -17,6 +20,7 @@ import org.http4s.multipart._
   * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
+@implicitNotFound("Cannot decode into a value of type ${T}, because no EntityDecoder[${T}] instance could be found.")
 trait EntityDecoder[T] { self =>
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message, strict: Boolean): DecodeResult[T]
@@ -171,7 +175,7 @@ trait EntityDecoderInstances {
 */
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit val void: EntityDecoder[Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg => 
+  implicit val void: EntityDecoder[Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg =>
     DecodeResult.success(msg.body.drain.run)
   )
 }
