@@ -17,6 +17,9 @@ The http4s community is available on [Gitter].  The core developers
 and many of our users are here to provide support, get feedback, and
 discuss the next steps on the project. For those who prefer IRC,
 Gitter provides an [IRC bridge].
+
+[Gitter]: https://gitter.im/http4s/http4s
+[IRC bridge]: https://irc.gitter.im/
 {{% /panel %}}
 
 {{% panel "Issues" %}}
@@ -24,6 +27,8 @@ http4s uses [GitHub issues]. If you think you’ve hit a bug or have an
 idea of what we should do next, please don’t hesitate to submit an
 issue. Your bug reports and request make the project better for
 everyone.
+
+[GitHub issues]: https://github.com/http4s/http4s/issues
 {{% /panel %}}
 
 {{% panel "Twitter" %}}
@@ -34,13 +39,13 @@ or Issues to discuss in depth.
 [@http4s]: https://twitter.com/http4s
 {{% /panel %}}
 
-{{% panel "Contributing" %}} 
+{{% panel "Contributing" %}}
 http4s is an open source project, and depends on its users to continue
 to improve.  Here's how you can help:
 
 * [Submit an issue or pull request](http://github.com/http4s/http4s/issues/new).
 * If we helped you, improve a doc. See the edit links at the bottom of each page.
-* See the [contributors' guide](http://github.com/http4s/http4s/CONTRIBUTING.md)
+* See the [contributors' guide](https://github.com/http4s/http4s/blob/master/CONTRIBUTING.md)
   for more.
 {{% /panel %}}
 
@@ -54,9 +59,3 @@ to improve.  Here's how you can help:
   [Python WSGI](https://www.python.org/dev/peps/pep-0333/), and
   [Haskell WAI](http://www.yesodweb.com/book/web-application-interface).
 {{% /panel %}}
-
-[Gitter]: https://gitter.im/http4s/http4s
-[IRC bridge]: https://irc.gitter.im/
-[GitHub issues]: https://github.com/http4s/http4s/issues
-[Typelevel]: http://typelevel.org/
-[Typelevel Code of Conduct]: http://typelevel.org/conduct.html

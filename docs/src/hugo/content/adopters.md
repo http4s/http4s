@@ -11,7 +11,7 @@ title: Adopters
 : Has about 10 services in production at thousands of requests per second.
 
 [Verizon](http://www.verizon.com)
-: Uses https extensively in its internal services and [open source projects](http://verizon.github.io).
+: Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 	
 ## Open Source
 
@@ -29,3 +29,6 @@ title: Adopters
 
 [rho (ρ)](http://github.com/http4s/rho)
 : a self-documenting HTTP server DSL built upon http4s
+
+[0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
+: A simple link-shortener
