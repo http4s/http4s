@@ -19,10 +19,10 @@
 package org.http4s
 
 import java.nio.charset.{Charset => NioCharset, StandardCharsets}
-import java.util.Locale
+import java.util.{HashMap, Locale}
 import scala.collection.JavaConverters._
 import org.http4s.util._
-import scalaz.\/
+import scalaz.{\/, -\/, \/-}
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def satisfies(charsetRange: CharsetRange): Boolean = charsetRange isSatisfiedBy this
@@ -44,17 +44,20 @@ object Charset {
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups
   // that will succeed.
-  private val cache: Map[String, NioCharset] =
-    (for {
+  private val cache: HashMap[String, NioCharset] = {
+    val map = new HashMap[String, NioCharset]
+    for {
       cs <- NioCharset.availableCharsets.values.asScala
       name <- cs.name :: cs.aliases.asScala.toList
-    } yield (name.toLowerCase(Locale.ROOT), cs)).toMap
+    } map.put(name.toLowerCase(Locale.ROOT), cs)
+    map
+  }
 
   def fromNioCharset(nioCharset: NioCharset): Charset = Charset(nioCharset)
 
   def fromString(name: String): ParseResult[Charset] =
     cache.get(name.toLowerCase(Locale.ROOT)) match {
-      case Some(nioCharset) => \/.right(Charset.apply(nioCharset))
-      case None => \/.left(ParseFailure("Invalid charset", s"$name is not a supported Charset"))
+      case nioCharset: NioCharset => \/-(Charset.apply(nioCharset))
+      case null => -\/(ParseFailure("Invalid charset", s"$name is not a supported Charset"))
     }
 }
