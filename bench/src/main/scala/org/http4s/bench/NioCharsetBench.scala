@@ -4,7 +4,7 @@ package bench
 import java.nio.charset.{Charset => NioCharset, UnsupportedCharsetException}
 import java.util.{HashMap, Locale}
 import java.util.concurrent.TimeUnit
-import scala.collection.mutable.AnyRefMap
+import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.util.Try
 import scalaz.\/
@@ -28,8 +28,8 @@ class NioCharsetBench {
     map
   }
 
-  private val scalaCache: AnyRefMap[String, NioCharset] =
-    AnyRefMap(javaCache.asScala.toSeq: _*)
+  private val scalaCache: mutable.Map[String, NioCharset] =
+    mutable.Map(javaCache.asScala.toSeq: _*)
 
   def javaCached(name: String) =
     javaCache.get(name.toLowerCase(Locale.ROOT)) match {
