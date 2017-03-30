@@ -43,9 +43,6 @@ final case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
-  private[CORS] val ok =
-    Service.constVal[Request, Response](Response(Status.Ok))
-
   def DefaultCORSConfig = CORSConfig(
     anyOrigin = true,
     allowCredentials = true,
@@ -59,8 +56,8 @@ object CORS {
    */
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
     
-    //Always reply with success for an OPTIONS request. The headers to send back are determined by the config.
-    def options(origin: Header, acrm: Header): HttpService = ok.map(corsHeaders(origin.value, acrm.value)(_))
+    // In the case of an options request we want to return a simple response with the correct Headers set.
+    def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value)(Response())
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
       config.allowedHeaders.map(_.mkString("", ", ", "")).cata(
@@ -88,7 +85,7 @@ object CORS {
     (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
       case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
         logger.debug(s"Serving OPTIONS with CORS headers for ${acrm} ${req.uri}")
-        options(origin, acrm)(req)
+        Task.now(createOptionsResponse(origin, acrm))
       case (_, Some(origin), _) =>
         if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString))) {
           service(req).map {
