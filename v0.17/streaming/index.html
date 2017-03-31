@@ -118,7 +118,7 @@ import fs2.Task
 
 // fs2's `time` module needs an implicit `Scheduler`
 implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
-// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@336bfc0[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
+// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@5c90949a[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
 
 // fs2 `Async` needs an implicit `Strategy`
 implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
@@ -132,7 +132,7 @@ val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$42425/636642508@2e49fb1e)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$41261/88470449@34fbf266)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -164,7 +164,7 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.16.0-SNAPSHOT&quot;,
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.17.0-SNAPSHOT&quot;,
   &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.6.1&quot;
 )
 </code></pre>
@@ -240,7 +240,7 @@ example as a bonus!</p>
                 
                 <li class="previous"><a href="http://http4s.org/v0.17/entity/"><i class="fa fa-arrow-left"></i> Entity handling</a></li>
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tutv0.17/streaming.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/streaming.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
                 <li class="next"><a href="http://http4s.org/v0.17/json/">JSON handling <i class="fa fa-arrow-right"></i></a></li>
                 
@@ -306,7 +306,7 @@ example as a bonus!</p>
               </li>
               
               <li >
-                <a href="/v0.16/api">Scaladoc</a>
+                <a href="/v0.17/api">Scaladoc</a>
               </li>
               
             </ul>

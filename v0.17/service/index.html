@@ -87,7 +87,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.11.8&quot; // Also supports 2.10.x
 
-val http4sVersion = &quot;0.16.0-SNAPSHOT&quot;
+val http4sVersion = &quot;0.17.0-SNAPSHOT&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -139,7 +139,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$42981/845420799@5764156c)
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$41817/1105212598@27e489c2)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -180,7 +180,7 @@ val tweetService = HttpService {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$42981/845420799@4b11f04c)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$41817/1105212598@5a95e3d6)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -207,10 +207,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$42989/1668154731@5db7518f)
+// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$41825/677513744@286fa7e)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@612303e9
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@38522aac
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -261,7 +261,7 @@ it down:</p>
                 
                 <li class="previous"><a href="http://http4s.org/v0.17/"><i class="fa fa-arrow-left"></i> Quick Start</a></li>
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tutv0.17/service.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/service.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
                 <li class="next"><a href="http://http4s.org/v0.17/dsl/">The http4s DSL <i class="fa fa-arrow-right"></i></a></li>
                 
@@ -327,7 +327,7 @@ it down:</p>
               </li>
               
               <li >
-                <a href="/v0.16/api">Scaladoc</a>
+                <a href="/v0.17/api">Scaladoc</a>
               </li>
               
             </ul>

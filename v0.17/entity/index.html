@@ -153,17 +153,17 @@ scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =&g
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@3ed9c75d
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@64fa7988
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@6fbd5dc2
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@5f80c29f
 
 scala&gt; val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@20a913a9
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@ec46a3f
 
 scala&gt; println(response.as(bothDec).unsafeRun)
 Audio()
@@ -214,7 +214,7 @@ cause conflicts with the builtin Decoders.</p>
                 
                 <li class="previous"><a href="http://http4s.org/v0.17/client/"><i class="fa fa-arrow-left"></i> HTTP Client</a></li>
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tutv0.17/entity.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/entity.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
                 <li class="next"><a href="http://http4s.org/v0.17/streaming/">Streaming <i class="fa fa-arrow-right"></i></a></li>
                 
@@ -280,7 +280,7 @@ cause conflicts with the builtin Decoders.</p>
               </li>
               
               <li >
-                <a href="/v0.16/api">Scaladoc</a>
+                <a href="/v0.17/api">Scaladoc</a>
               </li>
               
             </ul>

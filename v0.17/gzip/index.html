@@ -102,7 +102,7 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$43967/681039555@f6f9233)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$42837/1980494060@757a608e)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
@@ -124,7 +124,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$44118/357498076@1e238888)
+// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$42988/1548026802@1fa32e0d)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRun
@@ -176,7 +176,7 @@ Task using <code>map</code>, <code>flatMap</code> and/or <code>for</code>. Remem
                 
                 <li class="previous"><a href="http://http4s.org/v0.17/cors/"><i class="fa fa-arrow-left"></i> CORS</a></li>
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.16.x/docs/src/main/tutv0.17/gzip.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/gzip.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
                 <li class="next"><a href="http://http4s.org/v0.17/static/">Static Files <i class="fa fa-arrow-right"></i></a></li>
                 
@@ -242,7 +242,7 @@ Task using <code>map</code>, <code>flatMap</code> and/or <code>for</code>. Remem
               </li>
               
               <li >
-                <a href="/v0.16/api">Scaladoc</a>
+                <a href="/v0.17/api">Scaladoc</a>
               </li>
               
             </ul>
