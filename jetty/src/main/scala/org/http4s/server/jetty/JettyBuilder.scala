@@ -24,6 +24,7 @@ import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletHolder, ServletContextHandler}
 
+@deprecated("Use Jetty instead", "0.16")
 sealed class JettyBuilder private(
   socketAddress: InetSocketAddress,
   private val serviceExecutor: ExecutorService,
@@ -98,7 +99,7 @@ sealed class JettyBuilder private(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        threadPool = builder.serviceExecutor
+        serviceExecutor = Some(builder.serviceExecutor)
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
@@ -207,6 +208,7 @@ sealed class JettyBuilder private(
   }
 }
 
+@deprecated("Use Jetty instead", "0.16")
 object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = ServerBuilder.DefaultServiceExecutor,
@@ -217,4 +219,5 @@ object JettyBuilder extends JettyBuilder(
   mounts = Vector.empty
 )
 
+@deprecated("Used only by deprecated JettyBuilder", "0.16")
 private final case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)

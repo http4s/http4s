@@ -21,7 +21,7 @@ import org.log4s.getLogger
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    threadPool: ExecutorService = DefaultPool,
+                    serviceExecutor: Option[ExecutorService] = None,
                     private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
   extends HttpServlet
 {
@@ -85,14 +85,15 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response = Task.fork {
+    val response = Task.delay {
       try serviceFn(request)
         // Handle message failures coming out of the service as failed tasks
         .handleWith(messageFailureHandler(request))
       catch
         // Handle message failures _thrown_ by the service, just in case
         messageFailureHandler(request)
-    }(threadPool)
+    }.flatMap(identity)
+    val forked = serviceExecutor.fold(response)(Task.fork(response)(_))
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }
