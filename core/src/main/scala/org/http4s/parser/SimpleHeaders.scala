@@ -18,7 +18,6 @@
 package org.http4s
 package parser
 
-
 import headers._
 import java.net.InetAddress
 import java.time.Instant

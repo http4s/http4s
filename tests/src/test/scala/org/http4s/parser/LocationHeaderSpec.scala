@@ -1,7 +1,6 @@
 package org.http4s
 package parser
 
-import org.http4s.{Headers, Header, Http4sSpec, Uri}
 import headers.Location
 
 import scalaz.\/-
@@ -15,7 +14,7 @@ class LocationHeaderSpec extends Http4sSpec {
       val \/-(uri) = Uri.fromString(s)
       val hs = Headers(Header("Location", s))
 
-      hs.get(Location) must_== Some(Location(uri))
+      hs.get(Location) must beSome(Location(uri))
     }
 
     "Parse a simple uri with a path but no authority" in {
@@ -23,7 +22,7 @@ class LocationHeaderSpec extends Http4sSpec {
       val \/-(uri) = Uri.fromString(s)
       val hs = Headers(Header("Location", s))
 
-      hs.get(Location) must_== Some(Location(uri))
+      hs.get(Location) must beSome(Location(uri))
     }
 
     "Parse a relative reference" in {
@@ -31,7 +30,7 @@ class LocationHeaderSpec extends Http4sSpec {
       val \/-(uri) = Uri.fromString(s)
       val hs = Headers(Header("Location", s))
 
-      hs.get(Location) must_== Some(Location(uri))
+      hs.get(Location) must beSome(Location(uri))
     }
   }
 }
