@@ -4,10 +4,11 @@ addons:
     packages:
       - oracle-java8-installer
 scala:
-- 2.12.1
-- 2.11.8
-- 2.10.6
+  - 2.12.1
+  - 2.11.8
+  - 2.10.6
 jdk: oraclejdk8
+dist: trusty
 env:
   global:
   - HUGO_VERSION=0.18
@@ -17,10 +18,10 @@ env:
   - SCALAZ_VERSION=7.2.9
   - SCALAZ_VERSION=7.1.11
 before_script:
-- mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
-- curl -L -o $HOME/.sbt/launchers/$SBT_VERSION/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch.jar
-- mkdir $HOME/bin
-- export PATH=$HOME/bin:$PATH
+  - mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
+  - curl -L -o $HOME/.sbt/launchers/$SBT_VERSION/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch.jar
+  - mkdir $HOME/bin
+  - export PATH=$HOME/bin:$PATH
 script: bash bin/travis
 notifications:
   webhooks:
