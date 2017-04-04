@@ -1,0 +1,14 @@
+package org.http4s.tls
+@target(Scala)
+
+type TlsConfig {
+  keyStore: String
+  keyStorePassword: String
+  keyManagerPassword: String
+  protocol: String!
+  clientAuth: org.http4s.tls.ClientAuth!
+  trustStore: String
+  trustStorePassword: String
+
+  #xcompanion val default = TlsConfig(keyStore = None, keyStorePassword = None, keyManagerPassword = None, protocol = "TLS", clientAuth = org.http4s.tls.ClientAuth.None, trustStore = None, trustStorePassword = None)
+}

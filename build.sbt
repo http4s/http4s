@@ -39,6 +39,7 @@ lazy val parboiled2 = libraryProject("parboiled2")
 
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
