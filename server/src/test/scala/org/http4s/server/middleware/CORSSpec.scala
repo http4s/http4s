@@ -54,10 +54,10 @@ class CORSSpec extends Http4sSpec {
       cors2.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafePerformSync
     }
 
-    "Always Respect unsuccesful replies to OPTIONS requests" in {
+    "Always respond with 200 and empty body for OPTIONS request" in {
       val req = buildRequest("/bar", OPTIONS)
-      cors1.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafePerformSync
-      cors2.orNotFound(req).map(_.headers must not contain(headerCheck _)).unsafePerformSync
+      cors1.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafePerformSync
+      cors2.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafePerformSync
     }
 
     "Fall through" in {
