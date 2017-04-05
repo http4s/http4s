@@ -1,0 +1,10 @@
+package org.http4s.servlet
+@target(Scala)
+
+type Http4sServletConfig {
+  serviceExecutor: java.util.concurrent.ExecutorService
+  asyncTimeout: scala.concurrent.duration.Duration!
+  servletIo: org.http4s.servlet.ServletIo!
+
+  #xcompanion val default: Http4sServletConfig = new Http4sServletConfig(serviceExecutor = None, asyncTimeout = scala.concurrent.duration.Duration(30, java.util.concurrent.TimeUnit.SECONDS), servletIo = org.http4s.servlet.NonBlockingServletIo(4096)): Http4sServletConfig
+}

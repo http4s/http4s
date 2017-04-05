@@ -132,6 +132,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
 lazy val servlet = libraryProject("servlet")
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(

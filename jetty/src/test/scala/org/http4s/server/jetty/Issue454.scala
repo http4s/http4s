@@ -5,7 +5,7 @@ package jetty
 
 import org.eclipse.jetty.server.{ServerConnector, Server, HttpConnectionFactory, HttpConfiguration}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
-import org.http4s.servlet.Http4sServlet
+import org.http4s.servlet.{Http4sServlet, Http4sServletConfig, NonBlockingServletIo}
 import org.http4s.dsl._
 
 object Issue454 {
@@ -40,10 +40,7 @@ object Issue454 {
     server.start()
   }
 
-  val servlet = new Http4sServlet(
-    service      = HttpService {
-      case req@GET -> Root => Ok(insanelyHugeData)
-    },
-    servletIo    = org.http4s.servlet.NonBlockingServletIo(4096)
-  )
+  val servlet = new Http4sServlet(HttpService {
+    case req @ GET -> Root => Ok(insanelyHugeData)
+  }, Http4sServletConfig.default.withServletIo(NonBlockingServletIo(4096)))
 }

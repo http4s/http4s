@@ -14,7 +14,7 @@ import javax.net.ssl.SSLContext
 import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.ServerConnector
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet, Http4sServletConfig}
 
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
@@ -95,11 +95,12 @@ sealed class JettyBuilder private(
 
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
     copy(mounts = mounts :+ Mount { (context, index, builder) =>
-      val servlet = new Http4sServlet(
-        service = service,
-        asyncTimeout = builder.asyncTimeout,
-        servletIo = builder.servletIo,
-        serviceExecutor = Some(builder.serviceExecutor)
+      val servlet = new Http4sServlet(service,
+        Http4sServletConfig(
+          asyncTimeout = builder.asyncTimeout,
+          servletIo = builder.servletIo,
+          serviceExecutor = Some(builder.serviceExecutor)
+        )
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)

@@ -13,7 +13,7 @@ import org.apache.catalina.util.ServerInfo
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.internal.compatibility._
 import org.http4s.internal.kestrel._
-import org.http4s.servlet.{ Http4sServlet, ServletContainer, ServletIo }
+import org.http4s.servlet.{ Http4sServlet, Http4sServletConfig, ServletContainer, ServletIo }
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
 import org.http4s.tls.{ClientAuth, TlsConfig}
@@ -170,18 +170,11 @@ final class TomcatConfig private (config: Tomcat => Unit, banner: List[String]) 
 
   def mountService(
     service: HttpService,
-    prefix: String,
-    serviceExecutor: Option[ExecutorService] = None,
-    asyncTimeout: Duration = 30.seconds,
-    servletIo: ServletIo = ServletContainer.DefaultServletIo,
-    servletName: String = s"http4s-servlet-${UUID.randomUUID}"
+    prefix: String = "/",
+    http4sServletConfig: Http4sServletConfig = Http4sServletConfig.default,
+    servletName: String = s"http4s-service-${UUID.randomUUID}"
   ): TomcatConfig = {
-    val servlet = new Http4sServlet(
-      service = service,
-      asyncTimeout = asyncTimeout,
-      servletIo = servletIo,
-      serviceExecutor = serviceExecutor
-    )
+    val servlet = new Http4sServlet(service, http4sServletConfig)
     val urlMapping = ServletContainer.prefixMapping(prefix)
     mountServlet(servlet, urlMapping)
   }

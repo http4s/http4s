@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet, Http4sServletConfig}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
 import org.http4s.util.threads.DefaultPool
@@ -87,11 +87,12 @@ sealed class TomcatBuilder private (
 
   override def mountService(service: HttpService, prefix: String): TomcatBuilder =
     copy(mounts = mounts :+ Mount { (ctx, index, builder) =>
-      val servlet = new Http4sServlet(
-        service = service,
-        asyncTimeout = builder.asyncTimeout,
-        servletIo = builder.servletIo,
-        serviceExecutor = Some(builder.serviceExecutor)
+      val servlet = new Http4sServlet(service,
+        Http4sServletConfig(
+          asyncTimeout = builder.asyncTimeout,
+          servletIo = builder.servletIo,
+          serviceExecutor = Some(builder.serviceExecutor)
+        )
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))

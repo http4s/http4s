@@ -4,12 +4,11 @@ package jetty
 
 import java.net.InetSocketAddress
 import java.util
-import java.util.EnumSet
-import java.util.concurrent.Executor
-import java.util.concurrent.ExecutorService
+import java.util.{EnumSet, UUID}
+import java.util.concurrent.{Executor, ExecutorService}
 import javax.net.ssl.SSLContext
-import javax.servlet.http.HttpServlet
 import javax.servlet.{DispatcherType, Filter}
+import javax.servlet.http.HttpServlet
 import scala.concurrent.duration._
 
 import org.eclipse.jetty.server.{Server => JServer, _}
@@ -20,7 +19,7 @@ import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.http4s.internal.compatibility._
 import org.http4s.internal.kestrel._
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet, Http4sServletConfig}
 import org.http4s.util.DefaultBanner
 import org.log4s.getLogger
 import scalaz.concurrent.Task
@@ -159,9 +158,13 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
    * should end in an asterisk.  The asterisk is not implied to
    * support the full range of servlet mappings.
    */
-  def mountServlet(servlet: HttpServlet, urlMapping: String = "/*"): JettyConfig =
+  def mountServlet(
+    servlet: HttpServlet,
+    urlMapping: String,
+    servletName: String = s"servlet-${UUID.randomUUID}"
+  ): JettyConfig =
     configureServletContextHandler { handler =>
-      handler.addServlet(new ServletHolder(servlet), urlMapping)
+      handler.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     }
 
   /**
@@ -176,10 +179,11 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
   def mountFilter(
     filter: Filter,
     urlMapping: String = "/*",
-    dispatches: util.EnumSet[DispatcherType] = EnumSet.of(DispatcherType.REQUEST)
+    dispatches: util.EnumSet[DispatcherType] = EnumSet.of(DispatcherType.REQUEST),
+    filterName: String = s"filter-${UUID.randomUUID}"
   ): JettyConfig =
     configureServletContextHandler { handler =>
-      handler.addFilter(new FilterHolder(filter), urlMapping, dispatches)
+      handler.addFilter(new FilterHolder(filter).tap(_.setName(filterName)), urlMapping, dispatches)
     }
 
   /**
@@ -199,12 +203,11 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
   def mountService(
     service: HttpService,
     prefix: String = "/",
-    executor: Option[ExecutorService] = None,
-    asyncTimeout: Duration = 30.seconds,
-    servletIo: ServletIo = ServletContainer.DefaultServletIo
+    http4sServletConfig: Http4sServletConfig = Http4sServletConfig.default,
+    servletName: String = s"http4s-service-${UUID.randomUUID}",
   ): JettyConfig = {
     val urlMapping = ServletContainer.prefixMapping(prefix)
-    mountServlet(new Http4sServlet(service, asyncTimeout, executor, servletIo), urlMapping)
+    mountServlet(new Http4sServlet(service, http4sServletConfig), urlMapping)
   }
 
   /** Configure the server startup banner text
