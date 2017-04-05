@@ -1,0 +1,11 @@
+package org.http4s.server.tomcat
+@target(Scala)
+
+type TomcatConfig {
+  configureTomcat: TomcatConfigurer!
+  banner: [String]!
+
+  #xinterface TomcatConfigBase
+
+  #xcompanion val default = TomcatConfig({ _: org.apache.catalina.startup.Tomcat => () }, org.http4s.util.DefaultBanner)
+}

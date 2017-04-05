@@ -155,12 +155,14 @@ lazy val jetty = libraryProject("jetty")
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
 lazy val tomcat = libraryProject("tomcat")
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Tomcat implementation for http4s servers",
     libraryDependencies ++= Seq(
       tomcatCatalina,
       tomcatCoyote
-    )
+    ),
+    contrabandScalaArray in (Compile, generateContrabands) := "List"
   )
   .dependsOn(servlet % "compile;test->test")
 

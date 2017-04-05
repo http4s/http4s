@@ -13,5 +13,5 @@ object TomcatSslExample extends ServerApp {
   def server(args: List[String]) = TomcatConfig.default
     .bindHttps(8443, tlsConfig = tlsConfig)
     .mountService(ExampleService.service, "/http4s")
-    .start()
+    .start
 }

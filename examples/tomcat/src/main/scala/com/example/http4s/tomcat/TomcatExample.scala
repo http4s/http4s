@@ -13,5 +13,5 @@ object TomcatExample extends ServerApp {
     .bindHttp(8080)
     .mountService(Metrics(metrics)(ExampleService.service), "/http4s")
     .mountService(metricsService(metrics), "/metrics/*")
-    .start()
+    .start
 }

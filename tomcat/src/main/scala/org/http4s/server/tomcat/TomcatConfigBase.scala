@@ -7,9 +7,11 @@ import java.util.{EnumSet, UUID}
 import javax.servlet.{Filter, DispatcherType, ServletContext, ServletContainerInitializer}
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
-import org.apache.catalina.connector.Connector
-import org.apache.catalina.util.ServerInfo
 
+import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.catalina.connector.Connector
+import org.apache.catalina.startup.Tomcat
+import org.apache.catalina.util.ServerInfo
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.internal.compatibility._
 import org.http4s.internal.kestrel._
@@ -24,22 +26,18 @@ import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
-import org.apache.catalina.startup.Tomcat
-import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 
 /** Configures an embedded Tomcat server. */
-final class TomcatConfig private (config: Tomcat => Unit, banner: List[String]) {
+private[tomcat] abstract class TomcatConfigBase { self: TomcatConfig =>
   private val logger = getLogger
 
   /** Returns a task to start a Jetty server.  Call one of the
    * `.unsafePerform` methods on the task to start the server.
-   *
-   * @param jetty A Jetty server instance to be configured
    */
-  def start(tomcat: Tomcat = new Tomcat): Task[Server] =
+  def start: Task[Server] =
     Task.delay {
-
-      config(tomcat)
+      val tomcat = new Tomcat
+      configureTomcat(tomcat)
       tomcat.getService.findConnectors.headOption match {
         case Some(connector) =>
           // Make the first connector the default connector
@@ -86,7 +84,7 @@ final class TomcatConfig private (config: Tomcat => Unit, banner: List[String]) 
    * `start` task
    */
   def configure(f: Tomcat => Unit): TomcatConfig =
-    new TomcatConfig(server => f(server.tap(config)), banner)
+    withConfigureTomcat { tomcat: Tomcat => configureTomcat(tomcat); f(tomcat) }
 
   def bindHttp(
     port: Int = 8080,
@@ -178,9 +176,4 @@ final class TomcatConfig private (config: Tomcat => Unit, banner: List[String]) 
     val urlMapping = ServletContainer.prefixMapping(prefix)
     mountServlet(servlet, urlMapping)
   }
-}
-
-object TomcatConfig {
-  val default: TomcatConfig =
-    new TomcatConfig(_ => (), DefaultBanner)
 }
