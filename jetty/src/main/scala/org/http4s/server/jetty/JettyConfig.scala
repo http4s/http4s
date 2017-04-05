@@ -5,11 +5,10 @@ package jetty
 import java.net.InetSocketAddress
 import java.util
 import java.util.{EnumSet, UUID}
-import java.util.concurrent.{Executor, ExecutorService}
+import java.util.concurrent.Executor
 import javax.net.ssl.SSLContext
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
-import scala.concurrent.duration._
 
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletHolder, ServletContextHandler}
@@ -19,14 +18,13 @@ import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.http4s.internal.compatibility._
 import org.http4s.internal.kestrel._
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet, Http4sServletConfig}
+import org.http4s.servlet.{ServletContainer, Http4sServlet, Http4sServletConfig}
 import org.http4s.tls.ClientAuth
-import org.http4s.util.DefaultBanner
 import org.log4s.getLogger
 import scalaz.concurrent.Task
 
 /** Configures an embedded Jetty server. */
-final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[String]) { self =>
+private[jetty] abstract class JettyConfigBase { self: JettyConfig =>
   private[this] val log = getLogger
 
   /** Returns a task to start a Jetty server.  Call one of the
@@ -34,9 +32,10 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
    *
    * @param jetty A Jetty server instance to be configured
    */
-  def start(jetty: JServer = new JServer): Task[Server] =
+  def start: Task[Server] =
     Task.delay {
-      config(jetty)
+      val jetty = new JServer(threadPool.orNull)
+      configureJetty(jetty)
       jetty.start()
       banner.foreach(_.lines.foreach(log.info(_)))
       log.info(s"Started http4s-${BuildInfo.version} on jetty-${JettyVersion}")
@@ -70,8 +69,8 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
    *
    * @param jetty A Jetty server instance to be configured
    */
-  def unsafeRun(jetty: JServer = new JServer): Server =
-    start(jetty).unsafePerformSync
+  def unsafeRun: Server =
+    start.unsafePerformSync
 
   /**
    * Adds a configuration step to the Jetty server.
@@ -80,7 +79,7 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
    * `start` task
    */
   def configure(f: JServer => Unit): JettyConfig =
-    new JettyConfig(server => f(server.tap(config)), banner)
+    withConfigureJetty { jetty => configureJetty(jetty); f(jetty) }
 
   /**
    * Adds an HTTP connector to the Jetty server
@@ -212,20 +211,4 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
     val urlMapping = ServletContainer.prefixMapping(prefix)
     mountServlet(new Http4sServlet(service, http4sServletConfig), urlMapping)
   }
-
-  /** Configure the server startup banner text
-   *
-   * @param banner the default banner
-   */
-  def withBanner(banner: List[String]) =
-    new JettyConfig(config, banner = banner)
-
-  /** Disable the server startup banner text */
-  def noBanner: JettyConfig =
-    withBanner(Nil)
-}
-
-object JettyConfig {
-  val default: JettyConfig =
-    new JettyConfig(_ => (), DefaultBanner)
 }

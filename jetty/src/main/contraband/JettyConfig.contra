@@ -1,0 +1,12 @@
+package org.http4s.server.jetty
+@target(Scala)
+
+type JettyConfig {
+  threadPool: org.eclipse.jetty.util.thread.ThreadPool
+  configureJetty: JettyConfigurer!
+  banner: [String]!
+
+  #xinterface JettyConfigBase
+
+  #xcompanion val default = JettyConfig(None, { _: org.eclipse.jetty.server.Server => () }, org.http4s.util.DefaultBanner)
+}

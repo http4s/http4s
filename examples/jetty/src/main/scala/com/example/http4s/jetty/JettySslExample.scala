@@ -14,5 +14,5 @@ object JettySslExample extends ServerApp {
   def server(args: List[String]) = JettyConfig.default
     .bindHttps(8443)
     .mountService(ExampleService.service, "/http4s")
-    .start()
+    .start
 }

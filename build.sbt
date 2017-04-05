@@ -144,11 +144,13 @@ lazy val servlet = libraryProject("servlet")
   .dependsOn(server % "compile;test->test")
 
 lazy val jetty = libraryProject("jetty")
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
       jettyServlet
-    )
+    ),
+    contrabandScalaArray in (Compile, generateContrabands) := "List"
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 

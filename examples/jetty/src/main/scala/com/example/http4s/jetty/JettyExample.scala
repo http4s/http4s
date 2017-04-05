@@ -29,5 +29,5 @@ object JettyExample extends ServerApp {
     .mountService(metricsService(metrics), "/metrics")
     .mountServlet(foo, "/foo/*")
     .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
-    .start()
+    .start
 }
