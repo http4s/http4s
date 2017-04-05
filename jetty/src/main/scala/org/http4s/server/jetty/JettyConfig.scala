@@ -20,6 +20,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.http4s.internal.compatibility._
 import org.http4s.internal.kestrel._
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet, Http4sServletConfig}
+import org.http4s.tls.ClientAuth
 import org.http4s.util.DefaultBanner
 import org.log4s.getLogger
 import scalaz.concurrent.Task
@@ -108,9 +109,9 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
    * @param port the port to bind
    * @param host the host to bind
    * @param sslContext the SSL context to use
-   * @param needClientAuth set true to enable client
-   * authentication. If true, The SSL context will need to be
-   * configured with an appropriate trust manager.
+   * @param clientAuth whether client auth is needed or wanted.  If
+   * set to `need`, The SSL context will need to be configured with an
+   * appropriate trust manager.
    * @param executor an executor to run the connector on.  If
    * unspecified, defaults to the Jetty thread pool
    */
@@ -118,12 +119,14 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
     port: Int = 8443,
     host: String = "0.0.0.0",
     sslContext: SSLContext = SSLContext.getDefault,
-    needClientAuth: Boolean = false,
+    clientAuth: ClientAuth = ClientAuth.None,
     executor: Executor = null
   ): JettyConfig =
     configure { server =>
       val sslContextFactory = new SslContextFactory()
         .tap(_.setSslContext(sslContext))
+        .tap(_.setNeedClientAuth(clientAuth == ClientAuth.Need))
+        .tap(_.setWantClientAuth(clientAuth == ClientAuth.Want))
       val httpsConfig = new HttpConfiguration()
         .tap(_.addCustomizer(new SecureRequestCustomizer))
       val connector = new ServerConnector(server, executor, null, null, -1, -1,
@@ -204,7 +207,7 @@ final class JettyConfig private[jetty] (config: JServer => Unit, banner: List[St
     service: HttpService,
     prefix: String = "/",
     http4sServletConfig: Http4sServletConfig = Http4sServletConfig.default,
-    servletName: String = s"http4s-service-${UUID.randomUUID}",
+    servletName: String = s"http4s-service-${UUID.randomUUID}"
   ): JettyConfig = {
     val urlMapping = ServletContainer.prefixMapping(prefix)
     mountServlet(new Http4sServlet(service, http4sServletConfig), urlMapping)
