@@ -88,7 +88,7 @@ private[tomcat] abstract class TomcatConfigBase { self: TomcatConfig =>
 
   def bindHttp(
     port: Int = 8080,
-    host: String = "0.0.0.0"
+    host: String = "127.0.0.1"
   ): TomcatConfig =
     configure { server =>
       server.getService.addConnector(
@@ -100,7 +100,7 @@ private[tomcat] abstract class TomcatConfigBase { self: TomcatConfig =>
 
   def bindHttps(
     port: Int = 8443,
-    host: String = "0.0.0.0",
+    host: String = "127.0.0.1",
     tlsConfig: TlsConfig
   ): TomcatConfig =
     configure { server =>

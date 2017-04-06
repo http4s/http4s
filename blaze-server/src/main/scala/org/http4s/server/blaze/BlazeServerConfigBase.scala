@@ -28,10 +28,10 @@ import scalaz.concurrent.{Strategy, Task}
 private[blaze] abstract class BlazeServerConfigBase { self: BlazeServerConfig =>
   private[this] val logger = getLogger
 
-  def bindHttp(port: Int = 8080, host: String = "0.0.0.0"): BlazeServerConfig =
+  def bindHttp(port: Int = 8080, host: String = "127.0.0.1"): BlazeServerConfig =
     withSocketAddress(InetSocketAddress.createUnresolved(host, port))
 
-  def bindHttps(port: Int = 8443, host: String = "0.0.0.0", sslContext: SSLContext): BlazeServerConfig = {
+  def bindHttps(port: Int = 8443, host: String = "127.0.0.1", sslContext: SSLContext): BlazeServerConfig = {
     withSocketAddress(InetSocketAddress.createUnresolved(host, port))
     withSslContext(sslContext)
   }

@@ -17,7 +17,7 @@ type BlazeServerConfig {
 
   #xinterface BlazeServerConfigBase
 
-  #xcompanion val default = BlazeServerConfig(socketAddress = java.net.InetSocketAddress.createUnresolved("0.0.0.0", 8080), serviceExecutor = None, idleTimeout = scala.concurrent.duration.Duration(30, java.util.concurrent.TimeUnit.SECONDS), serverChannelGroupConfig = Nio1ServerChannelGroupConfig.default, webSocketsEnabled = true, sslContext = None, clientAuth = org.http4s.tls.ClientAuth.None, http2Enabled = false, maxRequestLineLength = 4*1024, maxHeadersLength = 40 * 1024, serviceMounts = Nil, banner = org.http4s.util.DefaultBanner)
+  #xcompanion val default = BlazeServerConfig(socketAddress = java.net.InetSocketAddress.createUnresolved("127.0.0.1", 8080), serviceExecutor = None, idleTimeout = scala.concurrent.duration.Duration(30, java.util.concurrent.TimeUnit.SECONDS), serverChannelGroupConfig = Nio1ServerChannelGroupConfig.default, webSocketsEnabled = true, sslContext = None, clientAuth = org.http4s.tls.ClientAuth.None, http2Enabled = false, maxRequestLineLength = 4*1024, maxHeadersLength = 40 * 1024, serviceMounts = Nil, banner = org.http4s.util.DefaultBanner)
 }
 
 type Nio1ServerChannelGroupConfig {

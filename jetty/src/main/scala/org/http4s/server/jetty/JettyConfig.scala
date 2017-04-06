@@ -44,10 +44,10 @@ private[jetty] abstract class JettyConfigBase { self: JettyConfig =>
         val address =
           jetty.getConnectors.collectFirst {
             case connector: NetworkConnector =>
-              val host = Option(connector.getHost).getOrElse("0.0.0.0")
+              val host = Option(connector.getHost).getOrElse("127.0.0.1")
               val port = connector.getLocalPort
               new InetSocketAddress(host, port)
-          }.getOrElse(new InetSocketAddress("0.0.0.0", 0))
+          }.getOrElse(new InetSocketAddress("127.0.0.1", 8080))
 
         override def shutdown: Task[Unit] =
           Task.delay {
@@ -91,7 +91,7 @@ private[jetty] abstract class JettyConfigBase { self: JettyConfig =>
    */
   def bindHttp(
     port: Int = 8080,
-    host: String = "0.0.0.0",
+    host: String = "127.0.0.1",
     executor: Executor = null
   ): JettyConfig =
     configure { server =>
@@ -116,7 +116,7 @@ private[jetty] abstract class JettyConfigBase { self: JettyConfig =>
    */
   def bindHttps(
     port: Int = 8443,
-    host: String = "0.0.0.0",
+    host: String = "127.0.0.1",
     sslContext: SSLContext = SSLContext.getDefault,
     clientAuth: ClientAuth = ClientAuth.None,
     executor: Executor = null
