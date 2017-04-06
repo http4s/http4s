@@ -14,8 +14,8 @@ env:
   - LOGBACK_ROOT_LEVEL=OFF
   - SBT_VERSION=0.13.13
   matrix:
-  - SCALAZ_VERSION=7.2.9
-  - SCALAZ_VERSION=7.1.11
+  - SCALAZ_VERSION=7.2.10
+  - SCALAZ_VERSION=7.1.12
 before_script:
 - mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
 - curl -L -o $HOME/.sbt/launchers/$SBT_VERSION/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch.jar
