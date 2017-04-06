@@ -168,7 +168,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.7a</td>
+        <td>0.15.8a</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -178,7 +178,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.7</td>
+        <td>0.15.8</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -334,6 +334,17 @@ shapeless.</li>
 <li>Add a <code>WebjarService</code> for serving files out of web jars.</li>
 <li>Implement <code>Retry-After</code> header.</li>
 <li>Stop building with <code>delambdafy</code> on Scala 2.11.</li>
+</ul>
+
+<h1 id="v0-15-8-2017-04-06">v0.15.8 (2017-04-06)</h1>
+
+<ul>
+<li>Cache charset lookups to avoid synchronization.  Resolution of
+charsets is synchronized, with a cache size of two.  This avoids
+the synchronized call on the HTTP pool.</li>
+<li>Strip fragment from request target in blaze-client.  An HTTP request
+target should not include the fragment, and certain servers respond
+with a <code>400 Bad Request</code> in their presence.</li>
 </ul>
 
 <h1 id="v0-15-7-2017-03-09">v0.15.7 (2017-03-09)</h1>
