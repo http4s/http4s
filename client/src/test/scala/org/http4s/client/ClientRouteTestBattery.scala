@@ -7,6 +7,8 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import fs2._
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
+import org.http4s.dsl._
+
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration.FiniteDuration
 
@@ -25,6 +27,15 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   }
 
   name should {
+    "Strip fragments from URI" in {
+      skipped("Can only reproduce against external resource.  Help wanted.")
+      val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
+      val body = client.fetch(Request(uri = uri)) {
+        case resp => Task.now(resp.status)
+      }
+      body must returnValue(Ok)
+    }
+
     "Repeat a simple request" in {
       val path = GetRoutes.SimplePath
       def fetchBody = client.toService(_.as[String]).local { uri: Uri =>

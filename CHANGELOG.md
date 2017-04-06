@@ -29,6 +29,14 @@
 * Implement `Retry-After` header.
 * Stop building with `delambdafy` on Scala 2.11.
 
+# v0.15.8 (2017-04-06)
+* Cache charset lookups to avoid synchronization.  Resolution of
+  charsets is synchronized, with a cache size of two.  This avoids
+  the synchronized call on the HTTP pool.
+* Strip fragment from request target in blaze-client.  An HTTP request
+  target should not include the fragment, and certain servers respond
+  with a `400 Bad Request` in their presence.
+
 # v0.15.7 (2017-03-09)
 * Change default server and client executors to a minimum of four
   threads.

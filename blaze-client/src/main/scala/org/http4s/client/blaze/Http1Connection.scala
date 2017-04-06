@@ -299,7 +299,7 @@ private object Http1Connection {
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
     val uri = req.uri
-    writer << req.method << ' ' << uri.copy(scheme = None, authority = None) << ' ' << req.httpVersion << "\r\n"
+    writer << req.method << ' ' << uri.copy(scheme = None, authority = None, fragment = None) << ' ' << req.httpVersion << "\r\n"
     if (getHttpMinor(req) == 1 && Host.from(req.headers).isEmpty) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>
