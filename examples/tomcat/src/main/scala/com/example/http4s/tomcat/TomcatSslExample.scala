@@ -7,7 +7,7 @@ import org.http4s.tls.TlsConfig
 
 object TomcatSslExample extends ServerApp {
   val tlsConfig = TlsConfig.default
-    .withKeyStore(".././keystore")
+    .withKeyStore("../keystore")
     .withKeyStorePassword("password")
 
   def server(args: List[String]) = TomcatConfig.default
