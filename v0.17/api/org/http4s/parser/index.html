@@ -323,6 +323,18 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="ProxyAuthenticateHeader.html" title="">
                           ProxyAuthenticateHeader
                         </a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="RefererHeader.html" title=""></a>
+                        <a href="RefererHeader.html" title="">
+                          RefererHeader
+                        </a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="UriHeaderParser.html" title=""></a>
+                        <a href="UriHeaderParser.html" title="">
+                          UriHeaderParser
+                        </a>
                       </li><li name="org.http4s.scalaxml" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="scalaxml"></a><a id="scalaxml:scalaxml"></a>
       <span class="permalink">
@@ -565,6 +577,42 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
+    </li><li name="org.http4s.parser.RefererHeader" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RefererHeaderextendsAnyRef"></a><a id="RefererHeader:RefererHeader"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/index.html#RefererHeaderextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="RefererHeader.html">
+              <span class="name">RefererHeader</span>
+            </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.parser.UriHeaderParser" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="UriHeaderParser[A&lt;:org.http4s.Header]extendsHttp4sHeaderParser[A]withRfc3986Parser"></a><a id="UriHeaderParser[A&lt;:Header]:UriHeaderParser[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/parser/index.html#UriHeaderParser[A&lt;:org.http4s.Header]extendsHttp4sHeaderParser[A]withRfc3986Parser" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="UriHeaderParser.html">
+              <span class="name">UriHeaderParser</span>
+            </a><span class="tparams">[<span name="A">A &lt;: <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></span>]</span><span class="result"> extends <span class="extype" name="org.http4s.parser.Http4sHeaderParser">Http4sHeaderParser</span>[<span class="extype" name="org.http4s.parser.UriHeaderParser.A">A</span>] with <span class="extype" name="org.http4s.parser.Rfc3986Parser">Rfc3986Parser</span></span>
+      </span>
+      
+      
     </li></ol>
             </div>
 
@@ -603,7 +651,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       <span class="symbol">
         <a title="" href="HttpHeaderParser$.html">
               <span class="name">HttpHeaderParser</span>
-            </a><span class="result"> extends <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span> with <span class="extype" name="org.http4s.parser.AcceptHeader">AcceptHeader</span> with <span class="extype" name="org.http4s.parser.AcceptLanguageHeader">AcceptLanguageHeader</span> with <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span> with <span class="extype" name="org.http4s.parser.ContentTypeHeader">ContentTypeHeader</span> with <span class="extype" name="org.http4s.parser.CookieHeader">CookieHeader</span> with <span class="extype" name="org.http4s.parser.AcceptCharsetHeader">AcceptCharsetHeader</span> with <span class="extype" name="org.http4s.parser.AcceptEncodingHeader">AcceptEncodingHeader</span> with <span class="extype" name="org.http4s.parser.AuthorizationHeader">AuthorizationHeader</span> with <span class="extype" name="org.http4s.parser.RangeParser">RangeParser</span> with <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a> with <a href="ProxyAuthenticateHeader.html" class="extype" name="org.http4s.parser.ProxyAuthenticateHeader">ProxyAuthenticateHeader</a> with <span class="extype" name="org.http4s.parser.WwwAuthenticateHeader">WwwAuthenticateHeader</span> with <span class="extype" name="org.http4s.parser.ZipkinHeader">ZipkinHeader</span></span>
+            </a><span class="result"> extends <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span> with <span class="extype" name="org.http4s.parser.AcceptHeader">AcceptHeader</span> with <span class="extype" name="org.http4s.parser.AcceptLanguageHeader">AcceptLanguageHeader</span> with <span class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</span> with <span class="extype" name="org.http4s.parser.ContentTypeHeader">ContentTypeHeader</span> with <span class="extype" name="org.http4s.parser.CookieHeader">CookieHeader</span> with <span class="extype" name="org.http4s.parser.AcceptCharsetHeader">AcceptCharsetHeader</span> with <span class="extype" name="org.http4s.parser.AcceptEncodingHeader">AcceptEncodingHeader</span> with <span class="extype" name="org.http4s.parser.AuthorizationHeader">AuthorizationHeader</span> with <span class="extype" name="org.http4s.parser.RangeParser">RangeParser</span> with <a href="LocationHeader.html" class="extype" name="org.http4s.parser.LocationHeader">LocationHeader</a> with <a href="RefererHeader.html" class="extype" name="org.http4s.parser.RefererHeader">RefererHeader</a> with <a href="ProxyAuthenticateHeader.html" class="extype" name="org.http4s.parser.ProxyAuthenticateHeader">ProxyAuthenticateHeader</a> with <span class="extype" name="org.http4s.parser.WwwAuthenticateHeader">WwwAuthenticateHeader</span> with <span class="extype" name="org.http4s.parser.ZipkinHeader">ZipkinHeader</span></span>
       </span>
       
       
