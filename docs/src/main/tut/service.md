@@ -102,11 +102,11 @@ val tweetService = HttpService {
 http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
 
-We start from a `BlazeBuilder`, and then mount the `helloWorldService` under
+We start from a `BlazeServerConfig`, and then mount the `helloWorldService` under
 the base path of `/` and the remainder of the services under the base
 path of `/api`. The services can be mounted in any order as the request will be
-matched against the longest base paths first. The `BlazeBuilder` is immutable
-with chained methods, each returning a new builder.
+matched against the longest base paths first. The `BlazeServerConfig` is immutable
+with chained methods, each returning a modified config.
 
 Multiple `HttpService`s can be combined with the `orElse` method by importing
 `org.http4s.server.syntax._`.
@@ -116,17 +116,22 @@ import org.http4s.server.blaze._
 import org.http4s.server.syntax._
 
 val services = tweetService orElse helloWorldService
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api")
+val serverConfig = {
+  BlazeServerConfig.default
+    .bindHttp(8080, "localhost")
+    .mountService(helloWorldService, "/")
+    .mountService(services, "/api")
+  }
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
 using defaults of port 8080 and the loopback address. The `mountService` call
 associates a base path with a `HttpService`.
 
-A builder can be `run` to start the server.
+A server config can be `unsafeRun` to start the server.
 
 ```tut:book
-val server = builder.run
+val server = serverConfig.unsafeRun
 ```
 
 ### Running your service as an `App`
@@ -142,7 +147,8 @@ import org.http4s.server.blaze._
 
 object Main extends ServerApp {
   override def server(args: List[String]): Task[Server] = {
-    BlazeBuilder
+    BlazeServerConfig
+	  .default
       .bindHttp(8080, "localhost")
       .mountService(services, "/api")
       .start

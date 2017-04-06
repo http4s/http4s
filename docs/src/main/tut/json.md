@@ -217,8 +217,8 @@ val jsonService = HttpService {
 }
 
 import org.http4s.server.blaze._
-val builder = BlazeBuilder.bindHttp(8080).mountService(jsonService, "/")
-val blazeServer = builder.run
+val serverConfig = BlazeServerConfig.default.bindHttp(8080).mountService(jsonService, "/")
+val blazeServer = serverConfig.unsafeRun
 ```
 
 ## A Hello world client

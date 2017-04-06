@@ -16,6 +16,7 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
+import org.http4s.internal.compatibility._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.tls.ClientAuth
 import org.http4s.util.threads.DefaultPool
@@ -114,6 +115,9 @@ private[blaze] abstract class BlazeServerConfigBase { self: BlazeServerConfig =>
         s"BlazeServer($address)"
     }
   }
+
+  def unsafeRun: Server =
+    start.unsafePerformSync
 
   def mountService(service: HttpService, prefix: String): BlazeServerConfig = {
     val prefixedService =
