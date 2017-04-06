@@ -70,7 +70,7 @@ private[tomcat] abstract class TomcatConfigBase { self: TomcatConfig =>
 
         lazy val address: InetSocketAddress = {
           val connector = tomcat.getConnector
-          val host = connector.getAttribute("host").toString
+          val host = connector.getAttribute("address").toString
           val port = connector.getLocalPort
           new InetSocketAddress(host, port)
         }

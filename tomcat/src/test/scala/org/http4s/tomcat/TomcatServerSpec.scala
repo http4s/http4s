@@ -3,5 +3,7 @@ package server
 package tomcat
 
 class TomcatServerSpec extends ServerAddressSpec {
-  val builder = TomcatBuilder
+  def serverOnPort0 = TomcatConfig.default
+    .bindHttp(0)
+    .start
 }

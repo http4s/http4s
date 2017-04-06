@@ -20,7 +20,7 @@ import scalaz.concurrent.{Strategy, Task}
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 
-
+@deprecated("Use TomcatConfig instead", "0.16")
 sealed class TomcatBuilder private (
   socketAddress: InetSocketAddress,
   private val serviceExecutor: ExecutorService,
@@ -177,6 +177,7 @@ sealed class TomcatBuilder private (
   }
 }
 
+@deprecated("Use TomcatConfig.default instead", "0.16")
 object TomcatBuilder extends TomcatBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = Strategy.DefaultExecutorService,
@@ -187,5 +188,6 @@ object TomcatBuilder extends TomcatBuilder(
   mounts = Vector.empty
 )
 
+@deprecated("Used only by deprecated TomcatBuilder", "0.16")
 private final case class Mount(f: (Context, Int, TomcatBuilder) => Unit)
 
