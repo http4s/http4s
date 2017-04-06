@@ -110,8 +110,10 @@ lazy val blazeCore = libraryProject("blaze-core")
   .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
+  .enablePlugins(ContrabandPlugin)
   .settings(
-    description := "blaze implementation for http4s servers"
+    description := "blaze implementation for http4s servers",
+    contrabandScalaArray in (Compile, generateContrabands) := "List"
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
