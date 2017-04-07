@@ -17,13 +17,10 @@ simplicity itself:
 
 ```tut:book
 import scala.concurrent.duration._
-import org.http4s.server.{Server, ServerApp}
-import org.http4s.server.blaze._
-import org.http4s._, org.http4s.dsl._
 import fs2.time
-import fs2.Scheduler
-import fs2.Strategy
-import fs2.Task
+import fs2.{Scheduler, Strategy, Task}
+import org.http4s._
+import org.http4s.dsl._
 
 // fs2's `time` module needs an implicit `Scheduler`
 implicit val scheduler = Scheduler.fromFixedDaemonPool(2)

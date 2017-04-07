@@ -510,7 +510,7 @@ def initCommands(additionalImports: String*) =
     "fs2.interop.cats._",
     "cats._",
     "cats.data._",
-    "cats.implicits.all._"
+    "cats.implicits._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
 addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")

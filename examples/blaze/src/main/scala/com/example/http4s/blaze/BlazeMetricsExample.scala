@@ -2,11 +2,12 @@ package com.example.http4s.blaze
 
 import com.codahale.metrics._
 import com.example.http4s.ExampleService
-import org.http4s.server.{Router, ServerApp}
+import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.metrics._
+import org.http4s.util.StreamApp
 
-object BlazeMetricsExample extends ServerApp {
+object BlazeMetricsExample extends StreamApp {
   val metricRegistry = new MetricRegistry()
 
   val srvc = Router(
@@ -14,7 +15,7 @@ object BlazeMetricsExample extends ServerApp {
     "/metrics" -> metricsService(metricRegistry)
   )
 
-  def server(args: List[String]) = BlazeBuilder.bindHttp(8080)
+  def main(args: List[String]) = BlazeBuilder.bindHttp(8080)
     .mountService(srvc, "/http4s")
-    .start
+    .serve
 }
