@@ -19,15 +19,20 @@ import scala.util.control.NonFatal
 import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 
-class Http4sServlet(service: HttpService,
-                    asyncTimeout: Duration = Duration.Inf,
-                    threadPool: ExecutorService = DefaultPool,
-                    private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
-  extends HttpServlet
-{
-  private[this] val logger = getLogger
+class Http4sServlet(
+  // Yes, a var. It lets servlets get instantiated with no-arg constructor
+  var service: HttpService,
+  var config: Http4sServletConfig
+) extends HttpServlet {
+  def this(service: HttpService) = this(service, Http4sServletConfig.default)
+  def this() = this(HttpService.empty)
 
-  private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
+  private[this] val logger = getLogger
+  private[this] var servletIo: ServletIo = _
+
+  private val asyncTimeoutMillis =
+    if (config.asyncTimeout.isFinite()) config.asyncTimeout.toMillis
+    else -1 // -1 == Inf
 
   private[this] var serverSoftware: ServerSoftware = _
 
@@ -85,14 +90,15 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response = Task.fork {
+    val response = Task.delay {
       try serviceFn(request)
         // Handle message failures coming out of the service as failed tasks
         .handleWith(messageFailureHandler(request))
       catch
         // Handle message failures _thrown_ by the service, just in case
         messageFailureHandler(request)
-    }(threadPool)
+    }.flatMap(identity)
+    val forked = config.serviceExecutor.fold(response)(Task.fork(response)(_))
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }

@@ -7,11 +7,11 @@ import scalaz.{\/-, -\/}
 import scalaz.concurrent.Task
 
 trait ServerAddressSpec extends Http4sSpec {
-  def builder: ServerBuilder
+  def serverOnPort0: Task[Server]
 
   trait ServerContext extends After {
     val address = new InetSocketAddress(0)
-    val server = Task.fork(builder.bindSocketAddress(address).start).unsafePerformSync
+    val server = Task.fork(serverOnPort0).unsafePerformSync
     def after = server.shutdown.unsafePerformSync
   }
 

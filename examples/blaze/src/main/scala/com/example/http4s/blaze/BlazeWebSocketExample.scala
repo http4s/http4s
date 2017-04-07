@@ -2,7 +2,7 @@ package com.example.http4s.blaze
 
 import org.http4s._
 import org.http4s.server.ServerApp
-import org.http4s.server.blaze.BlazeBuilder
+import org.http4s.server.blaze.BlazeServerConfig
 import org.http4s.websocket.WebsocketBits._
 import org.http4s.dsl._
 import org.http4s.server.websocket._
@@ -18,7 +18,7 @@ import scalaz.stream.time.awakeEvery
 
 object BlazeWebSocketExample extends ServerApp {
 
-  val route = HttpService {
+  val service = HttpService {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 
@@ -39,8 +39,9 @@ object BlazeWebSocketExample extends ServerApp {
       WS(Exchange(src, q.enqueue))
   }
 
-  def server(args: List[String]) = BlazeBuilder.bindHttp(8080)
-    .withWebSockets(true)
-    .mountService(route, "/http4s")
+  def server(args: List[String]) = BlazeServerConfig.default
+    .bindHttp(8080)
+    .withWebSocketsEnabled(true)
+    .mountService(service, "/http4s")
     .start
 }

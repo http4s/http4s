@@ -5,6 +5,7 @@ import java.nio.charset.CharsetDecoder
 
 import scodec.bits.ByteVector
 
+import scala.io.Source
 import scalaz.State
 import scalaz.concurrent.Task
 import scalaz.stream.{process1, Channel, Process, Process1}
@@ -13,6 +14,11 @@ import scalaz.stream.io.bufferedChannel
 import scalaz.std.option.none
 
 package object util {
+  /** A default banner to log when starting an http4s server */
+  val DefaultBanner: List[String] =
+    Source.fromURL(getClass.getClassLoader.getResource("org/http4s/banner.txt"))
+      .getLines.toList
+
   /** Temporary.  Contribute back to scalaz-stream. */
   def decode(charset: Charset): Process1[ByteVector, String] = suspend {
     val decoder = charset.nioCharset.newDecoder

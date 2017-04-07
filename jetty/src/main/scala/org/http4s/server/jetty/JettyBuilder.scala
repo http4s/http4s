@@ -14,7 +14,7 @@ import javax.net.ssl.SSLContext
 import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.ServerConnector
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet, Http4sServletConfig}
 
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
@@ -24,6 +24,7 @@ import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletHolder, ServletContextHandler}
 
+@deprecated("Use Jetty instead", "0.16")
 sealed class JettyBuilder private(
   socketAddress: InetSocketAddress,
   private val serviceExecutor: ExecutorService,
@@ -94,11 +95,12 @@ sealed class JettyBuilder private(
 
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
     copy(mounts = mounts :+ Mount { (context, index, builder) =>
-      val servlet = new Http4sServlet(
-        service = service,
-        asyncTimeout = builder.asyncTimeout,
-        servletIo = builder.servletIo,
-        threadPool = builder.serviceExecutor
+      val servlet = new Http4sServlet(service,
+        Http4sServletConfig(
+          asyncTimeout = builder.asyncTimeout,
+          servletIo = builder.servletIo,
+          serviceExecutor = Some(builder.serviceExecutor)
+        )
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
@@ -207,6 +209,7 @@ sealed class JettyBuilder private(
   }
 }
 
+@deprecated("Use Jetty instead", "0.16")
 object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = ServerBuilder.DefaultServiceExecutor,
@@ -217,4 +220,5 @@ object JettyBuilder extends JettyBuilder(
   mounts = Vector.empty
 )
 
+@deprecated("Used only by deprecated JettyBuilder", "0.16")
 private final case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)

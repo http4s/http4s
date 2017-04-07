@@ -1,0 +1,8 @@
+package org.http4s.tls
+@target(Scala)
+
+enum ClientAuth {
+  Need,
+  Want,
+  None
+}

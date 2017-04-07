@@ -67,7 +67,7 @@ object AsyncTimeoutSupport {
 
 sealed trait SSLConfig
 
-final case class KeyStoreBits(keyStore: StoreInfo,
+final case class KeyStoreBits(keyStore: StoreInfo ,
   keyManagerPassword: String,
   protocol: String,
   trustStore: Option[StoreInfo],

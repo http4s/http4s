@@ -24,6 +24,7 @@ import org.log4s.getLogger
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
+@deprecated("Use BlazeServerConfig instead", "0.16")
 class BlazeBuilder(
   socketAddress: InetSocketAddress,
   serviceExecutor: ExecutorService,
@@ -237,6 +238,7 @@ class BlazeBuilder(
   }
 }
 
+@deprecated("Use BlazeServerConfig instead", "0.16")
 object BlazeBuilder extends BlazeBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = DefaultPool,
@@ -251,6 +253,3 @@ object BlazeBuilder extends BlazeBuilder(
   maxHeadersLen = 40*1024,
   serviceMounts = Vector.empty
 )
-
-private final case class ServiceMount(service: HttpService, prefix: String)
-

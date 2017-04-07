@@ -20,8 +20,8 @@ val service = HttpService {
 }
 
 import org.http4s.server.syntax._
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-val server = builder.run
+val serverConfig = BlazeServerConfig.default.bindHttp(8080, "localhost").mountService(service, "/")
+val server = serverConfig.unsafeRun
 ```
 
 ### Creating the client

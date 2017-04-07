@@ -39,6 +39,7 @@ lazy val parboiled2 = libraryProject("parboiled2")
 
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
@@ -109,8 +110,10 @@ lazy val blazeCore = libraryProject("blaze-core")
   .dependsOn(core, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
+  .enablePlugins(ContrabandPlugin)
   .settings(
-    description := "blaze implementation for http4s servers"
+    description := "blaze implementation for http4s servers",
+    contrabandScalaArray in (Compile, generateContrabands) := "List"
   )
   .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
@@ -131,6 +134,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
 lazy val servlet = libraryProject("servlet")
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(
@@ -142,21 +146,25 @@ lazy val servlet = libraryProject("servlet")
   .dependsOn(server % "compile;test->test")
 
 lazy val jetty = libraryProject("jetty")
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
       jettyServlet
-    )
+    ),
+    contrabandScalaArray in (Compile, generateContrabands) := "List"
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
 lazy val tomcat = libraryProject("tomcat")
+  .enablePlugins(ContrabandPlugin)
   .settings(
     description := "Tomcat implementation for http4s servers",
     libraryDependencies ++= Seq(
       tomcatCatalina,
       tomcatCoyote
-    )
+    ),
+    contrabandScalaArray in (Compile, generateContrabands) := "List"
   )
   .dependsOn(servlet % "compile;test->test")
 

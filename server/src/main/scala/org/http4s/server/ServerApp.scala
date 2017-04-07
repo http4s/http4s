@@ -80,7 +80,6 @@ trait ServerApp {
       s
     }.unsafePerformSync
     state.set(Started)
-    logger.info(s"Started server on ${s.address}")
     latch.await()
     doShutdown(s)
   }

@@ -8,7 +8,7 @@ import com.example.http4s.ExampleService
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.{Router, ServerApp}
-import org.http4s.server.blaze.BlazeBuilder
+import org.http4s.server.blaze.BlazeServerConfig
 import org.http4s.server.metrics._
 
 object BlazeMetricsExample extends ServerApp {
@@ -19,7 +19,8 @@ object BlazeMetricsExample extends ServerApp {
     "/metrics" -> metricsService(metricRegistry)
   )
 
-  def server(args: List[String]) = BlazeBuilder.bindHttp(8080)
+  def server(args: List[String]) = BlazeServerConfig.default
+    .bindHttp(8080)
     .mountService(srvc, "/http4s")
     .start
 }
