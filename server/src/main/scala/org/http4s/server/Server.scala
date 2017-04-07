@@ -28,5 +28,3 @@ trait Server {
     latch.await()
   }
 }
-
-

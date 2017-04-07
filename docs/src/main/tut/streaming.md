@@ -17,9 +17,8 @@ simplicity itself:
 
 ```tut:book
 import scala.concurrent.duration._
-import org.http4s.server.{Server, ServerApp}
-import org.http4s.server.blaze._
-import org.http4s._, org.http4s.dsl._
+import org.http4s._
+import org.http4s.dsl._
 import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`

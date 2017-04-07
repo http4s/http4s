@@ -11,6 +11,7 @@ import org.http4s.util.threads.DefaultPool
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
+import scalaz.stream.Process
 
 trait ServerBuilder {
   import ServerBuilder._
@@ -40,6 +41,15 @@ trait ServerBuilder {
     */
   final def run: Server =
     start.unsafePerformSync
+
+  /**
+   * Runs the server as a process that never emits.  Useful for a server
+   * that runs for the rest of the JVM's life.
+   */
+  final def serve: Process[Task, Nothing] =
+    Process.bracket(start)(s => Process.eval_(s.shutdown)) { s: Server =>
+      Process.eval_(Task.async[Unit](_ => ()))
+    }
 }
 
 object ServerBuilder {
