@@ -94,14 +94,10 @@ simplicity itself:</p>
 <pre><code class="language-scala">import scala.concurrent.duration._
 // import scala.concurrent.duration._
 
-import org.http4s.server.{Server, ServerApp}
-// import org.http4s.server.{Server, ServerApp}
-
-import org.http4s.server.blaze._
-// import org.http4s.server.blaze._
-
-import org.http4s._, org.http4s.dsl._
+import org.http4s._
 // import org.http4s._
+
+import org.http4s.dsl._
 // import org.http4s.dsl._
 
 import scalaz.stream.time
@@ -109,17 +105,17 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@3f1dabec[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@8527d56[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@c7a8fec,scalaz.stream.Process$$$Lambda$39342/485566798@3879ad6a,scalaz.stream.Process$Await$$$Lambda$39343/1662929051@4b98dccb)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@693ffd7c,scalaz.stream.Process$$$Lambda$36283/1540302793@5cf57128,scalaz.stream.Process$Await$$$Lambda$36284/1333423631@7e16b637)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$39346/478240264@4eb2d2a0)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36287/850844364@5b02677c)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -137,10 +133,10 @@ function, which takes a <code>Request</code> and a <code>Response =&gt; Process[
 to consume a stream is just:</p>
 
 <pre><code class="language-scala">scala&gt; client.streaming(req)(resp =&gt; resp.body)
-&lt;console&gt;:28: error: object streaming is not a member of package org.http4s.client
+&lt;console&gt;:24: error: object streaming is not a member of package org.http4s.client
        client.streaming(req)(resp =&gt; resp.body)
               ^
-&lt;console&gt;:28: error: not found: value req
+&lt;console&gt;:24: error: not found: value req
        client.streaming(req)(resp =&gt; resp.body)
                         ^
 </code></pre>

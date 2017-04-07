@@ -366,16 +366,19 @@ for serious static content serving.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerApp</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with .serve. Use Process.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span><span class="result"> extends <a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Apps extending the server app trait get a graceful shutdown.  The</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerApp.scala" target="_blank">ServerApp.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Apps extending the server app trait get a graceful shutdown.  The</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Prefer org.http4s.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with <code>.serve</code>. Use <code>Process.bracket</code> to compose resources in a simpler way than overriding <code>shutdown</code>.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerApp.scala" target="_blank">ServerApp.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -401,7 +404,7 @@ for serious static content serving.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.ServerApp"><span>ServerApp</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.ServerApp"><span>ServerApp</span></li><li class="in" name="org.http4s.util.ProcessApp"><span>ProcessApp</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -786,7 +789,23 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.ServerApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.ServerApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="main(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Nothing]"></a><a id="main(List[String]):Process[Task,Nothing]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/ServerApp.html#main(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Nothing]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">main</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scala.Nothing">Nothing</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.ServerApp">ServerApp</a> → <a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></dd></dl></div>
+    </li><li name="org.http4s.util.ProcessApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="main(args:Array[String]):Unit"></a><a id="main(Array[String]):Unit"></a>
       <span class="permalink">
       <a href="../../../org/http4s/server/ServerApp.html#main(args:Array[String]):Unit" title="Permalink">
@@ -801,7 +820,7 @@ for serious static content serving.
         <span class="name">main</span><span class="params">(<span name="args">args: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -850,24 +869,22 @@ for serious static content serving.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.server.ServerApp#requestShutdown" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="requestShutdown():Unit"></a>
+    </li><li name="org.http4s.util.ProcessApp#requestShutdown" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="requestShutdown:scalaz.concurrent.Task[Unit]"></a><a id="requestShutdown:Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerApp.html#requestShutdown():Unit" title="Permalink">
+      <a href="../../../org/http4s/server/ServerApp.html#requestShutdown:scalaz.concurrent.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="modifier">final </span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">requestShutdown</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">requestShutdown</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Explicitly request a graceful shutdown of the service.</p><div class="fullcomment"><div class="comment cmt"><p>Explicitly request a graceful shutdown of the service.</p><p> There is no operational standard for this, but some common
- implementations include:</p><ul><li>an admin port receiving a connection</li><li>a JMX command</li><li>monitoring a file</li><li>console input in an interactive session
-</li></ul></div></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerApp#shutdown" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="shutdown(server:org.http4s.server.Server):scalaz.concurrent.Task[Unit]"></a><a id="shutdown(Server):Task[Unit]"></a>
       <span class="permalink">
@@ -884,7 +901,7 @@ for serious static content serving.
       </span>
       
       <p class="shortcomment cmt">Return a task to shutdown the application.</p><div class="fullcomment"><div class="comment cmt"><p>Return a task to shutdown the application.</p><p> This task is run as a JVM shutdown hook, or when
- <a href="#requestShutdown():Unit" class="extmbr" name="org.http4s.server.ServerApp#requestShutdown">org.http4s.server.ServerApp.requestShutdown</a> is explicitly called.</p><p> The default implementation shuts down the server, and waits for
+ <a href="#requestShutdown:scalaz.concurrent.Task[Unit]" class="extmbr" name="org.http4s.server.ServerApp#requestShutdown">org.http4s.server.ServerApp.requestShutdown</a> is explicitly called.</p><p> The default implementation shuts down the server, and waits for
  it to finish.  Other resources may shutdown by flatMapping this
  task.
 </p></div></div>
@@ -1016,7 +1033,9 @@ for serious static content serving.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="org.http4s.util.ProcessApp">
+              <h3>Inherited from <a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
