@@ -10,7 +10,7 @@ import scalaz.stream.Process
  * Apps extending the server app trait get a graceful shutdown.  The
  *
  */
-@deprecated("Prefer org.http4s.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with `.serve`. Use `Process.bracket` to compose resources in a simpler way than overriding `shutdown`.", "0.16")
+@deprecated("Prefer org.http4s.util.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with `.serve`. Use `Process.bracket` to compose resources in a simpler way than overriding `shutdown`.", "0.16")
 trait ServerApp extends ProcessApp {
   private[this] val logger = org.log4s.getLogger
 

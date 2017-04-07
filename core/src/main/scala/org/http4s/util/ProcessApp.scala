@@ -18,7 +18,6 @@ trait ProcessApp {
     shutdownRequested.set(true)
 
   final def main(args: Array[String]): Unit = {
-    val halt = async.signalOf(false)
     val halted = async.signalOf(false)
 
     val p = (shutdownRequested.discrete wye main(args.toList))(wye.interrupt)
