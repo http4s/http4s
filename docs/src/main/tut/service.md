@@ -129,8 +129,7 @@ A builder can be `run` to start the server.
 val server = builder.run
 ```
 
-Go ahead and use curl (or your favorite HTTP client) to see your service in
-action:
+Use curl, or your favorite HTTP client, to see your service in action:
 
 ```sh
 $ curl http://localhost:8080/hello/Pete
@@ -138,8 +137,8 @@ $ curl http://localhost:8080/hello/Pete
 
 ## Cleaning up
 
-Our server consumes system resources. Let's clean up after ourselves by shutting
-it down:
+Our server consumes system resources. Let's clean up by shutting it
+down:
 
 ```tut:book
 server.shutdownNow()
@@ -151,7 +150,7 @@ Every `ServerBuilder` has a `.serve` method that returns a
 `Process[Task, Nothing]`.  This process runs forever without emitting
 any output.  When this process is run with `.unsafePerformSync` on the
 main thread, it blocks forever, keeping the JVM (and your server)
-alive until it the JVM is killed.
+alive until the JVM is killed.
 
 As a convenience, http4s provides an `org.http4s.util.ProcessApp` trait
 with an abstract `main` method that returns a `Process`.  A `ProcessApp`
