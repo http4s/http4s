@@ -1,4 +1,4 @@
-# v0.16.0 (unreleased)
+# v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
 * Eliminate `Fallthrough` typeclass.  An `HttpService` now returns
   `MaybeResponse`, which can be a `Response` or `Pass`.  There is a

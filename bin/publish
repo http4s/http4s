@@ -1,7 +1,9 @@
 #!/bin/bash
 
 for SCALAZ_VERSION in $(sed -ne 's/.*SCALAZ_VERSION=\(.*\)/\1/p' .travis.yml); do
-  sbt "set scalazVersion in ThisBuild := \"$SCALAZ_VERSION\"" +clean +publishSigned
+    for SCALA_VERSION in 2.12.1 2.11.8 2.10.6; do
+	env SCALAZ_VERSION=$SCALAZ_VERSION SCALA_VERSION=$SCALA_VERSION sbt +clean +publishSigned
+    done
 done
 sbt sonatypeRelease
 

@@ -5,7 +5,7 @@ title = "http4s"
 [params]
 # TODO Render these as part of the build process
 apiVersion = "0.16"
-version = "0.16.0-SNAPSHOT"
+version = "0.16.0-M1"
 
 [[menu.tut]]
     name = "Scaladoc"
