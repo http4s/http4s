@@ -14,7 +14,7 @@ object JettyExample extends ProcessApp {
   def main(args: List[String]) = JettyBuilder
     .bindHttp(8080)
     .mountService(ExampleService.service, "/http4s")
-    .mountService(metricsService(metrics), "/metrics/*")
+    .mountService(metricsService(metrics), "/metrics")
     .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
     .serve
 }
