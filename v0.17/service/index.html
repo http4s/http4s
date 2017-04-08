@@ -139,7 +139,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37562/429063204@1e5bf6a)
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$39077/276843940@7f5f580c)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -180,7 +180,7 @@ val tweetService = HttpService {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37562/429063204@3da5a7a1)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$39077/276843940@5f41b75b)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -207,10 +207,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$37570/1898894910@5b4710ee)
+// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$39085/220721090@3f6779ac)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@30dfe43c
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@1fd0c51c
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -223,36 +223,50 @@ associates a base path with a <code>HttpService</code>.</p>
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
 </code></pre>
 
-<h3 id="running-your-service-as-an-app">Running your service as an <code>App</code></h3>
+<p>Use curl, or your favorite HTTP client, to see your service in action:</p>
 
-<p>To run a server as an <code>App</code> simply extend
-<code>org.http4s.server.ServerApp</code> and implement the <code>server</code> method. The server
-will be shutdown automatically when the program exits via a shutdown hook,
-so you don&rsquo;t need to clean up any resources explicitly.</p>
-
-<pre><code class="language-scala">import org.http4s.server.{Server, ServerApp}
-// import org.http4s.server.{Server, ServerApp}
-
-import org.http4s.server.blaze._
-// import org.http4s.server.blaze._
-
-object Main extends ServerApp {
-  override def server(args: List[String]): Task[Server] = {
-    BlazeBuilder
-      .bindHttp(8080, &quot;localhost&quot;)
-      .mountService(services, &quot;/api&quot;)
-      .start
-  }
-}
-// defined object Main
+<pre><code class="language-sh">$ curl http://localhost:8080/hello/Pete
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>
 
-<p>Our server consumes system resources. Let&rsquo;s clean up after ourselves by shutting
-it down:</p>
+<p>Our server consumes system resources. Let&rsquo;s clean up by shutting it
+down:</p>
 
 <pre><code class="language-scala">server.shutdownNow()
+</code></pre>
+
+<h3 id="running-your-service-as-an-app">Running your service as an <code>App</code></h3>
+
+<p>Every <code>ServerBuilder</code> has a <code>.serve</code> method that returns a
+<code>Stream[Task, Nothing]</code>.  This stream runs forever without emitting
+any output.  When this process is run with <code>.unsafeRun</code> on the
+main thread, it blocks forever, keeping the JVM (and your server)
+alive until the JVM is killed.</p>
+
+<p>As a convenience, http4s provides an <code>org.http4s.util.StreamApp</code> trait
+with an abstract <code>main</code> method that returns a <code>Stream</code>.  A <code>StreamApp</code>
+runs the process and adds a JVM shutdown hook to interrupt the infinite
+process and gracefully shut down your server when a SIGTERM is received.</p>
+
+<pre><code class="language-scala">import fs2.{Stream, Task}
+// import fs2.{Stream, Task}
+
+import org.http4s.server.blaze._
+// import org.http4s.server.blaze._
+
+import org.http4s.util.StreamApp
+// import org.http4s.util.StreamApp
+
+object Main extends StreamApp {
+  override def main(args: List[String]): Stream[Task, Nothing] = {
+    BlazeBuilder
+      .bindHttp(8080, &quot;localhost&quot;)
+      .mountService(services, &quot;/api&quot;)
+      .serve
+  }
+}
+// defined object Main
 </code></pre>
 
           <footer>

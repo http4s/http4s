@@ -925,24 +925,6 @@ middlewares for composing common functionality into services.
       </span>
       
       
-    </li><li name="org.http4s.server.ServerApp" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ServerAppextendsAnyRef"></a><a id="ServerApp:ServerApp"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/index.html#ServerAppextendsAnyRef" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="Apps extending the server app trait get a graceful shutdown." href="ServerApp.html">
-              <span class="name">ServerApp</span>
-            </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      
-      <p class="shortcomment cmt">Apps extending the server app trait get a graceful shutdown.</p><div class="fullcomment"><div class="comment cmt"><p>Apps extending the server app trait get a graceful shutdown.  The</p></div></div>
     </li><li name="org.http4s.server.ServerBuilder" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ServerBuilderextendsAnyRef"></a><a id="ServerBuilder:ServerBuilder"></a>
       <span class="permalink">
@@ -1018,6 +1000,27 @@ middlewares for composing common functionality into services.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 2016-12-31)</i> Use SSLConfig</p></dd></dl></div>
+    </li><li name="org.http4s.server.ServerApp" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ServerAppextendsStreamApp"></a><a id="ServerApp:ServerApp"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/index.html#ServerAppextendsStreamApp" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Apps extending the server app trait get a graceful shutdown." href="ServerApp.html">
+              <span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with .serve. Use Stream.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span>
+            </a><span class="result"> extends <a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Apps extending the server app trait get a graceful shutdown.</p><div class="fullcomment"><div class="comment cmt"><p>Apps extending the server app trait get a graceful shutdown.  The</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with <code>.serve</code>. Use <code>Stream.bracket</code> to compose resources in a simpler way than overriding <code>shutdown</code>.</p></dd></dl></div>
     </li></ol>
             </div>
 

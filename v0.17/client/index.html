@@ -85,27 +85,26 @@ http4s to try our service.</p>
 
 <p>The service again so tut picks it up:</p>
 
-<pre><code class="language-scala">import org.http4s.server.{Server, ServerApp}
-// import org.http4s.server.{Server, ServerApp}
+<pre><code class="language-scala">import org.http4s._
+// import org.http4s._
+
+import org.http4s.dsl._
+// import org.http4s.dsl._
 
 import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
-
-import org.http4s._, org.http4s.dsl._
-// import org.http4s._
-// import org.http4s.dsl._
 
 val service = HttpService {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$35900/1651264066@146590e2)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37343/1444760165@3ace6f74)
 
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@60ba1d30
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@45aacec3
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -121,7 +120,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$35932/491421253@416f57),Task)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$37375/273763312@787b1a8f),Task)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
