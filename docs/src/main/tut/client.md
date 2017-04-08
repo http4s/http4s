@@ -10,9 +10,9 @@ http4s to try our service.
 The service again so tut picks it up:
 
 ```tut:book
-import org.http4s.server.{Server, ServerApp}
+import org.http4s._
+import org.http4s.dsl._
 import org.http4s.server.blaze._
-import org.http4s._, org.http4s.dsl._
 
 val service = HttpService {
   case GET -> Root / "hello" / name =>

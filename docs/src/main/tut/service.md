@@ -130,35 +130,47 @@ A builder can be `run` to start the server.
 val server = builder.run
 ```
 
-### Running your service as an `App`
+Use curl, or your favorite HTTP client, to see your service in action:
 
-To run a server as an `App` simply extend
-`org.http4s.server.ServerApp` and implement the `server` method. The server
-will be shutdown automatically when the program exits via a shutdown hook,
-so you don't need to clean up any resources explicitly.
-
-```tut:book
-import org.http4s.server.{Server, ServerApp}
-import org.http4s.server.blaze._
-
-object Main extends ServerApp {
-  override def server(args: List[String]): Task[Server] = {
-    BlazeBuilder
-      .bindHttp(8080, "localhost")
-      .mountService(services, "/api")
-      .start
-  }
-}
-
+```sh
+$ curl http://localhost:8080/hello/Pete
 ```
 
 ## Cleaning up
 
-Our server consumes system resources. Let's clean up after ourselves by shutting
-it down:
+Our server consumes system resources. Let's clean up by shutting it
+down:
 
 ```tut:book
 server.shutdownNow()
+```
+
+### Running your service as an `App`
+
+Every `ServerBuilder` has a `.serve` method that returns a
+`Stream[Task, Nothing]`.  This stream runs forever without emitting
+any output.  When this process is run with `.unsafeRun` on the
+main thread, it blocks forever, keeping the JVM (and your server)
+alive until the JVM is killed.
+
+As a convenience, http4s provides an `org.http4s.util.StreamApp` trait
+with an abstract `main` method that returns a `Stream`.  A `StreamApp`
+runs the process and adds a JVM shutdown hook to interrupt the infinite
+process and gracefully shut down your server when a SIGTERM is received.
+
+```tut:book
+import fs2.{Stream, Task}
+import org.http4s.server.blaze._
+import org.http4s.util.StreamApp
+
+object Main extends StreamApp {
+  override def main(args: List[String]): Stream[Task, Nothing] = {
+    BlazeBuilder
+      .bindHttp(8080, "localhost")
+      .mountService(services, "/api")
+      .serve
+  }
+}
 ```
 
 [blaze]: https://github.com/http4s/blaze

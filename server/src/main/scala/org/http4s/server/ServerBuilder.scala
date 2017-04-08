@@ -40,6 +40,15 @@ trait ServerBuilder {
     */
   final def run: Server =
     start.unsafeRun
+
+  /**
+   * Runs the server as a process that never emits.  Useful for a server
+   * that runs for the rest of the JVM's life.
+   */
+  final def serve: Stream[Task, Nothing] =
+    Stream.bracket(start)({s: Server =>
+      Stream.eval_(Task.async[Unit](_ => ())(Strategy.sequential))
+    }, _.shutdown)
 }
 
 object ServerBuilder {
