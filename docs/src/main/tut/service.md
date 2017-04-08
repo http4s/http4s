@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.11.8" // Also supports 2.10.x
+scalaVersion := "2.11.8" // Also supports 2.10.x and 2.12.x
 
 val http4sVersion = "{{< version >}}"
 
@@ -144,6 +144,7 @@ object Main extends ServerApp {
   override def server(args: List[String]): Task[Server] = {
     BlazeBuilder
       .bindHttp(8080, "localhost")
+      .mountService(helloWorldService, "/")
       .mountService(services, "/api")
       .start
   }
