@@ -313,11 +313,15 @@ deprecated in favor of <code>service |+| anotherService</code>.</li>
 <li>Upgraded dependencies for various modules:
 
 <ul>
-<li>circe-0.7.0</li>
-<li>jetty-9.4.2.v20170220</li>
+<li>async-http-client-2.0.31</li>
+<li>circe-0.7.1</li>
+<li>jetty-9.4.3.v20170317</li>
+<li>json4s-3.5.1</li>
 <li>logback-1.2.1</li>
 <li>log4s-1.3.4</li>
 <li>metrics-3.2.0</li>
+<li>scalacheck-1.13.5</li>
+<li>tomcat-8.0.43</li>
 </ul></li>
 <li>Deprecate <code>EntityEncoder[ByteBuffer]</code> and
 <code>EntityEncoder[CharBuffer]</code>.</li>
@@ -334,6 +338,14 @@ shapeless.</li>
 <li>Add a <code>WebjarService</code> for serving files out of web jars.</li>
 <li>Implement <code>Retry-After</code> header.</li>
 <li>Stop building with <code>delambdafy</code> on Scala 2.11.</li>
+<li>Eliminate finalizer on <code>BlazeConnection</code>.</li>
+<li>Respond OK to CORS pre-flight requests even if the wrapped service
+does not return a successful response.  This is to allow <code>CORS</code>
+pre-flight checks of authenticated services.</li>
+<li>Deprecate <code>ServerApp</code> in favor of <code>org.http4s.util.ProcessApp</code>.  A
+<code>ProcessApp</code> is easier to compose all the resources a server needs via
+<code>Process.bracket</code>.</li>
+<li>Implement a <code>Referer</code> header.</li>
 </ul>
 
 <h1 id="v0-15-8-2017-04-06">v0.15.8 (2017-04-06)</h1>
