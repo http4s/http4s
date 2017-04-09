@@ -321,8 +321,8 @@ for serious static content serving.
                         </a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="trait" href="" title="Apps extending the server app trait get a graceful shutdown."></a>
-                        <a href="" title="Apps extending the server app trait get a graceful shutdown.">
+                        <a class="trait" href="" title="Starts a server and gracefully terminates at shutdown."></a>
+                        <a href="" title="Starts a server and gracefully terminates at shutdown.">
                           ServerApp
                         </a>
                       </li><li class="current-entities indented3">
@@ -371,7 +371,12 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Apps extending the server app trait get a graceful shutdown.  The</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Starts a server and gracefully terminates at shutdown.  The server
+is terminated and the shutdown task is run either by a JVM shutdown
+hook or an invocation of <code>requestShutdown()</code>.</p><p>More robust resource management is possible through <code>ProcessApp</code> or
+<code>StreamApp</code>, which are introduced in http4s-0.16 and http4s-0.17,
+respectively.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Prefer org.http4s.util.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with <code>.serve</code>. Use <code>Process.bracket</code> to compose resources in a simpler way than overriding <code>shutdown</code>.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerApp.scala" target="_blank">ServerApp.scala</a></dd></dl><div class="toggleContainer block">
