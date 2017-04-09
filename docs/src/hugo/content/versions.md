@@ -36,19 +36,25 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	backward, binary compatible bugfixes from the http4s
 	team.</li>
 
+    <li><span class="label label-warning">Milestone</span> releases
+	are published for early adopters.  API breakage may still occur
+	until the first stable release in that series.</li>
+
 	<li><span class="label label-warning">Development</span>
 	releases are published as snapshots to Sonatype by Travis CI.
 	API breakage may occur at any time.</li>
-
-	<li><span class="label label-danger">Incomplete</span>
-	releases are still missing features from the latest stable
-	version.  We are working on feature parity, but publishing in
-	current form for early adopters.</li>
 		
 	<li><span class="label label-default">EOL</span> releases are
 	no longer actively maintained, but pull requests with a tale
 	of woe may be considered.</li>
       </ul>
+
+	<p>Snapshots are published automatically by <a
+		href="https://travis-ci.org/http4s/http4s">Travis CI</a> to
+		the <a
+		href="https://oss.sonatype.org/content/repositories/snapshots/org/http4s/">Sonatype
+		snapshot repo</a>.
+	</p>
 
       <table class="table table-hover">
 	<thead>
@@ -65,8 +71,8 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	</thead>
 	<tbody>
       <tr>
-        <td>0.17.0-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-warning">Development</span></td>
+        <td>0.17.0-M1</td>
+        <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -76,7 +82,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
       </tr>
 	  <tr>
 	    <td>0.16.0a-M1</td>
-	    <td class="text-center"><span class="label label-warning">Development</span></td>
+	    <td class="text-center"><span class="label label-warning">Milestone</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -86,7 +92,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	  </tr>
 	  <tr>
 	    <td>0.16.0-M1</td>
-	    <td class="text-center"><span class="label label-warning">Development</span></td>
+	    <td class="text-center"><span class="label label-warning">Milestone</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>

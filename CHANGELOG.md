@@ -1,3 +1,14 @@
+# v0.17.0-M1 (2017-04-08)
+* First release on cats and fs2
+    * All scalaz types and typeclasses replaced by cats equivalents
+	* `scalaz.concurrent.Task` replaced by `fs2.Task`	
+	* `scalaz.stream.Process` replaced by `fs2.Stream`
+* Roughly at feature parity with v0.16.0-M1. Notable exceptions:
+	* Multipart not yet supported
+	* Web sockets not yet supported
+	* Client retry middleware can't check idempotence of requests
+	* Utilties in `org.http4s.util.io` not yet ported
+
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
 * Eliminate `Fallthrough` typeclass.  An `HttpService` now returns
