@@ -177,4 +177,5 @@ This document is heavily based on the [Cats contributor's guide].
 [issues page]: https://github.com/http4s/http4s/issues
 [master]: https://github.com/http4s/http4s/tree/master
 [release-0.15.x]: https://github.com/http4s/http4s/tree/release-0.15.x
+[release-0.16.x]: https://github.com/http4s/http4s/tree/release-0.16.x
 [sbt installed]: http://www.scala-sbt.org/0.13/tutorial/Setup.html
