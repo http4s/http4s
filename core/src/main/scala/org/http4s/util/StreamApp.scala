@@ -3,8 +3,11 @@ package org.http4s.util
 import fs2.{Strategy, Stream, Task}
 import fs2.Stream.{eval, eval_}
 import fs2.async.signalOf
+import org.log4s.getLogger
 
 trait StreamApp {
+  private[this] val logger = getLogger
+
   def main(args: List[String]): Stream[Task, Unit]
 
   private implicit val strategy: Strategy = Strategy.sequential
@@ -28,7 +31,7 @@ trait StreamApp {
 
     p.run.attempt.unsafeRun match {
       case Left(t) =>
-        t.printStackTrace()
+        logger.error(t)("Error running stream")
         System.exit(-1)
       case Right(_) =>
         ()

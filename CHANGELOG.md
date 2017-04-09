@@ -1,4 +1,4 @@
-# v0.16.0 (unreleased)
+# v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
 * Eliminate `Fallthrough` typeclass.  An `HttpService` now returns
   `MaybeResponse`, which can be a `Response` or `Pass`.  There is a
@@ -8,11 +8,15 @@
 * Support configuring blaze and Jetty servers with a custom
   `SSLContext`.
 * Upgraded dependencies for various modules:
-    * circe-0.7.0
-	* jetty-9.4.2.v20170220
+    * async-http-client-2.0.31
+    * circe-0.7.1
+	* jetty-9.4.3.v20170317
+	* json4s-3.5.1
 	* logback-1.2.1
 	* log4s-1.3.4
 	* metrics-3.2.0
+	* scalacheck-1.13.5
+	* tomcat-8.0.43
 * Deprecate `EntityEncoder[ByteBuffer]` and
   `EntityEncoder[CharBuffer]`.
 * Add `EntityDecoder[Unit]`.
@@ -28,6 +32,14 @@
 * Add a `WebjarService` for serving files out of web jars.
 * Implement `Retry-After` header.
 * Stop building with `delambdafy` on Scala 2.11.
+* Eliminate finalizer on `BlazeConnection`.
+* Respond OK to CORS pre-flight requests even if the wrapped service
+  does not return a successful response.  This is to allow `CORS`
+  pre-flight checks of authenticated services.
+* Deprecate `ServerApp` in favor of `org.http4s.util.ProcessApp`.  A
+  `ProcessApp` is easier to compose all the resources a server needs via
+  `Process.bracket`.
+* Implement a `Referer` header.
 
 # v0.15.8 (2017-04-06)
 * Cache charset lookups to avoid synchronization.  Resolution of
