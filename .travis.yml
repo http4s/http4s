@@ -1,16 +1,16 @@
 language: scala
 scala:
-- 2.10.6
-- 2.11.8
 - 2.12.1
+- 2.11.8
+- 2.10.6
 jdk: oraclejdk8
 env:
   global:
   - HUGO_VERSION=0.18
   - LOGBACK_ROOT_LEVEL=OFF
   matrix:
-  - SCALAZ_VERSION=7.1.12
   - SCALAZ_VERSION=7.2.10
+  - SCALAZ_VERSION=7.1.12
 before_script:
 - mkdir -p $HOME/.sbt/launchers/0.13.8/
 - curl -L -o $HOME/.sbt/launchers/0.13.8/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.8/sbt-launch.jar
