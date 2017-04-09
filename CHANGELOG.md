@@ -1,3 +1,6 @@
+# v0.15.9-SNAPSHOT
+* Terminate `ServerApp` even if the server fails to start
+
 # v0.15.8 (2017-04-06)
 * Cache charset lookups to avoid synchronization.  Resolution of
   charsets is synchronized, with a cache size of two.  This avoids
