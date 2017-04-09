@@ -7,8 +7,14 @@ import scala.annotation.tailrec
 import scalaz.concurrent.Task
 
 /**
- * Apps extending the server app trait get a graceful shutdown.  The
+ * Starts a server and gracefully terminates at shutdown.  The server
+ * is terminated and the shutdown task is run either by a JVM shutdown
+ * hook or an invocation of `requestShutdown()`.
  *
+ * If the server fails to start, the `shutdown` task is not invoked.
+ * More robust resource management is possible through `ProcessApp` or
+ * `StreamApp`, which are introduced in http4s-0.16 and http4s-0.17,
+ * respectively.
  */
 trait ServerApp {
   private[this] val logger = org.log4s.getLogger
@@ -77,11 +83,15 @@ trait ServerApp {
         doShutdown(s)
       }
       s
-    }.run
-    state.set(Started)
-    logger.info(s"Started server on ${s.address}")
-    latch.await()
-    doShutdown(s)
+    }.attempt.run.fold(
+      e => logger.error(e)("Fatal error running server"),
+      s => {
+        state.set(Started)
+        logger.info(s"Started server on ${s.address}")
+        latch.await()
+        doShutdown(s)
+      }
+    )
   }
 
   final def main(args: Array[String]): Unit =
