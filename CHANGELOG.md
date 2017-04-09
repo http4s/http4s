@@ -9,6 +9,10 @@
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
 
+# v0.16.0-SNAPSHOT
+* Upgraded dependencies:
+    * argonaut-6.2
+
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
 * Eliminate `Fallthrough` typeclass.  An `HttpService` now returns
@@ -51,6 +55,17 @@
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
+
+# v0.15.9-SNAPSHOT
+* Terminate `ServerApp` even if the server fails to start
+* Patch-level upgrades to dependencies:
+    * async-http-client-2.0.31
+    * jetty-9.3.18.v20170406
+    * json4s-3.5.1
+    * metrics-core-3.1.4
+    * scalacheck-1.13.5
+    * scalaz-7.1.12 or scalaz-7.2.10
+    * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)
 * Cache charset lookups to avoid synchronization.  Resolution of
