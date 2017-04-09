@@ -9,8 +9,8 @@ env:
   - HUGO_VERSION=0.18
   - LOGBACK_ROOT_LEVEL=OFF
   matrix:
-  - SCALAZ_VERSION=7.1.11
-  - SCALAZ_VERSION=7.2.9
+  - SCALAZ_VERSION=7.1.12
+  - SCALAZ_VERSION=7.2.10
 before_script:
 - mkdir -p $HOME/.sbt/launchers/0.13.8/
 - curl -L -o $HOME/.sbt/launchers/0.13.8/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.8/sbt-launch.jar
