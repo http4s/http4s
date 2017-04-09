@@ -7,8 +7,13 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 /**
- * Apps extending the server app trait get a graceful shutdown.  The
+ * Starts a server and gracefully terminates at shutdown.  The server
+ * is terminated and the shutdown task is run either by a JVM shutdown
+ * hook or an invocation of `requestShutdown()`.
  *
+ * More robust resource management is possible through `ProcessApp` or
+ * `StreamApp`, which are introduced in http4s-0.16 and http4s-0.17,
+ * respectively.
  */
 @deprecated("Prefer org.http4s.util.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with `.serve`. Use `Process.bracket` to compose resources in a simpler way than overriding `shutdown`.", "0.16")
 trait ServerApp extends ProcessApp {
