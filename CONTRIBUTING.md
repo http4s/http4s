@@ -93,23 +93,26 @@ have an edit link directly to the GitHub source for quick cleanups.
 
 http4s actively maintains three branches:
 
-* [release-0.15.x]: the current production release.  Merges to [master].
-* [master]: the current development mainline.  Merges to [cats].
-* [cats]: the [cats-fs2] port
+* [master]: the mainline of development; where docs/src/hugo is published from
+* [release-0.16.x]: the last scalaz-stream based release. Merges to [master].
+* [release-0.15.x]: the current production release. Merges to [release-0.16.x].
 
 The guide below helps find the most appropriate branch for your change.
 
 My change is...                               | Branch
 ----------------------------------------------|-------------------
 Documentation of existing features            | [release-0.15.x]
-Documentation of unreleased features          | [master]
-Change to docs/src/hugo                       | [master]
-Specific to cats or fs2                       | [cats]
+Documentation of unreleased features          | [release-0.16.x]
 Binary compatible with current release        | [release-0.15.x]
-Binary incompatible with current release      | [master]
+Binary incompatible with current release      | [release-0.16.x]
+Specific to cats or fs2                       | [master]
+Change to docs/src/hugo                       | [master]
 
 Still unsure?  Don't worry!  Send us that PR, and we'll cherry-pick it
 to the right place.
+
+After v0.16.0, we will simplify to maintaining two branches: the last
+production release and the current master.
 
 ### Attributions
 
