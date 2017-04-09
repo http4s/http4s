@@ -23,7 +23,7 @@ trait ProcessApp {
     val halted = async.signalOf(false)
 
     val p = (shutdownRequested.discrete wye main(args.toList))(wye.interrupt)
-      .append(eval_(halted set true))
+      .onHalt{ _ => eval_(halted set true)}
 
     sys.addShutdownHook {
       requestShutdown.unsafePerformAsync(_ => ())
