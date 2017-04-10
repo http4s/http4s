@@ -38,7 +38,6 @@ matrix:
     sudo: required
     scala: 2.12.1
     jdk: oraclejdk9
-    before_script:
     script:
     # https://github.com/sbt/sbt/pull/2951
     - git clone https://github.com/retronym/java9-rt-export
