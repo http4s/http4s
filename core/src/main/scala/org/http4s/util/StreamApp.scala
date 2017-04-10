@@ -22,7 +22,7 @@ trait StreamApp {
     val halted = signalOf[Task, Boolean](false).unsafeRun
 
     val p = shutdownRequested.interrupt(main(args.toList))
-      .append(eval_(halted.set(true)))
+      .onFinalize(halted.set(true))
 
     sys.addShutdownHook {
       requestShutdown.unsafeRunAsync(_ => ())
