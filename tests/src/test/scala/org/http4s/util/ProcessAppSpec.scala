@@ -2,67 +2,70 @@ package org.http4s
 package util
 
 import scalaz.concurrent.Task
+import scalaz.stream.async
+import scalaz.stream.async.mutable.Signal
 import scalaz.stream.Process
-
-import scala.concurrent.Await
-import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-
 
 class ProcessAppSpec extends Http4sSpec {
 
   "ProcessApp" should {
-    "Terminate Server on a Process Failure" in {
-      val myError = new Throwable("Bad Initial Process")
-      class TestApp extends ProcessApp {
-        override def main(args: List[String]): Process[Task, Unit] = {
-          Process.fail(myError)
-        }
+
+    /**
+      * Simple Test Rig For Process Apps
+      * Takes the Process that constitutes the Process App
+      * and observably cleans up when the process is stopped.
+      *
+      */
+    class TestProcessApp(process: Process[Task, Unit]) extends ProcessApp {
+      val cleanedUp : Signal[Boolean] = async.signalOf(false)
+      override def main(args: List[String]): Process[Task, Unit] = {
+        process.onHalt(_ => Process.eval_(cleanedUp.set(true)))
       }
-      new TestApp().main(Array.empty[String]) should_== (())
+    }
+
+    "Terminate Server on a Process Failure" in {
+      val testApp = new TestProcessApp(
+        Process.fail(new Throwable("Bad Initial Process"))
+      )
+      testApp.main(Array.empty[String])
+      testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
     "Terminate Server on a Valid Process" in {
-      class TestApp extends ProcessApp {
-        override def main(args: List[String]): Process[Task, Unit] = {
-          Process.empty[Task, String].append(Process.emit("Valid Process")).map(_ => ())
-        }
-      }
-      new TestApp().main(Array.empty[String]) should_== (())
+      val testApp = new TestProcessApp(
+        // emit one unit value
+        Process.emit("Valid Process").map(_ => ())
+      )
+      testApp.main(Array.empty[String])
+      testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
     "Terminate Server on a Bad Task" in {
-      val myError = new Throwable("Bad Task")
-      class TestApp extends ProcessApp {
-        override def main(args: List[String]): Process[Task, Unit] = {
-          Process.eval(Task.fail(myError))
-        }
-      }
-      new TestApp().main(Array.empty[String]) should_== (())
+      val testApp = new TestProcessApp(
+        // fail at task evaluation
+        Process.eval(Task.fail(new Throwable("Bad Task")))
+      )
+      testApp.main(Array.empty[String])
+      testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
     "Terminate Server on a Valid Task" in {
-      var touched = false
-      class TestApp extends ProcessApp {
-        override def main(args: List[String]): Process[Task, Unit] = {
-          Process.eval(Task{touched = true; ()})
-        }
-      }
-      new TestApp().main(Array.empty[String]) should_== (())
+      val testApp = new TestProcessApp(
+        // emit one task evaluated unit value
+        Process.eval(Task("Valid Task").map(_ => ()))
+      )
+      testApp.main(Array.empty[String])
+      testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
     "requestShutdown Shuts Down a Server From A Separate Thread" in {
-      class TestApp extends ProcessApp {
-        override def main(args: List[String]): Process[Task, Unit] = {
-          Process.constant(())
-        }
-      }
-      val testApp = new TestApp()
-      val testAppF = Future(testApp.main(Array.empty[String]))
+      val testApp = new TestProcessApp(
+        // run forever, emit nothing
+        Process.eval_(Task.async[Nothing]{_ => })
+      )
+      Task(testApp.main(Array.empty[String])).unsafePerformAsync(_ => ())
       testApp.requestShutdown.unsafePerformSync
-
-      Await.result(testAppF, 60 seconds) should_== (())
+      testApp.cleanedUp.get.unsafePerformSync should_== true
     }
   }
 
