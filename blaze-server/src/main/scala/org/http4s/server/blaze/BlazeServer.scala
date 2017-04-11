@@ -144,10 +144,10 @@ class BlazeBuilder(
         }
 
       def http1Stage(secure: Boolean) =
-        Http1ServerStage(aggregateService, requestAttributes(secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
+        Http1ServerStage(aggregateService, requestAttributes(secure = secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
 
       def http2Stage(engine: SSLEngine) =
-        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(true), serviceExecutor)
+        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), serviceExecutor)
 
       def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
         if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
@@ -162,14 +162,14 @@ class BlazeBuilder(
 
           var lb = LeafBuilder(
             if (isHttp2Enabled) http2Stage(engine)
-            else http1Stage(true)
+            else http1Stage(secure = true)
           )
           lb = prependIdleTimeout(lb)
           lb.prepend(new SSLStage(engine))
 
         case None =>
           if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS.")
-          var lb = LeafBuilder(http1Stage(false))
+          var lb = LeafBuilder(http1Stage(secure = false))
           lb = prependIdleTimeout(lb)
           lb
       }
