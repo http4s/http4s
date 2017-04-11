@@ -1,7 +1,6 @@
 
 package com.example.http4s.blaze
 
-import fs2.async.mutable.{Queue, Signal}
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.websocket._
@@ -10,11 +9,9 @@ import org.http4s.util.StreamApp
 import org.http4s.websocket.WebsocketBits._
 
 import scala.concurrent.duration._
-import fs2.{Chunk, NonEmptyChunk, Pipe, Scheduler, Sink, Strategy, Stream, Task, async, pipe}
+import fs2.{Pipe, Scheduler, Sink, Strategy, Stream, Task, async, pipe}
 import fs2.time.awakeEvery
-import fs2.util.Async
 
-import scala.concurrent.ExecutionContext
 
 object BlazeWebSocketExample extends StreamApp {
   implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
@@ -34,21 +31,19 @@ object BlazeWebSocketExample extends StreamApp {
 
     case req@ GET -> Root / "wsecho" =>
       val queue = async.unboundedQueue[Task, WebSocketFrame]
-      val fromClient = for {
-        q <- Stream.eval(queue)
-        d <- q.dequeue
-      } yield d match {
+      val echoReply: Pipe[Task, WebSocketFrame, WebSocketFrame] = pipe.collect {
         case Text(msg, _) => Text("You sent the server: " + msg)
         case _ =>            Text("Something new")
       }
-      val fromClient1: Stream[Task, (Stream[Task, WebSocketFrame], Sink[Task, WebSocketFrame])] = for {
+
+      val queueStreams: Stream[Task, (Stream[Task, WebSocketFrame], Sink[Task, WebSocketFrame])] = for {
         q <- Stream.eval(queue)
-      } yield (q.dequeue, q.enqueue)
+      } yield (q.dequeue.through(echoReply), q.enqueue)
 
-      val toClient: Sink[Task, WebSocketFrame] = _.evalMap((f: WebSocketFrame) => queue.flatMap(q => q.enqueue1(f)))
-
-      // I don't know how to produce a proper sink for this result
-      WS(fromClient, toClient)
+      queueStreams.runLast.flatMap {
+        case Some((f, t)) => WS(f, t)
+        case None => ???
+      }
   }
 
   def stream(args: List[String]) = BlazeBuilder.bindHttp(8080)
