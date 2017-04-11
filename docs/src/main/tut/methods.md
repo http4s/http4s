@@ -1,11 +1,11 @@
 ---
-menu: verbs
+menu: methods
 weight: 115
-title: REST Verbs
+title: HTTP Methods
 ---
 
-For a REST API, your service will want to support different verbs. Http4s has a
-list of all the [verbs] you're familiar with, and a few more.
+For a REST API, your service will want to support different verbs/methods.
+Http4s has a list of all the [methods] you're familiar with, and a few more.
 
 ```tut:book
 import fs2.Task
@@ -43,5 +43,5 @@ val tweetService = HttpService {
 There's also [`DefaultHead`] which replicates the functionality of the native
 implementation of the `HEAD` route.
 
-[verbs]: ../api/org/http4s/Method$.html
+[methods]: ../api/org/http4s/Method$.html
 [`DefaultHead`]: ../api/org/http4s/server/middleware/DefaultHead$.html
