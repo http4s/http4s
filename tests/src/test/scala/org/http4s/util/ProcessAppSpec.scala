@@ -63,9 +63,9 @@ class ProcessAppSpec extends Http4sSpec {
         // run forever, emit nothing
         Process.eval_(Task.async[Nothing]{_ => })
       )
-      Task(testApp.main(Array.empty[String])).unsafePerformAsync(_ => ())
+      val runApp = Task.unsafeStart(testApp.main(Array.empty[String]))
       testApp.requestShutdown.unsafePerformSync
-      testApp.cleanedUp.get.unsafePerformSync should_== true
+      runApp.flatMap(_ => testApp.cleanedUp.get).unsafePerformSync should_== true
     }
   }
 
