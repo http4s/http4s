@@ -20,6 +20,7 @@ import org.http4s.circe._
 def getTweet(tweetId: Int): Task[Option[TweetWithId]] = ???
 def addTweet(tweet: Tweet): Task[TweetWithId] = ???
 def updateTweet(id: Int, tweet: Tweet): Task[Option[TweetWithId]] = ???
+def deleteTweet(id: Int): Task[Unit] = ???
 
 implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
 implicit val tweetDecoder = jsonOf[Tweet]
@@ -37,6 +38,9 @@ val tweetService = HttpService {
   case req @ HEAD -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(_ => Ok()))
+  case req @ DELETE -> Root / "tweets" / IntVar(tweetId) =>
+    deleteTweet(tweetId)
+      .flatMap(Ok())
 }
 ```
 
