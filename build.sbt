@@ -279,6 +279,7 @@ lazy val docs = http4sProject("docs")
       circeLiteral,
       cryptobits
     ),
+    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -514,4 +515,3 @@ def initCommands(additionalImports: String*) =
   ) ++ additionalImports).mkString("import ", ", ", "")
 
 addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")
-
