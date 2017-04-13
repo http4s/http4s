@@ -168,7 +168,7 @@ class BlazeBuilder(
           lb.prepend(new SSLStage(engine))
 
         case None =>
-          if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS.")
+          if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
           var lb = LeafBuilder(http1Stage(secure = false))
           lb = prependIdleTimeout(lb)
           lb
