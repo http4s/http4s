@@ -9,6 +9,7 @@ import org.http4s.dsl._
 
 import org.specs2.specification.core.Fragments
 
+import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 
@@ -16,6 +17,8 @@ import scalaz.stream.Process
 abstract class ClientRouteTestBattery(name: String, client: Client)
   extends Http4sSpec with JettyScaffold
 {
+  val timeout = 20.seconds
+
   Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>
     s"Execute GET: $path" in {
       val name = address.getHostName
