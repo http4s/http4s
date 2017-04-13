@@ -6,7 +6,6 @@ import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.core.Fragments
-import scala.concurrent.duration._
 
 trait JettyScaffold extends SpecificationLike {
   private val server = new JServer()
@@ -17,8 +16,6 @@ trait JettyScaffold extends SpecificationLike {
   override def map(fs: => Fragments) = {
     step(startServer()) ^ fs ^ step(server.stop())
   }
-
-  protected def timeout: FiniteDuration = 10.seconds
 
   private def startServer(): InetSocketAddress = {
     address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())

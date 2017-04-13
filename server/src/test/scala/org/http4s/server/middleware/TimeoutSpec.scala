@@ -2,9 +2,11 @@ package org.http4s
 package server
 package middleware
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration._
-
 import fs2._
+import fs2.Stream._
+import fs2.time._
 import org.http4s.Http4sSpec._
 import org.http4s.dsl._
 
@@ -14,15 +16,16 @@ class TimeoutSpec extends Http4sSpec {
     case _ -> Root / "fast" =>
       Ok("Fast")
     case _ -> Root / "slow" =>
-      Ok("Slow").async(TestScheduler.delayedStrategy(5.seconds))
+      Ok("Slow").async(TestScheduler.delayedStrategy(2.seconds))
   }
 
   val timeoutService = Timeout.apply(1.nanosecond)(myService)
+
   val fastReq = Request(GET, uri("/fast"))
   val slowReq = Request(GET, uri("/slow"))
 
   "Timeout Middleware" should {
-    "Have no effect if the response is not delayed" in {
+    "have no effect if the response is not delayed" in {
       timeoutService.orNotFound(fastReq) must returnStatus (Status.Ok)
     }
 
@@ -36,10 +39,26 @@ class TimeoutSpec extends Http4sSpec {
       altTimeoutService.orNotFound(slowReq) must returnStatus (customTimeout.status)
     }
 
-    "Handle infinite durations" in {
+    "handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myService)
       service.orNotFound(slowReq) must returnStatus (Status.Ok)
     }
-  }
 
+    "clean up resources of the loser" in {
+      var clean = new AtomicBoolean(false)
+      val service = HttpService {
+        case _ =>
+          implicit val A = Task.asyncInstance(Strategy.sequential)
+          (sleep_(200.milliseconds) ++
+            eval(NoContent()) ++
+            eval_(Task.delay(clean.set(true))))
+            .runLast
+            .map(_.getOrElse(throw new AssertionError("Should have emitted NoContent")))
+      }
+      val timeoutService = Timeout(1.millis)(service)
+      timeoutService.orNotFound(Request()) must returnStatus (InternalServerError)
+      // Give the losing response enough time to finish
+      clean.get must beTrue.eventually
+    }
+  }
 }
