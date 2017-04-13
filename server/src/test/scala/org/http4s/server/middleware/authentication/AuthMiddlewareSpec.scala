@@ -34,7 +34,6 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
     "enrich the request with a user when authentication returns Either.Right" in {
 
-
       val userId: User = 42
 
       val authUser: Service[Request, Either[String, User]] =
@@ -54,6 +53,27 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       service.orNotFound(Request()) must returnStatus(Ok)
       service.orNotFound(Request()) must returnBody("42")
+    }
+    "not find a route if requested with the wrong verb inside an authenticated route" in {
+      val userId: User = 42
+
+      val authUser: Service[Request, Either[String, User]] =
+        Kleisli(_ => Task.now(Right(userId)))
+
+      val onAuthFailure: AuthedService[String] =
+        Kleisli(req => Forbidden(req.authInfo))
+
+      val authedService: AuthedService[User] =
+        AuthedService {
+          case POST -> Root as user => Ok()
+        }
+
+      val middleWare = AuthMiddleware(authUser, onAuthFailure)
+
+      val service = middleWare(authedService)
+
+      service.orNotFound(Request(method = Method.POST)) must returnStatus(Ok)
+      service.orNotFound(Request(method = Method.GET)) must returnStatus(NotFound)
     }
   }
 
