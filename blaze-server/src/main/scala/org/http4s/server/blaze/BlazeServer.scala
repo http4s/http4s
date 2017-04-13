@@ -130,19 +130,23 @@ class BlazeBuilder(
 
 
     val pipelineFactory = { conn: SocketConnection =>
-      val requestAttributes =
+      def requestAttributes(secure: Boolean) =
         (conn.local, conn.remote) match {
-          case (l: InetSocketAddress, r: InetSocketAddress) =>
-            AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, Request.Connection(l,r, true)))
+          case (local: InetSocketAddress, remote: InetSocketAddress) =>
+            AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, Request.Connection(
+              local = local,
+              remote = remote,
+              secure = secure
+            )))
           case _ =>
             AttributeMap.empty
         }
 
-      def http1Stage =
-        Http1ServerStage(aggregateService, requestAttributes, serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
+      def http1Stage(secure: Boolean) =
+        Http1ServerStage(aggregateService, requestAttributes(secure = secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
 
       def http2Stage(engine: SSLEngine) =
-        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes, serviceExecutor)
+        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), serviceExecutor)
 
       def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
         if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
@@ -157,14 +161,14 @@ class BlazeBuilder(
 
           var lb = LeafBuilder(
             if (isHttp2Enabled) http2Stage(engine)
-            else http1Stage
+            else http1Stage(secure = true)
           )
           lb = prependIdleTimeout(lb)
           lb.prepend(new SSLStage(engine))
 
         case None =>
-          if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS.")
-          var lb = LeafBuilder(http1Stage)
+          if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+          var lb = LeafBuilder(http1Stage(secure = false))
           lb = prependIdleTimeout(lb)
           lb
       }

@@ -12,6 +12,7 @@
 # v0.16.0-SNAPSHOT
 * Upgraded dependencies:
     * argonaut-6.2
+* Set `secure` request attribute correctly in blaze server
 
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`

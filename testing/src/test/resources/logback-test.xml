@@ -4,11 +4,11 @@
     <!-- encoders are assigned the type
          ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n${LOGBACK_EXCEPTION_PATTERN:-%throwable}</pattern>
     </encoder>
   </appender>
 
-  <root level="${LOGBACK_ROOT_LEVEL:-OFF}">
+  <root level="${LOGBACK_ROOT_LEVEL:-WARN}">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
