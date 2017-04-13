@@ -149,7 +149,7 @@ class BlazeBuilder(
         }
 
       case None =>
-        if (isHttp2Enabled) logger.warn("Http2 support requires TLS.")
+        if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS.  Falling back to HTTP/1.")
         (conn: SocketConnection) => {
           val requestAttrs = {
             var requestAttrs = AttributeMap.empty
