@@ -19,15 +19,16 @@ object Timeout {
   val DefaultTimeoutResponse = Response(Status.InternalServerError)
     .withBody("The service timed out.")
 
-  private def timeoutResp(timeout: Duration, response: Task[Response], customScheduler: Option[ScheduledExecutorService]): Task[Response] = Task.async[Task[Response]] { cb =>
-    val r = new Runnable { override def run(): Unit = cb(\/-(response)) }
-    val scheduler = customScheduler.getOrElse(defaultScheduler)
-    scheduler.schedule(r, timeout.toNanos, TimeUnit.NANOSECONDS)
-    ()
-  }.join
+  private def timeoutResp(timeout: Duration, response: Task[Response], customScheduler: Option[ScheduledExecutorService]): Task[Response] =
+    Task.schedule((), timeout)(customScheduler.getOrElse(defaultScheduler))
+      .flatMap(_ => response)
 
-  /** Transform the service such to return whichever resolves first:
-    * the provided Task[Response], or the result of the service
+  /** Transform the service to return whichever resolves first: the
+    * provided Task[Response], or the service resposne task.  The
+    * service response task continues to run in the background.  To
+    * interrupt a server side response safely, look at
+    * `scalaz.stream.wye.interrupt`.
+    *
     * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
     * @param service [[org.http4s.HttpService]] to transform
     */
@@ -35,8 +36,14 @@ object Timeout {
     Task.taskInstance.chooseAny(service(req), r :: Nil).map(_._1)
   }
 
-  /** Transform the service to return a RequestTimeOut [[Status]] after the supplied Duration
-    * @param timeout Duration to wait before returning the RequestTimeOut
+  /** Transform the service to return a timeout response [[Status]]
+    * after the supplied duration if the service response is not yet
+    * ready.  The service response task continues to run in the
+    * background.  To interrupt a server side response safely, look at
+    * `scalaz.stream.wye.interrupt`.
+    *
+    * @param timeout Duration to wait before returning the
+    * RequestTimeOut
     * @param customScheduler a custom scheduler to use for timing out the request.
     *   If `None` is provided, then a default daemon thread scheduler will be used.
     * @param service [[HttpService]] to transform
@@ -46,7 +53,11 @@ object Timeout {
     else service
   }
 
-  /** Transform the service to return a RequestTimeOut [[Status]] after 30 seconds
+  /** Transform the service to return a RequestTimeOut [[Status]] after 30 seconds.
+    * ready.  The service response task continues to run in the
+    * background.  To interrupt a server side response safely, look at
+    * `scalaz.stream.wye.interrupt`.
+    *
     * @param service [[HttpService]] to transform
     */
   @deprecated("Use the overload that also has response and customScheduler parameters (with default values provided)", "0.15")
