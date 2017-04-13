@@ -21,7 +21,7 @@ trait JettyScaffold extends SpecificationLike {
     step(startServer()) ^ fs ^ step(server.stop())
   }
 
-  protected def timeout: Duration = 10.seconds
+  protected def timeout: Duration = 20.seconds
 
   private def startServer(): InetSocketAddress = {
     address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
