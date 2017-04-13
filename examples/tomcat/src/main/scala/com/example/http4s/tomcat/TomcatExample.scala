@@ -9,7 +9,7 @@ import org.http4s.util.ProcessApp
 object TomcatExample extends ProcessApp {
   val metrics = new MetricRegistry
 
-  def main(args: List[String]) = TomcatBuilder
+  def run(args: List[String]) = TomcatBuilder
     .bindHttp(8080)
     .mountService(Metrics(metrics)(ExampleService.service), "/http4s")
     .mountService(metricsService(metrics), "/metrics/*")

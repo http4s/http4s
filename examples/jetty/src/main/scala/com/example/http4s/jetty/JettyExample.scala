@@ -11,7 +11,7 @@ import org.http4s.util.ProcessApp
 object JettyExample extends ProcessApp {
   val metrics = new MetricRegistry
 
-  def main(args: List[String]) = JettyBuilder
+  def run(args: List[String]) = JettyBuilder
     .bindHttp(8080)
     .mountService(ExampleService.service, "/http4s")
     .mountService(metricsService(metrics), "/metrics")
