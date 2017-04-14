@@ -19,14 +19,12 @@ import fs2._
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
 
-class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
-  // FIXME it is probably not right to set the strategy here in stone
-  implicit val strategy = fs2.Strategy.fromFixedDaemonPool(8, threadName = "worker")
+class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
 
   def log[A](prefix: String): Pipe[Task, A, A] = _.evalMap{a => Task.delay {println(s"$prefix> $a"); a} }
 
-  private val dead: Task[Signal[Task, Boolean]] = async.signalOf[Task, Boolean](false)
+  private val deadSignal: Task[Signal[Task, Boolean]] = async.signalOf[Task, Boolean](false)
 
   //////////////////////// Source and Sink generators ////////////////////////
 

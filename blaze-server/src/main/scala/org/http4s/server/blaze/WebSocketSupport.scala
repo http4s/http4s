@@ -3,6 +3,7 @@ package org.http4s.server.blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 
+import fs2.Strategy
 import org.http4s.headers._
 import org.http4s._
 import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
@@ -46,7 +47,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage(ws.get))
+                val segment = LeafBuilder(new Http4sWSStage(ws.get)(Strategy.fromExecutor(ec)))
                               .prepend(new WSFrameAggregator)
                               .prepend(new WebSocketDecoder(false))
 
