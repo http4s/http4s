@@ -33,7 +33,7 @@ object ResourceService {
     if (!uriPath.startsWith(config.pathPrefix))
       Response.fallthrough
     else
-      StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
+      StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)), Some(req))
         .fold(Response.fallthrough)(config.cacheStrategy.cache(uriPath, _))
   }
 }
