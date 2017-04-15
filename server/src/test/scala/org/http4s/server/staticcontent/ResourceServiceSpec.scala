@@ -2,6 +2,9 @@ package org.http4s
 package server
 package staticcontent
 
+import java.time.Instant
+
+import org.http4s.headers.`If-Modified-Since`
 import org.http4s.server.middleware.URITranslation
 import scodec.bits.ByteVector
 
@@ -47,6 +50,13 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
     "Generate non on missing content" in {
       val req = Request(uri = Uri.fromString("testresource.txtt").yolo)
       runReq(req)._2.status must_== (Status.NotFound)
+    }
+
+    "Not send unmodified files" in {
+      val req = Request(uri = uri("testresource.txt"))
+        .putHeaders(`If-Modified-Since`(Instant.MAX))
+
+      runReq(req)._2.status must_== Status.NotModified
     }
   }
 
