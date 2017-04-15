@@ -32,7 +32,7 @@ object ResourceService {
     if (!uriPath.startsWith(config.pathPrefix))
       Pass.now
     else
-      StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
+      StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)), Some(req))
         .fold(Pass.now)(config.cacheStrategy.cache(uriPath, _))
   }
 }
