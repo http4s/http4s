@@ -73,7 +73,7 @@ object Http4sBuild {
   lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
   lazy val json4sNative        = "org.json4s"               %% "json4s-native"           % json4sCore.revision
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
-  lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.3.3"
+  lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.3.4"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.11"
   lazy val macroCompat         = "org.typelevel"            %% "macro-compat"            % "1.1.1"
   lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.1.4"

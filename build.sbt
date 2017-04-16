@@ -13,7 +13,7 @@ apiVersion   in ThisBuild := version.map(extractApiVersion).value
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
-scalazVersion in ThisBuild := "7.1.11"
+scalazVersion in ThisBuild := "7.1.12"
 
 // Root project
 name := "root"
