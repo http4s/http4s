@@ -9,7 +9,7 @@ import org.http4s.util.StreamApp
 object TomcatExample extends StreamApp {
   val metrics = new MetricRegistry
 
-  def main(args: List[String]) = TomcatBuilder
+  def stream(args: List[String]) = TomcatBuilder
     .bindHttp(8080)
     .mountService(Metrics(metrics)(ExampleService.service), "/http4s")
     .mountService(metricsService(metrics), "/metrics/*")

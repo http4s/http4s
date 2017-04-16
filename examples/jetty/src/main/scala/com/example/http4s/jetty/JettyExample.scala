@@ -11,7 +11,7 @@ import org.http4s.util.StreamApp
 object JettyExample extends StreamApp {
   val metrics = new MetricRegistry
 
-  def main(args: List[String]) = JettyBuilder
+  def stream(args: List[String]) = JettyBuilder
     .bindHttp(8080)
     .mountService(ExampleService.service, "/http4s")
     .mountService(metricsService(metrics), "/metrics")

@@ -13,6 +13,7 @@
 * Upgraded dependencies:
     * argonaut-6.2
 * Set `secure` request attribute correctly in blaze server
+* Rename `ProcessApp.main` to `ProcessApp.process` to avoid overload confusion
 
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
@@ -64,9 +65,10 @@
     * async-http-client-2.0.31
     * jetty-9.3.18.v20170406
     * json4s-3.5.1
+	* log4s-1.3.4
     * metrics-core-3.1.4
     * scalacheck-1.13.5
-    * scalaz-7.1.12 or scalaz-7.2.10
+    * scalaz-7.1.12 or scalaz-7.2.11
     * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)

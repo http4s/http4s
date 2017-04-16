@@ -19,17 +19,16 @@ class StreamAppSpec extends Http4sSpec {
       */
     class TestStreamApp(process: Stream[Task, Unit]) extends StreamApp {
       val cleanedUp : Signal[Task, Boolean] = async.signalOf(false)(Task.asyncInstance(testStrategy)).unsafeRun
-      override def main(args: List[String]): Stream[Task, Unit] = {
+      override def stream(args: List[String]): Stream[Task, Unit] = {
         process.onFinalize(cleanedUp.set(true))
       }
     }
 
     "Terminate Server on a Process Failure" in {
-      skipped("https://github.com/http4s/http4s/issues/1114")
       val testApp = new TestStreamApp(
         fail(new Throwable("Bad Initial Process"))
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String])
       testApp.cleanedUp.get.unsafeRun should_== true
     }
 
@@ -38,17 +37,16 @@ class StreamAppSpec extends Http4sSpec {
         // emit one unit value
         emit("Valid Process").map(_ => ())
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafeRun should_== true
     }
 
     "Terminate Server on a Bad Task" in {
-      skipped("https://github.com/http4s/http4s/issues/1114")
       val testApp = new TestStreamApp(
         // fail at task evaluation
         eval(Task.fail(new Throwable("Bad Task")))
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== -1
       testApp.cleanedUp.get.unsafeRun should_== true
     }
 
@@ -57,7 +55,7 @@ class StreamAppSpec extends Http4sSpec {
         // emit one task evaluated unit value
         eval(Task("Valid Task").map(_ => ()))
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafeRun should_== true
     }
 
@@ -67,11 +65,11 @@ class StreamAppSpec extends Http4sSpec {
         eval_(Task.async[Nothing]{_ => })
       )
       (for {
-        runApp <- Task.start(Task.delay(testApp.main(Array.empty[String])))
+        runApp <- Task.start(Task.delay(testApp.doMain(Array.empty[String])))
         _ <- testApp.requestShutdown
-        _ <- runApp
+        exit <- runApp
         cleanedUp <- testApp.cleanedUp.get
-      } yield cleanedUp).unsafeTimed(5.seconds) should returnValue(true)
+      } yield (exit, cleanedUp)).unsafeTimed(5.seconds) should returnValue((0, true))
     }
   }
 }

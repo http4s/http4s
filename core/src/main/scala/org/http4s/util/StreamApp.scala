@@ -8,7 +8,7 @@ import org.log4s.getLogger
 trait StreamApp {
   private[this] val logger = getLogger
 
-  def main(args: List[String]): Stream[Task, Unit]
+  def stream(args: List[String]): Stream[Task, Unit]
 
   private implicit val strategy: Strategy = Strategy.sequential
 
@@ -18,10 +18,11 @@ trait StreamApp {
   final val requestShutdown: Task[Unit] =
     shutdownRequested.set(true)
 
-  final def main(args: Array[String]): Unit = {
+  /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
+  private[util] def doMain(args: Array[String]): Int = {
     val halted = signalOf[Task, Boolean](false).unsafeRun
 
-    val p = shutdownRequested.interrupt(main(args.toList))
+    val p = shutdownRequested.interrupt(stream(args.toList))
       .onFinalize(halted.set(true))
 
     sys.addShutdownHook {
@@ -32,9 +33,12 @@ trait StreamApp {
     p.run.attempt.unsafeRun match {
       case Left(t) =>
         logger.error(t)("Error running stream")
-        System.exit(-1)
+        -1
       case Right(_) =>
-        ()
+        0
     }
   }
+
+  final def main(args: Array[String]): Unit =
+    sys.exit(doMain(args))
 }

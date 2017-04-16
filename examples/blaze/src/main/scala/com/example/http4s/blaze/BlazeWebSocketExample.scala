@@ -41,7 +41,7 @@ object BlazeWebSocketExample extends ProcessApp {
       WS(Exchange(src, q.enqueue))
   }
 
-  def main(args: List[String]) = BlazeBuilder.bindHttp(8080)
+  def stream(args: List[String]) = BlazeBuilder.bindHttp(8080)
     .withWebSockets(true)
     .mountService(route, "/http4s")
     .serve
