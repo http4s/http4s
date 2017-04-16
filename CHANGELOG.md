@@ -5,9 +5,10 @@
     * async-http-client-2.0.31
     * jetty-9.3.18.v20170406
     * json4s-3.5.1
+	* log4s-1.3.4
     * metrics-core-3.1.4
     * scalacheck-1.13.5
-    * scalaz-7.1.12 or scalaz-7.2.10
+    * scalaz-7.1.12 or scalaz-7.2.11
     * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)
