@@ -2,12 +2,14 @@ package org.http4s
 package server
 package staticcontent
 
-import org.http4s.Http4sSpec._
+import java.time.Instant
+
+import org.http4s.headers.`If-Modified-Since`
 import org.http4s.server.middleware.URITranslation
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
-  val s = resourceService(ResourceService.Config("", executor = TestPool))
+  val s = resourceService(ResourceService.Config("", executor = Http4sSpec.TestPool))
 
   "ResourceService" should {
 
@@ -38,6 +40,12 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
       val req = Request(uri = Uri.fromString("testresource.txtt").yolo)
       s.orNotFound(req) must returnStatus(Status.NotFound)
     }
-  }
 
+    "Not send unmodified files" in {
+      val req = Request(uri = uri("testresource.txt"))
+        .putHeaders(`If-Modified-Since`(Instant.MAX))
+
+      runReq(req)._2.status must_== Status.NotModified
+    }
+  }
 }
