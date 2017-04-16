@@ -1,5 +1,6 @@
 # v0.15.9-SNAPSHOT
 * Terminate `ServerApp` even if the server fails to start
+* Make `ResourceService` respect `If-Modified-Since`
 * Patch-level upgrades to dependencies:
     * async-http-client-2.0.31
     * jetty-9.3.18.v20170406
