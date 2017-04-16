@@ -11,7 +11,7 @@ import scalaz.stream.{async, wye}
 trait ProcessApp {
   private[this] val logger = org.log4s.getLogger
 
-  def run(args: List[String]): Process[Task, Unit]
+  def process(args: List[String]): Process[Task, Unit]
 
   private[this] val shutdownRequested =
     async.signalOf(false)
@@ -23,7 +23,7 @@ trait ProcessApp {
   private[util] def doMain(args: Array[String]): Int = {
     val halted = async.signalOf(false)
 
-    val p = (shutdownRequested.discrete wye run(args.toList))(wye.interrupt)
+    val p = (shutdownRequested.discrete wye process(args.toList))(wye.interrupt)
       .onComplete(eval_(halted set true))
 
     sys.addShutdownHook {

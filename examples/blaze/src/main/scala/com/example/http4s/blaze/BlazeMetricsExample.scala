@@ -15,7 +15,7 @@ object BlazeMetricsExample extends ProcessApp {
     "/metrics" -> metricsService(metricRegistry)
   )
 
-  def run(args: List[String]) = BlazeBuilder.bindHttp(8080)
+  def process(args: List[String]) = BlazeBuilder.bindHttp(8080)
     .mountService(srvc, "/http4s")
     .serve
 }

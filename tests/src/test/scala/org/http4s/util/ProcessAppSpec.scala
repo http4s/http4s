@@ -18,7 +18,7 @@ class ProcessAppSpec extends Http4sSpec {
       */
     class TestProcessApp(process: Process[Task, Unit]) extends ProcessApp {
       val cleanedUp : Signal[Boolean] = async.signalOf(false)
-      override def run(args: List[String]): Process[Task, Unit] = {
+      override def process(args: List[String]): Process[Task, Unit] = {
         process.onComplete(Process.eval_(cleanedUp.set(true)))
       }
     }

@@ -13,7 +13,7 @@ trait SslExample extends ProcessApp {
 
   def builder: ServerBuilder with SSLKeyStoreSupport
 
-  def run(args: List[String]) = builder
+  def process(args: List[String]) = builder
     .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
     .mountService(ExampleService.service, "/http4s")
     .bindHttp(8443)

@@ -164,7 +164,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 object Main extends ProcessApp {
-  override def run(args: List[String]): Process[Task, Nothing] = {
+  override def process(args: List[String]): Process[Task, Nothing] = {
     BlazeBuilder
       .bindHttp(8080, "localhost")
       .mountService(helloWorldService, "/")
