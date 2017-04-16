@@ -5,7 +5,7 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.util.ProcessApp
 
 object BlazeExample extends ProcessApp {
-  def main(args: List[String]) = BlazeBuilder.bindHttp(8080)
+  def process(args: List[String]) = BlazeBuilder.bindHttp(8080)
     .mountService(ExampleService.service, "/http4s")
     .serve
 }

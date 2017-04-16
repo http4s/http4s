@@ -18,8 +18,8 @@ class ProcessAppSpec extends Http4sSpec {
       */
     class TestProcessApp(process: Process[Task, Unit]) extends ProcessApp {
       val cleanedUp : Signal[Boolean] = async.signalOf(false)
-      override def main(args: List[String]): Process[Task, Unit] = {
-        process.onHalt(_ => Process.eval_(cleanedUp.set(true)))
+      override def process(args: List[String]): Process[Task, Unit] = {
+        process.onComplete(Process.eval_(cleanedUp.set(true)))
       }
     }
 
@@ -27,7 +27,7 @@ class ProcessAppSpec extends Http4sSpec {
       val testApp = new TestProcessApp(
         Process.fail(new Throwable("Bad Initial Process"))
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== -1
       testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
@@ -36,7 +36,7 @@ class ProcessAppSpec extends Http4sSpec {
         // emit one unit value
         Process.emit("Valid Process").map(_ => ())
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
@@ -45,7 +45,7 @@ class ProcessAppSpec extends Http4sSpec {
         // fail at task evaluation
         Process.eval(Task.fail(new Throwable("Bad Task")))
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== -1
       testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
@@ -54,7 +54,7 @@ class ProcessAppSpec extends Http4sSpec {
         // emit one task evaluated unit value
         Process.eval(Task("Valid Task").map(_ => ()))
       )
-      testApp.main(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafePerformSync should_== true
     }
 
@@ -63,10 +63,10 @@ class ProcessAppSpec extends Http4sSpec {
         // run forever, emit nothing
         Process.eval_(Task.async[Nothing]{_ => })
       )
-      val runApp = Task.unsafeStart(testApp.main(Array.empty[String]))
+      val runApp = Task.unsafeStart(testApp.doMain(Array.empty[String]))
       testApp.requestShutdown.unsafePerformSync
-      runApp.flatMap(_ => testApp.cleanedUp.get).unsafePerformSync should_== true
+      runApp.unsafePerformSync should_== 0
+      testApp.cleanedUp.get.unsafePerformSync should_== true
     }
   }
-
 }

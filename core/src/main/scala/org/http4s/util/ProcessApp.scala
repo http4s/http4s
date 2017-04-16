@@ -11,7 +11,7 @@ import scalaz.stream.{async, wye}
 trait ProcessApp {
   private[this] val logger = org.log4s.getLogger
 
-  def main(args: List[String]): Process[Task, Unit]
+  def process(args: List[String]): Process[Task, Unit]
 
   private[this] val shutdownRequested =
     async.signalOf(false)
@@ -19,23 +19,27 @@ trait ProcessApp {
   final val requestShutdown: Task[Unit] =
     shutdownRequested.set(true)
 
-  final def main(args: Array[String]): Unit = {
+  /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
+  private[util] def doMain(args: Array[String]): Int = {
     val halted = async.signalOf(false)
 
-    val p = (shutdownRequested.discrete wye main(args.toList))(wye.interrupt)
-      .onHalt{ _ => eval_(halted set true)}
+    val p = (shutdownRequested.discrete wye process(args.toList))(wye.interrupt)
+      .onComplete(eval_(halted set true))
 
     sys.addShutdownHook {
       requestShutdown.unsafePerformAsync(_ => ())
       halted.discrete.takeWhile(_ == false).run.unsafePerformSync
     }
 
-    p.run.unsafePerformSyncAttempt match {
+    p.run.attempt.unsafePerformSync match {
       case -\/(t) =>
         logger.error(t)("Error running process")
-        System.exit(-1)
-      case \/-(_) =>
-        ()
+        -1
+      case \/-(a) =>
+        0
     }
   }
+
+  final def main(args: Array[String]): Unit =
+    sys.exit(doMain(args))
 }
