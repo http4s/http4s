@@ -11,7 +11,7 @@ env:
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
   matrix:
   - SCALAZ_VERSION=7.2.11
-  - SCALAZ_VERSION=7.1.12
+  - SCALAZ_VERSION=7.1.13
 before_script:
 - mkdir -p $HOME/.sbt/launchers/0.13.8/
 - curl -L -o $HOME/.sbt/launchers/0.13.8/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.8/sbt-launch.jar
