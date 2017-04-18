@@ -8,7 +8,7 @@
 	* log4s-1.3.4
     * metrics-core-3.1.4
     * scalacheck-1.13.5
-    * scalaz-7.1.12 or scalaz-7.2.11
+    * scalaz-7.1.12 or scalaz-7.2.13
     * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)
