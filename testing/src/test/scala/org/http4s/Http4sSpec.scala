@@ -10,6 +10,7 @@
 package org.http4s
 
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+import scala.concurrent.ExecutionContext
 import fs2._
 import fs2.text._
 import org.http4s.testing._
@@ -47,6 +48,8 @@ trait Http4sSpec extends Specification
 {
   def testPool: ExecutorService =
     Http4sSpec.TestPool
+  implicit def testExecutionContext: ExecutionContext =
+    Http4sSpec.TestExecutionContext
   implicit def testStrategy: Strategy =
     Http4sSpec.TestStrategy
   implicit def testScheduler: Scheduler =
@@ -112,6 +115,9 @@ trait Http4sSpec extends Specification
 object Http4sSpec {
   val TestPool: ExecutorService =
     newDaemonPool("http4s-spec", timeout = true)
+
+  val TestExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(TestPool)
 
   val TestStrategy: Strategy =
     Strategy.fromExecutor(TestPool)
