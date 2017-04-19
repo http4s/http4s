@@ -48,7 +48,7 @@ class TimeoutSpec extends Http4sSpec {
       var clean = new AtomicBoolean(false)
       val service = HttpService {
         case _ =>
-          NoContent().schedule(200.milliseconds) <* Task.delay(clean.set(true))
+          NoContent().schedule(2.seconds) <* Task.delay(clean.set(true))
       }
       val timeoutService = Timeout(1.millis)(service)
       timeoutService.orNotFound(Request()) must returnStatus (InternalServerError)
