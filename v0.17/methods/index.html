@@ -2,7 +2,7 @@
 <html>
   <head>
   <meta charset="utf-8">
-  <title>http4s: Quick Start</title>
+  <title>http4s: HTTP Methods</title>
 
   <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
@@ -76,89 +76,85 @@
       <div class="content">
         <div class="col-md-10" role="main">
           <div class="page-header">
-            <h1>Quick Start</h1>
+            <h1>HTTP Methods</h1>
           </div>
-          <p>Getting started with http4s is easy.  Let&rsquo;s materialize an http4s
-skeleton project from its <a href="https://github.com/http4s/http4s.g8">giter8 template</a>:</p>
+          <p>For a REST API, your service will want to support different verbs/methods.
+Http4s has a list of all the <a href="../api/org/http4s/Method$.html">methods</a> you&rsquo;re familiar with, and a few more.</p>
 
-<pre><code class="language-sbt">$ sbt -sbt-version 0.13.13 new http4s/http4s.g8 -b 0.17
+<pre><code class="language-scala">import fs2.Task
+// import fs2.Task
+
+import io.circe.generic._
+// import io.circe.generic._
+
+import io.circe.syntax._
+// import io.circe.syntax._
+
+import org.http4s._, org.http4s.dsl._
+// import org.http4s._
+// import org.http4s.dsl._
+
+import org.http4s.circe._
+// import org.http4s.circe._
+
+@JsonCodec case class TweetWithId(id: Int, message: String)
+// defined class TweetWithId
+// defined object TweetWithId
+
+@JsonCodec case class Tweet(message: String)
+// defined class Tweet
+// defined object Tweet
+
+def getTweet(tweetId: Int): Task[Option[TweetWithId]] = ???
+// getTweet: (tweetId: Int)fs2.Task[Option[TweetWithId]]
+
+def addTweet(tweet: Tweet): Task[TweetWithId] = ???
+// addTweet: (tweet: Tweet)fs2.Task[TweetWithId]
+
+def updateTweet(id: Int, tweet: Tweet): Task[Option[TweetWithId]] = ???
+// updateTweet: (id: Int, tweet: Tweet)fs2.Task[Option[TweetWithId]]
+
+def deleteTweet(id: Int): Task[Unit] = ???
+// deleteTweet: (id: Int)fs2.Task[Unit]
+
+implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
+// tweetWithIdEncoder: org.http4s.EntityEncoder[TweetWithId] = org.http4s.EntityEncoder$$anon$2@49de29cb
+
+implicit val tweetDecoder = jsonOf[Tweet]
+// tweetDecoder: org.http4s.EntityDecoder[Tweet] = org.http4s.EntityDecoder$$anon$2@5dcc00b0
+
+val tweetService = HttpService {
+  case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    getTweet(tweetId)
+      .flatMap(_.fold(NotFound())(Ok(_)))
+  case req @ POST -&gt; Root / &quot;tweets&quot; =&gt;
+    req.as[Tweet].flatMap(addTweet).flatMap(Ok(_))
+  case req @ PUT -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    req.as[Tweet]
+      .flatMap(updateTweet(tweetId, _))
+      .flatMap(_.fold(NotFound())(Ok(_)))
+  case req @ HEAD -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    getTweet(tweetId)
+      .flatMap(_.fold(NotFound())(_ =&gt; Ok()))
+  case req @ DELETE -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+    deleteTweet(tweetId)
+      .flatMap(_ =&gt; Ok())
+}
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$37844/298421369@7a52d853)
 </code></pre>
 
-<p>Follow the prompts.  For every step along the way, a default value is
-provided in brackets.</p>
-
-<dl>
-<dt><code>name</code></dt>
-<dd>name of your project.</dd>
-<dt><code>organization</code></dt>
-<dd>the organization you publish under.  It&rsquo;s common practice on the JVM
-to make this a domain you own, in reverse order (i.e., TLD first).
-<code>io.github.username</code> is also a fine choice.</dd>
-<dt><code>package</code></dt>
-<dd>by default, your organization followed by the project name.</dd>
-<dt><code>scala_version</code></dt>
-<dd>defaults to the latest available version of Scala</dd>
-<dt><code>http4s_version</code></dt>
-<dd>defaults to the latest stable release of http4s.  See
-the <a href="/versions/">versions</a> page for other suggestions.</dd>
-</dl>
-
-<p>At the end of the process, you&rsquo;ll see:</p>
-
-<pre><code>Template applied in ./http4s-quickstart
-</code></pre>
-
-<p>In addition to sbt build machinery, two Scala source files are
-generated:</p>
-
-<pre><code class="language-sh">$ cd http4s-quickstart
-$ find . -name '*.scala'
-./src/main/scala/com/example/http4squickstart/HelloWorld.scala
-./src/main/scala/com/example/http4squickstart/Server.scala
-</code></pre>
-
-<p><code>HelloWorld.scala</code> defines a service that responds to HTTP requests on
-<code>GET /hello/$USERNAME</code> with a JSON greeting.  <code>Server.scala</code> defines
-an object that extends <code>App</code> to start a server.  sbt will find and run
-any app that it finds in your project.  Let&rsquo;s try it:</p>
-
-<pre><code class="language-sh">$ sbt run
-</code></pre>
-
-<p>Depending on the state of your Ivy cache, several dependencies will
-download.  This is a good time to grab a beverage.  When you come
-back, you should see a line similar to this:</p>
-
-<pre><code>264 [run-main-0] INFO org.http4s.blaze.channel.nio1.NIO1SocketServerGroup - Service bound to address /127.0.0.1:8080
-</code></pre>
-
-<p>This indicates that /blaze/, htttp4s&rsquo; native server backend, is
-running our service on port 8080.  Let&rsquo;s try out the hello world
-service with curl:</p>
-
-<pre><code class="language-sh">$ curl -i http://localhost:8080/hello/world
-HTTP/1.1 200 OK
-Content-Type: application/json; charset=UTF-8
-Date: Thu, 01 Dec 2016 05:05:24 GMT
-Content-Length: 26
-
-{&quot;message&quot;:&quot;Hello, world&quot;}
-</code></pre>
-
-<p>To shut down your server, simply press <code>^C</code> in your console.</p>
-
-<p>With just a few commands, we have a fully functional app for creating
-a simple JSON service.</p>
+<p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
+implementation of the <code>HEAD</code> route.</p>
 
           <footer>
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://http4s.org/v0.17/build/"><i class="fa fa-arrow-left"></i> Get http4s</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.17/dsl/"><i class="fa fa-arrow-left"></i> The http4s DSL</a></li>
                 
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/index.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/methods.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
-                <li class="next"><a href="http://http4s.org/v0.17/service/">Service <i class="fa fa-arrow-right"></i></a></li>
+                <li class="next"><a href="http://http4s.org/v0.17/middleware/">Middleware <i class="fa fa-arrow-right"></i></a></li>
                 
               </ul>
             </nav>
@@ -169,7 +165,7 @@ a simple JSON service.</p>
             <ul class="nav">
               
               
-              <li class="active">
+              <li >
                 <a href="/v0.17/">Quick Start</a>
               </li>
               
