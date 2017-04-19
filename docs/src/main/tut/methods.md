@@ -40,7 +40,7 @@ val tweetService = HttpService {
       .flatMap(_.fold(NotFound())(_ => Ok()))
   case req @ DELETE -> Root / "tweets" / IntVar(tweetId) =>
     deleteTweet(tweetId)
-      .flatMap(Ok())
+      .flatMap(_ => Ok())
 }
 ```
 
