@@ -87,7 +87,7 @@ trait MessageOps extends Any {
     * @return the `Task` which will generate the T
     */
   final def as[T](implicit decoder: EntityDecoder[T]): Task[T] =
-    attemptAs(decoder).fold(throw _, identity)
+    attemptAs(decoder).fold(Task.fail(_), _.pure[Task]).flatten
 }
 
 trait RequestOps extends Any with MessageOps {
