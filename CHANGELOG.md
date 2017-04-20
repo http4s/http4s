@@ -62,7 +62,7 @@
   `Process.bracket`.
 * Implement a `Referer` header.
 
-# v0.15.9-SNAPSHOT
+# v0.15.9 (2017-04-19)
 * Terminate `ServerApp` even if the server fails to start
 * Make `ResourceService` respect `If-Modified-Since`
 * Patch-level upgrades to dependencies:
@@ -72,7 +72,7 @@
 	* log4s-1.3.4
     * metrics-core-3.1.4
     * scalacheck-1.13.5
-    * scalaz-7.1.12 or scalaz-7.2.11
+    * scalaz-7.1.13 or scalaz-7.2.11
     * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)
