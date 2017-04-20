@@ -2,13 +2,9 @@ package org.http4s
 package server
 package middleware
 
-import java.util.concurrent._
-import scala.concurrent._
-import scala.concurrent.duration._
-
-import fs2._
-import org.http4s.batteries._
-import org.http4s.util.threads.threadFactory
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import fs2.{Scheduler, Strategy, Task}
 
 object Timeout {
 
@@ -22,7 +18,7 @@ object Timeout {
     * interrupt a server side response safely, look at
     * `scalaz.stream.wye.interrupt`.
     *
-    * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
+    * @param timeoutResponse Task[Response] to race against the result of the service. This will be run for each [[Request]]
     * @param service [[org.http4s.HttpService]] to transform
     */
   private def race(timeoutResponse: Task[Response])(service: HttpService)(implicit scheduler: Scheduler, strategy: Strategy): HttpService = {
