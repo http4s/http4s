@@ -1,4 +1,4 @@
-# v0.15.9-SNAPSHOT
+# v0.15.9 (2017-04-19)
 * Terminate `ServerApp` even if the server fails to start
 * Make `ResourceService` respect `If-Modified-Since`
 * Patch-level upgrades to dependencies:
