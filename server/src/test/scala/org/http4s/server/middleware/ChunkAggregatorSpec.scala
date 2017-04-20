@@ -1,5 +1,6 @@
 package org.http4s.server.middleware
 
+import cats.data.NonEmptyList
 import fs2._
 import org.http4s._
 import org.http4s.dsl._
@@ -8,8 +9,19 @@ import org.specs2.matcher.MatchResult
 class ChunkAggregatorSpec extends Http4sSpec {
 
   "ChunkAggregator" should {
+    def checkResponse(body: EntityBody)(responseCheck: Response => MatchResult[Any]): MatchResult[Any] = {
+      val service: HttpService = HttpService.lift { _ => Ok().withBody(body) }
+      ChunkAggregator(service).run(Request()).unsafeValue() must beSome.like {
+        case maybeResponse: MaybeResponse =>
+          val response = maybeResponse.orNotFound
+          response.status must_== Ok
+          responseCheck(response)
+      }
+    }
+
     "handle an empty body" in {
       checkResponse(EmptyBody) { response =>
+        response.contentLength must_=== None
         response.body.runLog.unsafeValue() must_=== Some(Vector.empty)
       }
     }
@@ -19,34 +31,14 @@ class ChunkAggregatorSpec extends Http4sSpec {
       ChunkAggregator(service).run(Request()).unsafeValue() must beSome(Pass)
     }
 
-    "handle a single chunk" in {
-      val str = encodeUtf8String("hiya")
-      checkResponse(Stream.emits(str)) { response =>
-        response.contentLength must_=== Some(4L)
-        response.body.runLog.unsafeValue() must_=== Some(str.toVector)
-      }
-    }
-
-    "handle multiple chunks" in {
-      val strings = Seq("the", " quick", " brown", " fox").map(str => Stream.emits[Task, Byte](encodeUtf8String(str)))
-      val body = strings.tail.foldLeft(strings.head)(_ ++ _)
-      checkResponse(body) { response =>
-        response.contentLength must_=== Some(19L)
-        response.body.runLog.unsafeValue() must_=== Some(encodeUtf8String("the quick brown fox").toVector)
+    "handle chunks" in {
+      prop { (chunks: NonEmptyList[Chunk[Byte]]) =>
+        checkResponse(chunks.map(Stream.chunk[Task, Byte]).reduceLeft(_ ++ _)) { response =>
+          response.contentLength must_=== Some(chunks.map(_.size).reduceLeft(_ + _).toLong).filter(_ > 0L)
+          response.body.runLog.unsafeValue() must_=== Some(chunks.foldLeft(Vector.empty[Byte])(_ ++ _.toVector))
+        }
       }
     }
   }
-
-  def checkResponse(body: EntityBody)(responseCheck: Response => MatchResult[Any]): MatchResult[Any] = {
-    val service: HttpService = HttpService.lift { _ => Ok().withBody(body) }
-    ChunkAggregator(service).run(Request()).unsafeValue() must beSome.like {
-      case maybeResponse: MaybeResponse =>
-        val response = maybeResponse.orNotFound
-        response.status must_== Ok
-        responseCheck(response)
-    }
-  }
-
-  def encodeUtf8String(str: String): Seq[Byte] = str.getBytes.toSeq
 
 }
