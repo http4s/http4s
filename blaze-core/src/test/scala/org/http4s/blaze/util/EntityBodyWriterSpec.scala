@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import fs2._
 import fs2.Stream._

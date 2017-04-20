@@ -1,3 +1,7 @@
+# v0.17.0-SNAPSHOT
+* `Timeout` middleware takes an implicit `Scheduler` and
+  `ExecutionContext`
+
 # v0.17.0-M1 (2017-04-08)
 * First release on cats and fs2
     * All scalaz types and typeclasses replaced by cats equivalents
