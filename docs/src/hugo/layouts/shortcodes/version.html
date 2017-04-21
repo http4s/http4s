@@ -13,4 +13,5 @@
          "io.circe" %% "circe-generic" % "{{< version circe >}}",
          "io.circe" %% "circe-literal" % "{{< version circe >}}"
        )
-*/}}{{ index .Site.Data.build.versions (.Get 0) }}
+*/}}
+{{- index .Site.Data.build.versions (.Get 0) -}}
