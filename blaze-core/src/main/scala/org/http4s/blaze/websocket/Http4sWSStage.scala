@@ -92,9 +92,9 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
     // Can we stop a Sink?
     val wsStream = for {
       dead   <- deadSignal
-      in     = inputstream.through(log("input")).onFinalize(onStreamFinalize)
-      out    = ws.read.through(log("output")).onFinalize(onStreamFinalize).to(snk)
-      merged <- (in mergeHaltR out.drain).interruptWhen(dead).onFinalize(sendClose).run
+      in     = inputstream.through(log("input")).to(ws.write).onFinalize(onStreamFinalize)
+      out    = ws.read.through(log("output")).onFinalize(onStreamFinalize).to(snk).drain
+      merged <- (in mergeHaltR out).interruptWhen(dead).onFinalize(sendClose).run
     } yield merged
 
     wsStream.or(sendClose).unsafeRunAsyncFuture // RFC Is this correct?
