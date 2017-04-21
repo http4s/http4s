@@ -6,6 +6,7 @@ import java.net.{InetSocketAddress, InetAddress}
 import cats._
 import fs2._
 import fs2.text._
+import fs2.util.Lub1
 import org.http4s.headers._
 import org.http4s.batteries._
 import org.http4s.server.ServerSoftware
@@ -15,16 +16,16 @@ import org.http4s.server.ServerSoftware
  * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
  * @see [[MessageSyntax]], [[ResponseOps]]
  */
-sealed trait Message extends MessageOps { self =>
-  type Self <: Message { type Self = self.Self }
+sealed trait Message[F[_]] extends MessageOps[F] { self =>
+  type Self <: Message[F] { type Self = self.Self }
 
   def httpVersion: HttpVersion
 
   def headers: Headers
 
-  def body: EntityBody
+  def body: EntityBody[F]
 
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[Task, String] = {
+  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] = {
     (charset getOrElse defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
@@ -44,14 +45,14 @@ sealed trait Message extends MessageOps { self =>
   
   def attributes: AttributeMap
 
-  protected def change(body: EntityBody = body,
-                       headers: Headers = headers,
-                       attributes: AttributeMap = attributes): Self
+  protected def change(body: EntityBody[F] = body,
+    headers: Headers = headers,
+    attributes: AttributeMap = attributes): Self
 
-  override def transformHeaders(f: Headers => Headers): Self =
+  override def transformHeaders(f: Headers => Headers)(implicit F: Functor[F]): Self =
     change(headers = f(headers))
 
-  override def withAttribute[A](key: AttributeKey[A], value: A): Self =
+  override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     change(attributes = attributes.put(key, value))
 
   /** Replace the body of this message with a new body
@@ -61,7 +62,7 @@ sealed trait Message extends MessageOps { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
+  def withBody[T](b: T)(implicit F: Functor[F], w: EntityEncoder[F, T]): F[Self] = {
     w.toEntity(b).map { entity =>
       val hs = entity.length match {
         case Some(l) => `Content-Length`(l)::w.headers.toList
@@ -93,7 +94,7 @@ sealed trait Message extends MessageOps { self =>
     * @tparam T type of the result
     * @return the `Task` which will generate the `DecodeResult[T]`
     */
-  override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] =
+  override def attemptAs[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
     decoder.decode(this, strict = false)
 }
 
@@ -115,19 +116,19 @@ object Message {
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final case class Request(
+final case class Request[F[_]](
   method: Method = Method.GET,
   uri: Uri = Uri(path = "/"),
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
-  body: EntityBody = EmptyBody,
+  body: EntityBody[F] = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message with RequestOps {
+) extends Message[F] with RequestOps[F] {
   import Request._
 
-  type Self = Request
+  type Self = Request[F]
 
-  override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
+  override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 
   lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
@@ -137,7 +138,7 @@ final case class Request(
     uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String): Request =
+  def withPathInfo(pi: String)(implicit F: Functor[F]): Request[F] =
     copy(uri = uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
@@ -204,8 +205,8 @@ final case class Request(
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
-    decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).flatten
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
+    decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers}"""
@@ -235,48 +236,37 @@ object Request {
  * Represents that a service either returns a [[Response]] or a [[Pass]] to fall through
  * to another service.
  */
-sealed trait MaybeResponse {
-  def cata[A](f: Response => A, a: => A): A =
+sealed trait MaybeResponse[F[_]] {
+  def cata[A](f: Response[F] => A, a: => A): A =
     this match {
-      case r: Response => f(r)
-      case Pass => a
+      case r: Response[F] => f(r)
+      case _: Pass[F] => a
     }
 
-  def orElse[B >: Response](b: => B): B =
+  def orElse[B >: Response[F]](b: => B): B =
     this match {
-      case r: Response => r
-      case Pass => b
+      case r: Response[F] => r
+      case _: Pass[F] => b
     }
 
-  def orNotFound: Response =
+  def orNotFound: Response[F] =
     orElse(Response(Status.NotFound))
 
-  def toOption: Option[Response] =
+  def toOption: Option[Response[F]] =
     cata(Some(_), None)
 }
 
 object MaybeResponse {
-  implicit val instance: Monoid[MaybeResponse] =
-    new Monoid[MaybeResponse] {
+  implicit def instance[F[_]]: Monoid[MaybeResponse[F]] =
+    new Monoid[MaybeResponse[F]] {
       def empty =
-        Pass
-      def combine(a: MaybeResponse, b: MaybeResponse) =
+        Pass[F]
+      def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
         a orElse b
     }
-
-  implicit val taskInstance: Monoid[Task[MaybeResponse]] =
-    new Monoid[Task[MaybeResponse]] {
-      def empty =
-        Pass.now
-      def combine(ta: Task[MaybeResponse], tb: Task[MaybeResponse]): Task[MaybeResponse] =
-        ta.flatMap(_.cata(Task.now, tb))
-    }
 }
 
-case object Pass extends MaybeResponse {
-  val now: Task[MaybeResponse] =
-    Task.now(Pass)
-}
+final case class Pass[F[_]]() extends MaybeResponse[F]
 
 /** Representation of the HTTP response to send back to the client
  *
@@ -286,19 +276,19 @@ case object Pass extends MaybeResponse {
  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
  *                   backend for additional processing such as java.io.File object
  */
-final case class Response(
+final case class Response[F[_]](
   status: Status = Status.Ok,
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
-  body: EntityBody = EmptyBody,
+  body: EntityBody[F] = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty)
-    extends Message with MaybeResponse with ResponseOps {
-  type Self = Response
+    extends Message[F] with MaybeResponse[F] with ResponseOps[F] {
+  type Self = Response[F]
 
-  override def withStatus(status: Status): Self =
+  override def withStatus(status: Status)(implicit F: Functor[F]): Self =
     copy(status = status)
 
-  override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
+  override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 
   override def toString: String =
@@ -306,12 +296,8 @@ final case class Response(
 }
 
 object Response {
-  @deprecated("Use Pass.now instead", "0.16")
-  val fallthrough: Task[MaybeResponse] =
-    Pass.now
-
-  def notFound(request: Request): Task[Response] = {
+  def notFound[F[_]](request: Request[F])(implicit F: Functor[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
     val body = s"${request.pathInfo} not found"
-    Response(Status.NotFound).withBody(body)
+    Response[F](Status.NotFound).withBody(body)
   }
 }

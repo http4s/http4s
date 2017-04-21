@@ -19,7 +19,7 @@ sealed abstract class MessageFailure extends RuntimeException {
     message
 
   /** Provides a default rendering of this failure as a [[Response]]. */
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response]
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]]
 
 }
 
@@ -43,19 +43,20 @@ final case class ParseFailure(sanitized: String, details: String) extends Parsin
     else if (details.isEmpty) sanitized
     else s"$sanitized: $details"
 
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
-    Response(Status.BadRequest, httpVersion).withBody(sanitized)
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+    Response[F](Status.BadRequest, httpVersion).withBody(sanitized)(F, EntityEncoder.stringEncoder[F])
 }
 
+/** TODO parameterization
 /** Generic description of a failure to parse an HTTP [[Message]] */
-final case class GenericParsingFailure(sanitized: String, details: String, response: HttpVersion => Task[Response]) extends ParsingFailure {
+final case class GenericParsingFailure(sanitized: String, details: String, response: HttpVersion => F[Response[F]]) extends ParsingFailure {
   def message: String =
     ParseFailure(sanitized, details).message
 
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
+  def toHttpResponse[F[_]](httpVersion: HttpVersion): F[Response[F]] =
     response(httpVersion)
 }
-
+ */
 
 object ParseFailure {
   implicit val eq = Eq.fromUniversalEquals[ParseFailure]
@@ -85,10 +86,12 @@ object ParseResult {
 sealed abstract class DecodeFailure extends MessageFailure
 
 /** Generic description of a failure to decode a [[Message]] */
-final case class GenericDecodeFailure(message: String, response: HttpVersion => Task[Response]) extends DecodeFailure {
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
+/** TODO parameterization
+final case class GenericDecodeFailure(message: String, response: HttpVersion => F[Response[F]]) extends DecodeFailure {
+  def toHttpResponse[F[_]](httpVersion: HttpVersion): F[Response[F]] =
     response(httpVersion)
 }
+ */
 
 /** Indicates a problem decoding a [[Message]] body. */
 sealed abstract class MessageBodyFailure extends DecodeFailure {
@@ -100,20 +103,22 @@ sealed abstract class MessageBodyFailure extends DecodeFailure {
 }
 
 /** Generic description of a failure to handle a [[Message]] body */
+/** TODO parameterization
 final case class GenericMessageBodyFailure(message: String,
                                            override val cause: Option[Throwable],
-                                           response: HttpVersion => Task[Response]) extends MessageBodyFailure {
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
+                                           response: HttpVersion => F[Response[F]]) extends MessageBodyFailure {
+  def toHttpResponse[F[_]](httpVersion: HttpVersion): F[Response[F]] =
     response(httpVersion)
 }
+ */
 
 /** Indicates an syntactic error decoding the body of an HTTP [[Message]]. */
 sealed case class MalformedMessageBodyFailure(details: String, override val cause: Option[Throwable] = None) extends MessageBodyFailure {
   def message: String =
     s"Malformed request body: $details"
 
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
-    Response(Status.BadRequest, httpVersion).withBody(s"The request body was malformed.")
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+    Response[F](Status.BadRequest, httpVersion).withBody(s"The request body was malformed.")(F, EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
@@ -121,8 +126,8 @@ sealed case class InvalidMessageBodyFailure(details: String, override val cause:
   def message: String =
     s"Invalid request body: $details"
 
-  override def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
-    Response(Status.UnprocessableEntity, httpVersion).withBody(s"The request body was invalid.")
+  override def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+    Response[F](Status.UnprocessableEntity, httpVersion).withBody(s"The request body was invalid.")(F, EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates that a [[Message]] came with no supported [[MediaType]]. */
@@ -132,9 +137,9 @@ sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) ext
   val expectedMsg: String = s"Expected one of the following media ranges: ${expected.map(_.renderString).mkString(", ")}"
   val responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
-  def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
-    Response(Status.UnsupportedMediaType, httpVersion)
-      .withBody(responseMsg)
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+    Response[F](Status.UnsupportedMediaType, httpVersion)
+      .withBody(responseMsg)(F, EntityEncoder.stringEncoder[F])
 }
 
 /** Indicates that a [[Message]] attempting to be decoded has no [[MediaType]] and no

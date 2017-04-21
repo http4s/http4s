@@ -1,20 +1,22 @@
 package org.http4s
 package syntax
 
+import cats._
+import cats.implicits._
 import fs2.Task
 
 trait TaskRequestSyntax {
-  implicit def http4sTaskRequestSyntax(req: Task[Request]): TaskRequestOps =
-    new TaskRequestOps(req)
+  implicit def http4sTaskRequestSyntax[F[+_]](req: F[Request[F]]): TaskRequestOps[F] =
+    new TaskRequestOps[F](req)
 }
 
-final class TaskRequestOps(val self: Task[Request])
+final class TaskRequestOps[F[+_]](val self: F[Request[F]])
     extends AnyVal
-    with TaskMessageOps[Request]
-    with RequestOps {
-  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
+    with TaskMessageOps[F, Request[F]]
+    with RequestOps[F] {
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
     self.flatMap(_.decodeWith(decoder, strict)(f))
 
-  def withPathInfo(pi: String): Task[Request] =
+  def withPathInfo(pi: String)(implicit F: Functor[F]): F[Request[F]] =
     self.map(_.withPathInfo(pi))
 }

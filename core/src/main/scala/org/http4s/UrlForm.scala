@@ -4,6 +4,7 @@ import scala.io.Codec
 
 import cats._
 import cats.data._
+import fs2.util.Catchable
 import org.http4s.batteries._
 import org.http4s.headers._
 import org.http4s.parser._
@@ -81,12 +82,12 @@ object UrlForm {
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
 
-  implicit def entityEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[UrlForm] =
-    EntityEncoder.stringEncoder(charset)
+  implicit def entityEncoder[F[_]](implicit F: Applicative[F], charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
+    EntityEncoder.stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder(implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[UrlForm] =
+  implicit def entityDecoder[F[_]](implicit F: Catchable[F], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
         EntityDecoder.decodeString(m)

@@ -12,41 +12,42 @@ import fs2._
 import fs2.Stream._
 import fs2.io._
 import fs2.text._
+import fs2.util.Suspendable
 import org.http4s.EntityEncoder._
 import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string._
 
-final case class Part(headers: Headers, body: EntityBody) {
+final case class Part[F[_]](headers: Headers, body: EntityBody[F]) {
   def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
 }
 
 object Part {
   private val ChunkSize = 8192
 
-  val empty: Part =
+  def empty[F[_]]: Part[F] =
     Part(Headers.empty, EmptyBody)
 
-  def formData(name: String, value: String, headers: Header*): Part =
+  def formData[F[_]: Suspendable](name: String, value: String, headers: Header*): Part[F] =
     Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers,
       emit(value).through(utf8Encode))
 
-  def fileData(name: String, file: File, headers: Header*): Part =
+  def fileData[F[_]: Suspendable](name: String, file: File, headers: Header*): Part[F] =
     fileData(name, file.getName, new FileInputStream(file), headers:_*)
 
-  def fileData(name: String, resource: URL, headers: Header*): Part =
+  def fileData[F[_]: Suspendable](name: String, resource: URL, headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers:_*)
 
-  private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part = {
+  private def fileData[F[_]](name: String, filename: String, in: => InputStream, headers: Header*)(implicit F: Suspendable[F]): Part[F] = {
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
            Header("Content-Transfer-Encoding", "binary") +:
            headers,
-         readInputStream(Task.delay(in), ChunkSize))
+         readInputStream(F.delay(in), ChunkSize))
    }
 }
 
-final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.create) {
+final case class Multipart[F[_]](parts: Vector[Part[F]], boundary: Boundary = Boundary.create) {
   def headers: Headers = Headers(`Content-Type`(MediaType.multipart("form-data", Some(boundary.value))))
 }
 

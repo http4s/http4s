@@ -1,12 +1,14 @@
 package org.http4s
 
+import cats._
 import cats.data._
+import cats.implicits._
 import fs2._
 
-case class AuthedRequest[A](authInfo: A, req: Request)
+case class AuthedRequest[F[_], A](authInfo: A, req: Request[F])
 
 object AuthedRequest {
-  def apply[T](getUser: Request => Task[T]): Kleisli[Task, Request, AuthedRequest[T]] = Kleisli({ request =>
+  def apply[F[_]: Functor, T](getUser: Request[F] => F[T]): Kleisli[F, Request[F], AuthedRequest[F, T]] = Kleisli({ request =>
     getUser(request).map(user => AuthedRequest(user, request))
   })
 }

@@ -21,15 +21,15 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString(url: String, req: Option[Request] = None): Option[Response] = {
+  def fromString[F[_]: Suspendable](url: String, req: Option[Request[F]] = None): Option[Response[F]] = {
     fromFile(new File(url), req)
   }
 
-  def fromResource(name: String, req: Option[Request] = None): Option[Response] = {
+  def fromResource[F[_]: Suspendable](name: String, req: Option[Request[F]] = None): Option[Response[F]] = {
     Option(getClass.getResource(name)).flatMap(fromURL(_, req))
   }
 
-  def fromURL(url: URL, req: Option[Request] = None): Option[Response] = {
+  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit F: Suspendable[F]): Option[Response[F]] = {
     val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified)
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`)).forall(_.date.compareTo(lastmod) < 0)
@@ -42,19 +42,19 @@ object StaticFile {
 
       Some(Response(
         headers = headers,
-        body    = readInputStream[Task](Task.delay(url.openStream), DefaultBufferSize)
+        body    = readInputStream[F](F.delay(url.openStream), DefaultBufferSize)
       ))
     } else Some(Response(NotModified))
   }
 
-  def fromFile(f: File, req: Option[Request] = None): Option[Response] =
+  def fromFile[F[_]: Suspendable](f: File, req: Option[Request[F]] = None): Option[Response[F]] =
     fromFile(f, DefaultBufferSize, req)
 
-  def fromFile(f: File, buffsize: Int, req: Option[Request]): Option[Response] = {
+  def fromFile[F[_]: Suspendable](f: File, buffsize: Int, req: Option[Request[F]]): Option[Response[F]] = {
     fromFile(f, 0, f.length(), buffsize, req)
   }
 
-  def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request]): Option[Response] = {
+  def fromFile[F[_]: Suspendable](f: File, start: Long, end: Long, buffsize: Int, req: Option[Request[F]]): Option[Response[F]] = {
     if (f.isFile) {
 
       require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
@@ -67,7 +67,7 @@ object StaticFile {
         h   <- r.headers.get(`If-Modified-Since`)
         exp  = h.date.compareTo(lastModified) < 0
         _    = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lastModified")
-        nm   = Response(NotModified) if !exp
+        nm   = Response[F](NotModified) if !exp
       } yield nm
 
       notModified orElse {
@@ -103,22 +103,22 @@ object StaticFile {
     }
   }
 
-  private def fileToBody(f: File, start: Long, end: Long, buffsize: Int): EntityBody = {
+  private def fileToBody[F[_]: Suspendable](f: File, start: Long, end: Long, buffsize: Int): EntityBody[F] = {
     // Based on fs2 handling of files
-    def readAllFromFileHandle[F[_]](chunkSize: Int, start: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
+    def readAllFromFileHandle(chunkSize: Int, start: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
       _readAllFromFileHandle0(chunkSize, start, end)(h)
 
-    def _readAllFromFileHandle0[F[_]](chunkSize: Int, offset: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
+    def _readAllFromFileHandle0(chunkSize: Int, offset: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
       for {
         res  <- Pull.eval(h.read(math.min(chunkSize, (end - offset).toInt), offset))
         next <- res.filter(_.nonEmpty)
           .fold[Pull[F, Byte, Unit]](Pull.done)(o => Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
       } yield next
 
-    def readAll[F[_]: Suspendable](path: Path, chunkSize: Int): Stream[F, Byte] =
+    def readAll(path: Path, chunkSize: Int): Stream[F, Byte] =
       pulls.fromPath(path, List(StandardOpenOption.READ)).flatMap(readAllFromFileHandle(chunkSize, start, end)).close
 
-    readAll[Task](f.toPath, DefaultBufferSize)
+    readAll(f.toPath, DefaultBufferSize)
   }
 
   private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")

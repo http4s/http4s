@@ -1,22 +1,26 @@
 package org.http4s
 package syntax
 
+import cats._
 import cats.data.EitherT
+import cats.implicits._
 import fs2.Task
 
-trait TaskMessageOps[M <: Message] extends Any with MessageOps {
-  type Self = Task[M#Self]
+trait TaskMessageOps[F[+_], M <: Message[F]] extends Any with MessageOps[F] {
+  type Self = F[M#Self]
 
-  def self: Task[M]
+  def self: F[M]
 
-  def transformHeaders(f: Headers => Headers): Self =
+  def transformHeaders(f: Headers => Headers)(implicit F: Functor[F]): Self =
     self.map(_.transformHeaders(f))
 
-  def withBody[T](b: T)(implicit w: EntityEncoder[T]): Self = self.flatMap(_.withBody(b)(w))
+  def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): Self =
+    self.flatMap(_.withBody(b))
 
-  override def withAttribute[A](key: AttributeKey[A], value: A): Self = self.map(_.withAttribute(key, value))
+  override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
+    self.map(_.withAttribute(key, value))
 
-  override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] = EitherT(self.flatMap { msg =>
+  override def attemptAs[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] = EitherT(self.flatMap { msg =>
     decoder.decode(msg, false).value
   })
 }

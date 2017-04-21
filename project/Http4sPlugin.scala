@@ -53,7 +53,9 @@ object Http4sPlugin extends AutoPlugin {
     mimaFailOnProblem := http4sMimaVersion.value.isDefined,
     mimaPreviousArtifacts := (http4sMimaVersion.value map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-    }).toSet
+    }).toSet,
+
+    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.3" cross CrossVersion.binary)
   )
 
   def extractApiVersion(version: String) = {

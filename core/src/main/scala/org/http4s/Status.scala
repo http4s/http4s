@@ -36,7 +36,7 @@ final case class Status private (code: Int)(val reason: String = "", val isEntit
   override def render(writer: org.http4s.util.Writer): writer.type =  writer << code << ' ' << reason
 
   /** Helpers for for matching against a [[Response]] */
-  def unapply(msg: Response): Option[Response] = {
+  def unapply[F[_]](msg: Response[F]): Option[Response[F]] = {
     if (msg.status == this) Some(msg) else None
   }
 }
@@ -46,7 +46,7 @@ object Status {
     def isSuccess: Boolean
 
     /** Match a [[Response]] based on [[Status]] category */
-    final def unapply(resp: Response): Option[Response] =
+    final def unapply[F[_]](resp: Response[F]): Option[Response[F]] =
       if (resp.status.responseClass == this) Some(resp) else None
   }
 
