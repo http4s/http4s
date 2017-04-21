@@ -12,7 +12,6 @@ import scala.concurrent.duration._
 import fs2.{Pipe, Scheduler, Sink, Strategy, Stream, Task, async, pipe}
 import fs2.time.awakeEvery
 
-
 object BlazeWebSocketExample extends StreamApp {
   implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
   implicit val strategy = Strategy.fromFixedDaemonPool(8, threadName = "worker")

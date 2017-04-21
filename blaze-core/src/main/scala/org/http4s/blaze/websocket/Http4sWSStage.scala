@@ -17,7 +17,6 @@ import fs2.async
 import fs2._
 
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
-import pipeline.Command.EOF
 
 class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
@@ -41,27 +40,29 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
   def inputstream: Stream[Task, WebSocketFrame] = {
     val t = Task.async[WebSocketFrame] { cb =>
       def go(): Unit = channelRead().onComplete {
-        case Success(ws) => ws match {
+        case Success(ws)         => ws match {
             case Close(_)    =>
               for {
-                _ <- deadSignal.map(_.set(true))
+                t <- deadSignal.map(_.set(true))
               } yield {
-                sendOutboundCommand(Command.Disconnect)
-                cb(Left(new RuntimeException("a")))
+                // RFC It used to send the disconnect from here but we can use signal too
+                t.unsafeRun()
+                //sendOutboundCommand(Command.Disconnect)
+                cb(Left(Command.EOF))
               }
 
             // TODO: do we expect ping frames here?
             case Ping(d)     =>  channelWrite(Pong(d)).onComplete {
-              case Success(_)   => go()
-              case Failure(EOF) => cb(Left(new RuntimeException("b")))
-              case Failure(t)   => cb(Left(t))
+              case Success(_)           => go()
+              case Failure(Command.EOF) => cb(Left(Command.EOF))
+              case Failure(t)           => cb(Left(t))
             }(trampoline)
 
             case Pong(_)     => go()
             case f           => cb(Right(f))
           }
 
-        case Failure(Command.EOF) => cb(Left(new RuntimeException("c")))
+        case Failure(Command.EOF) => cb(Left(Command.EOF))
         case Failure(e)           => cb(Left(e))
       }(trampoline)
 
