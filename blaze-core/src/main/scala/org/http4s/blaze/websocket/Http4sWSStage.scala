@@ -78,23 +78,6 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
     // A latch for shutting down if both streams are closed.
     val count = new java.util.concurrent.atomic.AtomicInteger(2)
 
-    val onFinish: Either[Throwable,Any] => Unit = {
-      case Right(_) =>
-        logger.trace("WebSocket finish signaled")
-        if (count.decrementAndGet() == 0) {
-          logger.trace("Closing WebSocket")
-          sendOutboundCommand(Command.Disconnect)
-        }
-      case Left(t) =>
-        logger.error(t)("WebSocket Exception")
-        sendOutboundCommand(Command.Disconnect)
-    }
-
-    //dead.map(_.discrete.drain)//(wye.interrupt).run.unsafePerformAsync(onFinish) */
-    /*
-    // The sink is a bit more complicated
-    val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))*/
-
     // If both streams are closed set the signal
     val onStreamFinalize: Task[Unit] =
       for {
@@ -114,7 +97,8 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
       out    = ws.read.through(log("output")).onFinalize(onStreamFinalize).to(snk)
       merged <- (in mergeHaltR out.drain).interruptWhen(dead).onFinalize(sendClose).run
     } yield merged
-    wsStream.unsafeRunAsyncFuture()
+
+    wsStream.or(sendClose).unsafeRunAsyncFuture // RFC Is this correct?
   }
 
   override protected def stageShutdown(): Unit = {
