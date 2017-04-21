@@ -9,6 +9,7 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.15.10-SNAPSHOT", scalazVersion.value)
+relVersion   in ThisBuild := scalazCrossBuild("0.15.9", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
@@ -237,6 +238,7 @@ lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incremen
 val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
 val siteStageDirectory    = SettingKey[File]("site-stage-directory")
 val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
+val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 lazy val docs = http4sProject("docs")
   .settings(noPublishSettings)
   .settings(noCoverageSettings)
@@ -306,8 +308,27 @@ lazy val docs = http4sProject("docs")
         targetFile = siteStageDirectory.value / "CHANGELOG.md",
         preserveLastModified = true)
     },
+    exportMetadataForSite := {
+      val dest = (sourceDirectory in Hugo).value / "data" / "build.toml"
+      val (major, minor) = apiVersion.value
+      // Would be more elegant if `[versions.http4s]` was nested, but then
+      // the index lookups in `shortcodes/version.html` get complicated.
+      val buildData: String =
+        s"""
+           |[versions]
+           |"http4s.api" = "$major.$minor"
+           |"http4s.current" = "${version.value}"
+           |"http4s.release" = "${relVersion.value}"
+           |scalaz = "${scalazVersion.value}"
+           |circe = "${circeJawn.revision}"
+           |cryptobits = "${cryptobits.revision}"
+           |"argonaut-shapeless_6.2" = "1.2.0-M5"
+         """.stripMargin
+      IO.write(dest, buildData)
+      dest
+    },
     copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
-    makeSite := makeSite.dependsOn(copySiteToStage).value,
+    makeSite := makeSite.dependsOn(copySiteToStage, exportMetadataForSite).value,
     baseURL in Hugo := {
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
@@ -427,6 +448,7 @@ def exampleProject(name: String) = http4sProject(name)
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
 lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
+lazy val relVersion = taskKey[String]("Last published release of current minor version.")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
