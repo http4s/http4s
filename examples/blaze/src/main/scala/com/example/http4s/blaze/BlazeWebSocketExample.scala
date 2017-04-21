@@ -28,20 +28,23 @@ object BlazeWebSocketExample extends StreamApp {
       }}
       WS(toClient, fromClient)
 
-    case req@ GET -> Root / "wsecho" =>
+    case GET -> Root / "wsecho" =>
       val queue = async.unboundedQueue[Task, WebSocketFrame]
       val echoReply: Pipe[Task, WebSocketFrame, WebSocketFrame] = pipe.collect {
         case Text(msg, _) => Text("You sent the server: " + msg)
         case _ =>            Text("Something new")
       }
 
-      val queueStreams: Stream[Task, (Stream[Task, WebSocketFrame], Sink[Task, WebSocketFrame])] = for {
-        q <- Stream.eval(queue)
-      } yield (q.dequeue.through(echoReply), q.enqueue)
+      val queueStreams: Stream[Task, (Stream[Task, WebSocketFrame], Sink[Task, WebSocketFrame])] =
+        for {
+          q <- Stream.eval(queue)
+          d = q.dequeue.through(echoReply)
+          e = q.enqueue
+        } yield (d, e)
 
       queueStreams.runLast.flatMap {
         case Some((f, t)) => WS(f, t)
-        case None => ???
+        case None         => NotFound() // RFC This is not very satisfactory
       }
   }
 
