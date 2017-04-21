@@ -44,7 +44,7 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
         case Success(ws) => ws match {
             case Close(_)    =>
               for {
-                _ <- dead.map(_.set(true))
+                _ <- deadSignal.map(_.set(true))
               } yield {
                 sendOutboundCommand(Command.Disconnect)
                 cb(Left(new RuntimeException("a")))
@@ -90,23 +90,35 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
         sendOutboundCommand(Command.Disconnect)
     }
 
-    /*dead.map(_.discrete.drain)//(wye.interrupt).run.unsafePerformAsync(onFinish) */
+    //dead.map(_.discrete.drain)//(wye.interrupt).run.unsafePerformAsync(onFinish) */
     /*
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))*/
 
-    // if we never expect to get a message, we need to make sure the sink signals closed
-    val routeSink: Sink[Task, WebSocketFrame] = ws.write match {
-      //case Process.Halt(Cause.End) => onFinish(\/-(())); discard
-      //case Process.Halt(e)   => onFinish(-\/(Cause.Terminated(e))); ws.exchange.write
-      case s => s// ++ Process.await(Task{onFinish(\/-(()))})(_ => discard)
-    }
+    // If both streams are closed set the signal
+    val onStreamFinalize: Task[Unit] =
+      for {
+        dec <- Task.delay(count.decrementAndGet())
+        _   <- deadSignal.map(signal => if (dec == 0) signal.set(true))
+      } yield ()
 
-    (inputstream.through(log("inputStream")).to(routeSink) mergeHaltBoth ws.read.through(log("output")).to(snk).drain).run.unsafeRunAsyncFuture()
+    // Task to send a close to the other endpoint
+    val sendClose: Task[Unit] = Task.delay(sendOutboundCommand(Command.Disconnect))
+
+    // RFC mergeHaltR means we close the socket when the input  stream stops
+    // It used to be that we'd wait for both streams to close but now read is a Sink
+    // Can we stop a Sink?
+    val wsStream = for {
+      dead   <- deadSignal
+      in     = inputstream.through(log("input")).onFinalize(onStreamFinalize)
+      out    = ws.read.through(log("output")).onFinalize(onStreamFinalize).to(snk)
+      merged <- (in mergeHaltR out.drain).interruptWhen(dead).onFinalize(sendClose).run
+    } yield merged
+    wsStream.unsafeRunAsyncFuture()
   }
 
   override protected def stageShutdown(): Unit = {
-    dead.map(_.set(true)).unsafeRun
+    deadSignal.map(_.set(true)).unsafeRun
     super.stageShutdown()
   }
 }
