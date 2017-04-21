@@ -40,7 +40,7 @@ object CORS {
    * based on information in CORS config.
    * Currently, you cannot make permissions depend on request details
    */
-  def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
+  def apply[F[_]](service: HttpService[F], config: CORSConfig = DefaultCORSConfig): HttpService[F] = Service.lift { req =>
     
     // In the case of an options request we want to return a simple response with the correct Headers set.
     def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value)(Response())

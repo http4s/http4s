@@ -28,7 +28,7 @@ trait ServerBuilder {
 
   def withServiceExecutor(executorService: ExecutorService): Self
 
-  def mountService(service: HttpService, prefix: String = ""): Self
+  def mountService[F[_]](service: HttpService[F], prefix: String = ""): Self
 
   /** Returns a task to start a server.  The task completes with a
     * reference to the server when it has started.

@@ -44,11 +44,11 @@ object Path {
 
   def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
 
-  def unapplySeq(request: Request): Option[List[String]] = Some(Path(request.pathInfo).toList)
+  def unapplySeq[F[_]](request: Request[F]): Option[List[String]] = Some(Path(request.pathInfo).toList)
 }
 
 object :? {
-  def unapply(req: Request): Option[(Request, Map[String, Seq[String]])] = {
+  def unapply[F[_]](req: Request[F]): Option[(Request[F], Map[String, Seq[String]])] = {
     Some((req, req.multiParams))
   }
 }
@@ -104,7 +104,7 @@ object -> {
    *     case Method.GET -> Root / "test.json" => ...
    * }}}
    */
-  def unapply(req: Request): Option[(Method, Path)] = {
+  def unapply[F[_]](req: Request[F]): Option[(Method, Path)] = {
     Some((req.method, Path(req.pathInfo)))
   }
 }

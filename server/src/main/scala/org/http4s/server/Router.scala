@@ -1,7 +1,9 @@
 package org.http4s
 package server
 
-import org.http4s.batteries._
+import cats._
+import cats.implicits._
+import fs2.util.Suspendable
 
 object Router {
 
@@ -12,7 +14,8 @@ object Router {
     * Defines an HttpService based on list of mappings.
     * @see define
     */
-  def apply(mappings: (String, HttpService)*): HttpService = define(mappings:_*)()
+  def apply[F[_]: Suspendable](mappings: (String, HttpService[F])*)(implicit F: Monoid[F[MaybeResponse[F]]]): HttpService[F] =
+    define(mappings:_*)(HttpService.empty[F])
 
   /**
     * Defines an HttpService based on list of mappings,
@@ -21,8 +24,7 @@ object Router {
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */
-  def define(mappings: (String, HttpService)*)
-            (default: HttpService = HttpService.empty): HttpService =
+  def define[F[_]: Suspendable](mappings: (String, HttpService[F])*)(default: HttpService[F])(implicit F: Monoid[F[MaybeResponse[F]]]): HttpService[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, service)) =>
         if (prefix.isEmpty || prefix == "/") service |+| acc

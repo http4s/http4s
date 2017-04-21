@@ -3,16 +3,17 @@ package scalaxml
 
 import java.io.StringReader
 
+import cats._
 import fs2.interop.cats._
-import fs2.Task
+import fs2.util.Catchable
 import headers.`Content-Type`
 
 import scala.util.control.NonFatal
 import scala.xml._
 
 trait ElemInstances {
-  implicit def xmlEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
-    EntityEncoder.stringEncoder(charset)
+  implicit def xmlEncoder[F[_]: Applicative](implicit charset: Charset = DefaultCharset): EntityEncoder[F, Elem] =
+    EntityEncoder.stringEncoder[F]
       .contramap[Elem](xml => xml.buildString(false))
       .withContentType(`Content-Type`(MediaType.`application/xml`))
 
@@ -24,16 +25,16 @@ trait ElemInstances {
    * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
-  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = {
+  implicit def xml[F[_]](implicit F: Catchable[F], parser: SAXParser = XML.parser): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`){ msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
-        try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
+        try DecodeResult.success(F.pure(XML.loadXML(source, parser)))
         catch {
           case e: SAXParseException =>
             DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
-          case NonFatal(e) => DecodeResult(Task.fail(e))
+          case NonFatal(e) => DecodeResult(F.fail(e))
         }
       }
     }

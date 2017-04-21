@@ -3,7 +3,7 @@ package server
 package middleware
 
 object URITranslation {
-  def translateRoot(prefix: String)(service: HttpService): HttpService = {
+  def translateRoot[F[_]](prefix: String)(service: HttpService[F]): HttpService[F] = {
     val newCaret = prefix match {
       case "/"                    => 0
       case x if x.startsWith("/") => x.length

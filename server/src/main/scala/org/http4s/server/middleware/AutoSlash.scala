@@ -2,6 +2,8 @@ package org.http4s
 package server
 package middleware
 
+import cats._
+import cats.implicits._
 import fs2._
 
 /** Removes a trailing slash from [[Request]] path
@@ -11,18 +13,18 @@ import fs2._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply(service: HttpService): HttpService = Service.lift { req =>
+  def apply[F[_]](service: HttpService[F])(implicit F: Monad[F]): HttpService[F] = Service.lift { req =>
     service(req).flatMap {
-      case Pass =>
+      case _: Pass[F] =>
         val p = req.uri.path
         if (p.isEmpty || p.charAt(p.length - 1) != '/')
-          Pass.now
+          F.pure(Pass[F])
         else {
           val withSlash = req.copy(uri = req.uri.copy(path = p.substring(0, p.length - 1)))
           service.apply(withSlash)
         }
       case resp =>
-        Task.now(resp)
+        F.pure(resp)
     }
   }
 }

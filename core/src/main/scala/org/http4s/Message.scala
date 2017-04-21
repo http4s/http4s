@@ -264,6 +264,14 @@ object MaybeResponse {
       def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
         a orElse b
     }
+
+  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
+    new Monoid[F[MaybeResponse[F]]] {
+      def empty =
+        F.pure(Pass[F])
+      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
+        fa.flatMap(_.cata(F.pure, fb))
+    }
 }
 
 final case class Pass[F[_]]() extends MaybeResponse[F]

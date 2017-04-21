@@ -1,6 +1,8 @@
 package org.http4s
 package circe
 
+import cats._
+import fs2.util.Catchable
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn.CirceSupportParser.facade
 import org.http4s.batteries._
@@ -8,35 +10,36 @@ import org.http4s.headers.`Content-Type`
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
-  implicit val jsonDecoder: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+  implicit def jsonDecoder[F[_]](implicit C: Catchable[F], F: Applicative[F]): EntityDecoder[F, Json] =
+    jawn.jawnDecoder(C, F, facade)
 
-  def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
+  def jsonOf[F[_], A](implicit F: Applicative[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       decoder.decodeJson(json).fold(
         failure =>
-          DecodeResult.failure(InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),
-        DecodeResult.success(_)
+          DecodeResult.failure[F, A](InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),
+        DecodeResult.success[F, A](_)
       )
     }
 
   protected def defaultPrinter: Printer
 
-  implicit def jsonEncoder: EntityEncoder[Json] =
+  implicit def jsonEncoder[F[_]: EntityEncoder[?[_], String]]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  def jsonEncoderWithPrinter(printer: Printer): EntityEncoder[Json] =
-    EntityEncoder[String].contramap[Json] { json =>
+  def jsonEncoderWithPrinter[F[_]: EntityEncoder[?[_], String]](printer: Printer): EntityEncoder[F, Json] =
+    EntityEncoder[F, String].contramap[Json] { json =>
       // Comment from ArgonautInstances (which this code is based on):
       // TODO naive implementation materializes to a String.
       // See https://github.com/non/jawn/issues/6#issuecomment-65018736
       printer.pretty(json)
     }.withContentType(`Content-Type`(MediaType.`application/json`))
 
-  def jsonEncoderOf[A](implicit encoder: Encoder[A]): EntityEncoder[A] =
+  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String], A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[A] =
-    jsonEncoderWithPrinter(printer).contramap[A](encoder.apply)
+  def jsonEncoderWithPrinterOf[F[_]: EntityEncoder[?[_], String], A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+    jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
   implicit val encodeUri: Encoder[Uri] =
     Encoder.encodeString.contramap[Uri](_.toString)
