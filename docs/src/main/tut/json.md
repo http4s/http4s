@@ -15,7 +15,7 @@ The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:
 
 ```scala
-val http4sVersion = "{{< version "http4s.release" >}}"
+val http4sVersion = "{{< version "http4s.doc" >}}"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-circe" % http4sVersion,

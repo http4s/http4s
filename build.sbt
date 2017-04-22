@@ -9,7 +9,6 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 // Global settings
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.15.10-SNAPSHOT", scalazVersion.value)
-relVersion   in ThisBuild := scalazCrossBuild("0.15.9", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
@@ -318,7 +317,7 @@ lazy val docs = http4sProject("docs")
            |[versions]
            |"http4s.api" = "$major.$minor"
            |"http4s.current" = "${version.value}"
-           |"http4s.release" = "${relVersion.value}"
+           |"http4s.doc" = "${docExampleVersion(version.value)}"
            |scalaz = "${scalazVersion.value}"
            |circe = "${circeJawn.revision}"
            |cryptobits = "${cryptobits.revision}"
