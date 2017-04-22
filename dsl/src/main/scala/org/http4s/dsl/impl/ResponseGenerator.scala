@@ -35,7 +35,7 @@ trait EmptyResponseGenerator extends Any with ResponseGenerator {
   * }}}
   */
 trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
-  def apply[F[_]: Monad, A](body: A)(implicit w: EntityEncoder[F, A]): F[Response[F]] =
+  def apply[F[_], A](body: A)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] =
     apply(body, Headers.empty)
 
   def apply[F[_], A](body: A, headers: Headers)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] = {

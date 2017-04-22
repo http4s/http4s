@@ -1,3 +1,4 @@
+/*
 package com.example.http4s
 package ssl
 
@@ -21,3 +22,4 @@ trait SslExample extends StreamApp {
     .bindHttp(8443)
     .serve
 }
+*/

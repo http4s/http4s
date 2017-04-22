@@ -4,9 +4,12 @@ import java.util.concurrent.ExecutorService
 import scala.concurrent._
 import scala.concurrent.duration._
 
+import cats.implicits._
 import fs2._
+import fs2.interop.cats._
 import _root_.io.circe.Json
 import org.http4s._
+import org.http4s.Uri
 import org.http4s.MediaType._
 import org.http4s.dsl._
 import org.http4s.headers._
@@ -14,12 +17,13 @@ import org.http4s.circe._
 // TODO fs2 port import org.http4s.multipart._
 import org.http4s.scalaxml._
 import org.http4s.server._
-import org.http4s.server.middleware.PushSupport._
-import org.http4s.server.middleware.authentication._
+//import org.http4s.server.middleware.PushSupport._
+//import org.http4s.server.middleware.authentication._
 import org.http4s.twirl._
 
 object ExampleService {
 
+  /*
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
   def service(implicit ec: ExecutionContext = ExecutionContext.global): HttpService = Router(
@@ -27,8 +31,9 @@ object ExampleService {
     "/auth" -> authService
     // TODO fs2 port "/science" -> ScienceExperiments.service
   )
+   */
 
-  def rootService(implicit ec: ExecutionContext = ExecutionContext.global) = HttpService {
+  def rootService(implicit ec: ExecutionContext = ExecutionContext.global) = HttpService[Task] {
     case req @ GET -> Root =>
       // Supports Play Framework template -- see src/main/twirl.
       Ok(html.index())
@@ -43,7 +48,7 @@ object ExampleService {
 
     case GET -> Root / "future" =>
       // EntityEncoder allows rendering asynchronous results as well
-      Ok(Future("Hello from the future!"))
+      Ok(Task.fromFuture(Future("Hello from the future!"))(Strategy.fromExecutionContext(ec), ec))
 
     case GET -> Root / "streaming" =>
       // Its also easy to stream responses to clients
@@ -61,7 +66,7 @@ object ExampleService {
 
     case GET -> Root / "content-change" =>
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
-      Ok("<h2>This will have an html content type!</h2>")
+      Response[Task](Ok).withBody("<h2>This will have an html content type!</h2>")
           .withContentType(Some(`Content-Type`(`text/html`)))
 
     case req @ GET -> "static" /: path =>
@@ -187,6 +192,7 @@ object ExampleService {
   // Services can be protected using HTTP authentication.
   val realm = "testrealm"
 
+  /*
   def authStore(creds: BasicCredentials) =
     if (creds.username == "username" && creds.password == "password") Task.now(Some(creds.username))
     else Task.now(None)
@@ -199,4 +205,5 @@ object ExampleService {
     case req @ GET -> Root / "protected" as user =>
       Ok(s"This page is protected using HTTP authentication; logged in as $user")
   })
+   */
 }

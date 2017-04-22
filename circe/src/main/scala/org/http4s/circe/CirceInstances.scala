@@ -2,18 +2,18 @@ package org.http4s
 package circe
 
 import cats._
+import cats.implicits._
 import fs2.util.Catchable
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn.CirceSupportParser.facade
-import org.http4s.batteries._
 import org.http4s.headers.`Content-Type`
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
-  implicit def jsonDecoder[F[_]](implicit C: Catchable[F], F: Applicative[F]): EntityDecoder[F, Json] =
-    jawn.jawnDecoder(C, F, facade)
+  implicit def jsonDecoder[F[_]: Catchable: Applicative]: EntityDecoder[F, Json] =
+    jawn.jawnDecoder
 
-  def jsonOf[F[_], A](implicit F: Applicative[F], decoder: Decoder[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_], A](implicit C: Catchable[F], F: Monad[F], decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       decoder.decodeJson(json).fold(
         failure =>
