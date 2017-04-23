@@ -90,8 +90,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.11.8&quot; // Also supports 2.10.x
 
-val http4sVersion = &quot;0.15.9
-&quot;
+val http4sVersion = &quot;0.15.9&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -143,7 +142,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32780/847527013@31bbdbd9)
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32044/2052736770@7ae5c6ee)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -184,7 +183,7 @@ val tweetService = HttpService {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32780/847527013@4333050b)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32044/2052736770@52562f35)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -208,10 +207,10 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val services = tweetService orElse helloWorldService
-// services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$32787/1970121759@e53de32)
+// services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$32051/323808653@5855c7d)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@5bb23b62
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7294acbd
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -257,6 +256,7 @@ it down:</p>
 </code></pre>
 
           <footer>
+            
             <nav>
               <ul class="pager">
                 

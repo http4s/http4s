@@ -112,17 +112,17 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@4fd49db9[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@2c866735[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@7d906509,scalaz.stream.Process$$$Lambda$32174/781819520@50e3fd53,scalaz.stream.Process$Await$$$Lambda$32175/1370589244@10f7765f)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@3e26c75f,scalaz.stream.Process$$$Lambda$31438/642664170@6eff9056,scalaz.stream.Process$Await$$$Lambda$31439/1056604174@3be8ed83)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$32216/1261409988@46c63d8b)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$31480/1690715105@1c68b808)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -154,10 +154,8 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.15.9
-&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.6.1
-&quot;
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.15.9&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.6.1&quot;
 )
 </code></pre>
 
@@ -224,6 +222,7 @@ object twstream extends TaskApp {
 </code></pre>
 
           <footer>
+            
             <nav>
               <ul class="pager">
                 
