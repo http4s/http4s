@@ -12,6 +12,28 @@ object Http4sBuild {
     }
   }
 
+  /**
+   * @return the version we want to document, for example in tuts,
+   * given the version being built.
+   *
+   * For snapshots after a stable release, return the previous stable
+   * release.  For snapshots of 0.16.0 and 0.17.0, return the latest
+   * milestone.  Otherwise, just return the current version.
+   */
+  def docExampleVersion(currentVersion: String) = {
+    val MilestoneVersionExtractor = """(0).(16|17).(0)-SNAPSHOT""".r
+    val latestMilestone = "M1"
+    val VersionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
+    currentVersion match {
+      case MilestoneVersionExtractor(major, minor, patch) =>
+        s"${major.toInt}.${minor.toInt}.${patch.toInt}-$latestMilestone"
+      case VersionExtractor(major, minor, patch) if patch.toInt > 0 =>
+        s"${major.toInt}.${minor.toInt}.${patch.toInt - 1}"
+      case _ =>
+        currentVersion
+    }
+  }
+
   lazy val sonatypeEnvCredentials = (for {
     user <- envOrNone("SONATYPE_USERNAME")
     pass <- envOrNone("SONATYPE_PASSWORD")
