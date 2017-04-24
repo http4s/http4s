@@ -2,9 +2,8 @@ package org.http4s
 package dsl
 package impl
 
-import cats._
-import cats.implicits._
 import fs2._
+import fs2.interop.cats._
 import org.http4s.headers._
 
 trait ResponseGenerator extends Any {
@@ -22,7 +21,7 @@ trait ResponseGenerator extends Any {
  * }}}
  */
 trait EmptyResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]]()(implicit F: Applicative[F]): F[Response[F]] = F.pure(Response(status))
+  def apply(): Task[Response[Task]] = Task.now(Response(status))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
@@ -35,28 +34,29 @@ trait EmptyResponseGenerator extends Any with ResponseGenerator {
   * }}}
   */
 trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
-  def apply[F[_], A](body: A)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] =
-    apply(body, Headers.empty)
+  def apply[A](body: A)(implicit w: EntityEncoder[Task, A]): Task[Response[Task]] =
+    apply(body, Headers.empty)(w)
 
-  def apply[F[_], A](body: A, headers: Headers)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] = {
+  def apply[A](body: A, headers: Headers)(implicit w: EntityEncoder[Task, A]): Task[Response[Task]] = {
     var h = w.headers ++ headers
-    w.toEntity(body).flatMap { case e: Entity[F] =>
-      e.length foreach { l => h = h put `Content-Length`(l) }
-      F.pure(Response(status = status, headers = h, body = e.body))
+    w.toEntity(body).flatMap { case Entity(proc, len) =>
+      len foreach { l => h = h put `Content-Length`(l) }
+      Task.now(Response(status = status, headers = h, body = proc))
     }
   }
 }
 
 trait LocationResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]](location: Uri)(implicit F: Applicative[F]): F[Response[F]] = F.pure(Response(status).putHeaders(Location(location)))
+  def apply(location: Uri): Task[Response[Task]] =
+    Task.now(Response[Task](status).putHeaders(Location(location)))
 }
 
 trait WwwAuthenticateResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]](challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response(status).putHeaders(`WWW-Authenticate`(challenge, challenges: _*)))
+  def apply(challenge: Challenge, challenges: Challenge*): Task[Response[Task]] =
+    Task.now(Response[Task](status).putHeaders(`WWW-Authenticate`(challenge, challenges: _*)))
 }
 
 trait ProxyAuthenticateResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]](challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response(status).putHeaders(`Proxy-Authenticate`(challenge, challenges: _*)))
+  def apply(challenge: Challenge, challenges: Challenge*): Task[Response[Task]] =
+    Task.now(Response[Task](status).putHeaders(`Proxy-Authenticate`(challenge, challenges: _*)))
 }

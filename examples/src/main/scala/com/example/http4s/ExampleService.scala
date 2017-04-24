@@ -66,8 +66,8 @@ object ExampleService {
 
     case GET -> Root / "content-change" =>
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
-      Response[Task](Ok).withBody("<h2>This will have an html content type!</h2>")
-          .withContentType(Some(`Content-Type`(`text/html`)))
+      Ok("<h2>This will have an html content type!</h2>")
+        .withContentType(Some(`Content-Type`(`text/html`)))
 
     case req @ GET -> "static" /: path =>
       // captures everything after "/static" into `path`
@@ -79,7 +79,7 @@ object ExampleService {
     //////////////// Dealing with the message body ////////////////
     case req @ POST -> Root / "echo" =>
       // The body can be used in the response
-      Ok(req.body).putHeaders(`Content-Type`(`text/plain`))
+      Ok(req.body).map(_.putHeaders(`Content-Type`(`text/plain`)))
 
     case req @ GET -> Root / "echo" =>
       Ok(html.submissionForm("echo data"))
@@ -147,12 +147,14 @@ object ExampleService {
 
     ///////////////////////////////////////////////////////////////
     //////////////////////// Server Push //////////////////////////
+      /*
     case req @ GET -> Root / "push" =>
       // http4s intends to be a forward looking library made with http2.0 in mind
       val data = <html><body><img src="image.jpg"/></body></html>
       Ok(data)
         .withContentType(Some(`Content-Type`(`text/html`)))
         .push("/image.jpg")(req)
+       */
 
     case req @ GET -> Root / "image.jpg" =>
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
