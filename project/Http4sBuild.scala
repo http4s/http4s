@@ -18,15 +18,20 @@ object Http4sBuild {
    *
    * For snapshots after a stable release, return the previous stable
    * release.  For snapshots of 0.16.0 and 0.17.0, return the latest
-   * milestone.  Otherwise, just return the current version.
+   * milestone.  Otherwise, just return the current version.  Favors
+   * scalaz-7.2 "a" versions for 0.15.x and 0.16.x.
    */
   def docExampleVersion(currentVersion: String) = {
     val MilestoneVersionExtractor = """(0).(16|17).(0)-SNAPSHOT""".r
     val latestMilestone = "M1"
     val VersionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
     currentVersion match {
+      case MilestoneVersionExtractor(major, minor, patch) if minor.toInt == 16 =>
+        s"${major.toInt}.${minor.toInt}.${patch.toInt}a-$latestMilestone" // scalaz-7.2 for 0.16.x
       case MilestoneVersionExtractor(major, minor, patch) =>
         s"${major.toInt}.${minor.toInt}.${patch.toInt}-$latestMilestone"
+      case VersionExtractor(major, minor, patch) if minor.toInt == 15 =>
+        s"${major.toInt}.${minor.toInt}.${patch.toInt - 1}a"              // scalaz-7.2 for 0.15.x
       case VersionExtractor(major, minor, patch) if patch.toInt > 0 =>
         s"${major.toInt}.${minor.toInt}.${patch.toInt - 1}"
       case _ =>
