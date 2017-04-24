@@ -4,6 +4,7 @@ package circe
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn.CirceSupportParser.facade
 import org.http4s.headers.`Content-Type`
+import scodec.bits.ByteVector
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
@@ -24,11 +25,9 @@ trait CirceInstances {
     jsonEncoderWithPrinter(defaultPrinter)
 
   def jsonEncoderWithPrinter(printer: Printer): EntityEncoder[Json] =
-    EntityEncoder[String].contramap[Json] { json =>
-      // Comment from ArgonautInstances (which this code is based on):
-      // TODO naive implementation materializes to a String.
-      // See https://github.com/non/jawn/issues/6#issuecomment-65018736
-      printer.pretty(json)
+    EntityEncoder[ByteVector].contramap[Json] { json =>
+      val bytes = printer.prettyByteBuffer(json)
+      ByteVector.view(bytes)
     }.withContentType(`Content-Type`(MediaType.`application/json`))
 
   def jsonEncoderOf[A](implicit encoder: Encoder[A]): EntityEncoder[A] =
