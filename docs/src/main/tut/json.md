@@ -15,12 +15,14 @@ The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:
 
 ```scala
+val http4sVersion = "{{< version "http4s.doc" >}}"
+
 libraryDependencies ++= Seq(
-  "org.http4s" %% "http4s-circe" % "{{< version >}}",
+  "org.http4s" %% "http4s-circe" % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  "io.circe" %% "circe-generic" % "0.6.1",
+  "io.circe" %% "circe-generic" % "{{< version circe >}}",
   // Optional for string interpolation to JSON model
-  "io.circe" %% "circe-literal" % "0.6.1"
+  "io.circe" %% "circe-literal" % "{{< version circe >}}"
 )
 ```
 
@@ -31,9 +33,9 @@ community.  The functionality is similar:
 
 ```scala
 libraryDependencies += Seq(
-  "org.http4s" %% "http4s-argonaut" % "{{< version >}}",
+  "org.http4s" %% "http4s-argonaut" % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0-M4"
+  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "{{< version "argonaut-shapeless_6.2" >}}"
 )
 ```
 
@@ -48,8 +50,8 @@ integrated with many Scala libraries.  It comes with two backends.
 You should pick one of these dependencies:
 
 ```scala
-libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "{{< version >}}"
-libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "{{< version >}}"
+libraryDependencies += "org.http4s" %% "http4s-json4s-native" % http4sVersion
+libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % http4sVersion
 ```
 
 There is no extra codec derivation library for json4s, as it generally

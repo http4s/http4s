@@ -259,6 +259,7 @@ lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incremen
 val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
 val siteStageDirectory    = SettingKey[File]("site-stage-directory")
 val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
+val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 lazy val docs = http4sProject("docs")
   .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
@@ -328,8 +329,27 @@ lazy val docs = http4sProject("docs")
         targetFile = siteStageDirectory.value / "CHANGELOG.md",
         preserveLastModified = true)
     },
+    exportMetadataForSite := {
+      val dest = (sourceDirectory in Hugo).value / "data" / "build.toml"
+      val (major, minor) = apiVersion.value
+      // Would be more elegant if `[versions.http4s]` was nested, but then
+      // the index lookups in `shortcodes/version.html` get complicated.
+      val buildData: String =
+        s"""
+           |[versions]
+           |"http4s.api" = "$major.$minor"
+           |"http4s.current" = "${version.value}"
+           |"http4s.doc" = "${docExampleVersion(version.value)}"
+           |scalaz = "${scalazVersion.value}"
+           |circe = "${circeJawn.revision}"
+           |cryptobits = "${cryptobits.revision}"
+           |"argonaut-shapeless_6.2" = "1.2.0-M5"
+         """.stripMargin
+      IO.write(dest, buildData)
+      dest
+    },
     copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
-    makeSite := makeSite.dependsOn(copySiteToStage).value,
+    makeSite := makeSite.dependsOn(copySiteToStage, exportMetadataForSite).value,
     baseURL in Hugo := {
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
