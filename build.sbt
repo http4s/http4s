@@ -556,7 +556,7 @@ lazy val commonSettings = Seq(
   },
   coursierVerbosity := 0,
   ivyLoggingLevel := UpdateLogging.Quiet // This doesn't seem to work? We see this in MiMa
-)
+) ++ xlint
 
 lazy val publishSettings = Seq(
   credentials ++= sonatypeEnvCredentials
@@ -617,3 +617,12 @@ def initCommands(additionalImports: String*) =
     "scalaz.concurrent.Task",
     "org.http4s._"
   ) ++ additionalImports).mkString("import ", ", ", "")
+
+lazy val xlint = Seq(
+  scalacOptions += {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 12)) => "-Xlint:-unused,_"
+      case _ => "-Xlint"
+    }
+  }
+)
