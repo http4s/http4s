@@ -8,18 +8,20 @@ import org.http4s.batteries.right
 
 trait JawnInstances {
   def jawnDecoder[J](implicit facade: Facade[J]): EntityDecoder[J] =
-    EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
-      DecodeResult {
-        msg.body.chunks
-          .parseJson(AsyncParser.SingleValue)
-          .map(right)
-          .onError {
-            case pe: ParseException =>
-              Stream.emit(Left(MalformedMessageBodyFailure("Invalid JSON", Some(pe))))
-            case e => Stream.fail(e)
-          }
-          .runLast
-          .map(_.getOrElse(Left(MalformedMessageBodyFailure("Invalid JSON: empty body"))))
-      }
+    EntityDecoder.decodeBy(MediaType.`application/json`)(jawnDecoderImpl[J])
+
+  // some decoders may reuse it and avoid extra content negotiation
+  private[http4s] def jawnDecoderImpl[J](msg: Message)(implicit facade: Facade[J]) =
+    DecodeResult {
+      msg.body.chunks
+        .parseJson(AsyncParser.SingleValue)
+        .map(right)
+        .onError {
+          case pe: ParseException =>
+            Stream.emit(Left(MalformedMessageBodyFailure("Invalid JSON", Some(pe))))
+          case e => Stream.fail(e)
+        }
+        .runLast
+        .map(_.getOrElse(Left(MalformedMessageBodyFailure("Invalid JSON: empty body"))))
     }
 }

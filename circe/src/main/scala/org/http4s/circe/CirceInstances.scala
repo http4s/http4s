@@ -1,17 +1,52 @@
 package org.http4s
 package circe
 
-import fs2.Chunk
+import fs2.{Chunk, Task}
+import java.nio.ByteBuffer
 import io.circe.{Encoder, Decoder, Json, Printer}
+import io.circe.jawn._
 import io.circe.jawn.CirceSupportParser.facade
 import org.http4s.batteries._
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.ByteVectorChunk
 import scodec.bits.ByteVector
 
-// Originally based on ArgonautInstances
 trait CirceInstances {
-  implicit val jsonDecoder: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+  val jsonDecoderIncremental: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+
+  val jsonDecoderByteBuffer: EntityDecoder[Json] =
+    EntityDecoder.decodeBy(MediaType.`application/json`)(
+      jsonDecoderByteBufferImpl)
+
+  private def jsonDecoderByteBufferImpl(msg: Message): DecodeResult[Json] =
+    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+      val bb = ByteBuffer.wrap(chunk.toBytes.values)
+      if (bb.hasRemaining) {
+        parseByteBuffer(bb) match {
+          case Right(json) =>
+            DecodeResult.success(Task.now(json))
+          case Left(pf) =>
+            DecodeResult.failure(MalformedMessageBodyFailure(
+              s"Invalid JSON", Some(pf.underlying)))
+        }
+      } else {
+        DecodeResult.failure(MalformedMessageBodyFailure(
+          "Invalid JSON: empty body", None))
+      }
+    }
+
+  // default cutoff value is based on benchmarks results
+  implicit val jsonDecoder: EntityDecoder[Json] =
+    jsonDecoderAdaptive(cutoff = 100000)
+
+  def jsonDecoderAdaptive(cutoff: Long): EntityDecoder[Json] =
+    EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
+      msg.contentLength match {
+        case Some(contentLength) if contentLength < cutoff =>
+          jsonDecoderByteBufferImpl(msg)
+        case _ => jawn.jawnDecoderImpl(msg)(facade)
+      }
+    }
 
   def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
     jsonDecoder.flatMapR { json =>
