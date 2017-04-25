@@ -447,7 +447,6 @@ def exampleProject(name: String) = http4sProject(name)
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
 lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
-lazy val relVersion = taskKey[String]("Last published release of current minor version.")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
