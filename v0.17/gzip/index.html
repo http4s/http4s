@@ -102,7 +102,7 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$38586/1799725833@38169ce5)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$38568/1438008393@64e9bff6)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
@@ -124,7 +124,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$38738/875763892@7399c5f2)
+// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$38720/1367742980@19a7d7e7)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRun
@@ -171,6 +171,7 @@ Task using <code>map</code>, <code>flatMap</code> and/or <code>for</code>. Remem
 <code>Task[Response]</code>.</p>
 
           <footer>
+            
             <nav>
               <ul class="pager">
                 
