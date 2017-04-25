@@ -35,16 +35,10 @@ object BlazeWebSocketExample extends StreamApp {
         case _ =>            Text("Something new")
       }
 
-      val queueStreams: Stream[Task, (Stream[Task, WebSocketFrame], Sink[Task, WebSocketFrame])] =
-        for {
-          q <- Stream.eval(queue)
-          d = q.dequeue.through(echoReply)
-          e = q.enqueue
-        } yield (d, e)
-
-      queueStreams.runLast.flatMap {
-        case Some((f, t)) => WS(f, t)
-        case None         => NotFound() // RFC This is not very satisfactory
+      queue.flatMap { q =>
+        val d = q.dequeue.through(echoReply)
+        val e = q.enqueue
+        WS(d, e)
       }
   }
 

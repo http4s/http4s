@@ -43,9 +43,7 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
               for {
                 t <- deadSignal.map(_.set(true))
               } yield {
-                // RFC It used to send the disconnect from here but we can use signal too
                 t.unsafeRun()
-                //sendOutboundCommand(Command.Disconnect)
                 cb(Left(Command.EOF))
               }
 
@@ -66,7 +64,7 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
 
       go()
     }
-    Stream.repeatEval(t) // RFC On the original code _.asHalt was called. Is it needed anymore?
+    Stream.repeatEval(t)
   }
 
   //////////////////////// Startup and Shutdown ////////////////////////
@@ -87,9 +85,6 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
     // Task to send a close to the other endpoint
     val sendClose: Task[Unit] = Task.delay(sendOutboundCommand(Command.Disconnect))
 
-    // RFC mergeHaltR means we close the socket when the input  stream stops
-    // It used to be that we'd wait for both streams to close but now read is a Sink
-    // Can we stop a Sink?
     val wsStream = for {
       dead   <- deadSignal
       in     = inputstream.through(log("input")).to(ws.write).onFinalize(onStreamFinalize)
@@ -97,7 +92,10 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
       merged <- (in mergeHaltR out).interruptWhen(dead).onFinalize(sendClose).run
     } yield merged
 
-    wsStream.or(sendClose).unsafeRunAsyncFuture // RFC Is this correct?
+    wsStream.or(sendClose).unsafeRunAsync {
+      case Left(_)  => sendClose.unsafeRun() // RFC How to avoid this call?
+      case Right(_) => // Nothing to do here
+    }
   }
 
   override protected def stageShutdown(): Unit = {
