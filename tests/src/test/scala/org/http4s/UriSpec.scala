@@ -69,7 +69,9 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
-        Uri.fromString("http://example.org/a file") must_=== -\/(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
+        Uri.fromString("http://example.org/a file") must_=== -\/(ParseFailure("Invalid URI", """Invalid input ' ', expected '/', 'EOI', '#', '?' or Pchar (line 1, column 21):
+http://example.org/a file
+                    ^"""))
       }
     }
 
