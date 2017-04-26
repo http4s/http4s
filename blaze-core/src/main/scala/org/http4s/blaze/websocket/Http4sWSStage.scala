@@ -47,7 +47,6 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
                 cb(Left(Command.EOF))
               }
 
-            // TODO: do we expect ping frames here?
             case Ping(d)     =>  channelWrite(Pong(d)).onComplete {
               case Success(_)           => go()
               case Failure(Command.EOF) => cb(Left(Command.EOF))
@@ -93,7 +92,7 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
     } yield merged
 
     wsStream.or(sendClose).unsafeRunAsync {
-      case Left(_)  => sendClose.unsafeRun() // RFC How to avoid this call?
+      case Left(t)  => logger.error(t)("Error closing Web Socket")
       case Right(_) => // Nothing to do here
     }
   }
