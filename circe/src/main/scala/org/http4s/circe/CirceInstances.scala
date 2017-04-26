@@ -35,9 +35,7 @@ trait CirceInstances {
       }
     }
 
-  // default cutoff value is based on benchmarks results
-  implicit val jsonDecoder: EntityDecoder[Json] =
-    jsonDecoderAdaptive(cutoff = 100000)
+  implicit def jsonDecoder: EntityDecoder[Json]
 
   def jsonDecoderAdaptive(cutoff: Long): EntityDecoder[Json] =
     EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
@@ -86,7 +84,12 @@ trait CirceInstances {
 object CirceInstances {
   def withPrinter(p: Printer): CirceInstances = {
     new CirceInstances {
-      def defaultPrinter: Printer = p
+      val defaultPrinter: Printer = p
+      val jsonDecoder: EntityDecoder[Json] = defaultJsonDecoder
     }
   }
+
+  // default cutoff value is based on benchmarks results
+  val defaultJsonDecoder: EntityDecoder[Json] =
+    jsonDecoderAdaptive(cutoff = 100000)
 }
