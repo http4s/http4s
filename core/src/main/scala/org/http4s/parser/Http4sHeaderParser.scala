@@ -8,5 +8,7 @@ private[parser] abstract class Http4sHeaderParser[H <: Header](val input: Parser
 
   def entry: Rule1[H]
 
-  def parse: ParseResult[H] = entry.run()(ScalazDeliverySchemes.Disjunction)
+  def parse: ParseResult[H] =
+    entry.run()(ScalazDeliverySchemes.Disjunction)
+      .leftMap(e => ParseFailure("Invalid header", e.format(s)))
 }
