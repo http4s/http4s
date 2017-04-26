@@ -18,9 +18,6 @@ import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
 
-  // TODO Remove
-  def log[A](prefix: String): Pipe[Task, A, A] = _.evalMap{a => Task.delay {println(s"$prefix> $a"); a} }
-
   private val deadSignal: Task[Signal[Task, Boolean]] = async.signalOf[Task, Boolean](false)
 
   //////////////////////// Source and Sink generators ////////////////////////
@@ -86,8 +83,8 @@ class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends
 
     val wsStream = for {
       dead   <- deadSignal
-      in     = inputstream.through(log("input")).to(ws.write).onFinalize(onStreamFinalize)
-      out    = ws.read.through(log("output")).onFinalize(onStreamFinalize).to(snk).drain
+      in     = inputstream.to(ws.write).onFinalize(onStreamFinalize)
+      out    = ws.read.onFinalize(onStreamFinalize).to(snk).drain
       merged <- (in mergeHaltR out).interruptWhen(dead).onFinalize(sendClose).run
     } yield merged
 
