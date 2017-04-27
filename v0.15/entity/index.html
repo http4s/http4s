@@ -112,7 +112,7 @@ type in that case.</p>
 <code>EntityEncoder.encodeBy</code> or reuse an already existing one via
 <code>EntityEncoder[T].contramap</code> and <code>withContentType</code>.</p>
 
-<p>See the <a href="../api/#org.http4s.MediaRange$">MediaRange</a> companion object for ranges, and <a href="../api/#org.http4s.MediaType$">MediaType</a> for specific
+<p>See the <a href="../api/org/http4s/MediaRange$">MediaRange</a> companion object for ranges, and <a href="../api/org/http4s/MediaType$">MediaType</a> for specific
 types. Because of the implicit conversions, you can also use <code>(String, String)</code>
 for a <code>MediaType</code>.</p>
 
@@ -144,24 +144,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@2e6e952f
+response: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3d7b481f
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).right[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@7979b369
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@3c05f57f
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).right[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@53e9ebaf
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@3c90bea4
 
 scala&gt; val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@3eecbb15
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@6e2b44dc
 
 scala&gt; println(response.as(bothDec).run)
 &lt;console&gt;:27: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
@@ -177,7 +177,7 @@ Audio()
 <h3 id="raw-data-types">Raw Data Types</h3>
 
 <p>These are already in implicit scope by default, e.g. <code>String</code>, <code>File</code>,
-<code>Future[_]</code>, and <code>InputStream</code>. Consult <a href="../api/#org.http4s.EntityEncoder$">EntityEncoder</a> and <a href="../api/#org.http4s.EntityDecoder$">EntityDecoder</a> for
+<code>Future[_]</code>, and <code>InputStream</code>. Consult <a href="../api/org/http4s/EntityEncoder$">EntityEncoder</a> and <a href="../api/org/http4s/EntityDecoder$">EntityDecoder</a> for
 a full list.</p>
 
 <h3 id="json">JSON</h3>
