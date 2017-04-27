@@ -1,6 +1,7 @@
 # v0.17.0-SNAPSHOT
 * `Timeout` middleware takes an implicit `Scheduler` and
   `ExecutionContext`
+* Restore support for WebSockets
 
 # v0.17.0-M1 (2017-04-08)
 * First release on cats and fs2
