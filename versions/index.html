@@ -310,6 +310,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <ul>
 <li><code>Timeout</code> middleware takes an implicit <code>Scheduler</code> and
 <code>ExecutionContext</code></li>
+<li>Restore support for WebSockets</li>
 </ul>
 
 <h1 id="v0-17-0-m1-2017-04-08">v0.17.0-M1 (2017-04-08)</h1>
@@ -340,8 +341,12 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <ul>
 <li>argonaut-6.2</li>
 </ul></li>
+<li>Fix <code>ProcessApp</code> to terminate on process errors</li>
 <li>Set <code>secure</code> request attribute correctly in blaze server</li>
-<li>Rename <code>ProcessApp.main</code> to <code>ProcessApp.process</code> to avoid overload confusion</li>
+<li>Exit with code <code>-1</code> when <code>ProcessApp</code> fails</li>
+<li>Make <code>ResourceService</code> respect <code>If-Modified-Since</code></li>
+<li>Rename <code>ProcessApp.main</code> to <code>ProcessApp.process</code> to avoid overload confusio</li>
+<li>Avoid intermediate String allocation in Circe&rsquo;s <code>jsonEncoder</code></li>
 </ul>
 
 <h1 id="v0-16-0-m1-2017-04-08">v0.16.0-M1 (2017-04-08)</h1>
