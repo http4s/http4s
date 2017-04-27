@@ -1,8 +1,8 @@
 # v0.16.0-SNAPSHOT
 * Upgraded dependencies:
     * argonaut-6.2
-	* jetty-9.4.4.v20170414
-	* tomcat-8.5.14
+    * jetty-9.4.4.v20170414
+    * tomcat-8.5.14
 * Fix `ProcessApp` to terminate on process errors
 * Set `secure` request attribute correctly in blaze server
 * Exit with code `-1` when `ProcessApp` fails
