@@ -22,7 +22,7 @@ import java.net.InetAddress
 import java.time.{ZonedDateTime, ZoneOffset, Instant}
 import scala.util.Try
 
-import cats.syntax.either._
+import cats.implicits._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{HNil, ::}
 

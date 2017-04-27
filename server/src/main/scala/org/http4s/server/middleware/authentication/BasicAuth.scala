@@ -3,7 +3,7 @@ package server
 package middleware
 package authentication
 
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 import org.http4s.headers.Authorization
 

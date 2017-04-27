@@ -4,9 +4,7 @@ import scala.io.Codec
 
 import cats._
 import cats.data._
-import cats.instances.all._
-import cats.syntax.either._
-import cats.syntax.eq._
+import cats.implicits._
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._

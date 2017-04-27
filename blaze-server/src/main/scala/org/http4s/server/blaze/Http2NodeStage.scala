@@ -11,7 +11,7 @@ import scala.concurrent.duration.Duration
 import scala.util._
 
 import cats.data._
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import org.http4s.{Method => HMethod, Headers => HHeaders, _}

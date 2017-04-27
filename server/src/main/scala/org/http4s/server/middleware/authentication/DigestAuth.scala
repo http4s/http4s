@@ -10,7 +10,7 @@ import java.util.Date
 import scala.concurrent.duration._
 
 import cats.data._
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 import org.http4s.headers._
 

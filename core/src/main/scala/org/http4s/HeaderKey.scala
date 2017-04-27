@@ -3,7 +3,7 @@ package org.http4s
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import cats.data.NonEmptyList
-import cats.syntax.functor._
+import cats.implicits._
 import org.http4s.syntax.string._
 import org.http4s.util.nonEmptyList._
 import org.http4s.util.CaseInsensitiveString

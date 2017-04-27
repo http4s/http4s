@@ -4,7 +4,7 @@ import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
 
 import cats._
-import cats.syntax.flatMap._
+import cats.implicits._
 import fs2._
 import fs2.interop.cats._
 import fs2.text._

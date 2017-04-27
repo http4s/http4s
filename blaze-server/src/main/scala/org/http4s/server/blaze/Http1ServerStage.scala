@@ -10,7 +10,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{Try, Success, Failure}
 import scala.util.{Either, Left, Right}
 
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.Http1Stage

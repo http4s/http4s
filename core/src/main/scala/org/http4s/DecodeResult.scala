@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.data._
-import cats.syntax.either._
+import cats.implicits._
 import fs2.Task
 
 object DecodeResult {

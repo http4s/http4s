@@ -2,7 +2,7 @@ package org.http4s
 
 import cats.arrow.Choice
 import cats.data._
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 import fs2.interop.cats._
 import org.log4s.getLogger

@@ -9,8 +9,7 @@ import scala.concurrent.{Future, ExecutionContext, Promise}
 import scala.util.{Failure, Success}
 
 import cats.data._
-import cats.syntax.either._
-import cats.syntax.option._
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import org.http4s.headers._

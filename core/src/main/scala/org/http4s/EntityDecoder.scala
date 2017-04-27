@@ -6,7 +6,7 @@ import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 
-import cats.instances.string._
+import cats.implicits._
 import fs2._
 import fs2.io._
 import fs2.interop.cats._

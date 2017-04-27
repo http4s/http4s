@@ -3,7 +3,7 @@ package org.http4s
 import cats._
 import cats.arrow.Choice
 import cats.data._
-import cats.syntax.semigroup._
+import cats.implicits._
 import fs2._
 
 object Service {

@@ -18,7 +18,7 @@
 package org.http4s
 package parser
 
-import cats.syntax.either._
+import cats.implicits._
 import org.http4s.internal.parboiled2._
 import CharsetRange._
 

@@ -1,7 +1,7 @@
 package org.http4s
 package server
 
-import cats.syntax.semigroup._
+import cats.implicits._
 
 object Router {
 

@@ -9,7 +9,7 @@ import scala.collection.immutable.BitSet
 import scala.io.Codec
 
 import cats.data._
-import cats.syntax.either._
+import cats.implicits._
 import org.http4s.util.UrlCodingUtils
 
 /** Split an encoded query string into unencoded key value pairs

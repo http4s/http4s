@@ -4,7 +4,7 @@ package middleware
 
 import fs2._
 import cats._
-import cats.syntax.semigroup._
+import cats.implicits._
 
 /** Handles HEAD requests as a GET without a body.
   * 

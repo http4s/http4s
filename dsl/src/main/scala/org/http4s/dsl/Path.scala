@@ -14,9 +14,7 @@ import collection.immutable.BitSet
 
 import cats.data._
 import cats.data.Validated._
-import cats.instances.list._
-import cats.instances.option._
-import cats.syntax.traverse._
+import cats.implicits._
 import org.http4s.util.UrlCodingUtils
 
 /** Base class for path extractors. */

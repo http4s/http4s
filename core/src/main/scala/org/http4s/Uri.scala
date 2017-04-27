@@ -8,7 +8,7 @@ import scala.reflect.macros.whitebox.Context
 import macrocompat.bundle
 import org.http4s.Uri._
 
-import cats.syntax.either._
+import cats.implicits._
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }

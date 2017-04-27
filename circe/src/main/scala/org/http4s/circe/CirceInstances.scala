@@ -2,8 +2,9 @@ package org.http4s
 package circe
 
 import java.nio.ByteBuffer
-import cats.syntax.either._
+import cats.implicits._
 import fs2.{Chunk, Task}
+import fs2.interop.cats._
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn._
 import io.circe.jawn.CirceSupportParser.facade

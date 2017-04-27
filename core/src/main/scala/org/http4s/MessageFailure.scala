@@ -4,8 +4,7 @@ import scala.util.control.{NoStackTrace, NonFatal}
 
 import cats._
 import cats.data._
-import cats.instances.either._
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 
 /** Indicates a failure to handle an HTTP [[Message]]. */

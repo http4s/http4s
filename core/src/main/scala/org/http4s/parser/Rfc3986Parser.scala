@@ -4,7 +4,7 @@ package parser
 import java.nio.charset.Charset
 import java.net.URLDecoder
 
-import cats.syntax.option._
+import cats.implicits._
 import org.http4s.{ Query => Q }
 import org.http4s.syntax.string._
 import org.http4s.internal.parboiled2._

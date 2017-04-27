@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.data._
-import cats.syntax.either._
+import cats.implicits._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.Parser.DeliveryScheme
 import org.http4s.internal.parboiled2.support._
