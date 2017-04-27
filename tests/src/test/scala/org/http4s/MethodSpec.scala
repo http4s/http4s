@@ -2,6 +2,7 @@ package org.http4s
 
 import java.util.Locale
 
+import cats.implicits._
 import cats.kernel.laws._
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Prop.forAll

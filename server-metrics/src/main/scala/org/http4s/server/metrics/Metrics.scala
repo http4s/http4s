@@ -4,7 +4,7 @@ package metrics
 
 import java.util.concurrent.TimeUnit
 
-import cats.syntax.either._
+import cats.implicits._
 import fs2.util.Attempt
 import fs2.{Stream, Task}
 import com.codahale.metrics.MetricRegistry

@@ -4,6 +4,7 @@ package middleware
 
 import scala.concurrent.duration._
 
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import org.http4s.dsl._

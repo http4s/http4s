@@ -6,8 +6,8 @@ import Method.OPTIONS
 
 import scala.concurrent.duration._
 
+import cats.implicits._
 import fs2._
-import org.http4s.batteries._
 import org.http4s.headers._
 import org.log4s.getLogger
 

@@ -4,7 +4,7 @@ import scala.io.Codec
 
 import cats._
 import cats.data._
-import org.http4s.batteries._
+import cats.implicits._
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._

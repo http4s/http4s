@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats.data._
-import org.http4s.batteries._
+import cats.implicits._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.Parser.DeliveryScheme
 import org.http4s.internal.parboiled2.support._
@@ -15,13 +15,13 @@ package object parser {
       type Result = ParseResult[Out]
 
       def success(result: L) =
-        right(unpack(result))
+        Either.right(unpack(result))
 
       def parseError(error: ParseError) =
-        left(ParseFailure("", errorFormatter.formatExpectedAsString(error)))
+        Either.left(ParseFailure("", errorFormatter.formatExpectedAsString(error)))
 
       def failure(error: Throwable) =
-        left(ParseFailure("Exception during parsing.", error.getMessage))
+        Either.left(ParseFailure("Exception during parsing.", error.getMessage))
     }
     // scalastyle:on public.methods.have.type  
 }

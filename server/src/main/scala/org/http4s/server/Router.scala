@@ -1,7 +1,7 @@
 package org.http4s
 package server
 
-import org.http4s.batteries._
+import cats.implicits._
 
 object Router {
 

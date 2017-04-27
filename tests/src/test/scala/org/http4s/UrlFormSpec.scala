@@ -1,6 +1,8 @@
 package org.http4s
 
 import cats.data.NonEmptyList
+import cats.implicits._
+import fs2.interop.cats._
 import org.scalacheck.Arbitrary
 import org.specs2.scalacheck.Parameters
 

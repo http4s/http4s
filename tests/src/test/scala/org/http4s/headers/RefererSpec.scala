@@ -1,5 +1,6 @@
 package org.http4s.headers
 
+import cats.implicits._
 import org.http4s.Uri
 
 class RefererSpec extends HeaderLaws {

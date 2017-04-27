@@ -3,7 +3,7 @@ package server
 package middleware
 
 import fs2.Task
-import org.http4s.batteries._
+import fs2.interop.cats._
 import org.log4s.getLogger
 
 object PushSupport {

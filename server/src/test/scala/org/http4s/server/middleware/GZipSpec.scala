@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.implicits._
 import org.http4s.server.syntax._
 import org.http4s.dsl._
 import org.http4s.headers._

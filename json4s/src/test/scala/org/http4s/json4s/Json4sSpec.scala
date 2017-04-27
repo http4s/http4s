@@ -1,7 +1,7 @@
 package org.http4s
 package json4s
 
-import cats.syntax.option._
+import cats.implicits._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.json4s.JsonFormat

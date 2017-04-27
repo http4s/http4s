@@ -6,7 +6,6 @@ import java.nio.charset.StandardCharsets
 
 import fs2._
 import fs2.Stream._
-import org.http4s.batteries._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import Method._
 import Status._

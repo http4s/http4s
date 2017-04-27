@@ -1,7 +1,6 @@
 package org.http4s
 
 import cats.kernel.laws._
-import org.http4s.batteries._
 
 class QValueSpec extends Http4sSpec {
   import QValue._

@@ -1,5 +1,7 @@
 package org.http4s.headers
 
+import cats.implicits._
+
 import java.time.{Instant, ZoneId, ZonedDateTime}
 
 import scala.concurrent.duration._
