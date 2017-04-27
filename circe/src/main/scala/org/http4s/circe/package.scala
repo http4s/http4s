@@ -1,8 +1,11 @@
 package org.http4s
 
-import io.circe.Printer
+import io.circe.{Json, Printer}
 
 package object circe extends CirceInstances {
-  protected def defaultPrinter: Printer =
+  override val defaultPrinter: Printer =
     Printer.noSpaces
+
+  override val jsonDecoder: EntityDecoder[Json] =
+    CirceInstances.defaultJsonDecoder
 }
