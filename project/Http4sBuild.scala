@@ -22,14 +22,8 @@ object Http4sBuild {
    * scalaz-7.2 "a" versions for 0.15.x and 0.16.x.
    */
   def docExampleVersion(currentVersion: String) = {
-    val MilestoneVersionExtractor = """(0).(16|17).(0)a?-SNAPSHOT""".r
-    val latestMilestone = "M1"
     val VersionExtractor = """(\d+)\.(\d+)\.(\d+).*""".r
     currentVersion match {
-      case MilestoneVersionExtractor(major, minor, patch) if minor.toInt == 16 =>
-        s"${major.toInt}.${minor.toInt}.${patch.toInt}a-$latestMilestone" // scalaz-7.2 for 0.16.x
-      case MilestoneVersionExtractor(major, minor, patch) =>
-        s"${major.toInt}.${minor.toInt}.${patch.toInt}-$latestMilestone"
       case VersionExtractor(major, minor, patch) if minor.toInt == 15 =>
         s"${major.toInt}.${minor.toInt}.${patch.toInt - 1}a"              // scalaz-7.2 for 0.15.x
       case VersionExtractor(major, minor, patch) if patch.toInt > 0 =>
