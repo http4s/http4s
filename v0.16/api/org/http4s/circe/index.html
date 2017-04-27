@@ -556,6 +556,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li><li name="org.http4s.circe.CirceInstances#jsonDecoder" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="jsonDecoder:org.http4s.EntityDecoder[io.circe.Json]"></a><a id="jsonDecoder:EntityDecoder[Json]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#jsonDecoder:org.http4s.EntityDecoder[io.circe.Json]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonDecoder</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -594,19 +610,51 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
-    </li><li name="org.http4s.circe.CirceInstances#jsonDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jsonDecoder:org.http4s.EntityDecoder[io.circe.Json]"></a><a id="jsonDecoder:EntityDecoder[Json]"></a>
+    </li><li name="org.http4s.circe.CirceInstances#jsonDecoderAdaptive" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="jsonDecoderAdaptive(cutoff:Long):org.http4s.EntityDecoder[io.circe.Json]"></a><a id="jsonDecoderAdaptive(Long):EntityDecoder[Json]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/circe/index.html#jsonDecoder:org.http4s.EntityDecoder[io.circe.Json]" title="Permalink">
+      <a href="../../../org/http4s/circe/index.html#jsonDecoderAdaptive(cutoff:Long):org.http4s.EntityDecoder[io.circe.Json]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonDecoderAdaptive</span><span class="params">(<span name="cutoff">cutoff: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li><li name="org.http4s.circe.CirceInstances#jsonDecoderByteBuffer" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="jsonDecoderByteBuffer:org.http4s.EntityDecoder[io.circe.Json]"></a><a id="jsonDecoderByteBuffer:EntityDecoder[Json]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#jsonDecoderByteBuffer:org.http4s.EntityDecoder[io.circe.Json]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">jsonDecoder</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
+        <span class="name">jsonDecoderByteBuffer</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li><li name="org.http4s.circe.CirceInstances#jsonDecoderIncremental" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="jsonDecoderIncremental:org.http4s.EntityDecoder[io.circe.Json]"></a><a id="jsonDecoderIncremental:EntityDecoder[Json]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#jsonDecoderIncremental:org.http4s.EntityDecoder[io.circe.Json]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonDecoderIncremental</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
