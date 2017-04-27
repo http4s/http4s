@@ -1,12 +1,12 @@
 package org.http4s
 package circe
 
-import fs2.{Chunk, Task}
 import java.nio.ByteBuffer
+import cats.syntax.either._
+import fs2.{Chunk, Task}
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn._
 import io.circe.jawn.CirceSupportParser.facade
-import org.http4s.batteries._
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.ByteVectorChunk
 import scodec.bits.ByteVector

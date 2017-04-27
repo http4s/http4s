@@ -6,7 +6,6 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
 import org.http4s.Query._
-import org.http4s.batteries._
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlCodingUtils, Writer, Renderable}
 import org.http4s.internal.parboiled2.CharPredicate

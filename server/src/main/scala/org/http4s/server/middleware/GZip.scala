@@ -7,7 +7,7 @@ import java.util.zip.Deflater
 import fs2._
 import fs2.Stream._
 import fs2.compress._
-import org.http4s.batteries._
+import fs2.interop.cats._
 import org.http4s.headers._
 import org.log4s.getLogger
 

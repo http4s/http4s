@@ -3,8 +3,8 @@ package server
 package middleware
 package authentication
 
+import cats.syntax.either._
 import fs2._
-import org.http4s.batteries._
 import org.http4s.headers.Authorization
 
 /**
@@ -36,9 +36,9 @@ object BasicAuth {
     Service.lift { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>
-          right(AuthedRequest(authInfo, req))
+          Either.right(AuthedRequest(authInfo, req))
         case None =>
-          left(Challenge("Basic", realm, Map.empty))
+          Either.left(Challenge("Basic", realm, Map.empty))
       }
     }
 

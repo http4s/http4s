@@ -3,7 +3,6 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReferenceArray
 
 import cats._
-import org.http4s.batteries._
 import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
 

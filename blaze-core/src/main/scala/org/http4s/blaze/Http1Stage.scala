@@ -9,10 +9,11 @@ import scala.concurrent.{Future, ExecutionContext, Promise}
 import scala.util.{Failure, Success}
 
 import cats.data._
+import cats.syntax.either._
+import cats.syntax.option._
 import fs2._
 import fs2.Stream._
 import org.http4s.headers._
-import org.http4s.batteries._
 import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
@@ -165,7 +166,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
           parseResult match {
             case Some(result) =>
-              cb(right(ByteVectorChunk(ByteVector.view(result)).some))
+              cb(Either.right(ByteVectorChunk(ByteVector.view(result)).some))
 
             case None if contentComplete() =>
               cb(End)
@@ -181,17 +182,17 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
                 case Failure(t)   =>
                   logger.error(t)("Unexpected error reading body.")
-                  cb(left(t))
+                  cb(Either.left(t))
               }
           }
         } catch {
           case t: ParserException =>
             fatalError(t, "Error parsing request body")
-            cb(left(InvalidBodyException(t.getMessage())))
+            cb(Either.left(InvalidBodyException(t.getMessage())))
 
           case t: Throwable =>
             fatalError(t, "Error collecting body")
-            cb(left(t))
+            cb(Either.left(t))
         }
         go()
       }

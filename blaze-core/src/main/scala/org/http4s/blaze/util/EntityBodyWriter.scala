@@ -4,9 +4,10 @@ package util
 
 import scala.concurrent._
 import scala.util._
+import cats.syntax.flatMap._
 import fs2._
 import fs2.Stream._
-import org.http4s.batteries._
+import fs2.interop.cats._
 
 trait EntityBodyWriter {
 

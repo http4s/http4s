@@ -11,18 +11,19 @@ import scala.concurrent.duration.Duration
 import scala.util._
 
 import cats.data._
+import cats.syntax.either._
 import fs2._
 import fs2.Stream._
 import org.http4s.{Method => HMethod, Headers => HHeaders, _}
 import org.http4s.Header.Raw
 import org.http4s.Status._
-import org.http4s.batteries._
 import org.http4s.blaze.http.Headers
 import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
 import org.http4s.blaze.http.http20.Http2Exception._
 import org.http4s.blaze.pipeline.{ Command => Cmd }
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.util._
+import org.http4s.syntax.string._
 
 private class Http2NodeStage(streamId: Int,
                      timeout: Duration,
@@ -85,36 +86,36 @@ private class Http2NodeStage(streamId: Int,
             val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
             val e = PROTOCOL_ERROR(msg, fatal = false)
             sendOutboundCommand(Cmd.Error(e))
-            cb(left(InvalidBodyException(msg)))
+            cb(Either.left(InvalidBodyException(msg)))
           }
           else if (maxlen > 0 && bytesRead > maxlen) {
             val msg = s"Entity too large. Exepected $maxlen, received bytesRead"
             val e = PROTOCOL_ERROR(msg, fatal = false)
             sendOutboundCommand((Cmd.Error(e)))
-            cb(left(InvalidBodyException(msg)))
+            cb(Either.left(InvalidBodyException(msg)))
           }
-          else cb(right(Some(Chunk.bytes(bytes.array))))
+          else cb(Either.right(Some(Chunk.bytes(bytes.array))))
 
         case Success(HeadersFrame(_, true, ts)) =>
           logger.warn("Discarding trailers: " + ts)
-          cb(right(Some(Chunk.empty)))
+          cb(Either.right(Some(Chunk.empty)))
 
         case Success(other) =>  // This should cover it
           val msg = "Received invalid frame while accumulating body: " + other
           logger.info(msg)
           val e = PROTOCOL_ERROR(msg, fatal = true)
           shutdownWithCommand(Cmd.Error(e))
-          cb(left(InvalidBodyException(msg)))
+          cb(Either.left(InvalidBodyException(msg)))
 
         case Failure(Cmd.EOF) =>
           logger.debug("EOF while accumulating body")
-          cb(left(InvalidBodyException("Received premature EOF.")))
+          cb(Either.left(InvalidBodyException("Received premature EOF.")))
           shutdownWithCommand(Cmd.Disconnect)
 
         case Failure(t) =>
           logger.error(t)("Error in getBody().")
           val e = INTERNAL_ERROR(streamId, fatal = true)
-          cb(left(e))
+          cb(Either.left(e))
           shutdownWithCommand(Cmd.Error(e))
       }
     }

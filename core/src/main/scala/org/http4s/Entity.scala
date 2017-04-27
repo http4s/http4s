@@ -1,7 +1,8 @@
 package org.http4s
 
 import cats._
-import org.http4s.batteries._
+import cats.instances.option._
+import cats.syntax.cartesian._
 
 final case class Entity(body: EntityBody, length: Option[Long] = None) {
   def +(that: Entity): Entity =

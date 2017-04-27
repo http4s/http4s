@@ -4,8 +4,10 @@ import java.time.{ZoneOffset, Instant}
 
 import cats._
 import cats.data._
+import cats.syntax.applicative._
+import cats.syntax.flatMap._
 import fs2._
-import org.http4s.batteries._
+import fs2.interop.cats._
 import org.http4s.headers._
 
 trait MessageOps extends Any {

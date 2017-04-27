@@ -4,7 +4,9 @@ package client
 import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import cats.implicits._
 import fs2._
+import fs2.interop.cats._
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl._

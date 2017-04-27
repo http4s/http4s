@@ -5,8 +5,9 @@ package staticcontent
 import java.util.concurrent.ConcurrentHashMap
 
 import fs2._
+import fs2.interop.cats._
 import fs2.Stream._
-import org.http4s.batteries._
+import org.http4s.util.chunk._
 import org.log4s.getLogger
 
 /** [[CacheStrategy]] that will cache __all__ [[Response]] bodies in local memory

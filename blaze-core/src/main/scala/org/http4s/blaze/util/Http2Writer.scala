@@ -3,7 +3,7 @@ package org.http4s.blaze.util
 import scala.concurrent._
 
 import fs2._
-import org.http4s.batteries._
+import org.http4s.util.chunk._
 import org.http4s.blaze.http.Headers
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.http.http20.NodeMsg._

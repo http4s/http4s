@@ -9,6 +9,7 @@ import scala.util.control.NonFatal
 
 import fs2._
 import fs2.Stream._
+import fs2.interop.cats._
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
 import org.specs2.concurrent.ExecutionEnv

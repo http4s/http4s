@@ -4,9 +4,9 @@ import scala.util.control.{NoStackTrace, NonFatal}
 
 import cats._
 import cats.data._
-import cats.instances.either.catsStdInstancesForEither
+import cats.instances.either._
+import cats.syntax.either._
 import fs2._
-import org.http4s.batteries._
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 sealed abstract class MessageFailure extends RuntimeException {
@@ -63,14 +63,14 @@ object ParseFailure {
 
 object ParseResult {
   def fail(sanitized: String, details: String): ParseResult[Nothing] =
-    left(ParseFailure(sanitized, details))
+    Either.left(ParseFailure(sanitized, details))
   def success[A](a: A): ParseResult[A] =
-    right(a)
+    Either.right(a)
 
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {
-      case NonFatal(e) => left(ParseFailure(sanitized, e.getMessage))
+      case NonFatal(e) => Either.left(ParseFailure(sanitized, e.getMessage))
     }
 
   implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] = catsStdInstancesForEither[ParseFailure]

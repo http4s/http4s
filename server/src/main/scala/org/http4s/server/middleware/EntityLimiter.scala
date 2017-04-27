@@ -7,7 +7,6 @@ import scala.util.control.NoStackTrace
 import fs2._
 import fs2.Pull._
 import fs2.Handle._
-import org.http4s.batteries._
 
 object EntityLimiter {
 

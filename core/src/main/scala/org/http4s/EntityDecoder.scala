@@ -6,9 +6,11 @@ import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 
+import cats.instances.string._
 import fs2._
 import fs2.io._
-import org.http4s.batteries._
+import fs2.interop.cats._
+import org.http4s.util.chunk._
 import org.http4s.headers.`Content-Type`
 // TODO fs2 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scodec.bits.ByteVector

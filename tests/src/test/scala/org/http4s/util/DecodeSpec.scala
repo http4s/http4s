@@ -3,6 +3,7 @@ package util
 
 import java.nio.charset.StandardCharsets
 
+import cats.implicits._
 import fs2._
 import fs2.text.utf8Decode
 

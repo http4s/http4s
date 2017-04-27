@@ -10,7 +10,6 @@ import scala.collection.immutable.BitSet
 
 import cats.data.NonEmptyList
 import fs2._
-import org.http4s.batteries._
 
 /** A type class that describes how to efficiently render a type
  * @tparam T the type which will be rendered

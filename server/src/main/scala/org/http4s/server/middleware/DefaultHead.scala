@@ -4,7 +4,7 @@ package middleware
 
 import fs2._
 import cats._
-import org.http4s.batteries._
+import cats.syntax.semigroup._
 
 /** Handles HEAD requests as a GET without a body.
   * 

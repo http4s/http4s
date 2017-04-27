@@ -2,6 +2,8 @@ package org.http4s
 package testing
 
 import cats._
+import cats.syntax.either._
+import cats.syntax.semigroup._
 
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
@@ -12,8 +14,9 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
+import cats.instances.all._
 import org.http4s.headers._
+import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}

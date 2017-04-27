@@ -8,10 +8,10 @@ import scala.reflect.macros.whitebox.Context
 import macrocompat.bundle
 import org.http4s.Uri._
 
-import org.http4s.batteries._
+import cats.syntax.either._
 import org.http4s.parser._
+import org.http4s.syntax.string._
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
-
 
 /** Representation of the [[Request]] URI
   * @param scheme     optional Uri Scheme. eg, http, https

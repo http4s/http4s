@@ -1,10 +1,10 @@
 package org.http4s
 package jawn
 
+import cats.syntax.either._
 import _root_.jawn.{AsyncParser, Facade, ParseException}
 import fs2.Stream
 import jawnfs2._
-import org.http4s.batteries.right
 
 trait JawnInstances {
   def jawnDecoder[J](implicit facade: Facade[J]): EntityDecoder[J] =

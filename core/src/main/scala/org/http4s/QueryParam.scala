@@ -2,7 +2,8 @@ package org.http4s
 
 import cats._
 import cats.data._
-import org.http4s.batteries._
+import cats.instances.all._
+import cats.syntax.validated._
 
 final case class QueryParameterKey(value: String) extends AnyVal
 
