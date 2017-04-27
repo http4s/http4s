@@ -1,6 +1,7 @@
 # v0.15.10-SNAPSHOT
-* Patch-level upgrades to dependencies:
+* Patch-level upgrades to dependencies
     * argonaut-6.2
+    * scalaz-7.2.12
 
 # v0.15.9 (2017-04-19)
 * Terminate `ServerApp` even if the server fails to start
