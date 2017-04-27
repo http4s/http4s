@@ -394,4 +394,4 @@ val averageTemperatureService = HttpService {
 }
 ```
 
-[EntityEncoder]: ../api/#org.http4s.EntityEncoder$
+[EntityEncoder]: ../api/org/http4s/EntityEncoder$

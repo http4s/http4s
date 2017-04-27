@@ -150,6 +150,6 @@ And a few others.
 [Authentication]: ../auth
 [CORS]: ../cors
 [GZip]: ../gzip
-[Service Timeout]: ../api/#org.http4s.server.middleware.Timeout$
-[Jsonp]: ../api/#org.http4s.server.middleware.Jsonp$
-[Virtual Host]: ../api/#org.http4s.server.middleware.VirtualHost$
+[Service Timeout]: ../api/org/http4s/server/middleware/Timeout$
+[Jsonp]: ../api/org/http4s/server/middleware/Jsonp$
+[Virtual Host]: ../api/org/http4s/server/middleware/VirtualHost$

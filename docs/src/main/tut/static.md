@@ -44,4 +44,4 @@ val service = HttpService {
 }
 ```
 
-[StaticFile]: ../api/#org.http4s.StaticFile$
+[StaticFile]: ../api/org/http4s/StaticFile$

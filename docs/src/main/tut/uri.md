@@ -56,5 +56,5 @@ implicit val configuredUri = Configured[String].flatMap(s => Configured(_ => Uri
 ```
 
 [play http client]: https://www.playframework.com/documentation/2.5.x/api/scala/index.html#play.api.libs.ws.WS$
-[uri class]: ../api/#org.http4s.Uri
+[uri class]: ../api/org/http4s/Uri
 [knobs]: https://github.com/Verizon/knobs
