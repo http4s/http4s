@@ -3,12 +3,46 @@ package circe
 
 import io.circe.{Encoder, Decoder, Json, Printer}
 import io.circe.jawn.CirceSupportParser.facade
-import org.http4s.headers.`Content-Type`
+import io.circe.jawn._
+import scalaz.concurrent.Task
 import scodec.bits.ByteVector
+import org.http4s.headers.`Content-Type`
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
-  implicit val jsonDecoder: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+  val jsonDecoderIncremental: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+
+  val jsonDecoderByteBuffer: EntityDecoder[Json] =
+    EntityDecoder.decodeBy(MediaType.`application/json`)(
+      jsonDecoderByteBufferImpl)
+
+  private def jsonDecoderByteBufferImpl(msg: Message): DecodeResult[Json] =
+    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+      val bb = chunk.toByteBuffer
+      if (bb.hasRemaining) {
+        parseByteBuffer(bb) match {
+          case Right(json) =>
+            DecodeResult.success(Task.now(json))
+          case Left(pf) =>
+            DecodeResult.failure(MalformedMessageBodyFailure(
+              s"Invalid JSON", Some(pf.underlying)))
+        }
+      } else {
+        DecodeResult.failure(MalformedMessageBodyFailure(
+          "Invalid JSON: empty body", None))
+      }
+    }
+
+  implicit def jsonDecoder: EntityDecoder[Json]
+
+  def jsonDecoderAdaptive(cutoff: Long): EntityDecoder[Json] =
+    EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
+      msg.contentLength match {
+        case Some(contentLength) if contentLength < cutoff =>
+          jsonDecoderByteBufferImpl(msg)
+        case _ => jawn.jawnDecoderImpl(msg)(facade)
+      }
+    }
 
   def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
     jsonDecoder.flatMapR { json =>
@@ -48,7 +82,12 @@ trait CirceInstances {
 object CirceInstances {
   def withPrinter(p: Printer): CirceInstances = {
     new CirceInstances {
-      def defaultPrinter: Printer = p
+      val defaultPrinter: Printer = p
+      val jsonDecoder: EntityDecoder[Json] = defaultJsonDecoder
     }
   }
+
+  // default cutoff value is based on benchmarks results
+  val defaultJsonDecoder: EntityDecoder[Json] =
+    jsonDecoderAdaptive(cutoff = 100000)
 }

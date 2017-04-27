@@ -237,9 +237,10 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(
-    description := "Benchmarks for http4s"
+    description := "Benchmarks for http4s",
+    libraryDependencies += circeParser
   )
-  .dependsOn(core)
+  .dependsOn(core, circe)
 
 lazy val loadTest = http4sProject("load-test")
   .enablePlugins(DisablePublishingPlugin)
