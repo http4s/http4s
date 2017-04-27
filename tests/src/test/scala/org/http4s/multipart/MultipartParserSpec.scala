@@ -105,7 +105,7 @@ object MultipartParserSpec extends Specification {
         case \/-(bv) => bv
       }
 
-      val (headers, bv) = results.toVector.foldLeft(Headers.empty, ByteVector.empty) {
+      val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
         case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
       }
@@ -147,7 +147,7 @@ object MultipartParserSpec extends Specification {
 
       val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse(boundary)
 
-      val (headers, bv) = results.toVector.foldLeft(Headers.empty, ByteVector.empty) {
+      val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
         case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, ByteVector.empty)
       }
