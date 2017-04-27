@@ -7,6 +7,8 @@
 * Make `ResourceService` respect `If-Modified-Since`
 * Rename `ProcessApp.main` to `ProcessApp.process` to avoid overload confusio
 * Avoid intermediate String allocation in Circe's `jsonEncoder`
+* Adaptive EntityDecoder[Json] for circe: works directly from a ByteBuffer for
+  small bodies, and incrementally through jawn for larger.
 
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
