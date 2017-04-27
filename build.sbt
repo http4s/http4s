@@ -271,7 +271,7 @@ lazy val docs = http4sProject("docs")
           val (major, minor) = apiVersion.value
           val sourceTemplate =
             if (version.value.endsWith("SNAPSHOT"))
-              s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
+              s"${s.browseUrl}/tree/release-0.15.x€{FILE_PATH}.scala"
             else
               s"${s.browseUrl}/tree/v$major.$minor.0€{FILE_PATH}.scala"
           Seq("-implicits",
