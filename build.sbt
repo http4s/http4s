@@ -489,7 +489,6 @@ lazy val commonSettings = Seq(
     s"-target:jvm-${jvmTarget.value}",
     "-unchecked",
     "-Xfatal-warnings",
-    "-Xlint",
     "-Yinline-warnings",
     "-Yno-adapted-args",
     "-Ywarn-dead-code",
