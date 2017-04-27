@@ -7,6 +7,7 @@ import org.openjdk.jmh.annotations._
 import java.util.concurrent.TimeUnit
 import org.http4s._
 import org.http4s.circe._
+import org.http4s.internal.compatibility._
 import scalaz.\/
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.CirceJsonBench"
