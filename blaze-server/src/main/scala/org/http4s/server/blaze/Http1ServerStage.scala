@@ -32,12 +32,8 @@ private object Http1ServerStage {
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
             maxHeadersLen: Int): Http1ServerStage = {
-    // TODO fs2 port
-    /*
     if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen) with WebSocketSupport
     else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
-     */
-    new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
   }
 }
 
@@ -210,7 +206,7 @@ private class Http1ServerStage(service: HttpService,
     val resp = Response(Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
-  
+
   final protected def internalServerError(errorMsg: String, t: Throwable, req: Request, bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response(Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))

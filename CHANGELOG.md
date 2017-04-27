@@ -2,6 +2,7 @@
 * `Timeout` middleware takes an implicit `Scheduler` and
   `ExecutionContext`
 * Bring back `http4s-async-client`, based on `fs2-reactive-stream`
+* Restore support for WebSockets
 
 # v0.17.0-M1 (2017-04-08)
 * First release on cats and fs2
@@ -17,8 +18,12 @@
 # v0.16.0-SNAPSHOT
 * Upgraded dependencies:
     * argonaut-6.2
+* Fix `ProcessApp` to terminate on process errors
 * Set `secure` request attribute correctly in blaze server
-* Rename `ProcessApp.main` to `ProcessApp.process` to avoid overload confusion
+* Exit with code `-1` when `ProcessApp` fails
+* Make `ResourceService` respect `If-Modified-Since`
+* Rename `ProcessApp.main` to `ProcessApp.process` to avoid overload confusio
+* Avoid intermediate String allocation in Circe's `jsonEncoder`
 
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
