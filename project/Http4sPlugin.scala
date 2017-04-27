@@ -113,6 +113,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.7.3"
   lazy val fs2Cats                          = "co.fs2"                 %% "fs2-cats"                  % "0.3.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.9.5"
+  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.1.0"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.2.3"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.1.6"
@@ -131,7 +132,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.0"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
-  lazy val reactiveStreamsTck               = "org.reactivestreams"    %  "reactive-streams-tck"      % "1.0.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
