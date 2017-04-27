@@ -7,6 +7,7 @@ import java.nio.ByteBuffer
 import scala.concurrent._
 import scala.util._
 
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.interop.cats._
