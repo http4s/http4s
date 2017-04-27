@@ -40,7 +40,7 @@ package object http4s { // scalastyle:ignore
   type AuthedService[T] = Service[AuthedRequest[T], Response]
 
   /* Lives here to work around https://issues.scala-lang.org/browse/SI-7139 */
-  object HttpService {
+  object HttpService extends Serializable {
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
@@ -63,7 +63,7 @@ package object http4s { // scalastyle:ignore
       Service.const(Response.fallthrough)
   }
 
-  object AuthedService {
+  object AuthedService extends Serializable {
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
