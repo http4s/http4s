@@ -125,17 +125,15 @@ lazy val blazeClient = libraryProject("blaze-client")
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
-/* TODO fs2 port
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
-      reactiveStreamsTck % "test"
+      fs2ReactiveStreams
     )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
- */
 
 lazy val servlet = libraryProject("servlet")
   .settings(
