@@ -267,16 +267,22 @@ lazy val docs = http4sProject("docs")
     scalacOptions in (Compile,doc) ++= {
       scmInfo.value match {
         case Some(s) =>
-          val b = (baseDirectory in ThisBuild).value
-          val (major, minor) = apiVersion.value
-          val sourceTemplate =
-            if (version.value.endsWith("SNAPSHOT"))
+          val isMaster = git.gitCurrentBranch.value == "master"
+          val isSnapshot = git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
+
+          val path =
+            if (isSnapshot && isMaster)
               s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
+            else if (isSnapshot)
+              s"${s.browseUrl}/blob/${git.gitHeadCommit.value.get}€{FILE_PATH}.scala"
             else
-              s"${s.browseUrl}/tree/v$major.$minor.0€{FILE_PATH}.scala"
-          Seq("-implicits",
-            "-doc-source-url", sourceTemplate,
-            "-sourcepath", b.getAbsolutePath)
+              s"${s.browseUrl}/blob/v${version.value}€{FILE_PATH}.scala"
+
+          Seq(
+            "-implicits",
+            "-doc-source-url", path,
+            "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath
+          )
         case _ => Seq.empty
       }
     },
