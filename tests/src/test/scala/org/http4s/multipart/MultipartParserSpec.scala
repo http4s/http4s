@@ -3,6 +3,7 @@ package multipart
 
 import org.http4s.headers._
 import org.specs2.mutable._
+import org.specs2.specification.core.Fragments
 
 import scalaz.{-\/, \/-, \/}
 import scalaz.stream.{Process, Process0}
@@ -31,8 +32,9 @@ object MultipartParserSpec extends Specification {
   }
 
   "form parsing" should {
-    "produce the body from a single part input split across chunks" in {
-      val unprocessedInput = """
+    Fragments.foreach(List(1, 2, 3, 5, 8, 13, 21, /* nah let's skip ahead */ 987)) { chunkSize =>
+      s"produce the body from a single part with chunk size ${chunkSize}" in {
+        val unprocessedInput = """
         |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
         |Content-Disposition: form-data; name="upload"; filename="integration.txt"
         |Content-Type: application/octet-stream
@@ -44,29 +46,30 @@ object MultipartParserSpec extends Specification {
         |
         |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
-      val input = ruinDelims(unprocessedInput)
+        val input = ruinDelims(unprocessedInput)
 
-      val expectedHeaders = Headers(
-        `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
-        `Content-Type`(MediaType.`application/octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
-      )
+        val expectedHeaders = Headers(
+          `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
+          `Content-Type`(MediaType.`application/octet-stream`),
+          Header("Content-Transfer-Encoding", "binary")
+        )
 
-      val expected = ruinDelims("""this is a test
+        val expected = ruinDelims("""this is a test
               |here's another test
               |catch me if you can!
               |""".stripMargin)
 
-      val results: Process0[Headers \/ ByteVector] =
-        unspool(input, 15) pipe MultipartParser.parse(boundary)
+        val results: Process0[Headers \/ ByteVector] =
+          unspool(input, chunkSize) pipe MultipartParser.parse(boundary)
 
-      val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
-        case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
-        case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
+        val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
+          case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
+          case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
+        }
+
+        headers mustEqual (expectedHeaders)
+        bv.decodeAscii mustEqual Right(expected)
       }
-
-      headers mustEqual (expectedHeaders)
-      bv.decodeAscii mustEqual Right(expected)
     }
 
     "produce the body from a single part that doesn't start with a CRLF" in {
@@ -146,6 +149,8 @@ object MultipartParserSpec extends Specification {
     }
 
     "fail if the header is too large" in {
+      // This is a valid multipart body, but in this example, we're imposing an
+      // absurdly low cap in the argument to MultipartParser.parse to trigger failure.
       val unprocessedInput = """
         |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
         |Content-Disposition: form-data; name="upload"; filename="integration.txt"
@@ -162,7 +167,7 @@ object MultipartParserSpec extends Specification {
       val results: Process0[Headers \/ ByteVector] =
         unspool(input, 15) pipe MultipartParser.parse(boundary, 100)
 
-      results.toVector must throwA(ParseFailure("Invalid multipart entity", "Part header was longer than 100-byte limit"))
+      results.toVector must throwA(MalformedMessageBodyFailure("Part header was longer than 100-byte limit"))
     }
 
     "handle an miserably large body on one line" in {

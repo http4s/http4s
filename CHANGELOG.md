@@ -3,11 +3,12 @@
     * argonaut-6.2
     * scalaz-7.2.12
 * Allow preambles and epilogues in multipart bodies
-* Limit multipart headers to 10 kilobytes to avoid unbounded buffering
+* Limit multipart headers to 40 kilobytes to avoid unbounded buffering
   of long lines in a header
 * Remove `' '` and `'?'` from alphabet for generated multipart
   boundaries, as these are not token characters and are known to cause
   trouble for some multipart implementations
+* Fix multipart parsing for unlucky input chunk sizes
 
 # v0.15.9 (2017-04-19)
 * Terminate `ServerApp` even if the server fails to start
