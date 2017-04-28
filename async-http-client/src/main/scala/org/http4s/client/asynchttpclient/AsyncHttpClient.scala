@@ -3,11 +3,11 @@ package client
 package asynchttpclient
 
 import cats._
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import fs2.io.toInputStream
-import org.http4s.batteries._
 
 import java.util.concurrent.{Callable, Executor, Executors, ExecutorService}
 import java.nio.ByteBuffer
