@@ -19,7 +19,7 @@ package org.http4s.parser
 
 import scala.reflect.ClassTag
 import scalaz.Validation
-import org.http4s.ParseResult
+import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support._
 
@@ -88,6 +88,7 @@ private[http4s] object Rfc2616BasicRules {
   def token(in: ParserInput): ParseResult[String] = new Rfc2616BasicRules {
     override def input: ParserInput = in
   }.Token.run()(ScalazDeliverySchemes.Disjunction)
+    .leftMap(e => ParseFailure("Invalid token", e.format(in)))
 
   def isToken(in: ParserInput) = token(in).isRight
 }

@@ -7,6 +7,7 @@ import scala.reflect.macros.whitebox.Context
 
 import macrocompat.bundle
 import org.http4s.Uri._
+import org.http4s.internal.parboiled2.ErrorFormatter
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
 import org.http4s.syntax.string._
@@ -131,6 +132,7 @@ object Uri extends UriFunctions {
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
     .run()(ScalazDeliverySchemes.Disjunction)
+    .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
    *  fails, throws a [[ParseFailure]].
@@ -144,6 +146,7 @@ object Uri extends UriFunctions {
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
+    .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
   type Scheme = CaseInsensitiveString
 
