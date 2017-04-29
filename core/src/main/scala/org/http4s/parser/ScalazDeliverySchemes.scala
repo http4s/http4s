@@ -2,7 +2,6 @@ package org.http4s.parser
 
 import scalaz._
 
-import org.http4s.ParseFailure
 import org.http4s.internal.parboiled2.{ ErrorFormatter, ParseError }
 import org.http4s.internal.parboiled2.Parser.DeliveryScheme
 import org.http4s.internal.parboiled2.support.Unpack

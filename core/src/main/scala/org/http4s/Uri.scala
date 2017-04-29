@@ -7,7 +7,6 @@ import scala.reflect.macros.whitebox.Context
 
 import macrocompat.bundle
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.ErrorFormatter
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
 import org.http4s.syntax.string._
