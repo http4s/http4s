@@ -92,7 +92,7 @@ similar static file hoster, but they&rsquo;re often fast enough.</p>
 
 <h2 id="serving-static-files">Serving static files</h2>
 
-<p>Http4s provides a few helpers to handle ETags for you, they&rsquo;re located in <a href="../api/#org.http4s.StaticFile$">StaticFile</a>.</p>
+<p>Http4s provides a few helpers to handle ETags for you, they&rsquo;re located in <a href="../api/org/http4s/StaticFile$">StaticFile</a>.</p>
 
 <pre><code class="language-scala">import org.http4s._
 // import org.http4s._
@@ -112,7 +112,7 @@ val service = HttpService {
       .map(Task.now) // This one is require to make the types match up
       .getOrElse(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$41833/1855158023@536671ad)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$45393/460127219@1c0d9034)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -128,7 +128,7 @@ val service = HttpService {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$41833/1855158023@63335214)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$45393/460127219@6cc0c2c2)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -165,7 +165,7 @@ val webjars: HttpService = webjarService(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$41836/1100531628@234fe9a6)
+// webjars: org.http4s.HttpService = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$45396/1602592780@37376c1d)
 </code></pre>
 
           <footer>

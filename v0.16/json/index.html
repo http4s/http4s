@@ -219,7 +219,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@3bf5a70d
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@62cd5e41
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -259,7 +259,7 @@ or client, we need an <code>EntityDecoder[JSON]</code> to receive it.</p>
 
 <p>The <code>org.http4s.circe._</code> package provides an implicit
 <code>EntityDecoder[Json]</code>.  This makes it very easy to decode a request or
-response body to JSON using the <a href="../api/index.html#org.http4s.MessageOps@as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]"><code>as</code> syntax</a>:</p>
+response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]"><code>as</code> syntax</a>:</p>
 
 <pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].unsafePerformSync
 // res8: io.circe.Json =
