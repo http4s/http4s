@@ -15,7 +15,7 @@ env:
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
   - SBT_VERSION=0.13.13
   matrix:
-  - SCALAZ_VERSION=7.2.11
+  - SCALAZ_VERSION=7.2.12
   - SCALAZ_VERSION=7.1.13
 before_script:
 - mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
