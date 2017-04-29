@@ -1,4 +1,4 @@
-# v0.15.10-SNAPSHOT
+# v0.15.10 (2017-04-28)
 * Patch-level upgrades to dependencies
     * argonaut-6.2
     * scalaz-7.2.12

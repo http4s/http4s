@@ -75,7 +75,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.9a</td>
+	    <td>0.15.10a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -85,7 +85,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.9</td>
+	    <td>0.15.10</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
