@@ -1,4 +1,4 @@
-# v0.16.0-SNAPSHOT
+# v0.16.0-M2 (@017-04-30)
 * Upgraded dependencies:
     * argonaut-6.2
     * jetty-9.4.4.v20170414
@@ -11,6 +11,7 @@
 * Avoid intermediate String allocation in Circe's `jsonEncoder`
 * Adaptive EntityDecoder[Json] for circe: works directly from a ByteBuffer for
   small bodies, and incrementally through jawn for larger.
+* Capture more context in detail message of parse errors
 
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
@@ -54,6 +55,10 @@
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
+
+# v0.15.11 (2017-04-29)
+* Upgrade to blaze-0.12.5 to pick up fix for `StackOverflowError` in
+  SSL handshake
 
 # v0.15.10 (2017-04-28)
 * Patch-level upgrades to dependencies
