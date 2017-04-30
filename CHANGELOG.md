@@ -1,4 +1,4 @@
-# v0.17.0-SNAPSHOT
+# v0.17.0-M2 (2017-04-30)
 * `Timeout` middleware takes an implicit `Scheduler` and
   `ExecutionContext`
 * Bring back `http4s-async-client`, based on `fs2-reactive-stream`
