@@ -1,3 +1,7 @@
+# v0.15.11 (2017-04-29)
+* Upgrade to blaze-0.12.5 to pick up fix for `StackOverflowError` in
+  SSL handshake
+
 # v0.15.10 (2017-04-28)
 * Patch-level upgrades to dependencies
     * argonaut-6.2
