@@ -109,7 +109,7 @@ type in that case.</p>
 <code>EntityEncoder.encodeBy</code> or reuse an already existing one via
 <code>EntityEncoder[T].contramap</code> and <code>withContentType</code>.</p>
 
-<p>See the <a href="../api/#org.http4s.MediaRange$">MediaRange</a> companion object for ranges, and <a href="../api/#org.http4s.MediaType$">MediaType</a> for specific
+<p>See the <a href="../api/org/http4s/MediaRange$">MediaRange</a> companion object for ranges, and <a href="../api/org/http4s/MediaType$">MediaType</a> for specific
 types. Because of the implicit conversions, you can also use <code>(String, String)</code>
 for a <code>MediaType</code>.</p>
 
@@ -153,17 +153,17 @@ scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =&g
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@72d6fd80
+audioDec: org.http4s.EntityDecoder[Audio] = org.http4s.EntityDecoder$$anon$3@3627ea0f
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@d0318b9
+videoDec: org.http4s.EntityDecoder[Video] = org.http4s.EntityDecoder$$anon$3@22e39d55
 
 scala&gt; val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@7ee6ffc1
+bothDec: org.http4s.EntityDecoder[Resp] = org.http4s.EntityDecoder$OrDec@771327aa
 
 scala&gt; println(response.as(bothDec).unsafeRun)
 Audio()
@@ -176,7 +176,7 @@ Audio()
 <h3 id="raw-data-types">Raw Data Types</h3>
 
 <p>These are already in implicit scope by default, e.g. <code>String</code>, <code>File</code>,
-<code>Future[_]</code>, and <code>InputStream</code>. Consult <a href="../api/#org.http4s.EntityEncoder$">EntityEncoder</a> and <a href="../api/#org.http4s.EntityDecoder$">EntityDecoder</a> for
+<code>Future[_]</code>, and <code>InputStream</code>. Consult <a href="../api/org/http4s/EntityEncoder$">EntityEncoder</a> and <a href="../api/org/http4s/EntityDecoder$">EntityDecoder</a> for
 a full list.</p>
 
 <h3 id="json">JSON</h3>

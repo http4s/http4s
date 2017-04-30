@@ -144,7 +144,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
     </thead>
     <tbody>
       <tr>
-        <td>0.17.0-M1</td>
+        <td>0.17.0-M2</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -154,7 +154,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0a-M1</td>
+        <td>0.16.0a-M2</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -164,7 +164,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0-M1</td>
+        <td>0.16.0-M2</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -174,7 +174,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.9a</td>
+        <td>0.15.11a</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -184,7 +184,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.15.9</td>
+        <td>0.15.11</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -305,7 +305,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-17-0-snapshot">v0.17.0-SNAPSHOT</h1>
+      <h1 id="v0-17-0-m2-2017-04-30">v0.17.0-M2 (2017-04-30)</h1>
 
 <ul>
 <li><code>Timeout</code> middleware takes an implicit <code>Scheduler</code> and
@@ -320,7 +320,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <li>First release on cats and fs2
 
 <ul>
-<li>All scalaz types and typeclasses replaced by cats equivalents</li>
+<li>All scalaz types and typeclasses replaced by cats equivalengts</li>
 <li><code>scalaz.concurrent.Task</code> replaced by <code>fs2.Task</code><br /></li>
 <li><code>scalaz.stream.Process</code> replaced by <code>fs2.Stream</code></li>
 </ul></li>
@@ -334,13 +334,15 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 </ul></li>
 </ul>
 
-<h1 id="v0-16-0-snapshot">v0.16.0-SNAPSHOT</h1>
+<h1 id="v0-16-0-m2-2017-04-30">v0.16.0-M2 (2017-04-30)</h1>
 
 <ul>
 <li>Upgraded dependencies:
 
 <ul>
 <li>argonaut-6.2</li>
+<li>jetty-9.4.4.v20170414</li>
+<li>tomcat-8.5.14</li>
 </ul></li>
 <li>Fix <code>ProcessApp</code> to terminate on process errors</li>
 <li>Set <code>secure</code> request attribute correctly in blaze server</li>
@@ -348,6 +350,9 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <li>Make <code>ResourceService</code> respect <code>If-Modified-Since</code></li>
 <li>Rename <code>ProcessApp.main</code> to <code>ProcessApp.process</code> to avoid overload confusio</li>
 <li>Avoid intermediate String allocation in Circe&rsquo;s <code>jsonEncoder</code></li>
+<li>Adaptive EntityDecoder[Json] for circe: works directly from a ByteBuffer for
+small bodies, and incrementally through jawn for larger.</li>
+<li>Capture more context in detail message of parse errors</li>
 </ul>
 
 <h1 id="v0-16-0-m1-2017-04-08">v0.16.0-M1 (2017-04-08)</h1>
@@ -397,6 +402,31 @@ pre-flight checks of authenticated services.</li>
 <code>ProcessApp</code> is easier to compose all the resources a server needs via
 <code>Process.bracket</code>.</li>
 <li>Implement a <code>Referer</code> header.</li>
+</ul>
+
+<h1 id="v0-15-11-2017-04-29">v0.15.11 (2017-04-29)</h1>
+
+<ul>
+<li>Upgrade to blaze-0.12.5 to pick up fix for <code>StackOverflowError</code> in
+SSL handshake</li>
+</ul>
+
+<h1 id="v0-15-10-2017-04-28">v0.15.10 (2017-04-28)</h1>
+
+<ul>
+<li>Patch-level upgrades to dependencies
+
+<ul>
+<li>argonaut-6.2</li>
+<li>scalaz-7.2.12</li>
+</ul></li>
+<li>Allow preambles and epilogues in multipart bodies</li>
+<li>Limit multipart headers to 40 kilobytes to avoid unbounded buffering
+of long lines in a header</li>
+<li>Remove <code>' '</code> and <code>'?'</code> from alphabet for generated multipart
+boundaries, as these are not token characters and are known to cause
+trouble for some multipart implementations</li>
+<li>Fix multipart parsing for unlucky input chunk sizes</li>
 </ul>
 
 <h1 id="v0-15-9-2017-04-19">v0.15.9 (2017-04-19)</h1>
