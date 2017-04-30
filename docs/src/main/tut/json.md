@@ -257,4 +257,4 @@ blazeServer.shutdownNow()
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless
 [circe-generic]: https://github.com/travisbrown/circe#codec-derivation
 [jsonExtract]: https://github.com/http4s/http4s/blob/master/json4s/src/main/scala/org/http4s/json4s/Json4sInstances.scala#L29
-[`as` syntax]: ../api/index.html#org.http4s.MessageOps@as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]
+[`as` syntax]: ../api/org/http4s/MessageOps.html#as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]

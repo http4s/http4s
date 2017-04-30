@@ -11,6 +11,7 @@ import io.circe.jawn.CirceSupportParser.facade
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.ByteVectorChunk
 import scodec.bits.ByteVector
+import org.http4s.headers.`Content-Type`
 
 trait CirceInstances {
   val jsonDecoderIncremental: EntityDecoder[Json] = jawn.jawnDecoder(facade)

@@ -9,6 +9,7 @@ import macrocompat.bundle
 import org.http4s.Uri._
 
 import cats.implicits._
+import org.http4s.internal.parboiled2.Parser
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
@@ -131,7 +132,8 @@ object Uri extends UriFunctions {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
-    .run()(parseResultDeliveryScheme)
+    .run()(Parser.DeliveryScheme.Either)
+    .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
    *  fails, throws a [[ParseFailure]].
@@ -144,7 +146,8 @@ object Uri extends UriFunctions {
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
-    .run()(parseResultDeliveryScheme)
+    .run()(Parser.DeliveryScheme.Either)
+    .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
   type Scheme = CaseInsensitiveString
 

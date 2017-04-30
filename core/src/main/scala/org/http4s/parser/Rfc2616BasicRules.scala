@@ -19,9 +19,9 @@ package org.http4s.parser
 
 import scala.reflect.ClassTag
 import cats._
-import org.http4s.ParseResult
+import cats.implicits._
+import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
-import org.http4s.internal.parboiled2.support._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
@@ -87,7 +87,8 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 private[http4s] object Rfc2616BasicRules {
   def token(in: ParserInput): ParseResult[String] = new Rfc2616BasicRules {
     override def input: ParserInput = in
-  }.Token.run()(parseResultDeliveryScheme)
+  }.Token.run()(Parser.DeliveryScheme.Either)
+    .leftMap(e => ParseFailure("Invalid token", e.format(in)))
 
   def isToken(in: ParserInput) = token(in).isRight
 }

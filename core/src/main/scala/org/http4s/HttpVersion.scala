@@ -25,7 +25,7 @@ object HttpVersion extends HttpVersionInstances {
   def fromString(s: String): ParseResult[HttpVersion] = s match {
     case "HTTP/1.1" => Either.right(`HTTP/1.1`)
     case "HTTP/1.0" => Either.right(`HTTP/1.0`)
-    case other => new Parser(s).HttpVersion.run()(parseResultDeliveryScheme).leftMap { _ =>
+    case other => new Parser(s).HttpVersion.run()(Parser.DeliveryScheme.Either).leftMap { _ =>
       ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
     }
   }

@@ -99,8 +99,8 @@ If you're working with [twirl] templates, there's a bridge for that too:
 - scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
 
 [streams-tutorial]: https://gist.github.com/djspiewak/d93a9c4983f63721c41c
-[EntityEncoder]: ../api/#org.http4s.EntityEncoder$
-[EntityDecoder]: ../api/#org.http4s.EntityDecoder$
-[MediaType]: ../api/#org.http4s.MediaType$
-[MediaRange]: ../api/#org.http4s.MediaRange$
+[EntityEncoder]: ../api/org/http4s/EntityEncoder$
+[EntityDecoder]: ../api/org/http4s/EntityDecoder$
+[MediaType]: ../api/org/http4s/MediaType$
+[MediaRange]: ../api/org/http4s/MediaRange$
 [twirl]: https://github.com/playframework/twirl
