@@ -30,6 +30,15 @@ A good default choice is the `PooledHttp1Client`.  As the name
 implies, the `PooledHttp1Client` maintains a connection pool and
 speaks HTTP 1.x.
 
+First, we'll need a dependency on the http4s blaze-client
+
+```scala
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+)
+```
+and then we can create the client.
+
 ```tut:book
 import org.http4s.client.blaze._
 
