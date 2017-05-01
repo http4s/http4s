@@ -7,7 +7,7 @@ title: HTTP Client
 How do we know the server is running?  Let's create a client with
 http4s to try our service.
 
-A recap of the dependencies for this example, in case you skipped the [service] example. With the following dependencies in your build.sbt:
+A recap of the dependencies for this example, in case you skipped the [service] example. Ensure you have the following dependencies in your build.sbt:
 
 ```scala
 scalaVersion := "2.11.8" // Also supports 2.10.x and 2.12.x
