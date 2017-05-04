@@ -2,12 +2,14 @@ package org.http4s
 package server
 package middleware
 
-import java.util.zip.Deflater
+import java.util.zip.{CRC32, Deflater}
+import javax.xml.bind.DatatypeConverter
 
 import fs2._
 import fs2.Stream._
 import fs2.compress._
 import fs2.interop.cats._
+import org.http4s.EntityBody
 import org.http4s.headers._
 import org.log4s.getLogger
 
@@ -24,13 +26,14 @@ object GZip {
             case resp: Response =>
               if (isZippable(resp)) {
                 logger.trace("GZip middleware encoding content")
-                // Need to add the Gzip header
+                // Need to add the Gzip header and trailer
+                val gzipTrailer = trailer(resp.body)
                 val b = chunk(header) ++
                   resp.body.through(deflate(
                     level = level,
                     nowrap = true,
                     bufferSize = bufferSize
-                  ))
+                  )) ++ gzipTrailer
                 resp.removeHeader(`Content-Length`)
                   .putHeaders(`Content-Encoding`(ContentCoding.gzip))
                   .copy(body = b)
@@ -51,9 +54,8 @@ object GZip {
   }
 
 
-
   private val GZIP_MAGIC_NUMBER = 0x8b1f
-  private val TRAILER_LENGTH = 8
+  private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
 
   private val header: Chunk[Byte] = Chunk.bytes(Array(
     GZIP_MAGIC_NUMBER.toByte,           // Magic number (int16)
@@ -67,4 +69,13 @@ object GZip {
     0.toByte,                           // Extra flags
     0.toByte)                           // Operating system
   )
+
+  private def trailer(body: EntityBody): Stream[Task, Byte] =
+    body.fold(Array[Byte]())((arr, byte) => arr :+ byte)
+      .map { arr =>
+        val crc = new CRC32()
+        crc.update(arr)
+        DatatypeConverter.parseHexBinary("%08x".format(arr.length % GZIP_LENGTH_MOD)) ++
+          DatatypeConverter.parseHexBinary("%08x".format(crc.getValue()))
+      }.flatMap(arr => Stream(arr.reverse:_*))
 }
