@@ -9,7 +9,6 @@ import fs2._
 import fs2.Stream._
 import fs2.compress._
 import fs2.interop.cats._
-import org.http4s.EntityBody
 import org.http4s.headers._
 import org.log4s.getLogger
 
@@ -27,13 +26,7 @@ object GZip {
               if (isZippable(resp)) {
                 logger.trace("GZip middleware encoding content")
                 // Need to add the Gzip header and trailer
-                val gzipTrailer = trailer(resp.body)
-                val b = chunk(header) ++
-                  resp.body.through(deflate(
-                    level = level,
-                    nowrap = true,
-                    bufferSize = bufferSize
-                  )) ++ gzipTrailer
+                val b = chunk(header) ++ resp.body.through(deflateWithTrailer(level, bufferSize))
                 resp.removeHeader(`Content-Length`)
                   .putHeaders(`Content-Encoding`(ContentCoding.gzip))
                   .copy(body = b)
@@ -70,12 +63,25 @@ object GZip {
     0.toByte)                           // Operating system
   )
 
-  private def trailer(body: EntityBody): Stream[Task, Byte] =
-    body.fold(Array[Byte]())((arr, byte) => arr :+ byte)
-      .map { arr =>
-        val crc = new CRC32()
-        crc.update(arr)
-        DatatypeConverter.parseHexBinary("%08x".format(arr.length % GZIP_LENGTH_MOD)) ++
-          DatatypeConverter.parseHexBinary("%08x".format(crc.getValue()))
-      }.flatMap(arr => Stream(arr.reverse:_*))
+  private def deflateWithTrailer[F[_]](level: Int, bufferSize: Int): Pipe[F, Byte, Byte] =
+    pipe.covary[F, Byte, Byte](_.pull(_.await.flatMap(step => deflateStep(new CRC32(), 0, level, bufferSize)(step))))
+
+  private def deflateStep(crc: CRC32, inputLength: Int, level: Int, bufferSize: Int): ((Chunk[Byte], Handle[Pure, Byte])) => Pull[Pure, Byte, Handle[Pure, Byte]] = {
+    case (c, h) =>
+      val chunkArr = c.toArray
+      crc.update(chunkArr)
+      Pull.outputs(deflate(
+        level = level,
+        nowrap = true,
+        bufferSize = bufferSize
+      )(chunk(c))) >> deflateHandle(crc, inputLength + chunkArr.length, level, bufferSize)(h)
+  }
+
+  private def deflateHandle(crc: CRC32, inputLength: Int, level: Int, bufferSize: Int)(h: Handle[Pure, Byte]): Pull[Pure, Byte, Handle[Pure, Byte]] =
+    h.await flatMap deflateStep(crc, inputLength, level, bufferSize) or deflateFinish(crc, inputLength)
+
+  private def deflateFinish(crc: CRC32, inputLength: Int): Pull[Pure, Byte, Nothing] =
+    Pull.output(Chunk.bytes(
+      DatatypeConverter.parseHexBinary("%08x".format(crc.getValue())).reverse ++
+        DatatypeConverter.parseHexBinary("%08x".format(inputLength % GZIP_LENGTH_MOD)).reverse)) >> Pull.done
 }
