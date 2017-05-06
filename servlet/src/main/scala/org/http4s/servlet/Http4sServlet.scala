@@ -5,7 +5,7 @@ import java.util.concurrent.ExecutorService
 import org.http4s.headers.`Transfer-Encoding`
 import server._
 
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
+import javax.servlet.http.{HttpSession, HttpServletResponse, HttpServletRequest, HttpServlet}
 import java.net.{InetSocketAddress, InetAddress}
 
 import scala.collection.JavaConverters._
@@ -32,6 +32,10 @@ class Http4sServlet(service: HttpService,
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
+
+  object ServletRequestKeys {
+    val HttpSession: AttributeKey[HttpSession] = AttributeKey.http4s("request.httpSession")
+  }
 
   override def init(config: ServletConfig): Unit = {
     val servletContext = config.getServletContext
@@ -156,7 +160,8 @@ class Http4sServlet(service: HttpService,
           InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
           req.isSecure
         )),
-        Request.Keys.ServerSoftware(serverSoftware)
+        Request.Keys.ServerSoftware(serverSoftware),
+        ServletRequestKeys.HttpSession(req.getSession)
       )
     )
 
