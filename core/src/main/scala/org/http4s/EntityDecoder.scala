@@ -12,7 +12,7 @@ import fs2.io._
 import fs2.interop.cats._
 import org.http4s.util.chunk._
 import org.http4s.headers.`Content-Type`
-// TODO fs2 import org.http4s.multipart.{Multipart, MultipartDecoder}
+import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scodec.bits.ByteVector
 
 /** A type that can be used to decode a [[Message]]
@@ -170,11 +170,8 @@ trait EntityDecoderInstances {
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-// TODO fs2 port
-/*
   implicit def multipart: EntityDecoder[Multipart] =
     MultipartDecoder.decoder
-*/
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit val void: EntityDecoder[Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg =>
