@@ -4,19 +4,15 @@ package multipart
 import java.io.{ File, FileInputStream, InputStream }
 import java.net.URL
 import java.nio.charset.StandardCharsets
-import java.util.Base64
 
 import scala.util.Random
 
 import fs2._
-import fs2.Stream._
 import fs2.io._
 import fs2.text._
-import org.http4s.EntityEncoder._
-import org.http4s.MediaType._
+
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.util.string._
 
 final case class Part(headers: Headers, body: EntityBody) {
   def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
@@ -30,7 +26,7 @@ object Part {
 
   def formData(name: String, value: String, headers: Header*): Part =
     Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers,
-      emit(value).through(utf8Encode))
+      Stream.emit(value).covary[Task].through(utf8Encode))
 
   def fileData(name: String, file: File, headers: Header*): Part =
     fileData(name, file.getName, new FileInputStream(file), headers:_*)
