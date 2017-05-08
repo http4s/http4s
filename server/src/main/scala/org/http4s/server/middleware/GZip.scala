@@ -63,25 +63,35 @@ object GZip {
     0.toByte)                           // Operating system
   )
 
-  private def deflateWithTrailer[F[_]](level: Int, bufferSize: Int): Pipe[F, Byte, Byte] =
-    pipe.covary[F, Byte, Byte](_.pull(_.await.flatMap(step => deflateStep(new CRC32(), 0, level, bufferSize)(step))))
+  private final case class TrailerGen(crc: CRC32 = new CRC32(), var inputLength: Int = 0)
 
-  private def deflateStep(crc: CRC32, inputLength: Int, level: Int, bufferSize: Int): ((Chunk[Byte], Handle[Pure, Byte])) => Pull[Pure, Byte, Handle[Pure, Byte]] = {
+  private def deflateWithTrailer[F[_]](level: Int, bufferSize: Int): Pipe[F, Byte, Byte] = {
+    val trailer = TrailerGen()
+    pipe.covary[F, Byte, Byte](_.pull(_.await.flatMap(deflateStep(trailer, level, bufferSize)).or(deflateFinish(trailer))))
+  }
+
+  private def deflateStep(trailer: TrailerGen, level: Int, bufferSize: Int): ((Chunk[Byte], Handle[Pure, Byte])) => Pull[Pure, Byte, Handle[Pure, Byte]] = {
     case (c, h) =>
       val chunkArr = c.toArray
-      crc.update(chunkArr)
+      trailer.crc.update(chunkArr)
+      trailer.inputLength = trailer.inputLength + chunkArr.length
       Pull.outputs(deflate(
         level = level,
         nowrap = true,
         bufferSize = bufferSize
-      )(chunk(c))) >> deflateHandle(crc, inputLength + chunkArr.length, level, bufferSize)(h)
+      )(chunk(c))) >> deflateHandle(trailer, level, bufferSize)(h)
   }
 
-  private def deflateHandle(crc: CRC32, inputLength: Int, level: Int, bufferSize: Int)(h: Handle[Pure, Byte]): Pull[Pure, Byte, Handle[Pure, Byte]] =
-    h.await flatMap deflateStep(crc, inputLength, level, bufferSize) or deflateFinish(crc, inputLength)
+  private def deflateHandle(trailer: TrailerGen, level: Int, bufferSize: Int)(h: Handle[Pure, Byte]): Pull[Pure, Byte, Handle[Pure, Byte]] =
+    h.await.flatMap(deflateStep(trailer, level, bufferSize))
 
-  private def deflateFinish(crc: CRC32, inputLength: Int): Pull[Pure, Byte, Nothing] =
+  private def deflateFinish(trailer: TrailerGen): Pull[Pure, Byte, Nothing] = {
+    // Temporary workaround to fix incorrect deflation of an empty stream in fs2
+    // See https://github.com/functional-streams-for-scala/fs2/pull/865
+    val extraBytes = if (trailer.inputLength == 0) Array(3.toByte, 0.toByte) else Array[Byte]()
     Pull.output(Chunk.bytes(
-      DatatypeConverter.parseHexBinary("%08x".format(crc.getValue())).reverse ++
-        DatatypeConverter.parseHexBinary("%08x".format(inputLength % GZIP_LENGTH_MOD)).reverse)) >> Pull.done
+      extraBytes ++
+        DatatypeConverter.parseHexBinary("%08x".format(trailer.crc.getValue())).reverse ++
+        DatatypeConverter.parseHexBinary("%08x".format(trailer.inputLength % GZIP_LENGTH_MOD)).reverse)) >> Pull.done
+  }
 }
