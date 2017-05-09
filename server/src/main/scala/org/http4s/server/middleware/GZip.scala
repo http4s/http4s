@@ -28,7 +28,6 @@ object GZip {
             if (isZippable(resp)) {
               logger.trace("GZip middleware encoding content")
               // Need to add the Gzip header and trailer
-              // Need to add the Gzip header
               val b = resp.body
                 .pipe(gzip(
                   level = level,
@@ -68,7 +67,7 @@ object GZip {
           val arr = bytes.toArray
           crc.update(arr)
           length += bytes.length
-          deflater.setInput(bytes.toArray)
+          deflater.setInput(arr)
           val chunks = collect(Deflater.NO_FLUSH)
           emitAll(chunks) ++ go()
         }
