@@ -40,6 +40,8 @@ final class AttributeMap private(private val backing: Map[AttributeKey[_], Any])
   /** Gets the value of type `T` associated with the key `k` or `None` if no value is associated. */
   def get[T](k: AttributeKey[T]): Option[T] = backing.get(k).asInstanceOf[Option[T]]
 
+  def getOrElse[T, TT >: T](k: AttributeKey[T], default: => TT): TT = get(k).getOrElse(default)
+
   /** Returns this map without the mapping for `k`. */
   def remove[T](k: AttributeKey[T]): AttributeMap = new AttributeMap(backing - k)
 

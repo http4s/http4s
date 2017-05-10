@@ -298,20 +298,25 @@ private object Http1Connection {
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
     val uri = req.uri
-    writer << req.method << ' ' << uri.copy(scheme = None, authority = None, fragment = None) << ' ' << req.httpVersion << "\r\n"
-    if (getHttpMinor(req) == 1 && Host.from(req.headers).isEmpty) { // need to add the host header for HTTP/1.1
-      uri.host match {
-        case Some(host) =>
-          writer << "Host: " << host.value
-          if (uri.port.isDefined)  writer << ':' << uri.port.get
-          writer << "\r\n"
+    if (req.attributes.getOrElse(BlazeClient.IsProxied, false)) {
+      writer << req.method << ' ' << uri << ' ' << req.httpVersion << "\r\n"
+    } else {
+      writer << req.method << ' ' << uri.copy(scheme = None, authority = None, fragment = None) << ' ' << req.httpVersion << "\r\n"
+      if (getHttpMinor(req) == 1 && Host.from(req.headers).isEmpty) { // need to add the host header for HTTP/1.1
+        uri.host match {
+          case Some(host) =>
+            writer << "Host: " << host.value
+            if (uri.port.isDefined)  writer << ':' << uri.port.get
+            writer << "\r\n"
 
-        case None =>
-           // TODO: do we want to do this by exception?
-          throw new IllegalArgumentException("Request URI must have a host.")
+          case None =>
+            // TODO: do we want to do this by exception?
+            throw new IllegalArgumentException("Request URI must have a host.")
+        }
+        writer
       }
-      writer
-    } else writer
+      else writer
+    }
   }
 }
 

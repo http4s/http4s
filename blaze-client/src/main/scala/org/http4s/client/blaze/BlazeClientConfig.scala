@@ -48,10 +48,15 @@ final case class BlazeClientConfig(// HTTP properties
                                    // pipeline management
                                    bufferSize: Int,
                                    customExecutor: Option[ExecutorService],
-                                   group: Option[AsynchronousChannelGroup]
+                                   group: Option[AsynchronousChannelGroup],
+
+                                   proxy: PartialFunction[RequestKey, ProxyConfig]
 ) {
   @deprecated("Parameter has been renamed to `checkEndpointIdentification`", "0.16")
   def endpointAuthentication: Boolean = checkEndpointIdentification
+
+  def withProxy(pf: PartialFunction[RequestKey, ProxyConfig]): BlazeClientConfig =
+    copy(proxy = pf)
 }
 
 object BlazeClientConfig {
@@ -72,7 +77,9 @@ object BlazeClientConfig {
 
       bufferSize = bits.DefaultBufferSize,
       customExecutor = None,
-      group = None
+      group = None,
+
+      proxy = PartialFunction.empty
     )
 
   /**
