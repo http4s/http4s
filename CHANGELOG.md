@@ -1,3 +1,6 @@
+# v0.15.12 (2017-05-11)
+* Fix GZip middleware to render a correct stream
+
 # v0.15.11 (2017-04-29)
 * Upgrade to blaze-0.12.5 to pick up fix for `StackOverflowError` in
   SSL handshake
