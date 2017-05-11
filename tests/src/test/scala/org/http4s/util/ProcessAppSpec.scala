@@ -1,6 +1,7 @@
 package org.http4s
 package util
 
+import org.http4s.util.task.never
 import scalaz.concurrent.Task
 import scalaz.stream.async
 import scalaz.stream.async.mutable.Signal
@@ -16,9 +17,9 @@ class ProcessAppSpec extends Http4sSpec {
       * and observably cleans up when the process is stopped.
       *
       */
-    class TestProcessApp(process: Process[Task, Unit]) extends ProcessApp {
+    class TestProcessApp(process: Process[Task, Nothing]) extends ProcessApp {
       val cleanedUp : Signal[Boolean] = async.signalOf(false)
-      override def process(args: List[String]): Process[Task, Unit] = {
+      override def process(args: List[String]): Process[Task, Nothing] = {
         process.onComplete(Process.eval_(cleanedUp.set(true)))
       }
     }
@@ -32,28 +33,7 @@ class ProcessAppSpec extends Http4sSpec {
     }
 
     "Terminate Server on a Valid Process" in {
-      val testApp = new TestProcessApp(
-        // emit one unit value
-        Process.emit("Valid Process").map(_ => ())
-      )
-      testApp.doMain(Array.empty[String]) should_== 0
-      testApp.cleanedUp.get.unsafePerformSync should_== true
-    }
-
-    "Terminate Server on a Bad Task" in {
-      val testApp = new TestProcessApp(
-        // fail at task evaluation
-        Process.eval(Task.fail(new Throwable("Bad Task")))
-      )
-      testApp.doMain(Array.empty[String]) should_== -1
-      testApp.cleanedUp.get.unsafePerformSync should_== true
-    }
-
-    "Terminate Server on a Valid Task" in {
-      val testApp = new TestProcessApp(
-        // emit one task evaluated unit value
-        Process.eval(Task("Valid Task").map(_ => ()))
-      )
+      val testApp = new TestProcessApp(Process.halt)
       testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafePerformSync should_== true
     }
@@ -61,7 +41,7 @@ class ProcessAppSpec extends Http4sSpec {
     "requestShutdown Shuts Down a Server From A Separate Thread" in {
       val testApp = new TestProcessApp(
         // run forever, emit nothing
-        Process.eval_(Task.async[Nothing]{_ => })
+        Process.eval_(task.never)
       )
       val runApp = Task.unsafeStart(testApp.doMain(Array.empty[String]))
       testApp.requestShutdown.unsafePerformSync

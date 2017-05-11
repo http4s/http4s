@@ -9,6 +9,10 @@ import scalaz.concurrent.Task
 import org.http4s.internal.compatibility._
 
 trait TaskFunctions {
+  /** A task that never completes */
+  val never: Task[Nothing] =
+    Task.async(_ => ())
+
   def unsafeTaskToFuture[A](task: Task[A]): Future[A] = {
     val p = Promise[A]()
     task.unsafePerformAsync {

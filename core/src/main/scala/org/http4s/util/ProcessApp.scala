@@ -11,7 +11,7 @@ import scalaz.stream.{async, wye}
 trait ProcessApp {
   private[this] val logger = org.log4s.getLogger
 
-  def process(args: List[String]): Process[Task, Unit]
+  def process(args: List[String]): Process[Task, Nothing]
 
   private[this] val shutdownRequested =
     async.signalOf(false)

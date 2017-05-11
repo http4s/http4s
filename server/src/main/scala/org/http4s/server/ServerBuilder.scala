@@ -7,6 +7,7 @@ import javax.net.ssl.SSLContext
 
 import org.http4s.internal.compatibility._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.util.task
 import org.http4s.util.threads.DefaultPool
 
 import scala.concurrent.duration._
@@ -48,7 +49,7 @@ trait ServerBuilder {
    */
   final def serve: Process[Task, Nothing] =
     Process.bracket(start)(s => Process.eval_(s.shutdown)) { s: Server =>
-      Process.eval_(Task.async[Unit](_ => ()))
+      Process.eval_(task.never)
     }
 }
 
