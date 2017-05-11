@@ -379,7 +379,7 @@ respectively.
 </p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Prefer org.http4s.util.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with <code>.serve</code>. Use <code>Process.bracket</code> to compose resources in a simpler way than overriding <code>shutdown</code>.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/99460f40895ae64d13adfb8e2312714c1c8cd216/server/src/main/scala/org/http4s/server/ServerApp.scala" target="_blank">ServerApp.scala</a></dd></dl><div class="toggleContainer block">
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Prefer org.http4s.util.ProcessApp, where main returns a Process. You can return a Process that runs forever from a ServerBuilder with <code>.serve</code>. Use <code>Process.bracket</code> to compose resources in a simpler way than overriding <code>shutdown</code>.</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/8b023061ff36faf269177f13a15edc5ede3c59ab/server/src/main/scala/org/http4s/server/ServerApp.scala" target="_blank">ServerApp.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -438,23 +438,7 @@ respectively.
 
         <div class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.util.ProcessApp#process" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="process(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Unit]"></a><a id="process(List[String]):Process[Task,Unit]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerApp.html#process(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">process</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scala.Unit">Unit</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></dd></dl></div>
-    </li><li name="org.http4s.server.ServerApp#server" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.server.ServerApp#server" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="server(args:List[String]):scalaz.concurrent.Task[org.http4s.server.Server]"></a><a id="server(List[String]):Task[Server]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/server/ServerApp.html#server(args:List[String]):scalaz.concurrent.Task[org.http4s.server.Server]" title="Permalink">
@@ -810,22 +794,6 @@ respectively.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.ServerApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="main(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Nothing]"></a><a id="main(List[String]):Process[Task,Nothing]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerApp.html#main(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Nothing]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">main</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scala.Nothing">Nothing</span>]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.util.ProcessApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="main(args:Array[String]):Unit"></a><a id="main(Array[String]):Unit"></a>
       <span class="permalink">
@@ -890,6 +858,22 @@ respectively.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.server.ServerApp#process" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="process(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Nothing]"></a><a id="process(List[String]):Process[Task,Nothing]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/ServerApp.html#process(args:List[String]):scalaz.stream.Process[scalaz.concurrent.Task,Nothing]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">process</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scala.Nothing">Nothing</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.ServerApp">ServerApp</a> → <a href="../util/ProcessApp.html" class="extype" name="org.http4s.util.ProcessApp">ProcessApp</a></dd></dl></div>
     </li><li name="org.http4s.util.ProcessApp#requestShutdown" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="requestShutdown:scalaz.concurrent.Task[Unit]"></a><a id="requestShutdown:Task[Unit]"></a>
       <span class="permalink">
