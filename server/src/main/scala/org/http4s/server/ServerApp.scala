@@ -34,8 +34,8 @@ trait ServerApp extends ProcessApp {
   def shutdown(server: Server): Task[Unit] =
     server.shutdown
 
-  final def process(args: List[String]): Process[Task, Unit] =
+  final def process(args: List[String]): Process[Task, Nothing] =
     Process.bracket(server(args))(s => Process.eval_(s.shutdown)) { s =>
-      Process.eval_(Task.async[Unit](_ => ()))
+      Process.eval_(Task.async[Nothing](_ => ()))
     }
 }

@@ -1,6 +1,7 @@
 package org.http4s
 package util
 
+import org.http4s.util.task.never
 import scalaz.concurrent.Task
 import scalaz.stream.async
 import scalaz.stream.async.mutable.Signal
@@ -61,7 +62,7 @@ class ProcessAppSpec extends Http4sSpec {
     "requestShutdown Shuts Down a Server From A Separate Thread" in {
       val testApp = new TestProcessApp(
         // run forever, emit nothing
-        Process.eval_(Task.async[Nothing]{_ => })
+        Process.eval_(task.never)
       )
       val runApp = Task.unsafeStart(testApp.doMain(Array.empty[String]))
       testApp.requestShutdown.unsafePerformSync
