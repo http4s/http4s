@@ -10,8 +10,9 @@ import fs2.{Chunk, Stream}
 import org.http4s.server.syntax._
 import org.http4s.dsl._
 import org.http4s.headers._
-import org.scalacheck.Properties
+import org.http4s.server.syntax._
 import org.scalacheck.Prop.forAll
+import org.scalacheck.Properties
 
 class GZipSpec extends Http4sSpec {
   "GZip" should {

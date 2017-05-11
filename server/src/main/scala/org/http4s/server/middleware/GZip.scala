@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import scala.annotation.tailrec
 import java.util.zip.{CRC32, Deflater}
 import javax.xml.bind.DatatypeConverter
 
@@ -11,6 +12,7 @@ import fs2.compress._
 import fs2.interop.cats._
 import org.http4s.headers._
 import org.log4s.getLogger
+import scodec.bits.ByteVector
 
 object GZip {
   private[this] val logger = getLogger
@@ -54,7 +56,6 @@ object GZip {
       (contentType.isEmpty || contentType.get.mediaType.compressible ||
       (contentType.get.mediaType eq MediaType.`application/octet-stream`))
   }
-
 
   private val GZIP_MAGIC_NUMBER = 0x8b1f
   private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong

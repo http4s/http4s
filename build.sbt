@@ -272,7 +272,7 @@ lazy val docs = http4sProject("docs")
       circeLiteral,
       cryptobits
     ),
-    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+    macroParadiseSetting,
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --

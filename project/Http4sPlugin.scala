@@ -23,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
     releaseVersion := { ver =>
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
     },
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.1"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.2-bin-typelevel-4"),
     scalaOrganization := {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n >= 11 => "org.typelevel"
@@ -91,13 +91,7 @@ object Http4sPlugin extends AutoPlugin {
   }
 
   val macroParadiseSetting =
-    libraryDependencies ++= Seq(
-      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)),
-      VersionNumber(scalaVersion.value).numbers match {
-        case Seq(2, 10, _*) => Seq(quasiquotes)
-        case _ => Seq.empty
-      }
-    ).flatten
+    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
@@ -106,7 +100,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "0.9.0"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.7.1"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.8.0"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"

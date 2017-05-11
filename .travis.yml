@@ -4,8 +4,9 @@ addons:
     packages:
       - oracle-java8-installer
 scala:
-- 2.12.1
-- 2.11.8
+- 2.12.2-bin-typelevel-4
+- 2.11.11-bin-typelevel-4
+- 2.10.6
 jdk: oraclejdk8
 env:
   global:
