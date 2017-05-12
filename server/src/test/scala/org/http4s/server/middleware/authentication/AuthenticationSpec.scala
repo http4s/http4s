@@ -138,7 +138,7 @@ class AuthenticationSpec extends Http4sSpec {
       val params: Map[String, String] = Map("username" -> username, "realm" -> realm, "nonce" -> nonce,
         "uri" -> uri, "qop" -> qop, "nc" -> nc, "cnonce" -> cnonce, "response" -> response,
         "method" -> method)
-      val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), params))
+      val header = Authorization(KeyValueCredentials(CaseInsensitiveString("Digest"), params))
 
       val req2 = Request(uri = Uri(path = "/"), headers = Headers(header))
       val res2 = digest.orNotFound(req2).unsafePerformSync
@@ -226,7 +226,7 @@ class AuthenticationSpec extends Http4sSpec {
 
       val result = (0 to params.size).map(i => {
         val invalid_params = params.take(i) ++ params.drop(i + 1)
-        val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), invalid_params))
+        val header = Authorization(KeyValueCredentials(CaseInsensitiveString("Digest"), invalid_params))
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
         val res = digestAuthService.orNotFound(req).unsafePerformSync
 

@@ -52,7 +52,7 @@ package object oauth1 {
 
     val baseString = genBaseString(method, uri, params ++ userParams.map{ case (k,v) => (encode(k), encode(v))})
     val sig = makeSHASig(baseString, consumer, token)
-    val creds = GenericCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> encode(sig)))
+    val creds = KeyValueCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> encode(sig)))
 
     Authorization(creds)
   }

@@ -75,7 +75,7 @@ object DigestAuth {
   }
 
   private def checkAuth[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[AuthReply[A]] = req.headers.get(Authorization) match {
-    case Some(Authorization(GenericCredentials(AuthScheme.Digest, params))) =>
+    case Some(Authorization(KeyValueCredentials(AuthScheme.Digest, params))) =>
       checkAuthParams(realm, store, nonceKeeper, req, params)
     case Some(Authorization(_)) =>
       Task.now(NoCredentials)

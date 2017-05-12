@@ -33,7 +33,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def CredentialDef = rule {
-      BasicCredentialDef | OAuth2BearerTokenDef | GenericHttpCredentialsDef
+      BasicCredentialDef | OAuth2BearerTokenDef | GenericHttpCredentialsDef | KeyValueCredentialsDef
     }
 
     def BasicCredentialDef: Rule1[BasicCredentials] = rule {
@@ -49,8 +49,14 @@ private[parser] trait AuthorizationHeader {
     }
 
     def GenericHttpCredentialsDef = rule {
+      Token ~ LWS ~ Token ~> {(scheme: String, value: String) =>
+        GenericCredentials(scheme.ci, value)
+      }
+    }
+
+    def KeyValueCredentialsDef = rule {
       Token ~ OptWS ~ CredentialParams ~> { (scheme: String, params: Map[String, String]) =>
-        GenericCredentials(scheme.ci, params) }
+        KeyValueCredentials(scheme.ci, params) }
     }
 
     def CredentialParams: Rule1[Map[String, String]] = rule {
