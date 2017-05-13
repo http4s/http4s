@@ -33,7 +33,7 @@ trait ServerApp extends StreamApp {
   def shutdown(server: Server): Task[Unit] =
     server.shutdown
 
-  final def main(args: List[String]): Stream[Task, Nothing] =
+  override final def stream(args: List[String]): Stream[Task, Nothing] =
     Stream.bracket(server(args))({ s =>
       Stream.eval_(Task.async[Nothing](_ => ())(Strategy.sequential))
     }, _.shutdown)
