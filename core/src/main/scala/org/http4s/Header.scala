@@ -73,6 +73,8 @@ object Header {
 
   def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
+  implicit def tuple2header(t: (String, String)) = Header(t._1, t._2)
+
   /**
    * Raw representation of the Header
    *
