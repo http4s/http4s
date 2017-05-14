@@ -6,24 +6,28 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.{ExecutorService, TimeoutException}
 import java.util.concurrent.atomic.AtomicReference
+import javax.net.ssl.SSLContext
 
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.{headers => H}
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.util.ProcessWriter
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
-import org.http4s.util.{StringWriter, Writer}
+import org.http4s.syntax.all._
+import org.http4s.util.{ CaseInsensitiveString, StringWriter, Writer }
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
+import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.Process
 import scalaz.stream.Process.{Halt, halt}
-import scalaz.{-\/, \/-}
+import scalaz.syntax.monad._
 
 private final class Http1Connection(val requestKey: RequestKey,
                             config: BlazeClientConfig,
@@ -39,6 +43,7 @@ private final class Http1Connection(val requestKey: RequestKey,
                                config.maxChunkSize, config.lenientParser)
 
   private val stageState = new AtomicReference[State](Idle)
+  private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
 
   override def isClosed: Boolean = stageState.get match {
     case Error(_) => true
@@ -67,16 +72,16 @@ private final class Http1Connection(val requestKey: RequestKey,
   @tailrec
   private def shutdownWithError(t: Throwable): Unit = stageState.get match {
     // If we have a real error, lets put it here.
-    case st@ Error(EOF) if t != EOF => 
+    case st@ Error(EOF) if t != EOF =>
       if (!stageState.compareAndSet(st, Error(t))) shutdownWithError(t)
       else sendOutboundCommand(Command.Error(t))
 
     case Error(_) => // NOOP: already shutdown
 
-    case x => 
+    case x =>
       if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
       else {
-        val cmd = t match { 
+        val cmd = t match {
           case EOF => Command.Disconnect
           case _   => Command.Error(t)
         }
@@ -86,11 +91,22 @@ private final class Http1Connection(val requestKey: RequestKey,
   }
 
   @tailrec
-  def reset(): Unit = {
+  private def reset(): Unit = {
     stageState.get() match {
       case v@ (Running | Idle) =>
         if (stageState.compareAndSet(v, Idle)) parser.reset()
         else reset()
+      case t @ Tunneling(sslStage) =>
+        sendOutboundCommand(Command.Disconnect)
+        // TODO why doesn't this work?  The next request gets a bunch of ^U
+        // TODO This gives us `org.http4s.blaze.http.http_parser.BaseExceptions$BadResponse: Invalid char: '', 0x15` on subsequent requests
+        /*
+        if (stageState.compareAndSet(t, Running)) {
+          sslStage.removeStage
+          reset()
+        }
+        else ()
+         */
       case Error(_) => // NOOP: we don't reset on an error.
     }
   }
@@ -109,6 +125,9 @@ private final class Http1Connection(val requestKey: RequestKey,
       case Running =>
         logger.error(s"Tried to run a request already in running state.")
         Task.fail(InProgressException)
+      case Tunneling(_) =>
+        logger.error(s"Tried to run a request already in tunneling state.")
+        Task.fail(InProgressException)
       case Error(e) =>
         logger.debug(s"Tried to run a request in closed/error state: ${e}")
         Task.fail(e)
@@ -124,28 +143,82 @@ private final class Http1Connection(val requestKey: RequestKey,
     validateRequest(req) match {
       case Left(e)    => Task.fail(e)
       case Right(req) => Task.suspend {
-        val rr = new StringWriter(512)
-        encodeRequestLine(req, rr)
-        Http1Stage.encodeHeaders(req.headers, rr, false)
-
-        if (config.userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
-          rr << config.userAgent.get << "\r\n"
-        }
-
-        val mustClose = H.Connection.from(req.headers) match {
-          case Some(conn) => checkCloseConnection(conn, rr)
-          case None       => getHttpMinor(req) == 0
-        }
-
-        val bodyTask = getChunkEncoder(req, mustClose, rr)
-          .writeProcess(req.body)
-          .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
-        val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
-        Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
-          .handleWith { case t =>
-            fatalError(t, "Error executing request")
-            Task.fail(t)
+        def encodeHeaders(rr: StringWriter) = {
+          Http1Stage.encodeHeaders(req.headers, rr, false)
+          if (config.userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+            rr << config.userAgent.get << "\r\n"
           }
+        }
+
+        def go(isProxied: Boolean) = {
+          val rr = new StringWriter(512)
+          encodeRequestLine(req, rr, isProxied)
+          logger.debug("Encoded request line")
+          encodeHeaders(rr)
+
+          val mustClose = H.Connection.from(req.headers) match {
+            case Some(conn) => checkCloseConnection(conn, rr)
+            case None       => getHttpMinor(req) == 0
+          }
+
+          val bodyTask = getChunkEncoder(req, mustClose, rr)
+            .writeProcess(req.body)
+            .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
+          val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
+          Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
+            .handleWith { case t =>
+              fatalError(t, "Error executing request")
+              Task.fail(t)
+            }
+        }
+
+        def tunnel(proxyConfig: ProxyConfig) = {
+          val rr = new StringWriter(512)
+          (for {
+            authority <- req.uri.authority
+            host = authority.host
+            port = authority.port.getOrElse(443)
+          } yield {
+            rr << "CONNECT " << host << ":" << port << " HTTP/1.1" << "\r\n"
+            encodeHeaders(rr)
+            logger.debug("Wrote CONNECT")
+            val bodyTask = getChunkEncoder(req, false, rr)
+              .writeProcess(halt)
+              .handle { case EOF => false }
+
+            val respTask = receiveResponse(false, doesntHaveBody = true)
+            Task.taskInstance.mapBoth(bodyTask, respTask) { (_, tunnelResponse) =>
+              val eng = sslContext.createSSLEngine(host.renderString, port)
+              eng.setUseClientMode(true)
+              if (config.checkEndpointIdentification) {
+                val sslParams = eng.getSSLParameters
+                sslParams.setEndpointIdentificationAlgorithm("HTTPS")
+                eng.setSSLParameters(sslParams)
+              }
+              val sslStage = new SSLStage(eng)
+              if (stageState.compareAndSet(Idle, Tunneling(sslStage))) {
+                parser.reset()
+                spliceBefore(sslStage)
+                go(false)
+              }
+              else Task.fail(new IllegalStateException("Request was not in idle state after establishing tunnel: "+stageState))
+            }
+              .join
+              .handleWith { case t =>
+                fatalError(t, "Error executing request")
+                Task.fail(t)
+              }
+          }).getOrElse(Task.fail(new RuntimeException("Request did not provide an authority for HTTP proxy tunneling")))
+        }
+
+
+        req.attributes.get(BlazeClient.keys.ProxyConfig) match {
+          case Some(proxyConfig) =>
+            if (req.uri.scheme.fold(false)(_ == "https".ci)) tunnel(proxyConfig)
+            else go(isProxied = true)
+          case None =>
+            go(isProxied = false)
+        }
       }
     }
   }
@@ -158,8 +231,8 @@ private final class Http1Connection(val requestKey: RequestKey,
     channelRead().onComplete {
       case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb)
       case Failure(EOF)  => stageState.get match {
-        case Idle | Running => shutdown(); cb(-\/(EOF))
-        case Error(e)       => cb(-\/(e))
+        case Idle | Running | Tunneling(_) => shutdown(); cb(-\/(EOF))
+        case Error(e) => cb(-\/(e))
       }
 
       case Failure(t)    =>
@@ -292,13 +365,14 @@ private object Http1Connection {
   private sealed trait State
   private case object Idle extends State
   private case object Running extends State
+  private final case class Tunneling(sslStage: SSLStage) extends State
   private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
-  private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
+  private def encodeRequestLine(req: Request, writer: Writer, isProxied: Boolean): writer.type = {
     val uri = req.uri
-    if (req.attributes.getOrElse(BlazeClient.IsProxied, false)) {
+    if (isProxied) {
       writer << req.method << ' ' << uri << ' ' << req.httpVersion << "\r\n"
     } else {
       writer << req.method << ' ' << uri.copy(scheme = None, authority = None, fragment = None) << ' ' << req.httpVersion << "\r\n"
@@ -319,4 +393,3 @@ private object Http1Connection {
     }
   }
 }
-

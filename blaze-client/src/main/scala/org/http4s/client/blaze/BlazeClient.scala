@@ -13,7 +13,9 @@ import scalaz.{-\/, \/-}
 object BlazeClient {
   private[this] val logger = getLogger
 
-  private[blaze] val IsProxied = AttributeKey[Boolean]("org.http4s.client.blaze.isProxied")
+  private[blaze] object keys {
+    val ProxyConfig = AttributeKey[ProxyConfig]("org.http4s.client.blaze.proxyConfig")
+  }
 
   /** Construct a new [[Client]] using blaze components
     *
@@ -30,10 +32,7 @@ object BlazeClient {
 
       def proxy(proxyConfig: ProxyConfig) = {
         val proxyKey = RequestKey(proxyConfig.scheme, proxyConfig.authority)
-        var proxiedReq = (proxyConfig.credentials match {
-          case Some(creds) => req.putHeaders(`Proxy-Authorization`(creds))
-          case None => req
-        }).withAttribute(IsProxied, true)
+        val proxiedReq = req.withAttribute(keys.ProxyConfig, proxyConfig)
         manager.borrow(proxyKey).flatMap(loop(proxiedReq))
       }
 

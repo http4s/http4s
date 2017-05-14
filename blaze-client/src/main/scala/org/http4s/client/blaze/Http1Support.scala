@@ -19,7 +19,7 @@ import scala.concurrent.Future
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/, \/-}
 
-private object Http1Support {
+private[blaze] object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param config The client configuration object
@@ -29,8 +29,8 @@ private object Http1Support {
     builder.makeClient
   }
 
-  private val Https: Scheme = "https".ci
-  private val Http: Scheme  = "http".ci
+  val Https: Scheme = "https".ci
+  val Http: Scheme  = "http".ci
 }
 
 /** Provides basic HTTP1 pipeline building
