@@ -74,11 +74,11 @@ object BlazeClient {
 
       config.proxy.lift(key) match {
         case Some(proxyConfig) =>
+          logger.debug(s"Proxying request to ${key} through ${proxyConfig.proxyHost}:${proxyConfig.proxyPort}")
           proxy(proxyConfig)
         case None =>
           manager.borrow(key).flatMap(loop(req))
       }
     }, onShutdown)
   }
-
 }

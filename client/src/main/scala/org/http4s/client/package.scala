@@ -1,10 +1,16 @@
 package org.http4s
 
+import java.nio.charset.{ Charset => NioCharset, StandardCharsets }
+import org.http4s.Method.{ PermitsBody, NoBody}
 import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
-import Method.{ PermitsBody, NoBody}
+import org.http4s.parser.RequestUriParser
+import org.http4s.syntax.string._
+import org.http4s.util.CaseInsensitiveString
+
+import scala.util.Try
+import scala.util.matching.Regex
 
 import scalaz.concurrent.Task
-
 
 /** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
   * {{{
@@ -27,6 +33,7 @@ import scalaz.concurrent.Task
   */
 
 package object client {
+
   type ConnectionBuilder[A <: Connection] = RequestKey => Task[A]
 
   type Middleware = Client => Client
@@ -41,4 +48,39 @@ package object client {
     EntityDecoder.decodeBy(s.head, s.tail:_*)(resp => decoder.decode(resp, strict = true).map(t => (resp.headers,t)))
   }
 
+  /** Chooses a proxy for the request from its request key */
+  type ProxySelector = PartialFunction[RequestKey, ProxyConfig]
+
+  /** Implementation of a proxy selector based on the standard Java
+    * system properties. */
+  def systemPropertiesProxyConfig: ProxySelector = {
+    val nonProxyHosts = sys.props.get("http.nonProxyHosts") match {
+      case Some(nph) =>
+        nph.split('|').toList.map { host =>
+          new Regex(Regex.quote(host.replaceAllLiterally("*", ".*"))).pattern
+        }
+      case None => Nil
+    }
+    println(nonProxyHosts)
+
+    def skipProxy(authority: Uri.Authority) =
+      nonProxyHosts.exists(_.matcher(authority.host.toString).matches)
+
+    def configForScheme(scheme: CaseInsensitiveString) =
+      for {
+        rawHost <- sys.props.get(s"${scheme}.proxyHost")
+        host <- new RequestUriParser(rawHost, StandardCharsets.UTF_8).Host.run().toOption
+        rawPort <- sys.props.get(s"${scheme}.proxyPort").orElse(Some("80"))
+        port <- Try(rawPort.toInt).toOption
+      } yield ProxyConfig(scheme, host, port, None)
+
+    def selector(scheme: CaseInsensitiveString) =
+      configForScheme(scheme).fold(PartialFunction.empty: ProxySelector) { cfg => {
+        case RequestKey(rScheme, authority)
+            if rScheme == scheme && !skipProxy(authority) =>
+          cfg
+      }}
+
+    selector("https".ci) orElse selector("http".ci)
+  }
 }

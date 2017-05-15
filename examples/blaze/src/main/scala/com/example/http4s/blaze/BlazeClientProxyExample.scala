@@ -1,8 +1,7 @@
 package com.example.http4s.blaze
 
 import org.http4s.Uri.{Authority, RegName}
-import org.http4s.client.RequestKey
-import org.http4s.client.blaze.{ BlazeClientConfig, PooledHttp1Client, ProxyConfig }
+import org.http4s.client.blaze.{ BlazeClientConfig, PooledHttp1Client }
 import org.http4s.syntax.all._
 import org.http4s.util.CaseInsensitiveString
 import scalaz.concurrent.Task

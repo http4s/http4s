@@ -96,49 +96,4 @@ object BlazeClientConfig {
    */
   val insecure: BlazeClientConfig =
     defaultConfig.copy(sslContext = Some(bits.TrustingSslContext), checkEndpointIdentification = false)
-
-  def systemPropertiesProxyConfig: PartialFunction[RequestKey, ProxyConfig] = {
-    type ProxyConfigPf = PartialFunction[RequestKey, ProxyConfig]
-
-    val nonProxyHosts = sys.props.get("http.nonProxyHosts") match {
-      case Some(nph) =>
-        nph.split("|").toList.map { host =>
-          new Regex(Regex.quote(host.replaceAllLiterally("*", ".*"))).pattern
-        }
-      case None => Nil
-    }
-
-    def skipProxy(authority: Uri.Authority) =
-      nonProxyHosts.exists(_.matcher(authority.host.toString).matches)
-
-    val httpConfig = for {
-      rawHost <- sys.props.get("http.proxyHost")
-      host <- new RequestUriParser(rawHost, StandardCharsets.UTF_8).Host.run().toOption
-      rawPort <- sys.props.get("http.proxyPort").orElse(Some("80"))
-      port <- Try(rawPort.toInt).toOption
-    } yield ProxyConfig("http".ci, host, port, None)
-    val httpConfigPf: ProxyConfigPf =
-      httpConfig.fold(PartialFunction.empty: ProxyConfigPf) { cfg => {
-        case RequestKey(scheme, authority)
-            if scheme == "http".ci
-            && !skipProxy(authority) =>
-          cfg
-      }}
-
-    val httpsConfig = for {
-      rawHost <- sys.props.get("https.proxyHost")
-      host <- new RequestUriParser(rawHost, StandardCharsets.UTF_8).Host.run().toOption
-      rawPort <- sys.props.get("https.proxyPort").orElse(Some("443"))
-      port <- Try(rawPort.toInt).toOption
-    } yield ProxyConfig("https".ci, host, port, None)
-    val httpsConfigPf: ProxyConfigPf =
-      httpsConfig.fold(PartialFunction.empty: ProxyConfigPf) { cfg => {
-        case RequestKey(scheme, authority)
-            if scheme == "https".ci
-            && !skipProxy(authority) =>
-          cfg
-      }}
-
-    httpConfigPf orElse httpsConfigPf
-  }
 }
