@@ -47,7 +47,7 @@ which returns a `Task[Response]`. So, we use `map` to get the request out of the
 add the header if the response is a success, and then pass the response on. We could
 just as easily modify the request before we passed it to the service.
 
-Now, let's create a simple service. As mentioned in [service], because `Service`
+Now, let's create a simple service. As mentioned between [service] and [dsl], because `Service`
 is implemented as a `Kleisli`, which is just a function at heart, we can test a
 service without a server. Because an `HttpService` returns a `Task[Response]`,
 we need to call `run` on the result of the function to extract the `Response`.
