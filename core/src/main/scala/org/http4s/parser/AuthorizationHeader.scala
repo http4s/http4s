@@ -33,7 +33,10 @@ private[parser] trait AuthorizationHeader {
     }
 
     def CredentialDef = rule {
-      BasicCredentialDef | OAuth2BearerTokenDef | GenericHttpCredentialsDef | KeyValueCredentialsDef
+      BasicCredentialDef |
+      OAuth2BearerTokenDef |
+      KeyValueCredentialsDef |
+      GenericHttpCredentialsDef
     }
 
     def BasicCredentialDef: Rule1[BasicCredentials] = rule {
@@ -49,7 +52,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def GenericHttpCredentialsDef = rule {
-      Token ~ LWS ~ Token ~> {(scheme: String, value: String) =>
+      Token ~ LWS ~ token68 ~> {(scheme: String, value: String) =>
         GenericCredentials(scheme.ci, value)
       }
     }
@@ -60,9 +63,9 @@ private[parser] trait AuthorizationHeader {
     }
 
     def CredentialParams: Rule1[Map[String, String]] = rule {
-      oneOrMore(AuthParam).separatedBy(ListSep) ~> (_.toMap) |
-        (Token | QuotedString) ~> (param => Map("" -> param)) |
-        push(Map.empty[String, String])
+      oneOrMore(AuthParam).separatedBy(ListSep) ~> {
+        params: Seq[(String, String)] => params.toMap
+      }
     }
 
     def AuthParam: Rule1[(String, String)] = rule {
@@ -75,6 +78,8 @@ private[parser] trait AuthorizationHeader {
     def b64token: Rule1[String] = rule {
       capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('=') )
     }
+
+    def token68: Rule1[String] = b64token
   }
   // scalastyle:on public.methods.have.type
 }

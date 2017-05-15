@@ -1,6 +1,6 @@
 package org.http4s.parser
 
-import org.http4s.{Http4sSpec, OAuth2BearerToken, GenericCredentials}
+import org.http4s.{Http4sSpec, OAuth2BearerToken, GenericCredentials, KeyValueCredentials}
 import org.http4s.headers.Authorization
 import org.http4s.util.string._
 
@@ -27,7 +27,14 @@ class AuthorizationHeaderSpec extends Http4sSpec {
       val scheme = "token"
       val token = "adsfafsf2332fasdad322332"
       val h = Authorization(GenericCredentials(scheme.ci, token))
-      hparse(s"$scheme $token") must be_\/-(h)
+      hparse(h.value) must be_\/-(h)
+    }
+
+    "Parse a KeyValueCredentials header" in {
+      val scheme = "foo"
+      val params = Map("abc" -> "123")
+      val h = Authorization(KeyValueCredentials(scheme.ci, params))
+      hparse(h.value) must be_\/-(h)
     }
   }
 }

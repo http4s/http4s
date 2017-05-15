@@ -62,8 +62,8 @@ final case class OAuth2BearerToken(token: String) extends Credentials {
 }
 
 /**
-  * Represents any given authorization value. Will render as `<authScheme> <value>` (with the
-  * included space.
+  * Represents any given authorization value. Will render as
+  * `<authScheme> <value>` (with the included space).
   */
 final case class GenericCredentials(authScheme: AuthScheme, value: String) extends Credentials {
   override def render(writer: Writer): writer.type = {
