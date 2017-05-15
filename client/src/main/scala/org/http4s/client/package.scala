@@ -53,34 +53,36 @@ package object client {
 
   /** Implementation of a proxy selector based on the standard Java
     * system properties. */
-  def systemPropertiesProxyConfig: ProxySelector = {
-    val nonProxyHosts = sys.props.get("http.nonProxyHosts") match {
-      case Some(nph) =>
-        nph.split('|').toList.map { host =>
-          new Regex(Regex.quote(host.replaceAllLiterally("*", ".*"))).pattern
-        }
-      case None => Nil
+  def systemPropertiesProxyConfig =
+    propertiesProxyConfig(sys.props)
+
+  // extracted for testability
+  private[client] def propertiesProxyConfig(properties: scala.collection.Map[String, String]): ProxySelector = {
+    val nonProxyHosts = properties.get("http.nonProxyHosts").map { nph =>
+      new Regex(Regex.quote(nph)
+        .replaceAll("""\*""", """\\E.*\\Q""")
+        .replaceAll("""\|""", """\\E|\\Q""")
+      ).pattern
     }
-    println(nonProxyHosts)
 
     def skipProxy(authority: Uri.Authority) =
-      nonProxyHosts.exists(_.matcher(authority.host.toString).matches)
+      nonProxyHosts.fold(false)(_.matcher(authority.host.toString).matches)
 
-    def configForScheme(scheme: CaseInsensitiveString) =
+    def configForScheme(scheme: CaseInsensitiveString, defaultPort: String) =
       for {
-        rawHost <- sys.props.get(s"${scheme}.proxyHost")
+        rawHost <- properties.get(s"${scheme}.proxyHost")
         host <- new RequestUriParser(rawHost, StandardCharsets.UTF_8).Host.run().toOption
-        rawPort <- sys.props.get(s"${scheme}.proxyPort").orElse(Some("80"))
+        rawPort <- properties.get(s"${scheme}.proxyPort").orElse(Some(defaultPort))
         port <- Try(rawPort.toInt).toOption
       } yield ProxyConfig(scheme, host, port, None)
 
-    def selector(scheme: CaseInsensitiveString) =
-      configForScheme(scheme).fold(PartialFunction.empty: ProxySelector) { cfg => {
+    def selector(scheme: CaseInsensitiveString, defaultPort: String) =
+      configForScheme(scheme, defaultPort).fold(PartialFunction.empty: ProxySelector) { cfg => {
         case RequestKey(rScheme, authority)
             if rScheme == scheme && !skipProxy(authority) =>
           cfg
       }}
 
-    selector("https".ci) orElse selector("http".ci)
+    selector("https".ci, "443") orElse selector("http".ci, "80")
   }
 }
