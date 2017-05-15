@@ -8,16 +8,25 @@ import org.http4s.util.CaseInsensitiveString
 import scalaz.concurrent.Task
 
 object BlazeClientProxyExample extends App {
-  val config = BlazeClientConfig.defaultConfig.withProxy {
-    case RequestKey(scheme, _) if scheme == "http".ci =>
-      ProxyConfig("http".ci, Authority(host = RegName("localhost".ci), port = Some(8888)), None)
-    case RequestKey(scheme, _) if scheme == "https".ci =>
-      ProxyConfig("http".ci, Authority(host = RegName("localhost".ci), port = Some(8888)), None)
-  }
+  // Configure the proxy for http requests
+  sys.props("http.proxyHost") = "localhost"
+  sys.props("http.proxyPort") = "8888"
+
+  // Configure the proxy for https requests
+  sys.props("https.proxyHost") = "localhost"
+  sys.props("https.proxyPort") = "443"
+
+  // This applies to both
+  sys.props("http.nonProxyHosts") = "localhost|127.*|[::1]"
+
+  val config = BlazeClientConfig.defaultConfig
 
   val client = PooledHttp1Client(config = config)
-  client.get("https://github.com/") { case resp => resp.as[String].map(_.size) }.map(l => println(l + " bytes")).unsafePerformSync
-  println("Reading from http4s.org with proxy")
-  client.get("http://http4s.org/") { case resp => resp.as[String].map(_.size) }.map(l => println(l + " bytes")).unsafePerformSync
+  println("Secure request with proxy")
+  client.get("https://www.aa.com/") { case resp => resp.as[String].map(_.size) }.map(l => println(l + " bytes")).attempt.unsafePerformSync
+  println("Insecure request with proxy")
+  client.get("http://airborne.gogoinflight.com/") { case resp => resp.as[String].map(_.size) }.map(l => println(l + " bytes")).attempt.unsafePerformSync
+  println("Skip proxy")
+  client.get("http://localhost:8081/") { case resp => resp.as[String].map(_.size) }.map(l => println(l + " bytes")).attempt.unsafePerformSync
   client.shutdownNow()
 }

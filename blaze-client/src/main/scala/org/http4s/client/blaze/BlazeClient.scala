@@ -73,11 +73,12 @@ object BlazeClient {
       }
 
       config.proxy.lift(key) match {
-        case Some(proxyConfig) => proxy(proxyConfig)
-        case None => manager.borrow(key).flatMap(loop(req))
+        case Some(proxyConfig) =>
+          proxy(proxyConfig)
+        case None =>
+          manager.borrow(key).flatMap(loop(req))
       }
     }, onShutdown)
   }
 
 }
-

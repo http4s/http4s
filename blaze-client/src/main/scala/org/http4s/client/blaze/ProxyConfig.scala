@@ -5,8 +5,11 @@ package blaze
 import org.http4s.Uri.Authority
 import org.http4s.util.CaseInsensitiveString
 
-case class ProxyConfig(
+final case class ProxyConfig(
   scheme: CaseInsensitiveString,
-  authority: Authority,
+  proxyHost: Uri.Host,
+  proxyPort: Int,
   credentials: Option[Credentials]
-)
+) {
+  val authority = Authority(host = proxyHost, port = Some(proxyPort))
+}
