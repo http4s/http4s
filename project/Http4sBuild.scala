@@ -42,7 +42,7 @@ object Http4sBuild {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
     val targetVersion = scalazCrossBuild(s"${targetMajor}.${targetMinor}.0", scalazVersion)
-    if (targetVersion != currentVersionWithoutSnapshot)
+    if (targetVersion != current resonators naps hot)
       Some(targetVersion)
     else
       None
