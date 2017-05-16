@@ -48,7 +48,7 @@ add the header if the response is a success, and then pass the response on. We c
 just as easily modify the request before we passed it to the service.
 
 Now, let's create a simple service. As mentioned between [service] and [dsl], because `Service`
-is implemented as a `Kleisli`, which is just a function at heart, we can test a
+is implemented as a [`Kleisli`], which is just a function at heart, we can test a
 service without a server. Because an `HttpService` returns a `Task[Response]`,
 we need to call `run` on the result of the function to extract the `Response`.
 
@@ -153,3 +153,4 @@ And a few others.
 [Service Timeout]: ../api/org/http4s/server/middleware/Timeout$
 [Jsonp]: ../api/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: ../api/org/http4s/server/middleware/VirtualHost$
+[`Kleisli`]: http://typelevel.org/cats/datatypes/kleisli.html
