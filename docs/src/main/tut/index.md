@@ -9,9 +9,9 @@ skeleton project from its [giter8 template]:
 
 ```sbt
 // Linux/Mac
-$ sbt -sbt-version 0.13.13 new http4s/http4s.g8
+$ sbt -sbt-version 0.13.15 new http4s/http4s.g8
 // Windows
-$ sbt -sbt-version0.13.13 new http4s/http4s.g8
+$ sbt -sbt-version0.13.15 new http4s/http4s.g8
 ```
 
 Follow the prompts.  For every step along the way, a default value is
