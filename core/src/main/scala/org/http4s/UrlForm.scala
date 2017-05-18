@@ -81,6 +81,9 @@ object UrlForm {
 
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
+  
+  def apply(values: List[(String, String)]): UrlForm =
+    apply(values:_*)
 
   implicit def entityEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
