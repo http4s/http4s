@@ -24,8 +24,8 @@ object ExampleService {
   // service with the longest matching prefix.
   def service(implicit ec: ExecutionContext = ExecutionContext.global): HttpService = Router(
     "" -> rootService,
-    "/auth" -> authService
-    // TODO fs2 port "/science" -> ScienceExperiments.service
+    "/auth" -> authService,
+    "/science" -> ScienceExperiments.service
   )
 
   def rootService(implicit ec: ExecutionContext = ExecutionContext.global) = HttpService {
