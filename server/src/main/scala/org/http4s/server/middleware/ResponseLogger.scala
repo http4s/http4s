@@ -13,17 +13,12 @@ import org.log4s.getLogger
 object ResponseLogger {
   private[this] val logger = getLogger
 
-  def apply(service: HttpService): HttpService = Service.lift { req =>
-    service(req).flatMap {
-      case resp: Response =>
-        resp
-          .body
-          .through(fs2.text.utf8Decode)
-          .runFoldMap(identity)
-          .map(logger.info(_))
-          .map(_ => resp)
-      case Pass =>
-        Task.delay(Pass)
-    }
+  def apply(logHeaders: Boolean, logBody: Boolean)(service: HttpService): HttpService = Service.lift { req =>
+    Stream.eval(service(req))
+      .map(_.toOption)
+      .unNone
+      .through(Logger.messageLogPipe[Response](logHeaders, logBody)(logger))
+      .runLast
+      .map(_.getOrElse(Pass))
   }
 }

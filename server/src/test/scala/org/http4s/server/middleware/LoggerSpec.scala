@@ -19,7 +19,7 @@ class LoggerSpec extends Http4sSpec {
   val urlForm = UrlForm("foo" -> "bar")
 
   "ResponseLogger" should {
-    val responseLoggerService = ResponseLogger(testService)
+    val responseLoggerService = ResponseLogger(true, true)(testService)
 
     "not effect a Get" in {
       val req = Request(uri = uri("/request"))
@@ -33,7 +33,7 @@ class LoggerSpec extends Http4sSpec {
   }
 
   "RequestLogger" should {
-    val requestLoggerService = RequestLogger(testService)
+    val requestLoggerService = RequestLogger(true, true)(testService)
 
     "not effect a Get" in {
       val req = Request(uri = uri("/request"))
@@ -47,7 +47,7 @@ class LoggerSpec extends Http4sSpec {
   }
 
   "Logger" should {
-    val loggerService = Logger(testService)
+    val loggerService = Logger(true, true)(testService)
 
     "not effect a Get" in {
       val req = Request(uri = uri("/request"))

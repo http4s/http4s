@@ -18,8 +18,9 @@
  */
 package org.http4s
 
-import scala.util.hashing.MurmurHash3
+import cats.Show
 
+import scala.util.hashing.MurmurHash3
 import cats.data.NonEmptyList
 import cats.implicits._
 import org.http4s.syntax.string._
@@ -120,5 +121,9 @@ object Header {
       values.tail.foreach( writer << ", " << _ )
       writer
     }
+  }
+
+  implicit val headerShow : Show[Header] = new Show[Header] {
+    def show(f: Header): String = f.toString
   }
 }
