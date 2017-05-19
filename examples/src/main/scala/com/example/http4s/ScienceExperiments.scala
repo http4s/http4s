@@ -71,12 +71,12 @@ object ScienceExperiments {
       def newBodyP(h: Handle[Task, String]): Pull[Task, String, String] = {
         h.await1Option.flatMap{
           case Some((s, h)) =>
-            if (s.startsWith("go")) {
+            if (!s.startsWith("go")) {
               Pull.outputs(notGo) >> Pull.done
             } else {
               Pull.output1(s) >> newBodyP(h)
             }
-          case None => Pull.done
+          case None => Pull.outputs(notGo) >> Pull.done
         }
       }
       Ok(body.pull(newBodyP))
