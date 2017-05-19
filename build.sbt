@@ -1,4 +1,5 @@
 import org.http4s.build.Http4sPlugin._
+import org.scalajs.sbtplugin.cross.CrossProject
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
@@ -257,6 +258,7 @@ lazy val docs = http4sProject("docs")
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
+        parboiled2JS,
         bench,
         examples,
         examplesBlaze,
@@ -428,7 +430,28 @@ def http4sProject(name: String) =
       initCommands()
     )
 
+def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.Pure)
+  .settings(commonSettings)
+  .settings(
+    moduleName := s"http4s-$name",
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"showtimes", "failtrace"),
+    initCommands()
+  ).jsSettings(
+    // Ignore, tut is not supported in scala.js
+    sources in (Compile,doc) := Seq.empty,
+    // This is needed to support the  TLS compiler and scala.js at the same time
+    // Remove the dependency on the scalajs-compiler
+    libraryDependencies ~= { (libDeps: Seq[ModuleID]) =>
+      libDeps.filterNot(dep => dep.name == "scalajs-compiler")
+    },
+
+    // And add a custom one:
+    addCompilerPlugin("org.scala-js" % "scalajs-compiler" % scalaJSVersion cross CrossVersion.patch)
+  )
+
 def libraryProject(name: String) = http4sProject(name)
+
+def libraryCrossProject(name: String) = http4sCrossProject(name)
 
 def exampleProject(name: String) =
   http4sProject(name)
