@@ -17,6 +17,7 @@ import cats.implicits._
 import cats.data._
 import cats._
 import fs2._
+import fs2.util.syntax._
 import scodec.bits.ByteVector
 
 /** These are routes that we tend to use for testing purposes
@@ -64,30 +65,41 @@ object ScienceExperiments {
 
     ///////////////// Switch the response based on head of content //////////////////////
 
-//    case req@POST -> Root / "challenge1" =>
-//      val body = req.bodyAsText
-//      def notGo = Stream.emit("Booo!!!")
-//      Ok {
-//        body.step match { p => p.flatMap{
-//          case Step(head, tail) =>
-//            head.runLast.run.fold(tail.continue) { head =>
-//              if (!head.startsWith("go")) notGo
-//              else emit(head) ++ tail.continue
-//            }
-//          case _ => notGo
-//        }
-//      }
-//
-//    case req @ POST -> Root / "challenge2" =>
-//      val parser = await1[String] map {
-//        case chunk if chunk.startsWith("Go") =>
-//          Task.now(Response(body = emit(chunk) ++ req.bodyAsText |> utf8Encode))
-//        case chunk if chunk.startsWith("NoGo") =>
-//          BadRequest("Booo!")
-//        case _ =>
-//          BadRequest("no data")
-//      }
-//      (req.bodyAsText |> parser).runLastOr(InternalServerError()).run
+    case req@POST -> Root / "challenge1" =>
+      val body = req.bodyAsText
+      def notGo = Stream.emit("Booo!!!")
+      def newBodyP(h: Handle[Task, String]): Pull[Task, String, String] = {
+        h.await1Option.flatMap{
+          case Some((s, h)) =>
+            if (s.startsWith("go")) {
+              Pull.outputs(notGo) >> Pull.done
+            } else {
+              Pull.output1(s) >> newBodyP(h)
+            }
+          case None => Pull.done
+        }
+      }
+      Ok(body.pull(newBodyP))
+
+    case req @ POST -> Root / "challenge2" =>
+      def parser(h: Handle[Task, String]): Pull[Task, Task[Response], Unit] = {
+        h.await1Option.flatMap{
+          case Some((str, _)) if str.startsWith("Go") =>
+            Pull.output1(
+              Task.now(
+                Response(body =
+                  (Stream.emit(str) ++ req.bodyAsText.drop(1))
+                    .through(fs2.text.utf8Encode)
+                )
+              )
+            )
+          case Some((str, _)) if str.startsWith("NoGo") =>
+            Pull.output1(BadRequest("Booo!"))
+          case _ =>
+            Pull.output1(BadRequest("no data"))
+        }
+      }
+      req.bodyAsText.pull(parser).runLast.flatMap(_.getOrElse(InternalServerError()))
 
     /*
       case req @ Post -> Root / "trailer" =>
@@ -108,11 +120,10 @@ object ScienceExperiments {
     case req @ GET -> Root / "broken-body" =>
       Ok(Stream.eval(Task{"Hello "}) ++ Stream.eval(Task{sys.error("Boom!")}) ++ Stream.eval(Task{"world!"}))
 
-//    Missing Strategy in Scope Which Is Clearly Not the Case
-//    case req @ GET -> Root / "slow-body" =>
-//      val resp = "Hello world!".map(_.toString())
-//      val body = time.awakeEvery(2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
-//      Ok(body)
+    case req @ GET -> Root / "slow-body" =>
+      val resp = "Hello world!".map(_.toString())
+      val body = time.awakeEvery[Task](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
+      Ok(body)
 
     case req @ POST -> Root / "ill-advised-echo" =>
       // Reads concurrently from the input.  Don't do this at home.
