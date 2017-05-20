@@ -6,7 +6,7 @@ import javax.crypto
 
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
-import org.http4s.util.UrlCodingUtils
+import org.http4s.util.{ NonEmptyList, UrlCodingUtils }
 
 import scala.collection.mutable.ListBuffer
 import scalaz.concurrent.Task
@@ -52,7 +52,8 @@ package object oauth1 {
 
     val baseString = genBaseString(method, uri, params ++ userParams.map{ case (k,v) => (encode(k), encode(v))})
     val sig = makeSHASig(baseString, consumer, token)
-    val creds = KeyValueCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> encode(sig)))
+    val creds = Credentials.AuthParams("OAuth".ci,
+      NonEmptyList("oauth_signature" -> encode(sig), params: _*))
 
     Authorization(creds)
   }

@@ -21,6 +21,7 @@ package parser
 import org.http4s.internal.parboiled2.{Rule0, Rule1, ParserInput}
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
+import org.http4s.util.NonEmptyList
 
 private[parser] trait AuthorizationHeader {
   def AUTHORIZATION(value: String): ParseResult[`Authorization`] =
@@ -29,42 +30,28 @@ private[parser] trait AuthorizationHeader {
   // scalastyle:off public.methods.have.type
   private class AuthorizationParser(input: ParserInput) extends Http4sHeaderParser[Authorization](input) {
     def entry: Rule1[Authorization] = rule {
-      CredentialDef ~ EOI ~> (Authorization(_))
+      CredentialDef ~ EOI ~> { creds: Credentials => Authorization(creds) }
     }
 
     def CredentialDef = rule {
-      BasicCredentialDef |
-      OAuth2BearerTokenDef |
-      KeyValueCredentialsDef |
-      GenericHttpCredentialsDef
+      AuthParamsCredentialsDef |
+      TokenCredentialsDef
     }
 
-    def BasicCredentialDef: Rule1[BasicCredentials] = rule {
-      "Basic" ~ oneOrMore(LWS) ~ capture(BasicCookie) ~> {s: String => BasicCredentials(s) }
-    }
-
-    def BasicCookie: Rule0 = rule {
-      oneOrMore(Base64Char) ~ optional("==" | ch('='))
-    }
-
-    def OAuth2BearerTokenDef: Rule1[OAuth2BearerToken] = rule {
-      "Bearer" ~ oneOrMore(LWS) ~ b64token ~> (OAuth2BearerToken(_))
-    }
-
-    def GenericHttpCredentialsDef = rule {
+    def TokenCredentialsDef = rule {
       Token ~ LWS ~ token68 ~> {(scheme: String, value: String) =>
-        GenericCredentials(scheme.ci, value)
+        Credentials.Token(scheme.ci, value)
       }
     }
 
-    def KeyValueCredentialsDef = rule {
-      Token ~ OptWS ~ CredentialParams ~> { (scheme: String, params: Map[String, String]) =>
-        KeyValueCredentials(scheme.ci, params) }
+    def AuthParamsCredentialsDef = rule {
+      Token ~ OptWS ~ CredentialParams ~> { (scheme: String, params: NonEmptyList[(String, String)]) =>
+        Credentials.AuthParams(scheme.ci, params) }
     }
 
-    def CredentialParams: Rule1[Map[String, String]] = rule {
+    def CredentialParams: Rule1[NonEmptyList[(String, String)]] = rule {
       oneOrMore(AuthParam).separatedBy(ListSep) ~> {
-        params: Seq[(String, String)] => params.toMap
+        params: Seq[(String, String)] => NonEmptyList(params.head, params.tail: _*)
       }
     }
 
