@@ -20,11 +20,11 @@ object MultipartParser {
   private val expected: Boundary => String = boundary => s"$CRLF${startLine(boundary)}"
 
   private val CRLFBytes = ByteVector('\r','\n')
-//  private val DashDashBytes = ByteVector('-', '-')
-//  private val boundaryBytes : Boundary => ByteVector = boundary => ByteVector(boundary.value.getBytes)
-//  private val startLineBytes : Boundary => ByteVector = boundaryBytes andThen (DashDashBytes ++ _)
-//  private val endLineBytes: Boundary => ByteVector = startLineBytes andThen (_ ++ DashDashBytes)
-//  private val expectedBytes: Boundary => ByteVector = startLineBytes andThen (CRLF ++ _)
+  private val DashDashBytes = ByteVector('-', '-')
+  private val boundaryBytes : Boundary => ByteVector = boundary => ByteVector(boundary.value.getBytes)
+  private val startLineBytes : Boundary => ByteVector = boundaryBytes andThen (DashDashBytes ++ _)
+  private val endLineBytes: Boundary => ByteVector = startLineBytes andThen (_ ++ DashDashBytes)
+  private val expectedBytes: Boundary => ByteVector = startLineBytes andThen (CRLFBytes ++ _)
 
   final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
@@ -133,37 +133,37 @@ object MultipartParser {
       out <- Pull.output1(bv) >> takeUpTo(n - bv.size, headerLimit)(h)
     } yield out
 
-
-//  def header[F[_]](leading: Option[ByteVector], expected: ByteVector)(h: Handle[F, Out[ByteVector]]): Pull[F, Out[Headers], Unit] = {
-//    def go(leading: Option[ByteVector])(h: Handle[F, Out[ByteVector]]): Pull[F, Either[Header,Option[ByteVector]], Unit] = {
-//      logger.trace(s"Header go: ${leading.map(_.decodeUtf8)} ")
-//      h.await1.flatMap{
-//        case (Out(bv, tail), h) => {
-//          if (bv == expected) {
-//            Pull.output1(tail)
-//          } else {
-//            {
-//              for {
-//                line <- bv.decodeAscii.right.toOption
-//                idx <- Some(line indexOf ':')
-//                if idx >= 0
-//                if idx < line.length - 1
-//              } yield Some(Header(line.substring(0, idx), line.substring(idx + 1).trim))
-//            }.map{ header =>
-//              Pull.output1(Left(header)) >> go(tail)(h)
-//            }.getOrElse(
-//              Pull.output1(Right(tail))
-//            )
-//          }
-//        }
-//      }
-//    }
-//    go(leading)(h).map(x => {logger.trace("Got: "+x.toString); x}).close.through(pipe.fold(Out(List.empty[Header])) {
-//      case (acc, Left(header)) => acc.copy(a = header :: acc.a)
-//      case (acc, Right(tail)) => acc.copy(tail = tail)
-//    }).map { case Out(hs, tail) => Out(Headers(hs.reverse), tail) }.output
-//  }
-
+/*
+  def header[F[_]](leading: Option[ByteVector], expected: ByteVector)(h: Handle[F, Out[ByteVector]]): Pull[F, Out[Headers], Unit] = {
+    def go(leading: Option[ByteVector])(h: Handle[F, Out[ByteVector]]): Pull[F, Either[Header,Option[ByteVector]], Unit] = {
+      logger.trace(s"Header go: ${leading.map(_.decodeUtf8)} ")
+      h.await1.flatMap{
+        case (Out(bv, tail), h) => {
+          if (bv == expected) {
+            Pull.output1(tail)
+          } else {
+            {
+              for {
+                line <- bv.decodeAscii.right.toOption
+                idx <- Some(line indexOf ':')
+                if idx >= 0
+                if idx < line.length - 1
+              } yield Some(Header(line.substring(0, idx), line.substring(idx + 1).trim))
+            }.map{ header =>
+              Pull.output1(Left(header)) >> go(tail)(h)
+            }.getOrElse(
+              Pull.output1(Right(tail))
+            )
+          }
+        }
+      }
+    }
+    go(leading)(h).map(x => {logger.trace("Got: "+x.toString); x}).close.through(pipe.fold(Out(List.empty[Header])) {
+      case (acc, Left(header)) => acc.copy(a = header :: acc.a)
+      case (acc, Right(tail)) => acc.copy(tail = tail)
+    }).map { case Out(hs, tail) => Out(Headers(hs.reverse), tail) }.output
+  }
+*/
 
 
 }
