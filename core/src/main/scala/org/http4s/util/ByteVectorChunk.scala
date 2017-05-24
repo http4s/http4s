@@ -1,14 +1,13 @@
 package org.http4s
 package util
 
-import fs2.Chunk
-import scala.reflect.{ClassTag, classTag}
+import fs2.{Chunk, MonomorphicChunk}
 import scodec.bits.ByteVector
 
-// This will exist in fs2-1.0.  That version is more optimal, because
-// it has a smarter concatAll.  This will do for now.
-private[http4s] class ByteVectorChunk private (val toByteVector: ByteVector)
-    extends Chunk[Byte] {
+import scala.reflect.{ClassTag, classTag}
+
+final class ByteVectorChunk private (val toByteVector: ByteVector)
+  extends MonomorphicChunk[Byte] {
   def apply(i: Int): Byte =
     toByteVector(i.toLong)
 
@@ -57,6 +56,20 @@ private[http4s] class ByteVectorChunk private (val toByteVector: ByteVector)
 
   protected val tag: ClassTag[_] =
     classTag[Byte]
+
+  override def concatAll[B >: Byte](chunks: Seq[Chunk[B]]): Chunk[B] = {
+    val conformed = chunks flatMap { _.conform[Byte] }
+    if (chunks.isEmpty) {
+      this
+    } else if ((chunks lengthCompare conformed.size) == 0) {
+      ByteVectorChunk(conformed.foldLeft(toByteVector) {
+        case (bv, bvc: ByteVectorChunk) => bv ++ bvc.toByteVector
+        case (bv, c) => bv ++ ByteVector.view(c.toArray)
+      })
+    } else {
+      super.concatAll(chunks)
+    }
+  }
 }
 
 object ByteVectorChunk {
