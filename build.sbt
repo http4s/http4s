@@ -42,6 +42,7 @@ lazy val core = libraryProject("core")
     resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= Seq(
       fs2Io,
+      fs2Scodec,
       http4sWebsocket,
       log4s,
       macroCompat,
