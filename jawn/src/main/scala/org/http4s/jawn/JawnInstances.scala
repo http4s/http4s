@@ -5,16 +5,15 @@ import _root_.jawn.{AsyncParser, Facade, ParseException}
 import cats._
 import cats.implicits._
 import fs2.Stream
-import fs2.util.Catchable
 import jawnfs2._
 
 trait JawnInstances {
-  def jawnDecoder[F[_], J](implicit C: Catchable[F], F: Applicative[F], facade: Facade[J]): EntityDecoder[F, J] =
+  def jawnDecoder[F[_], J](implicit C: MonadError[F, Throwable], F: Applicative[F], facade: Facade[J]): EntityDecoder[F, J] =
     EntityDecoder.decodeBy(MediaType.`application/json`)(jawnDecoderImpl[F, J])
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_], J](
-      msg: Message[F])(implicit C: Catchable[F], F: Applicative[F], facade: Facade[J]): DecodeResult[F, J] =
+      msg: Message[F])(implicit C: MonadError[F, Throwable], F: Applicative[F], facade: Facade[J]): DecodeResult[F, J] =
     DecodeResult {
       msg.body.chunks
         .parseJson(AsyncParser.SingleValue)
