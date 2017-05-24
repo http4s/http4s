@@ -6,11 +6,11 @@ import java.nio.ByteBuffer
 import cats.implicits._
 import cats.{Applicative, MonadError}
 import fs2.Chunk
+import fs2.interop.scodec.ByteVectorChunk
 import io.circe.jawn.CirceSupportParser.facade
 import io.circe.jawn._
 import io.circe.{Decoder, Encoder, Json, Printer}
 import org.http4s.headers.`Content-Type`
-import org.http4s.util.ByteVectorChunk
 import scodec.bits.ByteVector
 
 trait CirceInstances {

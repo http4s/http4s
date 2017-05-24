@@ -1,6 +1,7 @@
 package org.http4s
 package json4s
 
+import cats.effect.IO
 import cats.implicits._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
@@ -8,7 +9,7 @@ import org.json4s.JsonFormat
 import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
 import org.json4s.JValue
-import org.json4s.JsonAST.{JInt, JField, JString, JObject}
+import org.json4s.JsonAST.{JField, JInt, JObject, JString}
 
 trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstances[J] =>
   import Json4sSpec._
@@ -19,7 +20,7 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     val json: JValue = JObject(JField("test", JString("json4s")))
 
     "have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoder[IO, JValue].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
@@ -29,23 +30,23 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[Option[Int]].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON with a json4s writer" in {
-      writeToString(42.some)(jsonEncoderOf[Option[Int]]) must_== ("""42""")
+      writeToString(42.some)(jsonEncoderOf[IO, Option[Int]]) must_== ("""42""")
     }
   }
 
   "jsonOf" should {
     "decode JSON from an json4s reader" in {
-      val result = jsonOf[Int].decode(Request().withBody("42").unsafeRun, strict = false)
-      result.value.unsafeRun must beRight(42)
+      val result = jsonOf[IO, Int].decode(Request[IO]().withBody("42").unsafeRunSync, strict = false)
+      result.value.unsafeRunSync must beRight(42)
     }
 
     "handle reader failures" in {
-      val result = jsonOf[Int].decode(Request().withBody(""""oops"""").unsafeRun, strict = false)
-      result.value.unsafeRun must beLeft.like {
+      val result = jsonOf[IO, Int].decode(Request[IO]().withBody(""""oops"""").unsafeRunSync, strict = false)
+      result.value.unsafeRunSync must beLeft.like {
         case InvalidMessageBodyFailure("Could not map JSON", _) => ok
       }
     }
@@ -55,13 +56,13 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     implicit val formats = org.json4s.DefaultFormats
 
     "extract JSON from formats" in {
-      val result = jsonExtract[Foo].decode(Request().withBody(JObject("bar" -> JInt(42))).unsafeRun, strict = false)
-      result.value.unsafeRun must beRight(Foo(42))
+      val result = jsonExtract[IO, Foo].decode(Request[IO]().withBody(JObject("bar" -> JInt(42))).unsafeRunSync, strict = false)
+      result.value.unsafeRunSync must beRight(Foo(42))
     }
 
     "handle extract failures" in {
-      val result = jsonExtract[Foo].decode(Request().withBody(""""oops"""").unsafeRun, strict = false)
-      result.value.unsafeRun must beLeft.like {
+      val result = jsonExtract[IO, Foo].decode(Request[IO]().withBody(""""oops"""").unsafeRunSync, strict = false)
+      result.value.unsafeRunSync must beLeft.like {
         case InvalidMessageBodyFailure("Could not extract JSON", _) => ok
       }
     }
