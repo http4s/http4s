@@ -1,36 +1,38 @@
 package org.http4s.util
 
-import fs2.{Strategy, Stream, Task}
-import fs2.Stream.{eval, eval_}
+import cats.effect.IO
+import fs2.Stream
 import fs2.async.signalOf
 import org.log4s.getLogger
 
 trait StreamApp {
   private[this] val logger = getLogger
 
-  def stream(args: List[String]): Stream[Task, Unit]
+  def stream(args: List[String]): Stream[IO, Nothing]
 
-  private implicit val strategy: Strategy = Strategy.sequential
+  //  private implicit val strategy: Strategy = Strategy.sequential
+  // TODO: Not sure what this should be
+  private implicit val executionContext = TrampolineExecutionContext
 
   private[this] val shutdownRequested =
-    signalOf[Task, Boolean](false).unsafeRun
+    signalOf[IO, Boolean](false).unsafeRunSync
 
-  final val requestShutdown: Task[Unit] =
+  final val requestShutdown: IO[Unit] =
     shutdownRequested.set(true)
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
   private[util] def doMain(args: Array[String]): Int = {
-    val halted = signalOf[Task, Boolean](false).unsafeRun
+    val halted = signalOf[IO, Boolean](false).unsafeRunSync
 
     val p = shutdownRequested.interrupt(stream(args.toList))
       .onFinalize(halted.set(true))
 
     sys.addShutdownHook {
       requestShutdown.unsafeRunAsync(_ => ())
-      halted.discrete.takeWhile(_ == false).run.unsafeRun
+      halted.discrete.takeWhile(_ == false).run.unsafeRunSync
     }
 
-    p.run.attempt.unsafeRun match {
+    p.run.attempt.unsafeRunSync match {
       case Left(t) =>
         logger.error(t)("Error running stream")
         -1

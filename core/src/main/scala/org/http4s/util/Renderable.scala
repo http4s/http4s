@@ -1,15 +1,15 @@
 package org.http4s.util
 
 import java.nio.charset.{Charset, StandardCharsets}
-import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
+import java.time.{Instant, ZoneId}
 import java.util.Locale
-
-import scala.annotation.tailrec
-import scala.collection.immutable.BitSet
 
 import cats.data.NonEmptyList
 import fs2._
+
+import scala.annotation.tailrec
+import scala.collection.immutable.BitSet
 
 /** A type class that describes how to efficiently render a type
  * @tparam T the type which will be rendered
@@ -169,7 +169,7 @@ final case class ChunkWriter(
 ) extends Writer {
 
   override def append(s: String): this.type = {
-    toChunk = Chunk.concatBytes(Seq(toChunk, Chunk.bytes(s.getBytes(charset))))
+    toChunk = toChunk.toBytes.concatAll(Seq(toChunk, Chunk.bytes(s.getBytes(charset))))
     this
   }
 

@@ -1,12 +1,10 @@
 package org.http4s
 
-import java.time.{ZoneOffset, Instant}
+import java.time.Instant
 
 import cats._
 import cats.data._
-import cats.implicits._
 import fs2._
-import fs2.interop.cats._
 import org.http4s.headers._
 
 trait MessageOps[F[_]] extends Any {

@@ -2,8 +2,6 @@ package org.http4s
 
 import cats._
 import cats.implicits._
-import fs2.interop.cats._
-import fs2.util.Catchable
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._
@@ -87,7 +85,7 @@ object UrlForm {
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[F[_]](implicit F: Catchable[F], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+  implicit def entityDecoder[F[_]](implicit F: MonadError[F, Throwable], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
         EntityDecoder.decodeString(m)

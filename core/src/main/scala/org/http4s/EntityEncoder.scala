@@ -4,21 +4,19 @@ import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
 
-import scala.annotation.implicitNotFound
-
 import cats._
+import cats.effect.Sync
 import cats.functor._
 import cats.implicits._
-import fs2._
-import fs2.interop.cats._
-import fs2.io._
 import fs2.Stream._
-import fs2.util.Suspendable
+import fs2._
+import fs2.io._
 import org.http4s.headers._
+
+import scala.annotation.implicitNotFound
 
 @implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.")
 trait EntityEncoder[F[_], A] { self =>
-  import EntityEncoder._
 
   /** Convert the type `A` to an [[EntityEncoder.Entity]] in the `Task` monad */
   def toEntity(a: A): F[Entity[F]]
@@ -147,22 +145,22 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder[F[_]](implicit F: Suspendable[F]): EntityEncoder[F, File] =
+  implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
     inputStreamEncoder[F].contramap(file => F.delay(new FileInputStream(file)))
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def filePathEncoder[F[_]: Suspendable]: EntityEncoder[F, Path] =
+  implicit def filePathEncoder[F[_]: Sync]: EntityEncoder[F, Path] =
     fileEncoder[F].contramap(_.toFile)
 
   // TODO parameterize chunk size
-  implicit def inputStreamEncoder[F[_]: Suspendable]: EntityEncoder[F, F[InputStream]] =
+  implicit def inputStreamEncoder[F[_]: Sync]: EntityEncoder[F, F[InputStream]] =
     streamEncoder[F, Byte].contramap { in: F[InputStream] =>
       readInputStream[F](in, DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_]](implicit F: Suspendable[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[Reader]] =
+  implicit def readerEncoder[F[_]](implicit F: Sync[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[Reader]] =
     streamEncoder[F, Byte].contramap { r: F[Reader] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)

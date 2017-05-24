@@ -2,8 +2,9 @@ package org
 
 import cats._
 import cats.data._
+import cats.effect.Sync
 import fs2._
-import fs2.util.{Attempt, Suspendable}
+import fs2.util.Attempt
 
 package object http4s { // scalastyle:ignore
 
@@ -56,7 +57,7 @@ package object http4s { // scalastyle:ignore
       // I don't feel good about myself
       lift(req => pf.asInstanceOf[PartialFunction[Request[F], F[MaybeResponse[F]]]].applyOrElse(req, Function.const(F.pure(Pass[F]))))
 
-    def empty[F[_]: Suspendable]: HttpService[F] =
+    def empty[F[_]: Sync]: HttpService[F] =
       Service.constVal(Pass[F])
   }
 
@@ -82,7 +83,7 @@ package object http4s { // scalastyle:ignore
       * @tparam T - ignored.
       * @return
       */
-    def empty[F[_]: Suspendable, T]: AuthedService[F, T] =
+    def empty[F[_]: Sync, T]: AuthedService[F, T] =
       Service.constVal(Pass[F])
   }
 

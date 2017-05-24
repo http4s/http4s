@@ -1,17 +1,15 @@
 package org.http4s
 
 import java.io.File
-import java.net.{InetSocketAddress, InetAddress}
+import java.net.{InetAddress, InetSocketAddress}
 
 import cats._
 import cats.implicits._
 import fs2._
-import fs2.interop.cats._
 import fs2.text._
-import fs2.util.Lub1
 import org.http4s.headers._
-import org.http4s.util.nonEmptyList._
 import org.http4s.server.ServerSoftware
+import org.http4s.util.nonEmptyList._
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response

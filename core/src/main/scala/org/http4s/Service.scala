@@ -1,11 +1,9 @@
 package org.http4s
 
 import cats._
-import cats.arrow.Choice
 import cats.data._
+import cats.effect.Sync
 import cats.implicits._
-import fs2._
-import fs2.util.Suspendable
 
 object Service {
 
@@ -34,14 +32,14 @@ object Service {
     *  Lifts a value into a [[Service]].
     *
     */
-  def constVal[F[_], A, B](b: => B)(implicit F: Suspendable[F]): Service[F, A, B] =
+  def constVal[F[_], A, B](b: => B)(implicit F: Sync[F]): Service[F, A, B] =
     lift(_ => F.delay(b))
 
   /** Allows Service chainig through a `scalaz.Monoid` instance. */
-  def withFallback[F[_], A, B](fallback: Service[F, A, B])(service: Service[F, A, B])(implicit M: Monoid[F[B]]): Service[F, A, B] =
+  def withFallback[F[_], A, B](fallback: Service[F, A, B])(service: Service[F, A, B])( implicit M: Semigroup[F[B]]): Service[F, A, B] =
     service |+| fallback
 
   /** A service that always returns the zero of B. */
-  def empty[F[_]: Suspendable, A, B: Monoid]: Service[F, A, B] =
+  def empty[F[_]: Sync, A, B: Monoid]: Service[F, A, B] =
     constVal(Monoid[B].empty)
 }
