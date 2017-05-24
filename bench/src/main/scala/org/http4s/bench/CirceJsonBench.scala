@@ -6,8 +6,7 @@ import io.circe.parser._
 import org.openjdk.jmh.annotations._
 import java.util.concurrent.TimeUnit
 
-import fs2.Task
-import fs2.interop.cats._
+import cats.effect.IO
 import org.http4s.circe._
 
 // sbt "bench/jmh:run -i 10 -wi 10 -f 2 -t 1 org.http4s.bench.CirceJsonBench"
@@ -18,15 +17,15 @@ class CirceJsonBench {
 
   @Benchmark
   def decode_byte_buffer(in: BenchState): Either[DecodeFailure, Json] =
-    jsonDecoderByteBuffer[Task].decode(in.req, strict = true).value.unsafeRun
+    jsonDecoderByteBuffer[IO].decode(in.req, strict = true).value.unsafeRunSync
 
   @Benchmark
   def decode_incremental(in: BenchState): Either[DecodeFailure, Json] =
-    jsonDecoderIncremental[Task].decode(in.req, strict = true).value.unsafeRun
+    jsonDecoderIncremental[IO].decode(in.req, strict = true).value.unsafeRunSync
 
   @Benchmark
   def decode_adaptive(in: BenchState): Either[DecodeFailure, Json] =
-    jsonDecoderAdaptive[Task](in.cutoff).decode(in.req, strict = true).value.unsafeRun
+    jsonDecoderAdaptive[IO](in.cutoff).decode(in.req, strict = true).value.unsafeRunSync
 }
 
 object CirceJsonBench {
@@ -40,14 +39,14 @@ object CirceJsonBench {
     var approxContentLength: Int = _
     @Param(Array("100000"))
     var cutoff: Long = _
-    var req: Request[Task] = _
+    var req: Request[IO] = _
 
     @Setup(Level.Trial)
     def setup(): Unit = {
       val arraySize = (approxContentLength.toDouble /
         jsonStr.getBytes("UTF-8").length.toDouble).round.toInt
       val json = Json.arr((1 to arraySize).map(_ => obj):_*)
-      req = Request[Task]().withBody(json).unsafeRun
+      req = Request[IO]().withBody(json).unsafeRunSync
       println(s"Array size: $arraySize; Approx. Content-Length: $approxContentLength; Content-Length: ${req.contentLength}")
     }
   }

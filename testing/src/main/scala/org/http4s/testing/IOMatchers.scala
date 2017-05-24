@@ -39,7 +39,7 @@ trait IOMatchers {
             .attempt
             .unsafeRunTimed(d)
             .fold(failedAttemptWithTimeout(e, d))(_.fold(failedAttempt(e), checkResult(e)))
-        case None => e.value.attempt.unsafeRunSync().fold(failedAttempt(e), checkResult(e))
+        case None => e.value.attempt.unsafeRunSync.fold(failedAttempt(e), checkResult(e))
       }
     }
 

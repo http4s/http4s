@@ -77,7 +77,7 @@ trait Http4sSpec extends Specification
       .foldMonoid
       .runLast
       .map(_.getOrElse(""))
-      .unsafeRunSync()
+      .unsafeRunSync
 
   def writeToByteVector[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
     Stream.eval(W.toEntity(a))
@@ -86,7 +86,7 @@ trait Http4sSpec extends Specification
       .chunks
       .runLast
       .map(_.getOrElse(Chunk.empty))
-      .unsafeRunSync()
+      .unsafeRunSync
 
   def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
