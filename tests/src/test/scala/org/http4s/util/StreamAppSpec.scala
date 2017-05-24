@@ -28,7 +28,7 @@ class StreamAppSpec extends Http4sSpec {
       val testApp = new TestStreamApp(
         fail(new Throwable("Bad Initial Process"))
       )
-      testApp.doMain(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== -1
       testApp.cleanedUp.get.unsafeRun should_== true
     }
 
@@ -36,24 +36,6 @@ class StreamAppSpec extends Http4sSpec {
       val testApp = new TestStreamApp(
         // emit one unit value
         emit("Valid Process").map(_ => ())
-      )
-      testApp.doMain(Array.empty[String]) should_== 0
-      testApp.cleanedUp.get.unsafeRun should_== true
-    }
-
-    "Terminate Server on a Bad Task" in {
-      val testApp = new TestStreamApp(
-        // fail at task evaluation
-        eval(Task.fail(new Throwable("Bad Task")))
-      )
-      testApp.doMain(Array.empty[String]) should_== -1
-      testApp.cleanedUp.get.unsafeRun should_== true
-    }
-
-    "Terminate Server on a Valid Task" in {
-      val testApp = new TestStreamApp(
-        // emit one task evaluated unit value
-        eval(Task("Valid Task").map(_ => ()))
       )
       testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafeRun should_== true

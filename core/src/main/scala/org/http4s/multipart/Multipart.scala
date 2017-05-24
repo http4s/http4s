@@ -62,7 +62,10 @@ object Boundary {
 
   private val DIGIT = ('0' to '9').toList
   private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList
-  private val OTHER = """'()+_,-./:=? """.toSeq
+  // ' ' and '?' are also allowed by spec, but mean we need to quote
+  // the boundary in the media type, which causes some implementations
+  // pain.
+  private val OTHER = """'()+_,-./:=""".toSeq
   private val CHARS = (DIGIT ++ ALPHA ++ OTHER).toList
   private val nchars = CHARS.length
   private val rand = new Random()

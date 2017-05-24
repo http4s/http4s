@@ -4,11 +4,13 @@ import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
 
 import cats._
+import cats.implicits._
 import fs2._
+import fs2.interop.cats._
 import fs2.text._
 import fs2.util.Lub1
 import org.http4s.headers._
-import org.http4s.batteries._
+import org.http4s.util.nonEmptyList._
 import org.http4s.server.ServerSoftware
 
 /**

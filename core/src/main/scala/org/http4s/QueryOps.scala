@@ -1,7 +1,5 @@
 package org.http4s
 
-import org.http4s.batteries._
-
 trait QueryOps {
 
   protected type Self <: QueryOps

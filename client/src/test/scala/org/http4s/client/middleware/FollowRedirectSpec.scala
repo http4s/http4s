@@ -6,8 +6,10 @@ import java.util.concurrent.atomic._
 import org.http4s.dsl._
 import org.http4s.headers._
 import org.specs2.mutable.Tables
+import cats.implicits._
 import fs2._
 import fs2.Task._
+import fs2.interop.cats._
 
 class FollowRedirectSpec extends Http4sSpec with Tables {
 

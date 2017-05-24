@@ -2,7 +2,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
+import org.http4s.util.nonEmptyList._
+import org.http4s.syntax.string._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{CaseInsensitiveString, Writer}
 

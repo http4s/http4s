@@ -50,7 +50,6 @@ object WebjarService {
     * @return The HttpService
     */
   def apply(config: Config): HttpService = Service.lift {
-
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)
@@ -59,7 +58,6 @@ object WebjarService {
           .filter(config.filter)
           .map(serveWebjarAsset(config, request))
           .getOrElse(Pass.now)
-
   }
 
   /**
@@ -82,12 +80,12 @@ object WebjarService {
     */
   private def toWebjarAsset(subPath: String): Option[WebjarAsset] =
     Option(subPath)
-      .map(_.split('/').toList)
-      .filter(_.size >= 3)
-      .map(parts => WebjarAsset(parts.head, parts(1), parts.drop(2).mkString("/")))
-      .filter(_.library.nonEmpty)
-      .filter(_.version.nonEmpty)
-      .filter(_.asset.nonEmpty)
+      .map(_.split("/", 4))
+      .collect {
+        case Array("", library, version, asset)
+            if library.nonEmpty && version.nonEmpty && asset.nonEmpty =>
+          WebjarAsset(library, version, asset)
+      }
 
   /**
     * Returns an asset that matched the request if it's found in the webjar path
@@ -101,5 +99,4 @@ object WebjarService {
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))
       .fold(Pass.now)(config.cacheStrategy.cache(request.pathInfo, _))
-
 }

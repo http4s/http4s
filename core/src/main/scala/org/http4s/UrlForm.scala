@@ -1,14 +1,14 @@
 package org.http4s
 
-import scala.io.Codec
-
 import cats._
-import cats.data._
+import cats.implicits._
+import fs2.interop.cats._
 import fs2.util.Catchable
-import org.http4s.batteries._
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._
+
+import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()

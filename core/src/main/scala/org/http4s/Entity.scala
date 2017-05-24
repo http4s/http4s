@@ -2,7 +2,7 @@ package org.http4s
 
 import fs2.util.Lub1
 import cats._
-import org.http4s.batteries._
+import cats.implicits._
 
 final case class Entity[+F[_]](body: EntityBody[F], length: Option[Long] = None) {
   def +[G[_], Lub[_]](that: Entity[G])(implicit L: Lub1[F, G, Lub]): Entity[Lub] =

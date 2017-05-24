@@ -16,7 +16,7 @@ object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
   "The WebjarService" should {
 
     "Return a 200 Ok file" in {
-      val req = Request(GET, Uri(path = "test-lib/1.0.0/testresource.txt"))
+      val req = Request(GET, Uri(path = "/test-lib/1.0.0/testresource.txt"))
       val rb = runReq(req)
 
       rb._1 must_== testWebjarResource
@@ -24,7 +24,7 @@ object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
     }
 
     "Not find filtered asset" in {
-      val req = Request(GET, Uri(path = "test-lib/1.0.0/sub/testresource.txt"))
+      val req = Request(GET, Uri(path = "/test-lib/1.0.0/sub/testresource.txt"))
       val rb = runReq(req)
 
       rb._2.status must_== Status.NotFound

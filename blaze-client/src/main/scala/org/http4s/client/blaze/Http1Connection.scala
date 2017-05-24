@@ -18,8 +18,7 @@ import org.http4s.util.{StringWriter, Writer}
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import cats.syntax.either._
-import cats.syntax.flatMap._
+import cats.implicits._
 import fs2.{Strategy, Task}
 import fs2._
 import fs2.interop.cats._

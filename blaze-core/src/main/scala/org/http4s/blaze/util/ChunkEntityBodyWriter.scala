@@ -8,8 +8,9 @@ import java.nio.charset.StandardCharsets.ISO_8859_1
 import scala.concurrent._
 
 import fs2._
-import org.http4s.batteries._
+import fs2.interop.cats._
 import org.http4s.blaze.pipeline.TailStage
+import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
 
 class ChunkEntityBodyWriter(private var headers: StringWriter,

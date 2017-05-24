@@ -12,8 +12,9 @@ import scala.util.Try
 
 import collection.immutable.BitSet
 
-import cats.data._, Validated._
-import org.http4s.batteries._
+import cats.data._
+import cats.data.Validated._
+import cats.implicits._
 import org.http4s.util.UrlCodingUtils
 
 /** Base class for path extractors. */

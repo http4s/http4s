@@ -10,8 +10,8 @@ import java.util.Date
 import scala.concurrent.duration._
 
 import cats.data._
+import cats.implicits._
 import fs2._
-import org.http4s.batteries._
 import org.http4s.headers._
 
 /**
@@ -63,10 +63,10 @@ object DigestAuth {
     */
   def challenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper): Service[Request, Either[Challenge, AuthedRequest[A]]] =
     Service.lift { req => {
-      def paramsToChallenge(params: Map[String, String]) = left(Challenge("Digest", realm, params))
+      def paramsToChallenge(params: Map[String, String]) = Either.left(Challenge("Digest", realm, params))
 
       checkAuth(realm, store, nonceKeeper, req).flatMap(_ match {
-        case OK(authInfo) => Task.now(right(AuthedRequest(authInfo, req)))
+        case OK(authInfo) => Task.now(Either.right(AuthedRequest(authInfo, req)))
         case StaleNonce => getChallengeParams(nonceKeeper, true).map(paramsToChallenge)
         case _ => getChallengeParams(nonceKeeper, false).map(paramsToChallenge)
       })

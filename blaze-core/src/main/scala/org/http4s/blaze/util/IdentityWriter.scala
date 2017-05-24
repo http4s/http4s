@@ -5,8 +5,8 @@ import java.nio.ByteBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 import fs2._
-import org.http4s.batteries._
 import org.http4s.blaze.pipeline.TailStage
+import org.http4s.util.chunk._
 import org.log4s.getLogger
 
 class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])

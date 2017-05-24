@@ -7,10 +7,12 @@ import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 
 import cats._
+import cats.implicits._
 import fs2._
 import fs2.io._
 import fs2.util.{Catchable, Suspendable}
-import org.http4s.batteries._
+import fs2.interop.cats._
+import org.http4s.util.chunk._
 import org.http4s.headers.`Content-Type`
 // TODO fs2 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scodec.bits.ByteVector

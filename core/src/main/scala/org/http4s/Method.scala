@@ -3,7 +3,7 @@ package org.http4s
 import scala.collection.concurrent.TrieMap
 
 import cats._
-import org.http4s.batteries._
+import cats.implicits._
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Writer, Renderable}
 

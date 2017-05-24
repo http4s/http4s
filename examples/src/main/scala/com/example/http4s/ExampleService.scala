@@ -28,8 +28,8 @@ object ExampleService {
   // service with the longest matching prefix.
   def service(implicit ec: ExecutionContext = ExecutionContext.global): HttpService = Router(
     "" -> rootService,
-    "/auth" -> authService
-    // TODO fs2 port "/science" -> ScienceExperiments.service
+    "/auth" -> authService,
+    "/science" -> ScienceExperiments.service
   )
    */
 
@@ -178,13 +178,13 @@ object ExampleService {
 
   def helloWorldService = Ok("Hello World!")
 
+  implicit val defaultStrategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.global)
   implicit val defaultScheduler = Scheduler.fromFixedDaemonPool(1)
 
   // This is a mock data source, but could be a Process representing results from a database
-  def dataStream(n: Int)(implicit S: Strategy): Stream[Task, String] = {
+  def dataStream(n: Int): Stream[Task, String] = {
     val interval = 100.millis
-    // TODO fs2 port I'm not sure why Task.asyncInstance isn't inferred
-    val stream = time.awakeEvery(interval)(Task.asyncInstance, defaultScheduler)
+    val stream = time.awakeEvery[Task](interval)(Task.asyncInstance, defaultScheduler)
       .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
       .take(n.toLong)
 

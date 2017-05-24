@@ -15,7 +15,7 @@ import org.http4s.syntax.string._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import fs2.{Strategy, Task}
-import cats.syntax.either._
+import cats.implicits._
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
