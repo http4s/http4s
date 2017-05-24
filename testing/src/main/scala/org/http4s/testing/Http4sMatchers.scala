@@ -29,13 +29,13 @@ trait Http4sMatchers extends Matchers with IOMatchers {
       m.flatMap(_.as[A]) aka "the returned message body"
     }
 
-  def haveHeaders[F[_]](a: Headers): Matcher[Message[F]] =
-    be(a) ^^ { m: Message[F] =>
+  def haveHeaders(a: Headers): Matcher[Message[IO]] =
+    be(a) ^^ { m: Message[IO] =>
       m.headers aka "the headers"
     }
 
-  def haveMediaType[F[_]](mt: MediaType): Matcher[Message[F]] =
-    beSome(mt) ^^ { m: Message[F] =>
+  def haveMediaType(mt: MediaType): Matcher[Message[IO]] =
+    beSome(mt) ^^ { m: Message[IO] =>
       m.headers.get(`Content-Type`).map(_.mediaType) aka "the media type header"
     }
 

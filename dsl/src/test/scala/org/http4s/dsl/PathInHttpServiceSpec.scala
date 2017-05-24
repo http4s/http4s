@@ -2,6 +2,7 @@ package org.http4s
 package dsl
 
 import cats.data.Validated._
+import cats.effect.IO
 import fs2._
 import org.http4s.util.nonEmptyList._
 
@@ -30,7 +31,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
 
-  val service = HttpService {
+  val service: HttpService[IO] = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
     case GET -> Root / LongVar(id) =>
@@ -66,11 +67,11 @@ object PathInHttpServiceSpec extends Http4sSpec {
       case Invalid(_) => BadRequest()
     }
     case r =>
-      NotFound("404 Not Found: " + r.pathInfo)
+      NotFound(s"404 Not Found: ${r.pathInfo}")
   }
 
-  def serve(req: Request): Response =
-    service.orNotFound(req).unsafeRun
+  def serve(req: Request[IO]): Response[IO] =
+    service.orNotFound(req).unsafeRunSync
 
   "Path DSL within HttpService" should {
     "GET /" in {

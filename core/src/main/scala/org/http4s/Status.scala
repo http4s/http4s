@@ -91,7 +91,6 @@ object Status {
   } yield status
 
   def register(status: Status): status.type = {
-    // Xor.Right, not right, for specific inference
     registry.set(status.code, Right(status))
     status
   }

@@ -1,11 +1,13 @@
 /*
-* Derived from Twitter Finagle.
-*
-* Original source:
-* https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/test/scala/com/twitter/finagle/http/path/PathSpec.scala
-*/
+ * Derived from Twitter Finagle.
+ *
+ * Original source:
+ * https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/test/scala/com/twitter/finagle/http/path/PathSpec.scala
+ */
 package org.http4s
 package dsl
+
+import cats.effect.IO
 
 class PathSpec extends Http4sSpec {
   "Path" should {
@@ -40,7 +42,7 @@ class PathSpec extends Http4sSpec {
     }
 
     "-> extractor /test.json" in {
-      val req = Request(method = Method.GET, uri = uri("/test.json"))
+      val req = Request[IO](method = Method.GET, uri = uri("/test.json"))
       (req match {
         case GET -> Root / "test.json" => true
         case _                         => false
@@ -48,18 +50,18 @@ class PathSpec extends Http4sSpec {
     }
 
     "-> extractor /foo/test.json" in {
-      val req = Request(method = Method.GET, uri = uri("/foo/test.json"))
+      val req = Request[IO](method = Method.GET, uri = uri("/foo/test.json"))
       (req match {
         case GET -> Root / "foo" / "test.json" => true
-        case _                         => false
+        case _                                 => false
       }) must beTrue
     }
 
-   "request path info extractor for /" in {
-      val req = Request(method = Method.GET, uri = uri("/"))
+    "request path info extractor for /" in {
+      val req = Request[IO](method = Method.GET, uri = uri("/"))
       (req match {
         case _ -> Root => true
-        case _ => false
+        case _         => false
       }) must beTrue
     }
 
@@ -94,15 +96,15 @@ class PathSpec extends Http4sSpec {
     "/: extractor" in {
       (Path("/1/2/3/test.json") match {
         case "1" /: "2" /: path => Some(path)
-        case _ => None
+        case _                  => None
       }) must_== Some(Path("/3/test.json"))
     }
 
     "/: should not crash without trailing slash" in {
       // Bug reported on Gitter
       Path("/cameras/1NJDOI") match {
-        case "cameras" /: _ /: "events" /: _ /: "exports" /: _=> false
-        case _ => true
+        case "cameras" /: _ /: "events" /: _ /: "exports" /: _ => false
+        case _                                                 => true
       }
     }
 
@@ -112,7 +114,7 @@ class PathSpec extends Http4sSpec {
         case _                           => false
       }) must beTrue
     }
-    
+
     "encoded chars" in {
       (Path("/foo%20bar/and%2For/1%2F2") match {
         case Root / "foo bar" / "and/or" / "1/2" => true
@@ -128,21 +130,21 @@ class PathSpec extends Http4sSpec {
     "Int extractor" in {
       (Path("/user/123") match {
         case Root / "user" / IntVar(userId) => userId == 123
-        case _                                => false
+        case _                              => false
       }) must beTrue
     }
 
     "Int extractor, invalid int" in {
       (Path("/user/invalid") match {
         case Root / "user" / IntVar(userId) => true
-        case _                                => false
+        case _                              => false
       }) must beFalse
     }
 
     "Int extractor, number format error" in {
       (Path("/user/2147483648") match {
         case Root / "user" / IntVar(userId) => true
-        case _                                => false
+        case _                              => false
       }) must beFalse
     }
 
@@ -151,13 +153,13 @@ class PathSpec extends Http4sSpec {
         "small positive number" in {
           (Path("/user/123") match {
             case Root / "user" / LongVar(userId) => userId == 123
-            case _                                 => false
+            case _                               => false
           }) must beTrue
         }
         "negative number" in {
           (Path("/user/-432") match {
             case Root / "user" / LongVar(userId) => userId == -432
-            case _                                 => false
+            case _                               => false
           }) must beTrue
         }
       }
@@ -165,13 +167,13 @@ class PathSpec extends Http4sSpec {
         "a word" in {
           (Path("/user/invalid") match {
             case Root / "user" / LongVar(userId) => true
-            case _ => false
+            case _                               => false
           }) must beFalse
         }
         "number but out of domain" in {
           (Path("/user/9223372036854775808") match {
             case Root / "user" / LongVar(userId) => true
-            case _                                 => false
+            case _                               => false
           }) must beFalse
         }
       }
