@@ -107,8 +107,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.7.3"
-  lazy val fs2Cats                          = "co.fs2"                 %% "fs2-cats"                  % "0.3.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.9.5"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.0-SNAPSHOT"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.1.0"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.2.3"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
