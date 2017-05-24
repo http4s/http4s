@@ -3,11 +3,9 @@ package circe
 
 import java.nio.ByteBuffer
 
-import cats.Applicative
 import cats.implicits._
+import cats.{Applicative, MonadError}
 import fs2.Chunk
-import fs2.util.Catchable
-import fs2.interop.cats.{kleisliCatchableInstance => _, _}
 import io.circe.jawn.CirceSupportParser.facade
 import io.circe.jawn._
 import io.circe.{Decoder, Encoder, Json, Printer}
@@ -16,13 +14,13 @@ import org.http4s.util.ByteVectorChunk
 import scodec.bits.ByteVector
 
 trait CirceInstances {
-  def jsonDecoderIncremental[F[_]: Catchable]: EntityDecoder[F, Json] =
+  def jsonDecoderIncremental[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Json] =
     jawn.jawnDecoder
 
-  def jsonDecoderByteBuffer[F[_]: Catchable]: EntityDecoder[F, Json] =
+  def jsonDecoderByteBuffer[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.`application/json`)(jsonDecoderByteBufferImpl[F])
 
-  private def jsonDecoderByteBufferImpl[F[_]: Catchable](msg: Message[F]): DecodeResult[F, Json] =
+  private def jsonDecoderByteBufferImpl[F[_]: MonadError[?[_], Throwable]](msg: Message[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(msg).flatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toBytes.values)
       if (bb.hasRemaining) {
@@ -39,9 +37,9 @@ trait CirceInstances {
       }
     }
 
-  implicit def jsonDecoder[F[_]: Catchable]: EntityDecoder[F, Json]
+  implicit def jsonDecoder[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Json]
 
-  def jsonDecoderAdaptive[F[_]: Catchable](cutoff: Long): EntityDecoder[F, Json] =
+  def jsonDecoderAdaptive[F[_]: MonadError[?[_], Throwable]](cutoff: Long): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
@@ -50,12 +48,12 @@ trait CirceInstances {
       }
     }
 
-  def jsonOf[F[_], A](implicit C: Catchable[F], decoder: Decoder[A]): EntityDecoder[F, A] =
-    jsonDecoder.flatMapR { json =>
+  def jsonOf[F[_]: MonadError[?[_], Throwable], A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonDecoder[F].flatMapR { json =>
       decoder.decodeJson(json).fold(
-        failure => DecodeResult.failure[F, A](InvalidMessageBodyFailure(
+        failure => DecodeResult.failure(InvalidMessageBodyFailure(
           s"Could not decode JSON: $json", Some(failure))),
-        DecodeResult.success[F, A]
+        DecodeResult.success(_)
       )
     }
 
@@ -89,11 +87,11 @@ object CirceInstances {
   def withPrinter(p: Printer): CirceInstances = {
     new CirceInstances {
       val defaultPrinter: Printer = p
-      def jsonDecoder[F[_]: Catchable]: EntityDecoder[F, Json] = defaultJsonDecoder
+      def jsonDecoder[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Json] = defaultJsonDecoder
     }
   }
 
   // default cutoff value is based on benchmarks results
-  def defaultJsonDecoder[F[_]: Catchable]: EntityDecoder[F, Json] =
+  def defaultJsonDecoder[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Json] =
     jsonDecoderAdaptive(cutoff = 100000)
 }
