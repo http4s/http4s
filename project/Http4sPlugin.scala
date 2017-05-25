@@ -107,8 +107,8 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.31"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.5"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.32"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.6"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.8.0"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
@@ -123,7 +123,7 @@ object Http4sPlugin extends AutoPlugin {
   def jawnStreamz(scalazVersion: String)    = "org.http4s"             %% "jawn-streamz"              % "0.10.1" forScalaz scalazVersion
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.4.v20170414"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
-  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.1"
+  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.2"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.1" // YourKit hack

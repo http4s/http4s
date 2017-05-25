@@ -1,4 +1,4 @@
-# v0.16.0-M2 (@017-04-30)
+# v0.16.0-M2 (2017-04-30)
 * Upgraded dependencies:
     * argonaut-6.2
     * jetty-9.4.4.v20170414
@@ -55,6 +55,14 @@
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
+
+# v0.15.13 (2017-05-25)
+* Patch-level upgrades to dependencies:
+    * async-http-client-2.0.32
+    * blaze-0.12.6 (fixes infinite loop in some SSL handshakes)
+    * jetty-9.3.19.v20170502
+    * json4s-3.5.2
+    * tomcat-8.0.44
 
 # v0.15.12 (2017-05-11)
 * Fix GZip middleware to render a correct stream
