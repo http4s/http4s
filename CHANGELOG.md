@@ -1,4 +1,4 @@
-# v0.15.13
+# v0.15.13 (2017-05-25)
 * Patch-level upgrades to dependencies:
     * async-http-client-2.0.32
     * blaze-0.12.6 (fixes infinite loop in some SSL handshakes)
