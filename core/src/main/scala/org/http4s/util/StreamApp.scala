@@ -8,7 +8,7 @@ import org.log4s.getLogger
 trait StreamApp {
   private[this] val logger = getLogger
 
-  def stream(args: List[String]): Stream[Task, Unit]
+  def stream(args: List[String]): Stream[Task, Nothing]
 
   private implicit val strategy: Strategy = Strategy.sequential
 
