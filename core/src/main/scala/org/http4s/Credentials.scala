@@ -53,6 +53,7 @@ object Credentials {
           case c => writer << c
         }
         writer << '"'
+        ()
       }
       writer
     }
