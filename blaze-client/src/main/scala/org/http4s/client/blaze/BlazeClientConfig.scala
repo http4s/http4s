@@ -1,13 +1,19 @@
-package org.http4s.client
+package org.http4s
+package client
 package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
+import java.nio.charset.{ Charset => NioCharset, StandardCharsets }
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import org.http4s.headers.`User-Agent`
+import org.http4s.parser.RequestUriParser
+import org.http4s.syntax.string._
 
 import scala.concurrent.duration.Duration
+import scala.util.Try
+import scala.util.matching.Regex
 
 /** Config object for the blaze clients
   *
@@ -48,10 +54,15 @@ final case class BlazeClientConfig(// HTTP properties
                                    // pipeline management
                                    bufferSize: Int,
                                    customExecutor: Option[ExecutorService],
-                                   group: Option[AsynchronousChannelGroup]
+                                   group: Option[AsynchronousChannelGroup],
+
+                                   proxy: PartialFunction[RequestKey, ProxyConfig]
 ) {
   @deprecated("Parameter has been renamed to `checkEndpointIdentification`", "0.16")
   def endpointAuthentication: Boolean = checkEndpointIdentification
+
+  def withProxy(pf: PartialFunction[RequestKey, ProxyConfig]) =
+    copy(proxy = pf)
 }
 
 object BlazeClientConfig {
@@ -72,7 +83,9 @@ object BlazeClientConfig {
 
       bufferSize = bits.DefaultBufferSize,
       customExecutor = None,
-      group = None
+      group = None,
+
+      proxy = systemPropertiesProxyConfig
     )
 
   /**

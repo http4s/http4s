@@ -19,18 +19,27 @@ package org.http4s
 package parser
 
 import org.http4s.internal.parboiled2.{Rule0, Rule1, ParserInput}
-import org.http4s.headers.Authorization
+import org.http4s.headers.{ Authorization, `Proxy-Authorization` }
 import org.http4s.syntax.string._
 
 private[parser] trait AuthorizationHeader {
   def AUTHORIZATION(value: String): ParseResult[`Authorization`] =
-    new AuthorizationParser(value).parse
+    new AuthorizationParser[Authorization](value) {
+      def entry: Rule1[Authorization] = rule {
+        CredentialDef ~ EOI ~> (Authorization(_))
+      }
+    }.parse
+
+  def PROXY_AUTHORIZATION(value: String): ParseResult[`Proxy-Authorization`] =
+    new AuthorizationParser[`Proxy-Authorization`](value) {
+      def entry: Rule1[`Proxy-Authorization`] = rule {
+        CredentialDef ~ EOI ~> (`Proxy-Authorization`(_))
+      }
+    }.parse
 
   // scalastyle:off public.methods.have.type
-  private class AuthorizationParser(input: ParserInput) extends Http4sHeaderParser[Authorization](input) {
-    def entry: Rule1[Authorization] = rule {
-      CredentialDef ~ EOI ~> (Authorization(_))
-    }
+  private abstract class AuthorizationParser[T <: Header](input: ParserInput)
+      extends Http4sHeaderParser[T](input) {
 
     def CredentialDef = rule {
       BasicCredentialDef | OAuth2BearerTokenDef | GenericHttpCredentialsDef
