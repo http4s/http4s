@@ -2,6 +2,7 @@ package org.http4s
 
 import java.net.InetSocketAddress
 
+import cats.effect.IO
 import fs2._
 import org.http4s.headers.`Content-Type`
 
@@ -68,13 +69,13 @@ class MessageSpec extends Http4sSpec {
     "decode" >> {
       "produce a UnsupportedMediaType in the event of a decode failure" >> {
         "MediaTypeMismatch" in {
-          val req = Request(headers = Headers(`Content-Type`(MediaType.`application/base64`)))
-          val resp = req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response()))
+          val req = Request[IO](headers = Headers(`Content-Type`(MediaType.`application/base64`)))
+          val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
           resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }
         "MediaTypeMissing" in {
-          val req = Request()
-          val resp = req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response()))
+          val req = Request[IO]()
+          val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
           resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }
       }

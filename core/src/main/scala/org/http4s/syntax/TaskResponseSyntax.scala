@@ -3,7 +3,6 @@ package syntax
 
 import cats._
 import cats.implicits._
-import fs2.Task
 
 trait TaskResponseSyntax {
   implicit def http4sTaskResponseSyntax[F[+_]: Monad](resp: F[Response[F]]): TaskResponseOps[F] =

@@ -86,7 +86,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
    * task might not complete unless the entire body has been consumed.
    */
-  def trailerHeaders: Task[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(Task.now(Headers.empty))
+  def trailerHeaders(implicit F: Applicative[F]): F[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(F.pure(Headers.empty))
 
   /** Decode the [[Message]] to the specified type
     *
@@ -100,7 +100,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
 
 object Message {
   object Keys {
-    val TrailerHeaders = AttributeKey.http4s[Task[Headers]]("trailer-headers")
+    def TrailerHeaders[F[_]]: AttributeKey[F[Headers]] = AttributeKey.http4s[F[Headers]]("trailer-headers")
   }
 }
 

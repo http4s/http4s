@@ -527,9 +527,9 @@ lazy val noCoverageSettings = Seq(
 def initCommands(additionalImports: String*) =
   initialCommands := (List(
     "fs2._",
-    "fs2.interop.cats._",
     "cats._",
     "cats.data._",
+    "cats.effect.IO",
     "cats.implicits._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 

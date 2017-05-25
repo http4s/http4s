@@ -3,7 +3,6 @@ package org.http4s
 import cats._
 import cats.data._
 import cats.implicits._
-import fs2.Task
 
 object DecodeResult {
   def apply[F[_], A](fa: F[Either[DecodeFailure, A]]): DecodeResult[F, A] =

@@ -14,8 +14,9 @@ import fs2.io._
 import org.http4s.headers._
 
 import scala.annotation.implicitNotFound
+import scala.concurrent.{ExecutionContext, Future}
 
-@implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.")
+@implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
 trait EntityEncoder[F[_], A] { self =>
 
   /** Convert the type `A` to an [[EntityEncoder.Entity]] in the `Task` monad */
@@ -146,7 +147,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
-    inputStreamEncoder[F].contramap(file => F.delay(new FileInputStream(file)))
+    inputStreamEncoder[F, FileInputStream].contramap(file => F.delay(new FileInputStream(file)))
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
@@ -154,14 +155,14 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     fileEncoder[F].contramap(_.toFile)
 
   // TODO parameterize chunk size
-  implicit def inputStreamEncoder[F[_]: Sync]: EntityEncoder[F, F[InputStream]] =
-    streamEncoder[F, Byte].contramap { in: F[InputStream] =>
-      readInputStream[F](in, DefaultChunkSize)
+  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
+    streamEncoder[F, Byte].contramap { in: F[IS] =>
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_]](implicit F: Sync[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[Reader]] =
-    streamEncoder[F, Byte].contramap { r: F[Reader] =>
+  implicit def readerEncoder[F[_], R <: Reader](implicit F: Sync[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
+    streamEncoder[F, Byte].contramap { r: F[R] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
       val readToBytes: F[Option[Chunk[Byte]]] = r.map { r =>
@@ -183,7 +184,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
         }
       }
 
-      def useReader(is: Reader) =
+      def useReader(is: R) =
         Stream.eval(readToBytes)
           .repeat
           .through(pipe.unNoneTerminate)

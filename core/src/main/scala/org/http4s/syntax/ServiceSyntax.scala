@@ -3,7 +3,6 @@ package syntax
 
 import cats._
 import cats.implicits._
-import fs2.Task
 
 trait ServiceSyntax {
   implicit def http4sServiceSyntax[F[_], A, B](service: Service[F, A, B]): ServiceOps[F, A, B] =

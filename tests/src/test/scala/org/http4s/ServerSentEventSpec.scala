@@ -1,13 +1,15 @@
 package org.http4s
 
-import fs2.{Chunk, Stream, Task}
+import cats.effect.IO
+import fs2.Stream
+import fs2.text.utf8Encode
 import org.http4s.headers._
 
 class ServerSentEventSpec extends Http4sSpec {
   import ServerSentEvent._
 
-  def toStream(s: String): Stream[Task, Byte] =
-    Stream.emit[Task, String](s).through(fs2.text.utf8Encode)
+  def toStream(s: String): Stream[IO, Byte] =
+    Stream.emit[IO, String](s).through(utf8Encode)
 
   "decode" should {
     "decode multi-line messages" in {
@@ -16,7 +18,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data: +2
       |data: 10
       |""".stripMargin('|'))
-      stream.through(ServerSentEvent.decoder).runLog.unsafeRun must_== Vector(
+      stream.through(ServerSentEvent.decoder).runLog.unsafeRunSync must_== Vector(
         ServerSentEvent(data = "YHOO\n+2\n10")
       )
     }
@@ -33,7 +35,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data:  third event
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.through(ServerSentEvent.decoder).runLog.unsafeRun must_== Vector(
+      stream.through(ServerSentEvent.decoder).runLog.unsafeRunSync must_== Vector(
         ServerSentEvent(data = "first event", id = Some(EventId("1"))),
         ServerSentEvent(data = "second event", id = Some(EventId.reset)),
         ServerSentEvent(data = " third event", id = None)
@@ -50,7 +52,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data:
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.through(ServerSentEvent.decoder).runLog.unsafeRun must_== Vector(
+      stream.through(ServerSentEvent.decoder).runLog.unsafeRunSync must_== Vector(
         ServerSentEvent(data = ""),
         ServerSentEvent(data = "\n"),
         ServerSentEvent(data = "")
@@ -64,7 +66,7 @@ class ServerSentEventSpec extends Http4sSpec {
       |data: test
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
-      stream.through(ServerSentEvent.decoder).runLog.unsafeRun must_== Vector(
+      stream.through(ServerSentEvent.decoder).runLog.unsafeRunSync must_== Vector(
         ServerSentEvent(data = "test"),
         ServerSentEvent(data = "test")
       )
@@ -73,34 +75,34 @@ class ServerSentEventSpec extends Http4sSpec {
 
   "encode" should {
     "be consistent with decode" in prop { sses: Vector[ServerSentEvent] =>
-      val roundTrip = Stream.emits[Task, ServerSentEvent](sses)
+      val roundTrip = Stream.emits[IO, ServerSentEvent](sses)
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
         .runLog
-        .unsafeRun
+        .unsafeRunSync
       roundTrip must_== sses
     }
 
     "handle leading spaces" in {
       // This is a pathological case uncovered by scalacheck
       val sse = ServerSentEvent(" a",Some(" b"),Some(EventId(" c")),Some(1L))
-      Stream.emit[Task, ServerSentEvent](sse)
+      Stream.emit[IO, ServerSentEvent](sse)
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
         .runLast
-        .unsafeRun must beSome(sse)
+        .unsafeRunSync must beSome(sse)
     }
   }
 
   "EntityEncoder[ServerSentEvent]" should {
-    val eventStream = Stream.range[Task](0, 5).map(i => ServerSentEvent(data = i.toString))
+    val eventStream = Stream.range[IO](0, 5).map(i => ServerSentEvent(data = i.toString))
     "set Content-Type to text/event-stream" in {
-      Response().withBody(eventStream).unsafeRun.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
+      Response[IO]().withBody(eventStream).unsafeRunSync.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
     }
 
     "decode to original event stream" in {
-      val resp = Response().withBody(eventStream).unsafeRun
-      resp.body.through(ServerSentEvent.decoder).runLog.unsafeRun must_== eventStream.runLog.unsafeRun
+      val resp = Response[IO]().withBody(eventStream).unsafeRunSync
+      resp.body.through(ServerSentEvent.decoder).runLog.unsafeRunSync must_== eventStream.runLog.unsafeRunSync
     }
   }
 }

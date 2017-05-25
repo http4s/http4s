@@ -4,7 +4,6 @@ package syntax
 import cats._
 import cats.data.EitherT
 import cats.implicits._
-import fs2.Task
 
 trait TaskMessageOps[F[+_], M <: Message[F]] extends Any with MessageOps[F] {
   type Self = F[M#Self]

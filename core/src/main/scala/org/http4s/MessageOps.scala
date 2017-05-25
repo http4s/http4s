@@ -68,8 +68,8 @@ trait MessageOps[F[_]] extends Any {
   final def putHeaders(headers: Header*)(implicit F: Functor[F]): Self =
     transformHeaders(_.put(headers: _*))
 
-  final def withTrailerHeaders(trailerHeaders: Task[Headers])(implicit F: Functor[F]): Self =
-    withAttribute(Message.Keys.TrailerHeaders, trailerHeaders)
+  final def withTrailerHeaders(trailerHeaders: F[Headers])(implicit F: Functor[F]): Self =
+    withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
 
   /** Decode the [[Message]] to the specified type
     *

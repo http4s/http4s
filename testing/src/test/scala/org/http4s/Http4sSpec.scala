@@ -50,12 +50,9 @@ trait Http4sSpec extends Specification
   with IOMatchers
   with Http4sMatchers
 {
-  def testPool: ExecutorService =
-    Http4sSpec.TestPool
-  implicit def testExecutionContext: ExecutionContext =
-    Http4sSpec.TestExecutionContext
-  implicit def testScheduler: Scheduler =
-    Http4sSpec.TestScheduler
+  def testPool: ExecutorService                       = Http4sSpec.TestPool
+  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
+  implicit def testScheduler: Scheduler               = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
 
@@ -90,15 +87,15 @@ trait Http4sSpec extends Specification
 
   def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties) { case (name, prop) => 
-      Fragments(name in check(prop, p, f)) 
+    addFragments(Fragments.foreach(props.properties) { case (name, prop) =>
+      Fragments(name in check(prop, p, f))
     })
   }
 
   def checkAll(props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties) { case (name, prop) => 
-      Fragments(name in check(prop, p, f)) 
+    addFragments(Fragments.foreach(props.properties) { case (name, prop) =>
+      Fragments(name in check(prop, p, f))
     })
   }
 
