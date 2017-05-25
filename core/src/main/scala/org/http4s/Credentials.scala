@@ -39,21 +39,16 @@ object Credentials {
     def render(writer: Writer): writer.type = {
       writer << authScheme
       writer << ' '
-      var first = true
-      params.foreach { case (k, v) =>
-        if (first) first = false
-        else writer.append(',')
 
-        if (k.isEmpty) writer << '"'
-        else writer<< k << '=' << '"'
-
-        v.foreach {
-          case '"' => writer << '\\' << '"'
-          case '\\' => writer << '\\' << '\\'
-          case c => writer << c
-        }
-        writer << '"'
+      def renderParam(k: String, v: String) = {
+        writer << k << '='
+        writer.quote(v)
         ()
+      }
+      renderParam(params.head._1, params.head._2)
+      params.tail.foreach { case (k, v) =>
+        writer.append(',')
+        renderParam(k, v)
       }
       writer
     }
