@@ -12,10 +12,10 @@ import fs2.Stream._
 import fs2._
 import fs2.io._
 import org.http4s.headers._
+import org.http4s.syntax.async._
 
 import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 @implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
 trait EntityEncoder[F[_], A] { self =>
@@ -95,12 +95,8 @@ trait EntityEncoderInstances0 {
   implicit def futureEncoder[F[_], A](implicit F: Async[F], ec: ExecutionContext, W: EntityEncoder[F, A]): EntityEncoder[F, Future[A]] =
     new EntityEncoder[F, Future[A]] {
       override def toEntity(future: Future[A]): F[Entity[F]] =
-        F.async[A] { cb =>
-          future.onComplete {
-            case Failure(e) => cb(Left(e))
-            case Success(a) => cb(Right(a))
-          }
-        }.flatMap(W.toEntity)
+        F.fromFuture(future).flatMap(W.toEntity)
+
       override def headers: Headers = Headers.empty
     }
 
