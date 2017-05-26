@@ -3,7 +3,6 @@ package org.http4s
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import cats._
 import cats.effect.IO
 import fs2._
 import org.http4s.headers._
@@ -25,12 +24,10 @@ class EntityEncoderSpec extends Http4sSpec {
       writeToString(hello.getBytes(StandardCharsets.UTF_8)) must_== hello
     }
 
-    /* TODO: fs2-0.10 futureEncoder is tricky
     "render futures" in {
       val hello = "Hello"
       writeToString(Future(hello)) must_== hello
     }
-    */
 
     "render IOs" in {
       val hello = "Hello"
@@ -59,9 +56,9 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "render processes with chunked transfer encoding without duplicating chunked transfer encoding" in {
       trait Foo
-      implicit val FooEncoder: EntityEncoder[IO, Foo] =
+      implicit val FooEncoder =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ => IO.pure(Entity.empty))
-      implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+      EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
     }

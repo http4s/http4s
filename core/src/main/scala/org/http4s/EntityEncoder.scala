@@ -5,7 +5,7 @@ import java.nio.CharBuffer
 import java.nio.file.Path
 
 import cats._
-import cats.effect.Sync
+import cats.effect.{Async, Sync}
 import cats.functor._
 import cats.implicits._
 import fs2.Stream._
@@ -15,11 +15,12 @@ import org.http4s.headers._
 
 import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 @implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
 trait EntityEncoder[F[_], A] { self =>
 
-  /** Convert the type `A` to an [[EntityEncoder.Entity]] in the `Task` monad */
+  /** Convert the type `A` to an [[EntityEncoder.Entity]] in the effect type `F` */
   def toEntity(a: A): F[Entity[F]]
 
   /** Headers that may be added to a [[Message]]
@@ -82,7 +83,7 @@ trait EntityEncoderInstances0 {
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
    def showEncoder[F[_]: Applicative, A](implicit charset: Charset = DefaultCharset, show: Show[A]): EntityEncoder[F, A] = {
-    val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
+     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
      simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
   }
 
@@ -90,6 +91,18 @@ trait EntityEncoderInstances0 {
     def toEntity(a: A): F[Entity[F]] = F.pure(Entity.empty)
     def headers: Headers = Headers.empty
   }
+
+  implicit def futureEncoder[F[_], A](implicit F: Async[F], ec: ExecutionContext, W: EntityEncoder[F, A]): EntityEncoder[F, Future[A]] =
+    new EntityEncoder[F, Future[A]] {
+      override def toEntity(future: Future[A]): F[Entity[F]] =
+        F.async[A] { cb =>
+          future.onComplete {
+            case Failure(e) => cb(Left(e))
+            case Success(a) => cb(Right(a))
+          }
+        }.flatMap(W.toEntity)
+      override def headers: Headers = Headers.empty
+    }
 
   /**
    * A stream encoder is intended for streaming, and does not calculate its
