@@ -529,7 +529,7 @@ def initCommands(additionalImports: String*) =
     "fs2._",
     "cats._",
     "cats.data._",
-    "cats.effect.IO",
+    "cats.effect._",
     "cats.implicits._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 

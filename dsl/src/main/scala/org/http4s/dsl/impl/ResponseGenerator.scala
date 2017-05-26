@@ -20,8 +20,8 @@ trait ResponseGenerator extends Any {
  * val resp: F[Response] = Status.Continue()
  * }}}
  */
-trait EmptyResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]]()(implicit F: Applicative[F]): F[Response[F]] = F.pure(Response(status))
+trait EmptyResponseGenerator[F[_]] extends Any with ResponseGenerator {
+  def apply()(implicit F: Applicative[F]): F[Response[F]] = F.pure(Response(status))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
@@ -33,11 +33,11 @@ trait EmptyResponseGenerator extends Any with ResponseGenerator {
   * val resp: IO[Response] = Ok("Hello world!")
   * }}}
   */
-trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
-  def apply[F[_], A](body: A)(implicit F: Applicative[F], FM: FlatMap[F], w: EntityEncoder[F, A]): F[Response[F]] =
+trait EntityResponseGenerator[F[_]] extends Any with EmptyResponseGenerator[F] {
+  def apply[A](body: A)(implicit F: Applicative[F], FM: FlatMap[F], w: EntityEncoder[F, A]): F[Response[F]] =
     apply(body, Headers.empty)(F, FM, w)
 
-  def apply[F[_], A](body: A, headers: Headers)
+  def apply[A](body: A, headers: Headers)
                     (implicit F: Applicative[F], FM: FlatMap[F], w: EntityEncoder[F, A]): F[Response[F]] = {
     var h = w.headers ++ headers
     w.toEntity(body).flatMap { entity =>
@@ -47,17 +47,17 @@ trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
   }
 }
 
-trait LocationResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]](location: Uri)(implicit F: Applicative[F]): F[Response[F]] =
+trait LocationResponseGenerator[F[_]] extends Any with ResponseGenerator {
+  def apply(location: Uri)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response[F](status).putHeaders(Location(location)))
 }
 
-trait WwwAuthenticateResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]](challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
+trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
+  def apply(challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response[F](status).putHeaders(`WWW-Authenticate`(challenge, challenges: _*)))
 }
 
-trait ProxyAuthenticateResponseGenerator extends Any with ResponseGenerator {
-  def apply[F[_]](challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
+trait ProxyAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
+  def apply(challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response[F](status).putHeaders(`Proxy-Authenticate`(challenge, challenges: _*)))
 }
