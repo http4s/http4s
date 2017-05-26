@@ -3,8 +3,8 @@ package syntax
 
 trait AllSyntax extends AnyRef
     with AsyncSyntax
+    with EffectResponseSyntax
+    with EffectRequestSyntax
     with ServiceSyntax
     with StreamCatsSyntax
     with StringSyntax
-    with TaskResponseSyntax
-    with TaskRequestSyntax
