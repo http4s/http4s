@@ -50,8 +50,7 @@ object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not match a request with POST" in {
       val req = Request(POST, Uri(path = "/test-lib/1.0.0/testresource.txt"))
-
-      runReq(req) must throwA[MatchError]
+      s.apply(req) must returnValue(Pass)
     }
   }
 }
