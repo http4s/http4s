@@ -19,7 +19,7 @@ object ScalazPlugin extends AutoPlugin {
   override def trigger = allRequirements
 
   override lazy val projectSettings = Seq(
-    scalazVersion := sys.env.get("SCALAZ_VERSION").getOrElse("7.2.11"),
+    scalazVersion := sys.env.get("SCALAZ_VERSION").getOrElse("7.2.13"),
     scalazVersionRewriter := scalazVersionRewriters.default,
     version := scalazVersionRewriter.value(version.value, scalazVersion.value),
     unmanagedSourceDirectories in Compile +=
