@@ -1,13 +1,15 @@
 package org.http4s
 package client
 
+import scala.collection.mutable.ListBuffer
+
+import cats.data.NonEmptyList
+import fs2.Task
 import java.nio.charset.StandardCharsets
 import javax.crypto
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
-import scala.collection.mutable.ListBuffer
-import fs2.Task
 
 /** Basic OAuth1 message signing support
   *
@@ -50,7 +52,8 @@ package object oauth1 {
 
     val baseString = genBaseString(method, uri, params ++ userParams.map{ case (k,v) => (encode(k), encode(v))})
     val sig = makeSHASig(baseString, consumer, token)
-    val creds = GenericCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> encode(sig)))
+    val creds = Credentials.AuthParams("OAuth".ci,
+      NonEmptyList("oauth_signature" -> encode(sig), params))
 
     Authorization(creds)
   }

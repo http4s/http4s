@@ -15,6 +15,27 @@
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
 
+# v0.16.0-M3 (2017-05-25)
+* Fix `WebjarService` so it matches assets.
+* `ServerApp` overrides `process` to leave a single abstract method
+* Add gzip trailer in `GZip` middleware
+* Upgraded dependencies:
+    * circe-0.8.0
+    * jetty-9.4.5.v20170502
+    * scalaz-7.2.13
+    * tomcat-8.5.15
+* `ProcessApp` uses a `Process[Task, Nothing]` rather than a 
+  `Process[Task, Unit]`
+* `Credentials` is split into `Credentials.AuthParams` for key-value pairs and
+  `Credentials.Token` for legacy token-based schemes.  `OAuthBearerToken` is
+  subsumed by `Credentials.Token`.  `BasicCredentials` no longer extends
+  `Credentials`, but is extractable from one.  This model permits the
+  definition of other arbitrary credential schemes.
+* Add `fromSeq` constructor to `UrlForm`
+* Allow `WebjarService` to pass on methods other than `GET`.  It previously
+  threw a `MatchError`.
+>>>>>>> release-0.16.x
+
 # v0.16.0-M2 (2017-04-30)
 * Upgraded dependencies:
     * argonaut-6.2

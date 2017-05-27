@@ -41,7 +41,7 @@ object BasicAuth {
 
   private def validatePassword[A](validate: BasicAuthenticator[A], req: Request): Task[Option[A]] = {
     req.headers.get(Authorization) match {
-      case Some(Authorization(creds: BasicCredentials)) =>
+      case Some(Authorization(BasicCredentials(creds))) =>
         validate(creds)
       case _ =>
         Task.now(None)

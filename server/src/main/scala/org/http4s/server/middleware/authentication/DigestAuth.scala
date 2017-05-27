@@ -74,7 +74,7 @@ object DigestAuth {
   }
 
   private def checkAuth[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[AuthReply[A]] = req.headers.get(Authorization) match {
-    case Some(Authorization(GenericCredentials(AuthScheme.Digest, params))) =>
+    case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
       checkAuthParams(realm, store, nonceKeeper, req, params)
     case Some(Authorization(_)) =>
       Task.now(NoCredentials)
@@ -91,7 +91,8 @@ object DigestAuth {
       m
   }
 
-  private def checkAuthParams[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request, params: Map[String, String]): Task[AuthReply[A]] = {
+  private def checkAuthParams[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request, paramsNel: NonEmptyList[(String, String)]): Task[AuthReply[A]] = {
+    val params = paramsNel.toList.toMap
     if (!(Set("realm", "nonce", "nc", "username", "cnonce", "qop") subsetOf params.keySet))
       return Task.now(BadParameters)
 
