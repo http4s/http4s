@@ -49,7 +49,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply(config: Config): HttpService = Service.lift {
+  def apply(config: Config): HttpService = Service {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)
