@@ -12,8 +12,10 @@ import fs2.io.file.{FileHandle, pulls}
 import fs2.util.Suspendable
 import org.http4s.Status.NotModified
 import org.http4s.headers._
+import org.http4s.util.ByteVectorChunk
 import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
+import scodec.bits.ByteVector
 
 // TODO: consider using the new scalaz.stream.nio.file operations
 object StaticFile {
@@ -43,6 +45,10 @@ object StaticFile {
       Some(Response(
         headers = headers,
         body    = readInputStream[Task](Task.delay(url.openStream), DefaultBufferSize)
+          // These chunks wrap a mutable array, and we might be buffering
+          // or processing them concurrently later.  Convert to something
+          // immutable here for safety.
+          .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)))
       ))
     } else Some(Response(NotModified))
   }
