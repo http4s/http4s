@@ -524,7 +524,7 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
                           Cookie
                         </a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
+                        <a class="object" href="Credentials$.html" title=""></a>
                         <a class="class" href="Credentials.html" title=""></a>
                         <a href="Credentials.html" title="">
                           Credentials
@@ -592,12 +592,6 @@ then service.orElse can be used."></a>
 For any given B, if a Fallthrough[B] exists within implicit context
 then service.orElse can be used.">
                           Fallthrough
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="GenericCredentials.html" title=""></a>
-                        <a href="GenericCredentials.html" title="">
-                          GenericCredentials
                         </a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
@@ -788,12 +782,6 @@ EntityDecoder was lenient enough to accept it.">
                         <a class="trait" href="MethodInstances.html" title=""></a>
                         <a href="MethodInstances.html" title="">
                           MethodInstances
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="OAuth2BearerToken.html" title=""></a>
-                        <a href="OAuth2BearerToken.html" title="">
-                          OAuth2BearerToken
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="ParseFailure$.html" title=""></a>
@@ -1047,7 +1035,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/f29f7bea7f79dd7ddf3c9443b080997a2a9394b4/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/v0.17.0-M3/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1208,9 +1196,9 @@ for keys with the same label and same types.</p></div></div>
       
       
     </li><li name="org.http4s.BasicCredentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="BasicCredentialsextendsCredentialswithProductwithSerializable"></a><a id="BasicCredentials:BasicCredentials"></a>
+      <a id="BasicCredentialsextendsProductwithSerializable"></a><a id="BasicCredentials:BasicCredentials"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#BasicCredentialsextendsCredentialswithProductwithSerializable" title="Permalink">
+      <a href="../../org/http4s/index.html#BasicCredentialsextendsProductwithSerializable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1221,7 +1209,7 @@ for keys with the same label and same types.</p></div></div>
       <span class="symbol">
         <a title="" href="BasicCredentials.html">
               <span class="name">BasicCredentials</span>
-            </a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -1602,24 +1590,6 @@ then service.orElse can be used." href="Fallthrough.html">
       <p class="shortcomment cmt">Encapsulates the notion of fallthrough orElse for a Service
 For any given B, if a Fallthrough[B] exists within implicit context
 then <code>service.orElse</code> can be used.</p>
-    </li><li name="org.http4s.GenericCredentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a><a id="GenericCredentials:GenericCredentials"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#GenericCredentialsextendsCredentialswithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="GenericCredentials.html">
-              <span class="name">GenericCredentials</span>
-            </a><span class="params">(<span name="authScheme">authScheme: <a href="#AuthScheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.AuthScheme">AuthScheme</a></span>, <span name="params">params: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      
-      
     </li><li name="org.http4s.GenericDecodeFailure" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GenericDecodeFailureextendsDecodeFailurewithProductwithSerializable"></a><a id="GenericDecodeFailure:GenericDecodeFailure"></a>
       <span class="permalink">
@@ -2184,24 +2154,6 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <a title="" href="MethodInstances.html">
               <span class="name">MethodInstances</span>
             </a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.OAuth2BearerToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="OAuth2BearerTokenextendsCredentialswithProductwithSerializable"></a><a id="OAuth2BearerToken:OAuth2BearerToken"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#OAuth2BearerTokenextendsCredentialswithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="OAuth2BearerToken.html">
-              <span class="name">OAuth2BearerToken</span>
-            </a><span class="params">(<span name="token">token: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -3043,6 +2995,24 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
         <a title="" href="ContentCoding$.html">
               <span class="name">ContentCoding</span>
             </a><span class="result"> extends <span class="extype" name="org.http4s.util.Registry">Registry</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Credentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Credentials"></a><a id="Credentials:Credentials"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Credentials" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Credentials$.html">
+              <span class="name">Credentials</span>
+            </a>
       </span>
       
       

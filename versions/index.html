@@ -144,7 +144,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
     </thead>
     <tbody>
       <tr>
-        <td>0.17.0-M2</td>
+        <td>0.17.0-M3</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -154,7 +154,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0a-M2</td>
+        <td>0.16.0a-M3</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -164,7 +164,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0-M2</td>
+        <td>0.16.0-M3</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -305,7 +305,13 @@ After deliberations both internally and with <a href="https://github.com/http4s/
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-17-0-m2-2017-04-30">v0.17.0-M2 (2017-04-30)</h1>
+      <h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
+
+<ul>
+<li>Fix file corruption issue when serving static files from the classpath</li>
+</ul>
+
+<h1 id="v0-17-0-m2-2017-04-30">v0.17.0-M2 (2017-04-30)</h1>
 
 <ul>
 <li><code>Timeout</code> middleware takes an implicit <code>Scheduler</code> and
@@ -332,6 +338,32 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <li>Client retry middleware can&rsquo;t check idempotence of requests</li>
 <li>Utilties in <code>org.http4s.util.io</code> not yet ported</li>
 </ul></li>
+</ul>
+
+<h1 id="v0-16-0-m3-2017-05-25">v0.16.0-M3 (2017-05-25)</h1>
+
+<ul>
+<li>Fix <code>WebjarService</code> so it matches assets.</li>
+<li><code>ServerApp</code> overrides <code>process</code> to leave a single abstract method</li>
+<li>Add gzip trailer in <code>GZip</code> middleware</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>circe-0.8.0</li>
+<li>jetty-9.4.5.v20170502</li>
+<li>scalaz-7.2.13</li>
+<li>tomcat-8.5.15</li>
+</ul></li>
+<li><code>ProcessApp</code> uses a <code>Process[Task, Nothing]</code> rather than a
+<code>Process[Task, Unit]</code></li>
+<li><code>Credentials</code> is split into <code>Credentials.AuthParams</code> for key-value pairs and
+<code>Credentials.Token</code> for legacy token-based schemes.  <code>OAuthBearerToken</code> is
+subsumed by <code>Credentials.Token</code>.  <code>BasicCredentials</code> no longer extends
+<code>Credentials</code>, but is extractable from one.  This model permits the
+definition of other arbitrary credential schemes.</li>
+<li>Add <code>fromSeq</code> constructor to <code>UrlForm</code></li>
+<li>Allow <code>WebjarService</code> to pass on methods other than <code>GET</code>.  It previously
+threw a <code>MatchError</code>.</li>
 </ul>
 
 <h1 id="v0-16-0-m2-2017-04-30">v0.16.0-M2 (2017-04-30)</h1>
