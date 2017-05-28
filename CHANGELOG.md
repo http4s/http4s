@@ -1,3 +1,6 @@
+# v0.17.0-M3 (2017-05-27)
+* Fix file corruption issue when serving static files from the classpath
+
 # v0.17.0-M2 (2017-04-30)
 * `Timeout` middleware takes an implicit `Scheduler` and
   `ExecutionContext`
@@ -34,7 +37,6 @@
 * Add `fromSeq` constructor to `UrlForm`
 * Allow `WebjarService` to pass on methods other than `GET`.  It previously
   threw a `MatchError`.
->>>>>>> release-0.16.x
 
 # v0.16.0-M2 (2017-04-30)
 * Upgraded dependencies:

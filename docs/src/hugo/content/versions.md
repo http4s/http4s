@@ -71,7 +71,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	</thead>
 	<tbody>
       <tr>
-        <td>0.17.0-M2</td>
+        <td>0.17.0-M3</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
