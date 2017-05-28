@@ -9,12 +9,12 @@ class ResponseGeneratorSpec extends Http4sSpec {
 
   "Add the EntityEncoder headers along with a content-length header" in {
     val body          = "foo"
-    val resultheaders = Ok(body)(Applicative[IO], FlatMap[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
+    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
     EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
       old and (resultheaders.exists(_ == h) must_=== true)
     }
 
-    resultheaders.get(`Content-Length`) must_=== Some(`Content-Length`(body.getBytes.length.toLong))
+    resultheaders.get(`Content-Length`) must beSome(`Content-Length`(body.getBytes.length.toLong))
   }
 
   "Not duplicate headers when not provided" in {
@@ -24,7 +24,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
         EntityEncoder.stringEncoder[IO].toEntity(_)
       )
 
-    Ok("foo")(Applicative[IO], FlatMap[IO], w).map(_.headers.get(Accept)) must returnValue(
+    Ok("foo")(Monad[IO], w).map(_.headers.get(Accept)) must returnValue(
       beSome(Accept(MediaRange.`audio/*`)))
   }
 
@@ -35,7 +35,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     )
 
     val resp: IO[Response[IO]] =
-      Ok("foo", Headers(`Content-Type`(MediaType.`application/json`)))(Applicative[IO], FlatMap[IO], w)
+      Ok("foo", Headers(`Content-Type`(MediaType.`application/json`)))(Monad[IO], w)
     resp must returnValue(haveMediaType(MediaType.`application/json`))
   }
 
