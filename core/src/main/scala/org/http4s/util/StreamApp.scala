@@ -11,7 +11,7 @@ import org.log4s.getLogger
 abstract class StreamApp[F[_]: Effect] {
   private[this] val logger = getLogger(classOf[StreamApp[F]])
 
-  def stream(args: List[String]): Stream[F, Unit]
+  def stream(args: List[String]): Stream[F, Nothing]
 
   //  private implicit val strategy: Strategy = Strategy.sequential
   // TODO: Not sure what this should be

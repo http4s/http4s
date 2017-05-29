@@ -8,11 +8,13 @@ import java.time.Instant
 import cats.effect.Sync
 import fs2.Stream._
 import fs2._
+import fs2.interop.scodec.ByteVectorChunk
 import fs2.io._
 import fs2.io.file.{FileHandle, pulls}
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
+import scodec.bits.ByteVector
 
 // TODO: consider using the new scalaz.stream.nio.file operations
 object StaticFile {
@@ -42,6 +44,10 @@ object StaticFile {
       Some(Response(
         headers = headers,
         body    = readInputStream[F](F.delay(url.openStream), DefaultBufferSize)
+          // These chunks wrap a mutable array, and we might be buffering
+          // or processing them concurrently later.  Convert to something
+          // immutable here for safety.
+          .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)))
       ))
     } else Some(Response(NotModified))
   }

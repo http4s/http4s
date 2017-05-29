@@ -17,10 +17,10 @@ class StreamAppSpec extends Http4sSpec {
       * Takes the Process that constitutes the Process App
       * and observably cleans up when the process is stopped.
       */
-    class TestStreamApp(process: Stream[IO, Unit]) extends StreamApp {
+    class TestStreamApp(stream: Stream[IO, Nothing]) extends StreamApp[IO] {
       val cleanedUp : Signal[IO, Boolean] = async.signalOf[IO, Boolean](false).unsafeRunSync
-      override def stream(args: List[String]): Stream[IO, Unit] = {
-        process.onFinalize(cleanedUp.set(true))
+      override def stream(args: List[String]): Stream[IO, Nothing] = {
+        stream.onFinalize(cleanedUp.set(true))
       }
     }
 
@@ -34,8 +34,7 @@ class StreamAppSpec extends Http4sSpec {
 
     "Terminate Server on a Valid Process" in {
       val testApp = new TestStreamApp(
-        // emit one unit value
-        emit("Valid Process").map(_ => ())
+        emit("Valid Process").drain
       )
       testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafeRunSync should_== true

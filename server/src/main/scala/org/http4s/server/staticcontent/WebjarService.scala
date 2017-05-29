@@ -51,7 +51,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply[F[_]: Monad: Sync](config: Config[F]): HttpService[F] = Service.lift {
+  def apply[F[_]: Monad: Sync](config: Config[F]): HttpService[F] = Service {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)

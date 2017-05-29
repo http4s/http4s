@@ -84,7 +84,7 @@ object DigestAuth {
                                  req: Request[F])
                                 (implicit F: Applicative[F]): F[AuthReply[A]] =
     req.headers.get(Authorization) match {
-      case Some(Authorization(GenericCredentials(AuthScheme.Digest, params))) =>
+      case Some(Authorization(Credentials.AuthParams(AuthScheme.Digest, params))) =>
         checkAuthParams(realm, store, nonceKeeper, req, params)
       case Some(Authorization(_)) =>
         F.pure(NoCredentials)
@@ -107,8 +107,9 @@ object DigestAuth {
                                        store: AuthenticationStore[F, A],
                                        nonceKeeper: NonceKeeper,
                                        req: Request[F],
-                                       params: Map[String, String])
+                                       paramsNel: NonEmptyList[(String, String)])
                                       (implicit F: Applicative[F]): F[AuthReply[A]] = {
+    val params = paramsNel.toList.toMap
     if (!(Set("realm", "nonce", "nc", "username", "cnonce", "qop") subsetOf params.keySet))
       return F.pure(BadParameters)
 

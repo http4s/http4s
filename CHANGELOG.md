@@ -1,3 +1,6 @@
+# v0.17.0-M3 (2017-05-27)
+* Fix file corruption issue when serving static files from the classpath
+
 # v0.17.0-M2 (2017-04-30)
 * `Timeout` middleware takes an implicit `Scheduler` and
   `ExecutionContext`
@@ -14,6 +17,26 @@
 	* Web sockets not yet supported
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
+
+# v0.16.0-M3 (2017-05-25)
+* Fix `WebjarService` so it matches assets.
+* `ServerApp` overrides `process` to leave a single abstract method
+* Add gzip trailer in `GZip` middleware
+* Upgraded dependencies:
+    * circe-0.8.0
+    * jetty-9.4.5.v20170502
+    * scalaz-7.2.13
+    * tomcat-8.5.15
+* `ProcessApp` uses a `Process[Task, Nothing]` rather than a 
+  `Process[Task, Unit]`
+* `Credentials` is split into `Credentials.AuthParams` for key-value pairs and
+  `Credentials.Token` for legacy token-based schemes.  `OAuthBearerToken` is
+  subsumed by `Credentials.Token`.  `BasicCredentials` no longer extends
+  `Credentials`, but is extractable from one.  This model permits the
+  definition of other arbitrary credential schemes.
+* Add `fromSeq` constructor to `UrlForm`
+* Allow `WebjarService` to pass on methods other than `GET`.  It previously
+  threw a `MatchError`.
 
 # v0.16.0-M2 (2017-04-30)
 * Upgraded dependencies:
@@ -72,6 +95,14 @@
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
+
+# v0.15.13 (2017-05-25)
+* Patch-level upgrades to dependencies:
+    * async-http-client-2.0.32
+    * blaze-0.12.6 (fixes infinite loop in some SSL handshakes)
+    * jetty-9.3.19.v20170502
+    * json4s-3.5.2
+    * tomcat-8.0.44
 
 # v0.15.12 (2017-05-11)
 * Fix GZip middleware to render a correct stream

@@ -15,7 +15,7 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     this.getOrElse(key, Seq.empty[String])
 
   def getOrElse(key: String, default: => Seq[String]): Seq[String] =
-    values.get(key).getOrElse(default)
+    values.getOrElse(key, default)
 
   def getFirst(key: String): Option[String] =
     values.get(key).flatMap(_.headOption)
@@ -79,6 +79,9 @@ object UrlForm {
 
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
+
+  def fromSeq(values: Seq[(String, String)]): UrlForm =
+    apply(values: _*)
 
   implicit def entityEncoder[F[_]](implicit F: Applicative[F], charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
     EntityEncoder.stringEncoder[F]

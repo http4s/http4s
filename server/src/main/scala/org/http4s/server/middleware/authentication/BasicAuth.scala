@@ -42,7 +42,7 @@ object BasicAuth {
   private def validatePassword[F[_], A](validate: BasicAuthenticator[F, A], req: Request[F])
                                        (implicit F: Applicative[F]): F[Option[A]] = {
     req.headers.get(Authorization) match {
-      case Some(Authorization(creds: BasicCredentials)) =>
+      case Some(Authorization(BasicCredentials(creds))) =>
         validate(creds)
       case _ =>
         F.pure(None)
