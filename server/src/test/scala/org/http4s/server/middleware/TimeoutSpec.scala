@@ -3,26 +3,28 @@ package server
 package middleware
 
 import java.util.concurrent.atomic.AtomicBoolean
-import scala.concurrent.duration._
-import fs2._
-import fs2.Stream._
-import fs2.time._
+
+import cats.effect._
+import cats.implicits._
+import fs2.Scheduler
 import org.http4s.Http4sSpec._
 import org.http4s.dsl._
 
+import scala.concurrent.duration._
+
 class TimeoutSpec extends Http4sSpec {
 
-  val myService = HttpService {
+  val myService = HttpService[IO] {
     case _ -> Root / "fast" =>
       Ok("Fast")
     case _ -> Root / "slow" =>
-      Ok("Slow").async(TestScheduler.delayedStrategy(2.seconds))
+      delay(2.seconds, Ok("Slow"))
   }
 
-  val timeoutService = Timeout.apply(1.nanosecond)(myService)
+  val timeoutService = Timeout(1.nanosecond)(myService)
 
-  val fastReq = Request(GET, uri("/fast"))
-  val slowReq = Request(GET, uri("/slow"))
+  val fastReq = Request[IO](GET, uri("/fast"))
+  val slowReq = Request[IO](GET, uri("/slow"))
 
   "Timeout Middleware" should {
     "have no effect if the response is not delayed" in {
@@ -34,8 +36,8 @@ class TimeoutSpec extends Http4sSpec {
     }
 
     "return the provided response if the result takes too long" in {
-      val customTimeout = Response(Status.GatewayTimeout) // some people return 504 here.
-      val altTimeoutService = Timeout(1.nanosecond, Task.now(customTimeout))(myService)
+      val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
+      val altTimeoutService = Timeout(1.nanosecond, IO.pure(customTimeout))(myService)
       altTimeoutService.orNotFound(slowReq) must returnStatus (customTimeout.status)
     }
 
@@ -46,17 +48,23 @@ class TimeoutSpec extends Http4sSpec {
 
     "clean up resources of the loser" in {
       var clean = new AtomicBoolean(false)
-      val service = HttpService {
+      val service = HttpService[IO] {
         case _ =>
           for {
-            resp <- NoContent().schedule(2.seconds)
-            _    <- Task.delay(clean.set(true))
+            resp <- delay(2.seconds, NoContent())
+            _    <- IO(clean.set(true))
           } yield resp
       }
       val timeoutService = Timeout(1.millis)(service)
-      timeoutService.orNotFound(Request()) must returnStatus (InternalServerError)
+      timeoutService.orNotFound(Request[IO]()) must returnStatus (InternalServerError)
       // Give the losing response enough time to finish
       clean.get must beTrue.eventually
     }
   }
+
+  private def delay[F[_], A](duration: FiniteDuration, fa: F[A])
+                            (implicit F: Effect[F], scheduler: Scheduler): F[A] =
+    F.async { (cb: (Either[Throwable, F[A]]) => Unit) =>
+      scheduler.scheduleOnce(duration)(cb(Right(fa)))
+    }.flatten
 }

@@ -4,13 +4,14 @@ package staticcontent
 
 import java.nio.charset.StandardCharsets
 
+import cats.effect._
 import fs2._
+import fs2.interop.scodec.ByteVectorChunk
 import scodec.bits.ByteVector
-import org.http4s.util.ByteVectorChunk
 
 private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
 
-  def s: HttpService
+  def s: HttpService[IO]
 
   lazy val testResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream("/testresource.txt")
@@ -42,9 +43,9 @@ private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
         .getBytes(StandardCharsets.UTF_8))
   }
 
-  def runReq(req: Request): (ByteVector, Response) = {
-    val resp = s.orNotFound(req).unsafeRun
-    val body = resp.body.chunks.runLog.unsafeRun.foldLeft(ByteVector.empty) {
+  def runReq(req: Request[IO]): (ByteVector, Response[IO]) = {
+    val resp = s.orNotFound(req).unsafeRunSync
+    val body = resp.body.chunks.runLog.unsafeRunSync.foldLeft(ByteVector.empty) {
       (bv, chunk) => bv ++ ByteVector.view(chunk.toArray)
     }
     (body, resp)

@@ -5,17 +5,16 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
+import cats.effect._
+import fs2._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultPool
 
 import scala.concurrent.duration._
 
-import fs2._
-
-trait ServerBuilder {
+trait ServerBuilder[F[_]] {
   import ServerBuilder._
 
-  type Self <: ServerBuilder
+  type Self <: ServerBuilder[F]
 
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
@@ -28,26 +27,20 @@ trait ServerBuilder {
 
   def withServiceExecutor(executorService: ExecutorService): Self
 
-  def mountService[F[_]](service: HttpService[F], prefix: String = ""): Self
+  def mountService(service: HttpService[F], prefix: String = ""): Self
 
   /** Returns a task to start a server.  The task completes with a
     * reference to the server when it has started.
     */
-  def start: Task[Server]
-
-  /** Convenience method to run a server.  The method blocks
-    * until the server is started.
-    */
-  final def run: Server =
-    start.unsafeRun
+  def start: F[Server[F]]
 
   /**
    * Runs the server as a process that never emits.  Useful for a server
    * that runs for the rest of the JVM's life.
    */
-  final def serve: Stream[Task, Nothing] =
-    Stream.bracket(start)({s: Server =>
-      Stream.eval_(Task.async[Unit](_ => ())(Strategy.sequential))
+  final def serve(implicit F: Async[F]): Stream[F, Nothing] =
+    Stream.bracket(start)({ _: Server[F] =>
+      Stream.eval_(F.async[Unit](_ => ()))
     }, _.shutdown)
 }
 
@@ -59,14 +52,14 @@ object ServerBuilder {
   val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
 }
 
-trait IdleTimeoutSupport { this: ServerBuilder =>
+trait IdleTimeoutSupport[F[_]] { this: ServerBuilder[F] =>
   def withIdleTimeout(idleTimeout: Duration): Self
 }
 object IdleTimeoutSupport {
   val DefaultIdleTimeout = 30.seconds
 }
 
-trait AsyncTimeoutSupport { this: ServerBuilder =>
+trait AsyncTimeoutSupport[F[_]] { this: ServerBuilder[F] =>
   def withAsyncTimeout(asyncTimeout: Duration): Self
 }
 object AsyncTimeoutSupport {
@@ -83,7 +76,7 @@ final case class KeyStoreBits(keyStore: StoreInfo,
 
 final case class SSLContextBits(sslContext: SSLContext, clientAuth: Boolean) extends SSLConfig
 
-trait SSLKeyStoreSupport { this: ServerBuilder =>
+trait SSLKeyStoreSupport[F[_]] { this: ServerBuilder[F] =>
   def withSSL(keyStore: StoreInfo,
     keyManagerPassword: String,
               protocol: String = "TLS",
@@ -94,7 +87,7 @@ object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)
 }
 
-trait SSLContextSupport { this: ServerBuilder =>
+trait SSLContextSupport[F[_]] { this: ServerBuilder[F] =>
   def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self
 }
 
@@ -113,7 +106,7 @@ object MetricsSupport {
 }
  */
 
-trait WebSocketSupport { this: ServerBuilder =>
+trait WebSocketSupport[F[_]] { this: ServerBuilder[F] =>
   /* Enable websocket support */
   def withWebSockets(enableWebsockets: Boolean): Self
 }

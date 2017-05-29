@@ -258,21 +258,25 @@ object MaybeResponse {
   implicit def instance[F[_]]: Monoid[MaybeResponse[F]] =
     new Monoid[MaybeResponse[F]] {
       def empty =
-        Pass[F]
+        Pass()
       def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
         a orElse b
     }
 
-  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
-    new Monoid[F[MaybeResponse[F]]] {
-      def empty =
-        F.pure(Pass[F])
-      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
-        fa.flatMap(_.cata(F.pure, fb))
-    }
+//  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
+//    new Monoid[F[MaybeResponse[F]]] {
+//      def empty =
+//        F.pure(Pass())
+//      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
+//        fa.flatMap(_.cata(F.pure, fb))
+//    }
 }
 
 final case class Pass[F[_]]() extends MaybeResponse[F]
+
+object Pass {
+  def pure[F[_]](implicit F: Applicative[F]): F[MaybeResponse[F]] = F.pure(Pass[F]())
+}
 
 /** Representation of the HTTP response to send back to the client
  *
@@ -299,6 +303,8 @@ final case class Response[F[_]](
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=$headers)"""
+
+  def asMaybeResponse: MaybeResponse[F] = this
 }
 
 object Response {

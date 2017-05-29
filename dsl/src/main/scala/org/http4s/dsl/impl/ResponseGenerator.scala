@@ -38,7 +38,7 @@ trait EntityResponseGenerator[F[_]] extends Any with EmptyResponseGenerator[F] {
     apply(body, Headers.empty)(F, w)
 
   def apply[A](body: A, headers: Headers)
-                    (implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] = {
+              (implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] = {
     var h = w.headers ++ headers
     w.toEntity(body).flatMap { entity =>
       entity.length.foreach(l => h = h.put(`Content-Length`(l)))

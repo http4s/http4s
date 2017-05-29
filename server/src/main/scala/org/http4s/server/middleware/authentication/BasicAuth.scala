@@ -3,8 +3,9 @@ package server
 package middleware
 package authentication
 
+import cats._
+import cats.effect._
 import cats.implicits._
-import fs2._
 import org.http4s.headers.Authorization
 
 /**
@@ -16,7 +17,7 @@ object BasicAuth {
     * hashed value).  A Some value indicates success; None indicates
     * the password failed to validate.
     */
-  type BasicAuthenticator[A] = BasicCredentials => Task[Option[A]]
+  type BasicAuthenticator[F[_], A] = BasicCredentials => F[Option[A]]
 
   /**
     * Construct authentication middleware that can validate the client-provided
@@ -25,26 +26,26 @@ object BasicAuth {
     * @param validate Function that validates a plaintext password
     * @return
     */
-  def apply[A](realm: String, validate: BasicAuthenticator[A]): AuthMiddleware[A] = {
+  def apply[F[_]: Sync, A](realm: String, validate: BasicAuthenticator[F, A]): AuthMiddleware[F, A] =
     challenged(challenge(realm, validate))
-  }
 
-  def challenge[A](realm: String, validate: BasicAuthenticator[A]): Service[Request, Either[Challenge, AuthedRequest[A]]] =
+  def challenge[F[_]: Applicative, A](realm: String, validate: BasicAuthenticator[F, A]): Service[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Service.lift { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>
-          Either.right(AuthedRequest(authInfo, req))
+          Right(AuthedRequest(authInfo, req))
         case None =>
-          Either.left(Challenge("Basic", realm, Map.empty))
+          Left(Challenge("Basic", realm, Map.empty))
       }
     }
 
-  private def validatePassword[A](validate: BasicAuthenticator[A], req: Request): Task[Option[A]] = {
+  private def validatePassword[F[_], A](validate: BasicAuthenticator[F, A], req: Request[F])
+                                       (implicit F: Applicative[F]): F[Option[A]] = {
     req.headers.get(Authorization) match {
       case Some(Authorization(creds: BasicCredentials)) =>
         validate(creds)
       case _ =>
-        Task.now(None)
+        F.pure(None)
     }
   }
 }
