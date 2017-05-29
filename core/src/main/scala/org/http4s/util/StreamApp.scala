@@ -1,38 +1,43 @@
 package org.http4s.util
 
-import cats.effect.IO
+import cats.effect._
+import cats.effect.implicits._
+import cats.implicits._
 import fs2.Stream
-import fs2.async.signalOf
+import fs2.async.mutable.Signal
+import fs2.async
 import org.log4s.getLogger
 
-trait StreamApp {
-  private[this] val logger = getLogger
+abstract class StreamApp[F[_]: Effect] {
+  private[this] val logger = getLogger(classOf[StreamApp[F]])
 
-  def stream(args: List[String]): Stream[IO, Unit]
+  def stream(args: List[String]): Stream[F, Unit]
 
   //  private implicit val strategy: Strategy = Strategy.sequential
   // TODO: Not sure what this should be
   private implicit val executionContext = TrampolineExecutionContext
 
-  private[this] val shutdownRequested =
-    signalOf[IO, Boolean](false).unsafeRunSync
+  private[this] val shutdownRequested: F[Signal[F, Boolean]] =
+    async.signalOf[F, Boolean](false)
 
-  final val requestShutdown: IO[Unit] =
-    shutdownRequested.set(true)
+  final val requestShutdown =
+    shutdownRequested.flatMap(_.set(true))
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
   private[util] def doMain(args: Array[String]): Int = {
-    val halted = signalOf[IO, Boolean](false).unsafeRunSync
+    val halted = async.signalOf[F, Boolean](false)
 
-    val p = shutdownRequested.interrupt(stream(args.toList))
-      .onFinalize(halted.set(true))
+    val s =
+      Stream.eval(shutdownRequested)
+        .flatMap(_.interrupt(stream(args.toList)))
+        .onFinalize(halted.flatMap(_.set(true)))
 
     sys.addShutdownHook {
-      requestShutdown.unsafeRunAsync(_ => ())
-      halted.discrete.takeWhile(_ == false).run.unsafeRunSync
+      requestShutdown.runAsync(_ => IO.unit).unsafeRunAsync(_ => ())
+      Stream.eval(halted).flatMap(_.discrete.takeWhile(_ == false)).run.runAsync(_ => IO.unit).unsafeRunSync()
     }
 
-    p.run.attempt.unsafeRunSync match {
+    s.run.runAsync(_ => IO.unit).attempt.unsafeRunSync() match {
       case Left(t) =>
         logger.error(t)("Error running stream")
         -1
