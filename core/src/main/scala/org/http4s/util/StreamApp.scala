@@ -2,48 +2,66 @@ package org.http4s.util
 
 import cats.effect._
 import cats.effect.implicits._
-import cats.implicits._
-import fs2.Stream
+import fs2._
+import fs2.async._
 import fs2.async.mutable.Signal
-import fs2.async
+import fs2.util.Attempt
 import org.log4s.getLogger
 
-abstract class StreamApp[F[_]: Effect] {
+import scala.concurrent.SyncVar
+
+abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[this] val logger = getLogger(classOf[StreamApp[F]])
 
   def stream(args: List[String]): Stream[F, Nothing]
 
-  //  private implicit val strategy: Strategy = Strategy.sequential
+  // private implicit val strategy: Strategy = Strategy.sequential
   // TODO: Not sure what this should be
   private implicit val executionContext = TrampolineExecutionContext
 
-  private[this] val shutdownRequested: F[Signal[F, Boolean]] =
-    async.signalOf[F, Boolean](false)
+  private[this] val shutdownRequested: Signal[F, Boolean] = {
+    val signal = new SyncVar[Attempt[Signal[F, Boolean]]]
+    unsafeRunAsync(signalOf[F, Boolean](false)) { a =>
+      signal.put(a)
+      IO.unit
+    }
+    signal.get.fold(throw _, identity)
+  }
 
   final val requestShutdown =
-    shutdownRequested.flatMap(_.set(true))
+    shutdownRequested.set(true)
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
   private[util] def doMain(args: Array[String]): Int = {
-    val halted = async.signalOf[F, Boolean](false)
+    val s = Stream
+      .eval(signalOf[F, Boolean](false))
+      .flatMap { halted =>
+        val s = shutdownRequested
+          .interrupt(stream(args.toList))
+          .onFinalize(halted.set(true))
 
-    val s =
-      Stream.eval(shutdownRequested)
-        .flatMap(_.interrupt(stream(args.toList)))
-        .onFinalize(halted.flatMap(_.set(true)))
+        Stream
+          .eval(F.delay {
+            sys.addShutdownHook {
+              unsafeRunAsync(requestShutdown)(_ => IO.unit)
+              halted.discrete.takeWhile(_ == false).run.runAsync(_ => IO.unit).unsafeRunSync()
+            }
+          })
+          .flatMap(_ => s)
+      }
+      .run
 
-    sys.addShutdownHook {
-      requestShutdown.runAsync(_ => IO.unit).unsafeRunAsync(_ => ())
-      Stream.eval(halted).flatMap(_.discrete.takeWhile(_ == false)).run.runAsync(_ => IO.unit).unsafeRunSync()
-    }
-
-    s.run.runAsync(_ => IO.unit).attempt.unsafeRunSync() match {
+    val exit = new SyncVar[Int]
+    unsafeRunAsync(s) {
       case Left(t) =>
         logger.error(t)("Error running stream")
-        -1
+        exit.put(-1)
+        IO.unit
       case Right(_) =>
-        0
+        exit.put(0)
+        IO.unit
     }
+    exit.get
   }
 
   final def main(args: Array[String]): Unit =
