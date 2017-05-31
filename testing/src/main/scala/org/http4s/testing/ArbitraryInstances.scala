@@ -35,18 +35,21 @@ trait ArbitraryInstances {
       list <- arbitrary[List[A]]
     } yield NonEmptyList.nel(a, list) }
 
-  lazy val genTchar: Gen[Char] = oneOf {
+  val genTchar: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
       ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
   }
 
-  lazy val genToken: Gen[String] =
+  val genToken: Gen[String] =
     nonEmptyListOf(genTchar).map(_.mkString)
 
-  lazy val genFieldValue: Gen[String] =
-    genFieldContent
+  val genVchar: Gen[Char] =
+    oneOf('\u0021' to '\u007e')
 
-  lazy val genFieldContent: Gen[String] =
+  val genFieldVchar: Gen[Char] =
+    genVchar
+
+  val genFieldContent: Gen[String] =
     for {
       head <- genFieldVchar
       tail <- containerOf[Vector, Vector[Char]](
@@ -60,37 +63,34 @@ trait ArbitraryInstances {
       ).map(_.flatten)
     } yield (head +: tail).mkString
 
-  lazy val genFieldVchar: Gen[Char] =
-    genVchar
+  val genFieldValue: Gen[String] =
+    genFieldContent
 
-  lazy val genVchar: Gen[Char] =
-    oneOf('\u0021' to '\u007e')
-
-  lazy val genStandardMethod: Gen[Method] =
+  val genStandardMethod: Gen[Method] =
     oneOf(Method.registered.toSeq)
 
-  implicit lazy val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
+  implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
     10 -> genStandardMethod,
     1 -> genToken.map(Method.fromString(_).yolo)
   ))
 
-  lazy val genValidStatusCode =
+  val genValidStatusCode =
     choose(100, 599)
 
-  lazy val genStandardStatus =
+  val genStandardStatus =
     oneOf(Status.registered.toSeq)
 
-  lazy val genCustomStatus = for {
+  val genCustomStatus = for {
     code <- genValidStatusCode
     reason <- arbitrary[String]
   } yield Status.fromIntAndReason(code, reason).yolo
 
-  implicit lazy val arbitraryStatus: Arbitrary[Status] = Arbitrary(frequency(
+  implicit val arbitraryStatus: Arbitrary[Status] = Arbitrary(frequency(
     10 -> genStandardStatus,
     1 -> genCustomStatus
   ))
 
-  implicit lazy val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
+  implicit val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
     Arbitrary { frequency(
       5 -> { for {
                 k <- arbitrary[String]
@@ -100,40 +100,40 @@ trait ArbitraryInstances {
       2 -> const(("foo" -> Some("bar")))  // Want some repeats
     ) }
 
-  implicit lazy val arbitraryQuery: Arbitrary[Query] =
+  implicit val arbitraryQuery: Arbitrary[Query] =
     Arbitrary { for {
       n <- size
       vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
     } yield Query(vs:_*) }
 
-  implicit lazy val arbitraryHttpVersion: Arbitrary[HttpVersion] =
+  implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {
       major <- choose(0, 9)
       minor <- choose(0, 9)
     } yield HttpVersion.fromVersion(major, minor).yolo }
 
-  implicit lazy val arbitraryNioCharset: Arbitrary[NioCharset] =
+  implicit val arbitraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
 
-  implicit lazy val arbitraryCharset: Arbitrary[Charset] =
+  implicit val arbitraryCharset: Arbitrary[Charset] =
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
 
-  implicit lazy val arbitraryQValue: Arbitrary[QValue] =
+  implicit val arbitraryQValue: Arbitrary[QValue] =
     Arbitrary { oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).yolo) }
 
-  implicit lazy val arbitraryCharsetRange: Arbitrary[CharsetRange] =
+  implicit val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { for {
       charsetRange <- genCharsetRangeNoQuality
       q <- arbitrary[QValue]
     } yield charsetRange.withQValue(q) }
 
-  implicit lazy val arbitraryCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
+  implicit val arbitraryCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
     Arbitrary { for {
       charset <- arbitrary[Charset]
       q <- arbitrary[QValue]
     } yield charset.withQuality(q) }
 
-  implicit lazy val arbitraryCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
+  implicit val arbitraryCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
     Arbitrary { arbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
 
   def genCharsetRangeNoQuality: Gen[CharsetRange] =
@@ -143,10 +143,10 @@ trait ArbitraryInstances {
     )
 
   @deprecated("Use genCharsetRangeNoQuality. This one may cause deadlocks.", "0.15.7")
-  lazy val charsetRangesNoQuality: Gen[CharsetRange] =
+  val charsetRangesNoQuality: Gen[CharsetRange] =
     genCharsetRangeNoQuality
 
-  implicit lazy val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
+  implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { for {
       // make a set first so we don't have contradictory q-values
       charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](genCharsetRangeNoQuality).map(_.toVector)
@@ -154,39 +154,39 @@ trait ArbitraryInstances {
       charsetRangesWithQ = charsetRanges.zip(qValues).map { case (range, q) => range.withQValue(q) }
     } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail:_*) }
 
-  implicit lazy val arbitraryUrlForm: Arbitrary[UrlForm] = Arbitrary {
+  implicit val arbitraryUrlForm: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
     // Ain't nobody got time for that.
     arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
       .suchThat(!_.toString.contains('\ufffe'))
   }
 
-  implicit lazy val arbitraryAllow: Arbitrary[Allow] =
+  implicit val arbitraryAllow: Arbitrary[Allow] =
     Arbitrary { for {
       methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
     } yield Allow(methods.head, methods.tail:_*) }
 
-  implicit lazy val arbitraryContentLength: Arbitrary[`Content-Length`] =
+  implicit val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
       long <- arbitrary[Long] if long > 0L
     } yield `Content-Length`(long) }
 
-  implicit lazy val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
+  implicit val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary { for {
       long <- arbitrary[Long]
     } yield `X-B3-TraceId`(long) }
 
-  implicit lazy val arbitraryXB3SpanId: Arbitrary[`X-B3-SpanId`] =
+  implicit val arbitraryXB3SpanId: Arbitrary[`X-B3-SpanId`] =
     Arbitrary { for {
       long <- arbitrary[Long]
     } yield `X-B3-SpanId`(long) }
 
-  implicit lazy val arbitraryXB3ParentSpanId: Arbitrary[`X-B3-ParentSpanId`] =
+  implicit val arbitraryXB3ParentSpanId: Arbitrary[`X-B3-ParentSpanId`] =
     Arbitrary { for {
       long <- arbitrary[Long]
     } yield `X-B3-ParentSpanId`(long) }
 
-  implicit lazy val arbitraryXB3Flags: Arbitrary[`X-B3-Flags`] =
+  implicit val arbitraryXB3Flags: Arbitrary[`X-B3-Flags`] =
     Arbitrary { for {
       flags <- Gen.listOfN(3, Gen.oneOf(
         `X-B3-Flags`.Flag.Debug,
@@ -194,45 +194,45 @@ trait ArbitraryInstances {
         `X-B3-Flags`.Flag.SamplingSet))
     } yield `X-B3-Flags`(flags.toSet) }
 
-  implicit lazy val arbitraryXB3Sampled: Arbitrary[`X-B3-Sampled`] =
+  implicit val arbitraryXB3Sampled: Arbitrary[`X-B3-Sampled`] =
     Arbitrary { for {
       boolean <- arbitrary[Boolean]
     } yield `X-B3-Sampled`(boolean) }
 
-  lazy val genHttpDateInstant: Gen[Instant] = {
+  val genHttpDateInstant: Gen[Instant] = {
     // RFC 5322 says 1900 is the minimum year
     val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
     val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
     choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
   }
 
-  implicit lazy val arbitraryDateHeader: Arbitrary[headers.Date] =
+  implicit val arbitraryDateHeader: Arbitrary[headers.Date] =
     Arbitrary { for {
       instant <- genHttpDateInstant
     } yield headers.Date(instant) }
 
-  lazy val genHttpExpireInstant: Gen[Instant] = {
+  val genHttpExpireInstant: Gen[Instant] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli
     val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli
     choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
   }
 
-  lazy val genFiniteDuration: Gen[FiniteDuration] =
+  val genFiniteDuration: Gen[FiniteDuration] =
     // Only consider positive durations
     Gen.posNum[Long].map(_.seconds)
 
-  implicit lazy val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
+  implicit val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
     Arbitrary { for {
       instant <- genHttpExpireInstant
     } yield headers.Expires(instant) }
 
-  implicit lazy val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
+  implicit val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
     Arbitrary { for {
       instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), genFiniteDuration.map(Right(_)))
     } yield headers.`Retry-After`(instant) }
 
-  implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =
+  implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
         token <- genToken
@@ -240,7 +240,7 @@ trait ArbitraryInstances {
       } yield Header.Raw(token.ci, value)
     }
 
-  implicit lazy val arbitraryHeader: Arbitrary[Header] =
+  implicit val arbitraryHeader: Arbitrary[Header] =
     Arbitrary {
       oneOf(
         arbitrary[`Accept-Charset`],
@@ -251,7 +251,7 @@ trait ArbitraryInstances {
       )
     }
 
-  implicit lazy val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
+  implicit val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
     def singleLineString: Gen[String] =
       arbitrary[String] suchThat { s => !s.contains("\r") && !s.contains("\n") }
@@ -274,7 +274,7 @@ trait ArbitraryInstances {
   }
 
   // https://tools.ietf.org/html/rfc2234#section-6
-  lazy val genHexDigit: Gen[Char] = oneOf(Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
+  val genHexDigit: Gen[Char] = oneOf(Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
 
   private implicit def semigroupGen[T: Semigroup]: Semigroup[Gen[T]] = new Semigroup[Gen[T]] {
     def append(g1: Gen[T], g2: => Gen[T]): Gen[T] = for {t1 <- g1; t2 <- g2} yield t1 |+| t2
@@ -298,7 +298,7 @@ trait ArbitraryInstances {
   private def opt[T](g: Gen[T])(implicit ev: Monoid[T]): Gen[T] = oneOf(g, const(ev.zero))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit lazy val arbitraryIPv4: Arbitrary[Uri.IPv4] = Arbitrary {
+  implicit val arbitraryIPv4: Arbitrary[Uri.IPv4] = Arbitrary {
     val num = numChar.map(_.toString)
     def range(min: Int, max: Int) = choose(min.toChar, max.toChar).map(_.toString)
     val genDecOctet = oneOf(
@@ -312,7 +312,7 @@ trait ArbitraryInstances {
   }
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit lazy val arbitraryIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
+  implicit val arbitraryIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
     val h16 = timesBetween(min = 1, max = 4, genHexDigit.map(_.toString))
     val ls32 = oneOf(h16 |+| const(":") |+| h16, arbitraryIPv4.arbitrary.map(_.address.value))
     val h16colon = h16 |+| const(":")
@@ -332,12 +332,12 @@ trait ArbitraryInstances {
     ) map Uri.IPv6.apply
   }
 
-  implicit lazy val arbitraryUriHost: Arbitrary[Uri.Host] = Arbitrary {
+  implicit val arbitraryUriHost: Arbitrary[Uri.Host] = Arbitrary {
     val genRegName = listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
     oneOf(arbitraryIPv4.arbitrary, arbitraryIPv6.arbitrary, genRegName)
   }
 
-  implicit lazy val arbitraryAuthority: Arbitrary[Uri.Authority] = Arbitrary {
+  implicit val arbitraryAuthority: Arbitrary[Uri.Authority] = Arbitrary {
     for {
       userInfo <- identifier
       maybeUserInfo <- Gen.option(userInfo)
@@ -346,12 +346,12 @@ trait ArbitraryInstances {
     } yield Uri.Authority(maybeUserInfo, host, maybePort)
   }
 
-  lazy val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
-  lazy val genUnreserved: Gen[Char] = oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
-  lazy val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', ''', '(', ')', '*', '+', ',', ';', '='))
+  val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
+  val genUnreserved: Gen[Char] = oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
+  val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', ''', '(', ')', '*', '+', ',', ';', '='))
 
   /** https://tools.ietf.org/html/rfc3986 */
-  implicit lazy val arbitraryUri: Arbitrary[Uri] = Arbitrary {
+  implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {
     val genSegmentNzNc = nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))) map (_.mkString)
     val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
     val genSegmentNz = nonEmptyListOf(genPChar) map (_.mkString)
