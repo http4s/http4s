@@ -8,7 +8,7 @@ import org.http4s.syntax.string._
 final case class RequestKey(scheme: Scheme, authority: Authority)
 
 object RequestKey {
-  def fromRequest(request: Request): RequestKey = {
+  def fromRequest[F[_]](request: Request[F]): RequestKey = {
     val uri = request.uri
     RequestKey(uri.scheme.getOrElse("http".ci), uri.authority.getOrElse(Authority()))
   }

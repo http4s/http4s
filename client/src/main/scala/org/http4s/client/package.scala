@@ -1,17 +1,13 @@
-// TODO fs2 port
-
 package org.http4s
 
+import cats._
+import cats.effect.IO
+import org.http4s.Method.{NoBody, PermitsBody}
 import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
-import Method.{ PermitsBody, NoBody}
 
-
-import fs2.interop.cats._
-import fs2._
-
-/** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
+/** Provides extension methods for using a http4s [[org.http4s.client.Client]]
   * {{{
-  *   import scalaz.concurrent.Task
+  *   import cats.effect.IO
   *   import org.http4s._
   *   import org.http4s.client._
   *   import org.http4s.Http4s._
@@ -19,28 +15,44 @@ import fs2._
   *   import org.http4s.Method._
   *   import org.http4s.EntityDecoder
   *
-  *   def client: Client = ???
+  *   def client: Client[IO] = ???
   *
-  *   val r: Task[String] = client(GET(uri("https://www.foo.bar/"))).as[String]
+  *   val r: IO[String] = client(GET(uri("https://www.foo.bar/"))).as[String]
   *   val r2: DecodeResult[String] = client(GET(uri("https://www.foo.bar/"))).attemptAs[String] // implicitly resolve the decoder
-  *   val req1 = r.run
-  *   val req2 = r.run // Each invocation fetches a new Result based on the behavior of the Client
+  *   val req1 = r.unsafeRunSync
+  *   val req2 = r.unsafeRunSync // Each invocation fetches a new Result based on the behavior of the Client
   *
   * }}}
   */
+package object client extends Http4sClientDsl[IO] with ClientTypes
 
-package object client {
-  type ConnectionBuilder[A <: Connection] = RequestKey => Task[A]
+trait ClientTypes {
+  import org.http4s.client._
 
-  type Middleware = Client => Client
+  type ConnectionBuilder[F[_], A <: Connection] = RequestKey => F[A]
+
+  type Middleware[F[_]] = Client[F] => Client[F]
+}
+
+trait Http4sClientDsl[F[_]] {
+  import Http4sClientDsl._
+
+  implicit def http4sWithBodySyntax(method: Method with PermitsBody): WithBodyOps[F] =
+    new WithBodyOps[F](method)
+
+  implicit def http4sNoBodyOps(method: Method with NoBody): NoBodyOps[F] =
+    new NoBodyOps[F](method)
+
+  implicit def http4sHeadersDecoder[T](implicit F: Applicative[F],
+                                       decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
+    val s = decoder.consumes.toList
+    EntityDecoder.decodeBy(s.head, s.tail: _*)(resp => decoder.decode(resp, strict = true).map(t => (resp.headers, t)))
+  }
+}
+
+object Http4sClientDsl {
 
   /** Syntax classes to generate a request directly from a [[Method]] */
-  implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
-  implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
-
-  implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] = {
-    val s = decoder.consumes.toList
-    EntityDecoder.decodeBy(s.head, s.tail:_*)(resp => decoder.decode(resp, strict = true).map(t => (resp.headers,t)))
-  }
-
+  implicit class WithBodyOps[F[_]](val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator[F]
+  implicit class NoBodyOps[F[_]](val method: Method with NoBody)        extends AnyVal with EmptyRequestGenerator[F]
 }

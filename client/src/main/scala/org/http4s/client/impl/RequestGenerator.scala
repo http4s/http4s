@@ -1,26 +1,26 @@
 package org.http4s.client.impl
 
-import org.http4s.EntityEncoder
+import cats._
+import cats.implicits._
 import org.http4s._
 import org.http4s.headers.`Content-Length`
-import fs2.Task
 
 sealed trait RequestGenerator extends Any {
   def method: Method
 }
 
-trait EmptyRequestGenerator extends Any with RequestGenerator {
+trait EmptyRequestGenerator[F[_]] extends Any with RequestGenerator {
   /** Make a [[org.http4s.Request]] using this [[Method]] */
-  final def apply(uri: Uri): Task[Request] = Task.now(Request(method, uri))
+  final def apply(uri: Uri)(implicit F: Applicative[F]): F[Request[F]] = F.pure(Request(method, uri))
 }
 
-trait EntityRequestGenerator extends Any with EmptyRequestGenerator {
+trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
   /** Make a [[org.http4s.Request]] using this Method */
-  final def apply[A](uri: Uri, body: A)(implicit w: EntityEncoder[A]): Task[Request] = {
+  final def apply[A](uri: Uri, body: A)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Request[F]] = {
     var h = w.headers
-    w.toEntity(body).flatMap { case Entity(proc, len) =>
-      len foreach { l => h = h put `Content-Length`(l) }
-      Task.now(Request(method = method, uri = uri, headers = h, body = proc))
+    w.toEntity(body).flatMap { entity =>
+      entity.length.foreach(l => h = h.put(`Content-Length`(l)))
+      F.pure(Request(method = method, uri = uri, headers = h, body = entity.body))
     }
   }
 }

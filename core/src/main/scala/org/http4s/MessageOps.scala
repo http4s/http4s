@@ -86,7 +86,7 @@ trait MessageOps[F[_]] extends Any {
     * @tparam T type of the result
     * @return the `Task` which will generate the T
     */
-  final def as[T](implicit F: Functor[F], FM: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
+  final def as[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
     attemptAs.fold(throw _, identity)
 }
 

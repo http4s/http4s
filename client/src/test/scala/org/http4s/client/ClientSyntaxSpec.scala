@@ -1,85 +1,82 @@
 package org.http4s
 package client
 
-import org.http4s.Http4sSpec
-import org.http4s.headers.Accept
-import org.http4s.Status.InternalServerError
-import fs2._
+import cats.effect._
 import fs2.Stream._
-import fs2.interop.cats._
-import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
+import fs2._
 import org.http4s.Method._
-
+import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
+import org.http4s.headers.Accept
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
-  val route = HttpService {
+  val route = HttpService[IO] {
     case r if r.method == GET && r.pathInfo == "/"            =>
-      Response(Ok).withBody("hello")
+      Response[IO](Ok).withBody("hello")
     case r if r.method == PUT && r.pathInfo == "/put"         =>
-      Response(Created).withBody(r.body)
+      Response[IO](Created).withBody(r.body)
     case r if r.method == GET && r.pathInfo == "/echoheaders" =>
-      r.headers.get(Accept).fold(Task.now(Response(BadRequest))){ m =>
-         Response(Ok).withBody(m.toString)
+      r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
+         Response[IO](Ok).withBody(m.toString)
       }
     case r if r.pathInfo == "/status/500" =>
       Response(InternalServerError).withBody("Oops")
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val client = Client.fromHttpService(route)
+  val client: Client[IO] = Client.fromHttpService(route)
 
-  val req = Request(GET, uri("http://www.foo.bar/"))
+  val req: Request[IO] = Request(GET, uri("http://www.foo.bar/"))
 
   object SadTrombone extends Exception("sad trombone")
 
-
-
-  def assertDisposes(f: Client => Task[Unit]) = {
+  def assertDisposes(f: Client[IO] => IO[Unit]) = {
     var disposed = false
-    val disposingClient = Client(
-      route.map(r => DisposableResponse(r.orNotFound, Task.delay(disposed = true))),
-      Task.now(()))
-    f(disposingClient).unsafeAttemptValue()
+    val dispose = IO {
+      disposed = true
+      ()
+    }
+    val disposingClient = Client(route.map(r => DisposableResponse(r.orNotFound, dispose)), IO.unit)
+    f(disposingClient).attempt.unsafeRunSync()
     disposed must beTrue
   }
 
   "Client" should {
     "match responses to Uris with get" in {
       client.get(req.uri) {
-        case Ok(resp) => Task.now("Ok")
-        case _ => Task.now("fail")
+        case Ok(resp) => IO.pure("Ok")
+        case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "match responses to requests with fetch" in {
       client.fetch(req) {
-        case Ok(resp) => Task.now("Ok")
-        case _ => Task.now("fail")
+        case Ok(resp) => IO.pure("Ok")
+        case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "match responses to request tasks with fetch" in {
-      client.fetch(Task.now(req)) {
-        case Ok(resp) => Task.now("Ok")
-        case _ => Task.now("fail")
+      client.fetch(IO.pure(req)) {
+        case Ok(resp) => IO.pure("Ok")
+        case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "match responses to request tasks with fetch" in {
-      client.fetch(Task.now(req)) {
-        case Ok(resp) => Task.now("Ok")
-        case _ => Task.now("fail")
+      client.fetch(IO.pure(req)) {
+        case Ok(resp) => IO.pure("Ok")
+        case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "get disposes of the response on success" in {
-      assertDisposes(_.get(req.uri) { _ => Task.now(()) })
+      assertDisposes(_.get(req.uri) { _ => IO.unit })
     }
 
     "get disposes of the response on failure" in {
-      assertDisposes(_.get(req.uri) { _ => Task.fail(SadTrombone) })
+      assertDisposes(_.get(req.uri) { _ => IO.raiseError(SadTrombone) })
     }
 
     "get disposes of the response on uncaught exception" in {
@@ -87,11 +84,11 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "fetch disposes of the response on success" in {
-      assertDisposes(_.fetch(req) { _ => Task.now(()) })
+      assertDisposes(_.fetch(req) { _ => IO.unit })
     }
 
     "fetch disposes of the response on failure" in {
-      assertDisposes(_.fetch(req) { _ => Task.fail(SadTrombone) })
+      assertDisposes(_.fetch(req) { _ => IO.raiseError(SadTrombone) })
     }
 
     "fetch disposes of the response on uncaught exception" in {
@@ -99,19 +96,19 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "fetch on task disposes of the response on success" in {
-      assertDisposes(_.fetch(Task.now(req)) { _ => Task.now(()) })
+      assertDisposes(_.fetch(IO.pure(req)) { _ => IO.unit })
     }
 
     "fetch on task disposes of the response on failure" in {
-      assertDisposes(_.fetch(Task.now(req)) { _ => Task.fail(SadTrombone) })
+      assertDisposes(_.fetch(IO.pure(req)) { _ => IO.raiseError(SadTrombone) })
     }
 
     "fetch on task disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(Task.now(req)) { _ => sys.error("Don't do this at home, kids") })
+      assertDisposes(_.fetch(IO.pure(req)) { _ => sys.error("Don't do this at home, kids") })
     }
 
     "fetch on task that does not match results in failed task" in {
-      client.fetch(Task.now(req))(PartialFunction.empty).attempt.unsafeRun must beLeft { e: Throwable => e must beAnInstanceOf[MatchError] }
+      client.fetch(IO.pure(req))(PartialFunction.empty).attempt.unsafeRunSync() must beLeft { e: Throwable => e must beAnInstanceOf[MatchError] }
     }
 
     "fetch Uris with expect" in {
@@ -123,7 +120,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "fetch request tasks with expect" in {
-      client.expect[String](Task.now(req)) must returnValue("hello")
+      client.expect[String](IO.pure(req)) must returnValue("hello")
     }
 
     "return an unexpected status when expect returns unsuccessful status" in {
@@ -135,21 +132,21 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request(GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
+      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](GET(uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
+      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
      "combine entity decoder media types correctly" in {
        // This is more of an EntityDecoder spec
-       val edec = EntityDecoder.decodeBy(MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
-       client.expect(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec) must returnValue("Accept: text/*, image/jpeg")
+       val edec = EntityDecoder.decodeBy[IO, String](MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
+       client.expect(Request[IO](GET, uri("http://www.foo.com/echoheaders")))(EntityDecoder.text[IO] orElse edec) must returnValue("Accept: text/*, image/jpeg")
      }
 
      "streaming returns a stream" in {
-       client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRun() must_== Vector("hello")
+       client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRunSync() must_== Vector("hello")
      }
 
      "streaming disposes of the response on success" in {
@@ -161,11 +158,11 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
      }
 
      "toService disposes of the response on success" in {
-       assertDisposes(_.toService(_ => Task.now(())).run(req))
+       assertDisposes(_.toService(_ => IO.pure(())).run(req))
      }
 
      "toService disposes of the response on failure" in {
-       assertDisposes(_.toService(_ => Task.fail(SadTrombone)).run(req))
+       assertDisposes(_.toService(_ => IO.raiseError(SadTrombone)).run(req))
      }
 
      "toHttpService disposes the response if the body is run" in {

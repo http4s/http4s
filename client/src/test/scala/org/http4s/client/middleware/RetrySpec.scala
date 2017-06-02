@@ -2,28 +2,27 @@ package org.http4s
 package client
 package middleware
 
-import scala.concurrent.duration._
-
+import cats.effect.IO
 import cats.implicits._
 import fs2._
-import fs2.Stream._
 import org.http4s.dsl._
-import org.http4s.headers.Location
 import org.specs2.specification.Tables
+
+import scala.concurrent.duration._
 
 class RetrySpec extends Http4sSpec with Tables {
 
-  val route = HttpService {
+  val route = HttpService[IO] {
     case _ -> Root / status =>
-      Task.now(Response(Status.fromInt(status.toInt).valueOr(throw _)))
+      IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
     case _ -> Root / status =>
-      Task.now(Response(BadRequest))
+      BadRequest()
   }
 
-  val defaultClient = Client.fromHttpService(route)
+  val defaultClient: Client[IO] = Client.fromHttpService(route)
 
   "Retry Client" should {
-    def countRetries(client: Client, method: Method, status: Status, body: EntityBody): Int = {
+    def countRetries(client: Client[IO], method: Method, status: Status, body: EntityBody[IO]): Int = {
       val max = 2
       var attemptsCounter = 1
       val policy = (attempts: Int) => {
@@ -33,9 +32,9 @@ class RetrySpec extends Http4sSpec with Tables {
           Some(10.milliseconds)
         }
       }
-      val retryClient = Retry(policy)(client)
-      val req = Request(method, uri("http://localhost/") / status.code.toString).withBody(body)
-      val resp = retryClient.fetch(req){ _ => Task.now(()) }.unsafeAttemptRun()
+      val retryClient = Retry[IO](policy)(client)
+      val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withBody(body)
+      val resp = retryClient.fetch(req) { _ => IO.unit }.attempt.unsafeRunSync()
       attemptsCounter
     }
 
@@ -60,11 +59,11 @@ class RetrySpec extends Http4sSpec with Tables {
     }.pendingUntilFixed
 
     "not retry effectful bodies" in prop { s: Status =>
-      countRetries(defaultClient, PUT, s, Stream.eval_(Task.now(()))) must_== 1
+      countRetries(defaultClient, PUT, s, Stream.eval_(IO.unit)) must_== 1
     }.pendingUntilFixed
 
     "retry exceptions" in {
-      val failClient = Client(Service.const(Task.fail(new Exception("boom"))), Task.now(()))
+      val failClient = Client[IO](Service.const(IO.raiseError(new Exception("boom"))), IO.unit)
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
   }

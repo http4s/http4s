@@ -2,10 +2,12 @@ package org.http4s
 package client
 package middleware
 
+import cats._
+import cats.implicits._
+import fs2._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.syntax.string._
-import fs2._
 
 /**
   * Client middleware to follow redirect responses.
@@ -44,8 +46,10 @@ object FollowRedirect {
     "Transfer-Encoding".ci
   )
 
-  def apply(maxRedirects: Int)(client: Client): Client = {
-    def prepareLoop(req: Request, redirects: Int): Task[DisposableResponse] = {
+  def apply[F[_]](maxRedirects: Int)
+                 (client: Client[F])
+                 (implicit F: MonadError[F, Throwable]): Client[F] = {
+    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] = {
       client.open(req).flatMap { case dr @ DisposableResponse(resp, dispose) =>
         def redirectUri =
           resp.headers.get(Location).map { loc =>
@@ -59,20 +63,15 @@ object FollowRedirect {
           }
 
         // We can only resubmit a body if it was not effectful.
-        def pureBody: Option[Stream[Task,Byte]] = {
-
+        def pureBody: Option[Stream[F, Byte]] = {
           // We Are Propogating The Stream
           Some(req.body)
-
           // TODO fs2 port
-
-
         }
 
-        def dontRedirect : Task[DisposableResponse] =
-          Task.now(dr)
+        def dontRedirect: F[DisposableResponse[F]] = F.pure(dr)
 
-        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[Task,Byte]]) =
+        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[F, Byte]]): Request[F] =
           bodyOpt match {
             case Some(body) =>
               // Assume that all the headers can be propagated
@@ -86,16 +85,16 @@ object FollowRedirect {
                 headers = req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
           }
 
-        def doRedirect(method: Method): Task[DisposableResponse] = {
+        def doRedirect(method: Method): F[DisposableResponse[F]] = {
           if (redirects < maxRedirects) {
             // If we get a redirect response without a location, then there is
             // nothing to redirect.
             redirectUri.fold(dontRedirect) { nextUri =>
               // We can only redirect safely if there is no body or if we've
               // verified that the body is pure.
-              val nextReq = method match {
+              val nextReq: Option[Request[F]] = method match {
                 case GET | HEAD =>
-                  Some(nextRequest(method, nextUri, None))
+                  Option(nextRequest(method, nextUri, None))
                 case _ =>
                   pureBody.map(body => nextRequest(method, nextUri, Some(body)))
               }
@@ -145,7 +144,7 @@ object FollowRedirect {
             doRedirect(req.method)
 
           case _ =>
-            Task.now(dr)
+            F.pure(dr)
         }
       }
     }

@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
   * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
-@implicitNotFound("Cannot decode into a value of type ${T}, because no EntityDecoder[${T}] instance could be found.")
+@implicitNotFound("Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
 trait EntityDecoder[F[_], T] { self =>
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T]

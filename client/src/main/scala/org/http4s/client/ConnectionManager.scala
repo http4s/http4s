@@ -2,7 +2,8 @@ package org.http4s
 package client
 
 import java.util.concurrent.ExecutorService
-import fs2.Task
+
+import cats.effect._
 
 /** Type that is responsible for the client lifecycle
   *
@@ -11,29 +12,29 @@ import fs2.Task
   * CPU time, SSL handshakes, etc. Because it can contain significant resources it
   * must have a mechanism to free resources associated with it.
   */
-trait ConnectionManager[A <: Connection] {
+trait ConnectionManager[F[_], A <: Connection] {
 
   /** Bundle of the connection and wheither its new or not */
   // Sealed, rather than final, because SI-4440.
   sealed case class NextConnection(connection: A, fresh: Boolean)
 
   /** Shutdown this client, closing any open connections and freeing resources */
-  def shutdown(): Task[Unit]
+  def shutdown(): F[Unit]
 
   /** Get a connection for the provided request key. */
-   def borrow(requestKey: RequestKey): Task[NextConnection]
+   def borrow(requestKey: RequestKey): F[NextConnection]
 
   /**
     * Release a connection.  The connection manager may choose to keep the connection for
     * subsequent calls to [[borrow]], or dispose of the connection.
     */
-  def release(connection: A): Task[Unit]
+  def release(connection: A): F[Unit]
 
   /**
     * Invalidate a connection, ensuring that its resources are freed.  The connection
     * manager may not return this connection on another borrow.
     */
-  def invalidate(connection: A): Task[Unit]
+  def invalidate(connection: A): F[Unit]
 }
 
 object ConnectionManager {
@@ -41,8 +42,8 @@ object ConnectionManager {
     *
     * @param builder generator of new connections
     * */
-  def basic[A <: Connection](builder: ConnectionBuilder[A]): ConnectionManager[A] =
-    new BasicManager[A](builder)
+  def basic[F[_]: Sync, A <: Connection](builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
+    new BasicManager[F, A](builder)
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
     *
@@ -50,6 +51,6 @@ object ConnectionManager {
     * @param maxTotal max total connections
     * @param es `ExecutorService` where async operations will execute
     */
-  def pool[A <: Connection](builder: ConnectionBuilder[A], maxTotal: Int, es: ExecutorService): ConnectionManager[A] =
-    new PoolManager[A](builder, maxTotal, es)
+  def pool[F[_]: Effect, A <: Connection](builder: ConnectionBuilder[F, A], maxTotal: Int, es: ExecutorService): ConnectionManager[F, A] =
+    new PoolManager[F, A](builder, maxTotal, es)
 }

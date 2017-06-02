@@ -1,5 +1,6 @@
 package org.http4s.client.oauth1
 
+import cats.effect.IO
 import org.http4s._
 import org.http4s.client.oauth1
 import org.http4s.util.CaseInsensitiveString
@@ -64,15 +65,16 @@ class OAuthTest extends Specification {
 
    "RFC 5849 example" should {
 
-     implicit def urlFormEncoder : EntityEncoder[UrlForm] = UrlForm.entityEncoder(Charset.`US-ASCII`)
+     implicit def urlFormEncoder : EntityEncoder[IO, UrlForm] =
+       UrlForm.entityEncoder(implicitly, Charset.`US-ASCII`)
 
      val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
      val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
 
-     val req = Request(method = Method.POST, uri = uri).withBody(body).unsafeRun()
+     val req = Request[IO](method = Method.POST, uri = uri).withBody(body).unsafeRunSync()
 
      "Collect proper params, pg 22" in {
-       oauth1.getUserParams(req).unsafeRun._2.sorted must_== Seq(
+       oauth1.getUserParams(req).unsafeRunSync()._2.sorted must_== Seq(
          "b5" -> "=%3D",
          "a3" -> "a",
          "c@" -> "",
