@@ -37,7 +37,7 @@ sealed trait Message extends MessageOps { self =>
     * indicates that the body can be re-run without side-effects. */
   def isBodyPure: Boolean =
     body.unemit._2.isHalt
-  
+
   def attributes: AttributeMap
 
   protected def change(body: EntityBody = body,
@@ -204,7 +204,7 @@ final case class Request(
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 
   override def toString: String =
-    s"""Request(method=$method, uri=$uri, headers=${headers}"""
+    s"""Request(method=$method, uri=$uri, headers=${headers})"""
 
   /** A request is idempotent if and only if its method is idempotent and its body
     * is pure.  If true, this request can be submitted multipe times. */
