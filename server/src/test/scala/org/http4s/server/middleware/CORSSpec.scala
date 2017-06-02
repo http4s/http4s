@@ -21,7 +21,12 @@ class CORSSpec extends Http4sSpec {
     anyOrigin = false,
     allowCredentials = false,
     maxAge = 0,
-    allowedOrigins = Some(Set("http://allowed.com/"))))
+    allowedOrigins = origin => if(origin == "http://allowed.com/") true else false,
+    allowedHeaders = Some(
+      Set(
+        "User-Agent",
+        "Keep-Alive",
+        "Content-Type"))))
 
   def headerCheck(h: Header) = h is `Access-Control-Max-Age`
   def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String) =
@@ -43,6 +48,13 @@ class CORSSpec extends Http4sSpec {
       val req = buildRequest("/foo")
       cors1.orNotFound(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRun
       cors2.orNotFound(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRun
+    }
+
+    "Respect Access-Control-Allow-Headers and Access-Control-Expose-Headers" in {
+      val req = buildRequest("/foo")
+      cors2.orNotFound(req).map{(resp: Response) =>
+        matchHeader(resp.headers, `Access-Control-Allow-Headers`, "User-Agent, Keep-Alive, Content-Type")
+        matchHeader(resp.headers, `Access-Control-Expose-Headers`, "User-Agent, Keep-Alive, Content-Type")}.unsafeRun
     }
 
     "Offer a successful reply to OPTIONS on fallthrough" in {

@@ -21,7 +21,7 @@ final case class CORSConfig(
   allowCredentials: Boolean,
   maxAge: Long,
   anyMethod: Boolean = true,
-  allowedOrigins: Option[Set[String]] = None,
+  allowedOrigins: String => Boolean = _ => false,
   allowedMethods: Option[Set[String]] = None,
   allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some
 )
@@ -41,13 +41,13 @@ object CORS {
    * Currently, you cannot make permissions depend on request details
    */
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
-    
+
     // In the case of an options request we want to return a simple response with the correct Headers set.
     def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value)(Response())
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
       config.allowedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
-        resp.putHeaders(Header("Access-Control-Allow-Headers", hs))
+        resp.putHeaders(Header("Access-Control-Allow-Headers", hs), Header("Access-Control-Expose-Headers", hs))
       }.putHeaders(
           Header("Vary", "Origin,Access-Control-Request-Methods"),
           Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
@@ -59,12 +59,9 @@ object CORS {
     def allowCORS(origin: Header, acrm: Header): Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
       case (true, true, _, _) => true
       case (true, false, _, acrm) => config.allowedMethods.map(_.contains(acrm)).getOrElse(false)
-      case (false, true, origin, _) => config.allowedOrigins.map(_.contains(origin)).getOrElse(false)
+      case (false, true, origin, _) => config.allowedOrigins(origin)
       case (false, false, origin, acrm) =>
-        (config.allowedMethods.map(_.contains(acrm)) |@|
-          config.allowedOrigins.map(_.contains(origin))).map {
-          _ && _
-        }.getOrElse(false)
+        (config.allowedMethods.map(_.contains(acrm)).getOrElse(false) && config.allowedOrigins(origin))
     }
 
     (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
