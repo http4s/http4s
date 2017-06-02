@@ -1,17 +1,18 @@
 package org.http4s
 package servlet
 
-import java.util.EnumSet
-import javax.servlet.{DispatcherType, Filter}
+import java.util
 import javax.servlet.http.HttpServlet
+import javax.servlet.{DispatcherType, Filter}
 
+import cats.effect._
 import org.http4s.server.{AsyncTimeoutSupport, ServerBuilder}
 
-trait ServletContainer
-  extends ServerBuilder
-  with AsyncTimeoutSupport
+abstract class ServletContainer[F[_]: Effect]
+  extends ServerBuilder[F]
+  with AsyncTimeoutSupport[F]
 {
-  type Self <: ServletContainer
+  type Self <: ServletContainer[F]
 
   /**
     * Mounts a servlet to the server.
@@ -33,7 +34,7 @@ trait ServletContainer
   def mountFilter(filter: Filter,
                   urlMapping: String,
                   name: Option[String] = None,
-                  dispatches: EnumSet[DispatcherType] = EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ASYNC)): Self
+                  dispatches: util.EnumSet[DispatcherType] = util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ASYNC)): Self
 
   /**
    * Sets the servlet I/O mode for reads and writes within the servlet.
@@ -41,16 +42,16 @@ trait ServletContainer
    *
    * @see [[org.http4s.servlet.ServletIo]]
    */
-  def withServletIo(servletIo: ServletIo): Self
+  def withServletIo(servletIo: ServletIo[F]): Self
 }
 
 object ServletContainer {
-  val DefaultServletIo = NonBlockingServletIo(DefaultChunkSize)
+  def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
   /**
    * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
    * mountService into a standard servlet prefix mapping.
    */
-  def prefixMapping(prefix: String) = prefix.replaceAll("/?$", "") + "/*"
+  def prefixMapping(prefix: String): String = prefix.replaceAll("/?$", "") + "/*"
 }
 
