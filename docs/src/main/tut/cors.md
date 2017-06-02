@@ -100,7 +100,7 @@ Next, we'll create a configuration that limits the origins to "yahoo.com" and
 ```tut:book
 val originConfig = CORSConfig(
   anyOrigin = false,
-  allowedOrigins = origin => if(Set("yahoo.com", "duckduckgo.com").contains(origin)) true else false,
+  allowedOrigins = origin => Set("yahoo.com", "duckduckgo.com").contains(origin),
   allowCredentials = false,
   maxAge = 1.day.toSeconds)
 

@@ -21,7 +21,7 @@ class CORSSpec extends Http4sSpec {
     anyOrigin = false,
     allowCredentials = false,
     maxAge = 0,
-    allowedOrigins = origin => if(origin == "http://allowed.com/") true else false,
+    allowedOrigins = origin => origin == "http://allowed.com/",
     allowedHeaders = Some(
       Set(
         "User-Agent",
