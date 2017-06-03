@@ -102,10 +102,10 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$48871/1092091078@bf1c046)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$52100/825933836@3f72f8e5)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
-// request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
+// request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = service.orNotFound(request).unsafeRun
@@ -124,7 +124,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$49025/527871316@4983dd3b)
+// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$52254/772950190@3c707b5f)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRun
@@ -145,7 +145,7 @@ values for the <code>Accept-Encoding</code> header are <strong>&ldquo;gzip&rdquo
 // acceptHeader: org.http4s.Header.Raw = Accept-Encoding: gzip
 
 val zipRequest = request.putHeaders(acceptHeader)
-// zipRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Accept-Encoding: gzip)
+// zipRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Accept-Encoding: gzip))
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(zipRequest).unsafeRun
