@@ -184,7 +184,7 @@ useful on client requests:</p>
 // import org.http4s.client._
 
 POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).unsafePerformSync
-// res2: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16)
+// res2: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16))
 </code></pre>
 
 <h2 id="encoding-case-classes-as-json">Encoding case classes as JSON</h2>
@@ -219,7 +219,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@5ee97468
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@55a6a19a
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -249,7 +249,7 @@ and responses for our case classes:</p>
 // res6: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: application/json, Content-Length: 17))
 
 POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).unsafePerformSync
-// res7: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14)
+// res7: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14))
 </code></pre>
 
 <h2 id="receiving-raw-json">Receiving raw JSON</h2>

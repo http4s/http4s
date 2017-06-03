@@ -103,10 +103,10 @@ import org.http4s.dsl._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$40276/982123420@6d67f047)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$44529/916973057@270c4b1)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
-// request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
+// request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
 
 service(request).unsafePerformSync
 // res0: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
@@ -118,7 +118,7 @@ service(request).unsafePerformSync
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$40344/791008924@5de3740f)
+// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$44597/1932485793@1e67c55c)
 
 corsService(request).unsafePerformSync
 // res1: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
@@ -131,7 +131,7 @@ in the requests. This, of course, is the responsibility of the caller.</p>
 // originHeader: org.http4s.Header.Raw = Origin: somewhere.com
 
 val corsRequest = request.putHeaders(originHeader)
-// corsRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Origin: somewhere.com)
+// corsRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Origin: somewhere.com))
 
 corsService(corsRequest).unsafePerformSync
 // res2: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: somewhere.com, Access-Control-Max-Age: 86400))
@@ -151,13 +151,13 @@ are configuration options to modify that.</p>
 have a variety of origins and methods.</p>
 
 <pre><code class="language-scala">val googleGet = Request(Method.GET, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;google.com&quot;)))
-// googleGet: org.http4s.Request = Request(method=GET, uri=/, headers=Headers(Origin: google.com)
+// googleGet: org.http4s.Request = Request(method=GET, uri=/, headers=Headers(Origin: google.com))
 
 val yahooPut = Request(Method.PUT, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;yahoo.com&quot;)))
-// yahooPut: org.http4s.Request = Request(method=PUT, uri=/, headers=Headers(Origin: yahoo.com)
+// yahooPut: org.http4s.Request = Request(method=PUT, uri=/, headers=Headers(Origin: yahoo.com))
 
 val duckPost = Request(Method.POST, uri(&quot;/&quot;), headers = Headers(Header(&quot;Origin&quot;, &quot;duckduckgo.com&quot;)))
-// duckPost: org.http4s.Request = Request(method=POST, uri=/, headers=Headers(Origin: duckduckgo.com)
+// duckPost: org.http4s.Request = Request(method=POST, uri=/, headers=Headers(Origin: duckduckgo.com))
 </code></pre>
 
 <p>Now, we&rsquo;ll create a configuration that limits the allowed methods to <code>GET</code>
@@ -175,7 +175,7 @@ val methodConfig = CORSConfig(
 // methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,None,Some(Set(GET, POST)),Some(Set(Content-Type, *)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$40344/791008924@189c1f9f)
+// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$44597/1932485793@3dc48cf)
 
 corsMethodSvc(googleGet).unsafePerformSync
 // res3: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Allow-Headers: Content-Type, *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
@@ -199,7 +199,7 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Some(Set(yahoo.com, duckduckgo.com)),None,Some(Set(Content-Type, *)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$40344/791008924@18ca4e5d)
+// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$44597/1932485793@34cd8b8f)
 
 corsOriginSvc(googleGet).unsafePerformSync
 // res6: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
