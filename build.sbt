@@ -38,8 +38,6 @@ lazy val core = libraryProject("core")
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage := organization.value,
-    // TODO: While fs2-0.10.0 is still a snapshot
-    resolvers += Resolver.sonatypeRepo("snapshots"),
     libraryDependencies ++= Seq(
       fs2Io,
       fs2Scodec,
