@@ -136,13 +136,13 @@ we need to call <code>run</code> on the result of the function to extract the <c
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36913/1038899157@640e4495)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36303/2022674553@444efbc9)
 
 val goodRequest = Request(Method.GET, uri(&quot;/&quot;))
-// goodRequest: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
+// goodRequest: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
 
 val badRequest = Request(Method.GET, uri(&quot;/bad&quot;))
-// badRequest: org.http4s.Request = Request(method=GET, uri=/bad, headers=Headers()
+// badRequest: org.http4s.Request = Request(method=GET, uri=/bad, headers=Headers())
 
 service(goodRequest).run
 // &lt;console&gt;:21: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
@@ -160,7 +160,7 @@ service(badRequest).run
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
 <pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
-// wrappedService: org.http4s.HttpService = Kleisli($$Lambda$36966/1483134612@501e95ad)
+// wrappedService: org.http4s.HttpService = Kleisli($$Lambda$36356/1184950604@6fd5083e)
 
 wrappedService(goodRequest).run
 // &lt;console&gt;:21: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
@@ -191,7 +191,7 @@ it as an <code>object</code> and use the <code>apply</code> method.</p>
 // defined object MyMiddle
 
 val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// newService: scalaz.Kleisli[scalaz.concurrent.Task,org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$36970/826012995@f46591b)
+// newService: scalaz.Kleisli[scalaz.concurrent.Task,org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$36360/776937980@2e35b750)
 
 newService(goodRequest).run
 // &lt;console&gt;:21: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
@@ -227,16 +227,16 @@ You can also wrap a single service in multiple layers of middleware. For example
   case GET -&gt; Root / &quot;api&quot; =&gt;
     Ok()
 }
-// apiService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36913/1038899157@47862056)
+// apiService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$36303/2022674553@790bc638)
 
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val aggregateService = apiService orElse MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// aggregateService: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$36978/1925021895@ded9986)
+// aggregateService: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(scalaz.Kleisli$$Lambda$36368/2057060069@54e79609)
 
 val apiRequest = Request(Method.GET, uri(&quot;/api&quot;))
-// apiRequest: org.http4s.Request = Request(method=GET, uri=/api, headers=Headers()
+// apiRequest: org.http4s.Request = Request(method=GET, uri=/api, headers=Headers())
 
 aggregateService(goodRequest).run
 // &lt;console&gt;:24: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync

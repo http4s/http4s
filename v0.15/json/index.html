@@ -193,7 +193,7 @@ POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Ali
 // &lt;console&gt;:31: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
 // POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).run
 //                                                  ^
-// res2: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16)
+// res2: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16))
 </code></pre>
 
 <h2 id="encoding-case-classes-as-json">Encoding case classes as JSON</h2>
@@ -228,7 +228,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$14@3c60846d
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$14@74243096
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -264,7 +264,7 @@ POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).run
 // &lt;console&gt;:40: warning: method run in class Task is deprecated (since 7.2): use unsafePerformSync
 //        POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).run
 //                                                ^
-// res7: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14)
+// res7: org.http4s.Request = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14))
 </code></pre>
 
 <h2 id="receiving-raw-json">Receiving raw JSON</h2>
