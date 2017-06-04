@@ -1,5 +1,6 @@
 package org.http4s.syntax
 
+import cats.Eval
 import cats.effect.Async
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -10,6 +11,16 @@ trait AsyncSyntax {
 }
 
 final class AsyncOps[F[_], A](self: Async[F])(implicit ec: ExecutionContext) {
+  def fromFuture(future: Eval[Future[A]]): F[A] =
+    self.async { cb =>
+      import scala.util.{Failure, Success}
+
+      future.value.onComplete {
+        case Failure(e) => cb(Left(e))
+        case Success(a) => cb(Right(a))
+      }
+    }
+
   def fromFuture(future: Future[A]): F[A] =
-    self.async[A](cb => future.onComplete(cb.compose(_.toEither)))
+    fromFuture(Eval.always(future))
 }

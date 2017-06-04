@@ -9,7 +9,6 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ Promise, Future }
 import scala.util.{Success, Failure, Try}
 
-
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   private var acc = Vector[Array[Byte]]()
@@ -27,7 +26,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
       val cpy = new Array[Byte](data.remaining())
       data.get(cpy)
       acc :+= cpy
-      Future.successful(())
+      Future.unit
     }
   }
 
@@ -88,12 +87,10 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHea
         val p = Promise[ByteBuffer]
         currentRequest = Some(p)
 
-        scheduler.schedule(new Runnable {
-          override def run(): Unit = self.synchronized {
-            resolvePending {
-              if (!closed && bodyIt.hasNext) Success(bodyIt.next())
-              else Failure(EOF)
-            }
+        scheduler.schedule(() => self.synchronized {
+          resolvePending {
+            if (!closed && bodyIt.hasNext) Success(bodyIt.next())
+            else Failure(EOF)
           }
         }, pause)
 

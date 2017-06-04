@@ -3,16 +3,15 @@ package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import scala.collection.mutable.ListBuffer
 
 import cats.implicits._
 import fs2._
-import fs2.interop.cats._
-import org.http4s.Status
+import fs2.interop.scodec.ByteVectorChunk
 import org.http4s.blaze.http.http_parser.Http1ClientParser
-import org.http4s.util.ByteVectorChunk
 import org.http4s.util.chunk.ByteChunkMonoid
 import scodec.bits.ByteVector
+
+import scala.collection.mutable.ListBuffer
 
 class ResponseParser extends Http1ClientParser {
 
