@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServlet
 import javax.servlet.{DispatcherType, Filter}
 
 import cats.effect._
-import org.apache.catalina.Context
+import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 import org.apache.catalina.startup.Tomcat
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -159,16 +159,15 @@ sealed class TomcatBuilder[F[_]: Effect] private (
           tomcat.destroy()
         }
 
-      // TODO: Compose with the shutdown F instead
-//      override def onShutdown(f: => Unit): this.type = {
-//        tomcat.getServer.addLifecycleListener(new LifecycleListener {
-//          override def lifecycleEvent(event: LifecycleEvent): Unit = {
-//            if (Lifecycle.AFTER_STOP_EVENT.equals(event.getLifecycle))
-//              f
-//          }
-//        })
-//        this
-//      }
+      override def onShutdown(f: => Unit): this.type = {
+        tomcat.getServer.addLifecycleListener(new LifecycleListener {
+          override def lifecycleEvent(event: LifecycleEvent): Unit = {
+            if (Lifecycle.AFTER_STOP_EVENT.equals(event.getLifecycle))
+              f
+          }
+        })
+        this
+      }
 
       lazy val address: InetSocketAddress = {
         val host = socketAddress.getHostString

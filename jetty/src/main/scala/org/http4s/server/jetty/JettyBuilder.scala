@@ -12,6 +12,8 @@ import javax.servlet.{DispatcherType, Filter}
 import cats.effect._
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
+import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -182,15 +184,14 @@ sealed class JettyBuilder[F[_]: Effect] private (
       override def shutdown: F[Unit] =
         F.delay(jetty.stop())
 
-      // TODO: Compose with the shutdown F instead
-//      override def onShutdown(f: => Unit): this.type = {
-//        jetty.addLifeCycleListener {
-//          new AbstractLifeCycleListener {
-//            override def lifeCycleStopped(event: LifeCycle): Unit = f
-//          }
-//        }
-//        this
-//      }
+      override def onShutdown(f: => Unit): this.type = {
+        jetty.addLifeCycleListener {
+          new AbstractLifeCycleListener {
+            override def lifeCycleStopped(event: LifeCycle): Unit = f
+          }
+        }
+        this
+      }
 
       lazy val address: InetSocketAddress = {
         val host = socketAddress.getHostString
