@@ -21,6 +21,6 @@ final class AsyncOps[F[_], A](self: Async[F])(implicit ec: ExecutionContext) {
       }
     }
 
-  def fromFuture(future: Future[A]): F[A] =
+  def fromFuture(future: => Future[A]): F[A] =
     fromFuture(Eval.always(future))
 }
