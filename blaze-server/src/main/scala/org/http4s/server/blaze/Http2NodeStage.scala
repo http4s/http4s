@@ -5,38 +5,37 @@ package blaze
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 
-import scala.collection.mutable.{ListBuffer, ArrayBuffer}
+import cats.effect.{Effect, IO}
+import cats.implicits._
+import fs2.Stream._
+import fs2._
+import org.http4s.Header.Raw
+import org.http4s.Status._
+import org.http4s.blaze.http.Headers
+import org.http4s.blaze.http.http20.Http2Exception._
+import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
+import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.util._
+import org.http4s.syntax.string._
+import org.http4s.{Headers => HHeaders, Method => HMethod}
+
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.util._
 
-import cats.data._
-import cats.implicits._
-import fs2._
-import fs2.Stream._
-import org.http4s.{Method => HMethod, Headers => HHeaders, _}
-import org.http4s.Header.Raw
-import org.http4s.Status._
-import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
-import org.http4s.blaze.http.http20.Http2Exception._
-import org.http4s.blaze.pipeline.{ Command => Cmd }
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.blaze.util._
-import org.http4s.syntax.string._
-
-private class Http2NodeStage(streamId: Int,
-                     timeout: Duration,
-                     executor: ExecutorService,
-                     attributes: AttributeMap,
-                     service: HttpService) extends TailStage[NodeMsg.Http2Msg]
-{
+private class Http2NodeStage[F[_]](streamId: Int,
+                                   timeout: Duration,
+                                   executor: ExecutorService,
+                                   attributes: AttributeMap,
+                                   service: HttpService[F])
+                                  (implicit F: Effect[F])
+  extends TailStage[NodeMsg.Http2Msg] {
 
   import Http2StageTools._
-  import NodeMsg.{ DataFrame, HeadersFrame }
+  import NodeMsg.{DataFrame, HeadersFrame}
 
   private implicit def ec = ExecutionContext.fromExecutor(executor)   // for all the onComplete calls
-  private implicit val strategy = Strategy.fromExecutionContext(ec)
 
   override def name = "Http2NodeStage"
 
@@ -69,11 +68,11 @@ private class Http2NodeStage(streamId: Int,
   }
 
   /** collect the body: a maxlen < 0 is interpreted as undefined */
-  private def getBody(maxlen: Long): EntityBody = {
+  private def getBody(maxlen: Long): EntityBody[F] = {
     var complete = false
     var bytesRead = 0L
 
-    val t = Task.async[Option[Chunk[Byte]]] { cb =>
+    val t = F.async[Option[Chunk[Byte]]] { cb =>
       if (complete) cb(End)
       else channelRead(timeout = timeout).onComplete {
         case Success(DataFrame(last, bytes,_)) =>
@@ -196,19 +195,19 @@ private class Http2NodeStage(streamId: Int,
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      service(req).unsafeRunAsync {
-        case Right(resp) => renderResponse(req, resp)
-        case Left(t) =>
-          val resp = Response(InternalServerError)
-                       .withBody("500 Internal Service Error\n" + t.getMessage)
-                       .unsafeRun // TODO Yuck
-
-          renderResponse(req, resp)
-      }
+      async.unsafeRunAsync {
+        service(req).attempt.flatMap {
+          case Right(resp) => renderResponse(req, resp)
+          case Left(t) =>
+            Response[F](InternalServerError)
+              .withBody(s"500 Internal Service Error\n${t.getMessage}")
+              .flatMap(resp => renderResponse(req, resp))
+        }
+      }(_ => IO.unit)
     }
   }
 
-  private def renderResponse(req: Request, maybeResponse: MaybeResponse): Unit = {
+  private def renderResponse(req: Request[F], maybeResponse: MaybeResponse[F]): F[Unit] = {
     val resp = maybeResponse.orNotFound
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
@@ -222,8 +221,8 @@ private class Http2NodeStage(streamId: Int,
       }
     }
 
-    new Http2Writer(this, hs, ec).writeEntityBody(resp.body).unsafeRunAsync {
-      case Right(_)       => shutdownWithCommand(Cmd.Disconnect)
+    new Http2Writer(this, hs, ec).writeEntityBody(resp.body).attempt.map {
+      case Right(_)      => shutdownWithCommand(Cmd.Disconnect)
       case Left(Cmd.EOF) => stageShutdown()
       case Left(t)       => shutdownWithCommand(Cmd.Error(t))
     }    

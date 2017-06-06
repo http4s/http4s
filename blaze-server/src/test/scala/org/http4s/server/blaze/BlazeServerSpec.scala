@@ -2,16 +2,19 @@ package org.http4s
 package server
 package blaze
 
+import cats.effect._
+
 class BlazeServerSpec extends ServerAddressSpec {
-  def builder = BlazeBuilder
+  def builder = BlazeBuilder[IO]
 
   "BlazeServer" should {
 
     // This test just needs to finish to pass, failure will hang
     "Startup and shutdown without blocking" in {
-      val s = BlazeBuilder
+      val s: Server[IO] = BlazeBuilder[IO]
         .bindAny()
-        .run
+        .start
+        .unsafeRunSync
 
       s.shutdownNow()
 

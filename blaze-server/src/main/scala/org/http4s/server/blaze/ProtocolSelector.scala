@@ -6,8 +6,9 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLEngine
 
+import cats.effect.Effect
 import org.http4s.blaze.http.http20._
-import org.http4s.blaze.pipeline.{TailStage, LeafBuilder}
+import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -15,12 +16,12 @@ import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private object ProtocolSelector {
-  def apply(engine: SSLEngine,
-            service: HttpService,
-            maxRequestLineLen: Int,
-            maxHeadersLen: Int,
-            requestAttributes: AttributeMap,
-            es: ExecutorService): ALPNSelector = {
+  def apply[F[_]: Effect](engine: SSLEngine,
+                          service: HttpService[F],
+                          maxRequestLineLen: Int,
+                          maxHeadersLen: Int,
+                          requestAttributes: AttributeMap,
+                          es: ExecutorService): ALPNSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
 
@@ -39,7 +40,7 @@ private object ProtocolSelector {
     }
 
     def http1Stage(): TailStage[ByteBuffer] = {
-      Http1ServerStage(service, requestAttributes, es, false, maxRequestLineLen, maxHeadersLen)
+      Http1ServerStage[F](service, requestAttributes, es, false, maxRequestLineLen, maxHeadersLen)
     }
 
     def preference(protos: Seq[String]): String = {
