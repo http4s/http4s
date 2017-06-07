@@ -13,16 +13,13 @@ env:
   - HUGO_VERSION=0.18
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
-  - SBT_VERSION=0.13.13
+  - SBT_VERSION=0.13.15
   matrix:
   - SCALAZ_VERSION=7.2.13
   - SCALAZ_VERSION=7.1.13
-before_script:
-- mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
-- curl -L -o $HOME/.sbt/launchers/$SBT_VERSION/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch.jar
-- mkdir $HOME/bin
-- export PATH=$HOME/bin:$PATH
-script: bash bin/travis
+
+script: $TRAVIS_BUILD_DIR/bin/test.sh
+
 notifications:
   webhooks:
     urls:
@@ -36,3 +33,76 @@ cache:
   - "$HOME/.coursier/cache"
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
+
+jobs:
+  include:
+    - stage: Special Version Tests
+      scala: 2.12.2-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/coverage.sh
+    - script: $TRAVIS_BUILD_DIR/bin/mimaCompat.sh
+
+    - &publishSite
+      stage: Publish Site
+      scala: 2.12.2-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+    - <<: *publishSite
+      scala: 2.12.2-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.1.13
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+    - <<: *publishSite
+      scala: 2.11.11-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+    - <<: *publishSite
+      scala: 2.11.11-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.1.13
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+    - <<: *publishSite
+      scala: 2.10.6
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+    - <<: *publishSite
+      scala: 2.10.6
+      env:
+        - SCALAZ_VERSION=7.1.13
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+
+    - &publishSonatype
+      stage: Publish Sonatype
+      scala: 2.12.2-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+    - <<: *publishSonatype
+      scala: 2.12.2-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.1.13
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+    - <<: *publishSonatype
+      scala: 2.11.11-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+    - <<: *publishSonatype
+      scala: 2.11.11-bin-typelevel-4
+      env:
+        - SCALAZ_VERSION=7.1.13
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+    - <<: *publishSonatype
+      scala: 2.10.6
+      env:
+        - SCALAZ_VERSION=7.2.13
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+    - <<: *publishSonatype
+      scala: 2.10.6
+      env:
+        - SCALAZ_VERSION=7.1.13
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
