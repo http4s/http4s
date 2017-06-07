@@ -54,30 +54,9 @@ jobs:
       env: SCALAZ_VERSION=7.1.13
       script: $TRAVIS_BUILD_DIR/bin/test.sh
 
-    - &publishSite
-      stage: Publish Site
+    - stage: Publish Site
       scala: 2.12.2-bin-typelevel-4
       env: SCALAZ_VERSION=7.2.13
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-    - <<: *publishSite
-      scala: 2.12.2-bin-typelevel-4
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-    - <<: *publishSite
-      scala: 2.11.11-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-    - <<: *publishSite
-      scala: 2.11.11-bin-typelevel-4
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-    - <<: *publishSite
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.13
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-    - <<: *publishSite
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.1.13
       script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
 
     - &publishSonatype
