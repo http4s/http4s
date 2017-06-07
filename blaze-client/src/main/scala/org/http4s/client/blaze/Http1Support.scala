@@ -7,22 +7,23 @@ import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
+import cats.effect._
+import cats.implicits._
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.pipeline.{Command, LeafBuilder}
+import org.http4s.syntax.async._
 import org.http4s.syntax.string._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import fs2.{Strategy, Task}
-import cats.implicits._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param config The client configuration object
    */
-  def apply(config: BlazeClientConfig, executor: ExecutorService): ConnectionBuilder[BlazeConnection] = {
+  def apply[F[_]: Effect](config: BlazeClientConfig, executor: ExecutorService): ConnectionBuilder[F, BlazeConnection[F]] = {
     val builder = new Http1Support(config, executor)
     builder.makeClient
   }
@@ -33,31 +34,31 @@ private object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support(config: BlazeClientConfig, executor: ExecutorService) {
+final private class Http1Support[F[_]](config: BlazeClientConfig, executor: ExecutorService)
+                                      (implicit F: Effect[F]) {
   import Http1Support._
 
   private val ec = ExecutionContext.fromExecutorService(executor)
-  private val strategy = Strategy.fromExecutionContext(ec)
   private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
 
-  def makeClient(requestKey: RequestKey): Task[BlazeConnection] = getAddress(requestKey) match {
-    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, ec)
-    case Left(t) => Task.fail(t)
-  }
+  def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
+    getAddress(requestKey) match {
+      case Right(a) => F.fromFuture(buildPipeline(requestKey, a))(ec)
+      case Left(t) => F.raiseError(t)
+    }
 
-  private def buildPipeline(requestKey: RequestKey, addr: InetSocketAddress): Future[BlazeConnection] = {
+  private def buildPipeline(requestKey: RequestKey, addr: InetSocketAddress): Future[BlazeConnection[F]] =
     connectionManager.connect(addr, config.bufferSize).map { head =>
       val (builder, t) = buildStages(requestKey)
       builder.base(head)
       head.inboundCommand(Command.Connected)
       t
     }(ec)
-  }
 
-  private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection) = {
+  private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection[F]) = {
     val t = new Http1Connection(requestKey, config, executor, ec)
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {

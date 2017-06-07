@@ -11,12 +11,12 @@ import scala.concurrent.Future
   * requests against a stale connection when doing so may result in side
   * effects, and therefore cannot be retried.
   */
-private final class ReadBufferStage[T] extends MidStage[T, T] {
+private[blaze] final class ReadBufferStage[T] extends MidStage[T, T] {
 
   override def name: String = "ReadBufferingStage"
 
   private val lock: Object = this
-  private var buffered: Future[T] = null
+  private var buffered: Future[T] = _
 
   override def writeRequest(data: T): Future[Unit] = channelWrite(data)
 
