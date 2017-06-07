@@ -6,12 +6,12 @@ import cats.effect.Async
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AsyncSyntax {
-  implicit def asyncSyntax[F[_], A](async: Async[F])(implicit ec: ExecutionContext): AsyncOps[F, A] =
+  implicit def asyncSyntax[F[_], A](async: Async[F]): AsyncOps[F, A] =
     new AsyncOps[F, A](async)
 }
 
-final class AsyncOps[F[_], A](self: Async[F])(implicit ec: ExecutionContext) {
-  def fromFuture(future: Eval[Future[A]]): F[A] =
+final class AsyncOps[F[_], A](self: Async[F]) {
+  def fromFuture(future: Eval[Future[A]])(implicit ec: ExecutionContext): F[A] =
     self.async { cb =>
       import scala.util.{Failure, Success}
 
@@ -21,6 +21,6 @@ final class AsyncOps[F[_], A](self: Async[F])(implicit ec: ExecutionContext) {
       }
     }
 
-  def fromFuture(future: => Future[A]): F[A] =
+  def fromFuture(future: => Future[A])(implicit ec: ExecutionContext): F[A] =
     fromFuture(Eval.always(future))
 }
