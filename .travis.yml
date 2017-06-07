@@ -31,7 +31,8 @@ jobs:
       stage: Test
       scala: 2.12.2-bin-typelevel-4
       env: SCALAZ_VERSION=7.2.13
-      script: $TRAVIS_BUILD_DIR/bin/coverage.sh
+      script: $TRAVIS_BUILD_DIR/bin/specialTest.sh
+
     - <<: *tests
       scala: 2.12.2-bin-typelevel-4
       env: SCALAZ_VERSION=7.1.13
@@ -52,10 +53,6 @@ jobs:
       scala: 2.10.6
       env: SCALAZ_VERSION=7.1.13
       script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.12.2-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
-      script: $TRAVIS_BUILD_DIR/bin/mimaCompat.sh
 
     - &publishSite
       stage: Publish Site
