@@ -5,13 +5,16 @@
 function checkPublishable() {
     local publishLocation="${1:-PUBLISH LOCATION NOT SET}"
     if [[ $TRAVIS_PULL_REQUEST != "false" ]]; then
-        echo "Pull Requests are not published"
+        echo ""
+        echo "Pull Requests are not published to $publishLocation"
         exit 0
     elif [[ $TRAVIS_REPO_SLUG != "http4s/http4s" ]]; then
-        echo "Builds in Repositories other than http4s/http4s are not published"
+        echo ""
+        echo "Builds in Repositories other than http4s/http4s are not published to $publishLocation"
         exit 0
     elif [[ $TRAVIS_BRANCH != "master" || $TRAVIS_BRANCH != "release-"* ]]; then
-        echo "This is Not a Publishing Branch as set in bin/setup publishable"
+        echo ""
+        echo "As set in bin/setup this is not a publishing branch to $publishLocation"
         exit 0
     else
         echo "This Build Will Be Published To $publishLocation"
@@ -29,6 +32,22 @@ updated site
 Commit: $SHORT_COMMIT
 Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
+}
+
+# Add jstack watchdog timer in case #774 shows itself again.
+WATCHDOG_PID=""
+function find_sbt_pid() {
+    pgrep -f sbt-launch
+}
+
+function start_watchdog() {
+    echo "Watchdog will wake up in $1"
+    (sleep "$1" && echo "Watchdog launched jstack." && jstack $(find_sbt_pid)) &
+    WATCHDOG_PID=$(pgrep -n sleep)
+}
+
+function stop_watchdog() {
+    ([ -n "$WATCHDOG_PID" ] && kill "$WATCHDOG_PID") || true
 }
 
 mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
