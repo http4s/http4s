@@ -12,7 +12,7 @@ import cats.effect._
   * CPU time, SSL handshakes, etc. Because it can contain significant resources it
   * must have a mechanism to free resources associated with it.
   */
-trait ConnectionManager[F[_], A <: Connection] {
+trait ConnectionManager[F[_], A <: Connection[F]] {
 
   /** Bundle of the connection and wheither its new or not */
   // Sealed, rather than final, because SI-4440.
@@ -42,7 +42,7 @@ object ConnectionManager {
     *
     * @param builder generator of new connections
     * */
-  def basic[F[_]: Sync, A <: Connection](builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
+  def basic[F[_]: Sync, A <: Connection[F]](builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
     new BasicManager[F, A](builder)
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
@@ -51,6 +51,6 @@ object ConnectionManager {
     * @param maxTotal max total connections
     * @param es `ExecutorService` where async operations will execute
     */
-  def pool[F[_]: Effect, A <: Connection](builder: ConnectionBuilder[F, A], maxTotal: Int, es: ExecutorService): ConnectionManager[F, A] =
+  def pool[F[_]: Effect, A <: Connection[F]](builder: ConnectionBuilder[F, A], maxTotal: Int, es: ExecutorService): ConnectionManager[F, A] =
     new PoolManager[F, A](builder, maxTotal, es)
 }

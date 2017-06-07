@@ -1,12 +1,8 @@
 package org.http4s
 package client
 
-import org.log4s.getLogger
-
-trait Connection {
-  private[this] val logger = getLogger
-
-  def runRequest[F[_]](req: Request[F]): F[Response[F]]
+trait Connection[F[_]] {
+  def runRequest(req: Request[F]): F[Response[F]]
 
   /** Determine if the connection is closed and resources have been freed */
   def isClosed: Boolean

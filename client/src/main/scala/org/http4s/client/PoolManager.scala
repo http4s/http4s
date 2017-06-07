@@ -9,9 +9,10 @@ import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-private final class PoolManager[F[_], A <: Connection](builder: ConnectionBuilder[F, A],
-                                                       maxTotal: Int,
-                                                       es: ExecutorService)(implicit F: Effect[F])
+private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A],
+                                                          maxTotal: Int,
+                                                          es: ExecutorService)
+                                                         (implicit F: Effect[F])
   extends ConnectionManager[F, A] {
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])

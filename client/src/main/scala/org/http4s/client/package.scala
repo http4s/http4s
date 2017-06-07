@@ -29,7 +29,7 @@ package object client extends Http4sClientDsl[IO] with ClientTypes
 trait ClientTypes {
   import org.http4s.client._
 
-  type ConnectionBuilder[F[_], A <: Connection] = RequestKey => F[A]
+  type ConnectionBuilder[F[_], A <: Connection[F]] = RequestKey => F[A]
 
   type Middleware[F[_]] = Client[F] => Client[F]
 }
