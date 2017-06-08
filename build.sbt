@@ -12,7 +12,7 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-lazy val core = libraryProject("core")
+lazy val core = libraryCrossProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
@@ -34,6 +34,12 @@ lazy val core = libraryProject("core")
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
   )
+  .jsSettings(
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M11"
+  )
+
+lazy val coreJVM = core.jvm
+lazy val coreJS  = core.js
 
 lazy val testing = libraryProject("testing")
   .settings(
@@ -44,7 +50,7 @@ lazy val testing = libraryProject("testing")
       specs2Matcher
     ),
   )
-  .dependsOn(core)
+  .dependsOn(coreJVM)
 
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
@@ -52,13 +58,13 @@ lazy val tests = libraryProject("tests")
   .settings(
     description := "Tests for core project",
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testing % "test->test")
 
 lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers"
   )
-  .dependsOn(core, testing % "test->test", theDsl % "test->compile")
+  .dependsOn(coreJVM, testing % "test->test", theDsl % "test->compile")
 
 lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   .settings(
@@ -82,7 +88,7 @@ lazy val client = libraryProject("client")
     libraryDependencies += jettyServlet % "test"
   )
   .dependsOn(
-    core,
+    coreJVM,
     testing % "test->test",
     server % "test->compile",
     theDsl % "test->compile",
@@ -108,7 +114,7 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze,
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testing % "test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
@@ -130,7 +136,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       fs2ReactiveStreams
     )
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(coreJVM, testing % "test->test", client % "compile;test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -187,14 +193,14 @@ lazy val theDsl = libraryProject("dsl")
   .settings(
     description := "Simple DSL for writing http4s services"
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testing % "test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
     libraryDependencies += jawnFs2
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testing % "test->test")
 
 lazy val argonaut = libraryProject("argonaut")
   .settings(
@@ -203,7 +209,7 @@ lazy val argonaut = libraryProject("argonaut")
       Http4sPlugin.argonaut
     )
   )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+  .dependsOn(coreJVM, testing % "test->test", jawn % "compile;test->test")
 
 lazy val boopickle = libraryProject("boopickle")
   .settings(
@@ -222,7 +228,7 @@ lazy val circe = libraryProject("circe")
       circeTesting % "test"
     )
   )
-  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+  .dependsOn(coreJVM, testing % "test->test", jawn % "compile;test->test")
 
 lazy val json4s = libraryProject("json4s")
   .settings(
@@ -266,7 +272,7 @@ lazy val scalaXml = libraryProject("scala-xml")
       case _ => Seq.empty
     }).value,
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testing % "test->test")
 
 lazy val twirl = http4sProject("twirl")
   .settings(
@@ -275,7 +281,7 @@ lazy val twirl = http4sProject("twirl")
     TwirlKeys.templateImports := Nil
   )
   .enablePlugins(SbtTwirl)
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testing % "test->test")
 
 lazy val scalatags = http4sProject("scalatags")
   .settings(
@@ -302,7 +308,7 @@ lazy val bench = http4sProject("bench")
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
   )
-  .dependsOn(core, circe)
+  .dependsOn(coreJVM, circe)
 
 lazy val docs = http4sProject("docs")
   .enablePlugins(
