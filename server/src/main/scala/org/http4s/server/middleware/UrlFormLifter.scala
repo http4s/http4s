@@ -20,7 +20,9 @@ object UrlFormLifter {
       val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
       val newQuery = Query(params :_*)
 
-      val newRequest = req.copy(uri = req.uri.copy(query = newQuery), body = EmptyBody)
+      val newRequest = req
+        .withUri(req.uri.copy(query = newQuery))
+        .withBody(EmptyBody)
       service(newRequest)
     }
 
