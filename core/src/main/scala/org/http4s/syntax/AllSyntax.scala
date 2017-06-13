@@ -6,5 +6,4 @@ trait AllSyntax extends AnyRef
     with EffectResponseSyntax
     with EffectRequestSyntax
     with ServiceSyntax
-    with StreamCatsSyntax
     with StringSyntax

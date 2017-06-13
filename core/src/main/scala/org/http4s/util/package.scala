@@ -3,7 +3,7 @@ package org.http4s
 import java.nio.{ByteBuffer, CharBuffer}
 
 import fs2._
-import fs2.util.Attempt
+import fs2.interop.scodec.ByteVectorChunk
 import scodec.bits.ByteVector
 
 import scala.util.control.NonFatal
@@ -12,27 +12,26 @@ package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt
-    val avgBytesPerChar = math.ceil(1.0 / decoder.averageCharsPerByte().toDouble).toInt
-    val charBufferSize = 128
+    val avgBytesPerChar = math.ceil(1.0 / decoder.averageCharsPerByte().toDouble).toLong
+    val charBufferSize = 128L
 
     _.repeatPull[String] {
-      _.awaitN(charBufferSize * avgBytesPerChar, allowFewer = true).optional.flatMap {
+      _.unconsN(charBufferSize * avgBytesPerChar, allowFewer = true).flatMap {
         case None =>
           val charBuffer = CharBuffer.allocate(1)
           decoder.decode(ByteBuffer.allocate(0), charBuffer, true)
           decoder.flush(charBuffer)
           val outputString = charBuffer.flip().toString
-          if (outputString.isEmpty) Pull.done
-          else Pull.output1(outputString) as Handle.empty
-        case Some((chunks, handle)) =>
-          val chunk = chunks.flatMap(_.toList)
-          val byteVector = ByteVector(chunk.toArray)
+          if (outputString.isEmpty) Pull.done as None
+          else Pull.output1(outputString) as None
+        case Some((segment, stream)) =>
+          val byteVector = ByteVector(segment.toVector)
           val byteBuffer = byteVector.toByteBuffer
           val charBuffer = CharBuffer.allocate(byteVector.size.toInt * maxCharsPerByte)
           decoder.decode(byteBuffer, charBuffer, false)
           val nextByteVector = ByteVector.view(byteBuffer.slice)
-          val nextHandle = handle.push(Chunk.bytes(nextByteVector.toArray))
-          Pull.output1(charBuffer.flip().toString) as nextHandle
+          val nextStream = stream.consChunk(ByteVectorChunk(nextByteVector))
+          Pull.output1(charBuffer.flip().toString) as Some(nextStream)
       }
     }
   }
@@ -41,7 +40,7 @@ package object util {
   def bug(message: String): AssertionError =
     new AssertionError(s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
 
-  private[http4s] def tryCatchNonFatal[A](f: => A): Attempt[A] =
+  private[http4s] def tryCatchNonFatal[A](f: => A): Either[Throwable, A] =
     try Right(f)
     catch { case NonFatal(t) => Left(t) }
 

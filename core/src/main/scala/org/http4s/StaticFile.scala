@@ -78,7 +78,7 @@ object StaticFile {
       notModified orElse {
 
         val (body, contentLength) =
-          if (f.length() < end) (empty, 0L)
+          if (f.length() < end) (empty.covary[F], 0L)
           else (fileToBody(f, start, end, buffsize), end - start)
 
         val contentType = {
@@ -124,7 +124,7 @@ object StaticFile {
       pulls
         .fromPath(path, List(StandardOpenOption.READ))
         .flatMap(h => readAllFromFileHandle(chunkSize, start, end)(h.resource))
-        .close
+        .stream
 
     readAll(f.toPath, DefaultBufferSize)
   }

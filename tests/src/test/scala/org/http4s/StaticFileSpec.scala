@@ -4,6 +4,7 @@ import fs2.Chunk
 import java.io.File
 import java.nio.file.Files
 import java.time.Instant
+import org.http4s.util.chunk._
 
 import cats.effect.IO
 import org.http4s.Status.NotModified
@@ -103,7 +104,7 @@ class StaticFileSpec extends Http4sSpec {
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for
       // things like CachingChunkWriter that buffer the chunks.
-      new String(Chunk.concat(s.chunks.runLog.unsafeRunSync()).toArray, "utf-8") must_== expected
+      new String(s.chunks.runFoldMonoid.unsafeRunSync().toArray, "utf-8") must_== expected
     }
   }
 }

@@ -291,7 +291,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request[IO]()
-      binary[IO].decode(msg, strict = false) must returnRight(Chunk.empty)
+      binary[IO].decode(msg, strict = false) must returnRight(Chunk.empty[Byte])
     }
 
     "concat ByteVectors" in {
@@ -314,14 +314,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
-        .flatMap(EntityDecoder.decodeString(_)(MonadError[IO, Throwable], Charset.`US-ASCII`)) must returnValue(str)
+        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`US-ASCII`)) must returnValue(str)
     }
 
     "Use the default if the Content-Type header does not define one" in {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(Some(`Content-Type`(MediaType.`text/plain`, None)))
-        .flatMap(EntityDecoder.decodeString(_)(MonadError[IO, Throwable], Charset.`UTF-8`)) must returnValue(str)
+        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`UTF-8`)) must returnValue(str)
     }
   }
 

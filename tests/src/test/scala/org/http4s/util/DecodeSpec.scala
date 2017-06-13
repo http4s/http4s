@@ -32,7 +32,7 @@ class DecodeSpec extends Http4sSpec {
             .grouped(chunkSize)
             .map(Chunk.bytes)
             .toSeq
-        }.flatMap(Stream.chunk).pure
+        }.flatMap(Stream.chunk)
         val expected = new String(source.toVector.toArray, cs.nioCharset)
         !expected.contains("\ufffd") ==> {
           // \ufffd means we generated a String unrepresentable by the charset

@@ -6,6 +6,5 @@ package object syntax {
   object effectRequest extends EffectRequestSyntax
   object effectResponse extends EffectResponseSyntax
   object service extends ServiceSyntax
-  object streamCats extends StreamCatsSyntax
   object string extends StringSyntax
 }

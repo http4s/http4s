@@ -189,15 +189,15 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
           // Read into a Chunk
           val b = new Array[Byte](bb.remaining())
           bb.get(b)
-          Some(Chunk.bytes(b, 0, b.length))
+          Some(Chunk.bytes(b))
         }
       }
 
       def useReader(is: R) =
         Stream.eval(readToBytes)
           .repeat
-          .through(pipe.unNoneTerminate)
-          .flatMap(Stream.chunk)
+          .unNoneTerminate
+          .flatMap(Stream.chunk[Byte])
 
       // The reader is closed at the end like InputStream
       Stream.bracket(r)(useReader, t => F.delay(t.close()))

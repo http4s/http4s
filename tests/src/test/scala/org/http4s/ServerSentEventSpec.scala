@@ -9,7 +9,7 @@ class ServerSentEventSpec extends Http4sSpec {
   import ServerSentEvent._
 
   def toStream(s: String): Stream[IO, Byte] =
-    Stream.emit[IO, String](s).through(utf8Encode)
+    Stream.emit(s).through(utf8Encode)
 
   "decode" should {
     "decode multi-line messages" in {
@@ -75,7 +75,8 @@ class ServerSentEventSpec extends Http4sSpec {
 
   "encode" should {
     "be consistent with decode" in prop { sses: Vector[ServerSentEvent] =>
-      val roundTrip = Stream.emits[IO, ServerSentEvent](sses)
+      val roundTrip = Stream.emits(sses)
+        .covary[IO]
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
         .runLog
@@ -86,7 +87,8 @@ class ServerSentEventSpec extends Http4sSpec {
     "handle leading spaces" in {
       // This is a pathological case uncovered by scalacheck
       val sse = ServerSentEvent(" a",Some(" b"),Some(EventId(" c")),Some(1L))
-      Stream.emit[IO, ServerSentEvent](sse)
+      Stream.emit(sse)
+        .covary[IO]
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
         .runLast
@@ -95,7 +97,7 @@ class ServerSentEventSpec extends Http4sSpec {
   }
 
   "EntityEncoder[ServerSentEvent]" should {
-    val eventStream = Stream.range[IO](0, 5).map(i => ServerSentEvent(data = i.toString))
+    val eventStream: Stream[IO, ServerSentEvent] = Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString))
     "set Content-Type to text/event-stream" in {
       Response[IO]().withBody(eventStream).unsafeRunSync.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
     }

@@ -169,7 +169,7 @@ final case class ChunkWriter(
 ) extends Writer {
 
   override def append(s: String): this.type = {
-    toChunk = toChunk.toBytes.concatAll(Seq(toChunk, Chunk.bytes(s.getBytes(charset))))
+    toChunk = (toChunk ++ Chunk.bytes(s.getBytes(charset))).toChunk
     this
   }
 

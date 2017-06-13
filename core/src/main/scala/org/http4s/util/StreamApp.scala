@@ -5,7 +5,6 @@ import cats.effect.implicits._
 import fs2._
 import fs2.async._
 import fs2.async.mutable.Signal
-import fs2.util.Attempt
 import org.log4s.getLogger
 
 import scala.concurrent.SyncVar
@@ -20,7 +19,7 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private implicit val executionContext = TrampolineExecutionContext
 
   private[this] val shutdownRequested: Signal[F, Boolean] = {
-    val signal = new SyncVar[Attempt[Signal[F, Boolean]]]
+    val signal = new SyncVar[Either[Throwable, Signal[F, Boolean]]]
     unsafeRunAsync(signalOf[F, Boolean](false)) { a =>
       signal.put(a)
       IO.unit
@@ -55,11 +54,9 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
     unsafeRunAsync(s) {
       case Left(t) =>
         logger.error(t)("Error running stream")
-        exit.put(-1)
-        IO.unit
+        IO.pure(exit.put(-1))
       case Right(_) =>
-        exit.put(0)
-        IO.unit
+        IO.pure(exit.put(0))
     }
     exit.get
   }

@@ -8,7 +8,6 @@ import cats.implicits._
 import fs2._
 import fs2.io._
 import org.http4s.headers.`Content-Type`
-import org.http4s.syntax.streamCats._
 import org.http4s.util.chunk._
 
 import scala.annotation.implicitNotFound
@@ -128,12 +127,12 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary[F[_]: MonadError[?[_], Throwable]](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(msg.body.chunks.runFoldMap[Chunk[Byte]](identity))
+  def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
+    DecodeResult.success(msg.body.chunks.runFoldMonoid)
 
   /** Decodes a message to a String */
-  def decodeString[F[_]: MonadError[?[_], Throwable]](msg: Message[F])(implicit defaultCharset: Charset = DefaultCharset): F[String] =
-    msg.bodyAsText.runFoldMap(identity)
+  def decodeString[F[_]: Sync](msg: Message[F])(implicit defaultCharset: Charset = DefaultCharset): F[String] =
+    msg.bodyAsText.runFoldMonoid
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -143,18 +142,17 @@ trait EntityDecoderInstances {
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
-  def error[F[_], T](t: Throwable)(implicit F: MonadError[F, Throwable]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
+  def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] = {
-      DecodeResult(msg.body.open.close.run.followedBy(F.raiseError(t)))
+      DecodeResult(msg.body.run >> F.raiseError(t))
     }
     override def consumes: Set[MediaRange] = Set.empty
   }
 
-  implicit def binary[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Chunk[Byte]] = {
+  implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
-  }
 
-  implicit def text[F[_]: MonadError[?[_], Throwable]](implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
+  implicit def text[F[_]: Sync](implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(defaultCharset).nioCharset))
     )
@@ -179,7 +177,7 @@ trait EntityDecoderInstances {
 */
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit def void[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Unit] =
+  implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       DecodeResult.success(msg.body.drain.run)
     }

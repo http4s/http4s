@@ -10,7 +10,7 @@ trait ChunkInstances extends ChunkInstances0 {
   implicit val ByteChunkMonoid: Monoid[Chunk[Byte]] =
     new Monoid[Chunk[Byte]] {
       def combine(chunk1: Chunk[Byte], chunk2: Chunk[Byte]): Chunk[Byte] =
-        chunk1.concatAll(Seq(chunk2))
+        (chunk1 ++ chunk2).toChunk
 
       val empty: Chunk[Byte] =
         Chunk.empty
@@ -21,7 +21,7 @@ trait ChunkInstances0 {
   implicit def ChunkMonoid[A]: Monoid[Chunk[A]] =
     new Monoid[Chunk[A]] {
       def combine(chunk1: Chunk[A], chunk2: Chunk[A]): Chunk[A] =
-        Chunk.concat(Seq(chunk1, chunk2))
+        (chunk1 ++ chunk2).toChunk
 
       def empty: Chunk[A] =
         Chunk.empty

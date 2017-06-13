@@ -4,7 +4,6 @@ import cats._
 import cats.data._
 import cats.effect.Sync
 import fs2._
-import fs2.util.Attempt
 
 package object http4s { // scalastyle:ignore
 
@@ -13,7 +12,7 @@ package object http4s { // scalastyle:ignore
   type EntityBody[+F[_]] = Stream[F, Byte]
 
   val EmptyBody: EntityBody[Nothing] =
-    Stream.empty[Nothing, Byte]
+    Stream.empty
 
   val ApiVersion: Http4sVersion =
     Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
@@ -87,7 +86,7 @@ package object http4s { // scalastyle:ignore
       Service.constVal(Pass[F])
   }
 
-  type Callback[A] = Attempt[A] => Unit
+  type Callback[A] = Either[Throwable, A] => Unit
 
   /** A stream of server-sent events */
   type EventStream[F[_]] = Stream[F, ServerSentEvent]
