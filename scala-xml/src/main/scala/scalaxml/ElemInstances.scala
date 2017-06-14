@@ -4,6 +4,7 @@ package scalaxml
 import java.io.StringReader
 
 import cats._
+import cats.effect._
 import headers.`Content-Type`
 
 import scala.util.control.NonFatal
@@ -23,7 +24,7 @@ trait ElemInstances {
    * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
-  implicit def xml[F[_]](implicit F: MonadError[F, Throwable], parser: SAXParser = XML.parser): EntityDecoder[F, Elem] = {
+  implicit def xml[F[_]](implicit F: Sync[F], parser: SAXParser = XML.parser): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`){ msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>

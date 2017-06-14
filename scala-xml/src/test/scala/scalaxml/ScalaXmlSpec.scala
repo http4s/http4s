@@ -12,7 +12,7 @@ class ScalaXmlSpec extends Http4sSpec {
 
   def getBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync.toArray
 
-  def strBody(body: String): EntityBody[IO] = Stream[IO, String](body).through(utf8Encode)
+  def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)
 
   "xml" should {
     val server: Request[IO] => IO[Response[IO]] = { req =>
