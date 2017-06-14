@@ -1,17 +1,18 @@
 package org.http4s
 package argonaut
 
-import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
 import _root_.argonaut.Argonaut._
-import cats.{Applicative, MonadError}
+import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
+import cats.Applicative
+import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
-  implicit def jsonDecoder[F[_]: MonadError[?[_], Throwable]]: EntityDecoder[F, Json] =
+  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
     jawn.jawnDecoder
 
-  def jsonOf[F[_]: MonadError[?[_], Throwable], A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_]: Sync, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder.decodeJson(json)
         .fold(
