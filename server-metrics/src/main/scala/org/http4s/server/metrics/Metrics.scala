@@ -4,14 +4,14 @@ package metrics
 
 import java.util.concurrent.TimeUnit
 
+import cats.effect._
 import cats.implicits._
-import fs2.util.Attempt
-import fs2.{Stream, Task}
+import fs2._
 import com.codahale.metrics.MetricRegistry
 
 object Metrics {
 
-  def apply(m: MetricRegistry, prefix: String = "org.http4s.server"): HttpMiddleware = { service =>
+  def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val active_requests = m.counter(s"${prefix}.active-requests")
 
     val abnormal_termination = m.timer(s"${prefix}.abnormal-termination")
@@ -55,15 +55,15 @@ object Metrics {
       active_requests.dec()
     }
 
-    def onFinish(method: Method, start: Long)(r: Attempt[MaybeResponse]): Attempt[MaybeResponse] = {
+    def onFinish(method: Method, start: Long)(r: Either[Throwable, MaybeResponse[F]]): Either[Throwable, MaybeResponse[F]] = {
       val elapsed = System.nanoTime() - start
 
       r.map { r =>
         headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
         val code = r.cata(_.status, Status.NotFound).code
 
-        def capture(r: Response) = r.body.onFinalize[Task] {
-          Task.delay {
+        def capture(r: Response[F]) = r.body.onFinalize {
+          F.delay {
             generalMetrics(method, elapsed)
             if (code < 200) resp1xx.update(elapsed, TimeUnit.NANOSECONDS)
             else if (code < 300) resp2xx.update(elapsed, TimeUnit.NANOSECONDS)
@@ -84,10 +84,10 @@ object Metrics {
       }
     }
 
-    Service.lift { req: Request =>
+    Service.lift { req: Request[F] =>
       val now = System.nanoTime()
       active_requests.inc()
-      service(req).attempt.flatMap(onFinish(req.method, now)(_).fold(Task.fail, Task.now))
+      service(req).attempt.flatMap(onFinish(req.method, now)(_).fold(F.raiseError, F.pure))
     }
   }
 }
