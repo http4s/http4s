@@ -203,7 +203,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
 }
 
 object JettyBuilder {
-  def apply[F[_] : Effect] = new JettyBuilder[F](
+  def apply[F[_]: Effect] = new JettyBuilder[F](
     socketAddress = ServerBuilder.DefaultSocketAddress,
     serviceExecutor = DefaultPool,
     idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,

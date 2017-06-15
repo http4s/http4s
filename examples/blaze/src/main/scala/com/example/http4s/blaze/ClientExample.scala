@@ -5,14 +5,15 @@ object ClientExample {
   def getSite() = {
 
     import org.http4s.Http4s._
-    import fs2.Task
+    import org.http4s.client._
+    import cats.effect.IO
 
-    val client = org.http4s.client.blaze.SimpleHttp1Client()
+    val client: Client[IO] = blaze.SimpleHttp1Client()
 
-    val page: Task[String] = client.expect[String](uri("https://www.google.com/"))
+    val page: IO[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.map(_.take(72)).unsafeRun())   // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).unsafeRunSync())   // each execution of the Task will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
@@ -24,16 +25,16 @@ object ClientExample {
     final case class Foo(bar: String)
 
     // jsonOf is defined for Json4s, Argonuat, and Circe, just need the right decoder!
-    implicit val fooDecoder = jsonOf[Foo]
+    implicit val fooDecoder = jsonOf[IO, Foo]
 
     // Match on response code!
     val page2 = client.get(uri("http://http4s.org/resources/foo.json")) {
       case Successful(resp) => resp.as[Foo].map("Received response: " + _)
-      case NotFound(resp)   => Task.now("Not Found!!!")
-      case resp             => Task.now("Failed: " + resp.status)
+      case NotFound(resp)   => IO.pure("Not Found!!!")
+      case resp             => IO.pure("Failed: " + resp.status)
     }
 
-    println(page2.unsafeRun())
+    println(page2.unsafeRunSync())
 
     client.shutdownNow()
   }

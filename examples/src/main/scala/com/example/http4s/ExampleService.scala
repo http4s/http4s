@@ -7,9 +7,11 @@ import cats.implicits._
 import fs2._
 import org.http4s.MediaType._
 import org.http4s._
+import org.http4s.server._
 import org.http4s.circe._
 import org.http4s.dsl._
 import org.http4s.headers._
+import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.twirl._
 
 import scala.concurrent._
@@ -19,11 +21,12 @@ object ExampleService {
 
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
-  //  def service(implicit ec: ExecutionContext = ExecutionContext.global): HttpService[IO] = Router(
-  //    "" -> rootService,
-  //    "/auth" -> authService,
-  //    "/science" -> ScienceExperiments.service
-  //  )
+  def service(implicit ec: ExecutionContext = ExecutionContext.global): HttpService[IO] =
+    Router[IO](
+      "" -> rootService,
+      "/auth" -> authService,
+      "/science" -> ScienceExperiments.service
+    )
 
   def rootService(implicit ec: ExecutionContext = ExecutionContext.global) = HttpService[IO] {
     case GET -> Root =>
@@ -184,18 +187,17 @@ object ExampleService {
   // Services can be protected using HTTP authentication.
   val realm = "testrealm"
 
-  /*
   def authStore(creds: BasicCredentials) =
-    if (creds.username == "username" && creds.password == "password") Task.now(Some(creds.username))
-    else Task.now(None)
+    if (creds.username == "username" && creds.password == "password") IO.pure(Some(creds.username))
+    else IO.pure(None)
 
   // An AuthedService[A] is a Service[(A, Request), Response] for some
   // user type A.  `BasicAuth` is an auth middleware, which binds an
   // AuthedService to an authentication store.
-  def authService: HttpService = BasicAuth(realm, authStore)(AuthedService[String] {
+  val basicAuth = BasicAuth(realm, authStore)
+  def authService: HttpService[IO] = basicAuth(AuthedService[IO, String] {
     // AuthedServices look like Services, but the user is extracted with `as`.
     case req @ GET -> Root / "protected" as user =>
       Ok(s"This page is protected using HTTP authentication; logged in as $user")
   })
-  */
 }
