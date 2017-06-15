@@ -226,19 +226,18 @@ object Client {
 
     def interruptible(body: EntityBody[F], disposed: AtomicBoolean): Stream[F, Byte]  = {
       def killable(reason: String, killed: AtomicBoolean): Pipe[F, Byte, Byte] = {
-        def go(killed: AtomicBoolean): Handle[F, Byte] => Pull[F, Byte, Unit] = {
-          _.receiveOption{
-            case Some((chunk, h)) =>
-              if (killed.get){
-                Pull.outputs[F, Byte](Stream.fail[F](new IOException(reason)))
+        def go(killed: AtomicBoolean, stream: Stream[F, Byte]): Pull[F, Byte, Unit] =
+          stream.pull.uncons.flatMap {
+            case Some((segment, stream)) =>
+              if (killed.get) {
+                Pull.fail(new IOException(reason))
               } else {
-                Pull.output[F, Byte](chunk.toBytes) >> go(killed)(h)
+                Pull.output(segment) >> go(killed, stream)
               }
             case None => Pull.done
           }
-        }
 
-        _.pull(go(killed))
+        stream => go(killed, stream).stream
       }
       body
         .through(killable("response was disposed", disposed))
