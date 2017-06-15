@@ -8,7 +8,7 @@ import javax.servlet.{ReadListener, WriteListener}
 import cats._
 import cats.implicits._
 import cats.effect._
-import fs2.{Chunk, Stream, io, pipe}
+import fs2._
 import org.http4s.util.{TrampolineExecutionContext, bug}
 import org.log4s.getLogger
 
@@ -86,7 +86,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         logger.warn("Encountered a read of length 0")
         cb(rightSome(Chunk.empty))
       }
-      else cb(rightSome(Chunk.bytes(buf, 0, len)))
+      else cb(rightSome(Chunk.bytes(buf)))
     }
 
     if (in.isFinished) Stream.empty
@@ -158,7 +158,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
           go()
         }
       )
-      readStream.through(pipe.unNoneTerminate).unchunk.map(_(0))
+      readStream.unNoneTerminate.unchunk.map(_(0))
     }
   }
 
