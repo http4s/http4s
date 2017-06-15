@@ -5,6 +5,7 @@ package middleware
 import Method.OPTIONS
 
 import scala.concurrent.duration._
+
 import cats.implicits._
 import fs2._
 import org.http4s.headers._
@@ -29,7 +30,7 @@ final case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
-  def DefaultCORSConfig: CORSConfig = CORSConfig(
+  def DefaultCORSConfig = CORSConfig(
     anyOrigin = true,
     allowCredentials = true,
     maxAge = 1.day.toSeconds)
@@ -46,16 +47,13 @@ object CORS {
     def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value, true)(Response())
 
     def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(resp: Response): Response = {
-      if (isPreflight) {
-        config.allowedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
-          resp.putHeaders(Header("Access-Control-Allow-Headers", hs))
-        }
+      val methodBasedHeader = if (isPreflight) {
+        config.allowedHeaders.map(headerFromStrings("Access-Control-Allow-Headers", _))
       }
       else {
-        config.exposedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
-          resp.putHeaders(Header("Access-Control-Expose-Headers", hs))
-        }
-      }.putHeaders(
+        config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
+      }
+      methodBasedHeader.fold(resp)(h => resp.putHeaders(h)).putHeaders(
         Header("Vary", "Origin,Access-Control-Request-Methods"),
         Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
         Header("Access-Control-Allow-Methods", config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
@@ -63,6 +61,8 @@ object CORS {
         Header("Access-Control-Max-Age", config.maxAge.toString())
       )
     }
+
+    def headerFromStrings(headerName: String, values: Set[String]): Header = Header(headerName, values.mkString("", ", ", ""))
 
     def allowCORS(origin: Header, acrm: Header): Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
       case (true, true, _, _) => true
