@@ -5,7 +5,6 @@ package middleware
 import Method.OPTIONS
 
 import scala.concurrent.duration._
-
 import cats.implicits._
 import fs2._
 import org.http4s.headers._
@@ -23,13 +22,14 @@ final case class CORSConfig(
   anyMethod: Boolean = true,
   allowedOrigins: String => Boolean = _ => false,
   allowedMethods: Option[Set[String]] = None,
-  allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some
+  allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some,
+  exposedHeaders: Option[Set[String]] = Set("*").some
 )
 
 object CORS {
   private[CORS] val logger = getLogger
 
-  def DefaultCORSConfig = CORSConfig(
+  def DefaultCORSConfig: CORSConfig = CORSConfig(
     anyOrigin = true,
     allowCredentials = true,
     maxAge = 1.day.toSeconds)
@@ -43,18 +43,26 @@ object CORS {
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
 
     // In the case of an options request we want to return a simple response with the correct Headers set.
-    def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value)(Response())
+    def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value, true)(Response())
 
-    def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
-      config.allowedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
-        resp.putHeaders(Header("Access-Control-Allow-Headers", hs), Header("Access-Control-Expose-Headers", hs))
+    def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(resp: Response): Response = {
+      if (isPreflight) {
+        config.allowedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
+          resp.putHeaders(Header("Access-Control-Allow-Headers", hs))
+        }
+      }
+      else {
+        config.exposedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
+          resp.putHeaders(Header("Access-Control-Expose-Headers", hs))
+        }
       }.putHeaders(
-          Header("Vary", "Origin,Access-Control-Request-Methods"),
-          Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
-          Header("Access-Control-Allow-Methods", config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
-          Header("Access-Control-Allow-Origin", origin),
-          Header("Access-Control-Max-Age", config.maxAge.toString())
-        )
+        Header("Vary", "Origin,Access-Control-Request-Methods"),
+        Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
+        Header("Access-Control-Allow-Methods", config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
+        Header("Access-Control-Allow-Origin", origin),
+        Header("Access-Control-Max-Age", config.maxAge.toString())
+      )
+    }
 
     def allowCORS(origin: Header, acrm: Header): Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
       case (true, true, _, _) => true
@@ -73,14 +81,14 @@ object CORS {
           service(req).map {
             case resp: Response =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-              corsHeaders(origin.value, req.method.renderString)(resp)
+              corsHeaders(origin.value, req.method.renderString, false)(resp)
             case Pass =>
               Pass
           }
         }
         else {
           logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
-          service(req)
+          Task.now(Response(status = Status.Forbidden))
         }
       case _ =>
         // This request is out of scope for CORS

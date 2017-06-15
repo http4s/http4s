@@ -69,6 +69,11 @@ class CORSSpec extends Http4sSpec {
       cors2.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafeRun
     }
 
+    "Respond with 403 when origin is not valid" in {
+      val req = buildRequest("/bar").replaceAllHeaders(Header("Origin", "http://blah.com/"))
+      cors2.orNotFound(req).map((resp: Response) => resp.status.code == 403)).unsafeRun
+    }
+
     "Fall through" in {
       val req = buildRequest("/2")
       val s1 = CORS(HttpService { case GET -> Root / "1" => Ok() })
