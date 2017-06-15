@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats._
+import cats.effect._
 import cats.implicits._
 
 
@@ -15,7 +16,7 @@ import cats.implicits._
   */
 object UrlFormLifter {
 
-  def apply[F[_]: MonadError[?[_], Throwable]](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
+  def apply[F[_]: Sync](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
     Service.lift { req: Request[F] =>
 
       def addUrlForm(form: UrlForm): F[MaybeResponse[F]] = {

@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.{Applicative, MonadError}
+import cats.effect.Sync
 
 /** Cache the body of a [[Response]] for future use
   *
@@ -12,5 +12,5 @@ import cats.{Applicative, MonadError}
   */
 trait CacheStrategy[F[_]] {
   /** Performs the caching operations */
-  def cache(uriPath: String, resp: Response[F])(implicit F: MonadError[F, Throwable]): F[Response[F]]
+  def cache(uriPath: String, resp: Response[F])(implicit F: Sync[F]): F[Response[F]]
 }

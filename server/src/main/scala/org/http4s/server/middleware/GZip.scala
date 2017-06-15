@@ -83,19 +83,17 @@ object GZip {
 
   private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
 
-  private def trailer[F[_]](gen: TrailerGen): Pipe[F, Byte, Byte] =
-    pipe.covary[F, Byte, Byte](_.pull(_.await.flatMap(trailerStep(gen))))
+  private def trailer[F[_]](gen: TrailerGen): Pipe[Pure, Byte, Byte] =
+    _.pull.uncons.flatMap(trailerStep(gen)).stream
 
-  private def trailerStep(gen: TrailerGen): ((Chunk[Byte], Handle[Pure, Byte])) => Pull[Pure, Byte, Handle[Pure, Byte]] = {
-    case (c, h) =>
-      val chunkArr = c.toArray
-      gen.crc.update(chunkArr)
-      gen.inputLength = gen.inputLength + chunkArr.length
-      Pull.output(c) >> trailerHandle(gen)(h)
+  private def trailerStep(gen: TrailerGen): (Option[(Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
+    case None => Pull.pure(None)
+    case Some((segment, stream)) =>
+      val chunkArray = segment.toChunk.toArray
+      gen.crc.update(chunkArray)
+      gen.inputLength = gen.inputLength + chunkArray.length
+      Pull.output(segment) >> stream.pull.uncons.flatMap(trailerStep(gen))
   }
-
-  private def trailerHandle(gen: TrailerGen)(h: Handle[Pure, Byte]): Pull[Pure, Byte, Handle[Pure, Byte]] =
-    h.await.flatMap(trailerStep(gen))
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] = {
     // Temporary workaround to fix incorrect deflation of an empty stream in fs2

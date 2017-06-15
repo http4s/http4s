@@ -5,7 +5,6 @@ package staticcontent
 import java.io.File
 import java.util.concurrent.ExecutorService
 
-import cats._
 import cats.data._
 import cats.effect._
 import cats.implicits._
@@ -44,7 +43,7 @@ object FileService {
   }
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: MonadError[F, Throwable]): HttpService[F] = Service.lift {
+  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpService[F] = Service.lift {
     req =>
       val uriPath = req.pathInfo
       if (!uriPath.startsWith(config.pathPrefix))

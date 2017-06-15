@@ -32,7 +32,7 @@ class GZipSpec extends Http4sSpec {
     checkAll("encoding", new Properties("GZip") {
       property("middleware encoding == GZIPOutputStream encoding") =
         forAll { vector: Vector[Array[Byte]] =>
-          val service: HttpService[IO] = HttpService[IO] { case GET -> Root => Ok(Stream.emits[IO, Array[Byte]](vector)) }
+          val service: HttpService[IO] = HttpService[IO] { case GET -> Root => Ok(Stream.emits(vector).covary[IO]) }
           val gzipService: HttpService[IO] = GZip(service)
           val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/")).putHeaders(`Accept-Encoding`(ContentCoding.gzip))
           val actual: IO[Array[Byte]] = gzipService.orNotFound(req).as[Chunk[Byte]].map(_.toArray)
