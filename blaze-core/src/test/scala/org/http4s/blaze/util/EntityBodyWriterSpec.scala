@@ -51,12 +51,12 @@ class EntityBodyWriterSpec extends Http4sSpec {
     }
 
     "Write an await" in {
-      val p = eval(IO(messageBuffer)).flatMap(chunk)
-      writeEntityBody(p.covary[IO])(builder) must_== "Content-Length: 12\r\n\r\n" + message
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      writeEntityBody(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
     }
 
     "Write two awaits" in {
-      val p = eval(IO(messageBuffer)).flatMap(chunk)
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       writeEntityBody(p ++ p)(builder) must_== "Content-Length: 24\r\n\r\n" + message + message
     }
 
@@ -83,7 +83,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
           else None
         }
       }
-      val p = repeatEval(t).unNoneTerminate.flatMap(chunk) ++ chunk(Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
+      val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
       writeEntityBody(p)(builder) must_== "Content-Length: 9\r\n\r\n" + "foofoobar"
     }
   }
@@ -133,8 +133,8 @@ class EntityBodyWriterSpec extends Http4sSpec {
       // n.b. in the scalaz-stream version, we could introspect the
       // stream, note the chunk was followed by halt, and write this
       // with a Content-Length header.  In fs2, this must be chunked.
-      val p = eval(IO(messageBuffer)).flatMap(chunk)
-      writeEntityBody(p.covary[IO])(builder) must_==
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      writeEntityBody(p)(builder) must_==
         """Transfer-Encoding: chunked
           |
           |c
@@ -145,7 +145,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
     }
 
     "Write two effectful chunks" in {
-      val p = eval(IO(messageBuffer)).flatMap(chunk)
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       writeEntityBody(p ++ p)(builder) must_==
         """Transfer-Encoding: chunked
           |
@@ -207,7 +207,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     // Some tests for the raw unwinding body without HTTP encoding.
     "write a deflated stream" in {
-      val s = eval(IO(messageBuffer)).flatMap(chunk)
+      val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       val p = s through deflate()
       p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(s through deflate()))
     }

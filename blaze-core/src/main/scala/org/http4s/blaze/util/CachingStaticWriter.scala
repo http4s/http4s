@@ -23,7 +23,7 @@ class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer]
 
   private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
     if (bodyBuffer == null) bodyBuffer = b
-    else bodyBuffer = bodyBuffer.toBytes.concatAll(Seq(b))
+    else bodyBuffer = (bodyBuffer ++ b).toChunk
     bodyBuffer
   }
 

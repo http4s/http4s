@@ -62,7 +62,7 @@ trait EntityBodyWriter[F[_]] {
     * exception flush and then the stream fails.
     */
   private def writeSink: Sink[F, Byte] = { s =>
-    val writeStream: Stream[F, Unit] = s.chunks.evalMap[F, F, Unit](chunk =>
+    val writeStream: Stream[F, Unit] = s.chunks.evalMap(chunk =>
       F.fromFuture(writeBodyChunk(chunk, flush = false)))
     val errorStream: Throwable => Stream[F, Unit] = e =>
       Stream.eval(F.fromFuture(exceptionFlush())).flatMap(_ => fail(e))

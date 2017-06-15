@@ -3,6 +3,7 @@ package org.http4s.blaze.util
 import java.nio.ByteBuffer
 
 import cats.effect._
+import cats.implicits._
 import fs2._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.chunk._
@@ -29,11 +30,8 @@ class IdentityWriter[F[_]](private var headers: ByteBuffer, size: Long, out: Tai
 
       logger.warn(msg)
 
-      // TODO fs2 port shady .toInt... loop?
-      writeBodyChunk(chunk.take((size - bodyBytesWritten).toInt), flush = true).flatMap { _ =>
-        Future.failed(new IllegalArgumentException(msg))
-      }
-
+      val reducedChunk = chunk.take(size - bodyBytesWritten).toChunk
+      writeBodyChunk(reducedChunk, flush = true) >> Future.failed(new IllegalArgumentException(msg))
     } else {
       val b = chunk.toByteBuffer
 

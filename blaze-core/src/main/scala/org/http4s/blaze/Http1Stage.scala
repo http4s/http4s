@@ -137,7 +137,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining) doParseContent(buffer) match {
       case Some(chunk) if contentComplete() =>
-        Stream.chunk(ByteVectorChunk(ByteVector.view(chunk))) -> Http1Stage.futureBufferThunk(buffer)
+        Stream.chunk(ByteVectorChunk(ByteVector.view(chunk))).covary[F] -> Http1Stage.futureBufferThunk(buffer)
 
       case Some(chunk) =>
         val (rst,end) = streamingBody(buffer, eofCondition)
@@ -158,7 +158,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = F.async[Option[Chunk[Byte]]]{ cb =>
+    val t = F.async[Option[Chunk[Byte]]] { cb =>
       if (!contentComplete()) {
 
         def go(): Unit = try {
@@ -199,7 +199,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       else cb(End)
     }
 
-    (pipe.unNoneTerminate(repeatEval(t)).flatMap(chunk), () => drainBody(currentBuffer))
+    (repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F]), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred

@@ -8,7 +8,6 @@ import cats.effect._
 import cats.effect.implicits._
 import fs2.Stream._
 import fs2._
-import fs2.util.Attempt
 import org.http4s.blaze.pipeline._
 
 import scala.concurrent._
@@ -31,20 +30,20 @@ class BodylessWriter[F[_]](headers: ByteBuffer,
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *
     * @param p an entity body that will be killed
-    * @return the Task which, when run, will send the headers and kill the entity body
+    * @return the F which, when run, will send the headers and kill the entity body
     */
 
   override def writeEntityBody(p: EntityBody[F]): F[Boolean] =
     F.async { cb =>
       val callback = cb
-        .compose((t: Attempt[Unit]) => t.map(_ => close))
+        .compose((t: Either[Throwable, Unit]) => t.map(_ => close))
         .andThen(_ => IO.unit)
 
       pipe.channelWrite(headers).onComplete {
         case Success(_) =>
-          p.open.close.run.runAsync(callback).unsafeRunAsync(_ => ())
+          p.run.runAsync(callback).unsafeRunAsync(_ => ())
         case Failure(t) =>
-          p.pull(_ => Pull.fail(t)).run.runAsync(callback).unsafeRunAsync(_ => ())
+          Stream.fail(t).covary[F].run.runAsync(callback).unsafeRunAsync(_ => ())
       }
     }
 

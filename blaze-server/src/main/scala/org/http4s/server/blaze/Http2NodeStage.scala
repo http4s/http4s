@@ -119,7 +119,7 @@ private class Http2NodeStage[F[_]](streamId: Int,
       }
     }
 
-    repeatEval(t) through pipe.unNoneTerminate flatMap chunk
+    repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F])
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {
