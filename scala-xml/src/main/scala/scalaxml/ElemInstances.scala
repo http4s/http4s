@@ -14,7 +14,7 @@ import javax.xml.parsers.SAXParserFactory
 
 trait ElemInstances {
   val spf = SAXParserFactory.newInstance
-  
+
   implicit def xmlEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
     EntityEncoder.stringEncoder(charset)
       .contramap[Elem](xml => xml.buildString(false))

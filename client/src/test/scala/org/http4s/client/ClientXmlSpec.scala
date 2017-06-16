@@ -8,7 +8,7 @@ import org.http4s.Method.GET
 
 import scala.xml.Elem
 
-import fs2.{Strategy, Task}
+import fs2.Task
 
 class ClientXmlSpec extends Http4sSpec {
   implicit val decoder = scalaxml.xml
@@ -26,8 +26,7 @@ class ClientXmlSpec extends Http4sSpec {
     }
     "read xml body in parallel" in {
       // https://github.com/http4s/http4s/issues/1209
-      val pool = Strategy.fromFixedDaemonPool(5)
-      val resp = Task.parallelTraverse(0 to 5)(_ => client.expect[Elem](Request(GET)))(pool).unsafeRun
+      val resp = Task.parallelTraverse(0 to 5)(_ => client.expect[Elem](Request(GET)))(testStrategy).unsafeRun
       resp.map(_ must_== body)
     }
   }
