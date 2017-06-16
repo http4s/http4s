@@ -1,8 +1,6 @@
 package org.http4s
 package client
 
-import java.util.concurrent.Executors
-
 import org.http4s.Http4sSpec
 import org.http4s.scalaxml
 import org.http4s.Status.Ok
@@ -23,12 +21,11 @@ class ClientXmlSpec extends Http4sSpec {
   val client = Client.fromHttpService(service)
 
   "mock client" should {
-    "read body before dispose" in {
+    "read xml body before dispose" in {
       client.expect[Elem](Request(GET)).unsafePerformSync must_== body
     }
-    "read body in parallel" in {
-      val pool = Executors.newFixedThreadPool(5)
-      val resp = Task.gatherUnordered((0 to 5).map(_ => Task.fork(client.expect[Elem](Request(GET)))(pool))).unsafePerformSync
+    "read xml body in parallel" in {
+      val resp = Task.gatherUnordered((0 to 5).map(_ => Task.fork(client.expect[Elem](Request(GET)))(testPool))).unsafePerformSync
       resp.map(_ must_== body)
     }
   }
