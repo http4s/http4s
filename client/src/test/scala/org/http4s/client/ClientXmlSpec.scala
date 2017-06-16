@@ -1,24 +1,19 @@
 package org.http4s
 package client
 
-import java.io.IOException
+import java.util.concurrent.Executors
 
 import org.http4s.Http4sSpec
-import org.http4s.headers.Accept
-import org.http4s.Status.InternalServerError
+import org.http4s.scalaxml
+import org.http4s.Status.Ok
+import org.http4s.Method.GET
+
+import scala.xml.Elem
 
 import scalaz.concurrent.Task
 
-import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
-import org.http4s.Method._
-
-import scala.xml.Elem
-import org.http4s.scalaxml
-
-import java.util.concurrent.Executors
-
 class ClientXmlSpec extends Http4sSpec {
-  implicit val decoder = scalaxml.xml()
+  implicit val decoder = scalaxml.xml
   val body = <html><h1>h1</h1></html>
   val xml = s"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>$body"""
   val service = HttpService {
