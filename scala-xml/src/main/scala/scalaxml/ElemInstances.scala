@@ -13,7 +13,7 @@ import scala.xml._
 import javax.xml.parsers.SAXParserFactory
 
 trait ElemInstances {
-  val spf = SAXParserFactory.newInstance
+  protected def saxFactory: SAXParserFactory
 
   implicit def xmlEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
     EntityEncoder.stringEncoder(charset)
@@ -25,7 +25,6 @@ trait ElemInstances {
    *
    * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
    *
-   * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
   implicit val xml: EntityDecoder[Elem] = {
@@ -33,7 +32,7 @@ trait ElemInstances {
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`){ msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
-        val saxParser = spf.newSAXParser()
+        val saxParser = saxFactory.newSAXParser()
         try DecodeResult.success(Task.now(XML.loadXML(source, saxParser)))
         catch {
           case e: SAXParseException =>
