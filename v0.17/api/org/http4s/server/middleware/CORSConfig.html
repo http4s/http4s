@@ -258,7 +258,7 @@ request query params.">
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">CORSConfig</span><span class="params">(<span name="anyOrigin">anyOrigin: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="allowCredentials">allowCredentials: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Long">Long</span></span>, <span name="anyMethod">anyMethod: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedMethods">allowedMethods: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedHeaders">allowedHeaders: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;Content-Type&quot;, &quot;*&quot;).some</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">CORSConfig</span><span class="params">(<span name="anyOrigin">anyOrigin: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="allowCredentials">allowCredentials: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Long">Long</span></span>, <span name="anyMethod">anyMethod: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">_ =&gt; false</span></span>, <span name="allowedMethods">allowedMethods: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedHeaders">allowedHeaders: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;Content-Type&quot;, &quot;*&quot;).some</span></span>, <span name="exposedHeaders">exposedHeaders: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;*&quot;).some</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -266,7 +266,7 @@ request query params.">
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>CORS middleware config options.
 You can give an instance of this class to the CORS middleware,
 to specify its behavoir
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/a8dff22dc3da8e7bc539342009551f8a2e5a490b/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/f2adf1a04f9848ecb423d1acda29f8eacd661388/server/src/main/scala/org/http4s/server/middleware/CORS.scala" target="_blank">CORS.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -322,9 +322,9 @@ to specify its behavoir
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.middleware.CORSConfig#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(anyOrigin:Boolean,allowCredentials:Boolean,maxAge:Long,anyMethod:Boolean,allowedOrigins:Option[Set[String]],allowedMethods:Option[Set[String]],allowedHeaders:Option[Set[String]]):org.http4s.server.middleware.CORSConfig"></a><a id="&lt;init&gt;:CORSConfig"></a>
+      <a id="&lt;init&gt;(anyOrigin:Boolean,allowCredentials:Boolean,maxAge:Long,anyMethod:Boolean,allowedOrigins:String=&gt;Boolean,allowedMethods:Option[Set[String]],allowedHeaders:Option[Set[String]],exposedHeaders:Option[Set[String]]):org.http4s.server.middleware.CORSConfig"></a><a id="&lt;init&gt;:CORSConfig"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORSConfig.html#&lt;init&gt;(anyOrigin:Boolean,allowCredentials:Boolean,maxAge:Long,anyMethod:Boolean,allowedOrigins:Option[Set[String]],allowedMethods:Option[Set[String]],allowedHeaders:Option[Set[String]]):org.http4s.server.middleware.CORSConfig" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig.html#&lt;init&gt;(anyOrigin:Boolean,allowCredentials:Boolean,maxAge:Long,anyMethod:Boolean,allowedOrigins:String=&gt;Boolean,allowedMethods:Option[Set[String]],allowedHeaders:Option[Set[String]],exposedHeaders:Option[Set[String]]):org.http4s.server.middleware.CORSConfig" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -333,7 +333,7 @@ to specify its behavoir
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">CORSConfig</span><span class="params">(<span name="anyOrigin">anyOrigin: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="allowCredentials">allowCredentials: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Long">Long</span></span>, <span name="anyMethod">anyMethod: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedMethods">allowedMethods: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedHeaders">allowedHeaders: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;Content-Type&quot;, &quot;*&quot;).some</span></span>)</span>
+        <span class="name">CORSConfig</span><span class="params">(<span name="anyOrigin">anyOrigin: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="allowCredentials">allowCredentials: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Long">Long</span></span>, <span name="anyMethod">anyMethod: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">true</span></span>, <span name="allowedOrigins">allowedOrigins: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">_ =&gt; false</span></span>, <span name="allowedMethods">allowedMethods: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">None</span></span>, <span name="allowedHeaders">allowedHeaders: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;Content-Type&quot;, &quot;*&quot;).some</span></span>, <span name="exposedHeaders">exposedHeaders: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]] = <span class="symbol">Set(&quot;*&quot;).some</span></span>)</span>
       </span>
       
       
@@ -487,9 +487,9 @@ to specify its behavoir
       
       
     </li><li name="org.http4s.server.middleware.CORSConfig#allowedOrigins" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="allowedOrigins:Option[Set[String]]"></a>
+      <a id="allowedOrigins:String=&gt;Boolean"></a><a id="allowedOrigins:(String)⇒Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CORSConfig.html#allowedOrigins:Option[Set[String]]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig.html#allowedOrigins:String=&gt;Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -498,7 +498,7 @@ to specify its behavoir
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">allowedOrigins</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
+        <span class="name">allowedOrigins</span><span class="result">: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
       
@@ -668,6 +668,22 @@ to specify its behavoir
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CORSConfig#exposedHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="exposedHeaders:Option[Set[String]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CORSConfig.html#exposedHeaders:Option[Set[String]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">exposedHeaders</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.Set">Set</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
