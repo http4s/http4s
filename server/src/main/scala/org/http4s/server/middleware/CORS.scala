@@ -21,9 +21,10 @@ final case class CORSConfig(
   allowCredentials: Boolean,
   maxAge: Long,
   anyMethod: Boolean = true,
-  allowedOrigins: Option[Set[String]] = None,
+  allowedOrigins: String => Boolean = _ => false,
   allowedMethods: Option[Set[String]] = None,
-  allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some
+  allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some,
+  exposedHeaders: Option[Set[String]] = Set("*").some
 )
 
 object CORS {
@@ -41,30 +42,34 @@ object CORS {
    * Currently, you cannot make permissions depend on request details
    */
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
-    
-    // In the case of an options request we want to return a simple response with the correct Headers set.
-    def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value)(Response())
 
-    def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
-      config.allowedHeaders.map(_.mkString("", ", ", "")).fold(resp) { hs =>
-        resp.putHeaders(Header("Access-Control-Allow-Headers", hs))
-      }.putHeaders(
-          Header("Vary", "Origin,Access-Control-Request-Methods"),
-          Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
-          Header("Access-Control-Allow-Methods", config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
-          Header("Access-Control-Allow-Origin", origin),
-          Header("Access-Control-Max-Age", config.maxAge.toString())
-        )
+    // In the case of an options request we want to return a simple response with the correct Headers set.
+    def createOptionsResponse(origin: Header, acrm: Header): Response = corsHeaders(origin.value, acrm.value, true)(Response())
+
+    def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(resp: Response): Response = {
+      val methodBasedHeader = if (isPreflight) {
+        config.allowedHeaders.map(headerFromStrings("Access-Control-Allow-Headers", _))
+      }
+      else {
+        config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
+      }
+      methodBasedHeader.fold(resp)(h => resp.putHeaders(h)).putHeaders(
+        Header("Vary", "Origin,Access-Control-Request-Methods"),
+        Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
+        Header("Access-Control-Allow-Methods", config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
+        Header("Access-Control-Allow-Origin", origin),
+        Header("Access-Control-Max-Age", config.maxAge.toString())
+      )
+    }
+
+    def headerFromStrings(headerName: String, values: Set[String]): Header = Header(headerName, values.mkString("", ", ", ""))
 
     def allowCORS(origin: Header, acrm: Header): Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
       case (true, true, _, _) => true
       case (true, false, _, acrm) => config.allowedMethods.map(_.contains(acrm)).getOrElse(false)
-      case (false, true, origin, _) => config.allowedOrigins.map(_.contains(origin)).getOrElse(false)
+      case (false, true, origin, _) => config.allowedOrigins(origin)
       case (false, false, origin, acrm) =>
-        (config.allowedMethods.map(_.contains(acrm)) |@|
-          config.allowedOrigins.map(_.contains(origin))).map {
-          _ && _
-        }.getOrElse(false)
+        (config.allowedMethods.map(_.contains(acrm)).getOrElse(false) && config.allowedOrigins(origin))
     }
 
     (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
@@ -76,14 +81,14 @@ object CORS {
           service(req).map {
             case resp: Response =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-              corsHeaders(origin.value, req.method.renderString)(resp)
+              corsHeaders(origin.value, req.method.renderString, false)(resp)
             case Pass =>
               Pass
           }
         }
         else {
           logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
-          service(req)
+          Task.now(Response(status = Status.Forbidden))
         }
       case _ =>
         // This request is out of scope for CORS
