@@ -1,42 +1,60 @@
 package org.http4s.util
 
-import fs2.{Strategy, Stream, Task}
-import fs2.Stream.{eval, eval_}
-import fs2.async.signalOf
+import fs2._
+import fs2.async._
+import fs2.async.mutable.Signal
+import fs2.util.Attempt
 import org.log4s.getLogger
 
-trait StreamApp {
-  private[this] val logger = getLogger
+import scala.concurrent.SyncVar
+
+abstract class StreamApp {
+  private[this] val logger = getLogger(classOf[StreamApp])
 
   def stream(args: List[String]): Stream[Task, Nothing]
 
   private implicit val strategy: Strategy = Strategy.sequential
 
-  private[this] val shutdownRequested =
-    signalOf[Task, Boolean](false).unsafeRun
+  private[this] val shutdownRequested: Signal[Task, Boolean] = {
+    val signal = new SyncVar[Attempt[Signal[Task, Boolean]]]
+    signalOf[Task, Boolean](false).unsafeRunAsync { a =>
+      signal.put(a)
+    }
+    signal.get.fold(throw _, identity)
+  }
 
-  final val requestShutdown: Task[Unit] =
+  final val requestShutdown =
     shutdownRequested.set(true)
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
   private[util] def doMain(args: Array[String]): Int = {
-    val halted = signalOf[Task, Boolean](false).unsafeRun
+    val s = Stream
+      .eval(signalOf[Task, Boolean](false))
+      .flatMap { halted =>
+        val s = shutdownRequested
+          .interrupt(stream(args.toList))
+          .onFinalize(halted.set(true))
 
-    val p = shutdownRequested.interrupt(stream(args.toList))
-      .onFinalize(halted.set(true))
+        Stream
+          .eval(Task.delay {
+            sys.addShutdownHook {
+              requestShutdown.unsafeRunAsync { _ => }
+              halted.discrete.takeWhile(_ == false).run.unsafeRunSync()
+            }
+          })
+          .flatMap(_ => s)
+      }
+      .run
 
-    sys.addShutdownHook {
-      requestShutdown.unsafeRunAsync(_ => ())
-      halted.discrete.takeWhile(_ == false).run.unsafeRun
-    }
-
-    p.run.attempt.unsafeRun match {
+    val exit = new SyncVar[Int]
+    s.unsafeRunAsync {
       case Left(t) =>
         logger.error(t)("Error running stream")
-        -1
+        exit.put(-1)
       case Right(_) =>
-        0
+        exit.put(0)
     }
+    exit.get
   }
 
   final def main(args: Array[String]): Unit =
