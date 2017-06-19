@@ -35,6 +35,6 @@ class DumpingWriter(implicit protected val F: Effect[IO]) extends EntityBodyWrit
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     buffers += chunk
-    Future.unit
+    Future.successful(())
   }
 }

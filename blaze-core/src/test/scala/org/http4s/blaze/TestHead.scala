@@ -26,7 +26,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
       val cpy = new Array[Byte](data.remaining())
       data.get(cpy)
       acc :+= cpy
-      Future.unit
+      Future.successful(())
     }
   }
 
@@ -87,10 +87,12 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHea
         val p = Promise[ByteBuffer]
         currentRequest = Some(p)
 
-        scheduler.schedule(() => self.synchronized {
-          resolvePending {
-            if (!closed && bodyIt.hasNext) Success(bodyIt.next())
-            else Failure(EOF)
+        scheduler.schedule(new Runnable {
+          override def run(): Unit = self.synchronized {
+            resolvePending {
+              if (!closed && bodyIt.hasNext) Success(bodyIt.next())
+              else Failure(EOF)
+            }
           }
         }, pause)
 

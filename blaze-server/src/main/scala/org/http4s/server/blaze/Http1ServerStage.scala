@@ -169,7 +169,7 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
           closeConnection()
           logger.trace("Request/route requested closing connection.")
         } else bodyCleanup().onComplete {
-          case s@ Success(_) => // Serve another request
+          case s @ Success(_) => // Serve another request
             parser.reset()
             reqLoopCallback(s)
 

@@ -44,6 +44,6 @@ class CachingChunkWriter[F[_]](headers: StringWriter,
       bodyBuffer = null
       super.writeBodyChunk(c, flush = true)
     }
-    else Future.unit    // Pretend to be done.
+    else Future.successful(())    // Pretend to be done.
   }
 }

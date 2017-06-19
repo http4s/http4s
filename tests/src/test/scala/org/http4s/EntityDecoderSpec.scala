@@ -4,6 +4,7 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 
 import cats._
+import cats.implicits._
 import cats.effect.IO
 import fs2.Stream._
 import fs2._
@@ -14,7 +15,6 @@ import org.specs2.execute.PendingUntilFixed
 
 import scala.concurrent.ExecutionContext
 import scala.language.postfixOps
-import scala.util.control.NonFatal
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = TrampolineExecutionContext

@@ -62,7 +62,7 @@ class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer]
         innerWriter = new InnerWriter(b)
         innerWriter.writeBodyChunk(chunk, flush)
       }
-      else Future.unit
+      else Future.successful(())
     }
   }
 

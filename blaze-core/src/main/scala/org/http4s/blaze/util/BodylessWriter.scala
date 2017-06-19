@@ -6,6 +6,7 @@ import java.nio.ByteBuffer
 
 import cats.effect._
 import cats.effect.implicits._
+import cats.implicits._
 import fs2.Stream._
 import fs2._
 import org.http4s.blaze.pipeline._
@@ -25,7 +26,7 @@ class BodylessWriter[F[_]](headers: ByteBuffer,
                           (implicit protected val F: Effect[F],
                            protected val ec: ExecutionContext) extends EntityBodyWriter[F] {
 
-  private lazy val doneFuture = Future.unit
+  private lazy val doneFuture = Future.successful(())
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *

@@ -40,7 +40,7 @@ trait EntityBodyWriter[F[_]] {
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean]
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
-  protected def exceptionFlush(): Future[Unit] = Future.unit
+  protected def exceptionFlush(): Future[Unit] = Future.successful(())
 
   /** Creates a Task that writes the contents of the EntityBody to the output.
     * Cancelled exceptions fall through to the Task cb

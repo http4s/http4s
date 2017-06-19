@@ -68,7 +68,7 @@ object AsyncHttpClient {
           // callback, rather than waiting for onComplete, or else we'll
           // buffer the entire response before we return it for
           // streaming consumption.
-          ec.execute(() => cb(Right(dr)))
+          ec.execute(new Runnable { def run(): Unit = cb(Right(dr)) })
         }.runAsync(_ => IO.unit).unsafeRunSync
         state
       }
@@ -87,7 +87,7 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        ec.execute(() => cb(Left(throwable)))
+        ec.execute(new Runnable { def run(): Unit = cb(Left(throwable)) })
 
       override def onCompleted(): Unit = {
         // Don't close here.  onStream may still be being called.
