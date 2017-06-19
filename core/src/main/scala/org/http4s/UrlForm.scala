@@ -97,8 +97,9 @@ object UrlForm {
       )
     }
 
-  implicit val eqInstance: Eq[UrlForm] = (x: UrlForm, y: UrlForm) =>
+  implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>
     x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
+  }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
   def decodeString(charset: Charset)(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
