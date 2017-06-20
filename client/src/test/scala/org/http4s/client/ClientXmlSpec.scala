@@ -1,14 +1,11 @@
 package org.http4s
 package client
 
-import org.http4s.Http4sSpec
+import fs2.Task
 import org.http4s.scalaxml
 import org.http4s.Status.Ok
 import org.http4s.Method.GET
-
 import scala.xml.Elem
-
-import fs2.Task
 
 class ClientXmlSpec extends Http4sSpec {
   implicit val decoder = scalaxml.xml

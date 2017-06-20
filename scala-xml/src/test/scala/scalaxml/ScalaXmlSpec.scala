@@ -5,6 +5,7 @@ import fs2.{Stream, Task}
 import org.http4s.Status.Ok
 
 import scala.xml.Elem
+import java.util.concurrent.Executors
 
 class ScalaXmlSpec extends Http4sSpec {
 
