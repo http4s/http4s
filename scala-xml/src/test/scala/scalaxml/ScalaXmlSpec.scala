@@ -14,13 +14,21 @@ class ScalaXmlSpec extends Http4sSpec {
 
   "xml" should {
     val server: Request => Task[Response] = { req =>
-      req.decode { elem: Elem => Response(Ok).withBody(elem.label) }
+      req.decode[Elem] { elem =>
+        Response(Ok).withBody(elem.label) }
     }
 
     "parse the XML" in {
       val resp = server(Request(body = strBody("<html><h1>h1</h1></html>"))).unsafeRun
       resp.status must_==(Ok)
       getBody(resp.body) must_== ("html".getBytes)
+    }
+
+    "parse XML in parallel" in {
+      // https://github.com/http4s/http4s/issues/1209
+      val resp = Task.parallelTraverse(0 to 5)(_ => server(Request(body = strBody("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>"""))))(testStrategy).unsafeRun
+      resp.forall(_.status must_==(Ok))
+      resp.forall(x => getBody(x.body) must_== ("html".getBytes))
     }
 
     "return 400 on parse error" in {
