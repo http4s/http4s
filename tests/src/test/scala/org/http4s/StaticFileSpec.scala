@@ -63,9 +63,8 @@ class StaticFileSpec extends Http4sSpec {
         r.map(_.body.runLog.unsafeRun.length) must beSome(1L)
       }
 
-      val tests = List("./testing/src/test/resources/logback-test.xml",
-                      "./server/src/test/resources/testresource.txt",
-                      ".travis.yml")
+      val tests = List("./src/test/resources/lorem-ipsum.txt",
+                       "./src/test/resources/test.fiddlefaddle")
 
       forall(tests)(check)
     }
