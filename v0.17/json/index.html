@@ -99,6 +99,8 @@ libraryDependencies ++= Seq(
   // Optional for string interpolation to JSON model
   &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.8.0&quot;
 )
+
+addCompilerPlugin(&quot;org.scalamacros&quot; % &quot;paradise&quot; % &quot;2.1.0&quot; cross CrossVersion.full)
 </code></pre>
 
 <h3 id="argonaut">Argonaut</h3>
@@ -216,10 +218,10 @@ to JSON as long as an implicit <code>Encoder</code> is in scope:</p>
 Let&rsquo;s provide an encoder:</p>
 
 <pre><code class="language-scala">implicit val HelloEncoder: Encoder[Hello] =
-  Encoder.instance { hello: Hello =&gt; 
+  Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@1fe1d209
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@6747bd60
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -318,10 +320,10 @@ case class Hello(greeting: String)
 val jsonService = HttpService {
   case req @ POST -&gt; Root / &quot;hello&quot; =&gt;
     for {
-	  // Decode a User request
-	  user &lt;- req.as(jsonOf[User])
-	  // Encode a hello response
-	  resp &lt;- Ok(Hello(user.name).asJson)
+      // Decode a User request
+      user &lt;- req.as(jsonOf[User])
+      // Encode a hello response
+      resp &lt;- Ok(Hello(user.name).asJson)
     } yield (resp)
 }
 
