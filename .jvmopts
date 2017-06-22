@@ -9,3 +9,4 @@
 -Xmx1536M
 -XX:MaxMetaspaceSize=1024M
 -Xss6M
+-XX:+PrintGC

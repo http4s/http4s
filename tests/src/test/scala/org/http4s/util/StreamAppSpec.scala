@@ -50,7 +50,7 @@ class StreamAppSpec extends Http4sSpec {
         _ <- testApp.requestShutdown
         exit <- runApp
         cleanedUp <- testApp.cleanedUp.get
-      } yield (exit, cleanedUp)).unsafeTimed(5.seconds) should returnValue((0, true))
+      } yield (exit, cleanedUp)).unsafeTimed(10.seconds) should returnValue((0, true))
     }
   }
 }

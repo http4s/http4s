@@ -49,7 +49,7 @@ function find_sbt_pid() {
 
 function start_watchdog() {
     echo "Watchdog will wake up in $1"
-    (sleep "$1" && echo "Watchdog launched jstack." && jstack $(find_sbt_pid)) &
+    (sleep "$1" && echo "Watchdog launched jstack." && jstack -m $(find_sbt_pid)) &
     WATCHDOG_PID=$(pgrep -n sleep)
 }
 
