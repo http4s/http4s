@@ -25,12 +25,11 @@ lazy val core = libraryCrossProject("core")
     libraryDependencies ++= Seq(
       fs2Io,
       fs2Scodec,
-      http4sWebsocket,
-      log4s,
-      macroCompat,
-      parboiled,
+      http4sWebsocket.value,
+      log4s.value,
+      macroCompat.value,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scodecBits,
+      scodecBits.value,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
