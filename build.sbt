@@ -28,8 +28,8 @@ lazy val core = libraryCrossProject("core")
       cats,
       catsEffect,
       fs2Io,
-      log4s,
-      parboiled,
+      log4s.value,
+      parboiled.value,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),

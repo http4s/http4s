@@ -19,6 +19,8 @@ import scoverage.ScoverageKeys.{coverageEnabled, coverageHighlighting}
 import verizon.build.RigPlugin
 import verizon.build.RigPlugin.autoImport._
 import verizon.build.common._
+import org.scalajs.sbtplugin.ScalaJSPlugin
+import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
