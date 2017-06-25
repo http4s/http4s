@@ -4,10 +4,12 @@ package client
 import java.util.concurrent.ExecutorService
 
 import cats.effect._
+import fs2.async
 import org.log4s.getLogger
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
 
 private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A],
                                                           maxTotal: Int,
@@ -25,6 +27,7 @@ private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBui
 
   private def stats = s"allocated=$allocated idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
+  private implicit val ec = ExecutionContext.fromExecutorService(es)
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
     * then builds the connection with the given callback and completes the callback.
@@ -40,7 +43,7 @@ private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBui
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (allocated < maxTotal){
       allocated += 1
-      F.runAsync(builder(key)) {
+      async.unsafeRunAsync(builder(key)) {
         case Right(conn) =>
           callback(Right(NextConnection(conn, fresh = true)))
           IO.unit
