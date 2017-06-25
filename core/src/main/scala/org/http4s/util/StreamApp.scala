@@ -21,8 +21,7 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[this] val shutdownRequested: Signal[F, Boolean] = {
     val signal = new SyncVar[Either[Throwable, Signal[F, Boolean]]]
     unsafeRunAsync(signalOf[F, Boolean](false)) { a =>
-      signal.put(a)
-      IO.unit
+      IO(signal.put(a))
     }
     signal.get.fold(throw _, identity)
   }
@@ -54,9 +53,9 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
     unsafeRunAsync(s) {
       case Left(t) =>
         logger.error(t)("Error running stream")
-        IO.pure(exit.put(-1))
+        IO(exit.put(-1))
       case Right(_) =>
-        IO.pure(exit.put(0))
+        IO(exit.put(0))
     }
     exit.get
   }

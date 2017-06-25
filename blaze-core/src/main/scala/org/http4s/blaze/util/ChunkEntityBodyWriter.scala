@@ -42,11 +42,9 @@ class ChunkEntityBodyWriter[F[_]](private var headers: StringWriter,
       }
       async.unsafeRunAsync(f) {
         case Right(buffer) =>
-          promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
-          IO.unit
+          IO(promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))))
         case Left(t) =>
-          promise.failure(t)
-          IO.unit
+          IO(promise.failure(t))
       }
       promise.future
     }

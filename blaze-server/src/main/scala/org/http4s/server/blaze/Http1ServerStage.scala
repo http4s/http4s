@@ -109,11 +109,9 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
           catch messageFailureHandler(req).andThen(_.widen[MaybeResponse[F]])
         } {
           case Right(resp) =>
-            renderResponse(req, resp, cleanup)
-            IO.unit
+            IO(renderResponse(req, resp, cleanup))
           case Left(t) =>
-            internalServerError(s"Error running route: $req", t, req, cleanup)
-            IO.unit
+            IO(internalServerError(s"Error running route: $req", t, req, cleanup))
         }
       case Left((e, protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request[F]().copy(httpVersion = protocol))
     }
@@ -166,27 +164,26 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
     async.unsafeRunAsync(bodyEncoder.writeEntityBody(resp.body)) {
       case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
-          closeConnection()
           logger.trace("Request/route requested closing connection.")
-        } else bodyCleanup().onComplete {
-          case s @ Success(_) => // Serve another request
-            parser.reset()
-            reqLoopCallback(s)
+          IO(closeConnection())
+        } else IO {
+          bodyCleanup().onComplete {
+            case s @ Success(_) => // Serve another request
+              parser.reset()
+              reqLoopCallback(s)
 
-          case Failure(EOF) => closeConnection()
+            case Failure(EOF) => closeConnection()
 
-          case Failure(t) => fatalError(t, "Failure in body cleanup")
-        }(directec)
-        IO.unit
+            case Failure(t) => fatalError(t, "Failure in body cleanup")
+          }(directec)
+        }
 
       case Left(EOF) =>
-        closeConnection()
-        IO.unit
+        IO(closeConnection())
 
       case Left(t) =>
         logger.error(t)("Error writing body")
-        closeConnection()
-        IO.unit
+        IO(closeConnection())
     }
   }
 

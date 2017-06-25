@@ -65,17 +65,15 @@ class Http4sServlet[F[_]](service: HttpService[F],
       ctx.setTimeout(asyncTimeoutMillis)
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
-      toRequest(servletRequest).fold(
+      async.unsafeRunAsync(toRequest(servletRequest).fold(
         onParseFailure(_, servletResponse, bodyWriter),
         handleRequest(ctx, _, bodyWriter)
-      ).runAsync {
+      )) {
         case Right(()) =>
-          ctx.complete()
-          IO.unit
+          IO(ctx.complete())
         case Left(t) =>
-          errorHandler(servletRequest, servletResponse)(t)
-          IO.unit
-      }.unsafeRunAsync(_ => ())
+          IO(errorHandler(servletRequest, servletResponse)(t))
+      }
     }
     catch errorHandler(servletRequest, servletResponse)
 

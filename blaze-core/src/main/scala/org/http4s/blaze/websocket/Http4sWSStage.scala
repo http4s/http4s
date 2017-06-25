@@ -99,8 +99,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])
       }
     } {
       case Left(t) =>
-        logger.error(t)("Error closing Web Socket")
-        IO.unit
+        IO(logger.error(t)("Error closing Web Socket"))
       case Right(_) =>
         // Nothing to do here
         IO.unit

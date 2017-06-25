@@ -38,13 +38,13 @@ class BodylessWriter[F[_]](headers: ByteBuffer,
     F.async { cb =>
       val callback = cb
         .compose((t: Either[Throwable, Unit]) => t.map(_ => close))
-        .andThen(_ => IO.unit)
+        .andThen(IO(_))
 
       pipe.channelWrite(headers).onComplete {
         case Success(_) =>
-          p.run.runAsync(callback).unsafeRunAsync(_ => ())
+          async.unsafeRunAsync(p.run)(callback)
         case Failure(t) =>
-          Stream.fail(t).covary[F].run.runAsync(callback).unsafeRunAsync(_ => ())
+          async.unsafeRunAsync(Stream.fail(t).covary[F].run)(callback)
       }
     }
 

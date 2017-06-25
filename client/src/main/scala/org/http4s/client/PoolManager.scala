@@ -45,13 +45,11 @@ private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBui
       allocated += 1
       async.unsafeRunAsync(builder(key)) {
         case Right(conn) =>
-          callback(Right(NextConnection(conn, fresh = true)))
-          IO.unit
+          IO(callback(Right(NextConnection(conn, fresh = true))))
         case Left(error) =>
           logger.error(error)(s"Error establishing client connection for key $key")
           disposeConnection(key, None)
-          callback(Left(error))
-          IO.unit
+          IO(callback(Left(error)))
       }
     }
     else {

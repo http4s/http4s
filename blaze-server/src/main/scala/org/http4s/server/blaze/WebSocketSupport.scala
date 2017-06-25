@@ -42,8 +42,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 ))
             } {
               case Right(resp) =>
-                super.renderResponse(req, resp, cleanup)
-                IO.unit
+                IO(super.renderResponse(req, resp, cleanup))
               case Left(_) =>
                 IO.unit
             }
