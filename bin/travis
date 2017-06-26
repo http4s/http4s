@@ -15,8 +15,6 @@ Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
 }
 
-
-
 if [[ $TRAVIS_SCALA_VERSION == 2.12* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
   SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageReport ;coverageOff"
 else
@@ -24,8 +22,8 @@ else
 fi
 
 if [[ $SBT_COMMAND = *";makeSite"* ]]; then
-  curl -s -L https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz | tar xzf -
-  mv hugo_${HUGO_VERSION}_linux_amd64/hugo_${HUGO_VERSION}_linux_amd64 $HOME/bin/hugo
+  echo "Installing hugo v${HUGO_VERSION}"
+  wget -q https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz -O - | tar xzf - -C $HOME/bin hugo
 fi
 
 if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* || $TRAVIS_BRANCH = "cats" ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]] && [[ $TRAVIS_REPO_SLUG = "http4s/http4s" ]]; then
@@ -44,28 +42,14 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* || $TRAVIS_BRANC
   fi
 fi
 
-
-# Put JVM options in a file where we can write to it without sudo,
-# for instance to adjust the JVM's entropy source.
-JVM_OPTS_FILE=/tmp/jvmopts
-cp /etc/sbt/jvmopts "$JVM_OPTS_FILE"
-
+# Using /dev/urandom in Travis CI to avoid hanging on /dev/random
+# when VM or container entropy entropy is low.  Additional detail at
+# https://github.com/http4s/http4s/issues/774#issuecomment-273981456
 if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
-    echo
-    echo "Using /dev/urandom in Travis CI to avoid hanging on /dev/random"
-    echo "when VM or container entropy entropy is low.  Additional detail at"
-    echo "https://github.com/http4s/http4s/issues/774#issuecomment-273981456 ."
-
-    echo "-Djava.security.egd=file:/dev/./urandom" >> "$JVM_OPTS_FILE"
-    echo
-    echo "JVM_OPTS:"
-    for opt in $(grep -v -e '^#' -e '^$' "$JVM_OPTS_FILE"); do
-        echo "  $opt"
-    done
-    echo
+  export SBT_OPTS="$SBT_OPTS -Djava.security.egd=file:/dev/./urandom"
 fi
 
-sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION -jvm-opts "$JVM_OPTS_FILE" $SBT_COMMAND
+sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
 echo "Uploading codecov"
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
