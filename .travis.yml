@@ -3,22 +3,14 @@ addons:
   apt:
     packages:
       - oracle-java8-installer
-scala:
-- 2.12.2-bin-typelevel-4
-- 2.11.11-bin-typelevel-4
+
 jdk: oraclejdk8
 env:
   global:
   - HUGO_VERSION=0.18
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
-  - SBT_VERSION=0.13.13
-before_script:
-- mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
-- curl -L -o $HOME/.sbt/launchers/$SBT_VERSION/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch.jar
-- mkdir $HOME/bin
-- export PATH=$HOME/bin:$PATH
-script: bash bin/travis
+  - SBT_VERSION=0.13.15
 notifications:
   webhooks:
     urls:
@@ -32,3 +24,26 @@ cache:
   - "$HOME/.coursier/cache"
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
+
+jobs:
+  include:
+    - &tests
+      stage: Test
+      scala: 2.12.2-bin-typelevel-4
+      script: $TRAVIS_BUILD_DIR/bin/specialTest.sh
+
+    - <<: *tests
+      scala: 2.11.11-bin-typelevel-4
+      script: $TRAVIS_BUILD_DIR/bin/test.sh
+
+    - stage: Publish Site
+      scala: 2.12.2-bin-typelevel-4
+      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
+
+    - &publishSonatype
+      stage: Publish Sonatype
+      scala: 2.12.2-bin-typelevel-4
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+    - <<: *publishSonatype
+      scala: 2.11.11-bin-typelevel-4
+      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
