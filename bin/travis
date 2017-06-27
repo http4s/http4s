@@ -42,13 +42,6 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* || $TRAVIS_BRANC
   fi
 fi
 
-# Using /dev/urandom in Travis CI to avoid hanging on /dev/random
-# when VM or container entropy entropy is low.  Additional detail at
-# https://github.com/http4s/http4s/issues/774#issuecomment-273981456
-if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
-  export SBT_OPTS="$SBT_OPTS -Djava.security.egd=file:/dev/./urandom"
-fi
-
 sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
 echo "Uploading codecov"
