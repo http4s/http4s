@@ -34,36 +34,11 @@ Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
 }
 
-# Add jstack watchdog timer in case #774 shows itself again.
-WATCHDOG_PID=""
-function find_sbt_pid() {
-    pgrep -f sbt-launch
-}
-
-function start_watchdog() {
-    echo "Watchdog will wake up in $1"
-    (sleep "$1" && echo "Watchdog launched jstack." && jstack $(find_sbt_pid)) &
-    WATCHDOG_PID=$(pgrep -n sleep)
-}
-
-function stop_watchdog() {
-    ([ -n "$WATCHDOG_PID" ] && kill "$WATCHDOG_PID") || true
-}
-
-mkdir -p $HOME/.sbt/launchers/$SBT_VERSION/
-curl -L -o $HOME/.sbt/launchers/$SBT_VERSION/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/$SBT_VERSION/sbt-launch.jar
-mkdir $HOME/bin
+mkdir -p $HOME/bin
 PATH=$HOME/bin:$PATH
 
-SBT_EXTRA_OPTS=""
-if [[ "$TRAVIS" = "true" ]] && [[ -r "/dev/urandom" ]]; then
-    echo
-    echo "Using /dev/urandom in Travis CI to avoid hanging on /dev/random"
-    echo "when VM or container entropy entropy is low.  Additional detail at"
-    echo "https://github.com/http4s/http4s/issues/774#issuecomment-273981456 ."
-
-    SBT_EXTRA_OPTS="$SBT_EXTRA_OPTS -Djava.security.egd=file:/dev/./urandom"
-fi
+SBT_OPTS+=" 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")'"
+SBT_OPTS+=" ++$TRAVIS_SCALA_VERSION"
 
 export PATH
-export SBT_EXTRA_OPTS
+export SBT_OPTS
