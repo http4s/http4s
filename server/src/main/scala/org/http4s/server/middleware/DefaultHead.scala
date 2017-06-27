@@ -26,7 +26,7 @@ object DefaultHead {
 
   private def headAsTruncatedGet(service: HttpService) =
     HttpService.lift { req =>
-      val getReq = req.copy(method = Method.GET)
+      val getReq = req.withMethod(Method.GET)
       // TODO fs2 port I think .open.close is a fair translation of
       // scalaz-stream's kill, but it doesn't run the cleanup.  Is
       // this a bug?

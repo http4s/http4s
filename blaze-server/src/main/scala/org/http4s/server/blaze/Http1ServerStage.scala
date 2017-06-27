@@ -115,7 +115,7 @@ private class Http1ServerStage(service: HttpService,
           case Right(resp) => renderResponse(req, resp, cleanup)
           case Left(t)     => internalServerError(s"Error running route: $req", t, req, cleanup)
         }
-      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
+      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().withHttpVersion(protocol))
     }
   }
 
