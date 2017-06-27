@@ -22,4 +22,4 @@ eval "$(ssh-agent -s)";
 openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
 
 
-sbt $SBT_EXTRA_OPTS 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION ";makeSite ;ghpagesPushSite"
+sbt ";makeSite ;ghpagesPushSite"
