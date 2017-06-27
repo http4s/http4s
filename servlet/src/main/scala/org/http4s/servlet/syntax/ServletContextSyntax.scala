@@ -4,6 +4,7 @@ package syntax
 
 import javax.servlet.{ServletContext, ServletRegistration}
 
+import cats.effect._
 import org.http4s.server.AsyncTimeoutSupport
 import org.http4s.util.threads.DefaultPool
 
@@ -13,7 +14,7 @@ trait ServletContextSyntax {
 
 final class ServletContextOps private[syntax](val self: ServletContext) extends AnyVal {
   /** Wraps an HttpService and mounts it as a servlet */
-  def mountService(name: String, service: HttpService, mapping: String = "/*"): ServletRegistration.Dynamic = {
+  def mountService[F[_]: Effect](name: String, service: HttpService[F], mapping: String = "/*"): ServletRegistration.Dynamic = {
     val servlet = new Http4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
@@ -27,7 +28,7 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
     reg
   }
 
-  private def servletIo: ServletIo = {
+  private def servletIo[F[_]: Effect]: ServletIo[F] = {
     val version = ServletApiVersion(self.getMajorVersion, self.getMinorVersion)
     if (version >= ServletApiVersion(3, 1))
       NonBlockingServletIo(DefaultChunkSize)

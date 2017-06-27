@@ -72,4 +72,5 @@ val webjars: HttpService = webjarService(
 )
 ```
 
-[StaticFile]: ../api/#org.http4s.StaticFile$
+[StaticFile]: ../api/org/http4s/StaticFile$
+

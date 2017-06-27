@@ -21,7 +21,8 @@ package org.http4s
 import scala.util.hashing.MurmurHash3
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
+import cats.implicits._
+import org.http4s.syntax.string._
 import org.http4s.util._
 
 /**

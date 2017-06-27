@@ -1,18 +1,20 @@
 package org.http4s
 package client
 
-import fs2.Task
+import cats.effect._
+import cats.implicits._
 
-private final class BasicManager[A <: Connection](builder: ConnectionBuilder[A]) extends ConnectionManager[A] {
-  def borrow(requestKey: RequestKey): Task[NextConnection] =
-    builder(requestKey).map(NextConnection(_, true))
+private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])
+                                                       (implicit F: Sync[F]) extends ConnectionManager[F, A] {
+  def borrow(requestKey: RequestKey): F[NextConnection] =
+    builder(requestKey).map(NextConnection(_, fresh = true))
 
-  override def shutdown(): Task[Unit] =
-    Task.now(())
+  override def shutdown(): F[Unit] =
+    F.pure(())
 
-  override def invalidate(connection: A): Task[Unit] =
-    Task.delay(connection.shutdown())
+  override def invalidate(connection: A): F[Unit] =
+    F.delay(connection.shutdown())
 
-  override def release(connection: A): Task[Unit] =
+  override def release(connection: A): F[Unit] =
     invalidate(connection)
 }

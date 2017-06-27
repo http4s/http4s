@@ -11,7 +11,7 @@ package org.http4s
 /** A key in an [[AttributeMap]] that constrains its associated value to be of type `T`.
   * The key is uniquely defined by its reference: there are no duplicate keys, even
   * those with the same name and type. */
-final class AttributeKey[T] private (val name: String) {
+sealed abstract case class AttributeKey[T](name: String) {
   def apply(value: T): AttributeEntry[T] = AttributeEntry(this, value)
 
   override def toString: String = name
@@ -20,7 +20,7 @@ final class AttributeKey[T] private (val name: String) {
 object AttributeKey {
 
   /** Construct an [[AttributeKey]] */
-  def apply[T](name: String): AttributeKey[T] = new AttributeKey(name)
+  def apply[T](name: String): AttributeKey[T] = new AttributeKey[T](name) {}
 
   /**
    * Encourage greater consistency in internal keys by imposing a universal prefix.

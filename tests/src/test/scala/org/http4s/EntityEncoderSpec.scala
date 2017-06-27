@@ -1,13 +1,13 @@
 package org.http4s
 
-import scala.concurrent.Future
-
-import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
+import java.io._
 import java.nio.charset.StandardCharsets
 
-import cats._
+import cats.effect.IO
 import fs2._
 import org.http4s.headers._
+
+import scala.concurrent.Future
 
 class EntityEncoderSpec extends Http4sSpec {
   "EntityEncoder" should {
@@ -16,7 +16,7 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "calculate the content length of strings" in {
-      implicitly[EntityEncoder[String]].toEntity("pong").map(_.length) must returnValue(Some(4))
+      EntityEncoder[IO, String].toEntity("pong").map(_.length) must returnValue(Some(4))
     }
 
     "render byte arrays" in {
@@ -29,36 +29,36 @@ class EntityEncoderSpec extends Http4sSpec {
       writeToString(Future(hello)) must_== hello
     }
 
-    "render Tasks" in {
+    "render IOs" in {
       val hello = "Hello"
-      writeToString(Task.now(hello)) must_== hello
+      writeToString(IO.pure(hello)) must_== hello
     }
 
-    "render processes" in {
-      val helloWorld = Stream("hello", "world")
+    "render streams" in {
+      val helloWorld: Stream[IO, String] = Stream("hello", "world")
       writeToString(helloWorld) must_== "helloworld"
     }
 
-    "render processes with chunked transfer encoding" in {
-      implicitly[EntityEncoder[Stream[Task, String]]].headers.get(`Transfer-Encoding`) must beLike {
+    "render streams with chunked transfer encoding" in {
+      EntityEncoder[IO, Stream[IO, String]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding.hasChunked must beTrue
       }
     }
 
-    "render processes with chunked transfer encoding without wiping out other encodings" in {
+    "render streams with chunked transfer encoding without wiping out other encodings" in {
       trait Foo
-      implicit val FooEncoder: EntityEncoder[Foo] =
-        EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.gzip)) { _ => Task.now(Entity.empty) }
-      implicitly[EntityEncoder[Stream[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+      implicit val FooEncoder: EntityEncoder[IO, Foo] =
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => IO.pure(Entity.empty))
+      implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
       }
     }
 
     "render processes with chunked transfer encoding without duplicating chunked transfer encoding" in {
       trait Foo
-      implicit val FooEncoder: EntityEncoder[Foo] =
-        EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { _ => Task.now(Entity.empty) }
-      implicitly[EntityEncoder[Stream[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+      implicit val FooEncoder =
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ => IO.pure(Entity.empty))
+      EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
     }
@@ -78,13 +78,13 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "render input streams" in {
-      val inputStream = Eval.always(new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8)))
-      writeToString(inputStream) must_== "input stream"
+      val inputStream = new ByteArrayInputStream("input stream".getBytes(StandardCharsets.UTF_8))
+      writeToString(IO(inputStream)) must_== "input stream"
     }
 
     "render readers" in {
       val reader = new StringReader("string reader")
-      writeToString(Task.delay(reader)) must_== "string reader"
+      writeToString(IO(reader)) must_== "string reader"
     }
 
     "render very long readers" in {
@@ -93,29 +93,29 @@ class EntityEncoderSpec extends Http4sSpec {
       // This is reproducible on input streams
       val longString = "string reader" * 5000
       val reader = new StringReader(longString)
-      writeToString(Task.delay(reader)) must_== longString
+      writeToString[IO[Reader]](IO(reader)) must_== longString
     }
 
     "render readers with UTF chars" in {
       val utfString = "A" + "\u08ea" + "\u00f1" + "\u72fc" + "C"
       val reader = new StringReader(utfString)
-      writeToString(Task.delay(reader)) must_== utfString
+      writeToString[IO[Reader]](IO(reader)) must_== utfString
     }
 
     "give the content type" in {
-      EntityEncoder[String].contentType must_== Some(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
-      EntityEncoder[Array[Byte]].contentType must_== Some(`Content-Type`(MediaType.`application/octet-stream`))
+      EntityEncoder[IO, String].contentType must beSome(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
+      EntityEncoder[IO, Array[Byte]].contentType must beSome(`Content-Type`(MediaType.`application/octet-stream`))
     }
 
     "work with local defined EntityEncoders" in {
       sealed case class ModelA(name: String, color: Int)
       sealed case class ModelB(name: String, id: Long)
 
-      implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA]()(_ => Chunk.bytes("A".getBytes))
-      implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB]()(_ => Chunk.bytes("B".getBytes))
+      implicit val w1: EntityEncoder[IO, ModelA] = EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
+      implicit val w2: EntityEncoder[IO, ModelB] = EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
 
-      EntityEncoder[ModelA] must_== w1
-      EntityEncoder[ModelB] must_== w2
+      EntityEncoder[IO, ModelA] must_== w1
+      EntityEncoder[IO, ModelB] must_== w2
     }
   }
 }

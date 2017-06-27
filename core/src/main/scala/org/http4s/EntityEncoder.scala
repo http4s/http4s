@@ -4,24 +4,23 @@ import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
 
+import cats._
+import cats.effect.{Async, Sync}
+import cats.functor._
+import cats.implicits._
+import fs2.Stream._
+import fs2._
+import fs2.io._
+import org.http4s.headers._
+import org.http4s.syntax.async._
+
 import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 
-import cats._
-import cats.functor._
-import fs2._
-import fs2.io._
-import fs2.Stream._
-import fs2.util.Suspendable
-import org.http4s.headers._
-import org.http4s.batteries._
-import org.http4s.multipart._
-
-@implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.")
+@implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
 trait EntityEncoder[F[_], A] { self =>
-  import EntityEncoder._
 
-  /** Convert the type `A` to an [[EntityEncoder.Entity]] in the `Task` monad */
+  /** Convert the type `A` to an [[EntityEncoder.Entity]] in the effect type `F` */
   def toEntity(a: A): F[Entity[F]]
 
   /** Headers that may be added to a [[Message]]
@@ -84,7 +83,7 @@ trait EntityEncoderInstances0 {
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
    def showEncoder[F[_]: Applicative, A](implicit charset: Charset = DefaultCharset, show: Show[A]): EntityEncoder[F, A] = {
-    val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
+     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
      simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
   }
 
@@ -92,6 +91,14 @@ trait EntityEncoderInstances0 {
     def toEntity(a: A): F[Entity[F]] = F.pure(Entity.empty)
     def headers: Headers = Headers.empty
   }
+
+  implicit def futureEncoder[F[_], A](implicit F: Async[F], ec: ExecutionContext, W: EntityEncoder[F, A]): EntityEncoder[F, Future[A]] =
+    new EntityEncoder[F, Future[A]] {
+      override def toEntity(future: Future[A]): F[Entity[F]] =
+        F.fromFuture(future).flatMap(W.toEntity)
+
+      override def headers: Headers = Headers.empty
+    }
 
   /**
    * A stream encoder is intended for streaming, and does not calculate its
@@ -148,23 +155,23 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder[F[_]](implicit F: Suspendable[F]): EntityEncoder[F, File] =
-    inputStreamEncoder[F].contramap(file => F.delay(new FileInputStream(file)))
+  implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
+    inputStreamEncoder[F, FileInputStream].contramap(file => F.delay(new FileInputStream(file)))
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def filePathEncoder[F[_]: Suspendable]: EntityEncoder[F, Path] =
+  implicit def filePathEncoder[F[_]: Sync]: EntityEncoder[F, Path] =
     fileEncoder[F].contramap(_.toFile)
 
   // TODO parameterize chunk size
-  implicit def inputStreamEncoder[F[_]: Suspendable]: EntityEncoder[F, F[InputStream]] =
-    streamEncoder[F, Byte].contramap { in: F[InputStream] =>
-      readInputStream[F](in, DefaultChunkSize)
+  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
+    streamEncoder[F, Byte].contramap { in: F[IS] =>
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_]](implicit F: Suspendable[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[Reader]] =
-    streamEncoder[F, Byte].contramap { r: F[Reader] =>
+  implicit def readerEncoder[F[_], R <: Reader](implicit F: Sync[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
+    streamEncoder[F, Byte].contramap { r: F[R] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
       val readToBytes: F[Option[Chunk[Byte]]] = r.map { r =>
@@ -182,15 +189,15 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
           // Read into a Chunk
           val b = new Array[Byte](bb.remaining())
           bb.get(b)
-          Some(Chunk.bytes(b, 0, b.length))
+          Some(Chunk.bytes(b))
         }
       }
 
-      def useReader(is: Reader) =
+      def useReader(is: R) =
         Stream.eval(readToBytes)
           .repeat
-          .through(pipe.unNoneTerminate)
-          .flatMap(Stream.chunk)
+          .unNoneTerminate
+          .flatMap(Stream.chunk[Byte])
 
       // The reader is closed at the end like InputStream
       Stream.bracket(r)(useReader, t => F.delay(t.close()))

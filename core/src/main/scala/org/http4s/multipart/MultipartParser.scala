@@ -5,6 +5,12 @@ package multipart
 
 import scodec.bits.ByteVector
 
+<<<<<<< HEAD
+=======
+import scalaz.{-\/, \/-, \/, State}
+import scalaz.stream.{process1, Process, Process1, Writer1}
+
+>>>>>>> release-0.16.x
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
   import Process._
@@ -16,7 +22,10 @@ object MultipartParser {
 
   private final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse(boundary: Boundary): Writer1[Headers, ByteVector, ByteVector] = {
+  def parse(boundary: Boundary): Writer1[Headers, ByteVector, ByteVector] =
+    parse(boundary, 40 * 1024)
+
+  def parse(boundary: Boundary, headerLimit: Long): Writer1[Headers, ByteVector, ByteVector] = {
     val boundaryBytes = boundary.toByteVector
     val startLine = DASHDASH ++ boundaryBytes
     val endLine = startLine ++ DASHDASH
@@ -26,7 +35,7 @@ object MultipartParser {
 
     def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
       def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
-        logger.trace(s"handle: $bv")
+        logger.trace(s"handle: ${bv.decodeUtf8}")
         val index = bv indexOfSlice CRLF
 
         if (index >= 0) {
@@ -48,6 +57,10 @@ object MultipartParser {
       leading map handle getOrElse receive1(handle)
     }
 
+    def takeUpTo(n: Long): Process1[ByteVector, ByteVector] =
+      if (n > 0) receive1(bv => emit(bv) ++ takeUpTo(n - bv.size))
+      else fail(MalformedMessageBodyFailure(s"Part header was longer than ${headerLimit}-byte limit"))
+
     def receiveCollapsedLine(leading: Option[ByteVector]): Process1[ByteVector, Out[ByteVector]] = {
       receiveLine(leading) pipe process1.fold(Out(ByteVector.empty)) {
         case (acc, -\/(partial)) => acc.copy(acc.a ++ partial)
@@ -56,12 +69,23 @@ object MultipartParser {
     }
 
     def start: Writer1[Headers, ByteVector, ByteVector] = {
+      def preamble(leading: Option[ByteVector]): Process1[ByteVector, Option[ByteVector]] =
+        body(leading.map(_.compact), expected).flatMap {
+          case Out(chunk, None) =>
+            logger.trace(s"preamble chunk: ${chunk.decodeUtf8}")
+            halt
+          case Out(chunk, tail) =>
+            logger.trace(s"Last preamble chunk: $chunk.")
+            logger.trace(s"Resuming with $tail.")
+            emit(tail)
+        }
+
       def beginPart(leading: Option[ByteVector]): Process1[ByteVector, Option[ByteVector]] = {
         def isStartLine(line: ByteVector): Boolean =
           line.startsWith(startLine) && isTransportPadding(line.drop(startLine.size))
 
         def isEndLine(line: ByteVector): Boolean =
-          line.startsWith(endLine) && isTransportPadding(line.drop(endLine.size))
+          line.startsWith(endLine)
 
         def isTransportPadding(bv: ByteVector): Boolean =
           bv.toSeq.find(b => b != ' ' && b != '\t').isEmpty
@@ -72,25 +96,27 @@ object MultipartParser {
             emit(tail)
           }
           else if (isEndLine(line)) {
-            logger.debug("Found end line. Halting.")
-            halt
+            logger.debug("Found end line. Discarding epilogue.")
+            process1.skip.repeat
           }
-          else {
-            logger.trace(s"Discarding prelude: $line")
-            beginPart(tail)
-          }
+          else fail(new MalformedMessageBodyFailure(s"Expected a multipart start or end line: ${line.decodeUtf8}"))
         }
       }
 
-      def go(leading: Option[ByteVector]): Writer1[Headers, ByteVector, ByteVector] = {
-        for {
+      def headers(leading: Option[ByteVector]): Process1[ByteVector, Out[Headers]] = {
+        takeUpTo(headerLimit) pipe (for {
           tail <- beginPart(leading)
           headerPair <- header(tail, expected)
           Out(headers, tail2) = headerPair
           _ = logger.debug(s"Headers: $headers")
-          spacePair <- receiveCollapsedLine(tail2)
-          tail3 = spacePair.tail // eat the space between header and content
-          part <- emit(-\/(headers)) ++ body(tail3.map(_.compact), expected).flatMap {
+        } yield Out(headers, tail2))
+      }
+
+      def go(leading: Option[ByteVector]): Writer1[Headers, ByteVector, ByteVector] = {
+        for {
+          headerPair <- headers(leading)
+          Out(headers, tail) = headerPair
+          part <- emit(-\/(headers)) ++ body(tail.map(_.compact), expected).flatMap {
             case Out(chunk, None) =>
               logger.debug(s"Chunk: $chunk")
               emit(\/-(chunk))
@@ -105,34 +131,46 @@ object MultipartParser {
         } yield part
       }
 
-      go(None)
+      // The requirement that the encapsulation boundary begins with a CRLF
+      // implies that the body of a multipart entity must itself begin with a
+      // CRLF before the first encapsulation line - that is, if the "preamble"
+      // area is not used, the entity headers must be followed by TWO CRLFs.
+      // This is indeed how such entities should be composed.  A tolerant mail
+      // reading program, however, may interpret a body of type multipart that
+      // begins with an encapsulation line NOT initiated by a CRLF as also
+      // being an encapsulation boundary, but a compliant mail sending program
+      // must not generate such entities. -- https://tools.ietf.org/html/rfc1341
+      //
+      // If we supply our own to start the preamble via `Some(CRLF)`,
+      // we are tolerant.  If it's in the body, it gets eaten as part
+      // of the preamble.
+      preamble(Some(CRLF)).flatMap(go)
     }
 
     def header(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[Headers]] = {
-      def go(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[Headers]] = {
+      def go(leading: Option[ByteVector]): Writer1[Header, ByteVector, Option[ByteVector]] = {
+        logger.trace(s"Header go: ${leading.map(_.decodeUtf8)}  ")
         receiveCollapsedLine(leading) flatMap {
           case Out(bv, tail) => {
             if (bv == expected) {
-              halt
+              emitO(tail)
             } else {
-              val headerM = for {
+              (for {
                 line <- bv.decodeAscii.right.toOption
                 idx <- Some(line indexOf ':')
                 if idx >= 0
                 if idx < line.length - 1
-              } yield Header(line.substring(0, idx), line.substring(idx + 1).trim)
-
-              headerM.map { header => emit(Out(Headers(header), tail)) }
-                .map { _ ++ go(tail, expected) }
-                .getOrElse(halt)
+                header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
+              } yield emitW(header) ++ go(tail)).getOrElse(emitO(tail))
             }
           }
         }
       }
 
-      go(leading, expected).fold(Out(Headers.empty)) {
-        case (acc, Out(header, tail)) => Out(acc.a ++ header, tail)
-      }
+      go(leading).map(x => {logger.trace("Got: "+x.toString); x}).fold(Out(List.empty[Header])) {
+        case (acc, -\/(header)) => acc.copy(a = header :: acc.a)
+        case (acc, \/-(tail)) => acc.copy(tail = tail)
+      }.map { case Out(hs, tail) => Out(Headers(hs.reverse), tail) }
     }
 
     def body(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
@@ -162,7 +200,7 @@ object MultipartParser {
        * @param remainder the part of the next boundary we're looking for on the next read.
        */
       def mid(found: ByteVector, remainder: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
-        logger.trace(s"mid: $found remainder")
+        logger.trace(s"mid: $found $remainder")
         if (remainder.isEmpty) {
           // found should start with a CRLF, because mid is called with it.
           emit(Out(ByteVector.empty, Some(found.drop(2))))
@@ -170,6 +208,7 @@ object MultipartParser {
           receive1Or[ByteVector, Out[ByteVector]](
             fail(new MalformedMessageBodyFailure("Part was not terminated"))) { bv =>
             val (remFront, remBack) = remainder splitAt bv.length
+            logger.trace(s"remFront = $remFront; remBack = $remBack; bv = $bv")
             if (bv startsWith remFront) {
               // If remBack is nonEmpty, then the progress toward our match
               // is represented by bv, and we'll loop back to read more to

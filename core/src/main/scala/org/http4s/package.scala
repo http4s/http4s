@@ -2,8 +2,8 @@ package org
 
 import cats._
 import cats.data._
+import cats.effect.Sync
 import fs2._
-import fs2.util.{Attempt, Suspendable}
 
 package object http4s { // scalastyle:ignore
 
@@ -12,7 +12,7 @@ package object http4s { // scalastyle:ignore
   type EntityBody[+F[_]] = Stream[F, Byte]
 
   val EmptyBody: EntityBody[Nothing] =
-    Stream.empty[Nothing, Byte]
+    Stream.empty
 
   val ApiVersion: Http4sVersion =
     Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
@@ -40,7 +40,7 @@ package object http4s { // scalastyle:ignore
   type AuthedService[F[_], T] = Service[F, AuthedRequest[F, T], MaybeResponse[F]]
 
   /* Lives here to work around https://issues.scala-lang.org/browse/SI-7139 */
-  object HttpService {
+  object HttpService extends Serializable {
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
@@ -56,7 +56,7 @@ package object http4s { // scalastyle:ignore
       // I don't feel good about myself
       lift(req => pf.asInstanceOf[PartialFunction[Request[F], F[MaybeResponse[F]]]].applyOrElse(req, Function.const(F.pure(Pass[F]))))
 
-    def empty[F[_]: Suspendable]: HttpService[F] =
+    def empty[F[_]: Sync]: HttpService[F] =
       Service.constVal(Pass[F])
   }
 
@@ -82,11 +82,11 @@ package object http4s { // scalastyle:ignore
       * @tparam T - ignored.
       * @return
       */
-    def empty[F[_]: Suspendable, T]: AuthedService[F, T] =
+    def empty[F[_]: Sync, T]: AuthedService[F, T] =
       Service.constVal(Pass[F])
   }
 
-  type Callback[A] = Attempt[A] => Unit
+  type Callback[A] = Either[Throwable, A] => Unit
 
   /** A stream of server-sent events */
   type EventStream[F[_]] = Stream[F, ServerSentEvent]

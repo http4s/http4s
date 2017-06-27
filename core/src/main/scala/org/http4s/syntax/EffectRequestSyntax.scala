@@ -3,16 +3,15 @@ package syntax
 
 import cats._
 import cats.implicits._
-import fs2.Task
 
-trait TaskRequestSyntax {
-  implicit def http4sTaskRequestSyntax[F[+_]](req: F[Request[F]]): TaskRequestOps[F] =
-    new TaskRequestOps[F](req)
+trait EffectRequestSyntax {
+  implicit def http4sEffectRequestSyntax[F[+_]](req: F[Request[F]]): EffectRequestOps[F] =
+    new EffectRequestOps[F](req)
 }
 
-final class TaskRequestOps[F[+_]](val self: F[Request[F]])
+final class EffectRequestOps[F[+_]](val self: F[Request[F]])
     extends AnyVal
-    with TaskMessageOps[F, Request[F]]
+    with EffectMessageSyntax[F, Request[F]]
     with RequestOps[F] {
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
     self.flatMap(_.decodeWith(decoder, strict)(f))

@@ -2,23 +2,26 @@ package org.http4s.blaze.util
 
 import java.nio.ByteBuffer
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import cats.effect._
+import cats.implicits._
 import fs2._
-import org.http4s.batteries._
 import org.http4s.blaze.pipeline.TailStage
+import org.http4s.util.chunk._
 import org.log4s.getLogger
 
-class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])
-                    (implicit val ec: ExecutionContext)
-    extends EntityBodyWriter {
+import scala.concurrent.{ExecutionContext, Future}
 
-  private[this] val logger = getLogger
+class IdentityWriter[F[_]](private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])
+                          (implicit protected val F: Effect[F], protected val ec: ExecutionContext)
+    extends EntityBodyWriter[F] {
+
+  private[this] val logger = getLogger(classOf[IdentityWriter[F]])
 
   private var bodyBytesWritten = 0L
 
   private def willOverflow(count: Long) =
-    if (size < 0L) false else (count + bodyBytesWritten > size)
+    if (size < 0L) false
+    else count + bodyBytesWritten > size
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (willOverflow(chunk.size.toLong)) {
@@ -27,13 +30,9 @@ class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage
 
       logger.warn(msg)
 
-      // TODO fs2 port shady .toInt... loop?
-      writeBodyChunk(chunk.take((size - bodyBytesWritten).toInt), true) flatMap {_ =>
-        Future.failed(new IllegalArgumentException(msg))
-      }
-
-    }
-    else {
+      val reducedChunk = chunk.take(size - bodyBytesWritten).toChunk
+      writeBodyChunk(reducedChunk, flush = true) >> Future.failed(new IllegalArgumentException(msg))
+    } else {
       val b = chunk.toByteBuffer
 
       bodyBytesWritten += b.remaining

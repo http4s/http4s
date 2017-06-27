@@ -1,20 +1,18 @@
-/*
 package com.example.http4s
 package ssl
 
 import java.nio.file.Paths
 
-import fs2._
-import org.http4s.server._
+import cats.effect._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.server.{ SSLKeyStoreSupport, ServerBuilder }
+import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.util.StreamApp
 
-trait SslExample extends StreamApp {
+trait SslExample extends StreamApp[IO] {
   // TODO: Reference server.jks from something other than one child down.
   val keypath = Paths.get("../server.jks").toAbsolutePath().toString()
 
-  def builder: ServerBuilder with SSLKeyStoreSupport
+  def builder: ServerBuilder[IO] with SSLKeyStoreSupport[IO]
 
   def stream(args: List[String]) = builder
     .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
@@ -22,4 +20,3 @@ trait SslExample extends StreamApp {
     .bindHttp(8443)
     .serve
 }
-*/

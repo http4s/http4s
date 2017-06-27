@@ -2,10 +2,11 @@ package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
 
+import cats.implicits._
 import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
+
 import scala.collection.mutable.ListBuffer
-import cats.syntax.either._
 
 /** http/1.x parser for the blaze client */
 private object BlazeHttp1ClientParser {
@@ -16,7 +17,7 @@ private object BlazeHttp1ClientParser {
     new BlazeHttp1ClientParser(maxRequestLineSize, maxHeaderLength, maxChunkSize, isLenient)
 }
 
-private final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
+private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
                                                   maxHeaderLength: Int,
                                                   maxChunkSize: Int,
                                                   isLenient: Boolean)
@@ -32,26 +33,23 @@ private final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
     super.reset()
   }
 
-  def getHttpVersion(): HttpVersion = {
+  def getHttpVersion(): HttpVersion =
     if (httpVersion == null) HttpVersion.`HTTP/1.0`  // TODO Questionable default
     else httpVersion
-  }
 
   def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
-  def getHeaders(): Headers = {
+  def getHeaders(): Headers =
     if (headers.isEmpty) Headers.empty
     else {
       val hs = Headers(headers.result())
       headers.clear() // clear so we can accumulate trailing headers
       hs
     }
-  }
 
-  def getStatus(): Status = {
+  def getStatus(): Status =
     if (status == null) Status.InternalServerError
     else status
-  }
 
   def finishedResponseLine(buffer: ByteBuffer): Boolean =
     responseLineComplete() || parseResponseLine(buffer)

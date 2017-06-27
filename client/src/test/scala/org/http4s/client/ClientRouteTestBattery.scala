@@ -4,14 +4,17 @@ package client
 import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+
+import cats.effect._
+import cats.implicits._
 import fs2._
-import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl._
 import org.specs2.specification.core.Fragments
+
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String, client: Client)
+abstract class ClientRouteTestBattery(name: String, client: Client[IO])
   extends Http4sSpec with JettyScaffold
 {
   val timeout = 20.seconds
@@ -20,10 +23,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     s"Execute GET: $path" in {
       val name = address.getHostName
       val port = address.getPort
-      val req = Request(uri = Uri.fromString(s"http://$name:$port$path").yolo)
-      client.fetch(req) { resp =>
-        Task.delay(checkResponse(resp, expected))
-      }.unsafeRunFor(timeout)
+      val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
+      client
+        .fetch(req)(resp => IO(checkResponse(resp, expected)))
+        .unsafeRunTimed(timeout)
+        .get
     }
   }
 
@@ -31,9 +35,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     "Strip fragments from URI" in {
       skipped("Can only reproduce against external resource.  Help wanted.")
       val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
-      val body = client.fetch(Request(uri = uri)) {
-        case resp => Task.now(resp.status)
-      }
+      val body = client.fetch(Request[IO](uri = uri))(e => IO.pure(e.status))
       body must returnValue(Ok)
     }
 
@@ -43,14 +45,14 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
         Request(uri = uri)
       }
       val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
-      Task.parallelTraverse((0 until 10).toVector)(_ =>
+      async.parallelTraverse((0 until 10).toVector)(_ =>
         fetchBody.run(url).map(_.length)
-      ).unsafeRunFor(timeout).forall(_ mustNotEqual 0)
+      ).unsafeRunTimed(timeout).forall(_ mustNotEqual 0)
     }
   }
 
-  override def map(fs: => Fragments) =
-    super.map(fs ^ step(client.shutdown.unsafeRun()))
+  override def map(fs: => Fragments): Fragments =
+    super.map(fs ^ step(client.shutdown.unsafeRunSync()))
 
   def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
@@ -61,7 +63,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     }
   }
 
-  private def checkResponse(rec: Response, expected: Response) = {
+  private def checkResponse(rec: Response[IO], expected: Response[IO]) = {
     val hs = rec.headers.toSeq
 
     rec.status must be_==(expected.status)
@@ -73,15 +75,15 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     rec.httpVersion must be_==(expected.httpVersion)
   }
 
-  private def translateTests(address: InetSocketAddress, method: Method, paths: Map[String, Response]): Map[Request, Response] = {
+  private def translateTests(address: InetSocketAddress, method: Method, paths: Map[String, Response[IO]]): Map[Request[IO], Response[IO]] = {
     val port = address.getPort()
     val name = address.getHostName()
     paths.map { case (s, r) =>
-      (Request(method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
+      (Request[IO](method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
     }
   }
 
-  private def renderResponse(srv: HttpServletResponse, resp: Response): Unit = {
+  private def renderResponse(srv: HttpServletResponse, resp: Response[IO]): Unit = {
     srv.setStatus(resp.status.code)
     resp.headers.foreach { h =>
       srv.addHeader(h.name.toString, h.value)
@@ -89,12 +91,12 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
     val os : ServletOutputStream = srv.getOutputStream
 
-    val writeBody : Task[Unit] = resp.body
-      .evalMap{ byte => Task.delay(os.write(Array(byte))) }
+    val writeBody : IO[Unit] = resp.body
+      .evalMap{ byte => IO(os.write(Array(byte))) }
       .run
-    val flushOutputStream : Task[Unit] = Task.delay(os.flush())
-    (writeBody >> flushOutputStream).unsafeRun()
+    val flushOutputStream : IO[Unit] = IO(os.flush())
+    (writeBody >> flushOutputStream).unsafeRunSync()
   }
 
-  private def collectBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun().toArray
+  private def collectBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync().toArray
 }

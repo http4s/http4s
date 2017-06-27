@@ -71,7 +71,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	</thead>
 	<tbody>
       <tr>
-        <td>0.17.0-M1</td>
+        <td>0.17.0-M3</td>
         <td class="text-center"><span class="label label-warning">Milestone</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -81,7 +81,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
 	  <tr>
-	    <td>0.16.0a-M1</td>
+	    <td>0.16.0a-M3</td>
 	    <td class="text-center"><span class="label label-warning">Milestone</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -91,7 +91,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.0-M1</td>
+	    <td>0.16.0-M3</td>
 	    <td class="text-center"><span class="label label-warning">Milestone</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -101,7 +101,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.9a</td>
+	    <td>0.15.13a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -111,7 +111,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.9</td>
+	    <td>0.15.13</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>

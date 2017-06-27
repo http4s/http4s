@@ -1,5 +1,3 @@
-// TODO fs2 port
-/*
 package com.example.http4s
 
 import java.time.Instant
@@ -9,35 +7,36 @@ import org.http4s.circe._
 import org.http4s.dsl._
 import org.http4s.headers.Date
 import org.http4s.scalaxml._
-
 import io.circe._
 import io.circe.syntax._
+
 import scala.xml.Elem
 import scala.concurrent.duration._
-import scalaz.{Reducer, Monoid}
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.Process._
-import scalaz.stream.text.utf8Encode
-import scalaz.stream.time.awakeEvery
+import cats.implicits._
+import cats.data._
+import cats._
+import cats.effect._
+import cats.effect.implicits._
+import fs2.{text => _, _}
 import scodec.bits.ByteVector
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /** These are routes that we tend to use for testing purposes
   * and will likely get folded into unit tests later in life */
 object ScienceExperiments {
 
-  private implicit def timedES = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+  implicit val scheduler : fs2.Scheduler = fs2.Scheduler.fromFixedDaemonPool(2)
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
-  def service = HttpService {
+  def service = HttpService[IO] {
     ///////////////// Misc //////////////////////
     case req @ POST -> Root / "root-element-name" =>
       req.decode { root: Elem => Ok(root.label) }
 
-    case req @ GET -> Root / "date" =>
+    case GET -> Root / "date" =>
       val date = Instant.ofEpochMilli(100)
-      Ok(date.toString())
+      Ok(date.toString)
         .putHeaders(Date(date))
 
     case req @ GET -> Root / "echo-headers" =>
@@ -47,13 +46,14 @@ object ScienceExperiments {
     case GET -> Root / "bigstring" =>
       Ok((0 until 1000).map(i => s"This is string number $i").mkString("\n"))
 
-    case req@GET -> Root / "bigstring2" =>
-      Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
+    case GET -> Root / "bigstring2" =>
+      Ok(Stream.range(0, 1000).map(i => s"This is string number $i").covary[IO])
 
-    case req@GET -> Root / "bigstring3" => Ok(flatBigString)
+    case GET -> Root / "bigstring3" =>
+      Ok(flatBigString)
 
     case GET -> Root / "zero-chunk" =>
-      Ok(Process("", "foo!"))
+      Ok(Stream("", "foo!").covary[IO])
 
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB
@@ -65,63 +65,75 @@ object ScienceExperiments {
 
     ///////////////// Switch the response based on head of content //////////////////////
 
-    case req@POST -> Root / "challenge1" =>
+    case req @ POST -> Root / "challenge1" =>
       val body = req.bodyAsText
-      def notGo = emit("Booo!!!")
-      Ok {
-        body.step match {
-          case Step(head, tail) =>
-            head.runLast.run.fold(tail.continue) { head =>
-              if (!head.startsWith("go")) notGo
-              else emit(head) ++ tail.continue
+      def notGo = Stream.emit("Booo!!!")
+      def newBodyP(toPull: Stream.ToPull[IO, String]): Pull[IO, String, Option[Stream[IO, String]]] =
+        toPull.uncons1.flatMap {
+          case Some((s, stream)) =>
+            if (s.startsWith("go")) {
+              Pull.output1(s) as Some(stream)
+            } else {
+              notGo.pull.echo as None
             }
-          case _ => notGo
+          case None =>
+            Pull.pure(None)
         }
-      }
+      Ok(body.repeatPull(newBodyP))
 
     case req @ POST -> Root / "challenge2" =>
-      val parser = await1[String] map {
-        case chunk if chunk.startsWith("Go") =>
-          Task.now(Response(body = emit(chunk) ++ req.bodyAsText |> utf8Encode))
-        case chunk if chunk.startsWith("NoGo") =>
-          BadRequest("Booo!")
-        case _ =>
-          BadRequest("no data")
-      }
-      (req.bodyAsText |> parser).runLastOr(InternalServerError()).run
+      def parser(stream: Stream[IO, String]): Pull[IO, IO[Response[IO]], Unit] =
+        stream.pull.uncons1.flatMap {
+          case Some((str, stream)) if str.startsWith("Go") =>
+            val body = stream.cons1(str).through(fs2.text.utf8Encode)
+            Pull.output1(IO.pure(Response(body = body)))
+          case Some((str, _)) if str.startsWith("NoGo") =>
+            Pull.output1(BadRequest("Booo!"))
+          case _ =>
+            Pull.output1(BadRequest("no data"))
+        }
+      parser(req.bodyAsText).stream.runLast.flatMap(_.getOrElse(InternalServerError()))
 
-    /*
-      case req @ Post -> Root / "trailer" =>
-        trailer(t => Ok(t.headers.length))
+      /* TODO
+    case req @ POST -> Root / "trailer" =>
+      trailer(t => Ok(t.headers.length))
 
-      case req @ Post -> Root / "body-and-trailer" =>
-        for {
-          body <- text(req.charset)
-          trailer <- trailer
-        } yield Ok(s"$body\n${trailer.headers("Hi").value}")
-    */
+    case req @ POST -> Root / "body-and-trailer" =>
+      for {
+        body <- text(req.charset)
+        trailer <- trailer
+      } yield Ok(s"$body\n${trailer.headers("Hi").value}")
+      */
 
     ///////////////// Weird Route Failures //////////////////////
-    case req @ GET -> Root / "hanging-body" =>
-      Ok(Process(Task.now(ByteVector(Seq(' '.toByte))), Task.async[ByteVector] { cb => /* hang */}).eval)
+    case GET -> Root / "hanging-body" =>
+      Ok(Stream.eval(IO.pure(ByteVector(Seq(' '.toByte))))
+        .evalMap(_ => IO.async[Byte]{ cb => /* hang */}))
 
-    case req @ GET -> Root / "broken-body" =>
-      Ok(Process(Task{"Hello "}) ++ Process(Task{sys.error("Boom!")}) ++ Process(Task{"world!"}))
+    case GET -> Root / "broken-body" =>
+      Ok(Stream.eval(IO{"Hello "}) ++ Stream.eval(IO(sys.error("Boom!"))) ++ Stream.eval(IO{"world!"}))
 
-    case req @ GET -> Root / "slow-body" =>
+    case GET -> Root / "slow-body" =>
       val resp = "Hello world!".map(_.toString())
-      val body = awakeEvery(2.seconds).zipWith(Process.emitAll(resp))((_, c) => c)
+      val body = time.awakeEvery[IO](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
       Ok(body)
 
+      /*
     case req @ POST -> Root / "ill-advised-echo" =>
       // Reads concurrently from the input.  Don't do this at home.
-      implicit val byteVectorMonoidInstance: Monoid[ByteVector] = Monoid.instance(_ ++ _, ByteVector.empty)
-      val tasks = (1 to Runtime.getRuntime.availableProcessors).map(_ => req.body.foldMonoid.runLastOr(ByteVector.empty))
-      val result = Task.reduceUnordered(tasks)(Reducer.identityReducer)
+      implicit val byteVectorMonoidInstance: Monoid[ByteVector] = new Monoid[ByteVector]{
+        def combine(x: ByteVector, y: ByteVector): ByteVector = x ++ y
+        def empty: ByteVector = ByteVector.empty
+      }
+      val seq = 1 to Runtime.getRuntime.availableProcessors
+      val f: Int => IO[ByteVector] = _ => req.body.map(ByteVector.fromByte).runLog.map(_.combineAll)
+      val result: Stream[IO, Byte] = Stream.eval(IO.traverse(seq)(f))
+        .flatMap(v => Stream.emits(v.combineAll.toSeq))
       Ok(result)
+      */
 
     case GET -> Root / "fail" / "task" =>
-      Task.fail(new RuntimeException)
+      IO.raiseError(new RuntimeException)
 
     case GET -> Root / "fail" / "no-task" =>
       throw new RuntimeException
@@ -129,9 +141,9 @@ object ScienceExperiments {
     case GET -> Root / "fail" / "fatally" =>
       ???
 
-    case req @ GET -> Root / "idle" / LongVar(seconds) =>
+    case GET -> Root / "idle" / LongVar(seconds) =>
       for {
-        _    <- Task.delay { Thread.sleep(seconds) }
+        _    <- IO(Thread.sleep(seconds))
         resp <- Ok("finally!")
       } yield resp
 
@@ -149,8 +161,7 @@ object ScienceExperiments {
     case req @ POST -> Root / "echo-json" =>
       req.as[Json].flatMap(Ok(_))
 
-    case req @ POST -> Root / "dont-care" =>
-      throw new InvalidMessageBodyFailure("lol, I didn't even read it")
+    case POST -> Root / "dont-care" =>
+      throw InvalidMessageBodyFailure("lol, I didn't even read it")
   }
 }
-*/

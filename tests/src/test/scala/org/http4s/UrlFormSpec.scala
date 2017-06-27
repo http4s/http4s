@@ -1,6 +1,9 @@
 package org.http4s
 
-import cats.data.NonEmptyList
+import cats._
+import cats.data._
+import cats.effect.IO
+import cats.implicits._
 import org.scalacheck.Arbitrary
 import org.specs2.scalacheck.Parameters
 
@@ -19,9 +22,10 @@ class UrlFormSpec extends Http4sSpec {
     val charset = Charset.`UTF-8`
 
     "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
-      DecodeResult.success(Request().withBody(urlForm)(UrlForm.entityEncoder(charset))).flatMap { req =>
-        UrlForm.entityDecoder.decode(req, strict = false)
-      } must returnRight(urlForm)
+      DecodeResult.success(Request[IO]().withBody(urlForm)(Functor[IO], UrlForm.entityEncoder(Applicative[IO], charset)))
+        .flatMap { req =>
+          UrlForm.entityDecoder[IO].decode(req, strict = false)
+        } must returnRight(urlForm)
     }
 
     "decodeString . encodeString == right" in prop{ (urlForm: UrlForm) =>
@@ -39,11 +43,11 @@ class UrlFormSpec extends Http4sSpec {
     }
 
     "getFirst returns first element matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("key") must_== Some("a")
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("key") must beSome("a")
     }
 
     "getFirst returns None if no matching key" in {
-      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("notFound") must_== None
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("notFound") must beNone
     }
 
     "getOrElse returns elements matching key" in {
@@ -70,14 +74,14 @@ class UrlFormSpec extends Http4sSpec {
     }
 
     "withFormField is effectively equal to factory constructor that takes a Map" in {
-      import scalaz.syntax.equal._
-
       (
-        UrlForm.empty +?("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
+        UrlForm.empty +?("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) ===
+          UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
       ) must_== (true)
 
       (
-        UrlForm.empty +?("foo", 1) +? ("bar", Option.empty[Boolean]) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
+        UrlForm.empty +?("foo", 1) +? ("bar", Option.empty[Boolean]) ++? ("dummy", List("a", "b", "c")) ===
+          UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
       ) must_== (true)
     }
 
@@ -86,8 +90,17 @@ class UrlFormSpec extends Http4sSpec {
         val flattened = for {
           (k, vs) <- map.toSeq
           v <- vs.toList
-        } yield (k -> v)
+        } yield k -> v
         UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.toList))
+    }
+
+    "construct consistently from Seq of kv-pairs and Map[String, Seq[String]]" in prop {
+      map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
+        val flattened = for {
+          (k, vs) <- map.toSeq
+          v <- vs.toList
+        } yield (k -> v)
+        UrlForm.fromSeq(flattened) must_== UrlForm(map.mapValues(_.toList))
     }
   }
 }

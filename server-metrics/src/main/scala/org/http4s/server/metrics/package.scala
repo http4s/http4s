@@ -3,7 +3,8 @@ package server
 
 import java.util.concurrent.TimeUnit
 
-import fs2._
+import cats._
+import cats.implicits._
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -15,20 +16,22 @@ package object metrics {
   }
 
   /** Encodes a metric registry in JSON format */
-  def metricRegistryEncoder(mapper: ObjectMapper = defaultMapper): EntityEncoder[MetricRegistry] =
-    EntityEncoder[String].contramap { metricRegistry =>
+  def metricRegistryEncoder[F[_]: Applicative](mapper: ObjectMapper = defaultMapper): EntityEncoder[F, MetricRegistry] =
+    EntityEncoder[F, String].contramap { metricRegistry =>
       val writer = mapper.writerWithDefaultPrettyPrinter()
       writer.writeValueAsString(metricRegistry)
     }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
-  def metricsResponse(registry: MetricRegistry, mapper: ObjectMapper = defaultMapper): Task[Response] =
-    Response(Status.Ok).withBody(registry)(metricRegistryEncoder(mapper))
+  def metricsResponse[F[_]: Monad](registry: MetricRegistry, mapper: ObjectMapper = defaultMapper): F[Response[F]] = {
+    implicit val encoder = metricRegistryEncoder[F](mapper)
+    Response[F](Status.Ok).withBody(registry)
+  }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
-  def metricsService(registry: MetricRegistry, mapper: ObjectMapper = defaultMapper): HttpService =
+  def metricsService[F[_]: Monad](registry: MetricRegistry, mapper: ObjectMapper = defaultMapper): HttpService[F] =
     HttpService.lift { req =>
-      if (req.method == Method.GET) metricsResponse(registry, mapper)
-      else Pass.now
+      if (req.method == Method.GET) metricsResponse[F](registry, mapper).widen[MaybeResponse[F]]
+      else Pass.pure
     }
 }

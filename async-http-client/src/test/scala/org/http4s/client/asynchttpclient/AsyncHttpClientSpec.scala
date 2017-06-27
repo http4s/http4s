@@ -1,8 +1,8 @@
-package org.http4s.client.asynchttpclient
+package org.http4s
+package client
+package asynchttpclient
 
-import org.http4s.client.ClientRouteTestBattery
-import org.http4s.util.threads.newDaemonPool
+import cats.effect.{Effect, IO}
 
 class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient",
-  AsyncHttpClient(bufferSize = 1,
-    customExecutor = Some(newDaemonPool("async-http-client-spec", timeout = true))))
+  AsyncHttpClient(bufferSize = 1)(Effect[IO], Http4sSpec.TestExecutionContext))

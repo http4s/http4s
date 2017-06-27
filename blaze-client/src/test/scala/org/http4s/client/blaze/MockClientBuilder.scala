@@ -4,20 +4,19 @@ package blaze
 
 import java.nio.ByteBuffer
 
-import org.http4s.blaze.pipeline.{LeafBuilder, HeadStage}
-
-import fs2.Task
+import cats.effect.IO
+import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
 
 private object MockClientBuilder {
-  def builder(head: => HeadStage[ByteBuffer], tail: => BlazeConnection): ConnectionBuilder[BlazeConnection] = {
-    req => Task.delay {
+  def builder(head: => HeadStage[ByteBuffer], tail: => BlazeConnection[IO]): ConnectionBuilder[IO, BlazeConnection[IO]] = {
+    req => IO {
       val t = tail
       LeafBuilder(t).base(head)
       t
     }
   }
 
-  def manager(head: => HeadStage[ByteBuffer], tail: => BlazeConnection): ConnectionManager[BlazeConnection] = {
+  def manager(head: => HeadStage[ByteBuffer], tail: => BlazeConnection[IO]): ConnectionManager[IO, BlazeConnection[IO]] = {
     ConnectionManager.basic(builder(head, tail))
   }
 }

@@ -2,31 +2,25 @@ package org.http4s
 package client
 package asynchttpclient
 
-import cats._
-import fs2._
+import java.nio.ByteBuffer
+
+import cats.effect._
+import cats.effect.implicits._
+import cats.implicits._
 import fs2.Stream._
-import fs2.io.toInputStream
-import org.http4s.batteries._
-
-import java.util.concurrent.{Callable, Executor, Executors, ExecutorService}
-
+import fs2._
+import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import org.asynchttpclient.AsyncHandler.State
-import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, BodyGenerator}
-import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.reactivestreams.Subscription
-
-import org.http4s.util.bug
+import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
+import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.util.threads._
-
 import org.reactivestreams.Publisher
 
 import scala.collection.JavaConverters._
-
-import org.log4s.getLogger
+import scala.concurrent.ExecutionContext
 
 object AsyncHttpClient {
-  private[this] val log = getLogger
 
   val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
@@ -40,81 +34,42 @@ object AsyncHttpClient {
     *
     * @param config configuration for the client
     * @param bufferSize body chunks to buffer when reading the body; defaults to 8
-    * @param customExecutor custom executor which must be managed externally.
+    * @param ec The ExecutionContext to run responses on
     */
-  def apply(config: AsyncHttpClientConfig = defaultConfig,
-            bufferSize: Int = 8,
-            customExecutor: Option[ExecutorService] = None): Client = {
+  def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig, bufferSize: Int = 8)
+           (implicit F: Effect[F], ec: ExecutionContext): Client[F] = {
     val client = new DefaultAsyncHttpClient(config)
-    val executorService = customExecutor.getOrElse(newDaemonPool("http4s-async-http-client-response"))
-    val strategy = Strategy.fromExecutor(executorService)
-
-    val close =
-      if (customExecutor.isDefined)
-        Task.delay { client.close() }
-      else
-        Task.delay {
-          client.close()
-          executorService.shutdown()
-        }
-
-    Client(Service.lift { req =>
-      Task.async[DisposableResponse] { cb =>
-        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
+    Client(Service.lift { req: Request[F] =>
+      F.async[DisposableResponse[F]] { cb =>
+        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize))
         ()
       }
-    }, close)
+    }, F.delay(client.close()))
   }
 
-  private def asyncHandler(cb: Callback[DisposableResponse], bufferSize: Int, executorService: ExecutorService) =
+  private def asyncHandler[F[_]](cb: Callback[DisposableResponse[F]], bufferSize: Int)
+                                (implicit F: Effect[F], ec: ExecutionContext) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
-      var dr: DisposableResponse = DisposableResponse(Response(), Task.delay(state = State.ABORT))
+      var dr: DisposableResponse[F] = DisposableResponse[F](Response(), F.delay(state = State.ABORT))
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         // backpressure is handled by requests to the reactive streams subscription
-        val queue = unboundedQueue[HttpResponseBodyPart](Strategy.Sequential)
-        val subscriber = new QueueSubscriber[HttpResponseBodyPart](bufferSize, queue) {
-          override def whenNext(element: HttpResponseBodyPart): Boolean = {
-            state match {
-              case State.CONTINUE =>
-                super.whenNext(element)
-              case State.ABORT =>
-                super.whenNext(element)
-                closeQueue()
-                false
-              case State.UPGRADE =>
-                super.whenNext(element)
-                state = State.ABORT
-                throw new IllegalStateException("UPGRADE not implemented")
-            }
-          }
-
-          override protected def request(n: Int): Unit = {
-            state match {
-              case State.CONTINUE =>
-                super.request(n)
-              case _ =>
-                // don't request what we're not going to process
-            }
-          }
-        }
-        val body = subscriber.process.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
-        dr = dr.copy(
-          response = dr.response.copy(body = body),
-          dispose = Task.apply({
-            state = State.ABORT
-            subscriber.killQueue()
-          })(executorService)
-        )
-        // Run this before we return the response, lest we violate
-        // Rule 3.16 of the reactive streams spec.
-        publisher.subscribe(subscriber)
-        // We have a fully formed response now.  Complete the
-        // callback, rather than waiting for onComplete, or else we'll
-        // buffer the entire response before we return it for
-        // streaming consumption.
-        executorService.execute(new Runnable { def run = cb(\/-(dr)) })
+        StreamSubscriber[F, HttpResponseBodyPart]().map { subscriber =>
+          val body = subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
+          dr = dr.copy(
+            response = dr.response.copy(body = body),
+            dispose = F.delay(state = State.ABORT)
+          )
+          // Run this before we return the response, lest we violate
+          // Rule 3.16 of the reactive streams spec.
+          publisher.subscribe(subscriber)
+          // We have a fully formed response now.  Complete the
+          // callback, rather than waiting for onComplete, or else we'll
+          // buffer the entire response before we return it for
+          // streaming consumption.
+          ec.execute(new Runnable { def run(): Unit = cb(Right(dr)) })
+        }.runAsync(_ => IO.unit).unsafeRunSync
         state
       }
 
@@ -132,36 +87,34 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        executorService.execute(new Runnable { def run = cb(left(throwable)) })
+        ec.execute(new Runnable { def run(): Unit = cb(Left(throwable)) })
 
       override def onCompleted(): Unit = {
         // Don't close here.  onStream may still be being called.
       }
     }
 
-  private def toAsyncRequest(request: Request)(implicit S: Strategy): AsyncRequest =
+  private def toAsyncRequest[F[_]: Effect](request: Request[F])(implicit ec: ExecutionContext): AsyncRequest =
     new RequestBuilder(request.method.toString)
       .setUrl(request.uri.toString)
       .setHeaders(request.headers
         .groupBy(_.name.toString)
         .mapValues(_.map(_.value).asJavaCollection)
         .asJava
-      ).setBody(getBodyGenerator(request.body))
+      )
+      .setBody(getBodyGenerator(request))
       .build()
 
-  private def getBodyGenerator(body: EntityBody)(implicit S: Strategy): BodyGenerator = {
-    val is = body.through(toInputStream).runLast
-      .unsafeRun // TODO fs2 port does this have to be synchronous?
-      .getOrElse(throw bug("expected an InputStream"))
-    new InputStreamBodyGenerator(is)
+  private def getBodyGenerator[F[_]: Effect](req: Request[F])(implicit ec: ExecutionContext): BodyGenerator = {
+    val publisher = StreamUnicastPublisher(req.body.chunks.map(chunk => ByteBuffer.wrap(chunk.toArray)))
+    new ReactiveStreamsBodyGenerator(publisher, req.contentLength.getOrElse(-1))
   }
 
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
-  private def getHeaders(headers: HttpResponseHeaders): Headers = {
+  private def getHeaders(headers: HttpResponseHeaders): Headers =
     Headers(headers.getHeaders.iterator.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
-  }
 }

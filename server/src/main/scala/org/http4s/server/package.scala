@@ -1,9 +1,8 @@
 package org.http4s
 
+import cats._
 import cats.arrow.Choice
-import cats.data._
-import fs2._
-import org.http4s.batteries._
+import cats.implicits._
 import org.log4s.getLogger
 
 package object server {
@@ -12,15 +11,16 @@ package object server {
    * different [[Request]] and [[Response]] type.  http4s comes with several
    * middlewares for composing common functionality into services.
    *
+   * @tparam F the effect type of the services
    * @tparam A the request type of the original service
    * @tparam B the response type of the original service
    * @tparam C the request type of the resulting service
    * @tparam D the response type of the resulting service
    */
-  type Middleware[A, B, C, D] = Service[A, B] => Service[C, D]
+  type Middleware[F[_], A, B, C, D] = Service[F, A, B] => Service[F, C, D]
 
   object Middleware {
-    def apply[A, B, C, D](f: (C, Service[A, B]) => Task[D]): Middleware[A, B, C, D] = {
+    def apply[F[_], A, B, C, D](f: (C, Service[F, A, B]) => F[D]): Middleware[F, A, B, C, D] = {
       service => Service.lift {
         req => f(req, service)
       }
@@ -30,12 +30,12 @@ package object server {
   /**
    * An HTTP middleware converts an [[HttpService]] to another.
    */
-  type HttpMiddleware = Middleware[Request, MaybeResponse, Request, MaybeResponse]
+  type HttpMiddleware[F[_]] = Middleware[F, Request[F], MaybeResponse[F], Request[F], MaybeResponse[F]]
 
   /**
    * An HTTP middleware that authenticates users.
    */
-  type AuthMiddleware[T] = Middleware[AuthedRequest[T], MaybeResponse, Request, MaybeResponse]
+  type AuthMiddleware[F[_], T] = Middleware[F, AuthedRequest[F, T], MaybeResponse[F], Request[F], MaybeResponse[F]]
 
   /**
     * Old name for SSLConfig
@@ -44,30 +44,29 @@ package object server {
   type SSLBits = SSLConfig
 
   object AuthMiddleware {
-    def apply[T](authUser: Service[Request, T]): AuthMiddleware[T] = {
+    def apply[F[_]: Functor: FlatMap, T](authUser: Service[F, Request[F], T]): AuthMiddleware[F, T] = {
       service => service.compose(AuthedRequest(authUser.run))
     }
 
-    def apply[Err, T](
-      authUser: Service[Request, Either[Err, T]],
-      onFailure: Service[AuthedRequest[Err], MaybeResponse]
-    ): AuthMiddleware[T] = {
-      service: Service[AuthedRequest[T], MaybeResponse] =>
-        Choice[Service]
-          .choice(onFailure, service)
-          .local({ authed: AuthedRequest[Either[Err, T]] =>
+    def apply[F[_], Err, T](
+      authUser: Service[F, Request[F], Either[Err, T]],
+      onFailure: Service[F, AuthedRequest[F, Err], MaybeResponse[F]]
+    )(implicit F: Monad[F], C: Choice[Service[F, ?, ?]]): AuthMiddleware[F, T] = {
+      service: Service[F, AuthedRequest[F, T], MaybeResponse[F]] =>
+        C.choice(onFailure, service)
+          .local { authed: AuthedRequest[F, Either[Err, T]] =>
             authed.authInfo.bimap(
                                    err => AuthedRequest(err, authed.req),
                                    suc => AuthedRequest(suc, authed.req)
                                  )
-                 })
+                 }
           .compose(AuthedRequest(authUser.run))
     }
 
   }
 
   private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
-  def messageFailureHandler(req: Request): PartialFunction[Throwable, Task[Response]] = {
+  def messageFailureHandler[F[_]: Applicative](req: Request[F]): PartialFunction[Throwable, F[Response[F]]] = {
     case mf: MessageFailure =>
       messageFailureLogger.debug(mf)(s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)

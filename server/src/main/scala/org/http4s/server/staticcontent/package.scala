@@ -1,6 +1,7 @@
 package org.http4s
 package server
 
+import cats.effect.Sync
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -11,14 +12,16 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.HttpService]] that serves static files, possibly from the classpath. */
-  def resourceService(config: ResourceService.Config): HttpService =
+  def resourceService[F[_]: Sync](config: ResourceService.Config[F]): HttpService[F] =
     ResourceService(config)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  def fileService(config: FileService.Config): HttpService = FileService(config)
+  def fileService[F[_]: Sync](config: FileService.Config[F]): HttpService[F] =
+    FileService(config)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files from webjars */
-  def webjarService(config: WebjarService.Config): HttpService = WebjarService(config)
+  def webjarService[F[_]: Sync](config: WebjarService.Config[F]): HttpService[F] =
+    WebjarService(config)
 
   private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
 

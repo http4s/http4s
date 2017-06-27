@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.http4s.Http4sSpec
 import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder, TailStage}
 
-import scala.concurrent.{Await, Awaitable, Future, Promise}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Awaitable, Future, Promise}
 
 class ReadBufferStageSpec extends Http4sSpec {
   "ReadBufferStage" should {

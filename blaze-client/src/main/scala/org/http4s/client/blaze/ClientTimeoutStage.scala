@@ -4,26 +4,24 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
+import org.http4s.blaze.pipeline.Command.{Disconnect, EOF, Error, OutboundCommand}
+import org.http4s.blaze.pipeline.MidStage
+import org.http4s.blaze.util.{Cancellable, TickWheelExecutor}
+
 import scala.annotation.tailrec
-import scala.concurrent.{Promise, Future}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
-import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.pipeline.Command.{Error, OutboundCommand, EOF, Disconnect}
-import org.http4s.blaze.util.{ Cancellable, TickWheelExecutor }
-
-
-final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Duration, exec: TickWheelExecutor)
-  extends MidStage[ByteBuffer, ByteBuffer]
-{ stage =>
+final private[blaze] class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Duration, exec: TickWheelExecutor)
+  extends MidStage[ByteBuffer, ByteBuffer] { stage =>
 
   import ClientTimeoutStage.Closed
 
   private implicit val ec = org.http4s.blaze.util.Execution.directec
 
   // The 'per request' timeout. Lasts the lifetime of the stage.
-  private val activeReqTimeout = new AtomicReference[ Cancellable](null)
+  private val activeReqTimeout = new AtomicReference[Cancellable](null)
 
   // The timeoutState contains a Cancellable, null, or a TimeoutException
   // It will also act as the point of synchronization

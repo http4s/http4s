@@ -2,18 +2,17 @@ package org.http4s
 
 import java.io.{File, FileOutputStream, PrintStream}
 
-import scala.annotation.implicitNotFound
-import scala.annotation.unchecked.uncheckedVariance
-import scala.util.control.NonFatal
-
 import cats._
+import cats.effect.Sync
+import cats.implicits._
 import fs2._
 import fs2.io._
-import fs2.util.{Catchable, Suspendable}
-import org.http4s.batteries._
 import org.http4s.headers.`Content-Type`
+import org.http4s.util.chunk._
+
+import scala.annotation.implicitNotFound
+import scala.util.control.NonFatal
 // TODO fs2 import org.http4s.multipart.{Multipart, MultipartDecoder}
-import scodec.bits.ByteVector
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -22,7 +21,7 @@ import scodec.bits.ByteVector
   * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
-@implicitNotFound("Cannot decode into a value of type ${T}, because no EntityDecoder[${T}] instance could be found.")
+@implicitNotFound("Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.")
 trait EntityDecoder[F[_], T] { self =>
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T]
@@ -128,12 +127,12 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary[F[_]: Catchable](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(msg.body.chunks.runFoldMap[Chunk[Byte]](identity))
+  def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
+    DecodeResult.success(msg.body.chunks.runFoldMonoid)
 
   /** Decodes a message to a String */
-  def decodeString[F[_]: Catchable](msg: Message[F])(implicit defaultCharset: Charset = DefaultCharset): F[String] =
-    msg.bodyAsText.runFoldMap(identity)
+  def decodeString[F[_]: Sync](msg: Message[F])(implicit defaultCharset: Charset = DefaultCharset): F[String] =
+    msg.bodyAsText.runFoldMonoid
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -143,30 +142,29 @@ trait EntityDecoderInstances {
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
-  def error[F[_], T](t: Throwable)(implicit F: Catchable[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
+  def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] = {
-      DecodeResult(msg.body.open.close.run.flatMap(_ => F.fail[Either[DecodeFailure, T]](t)))
+      DecodeResult(msg.body.run >> F.raiseError(t))
     }
     override def consumes: Set[MediaRange] = Set.empty
   }
 
-  implicit def binary[F[_]: Catchable]: EntityDecoder[F, Chunk[Byte]] = {
+  implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
-  }
 
-  implicit def text[F[_]](implicit F: Catchable[F], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
+  implicit def text[F[_]: Sync](implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(defaultCharset).nioCharset))
     )
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
-  def binFile[F[_]: Catchable](file: File)(implicit F: Suspendable[F]): EntityDecoder[F, File] =
+  def binFile[F[_]: MonadError[?[_], Throwable]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`){ msg =>
       val sink = writeOutputStream[F](F.delay(new FileOutputStream(file)))
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-  def textFile[F[_]: Catchable](file: File)(implicit F: Suspendable[F]): EntityDecoder[F, File] =
+  def textFile[F[_]: MonadError[?[_], Throwable]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`){ msg =>
       val sink = writeOutputStream[F](F.delay(new PrintStream(new FileOutputStream(file))))
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
@@ -179,7 +177,8 @@ trait EntityDecoderInstances {
 */
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit def void[F[_]: Catchable]: EntityDecoder[F, Unit] = EntityDecoder.decodeBy(MediaRange.`*/*`)(msg =>
-    DecodeResult.success(msg.body.drain.run)
-  )
+  implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+      DecodeResult.success(msg.body.drain.run)
+    }
 }

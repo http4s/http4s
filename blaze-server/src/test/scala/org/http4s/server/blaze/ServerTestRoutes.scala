@@ -2,18 +2,17 @@ package org.http4s
 package server
 package blaze
 
-import org.http4s.headers._
+import cats.effect._
+import cats.implicits._
+import fs2.Stream._
+import org.http4s.Charset._
 import org.http4s.Http4s._
 import org.http4s.Status._
-import org.http4s.Charset._
+import org.http4s.headers._
 
-import fs2._
-import fs2.Stream._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ServerTestRoutes {
-
-  implicit val fs2Strategy = fs2.Strategy.fromExecutionContext(
-    scala.concurrent.ExecutionContext.global)
 
   val textPlain: Header = `Content-Type`(MediaType.`text/plain`, `UTF-8`)
 
@@ -105,21 +104,21 @@ object ServerTestRoutes {
       (Status.NotModified, Set[Header](connKeep), ""))
   )
 
-  def apply() = HttpService {
+  def apply() = HttpService[IO] {
     case req if req.method == Method.GET && req.pathInfo == "/get" => Response(Ok).withBody("get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk")))
+      Response[IO](Ok).withBody(eval(IO.shift >> IO("chu")) ++ eval(IO.shift >> IO("nk")))
 
     case req if req.method == Method.POST && req.pathInfo == "/post" => Response(Ok).withBody("post")
 
     case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
-      Response(Ok).withBody("Foo").putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Response[IO](Ok).withBody("Foo").putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.method == Method.POST && req.pathInfo == "/echo" =>
-      Response(Ok).withBody(emit("post") ++ req.bodyAsText)
+      Response[IO](Ok).withBody(emit("post") ++ req.bodyAsText)
 
       // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
-    case req if req.method == Method.GET && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
+    case req if req.method == Method.GET && req.pathInfo == "/notmodified" => IO.pure(Response(NotModified))
   }
 
 }

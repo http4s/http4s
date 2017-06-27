@@ -4,12 +4,13 @@ package staticcontent
 
 import java.io.File
 
+import cats.effect._
 import fs2._
 import org.http4s.Http4sSpec._
 import org.http4s.server.middleware.URITranslation
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
-  val s = fileService(FileService.Config(new File(getClass.getResource("/").toURI).getPath))
+  val s = fileService(FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath))
 
   "FileService" should {
 
@@ -17,45 +18,45 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       val s2 = URITranslation.translateRoot("/foo")(s)
 
       {
-        val req = Request(uri = uri("foo/testresource.txt"))
+        val req = Request[IO](uri = uri("foo/testresource.txt"))
         s2.orNotFound(req) must returnBody(testResource)
         s2.orNotFound(req) must returnStatus(Status.Ok)
       }
 
       {
-        val req = Request(uri = uri("testresource.txt"))
+        val req = Request[IO](uri = uri("testresource.txt"))
         s2.orNotFound(req) must returnStatus(Status.NotFound)
       }
     }
 
     "Return a 200 Ok file" in {
-      val req = Request(uri = uri("testresource.txt"))
+      val req = Request[IO](uri = uri("testresource.txt"))
       s.orNotFound(req) must returnBody(testResource)
       s.orNotFound(req) must returnStatus(Status.Ok)
     }
 
     "Not find missing file" in {
-      val req = Request(uri = uri("testresource.txtt"))
+      val req = Request[IO](uri = uri("testresource.txtt"))
       s.orNotFound(req) must returnStatus(Status.NotFound)
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(4)
-      val req = Request(uri = uri("testresource.txt")).replaceAllHeaders(range)
+      val req = Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(range)
       s.orNotFound(req) must returnStatus(Status.PartialContent)
       s.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.splitAt(4)._2))
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(-4)
-      val req = Request(uri = uri("testresource.txt")).replaceAllHeaders(range)
+      val req = Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(range)
       s.orNotFound(req) must returnStatus(Status.PartialContent)
       s.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.splitAt(testResource.size - 4)._2))
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(2,4)
-      val req = Request(uri = uri("testresource.txt")).replaceAllHeaders(range)
+      val req = Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(range)
       s.orNotFound(req) must returnStatus(Status.PartialContent)
       s.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) // the end number is inclusive in the Range header
     }
@@ -68,7 +69,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
                         headers.Range(200, 201),
                         headers.Range(-200)
                        )
-      val reqs = ranges map (r => Request(uri = uri("testresource.txt")).replaceAllHeaders(r))
+      val reqs = ranges map (r => Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(r))
       forall(reqs) { req =>
         s.orNotFound(req) must returnStatus(Status.Ok)
         s.orNotFound(req) must returnBody(testResource)

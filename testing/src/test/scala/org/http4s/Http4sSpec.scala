@@ -10,7 +10,12 @@
 package org.http4s
 
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+
+import cats.MonadError
+import cats.effect.IO
+
 import scala.concurrent.ExecutionContext
+import cats.implicits._
 import fs2._
 import fs2.text._
 import org.http4s.testing._
@@ -21,7 +26,7 @@ import org.specs2.scalacheck.Parameters
 import org.specs2.matcher.{TaskMatchers => _, _}
 import org.specs2.mutable.Specification
 import org.specs2.specification.dsl.FragmentsDsl
-import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
+import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.core.Fragments
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
@@ -42,18 +47,12 @@ trait Http4sSpec extends Specification
   with ArbitraryInstances
   with FragmentsDsl
   with Discipline
-  with Batteries0
-  with TaskMatchers
+  with IOMatchers
   with Http4sMatchers
 {
-  def testPool: ExecutorService =
-    Http4sSpec.TestPool
-  implicit def testExecutionContext: ExecutionContext =
-    Http4sSpec.TestExecutionContext
-  implicit def testStrategy: Strategy =
-    Http4sSpec.TestStrategy
-  implicit def testScheduler: Scheduler =
-    Http4sSpec.TestScheduler
+  def testPool: ExecutorService                       = Http4sSpec.TestPool
+  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
+  implicit def testScheduler: Scheduler               = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
 
@@ -68,35 +67,35 @@ trait Http4sSpec extends Specification
         .map { b => Chunk.bytes(b) }
     }
 
-  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
+  def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): String =
     Stream.eval(W.toEntity(a))
       .flatMap { case Entity(body, _ ) => body }
       .through(utf8Decode)
       .foldMonoid
       .runLast
       .map(_.getOrElse(""))
-      .unsafeRun
+      .unsafeRunSync
 
-  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
+  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
     Stream.eval(W.toEntity(a))
       .flatMap { case Entity(body, _ ) => body }
       .bufferAll
       .chunks
       .runLast
       .map(_.getOrElse(Chunk.empty))
-      .unsafeRun
+      .unsafeRunSync
 
   def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties) { case (name, prop) => 
-      Fragments(name in check(prop, p, f)) 
+    addFragments(Fragments.foreach(props.properties) { case (name, prop) =>
+      Fragments(name in check(prop, p, f))
     })
   }
 
   def checkAll(props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"${props.name} must satisfy"))
-    addFragments(Fragments.foreach(props.properties) { case (name, prop) => 
-      Fragments(name in check(prop, p, f)) 
+    addFragments(Fragments.foreach(props.properties) { case (name, prop) =>
+      Fragments(name in check(prop, p, f))
     })
   }
 
@@ -107,8 +106,8 @@ trait Http4sSpec extends Specification
     }
   }
 
-  def beStatus(status: Status): Matcher[Response] = { resp: Response =>
-    (resp.status == status) -> s" doesn't have status ${status}"
+  def beStatus(status: Status): Matcher[Response[IO]] = { resp: Response[IO] =>
+    (resp.status == status) -> s" doesn't have status $status"
   }
 }
 
@@ -118,9 +117,6 @@ object Http4sSpec {
 
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(TestPool)
-
-  val TestStrategy: Strategy =
-    Strategy.fromExecutor(TestPool)
 
   val TestScheduler: Scheduler =
     Scheduler.fromFixedDaemonPool(4)

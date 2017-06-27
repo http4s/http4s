@@ -9,21 +9,21 @@ class AttributeMapSpec extends Specification {
     val k1 = AttributeKey.apply[Int]("int")
     val k2 = AttributeKey.apply[String]("string")
     val k3 = AttributeKey.apply[Int]("missing")
-    val k1imposter = AttributeKey.apply[Int]("int")
+    val k1Clone = AttributeKey.apply[Int]("int")
 
     val m = AttributeMap.empty ++ Seq(k1(1), k2("foo"))
 
     "Find an item associated with a key" in {
-      m.get(k1) must_== Some(1)
-      m.get(k2) must_== Some("foo")
+      m.get(k1) must beSome(1)
+      m.get(k2) must beSome("foo")
     }
 
     "Not find a missing item" in {
-      m.get(k3) must_== None
+      m.get(k3) must beNone
     }
 
-    "Not allow imposter keys" in {
-      m.get(k1imposter) must_== None
+    "Find a value by a key that is equal in value" in {
+      m.get(k1Clone) must beSome(1)
     }
 
     // This is a compile test

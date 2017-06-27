@@ -3,27 +3,27 @@ package server
 package blaze
 
 import java.io.FileInputStream
-import java.security.KeyStore
-import java.security.Security
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext, SSLEngine}
+import java.security.{KeyStore, Security}
 import java.util.concurrent.ExecutorService
+import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 
-import scala.concurrent.duration._
-
-import fs2._
+import cats._
+import cats.effect._
 import org.http4s.blaze.channel
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 
-class BlazeBuilder(
+import scala.concurrent.duration._
+
+class BlazeBuilder[F[_]](
   socketAddress: InetSocketAddress,
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
@@ -35,17 +35,18 @@ class BlazeBuilder(
   isHttp2Enabled: Boolean,
   maxRequestLineLen: Int,
   maxHeadersLen: Int,
-  serviceMounts: Vector[ServiceMount]
-)
-  extends ServerBuilder
-  with IdleTimeoutSupport
-  with SSLKeyStoreSupport
-  with SSLContextSupport
-  with server.WebSocketSupport
+  serviceMounts: Vector[ServiceMount[F]]
+)(implicit F: Effect[F],
+  S: Semigroup[F[MaybeResponse[F]]])
+  extends ServerBuilder[F]
+  with IdleTimeoutSupport[F]
+  with SSLKeyStoreSupport[F]
+  with SSLContextSupport[F]
+  with server.WebSocketSupport[F]
 {
-  type Self = BlazeBuilder
+  type Self = BlazeBuilder[F]
 
-  private[this] val logger = getLogger
+  private[this] val logger = getLogger(classOf[BlazeBuilder[F]])
 
   private def copy(socketAddress: InetSocketAddress = socketAddress,
                  serviceExecutor: ExecutorService = serviceExecutor,
@@ -58,7 +59,7 @@ class BlazeBuilder(
                     http2Support: Boolean = isHttp2Enabled,
                maxRequestLineLen: Int = maxRequestLineLen,
                    maxHeadersLen: Int = maxHeadersLen,
-                   serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
+                   serviceMounts: Vector[ServiceMount[F]] = serviceMounts): Self =
     new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
 
   /** Configure HTTP parser length limits
@@ -70,12 +71,15 @@ class BlazeBuilder(
     * @param maxHeadersLen maximum data that compose headers
     */
   def withLengthLimits(maxRequestLineLen: Int = maxRequestLineLen,
-                       maxHeadersLen: Int = maxHeadersLen): BlazeBuilder = {
+                       maxHeadersLen: Int = maxHeadersLen): Self =
     copy(maxRequestLineLen = maxRequestLineLen,
          maxHeadersLen = maxHeadersLen)
-  }
 
-  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
+  override def withSSL(keyStore: StoreInfo,
+                       keyManagerPassword: String,
+                       protocol: String,
+                       trustStore: Option[StoreInfo],
+                       clientAuth: Boolean): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
@@ -84,44 +88,43 @@ class BlazeBuilder(
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
   }
 
-  override def bindSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
+  override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  override def withServiceExecutor(serviceExecutor: ExecutorService): BlazeBuilder =
+  override def withServiceExecutor(serviceExecutor: ExecutorService): Self =
     copy(serviceExecutor = serviceExecutor)
 
-  override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
+  override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
-  def withConnectorPoolSize(size: Int): BlazeBuilder = copy(connectorPoolSize = size)
+  def withConnectorPoolSize(size: Int): Self = copy(connectorPoolSize = size)
 
-  def withBufferSize(size: Int): BlazeBuilder = copy(bufferSize = size)
+  def withBufferSize(size: Int): Self = copy(bufferSize = size)
 
-  def withNio2(isNio2: Boolean): BlazeBuilder = copy(isNio2 = isNio2)
+  def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
   override def withWebSockets(enableWebsockets: Boolean): Self = copy(enableWebSockets = enableWebsockets)
 
-  def enableHttp2(enabled: Boolean): BlazeBuilder =
-    copy(http2Support = enabled)
+  def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  override def mountService(service: HttpService, prefix: String): BlazeBuilder = {
+  override def mountService(service: HttpService[F], prefix: String): Self = {
     val prefixedService =
-                if (prefix.isEmpty || prefix == "/") service
-                else {
-                  val newCaret = prefix match {
-                    case "/"                    => 0
-                    case x if x.startsWith("/") => x.length
-                    case x                      => x.length + 1
-                  }
+      if (prefix.isEmpty || prefix == "/") service
+      else {
+        val newCaret = prefix match {
+          case "/"                    => 0
+          case x if x.startsWith("/") => x.length
+          case x                      => x.length + 1
+        }
 
-                  service.local { req: Request =>
-                    req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
-                  }
-                }
-    copy(serviceMounts = serviceMounts :+ ServiceMount(prefixedService, prefix))
+        service.local { req: Request[F] =>
+          req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
+        }
+      }
+    copy(serviceMounts = serviceMounts :+ ServiceMount[F](prefixedService, prefix))
   }
 
 
-  def start: Task[Server] = Task.delay {
+  def start: F[Server[F]] = F.delay {
     val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service }: _*)
 
     def resolveAddress(address: InetSocketAddress) =
@@ -185,8 +188,8 @@ class BlazeBuilder(
     // if we have a Failure, it will be caught by the Task
     val serverChannel = factory.bind(address, pipelineFactory).get
 
-    new Server {
-      override def shutdown: Task[Unit] = Task.delay {
+    new Server[F] {
+      override def shutdown: F[Unit] = F.delay {
         serverChannel.close()
         factory.closeGroup()
       }
@@ -240,20 +243,23 @@ class BlazeBuilder(
   }
 }
 
-object BlazeBuilder extends BlazeBuilder(
-  socketAddress = ServerBuilder.DefaultSocketAddress,
-  serviceExecutor = DefaultPool,
-  idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-  isNio2 = false,
-  connectorPoolSize = channel.defaultPoolSize,
-  bufferSize = 64*1024,
-  enableWebSockets = true,
-  sslBits = None,
-  isHttp2Enabled = false,
-  maxRequestLineLen = 4*1024,
-  maxHeadersLen = 40*1024,
-  serviceMounts = Vector.empty
-)
+object BlazeBuilder {
+  def apply[F[_]](implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
+    new BlazeBuilder(
+      socketAddress = ServerBuilder.DefaultSocketAddress,
+      serviceExecutor = DefaultPool,
+      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+      isNio2 = false,
+      connectorPoolSize = channel.defaultPoolSize,
+      bufferSize = 64 * 1024,
+      enableWebSockets = true,
+      sslBits = None,
+      isHttp2Enabled = false,
+      maxRequestLineLen = 4 * 1024,
+      maxHeadersLen = 40 * 1024,
+      serviceMounts = Vector.empty
+    )
+}
 
-private final case class ServiceMount(service: HttpService, prefix: String)
+private final case class ServiceMount[F[_]](service: HttpService[F], prefix: String)
 

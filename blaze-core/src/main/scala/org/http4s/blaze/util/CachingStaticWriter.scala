@@ -3,27 +3,27 @@ package org.http4s.blaze.util
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import cats.effect._
 import fs2._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
-import org.log4s.getLogger
 
-class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
-                          bufferSize: Int = 8*1024)
-                         (implicit val ec: ExecutionContext)
-                          extends EntityBodyWriter {
-  private[this] val logger = getLogger
+import scala.concurrent.{ExecutionContext, Future}
+
+class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer],
+                                bufferSize: Int = 8*1024)
+                               (implicit protected val F: Effect[F],
+                                protected val ec: ExecutionContext)
+  extends EntityBodyWriter[F] {
 
   @volatile
   private var _forceClose = false
-  private var bodyBuffer: Chunk[Byte] = null
-  private var innerWriter: InnerWriter = null
+  private var bodyBuffer: Chunk[Byte] = _
+  private var innerWriter: InnerWriter = _
 
   private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
     if (bodyBuffer == null) bodyBuffer = b
-    else bodyBuffer = Chunk.concatBytes(Seq(bodyBuffer, b))
+    else bodyBuffer = (bodyBuffer ++ b).toChunk
     bodyBuffer
   }
 

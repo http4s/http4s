@@ -3,11 +3,15 @@ package client
 
 import java.nio.charset.StandardCharsets
 import javax.crypto
+
+import cats._
+import cats.data.NonEmptyList
+import cats.implicits._
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
+
 import scala.collection.mutable.ListBuffer
-import fs2.Task
 
 /** Basic OAuth1 message signing support
   *
@@ -23,13 +27,13 @@ package object oauth1 {
     *
     * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
     *            will be entirely buffered due to signing requirements. */
-  def signRequest(req: Request, consumer: Consumer, callback: Option[Uri],
-                  verifier: Option[String], token: Option[Token]): Task[Request] = {
+  def signRequest[F[_]](req: Request[F], consumer: Consumer, callback: Option[Uri],
+                        verifier: Option[String], token: Option[Token])
+                       (implicit F: Monad[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map { case (req, params) =>
       val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
       req.putHeaders(auth)
     }
-  }
 
   // Generate an authorization header with the provided user params and OAuth requirements.
   private[oauth1] def genAuthHeader(method: Method, uri: Uri, userParams: Seq[(String,String)],
@@ -50,7 +54,8 @@ package object oauth1 {
 
     val baseString = genBaseString(method, uri, params ++ userParams.map{ case (k,v) => (encode(k), encode(v))})
     val sig = makeSHASig(baseString, consumer, token)
-    val creds = GenericCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> encode(sig)))
+    val creds = Credentials.AuthParams("OAuth".ci,
+      NonEmptyList("oauth_signature" -> encode(sig), params))
 
     Authorization(creds)
   }
@@ -78,7 +83,8 @@ package object oauth1 {
   private[oauth1] def encode(str: String): String =
     UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlCodingUtils.Unreserved)
 
-  private[oauth1] def getUserParams(req: Request): Task[(Request,Seq[(String, String)])] = {
+  private[oauth1] def getUserParams[F[_]](req: Request[F])
+                                         (implicit F: Monad[F], W: EntityDecoder[F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
     val qparams = req.uri.query.map{ case (k,ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
@@ -86,13 +92,13 @@ package object oauth1 {
                        t.mediaType == MediaType.`application/x-www-form-urlencoded` =>
         req.as[UrlForm].flatMap { urlform =>
           val bodyparams = urlform.values.toSeq
-            .flatMap{ case (k,vs) => if (vs.isEmpty) Seq(k->"") else vs.map((k,_))}
+            .flatMap { case (k,vs) => if (vs.isEmpty) Seq(k -> "") else vs.map((k,_)) }
 
-          req.withBody(urlform)(UrlForm.entityEncoder(req.charset getOrElse Charset.`UTF-8`))
-            .map(_ -> (qparams ++ bodyparams))
+          implicit val charset = req.charset.getOrElse(Charset.`UTF-8`)
+          req.withBody(urlform).map(_ -> (qparams ++ bodyparams))
         }
 
-      case _ => Task.now(req -> qparams)
+      case _ => F.pure(req -> qparams)
     }
   }
 

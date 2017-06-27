@@ -2,18 +2,19 @@ package org.http4s
 
 import java.time.Instant
 
-import Http4s._
-import org.specs2.mutable.Specification
+import cats.effect.IO
 import org.http4s.Charset._
-import headers._
+import org.http4s.Http4s._
+import org.http4s.headers._
+import org.specs2.mutable.Specification
 
 class ResponderSpec extends Specification {
 
-  val resp = Response(Status.Ok)
+  val resp = Response[IO](Status.Ok)
 
   "Responder" should {
     "Change status" in {
-      val resp = Response(Status.Ok)
+      val resp = Response[IO](Status.Ok)
 
       resp.status must_== (Status.Ok)
 

@@ -5,21 +5,20 @@ package util
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import scala.concurrent.Future
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
-
-import fs2._
+import cats.effect._
 import fs2.Stream._
+import fs2._
 import fs2.compress.deflate
-import org.http4s.blaze.TestHead
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 
 class EntityBodyWriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException
 
-  def writeEntityBody(p: EntityBody)(builder: TailStage[ByteBuffer] => EntityBodyWriter): String = {
+  def writeEntityBody(p: EntityBody[IO])(builder: TailStage[ByteBuffer] => EntityBodyWriter[IO]): String = {
     val tail = new TailStage[ByteBuffer] {
       override def name: String = "TestTail"
     }
@@ -32,7 +31,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
     LeafBuilder(tail).base(head)
     val w = builder(tail)
 
-    w.writeEntityBody(p).unsafeRun
+    w.writeEntityBody(p).attempt.unsafeRunSync()
     head.stageShutdown()
     Await.ready(head.result, Duration.Inf)
     new String(head.getBytes(), StandardCharsets.ISO_8859_1)
@@ -41,28 +40,28 @@ class EntityBodyWriterSpec extends Http4sSpec {
   val message = "Hello world!"
   val messageBuffer = Chunk.bytes(message.getBytes(StandardCharsets.ISO_8859_1))
 
-  def runNonChunkedTests(builder: TailStage[ByteBuffer] => EntityBodyWriter) = {
+  def runNonChunkedTests(builder: TailStage[ByteBuffer] => EntityBodyWriter[IO]) = {
     "Write a single emit" in {
       writeEntityBody(chunk(messageBuffer))(builder) must_== "Content-Length: 12\r\n\r\n" + message
     }
 
     "Write two emits" in {
       val p = chunk(messageBuffer) ++ chunk(messageBuffer)
-      writeEntityBody(p.covary[Task])(builder) must_== "Content-Length: 24\r\n\r\n" + message + message
+      writeEntityBody(p.covary[IO])(builder) must_== "Content-Length: 24\r\n\r\n" + message + message
     }
 
     "Write an await" in {
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
-      writeEntityBody(p.covary[Task])(builder) must_== "Content-Length: 12\r\n\r\n" + message
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      writeEntityBody(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
     }
 
     "Write two awaits" in {
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       writeEntityBody(p ++ p)(builder) must_== "Content-Length: 24\r\n\r\n" + message + message
     }
 
     "Write a body that fails and falls back" in {
-      val p = eval(Task.fail(Failed)).onError { _ =>
+      val p = eval(IO.raiseError(Failed)).onError { _ =>
         chunk(messageBuffer)
       }
       writeEntityBody(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
@@ -70,37 +69,37 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).covary[Task].onFinalize[Task]( Task.delay(clean = true) )
-      writeEntityBody(p.covary[Task])(builder) must_== "Content-Length: 12\r\n\r\n" + message
+      val p = chunk(messageBuffer).covary[IO].onFinalize(IO { clean = true; () })
+      writeEntityBody(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
       clean must_== true
     }
 
     "Write tasks that repeat eval" in {
       val t = {
         var counter = 2
-        Task.delay {
+        IO {
           counter -= 1
           if (counter >= 0) Some(Chunk.bytes("foo".getBytes(StandardCharsets.ISO_8859_1)))
           else None
         }
       }
-      val p = repeatEval(t).unNoneTerminate.flatMap(chunk) ++ chunk(Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
+      val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
       writeEntityBody(p)(builder) must_== "Content-Length: 9\r\n\r\n" + "foofoobar"
     }
   }
 
-
   "CachingChunkWriter" should {
-    runNonChunkedTests(tail => new CachingChunkWriter(new StringWriter(), tail, Task.now(Headers())))
+    runNonChunkedTests(tail => new CachingChunkWriter[IO](new StringWriter(), tail, IO.pure(Headers())))
   }
 
   "CachingStaticWriter" should {
-    runNonChunkedTests(tail => new CachingChunkWriter(new StringWriter(), tail, Task.now(Headers())))
+    runNonChunkedTests(tail => new CachingChunkWriter[IO](new StringWriter(), tail, IO.pure(Headers())))
   }
 
   "ChunkEntityBodyWriter" should {
-    def builder(tail: TailStage[ByteBuffer]) =
-      new ChunkEntityBodyWriter(new StringWriter(), tail, Task.now(Headers()))
+
+    def builder(tail: TailStage[ByteBuffer]): ChunkEntityBodyWriter[IO] =
+      new ChunkEntityBodyWriter[IO](new StringWriter(), tail, IO.pure(Headers()))
 
     "Write a strict chunk" in {
       // n.b. in the scalaz-stream version, we could introspect the
@@ -118,7 +117,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "Write two strict chunks" in {
       val p = chunk(messageBuffer) ++ chunk(messageBuffer)
-      writeEntityBody(p.covary[Task])(builder) must_==
+      writeEntityBody(p.covary[IO])(builder) must_==
         """Transfer-Encoding: chunked
           |
           |c
@@ -134,8 +133,8 @@ class EntityBodyWriterSpec extends Http4sSpec {
       // n.b. in the scalaz-stream version, we could introspect the
       // stream, note the chunk was followed by halt, and write this
       // with a Content-Length header.  In fs2, this must be chunked.
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
-      writeEntityBody(p.covary[Task])(builder) must_==
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      writeEntityBody(p)(builder) must_==
         """Transfer-Encoding: chunked
           |
           |c
@@ -146,7 +145,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
     }
 
     "Write two effectful chunks" in {
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       writeEntityBody(p ++ p)(builder) must_==
         """Transfer-Encoding: chunked
           |
@@ -162,8 +161,8 @@ class EntityBodyWriterSpec extends Http4sSpec {
     "Elide empty chunks" in {
       // n.b. We don't do anything special here.  This is a feature of
       // fs2, but it's important enough we should check it here.
-      val p = chunk(Chunk.empty) ++ chunk(messageBuffer)
-      writeEntityBody(p.covary[Task])(builder) must_==
+      val p: Stream[IO, Byte] = chunk(Chunk.empty) ++ chunk(messageBuffer)
+      writeEntityBody(p.covary[IO])(builder) must_==
         """Transfer-Encoding: chunked
           |
           |c
@@ -174,7 +173,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
     }
 
     "Write a body that fails and falls back" in {
-      val p = eval(Task.fail(Failed)).onError { _ =>
+      val p = eval(IO.raiseError(Failed)).onError { _ =>
         chunk(messageBuffer)
       }
       writeEntityBody(p)(builder) must_==
@@ -189,9 +188,7 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).onFinalize[Task] {
-        Task.delay(clean = true)
-      }
+      val p = chunk(messageBuffer).onFinalize(IO { clean = true; () })
       writeEntityBody(p)(builder) must_==
         """Transfer-Encoding: chunked
           |
@@ -203,27 +200,26 @@ class EntityBodyWriterSpec extends Http4sSpec {
       clean must_== true
 
       clean = false
-      val p2 = eval(Task.fail(Failed)).onFinalize(Task.delay{
-        clean = true
-      })
-
-      writeEntityBody(p)(builder)
+      val p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalize(IO { clean = true; () })
+      writeEntityBody(p2)(builder)
       clean must_== true
     }
 
     // Some tests for the raw unwinding body without HTTP encoding.
     "write a deflated stream" in {
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk) through deflate()
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
+      val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+      val p = s through deflate()
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(s through deflate()))
     }
 
-    val resource = (bracket(Task.delay("foo"))({ str =>
-      val it = str.iterator
-      emit {
-        if (it.hasNext) Some(it.next.toByte)
-        else None
-      }
-    }, _ => Task.now(()))).unNoneTerminate
+    val resource: Stream[IO, Byte] =
+      bracket(IO("foo"))({ str =>
+        val it = str.iterator
+        emit {
+          if (it.hasNext) Some(it.next.toByte)
+          else None
+        }
+      }, _ => IO.unit).unNoneTerminate
 
     "write a resource" in {
       val p = resource
@@ -232,34 +228,30 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "write a deflated resource" in {
       val p = resource through deflate()
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(resource through deflate()))
     }
 
     "must be stack safe" in {
-      val p = repeatEval(Task.async[Byte]{ _(Right(0.toByte))}(Strategy.sequential)).take(300000)
+      val p = repeatEval(IO.async[Byte](_(Right(0.toByte)))).take(300000)
 
       // The dumping writer is stack safe when using a trampolining EC
-      (new DumpingWriter).writeEntityBody(p).unsafeAttemptRun must beRight
+      (new DumpingWriter).writeEntityBody(p).attempt.unsafeRunSync must beRight
     }
 
     "Execute cleanup on a failing EntityBodyWriter" in {
       {
         var clean = false
-        val p = chunk(messageBuffer).onFinalize(Task.delay {
-          clean = true
-        })
+        val p = chunk(messageBuffer).onFinalize(IO { clean = true; () })
 
-        (new FailingWriter().writeEntityBody(p).attempt.unsafeRun).isLeft must_== true
+        new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync() must beLeft
         clean must_== true
       }
 
       {
         var clean = false
-        val p = eval(Task.fail(Failed)).onFinalize(Task.delay{
-          clean = true
-        })
+        val p = eval(IO.raiseError(Failed)).onFinalize(IO { clean = true; () })
 
-        (new FailingWriter().writeEntityBody(p).attempt.unsafeRun).isLeft must_== true
+        new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync must beLeft
         clean must_== true
       }
 

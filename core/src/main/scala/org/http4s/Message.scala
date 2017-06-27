@@ -1,15 +1,15 @@
 package org.http4s
 
 import java.io.File
-import java.net.{InetSocketAddress, InetAddress}
+import java.net.{InetAddress, InetSocketAddress}
 
 import cats._
+import cats.implicits._
 import fs2._
 import fs2.text._
-import fs2.util.Lub1
 import org.http4s.headers._
-import org.http4s.batteries._
 import org.http4s.server.ServerSoftware
+import org.http4s.util.nonEmptyList._
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -86,7 +86,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
    * task might not complete unless the entire body has been consumed.
    */
-  def trailerHeaders: Task[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(Task.now(Headers.empty))
+  def trailerHeaders(implicit F: Applicative[F]): F[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(F.pure(Headers.empty))
 
   /** Decode the [[Message]] to the specified type
     *
@@ -100,7 +100,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
 
 object Message {
   object Keys {
-    val TrailerHeaders = AttributeKey.http4s[Task[Headers]]("trailer-headers")
+    def TrailerHeaders[F[_]]: AttributeKey[F[Headers]] = AttributeKey.http4s[F[Headers]]("trailer-headers")
   }
 }
 
@@ -186,19 +186,17 @@ final case class Request[F[_]](
   lazy val remoteUser: Option[String] = None
 
   lazy val server: Option[InetSocketAddress] = connectionInfo.map(_.local)
-  lazy val serverAddr: String = {
+  lazy val serverAddr: String =
     server.map(_.getHostString)
       .orElse(uri.host.map(_.value))
       .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
-  }
 
-  lazy val serverPort: Int = {
+  lazy val serverPort: Int =
     server.map(_.getPort)
       .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
       .getOrElse(80) // scalastyle:ignore
-  }
 
   /** Whether the Request was received over a secure medium */
   lazy val isSecure: Option[Boolean] = connectionInfo.map(_.secure)
@@ -209,7 +207,7 @@ final case class Request[F[_]](
     decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
   override def toString: String =
-    s"""Request(method=$method, uri=$uri, headers=${headers}"""
+    s"""Request(method=$method, uri=$uri, headers=$headers"""
 
   // A request is idempotent if and only if its method is idempotent and its body
   // is pure.  If true, this request can be submitted multipe times.
@@ -260,27 +258,31 @@ object MaybeResponse {
   implicit def instance[F[_]]: Monoid[MaybeResponse[F]] =
     new Monoid[MaybeResponse[F]] {
       def empty =
-        Pass[F]
+        Pass()
       def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
         a orElse b
     }
 
-  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
-    new Monoid[F[MaybeResponse[F]]] {
-      def empty =
-        F.pure(Pass[F])
-      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
-        fa.flatMap(_.cata(F.pure, fb))
-    }
+//  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
+//    new Monoid[F[MaybeResponse[F]]] {
+//      def empty =
+//        F.pure(Pass())
+//      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
+//        fa.flatMap(_.cata(F.pure, fb))
+//    }
 }
 
 final case class Pass[F[_]]() extends MaybeResponse[F]
+
+object Pass {
+  def pure[F[_]](implicit F: Applicative[F]): F[MaybeResponse[F]] = F.pure(Pass[F]())
+}
 
 /** Representation of the HTTP response to send back to the client
  *
  * @param status [[Status]] code and message
  * @param headers [[Headers]] containing all response headers
- * @param body scalaz.stream.Process[Task,Chunk] representing the possible body of the response
+ * @param body EntityBody[F] representing the possible body of the response
  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
  *                   backend for additional processing such as java.io.File object
  */
@@ -301,6 +303,8 @@ final case class Response[F[_]](
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=$headers)"""
+
+  def asMaybeResponse: MaybeResponse[F] = this
 }
 
 object Response {

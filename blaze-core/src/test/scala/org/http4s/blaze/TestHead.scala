@@ -9,7 +9,6 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{ Promise, Future }
 import scala.util.{Success, Failure, Try}
 
-
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   private var acc = Vector[Array[Byte]]()

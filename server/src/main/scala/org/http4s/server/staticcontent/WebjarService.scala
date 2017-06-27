@@ -2,7 +2,9 @@ package org.http4s
 package server
 package staticcontent
 
-import fs2.Task
+import cats._
+import cats.implicits._
+import cats.effect._
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -14,8 +16,8 @@ object WebjarService {
     * @param filter To filter which assets from the webjars should be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
-  final case class Config(filter: WebjarAssetFilter = _ => true,
-                          cacheStrategy: CacheStrategy = NoopCacheStrategy)
+  final case class Config[F[_]](filter: WebjarAssetFilter = _ => true,
+                                cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
   /**
     * Contains the information about an asset inside a webjar
@@ -49,8 +51,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply(config: Config): HttpService = Service.lift {
-
+  def apply[F[_]: Monad: Sync](config: Config[F]): HttpService[F] = Service {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)
@@ -58,8 +59,7 @@ object WebjarService {
           .flatMap(toWebjarAsset)
           .filter(config.filter)
           .map(serveWebjarAsset(config, request))
-          .getOrElse(Pass.now)
-
+          .getOrElse(Pass.pure[F])
   }
 
   /**
@@ -82,12 +82,12 @@ object WebjarService {
     */
   private def toWebjarAsset(subPath: String): Option[WebjarAsset] =
     Option(subPath)
-      .map(_.split('/').toList)
-      .filter(_.size >= 3)
-      .map(parts => WebjarAsset(parts.head, parts(1), parts.drop(2).mkString("/")))
-      .filter(_.library.nonEmpty)
-      .filter(_.version.nonEmpty)
-      .filter(_.asset.nonEmpty)
+      .map(_.split("/", 4))
+      .collect {
+        case Array("", library, version, asset)
+            if library.nonEmpty && version.nonEmpty && asset.nonEmpty =>
+          WebjarAsset(library, version, asset)
+      }
 
   /**
     * Returns an asset that matched the request if it's found in the webjar path
@@ -97,9 +97,11 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset(config: Config, request: Request)(webjarAsset: WebjarAsset): Task[MaybeResponse] =
-    StaticFile
-      .fromResource(webjarAsset.pathInJar, Some(request))
-      .fold(Pass.now)(config.cacheStrategy.cache(request.pathInfo, _))
-
+private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])
+                                  (webjarAsset: WebjarAsset): F[MaybeResponse[F]] =
+  StaticFile
+    .fromResource(webjarAsset.pathInJar, Some(request))
+    .fold(Pass.pure[F])(
+      config.cacheStrategy.cache(request.pathInfo, _).widen[MaybeResponse[F]]
+    )
 }

@@ -1,11 +1,10 @@
 package org.http4s
 
-import java.time.{ZoneOffset, Instant}
+import java.time.Instant
 
 import cats._
 import cats.data._
 import fs2._
-import org.http4s.batteries._
 import org.http4s.headers._
 
 trait MessageOps[F[_]] extends Any {
@@ -69,8 +68,8 @@ trait MessageOps[F[_]] extends Any {
   final def putHeaders(headers: Header*)(implicit F: Functor[F]): Self =
     transformHeaders(_.put(headers: _*))
 
-  final def withTrailerHeaders(trailerHeaders: Task[Headers])(implicit F: Functor[F]): Self =
-    withAttribute(Message.Keys.TrailerHeaders, trailerHeaders)
+  final def withTrailerHeaders(trailerHeaders: F[Headers])(implicit F: Functor[F]): Self =
+    withAttribute(Message.Keys.TrailerHeaders[F], trailerHeaders)
 
   /** Decode the [[Message]] to the specified type
     *
@@ -87,7 +86,7 @@ trait MessageOps[F[_]] extends Any {
     * @tparam T type of the result
     * @return the `Task` which will generate the T
     */
-  final def as[T](implicit F: Functor[F], FM: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
+  final def as[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
     attemptAs.fold(throw _, identity)
 }
 

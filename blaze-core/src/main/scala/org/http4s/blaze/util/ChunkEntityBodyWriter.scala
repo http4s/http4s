@@ -5,29 +5,32 @@ package util
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 
-import scala.concurrent._
-
+import cats.effect._
+import cats.implicits._
 import fs2._
-import org.http4s.batteries._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+import org.http4s.util.chunk._
 
-class ChunkEntityBodyWriter(private var headers: StringWriter,
-                         pipe: TailStage[ByteBuffer],
-                         trailer: Task[Headers])
-                         (implicit val ec: ExecutionContext) extends EntityBodyWriter {
+import scala.concurrent._
+
+class ChunkEntityBodyWriter[F[_]](private var headers: StringWriter,
+                                  pipe: TailStage[ByteBuffer],
+                                  trailer: F[Headers])
+                                 (implicit protected val F: Effect[F],
+                                  protected val ec: ExecutionContext)
+  extends EntityBodyWriter[F] {
 
   import org.http4s.blaze.util.ChunkEntityBodyWriter._
 
-  protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
+  protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (chunk.isEmpty) Future.successful(())
     else pipe.channelWrite(encodeChunk(chunk, Nil))
-  }
 
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     def writeTrailer = {
       val promise = Promise[Boolean]
-      trailer.map { trailerHeaders =>
+      val f = trailer.map { trailerHeaders =>
         if (trailerHeaders.nonEmpty) {
           val rr = new StringWriter(256)
           rr << "0\r\n" // Last chunk
@@ -36,13 +39,12 @@ class ChunkEntityBodyWriter(private var headers: StringWriter,
           ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
         }
         else ChunkEndBuffer
-      }.unsafeRunAsync {
+      }
+      async.unsafeRunAsync(f) {
         case Right(buffer) =>
-          promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
-          ()
+          IO(promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))))
         case Left(t) =>
-          promise.failure(t)
-          ()
+          IO(promise.failure(t))
       }
       promise.future
     }
@@ -65,7 +67,7 @@ class ChunkEntityBodyWriter(private var headers: StringWriter,
         pipe.channelWrite(hbuff)
       }
     } else {
-      if (!chunk.isEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
+      if (!chunk.isEmpty) writeBodyChunk(chunk, flush = true).flatMap(_ => writeTrailer)
       else writeTrailer
     }
 

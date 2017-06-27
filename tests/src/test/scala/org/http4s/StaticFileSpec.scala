@@ -1,11 +1,12 @@
 package org.http4s
 
+import fs2.Chunk
 import java.io.File
 import java.nio.file.Files
 import java.time.Instant
-import java.util.concurrent.ExecutorService
+import org.http4s.util.chunk._
 
-import org.http4s.Http4sSpec.TestPool
+import cats.effect.IO
 import org.http4s.Status.NotModified
 import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
 import org.specs2.matcher.MatchResult
@@ -16,9 +17,9 @@ class StaticFileSpec extends Http4sSpec {
     "Determine the media-type based on the files extension" in {
 
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
-        val r = StaticFile.fromFile(f)
+        val r = StaticFile.fromFile[IO](f)
 
-        r must beSome[Response]
+        r must beSome[Response[IO]]
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
         // Other headers must be present
         r.flatMap(_.headers.get(`Last-Modified`)).isDefined must beTrue
@@ -36,28 +37,28 @@ class StaticFileSpec extends Http4sSpec {
     "handle an empty file" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      StaticFile.fromFile(emptyFile) must beSome[Response]
+      StaticFile.fromFile[IO](emptyFile) must beSome[Response[IO]]
     }
 
     "Don't send unmodified files" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      val request = Request().putHeaders(`If-Modified-Since`(Instant.MAX))
-      val response = StaticFile.fromFile(emptyFile, Some(request))
-      response must beSome[Response]
+      val request = Request[IO]().putHeaders(`If-Modified-Since`(Instant.MAX))
+      val response = StaticFile.fromFile[IO](emptyFile, Some(request))
+      response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
 
     "Send partial file" in {
       def check(path: String): MatchResult[Any] = {
         val f = new File(path)
-        val r = StaticFile.fromFile(f, 0, 1, StaticFile.DefaultBufferSize, None)
+        val r = StaticFile.fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None)
 
-        r must beSome[Response]
+        r must beSome[Response[IO]]
         // Length is only 1 byte
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1)
         // get the Body to check the actual size
-        r.map(_.body.runLog.unsafeRun.length) must beSome(1L)
+        r.map(_.body.runLog.unsafeRunSync.length) must beSome(1)
       }
 
       val tests = List("./testing/src/test/resources/logback-test.xml",
@@ -79,19 +80,31 @@ class StaticFileSpec extends Http4sSpec {
       Files.write(emptyFile.toPath, gibberish)
 
       def check(file: File): MatchResult[Any] = {
-        val r = StaticFile.fromFile(file, 0, fileSize.toLong - 1, StaticFile.DefaultBufferSize, None)
+        val r = StaticFile.fromFile[IO](file, 0, fileSize.toLong - 1, StaticFile.DefaultBufferSize, None)
 
-        r must beSome[Response]
+        r must beSome[Response[IO]]
         // Length of the body must match
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
         // get the Body to check the actual size
-        val body = r.map(_.body.runLog.unsafeRun)
+        val body = r.map(_.body.runLog.unsafeRunSync)
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
         body.map(bytes => java.util.Arrays.equals(bytes.toArray, java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
       }
 
       check(emptyFile)
+    }
+
+    "Read from a URL" in {
+      val url = getClass.getResource("/lorem-ipsum.txt")
+      val expected = scala.io.Source.fromURL(url, "utf-8").mkString
+      val s = StaticFile.fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
+        .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
+      // Expose problem with readInputStream recycling buffer.  chunks.runLog
+      // saves chunks, which are mutated by naive usage of readInputStream.
+      // This ensures that we're making a defensive copy of the bytes for
+      // things like CachingChunkWriter that buffer the chunks.
+      new String(s.chunks.runFoldMonoid.unsafeRunSync().toArray, "utf-8") must_== expected
     }
   }
 }

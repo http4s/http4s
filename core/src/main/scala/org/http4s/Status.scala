@@ -3,7 +3,6 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReferenceArray
 
 import cats._
-import org.http4s.batteries._
 import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
 
@@ -92,7 +91,6 @@ object Status {
   } yield status
 
   def register(status: Status): status.type = {
-    // Xor.Right, not right, for specific inference
     registry.set(status.code, Right(status))
     status
   }

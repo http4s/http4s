@@ -2,15 +2,13 @@ package org.http4s
 package client
 package middleware
 
-import scala.concurrent.duration._
-import scala.math.{pow, min, random}
+import cats._
+import cats.implicits._
 import org.http4s.Status._
 import org.log4s.getLogger
-import fs2.Task
 
-import scala.Either
-import scala.Right
-import scala.Left
+import scala.concurrent.duration._
+import scala.math.{min, pow, random}
 
 object Retry {
 
@@ -25,35 +23,37 @@ object Retry {
     GatewayTimeout
   )
 
-  def apply(backoff: Int => Option[FiniteDuration])(client: Client): Client = {
-    def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
-      client.open(req).attempt flatMap {
+  def apply[F[_]](backoff: Int => Option[FiniteDuration])
+                 (client: Client[F])
+                 (implicit F: MonadError[F, Throwable]): Client[F] = {
+    def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] = {
+      client.open(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
         case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if RetriableStatuses(status) =>
           backoff(attempts) match {
             case Some(duration) =>
-              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Retrying after ${duration}.")
+              logger.info(s"Request $req has failed on attempt #$attempts with reason $status. Retrying after $duration.")
               dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
             case None =>
-              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Giving up.")
-              Task.now(dr)
+              logger.info(s"Request $req has failed on attempt #$attempts with reason $status. Giving up.")
+              F.pure(dr)
           }
         case Right(dr) =>
-          Task.now(dr)
+          F.pure(dr)
         case Left(e) =>
           backoff(attempts) match {
             case Some(duration) =>
-              logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
+              logger.error(e)(s"Request $req threw an exception on attempt #$attempts attempts. Retrying after $duration.")
               nextAttempt(req, attempts, duration)
             case None =>
               // info instead of error(e), because e is not discarded
-              logger.info(s"Request ${req} threw an exception on attempt #${attempts} attempts. Giving up.")
-              Task.fail(e)
+              logger.info(s"Request $req threw an exception on attempt #$attempts attempts. Giving up.")
+              F.raiseError[DisposableResponse[F]](e)
           }
       }
     }
 
-    def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] = {
+    def nextAttempt(req: Request[F], attempts: Int, duration: FiniteDuration): F[DisposableResponse[F]] = {
         prepareLoop(req.copy(body = EmptyBody), attempts + 1)
     }
       // TODO honor Retry-After header

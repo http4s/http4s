@@ -1,19 +1,23 @@
 package org.http4s
 package server
 
+import cats._
+import cats.implicits._
+import fs2._
 import org.http4s.websocket.Websocket
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
-import fs2._
-
 package object websocket {
-  val websocketKey = AttributeKey.http4s[Websocket]("websocket")
+  def websocketKey[F[_]]: AttributeKey[Websocket[F]] = AttributeKey.http4s[Websocket[F]]("websocket")
+
+  private def notImplementedResponse[F[_]](implicit F: Functor[F], W: EntityEncoder[F, String]) =
+    Response[F](Status.NotImplemented).withBody("This is a WebSocket route.")
 
   /**
    * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
    * supplied exchange to process and respond to websocket messages.
-   * @param exchange The read side of the Exchange represents the stream of messages that should be sent to the client
-   *                 The write side of the Exchange is a sink to which the framework will push the websocket messages
+   * @param read     The read side of the Exchange represents the stream of messages that should be sent to the client
+   * @param write    The write side of the Exchange is a sink to which the framework will push the websocket messages
    *                 received from the client.
    *                 Once both streams have terminated, the server will initiate a close of the websocket connection.
    *                 As defined in the websocket specification, this means the server
@@ -34,8 +38,14 @@ package object websocket {
    *                 are plans to address this limitation in the future.
    * @param status The status code to return to a client making a non-websocket HTTP request to this route
    */
-  def WS(read: Stream[Task, WebSocketFrame],
-         write: Sink[Task, WebSocketFrame],
-         status: Task[Response] = Response(Status.NotImplemented).withBody("This is a WebSocket route.")): Task[Response] =
-    status.map(_.withAttribute(websocketKey, Websocket(read, write)))
+  def WS[F[_]](read:   Stream[F, WebSocketFrame],
+               write:  Sink[F, WebSocketFrame],
+               status: F[Response[F]])
+              (implicit F: Functor[F]): F[Response[F]] =
+    status.map(_.withAttribute(AttributeEntry(websocketKey[F], Websocket(read, write))))
+
+  def WS[F[_]](read:   Stream[F, WebSocketFrame],
+               write:  Sink[F, WebSocketFrame])
+              (implicit F: Functor[F], W: EntityEncoder[F, String]): F[Response[F]] =
+    WS(read, write, Response[F](Status.NotImplemented).withBody("This is a WebSocket route."))
 }

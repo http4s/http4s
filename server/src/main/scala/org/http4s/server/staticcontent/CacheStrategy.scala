@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import fs2._
+import cats.effect.Sync
 
 /** Cache the body of a [[Response]] for future use
   *
@@ -10,7 +10,7 @@ import fs2._
   * [[Response]] and [[Uri]] of the [[Request]] and decide if the body for
   * the response has already been cached, needs caching, or to let it pass through.
   */
-trait CacheStrategy {
+trait CacheStrategy[F[_]] {
   /** Performs the caching operations */
-  def cache(uriPath: String, resp: Response): Task[Response]
+  def cache(uriPath: String, resp: Response[F])(implicit F: Sync[F]): F[Response[F]]
 }

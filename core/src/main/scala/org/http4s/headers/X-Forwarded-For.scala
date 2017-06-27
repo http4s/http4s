@@ -4,7 +4,6 @@ package headers
 import java.net.InetAddress
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 

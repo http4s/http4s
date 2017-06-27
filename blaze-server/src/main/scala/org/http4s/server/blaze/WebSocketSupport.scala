@@ -1,25 +1,30 @@
-// TODO fs2 port
-/*
 package org.http4s.server.blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 
-import org.http4s.headers._
+import cats.effect._
+import cats.implicits._
+import fs2._
 import org.http4s._
 import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
-import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.websocket.Http4sWSStage
+import org.http4s.headers._
 import org.http4s.syntax.string._
+import org.http4s.websocket.WebsocketHandshake
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import scala.concurrent.Future
 
-private trait WebSocketSupport extends Http1ServerStage {
-  override protected def renderResponse(req: Request, maybeResponse: MaybeResponse, cleanup: () => Future[ByteBuffer]): Unit = {
+private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
+  protected implicit def F: Effect[F]
+
+  override protected def renderResponse(req: Request[F],
+                                        maybeResponse: MaybeResponse[F],
+                                        cleanup: () => Future[ByteBuffer]): Unit = {
     val resp = maybeResponse.orNotFound
-    val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey)
+    val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey[F])
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     if (ws.isDefined) {
@@ -28,14 +33,19 @@ private trait WebSocketSupport extends Http1ServerStage {
         WebsocketHandshake.serverHandshake(hdrs) match {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
-            val resp = Response(Status.BadRequest)
-              .withBody(msg)
-              .map(_.replaceAllHeaders(
-                 Connection("close".ci),
-                 Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
-              )).run
-
-            super.renderResponse(req, resp, cleanup)
+            async.unsafeRunAsync {
+              Response[F](Status.BadRequest)
+                .withBody(msg)
+                .map(_.replaceAllHeaders(
+                  Connection("close".ci),
+                  Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
+                ))
+            } {
+              case Right(resp) =>
+                IO(super.renderResponse(req, resp, cleanup))
+              case Left(_) =>
+                IO.unit
+            }
 
           case Right(hdrs) =>  // Successful handshake
             val sb = new StringBuilder
@@ -48,7 +58,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage(ws.get))
+                val segment = LeafBuilder(new Http4sWSStage[F](ws.get)(F, ExecutionContext.fromExecutor(ec)))
                               .prepend(new WSFrameAggregator)
                               .prepend(new WebSocketDecoder(false))
 
@@ -62,4 +72,3 @@ private trait WebSocketSupport extends Http1ServerStage {
     } else super.renderResponse(req, resp, cleanup)
   }
 }
-*/

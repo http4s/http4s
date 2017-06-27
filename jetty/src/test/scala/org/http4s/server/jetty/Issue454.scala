@@ -3,10 +3,11 @@ package org.http4s
 package server
 package jetty
 
-import org.eclipse.jetty.server.{ServerConnector, Server, HttpConnectionFactory, HttpConfiguration}
+import cats.effect.IO
+import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
-import org.http4s.servlet.Http4sServlet
 import org.http4s.dsl._
+import org.http4s.servlet.Http4sServlet
 
 object Issue454 {
   // If the bug is not triggered right away, try increasing or
@@ -40,9 +41,9 @@ object Issue454 {
     server.start()
   }
 
-  val servlet = new Http4sServlet(
+  val servlet = new Http4sServlet[IO](
     service      = HttpService {
-      case req@GET -> Root => Ok(insanelyHugeData)
+      case GET -> Root => Ok(insanelyHugeData)
     },
     servletIo    = org.http4s.servlet.NonBlockingServletIo(4096),
     threadPool   = org.http4s.Http4sSpec.TestPool

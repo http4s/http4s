@@ -2,15 +2,15 @@ package org.http4s
 package server
 package middleware
 
-import fs2.Task
-import org.http4s.batteries._
+import cats._
+import cats.implicits._
 import org.log4s.getLogger
 
 object PushSupport {
   private[this] val logger = getLogger
 
-  implicit class PushOps(response: Task[Response]) {
-    def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
+  implicit class PushOps[F[_]: Functor](response: F[Response[F]]) {
+    def push(url: String, cascade: Boolean = true)(implicit req: Request[F]): F[Response[F]] = response.map { response =>
       val newUrl = {
         val script = req.scriptName
         if (script.length > 0) {
@@ -39,21 +39,25 @@ object PushSupport {
     logger.error(t)("Push resource route failure")
   }
 
-  private def locToRequest(push: PushLocation, req: Request): Request =
+  private def locToRequest[F[_]: Functor](push: PushLocation, req: Request[F]): Request[F] =
     req.withPathInfo(push.location)
 
-  private def collectResponse(r: Vector[PushLocation], req: Request, verify: String => Boolean, route: HttpService): Task[Vector[PushResponse]] =
-    r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
+  private def collectResponse[F[_]](r: Vector[PushLocation],
+                                    req: Request[F],
+                                    verify: String => Boolean, route: HttpService[F])
+                                   (implicit F: Monad[F]): F[Vector[PushResponse[F]]] =
+    r.foldLeft(F.pure(Vector.empty[PushResponse[F]])){ (facc, v) =>
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
           try route.flatMapF {
-            case response: Response =>
+            case response: Response[F] =>
               response.attributes.get(pushLocationKey).map { pushed =>
                 collectResponse(pushed, req, verify, route)
                   .map(accumulated ++ _ :+ PushResponse(v.location, response))
-              }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
-            case Pass => Task.now(Vector.empty)
+              }.getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
+            case Pass() =>
+              F.pure(Vector.empty[PushResponse[F]])
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         } else {
@@ -73,25 +77,25 @@ object PushSupport {
    * @param verify method that determines if the location should be pushed
    * @return      Transformed route
    */
-  def apply(service: HttpService, verify: String => Boolean = _ => true): HttpService = {
+  def apply[F[_]: Monad](service: HttpService[F], verify: String => Boolean = _ => true): HttpService[F] = {
 
-    def gather(req: Request, resp: Response): Response = {
+    def gather(req: Request[F], resp: Response[F]): Response[F] = {
       resp.attributes.get(pushLocationKey).map { fresource =>
-        val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, service)
+        val collected: F[Vector[PushResponse[F]]] = collectResponse(fresource, req, verify, service)
         resp.copy(
           body = resp.body,
-          attributes = resp.attributes.put(pushResponsesKey, collected)
+          attributes = resp.attributes.put(pushResponsesKey[F], collected)
         )
       }.getOrElse(resp)
     }
 
-    Service.lift { req => service(req).map(_.cata(gather(req, _), Pass)) }
+    Service.lift { req => service(req).map(_.cata(gather(req, _), Pass())) }
   }
 
   private [PushSupport] final case class PushLocation(location: String, cascade: Boolean)
-  private [http4s] final case class PushResponse(location: String, resp: Response)
+  private [http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
   private[PushSupport] val pushLocationKey = AttributeKey.http4s[Vector[PushLocation]]("pushLocation")
-  private[http4s] val pushResponsesKey = AttributeKey.http4s[Task[Vector[PushResponse]]]("pushResponses")
+  private[http4s] def pushResponsesKey[F[_]] = AttributeKey.http4s[F[Vector[PushResponse[F]]]]("pushResponses")
 }
 

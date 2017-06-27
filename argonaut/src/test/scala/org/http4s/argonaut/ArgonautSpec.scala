@@ -4,12 +4,12 @@ package argonaut.test // Get out of argonaut package so we can import custom ins
 import java.nio.charset.StandardCharsets
 
 import _root_.argonaut._
-import org.http4s.MediaType._
+import cats.effect.IO
+import org.http4s.Status.Ok
 import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.specs2.specification.core.Fragment
-import Status.Ok
 
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   testJsonDecoder(jsonDecoder)
@@ -49,11 +49,11 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[Foo].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`, Charset.`UTF-8`))
+      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`, Charset.`UTF-8`))
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[Foo]) must_== ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[IO, Foo]) must_== ("""{"bar":42}""")
     }
 
     "write JSON according to custom encoders" in {
@@ -77,28 +77,28 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     "handle the optionality of jNumber" in {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun.toArray
-      val req = Request().withBody(jNumberOrNull(157)).unsafeRun
-      val body = req.decode { json: Json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString)}.unsafeRun.body
+      def getBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync.toArray
+      val req = Request[IO]().withBody(jNumberOrNull(157)).unsafeRunSync
+      val body = req.decode { json: Json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString)}.unsafeRunSync.body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }
 
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).unsafeRun, strict = true)
-      result.value.unsafeRun must beRight(Foo(42))
+      val result = jsonOf[IO, Foo].decode(Request[IO]().withBody(jObjectFields("bar" -> jNumberOrNull(42))).unsafeRunSync, strict = true)
+      result.value.unsafeRunSync must beRight(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
     Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
       sealed case class Umlaut(wort: String)
       implicit val codec = CodecJson.derive[Umlaut]
-      val umlautDecoder = jsonOf[Umlaut]
+      val umlautDecoder = jsonOf[IO, Umlaut]
       s"handle JSON with umlauts: $wort" >> {
         val json = Json("wort" -> jString(wort))
-        val result = jsonOf[Umlaut].decode(Request().withBody(json).unsafeRun, strict = true)
-        result.value.unsafeRun must_== Right(Umlaut(wort))
+        val result = jsonOf[IO, Umlaut].decode(Request[IO]().withBody(json).unsafeRunSync, strict = true)
+        result.value.unsafeRunSync must_== Right(Umlaut(wort))
       }
     }
   }

@@ -1,14 +1,13 @@
 package org.http4s
 
-import scala.io.Codec
-
 import cats._
-import cats.data._
-import fs2.util.Catchable
-import org.http4s.batteries._
+import cats.effect.Sync
+import cats.implicits._
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._
+
+import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -17,7 +16,7 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     this.getOrElse(key, Seq.empty[String])
 
   def getOrElse(key: String, default: => Seq[String]): Seq[String] =
-    values.get(key).getOrElse(default)
+    values.getOrElse(key, default)
 
   def getFirst(key: String): Option[String] =
     values.get(key).flatMap(_.headOption)
@@ -82,12 +81,15 @@ object UrlForm {
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
 
+  def fromSeq(values: Seq[(String, String)]): UrlForm =
+    apply(values: _*)
+
   implicit def entityEncoder[F[_]](implicit F: Applicative[F], charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
     EntityEncoder.stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[F[_]](implicit F: Catchable[F], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+  implicit def entityDecoder[F[_]](implicit F: Sync[F], defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
         EntityDecoder.decodeString(m)
@@ -95,9 +97,8 @@ object UrlForm {
       )
     }
 
-  implicit val eqInstance: Eq[UrlForm] = new Eq[UrlForm] {
-    def eqv(x: UrlForm, y: UrlForm): Boolean =
-      x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
+  implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>
+    x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */

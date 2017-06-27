@@ -1,44 +1,78 @@
 package org.http4s
 package circe
 
+import java.nio.ByteBuffer
+
 import cats._
+import cats.effect._
 import cats.implicits._
-import fs2.util.Catchable
-import io.circe.{Encoder, Decoder, Json, Printer}
+import fs2.Chunk
+import fs2.interop.scodec.ByteVectorChunk
 import io.circe.jawn.CirceSupportParser.facade
+import io.circe.jawn._
+import io.circe.{Decoder, Encoder, Json, Printer}
 import org.http4s.headers.`Content-Type`
+import scodec.bits.ByteVector
 
-// Originally based on ArgonautInstances
 trait CirceInstances {
-  implicit def jsonDecoder[F[_]: Catchable: Applicative]: EntityDecoder[F, Json] =
-    jawn.jawnDecoder
+  def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
+    jawn.jawnDecoder[F, Json]
 
-  def jsonOf[F[_], A](implicit C: Catchable[F], F: Monad[F], decoder: Decoder[A]): EntityDecoder[F, A] =
-    jsonDecoder.flatMapR { json =>
+  def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
+    EntityDecoder.decodeBy(MediaType.`application/json`)(jsonDecoderByteBufferImpl[F])
+
+  private def jsonDecoderByteBufferImpl[F[_]: Sync](msg: Message[F]): DecodeResult[F, Json] =
+    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+      val bb = ByteBuffer.wrap(chunk.toBytes.values)
+      if (bb.hasRemaining) {
+        parseByteBuffer(bb) match {
+          case Right(json) =>
+            DecodeResult.success[F, Json](json)
+          case Left(pf) =>
+            DecodeResult.failure[F, Json](MalformedMessageBodyFailure(
+              s"Invalid JSON", Some(pf.underlying)))
+        }
+      } else {
+        DecodeResult.failure[F, Json](MalformedMessageBodyFailure(
+          "Invalid JSON: empty body", None))
+      }
+    }
+
+  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json]
+
+  def jsonDecoderAdaptive[F[_]: Sync](cutoff: Long): EntityDecoder[F, Json] =
+    EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
+      msg.contentLength match {
+        case Some(contentLength) if contentLength < cutoff =>
+          jsonDecoderByteBufferImpl[F](msg)
+        case _ => jawn.jawnDecoderImpl[F, Json](msg)
+      }
+    }
+
+  def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonDecoder[F].flatMapR { json =>
       decoder.decodeJson(json).fold(
-        failure =>
-          DecodeResult.failure[F, A](InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),
-        DecodeResult.success[F, A](_)
+        failure => DecodeResult.failure(InvalidMessageBodyFailure(
+          s"Could not decode JSON: $json", Some(failure))),
+        DecodeResult.success(_)
       )
     }
 
   protected def defaultPrinter: Printer
 
-  implicit def jsonEncoder[F[_]: EntityEncoder[?[_], String]]: EntityEncoder[F, Json] =
+  implicit def jsonEncoder[F[_]: EntityEncoder[?[_], String]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  def jsonEncoderWithPrinter[F[_]: EntityEncoder[?[_], String]](printer: Printer): EntityEncoder[F, Json] =
-    EntityEncoder[F, String].contramap[Json] { json =>
-      // Comment from ArgonautInstances (which this code is based on):
-      // TODO naive implementation materializes to a String.
-      // See https://github.com/non/jawn/issues/6#issuecomment-65018736
-      printer.pretty(json)
+  def jsonEncoderWithPrinter[F[_]: EntityEncoder[?[_], String]: Applicative](printer: Printer): EntityEncoder[F, Json] =
+    EntityEncoder[F, Chunk[Byte]].contramap[Json] { json =>
+      val bytes = printer.prettyByteBuffer(json)
+      ByteVectorChunk(ByteVector.view(bytes))
     }.withContentType(`Content-Type`(MediaType.`application/json`))
 
-  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String], A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_]: EntityEncoder[?[_], String], A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderWithPrinterOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
   implicit val encodeUri: Encoder[Uri] =
@@ -53,7 +87,12 @@ trait CirceInstances {
 object CirceInstances {
   def withPrinter(p: Printer): CirceInstances = {
     new CirceInstances {
-      def defaultPrinter: Printer = p
+      val defaultPrinter: Printer = p
+      def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] = defaultJsonDecoder
     }
   }
+
+  // default cutoff value is based on benchmarks results
+  def defaultJsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
+    jsonDecoderAdaptive(cutoff = 100000)
 }

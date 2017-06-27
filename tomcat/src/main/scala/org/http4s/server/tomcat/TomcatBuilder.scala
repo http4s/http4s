@@ -3,71 +3,73 @@ package server
 package tomcat
 
 import java.net.InetSocketAddress
-import java.util.EnumSet
-import javax.net.ssl.SSLContext
-import javax.servlet.{DispatcherType, Filter, ServletContainerInitializer, ServletContext}
-import javax.servlet.http.HttpServlet
+import java.util
 import java.util.concurrent.ExecutorService
+import javax.servlet.http.HttpServlet
+import javax.servlet.{DispatcherType, Filter}
 
-import fs2.{Strategy, Task}
+import cats.effect._
+import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.catalina.startup.Tomcat
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
-import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.servlet.{Http4sServlet, ServletContainer}
+import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.http4s.util.threads.DefaultPool
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import org.apache.catalina.startup.Tomcat
-import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 
-sealed class TomcatBuilder private (
+sealed class TomcatBuilder[F[_]: Effect] private (
   socketAddress: InetSocketAddress,
   private val serviceExecutor: ExecutorService,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
-  private val servletIo: ServletIo,
+  private val servletIo: ServletIo[F],
   sslBits: Option[KeyStoreBits],
-  mounts: Vector[Mount]
+  mounts: Vector[Mount[F]]
 )
-  extends ServerBuilder
-  with ServletContainer
-  with IdleTimeoutSupport
-  with SSLKeyStoreSupport
-{
-  type Self = TomcatBuilder
+  extends ServletContainer[F]
+  with ServerBuilder[F]
+  with IdleTimeoutSupport[F]
+  with SSLKeyStoreSupport[F] {
+
+  private val F = Effect[F]
+  type Self = TomcatBuilder[F]
 
   private def copy(
     socketAddress: InetSocketAddress = socketAddress,
     serviceExecutor: ExecutorService = serviceExecutor,
     idleTimeout: Duration = idleTimeout,
     asyncTimeout: Duration = asyncTimeout,
-    servletIo: ServletIo = servletIo,
+    servletIo: ServletIo[F] = servletIo,
     sslBits: Option[KeyStoreBits] = sslBits,
-    mounts: Vector[Mount] = mounts
-  ): TomcatBuilder =
+    mounts: Vector[Mount[F]] = mounts
+  ): TomcatBuilder[F] =
     new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
   }
 
-  override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
+  override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  override def withServiceExecutor(serviceExecutor: ExecutorService): TomcatBuilder =
+  override def withServiceExecutor(serviceExecutor: ExecutorService): Self =
     copy(serviceExecutor = serviceExecutor)
 
-  override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): TomcatBuilder =
-    copy(mounts = mounts :+ Mount { (ctx, index, _) =>
+  override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): Self =
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       val wrapper = Tomcat.addServlet(ctx, servletName, servlet)
       wrapper.addMapping(urlMapping)
       wrapper.setAsyncSupported(true)
     })
 
-  override def mountFilter(filter: Filter, urlMapping: String, name: Option[String], dispatches: EnumSet[DispatcherType]): TomcatBuilder =
-    copy(mounts = mounts :+ Mount { (ctx, index, _) =>
+  override def mountFilter(filter: Filter,
+                           urlMapping: String,
+                           name: Option[String],
+                           dispatches: util.EnumSet[DispatcherType]): Self =
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
       val filterName = name.getOrElse(s"filter-$index")
 
       val filterDef = new FilterDef
@@ -85,8 +87,8 @@ sealed class TomcatBuilder private (
       ctx.addFilterMap(filterMap)
     })
 
-  override def mountService(service: HttpService, prefix: String): TomcatBuilder =
-    copy(mounts = mounts :+ Mount { (ctx, index, builder) =>
+  override def mountService(service: HttpService[F], prefix: String): Self =
+    copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
       val servlet = new Http4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
@@ -103,16 +105,16 @@ sealed class TomcatBuilder private (
    * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection
    * may not timeout for an additional 59.999 seconds from the specified Duration
    */
-  override def withIdleTimeout(idleTimeout: Duration): TomcatBuilder =
+  override def withIdleTimeout(idleTimeout: Duration): Self =
     copy(idleTimeout = idleTimeout)
 
-  override def withAsyncTimeout(asyncTimeout: Duration): TomcatBuilder =
+  override def withAsyncTimeout(asyncTimeout: Duration): Self =
     copy(asyncTimeout = asyncTimeout)
 
-  override def withServletIo(servletIo: ServletIo): Self =
+  override def withServletIo(servletIo: ServletIo[F]): Self =
     copy(servletIo = servletIo)
 
-  override def start: Task[Server] = Task.delay {
+  override def start: F[Server[F]] = F.delay {
     val tomcat = new Tomcat
 
     val context = tomcat.addContext("", getClass.getResource("/").getPath)
@@ -150,9 +152,9 @@ sealed class TomcatBuilder private (
 
     tomcat.start()
 
-    new Server {
-      override def shutdown: Task[Unit] =
-        Task.delay {
+    new Server[F] {
+      override def shutdown: F[Unit] =
+        F.delay {
           tomcat.stop()
           tomcat.destroy()
         }
@@ -176,17 +178,21 @@ sealed class TomcatBuilder private (
   }
 }
 
-object TomcatBuilder extends TomcatBuilder(
-  socketAddress = ServerBuilder.DefaultSocketAddress,
-  // TODO fs2 port
-  // This is garbage how do we shut this down I just want it to compile argh
-  serviceExecutor = DefaultPool,
-  idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-  asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-  servletIo = ServletContainer.DefaultServletIo,
-  sslBits = None,
-  mounts = Vector.empty
-)
+object TomcatBuilder {
 
-private final case class Mount(f: (Context, Int, TomcatBuilder) => Unit)
+  def apply[F[_]: Effect]: TomcatBuilder[F] =
+    new TomcatBuilder[F](
+      socketAddress = ServerBuilder.DefaultSocketAddress,
+      // TODO fs2 port
+      // This is garbage how do we shut this down I just want it to compile argh
+      serviceExecutor = DefaultPool,
+      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+      asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+      servletIo = ServletContainer.DefaultServletIo[F],
+      sslBits = None,
+      mounts = Vector.empty
+    )
+}
+
+private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)
 

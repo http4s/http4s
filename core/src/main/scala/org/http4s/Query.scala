@@ -5,8 +5,8 @@ import scala.collection.immutable.{BitSet, IndexedSeq}
 import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
+import cats.implicits._
 import org.http4s.Query._
-import org.http4s.batteries._
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlCodingUtils, Writer, Renderable}
 import org.http4s.internal.parboiled2.CharPredicate

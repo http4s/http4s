@@ -1,10 +1,11 @@
 package org.http4s.server.middleware.authentication
 
 import cats.data.Kleisli
-import fs2.Task
-import org.http4s.server.AuthMiddleware
+import cats.effect._
+import cats.implicits._
 import org.http4s._
 import org.http4s.dsl._
+import org.http4s.server.AuthMiddleware
 
 class AuthMiddlewareSpec extends Http4sSpec {
 
@@ -13,13 +14,13 @@ class AuthMiddlewareSpec extends Http4sSpec {
   "AuthMiddleware" should {
     "fall back to onAuthFailure when authentication returns a Either.Left" in {
 
-      val authUser: Service[Request, Either[String, User]] =
-        Kleisli(_ => Task.now(Left("Unauthorized")))
+      val authUser: Service[IO, Request[IO], Either[String, User]] =
+        Kleisli(_ => IO.pure(Left("Unauthorized")))
 
-      val onAuthFailure: AuthedService[String] =
-        Kleisli(req => Forbidden(req.authInfo))
+      val onAuthFailure: AuthedService[IO, String] =
+        Kleisli(req => Forbidden(req.authInfo).widen[MaybeResponse[IO]])
 
-      val authedService: AuthedService[User] =
+      val authedService: AuthedService[IO, User] =
         AuthedService {
           case _ => Ok()
         }
@@ -28,21 +29,21 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       val service = middleWare(authedService)
 
-      service.orNotFound(Request()) must returnStatus(Forbidden)
-      service.orNotFound(Request()) must returnBody("Unauthorized")
+      service.orNotFound(Request[IO]()) must returnStatus(Forbidden)
+      service.orNotFound(Request[IO]()) must returnBody("Unauthorized")
     }
 
     "enrich the request with a user when authentication returns Either.Right" in {
 
       val userId: User = 42
 
-      val authUser: Service[Request, Either[String, User]] =
-        Kleisli(_ => Task.now(Right(userId)))
+      val authUser: Service[IO, Request[IO], Either[String, User]] =
+        Kleisli(_ => IO.pure(Right(userId)))
 
-      val onAuthFailure: AuthedService[String] =
-        Kleisli(req => Forbidden(req.authInfo))
+      val onAuthFailure: AuthedService[IO, String] =
+        Kleisli(req => Forbidden(req.authInfo).widen[MaybeResponse[IO]])
 
-      val authedService: AuthedService[User] =
+      val authedService: AuthedService[IO, User] =
         AuthedService {
           case GET -> Root as user => Ok(user.toString)
         }
@@ -51,19 +52,19 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       val service = middleWare(authedService)
 
-      service.orNotFound(Request()) must returnStatus(Ok)
-      service.orNotFound(Request()) must returnBody("42")
+      service.orNotFound(Request[IO]()) must returnStatus(Ok)
+      service.orNotFound(Request[IO]()) must returnBody("42")
     }
     "not find a route if requested with the wrong verb inside an authenticated route" in {
       val userId: User = 42
 
-      val authUser: Service[Request, Either[String, User]] =
-        Kleisli(_ => Task.now(Right(userId)))
+      val authUser: Service[IO, Request[IO], Either[String, User]] =
+        Kleisli(_ => IO.pure(Right(userId)))
 
-      val onAuthFailure: AuthedService[String] =
-        Kleisli(req => Forbidden(req.authInfo))
+      val onAuthFailure: AuthedService[IO, String] =
+        Kleisli(req => Forbidden(req.authInfo).widen[MaybeResponse[IO]])
 
-      val authedService: AuthedService[User] =
+      val authedService: AuthedService[IO, User] =
         AuthedService {
           case POST -> Root as user => Ok()
         }
@@ -72,8 +73,8 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       val service = middleWare(authedService)
 
-      service.orNotFound(Request(method = Method.POST)) must returnStatus(Ok)
-      service.orNotFound(Request(method = Method.GET)) must returnStatus(NotFound)
+      service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Ok)
+      service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(NotFound)
     }
   }
 
