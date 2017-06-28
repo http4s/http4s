@@ -5,16 +5,19 @@ package middleware
 import cats.data.NonEmptyList
 import fs2._
 import fs2.interop.cats._
+import org.http4s.EntityEncoder.chunkEncoder
 import org.http4s.headers._
+import org.http4s.util.ByteVectorChunk
+import scodec.bits.ByteVector
 
 object ChunkAggregator {
   def apply(service: HttpService): HttpService =
     service.flatMapF[MaybeResponse] {
       case Pass => Task.now(Pass)
       case response: Response =>
-        response.body.runLog.flatMap { fullBody =>
+        response.body.runFold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap { fullBody =>
           if (fullBody.nonEmpty)
-            response.withBody(Chunk.seq(fullBody)).map(removeChunkedTransferEncoding)
+            response.withBody(ByteVectorChunk(fullBody): Chunk[Byte]).map(removeChunkedTransferEncoding)
           else
             Task.now(response)
         }

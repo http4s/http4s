@@ -1,6 +1,9 @@
 package org.http4s.server.middleware
 
 import cats.data.NonEmptyList
+import cats.instances.int._
+import cats.instances.vector._
+import cats.syntax.foldable._
 import fs2._
 import org.http4s._
 import org.http4s.dsl._
