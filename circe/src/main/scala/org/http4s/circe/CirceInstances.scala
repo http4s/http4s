@@ -29,7 +29,7 @@ trait CirceInstances {
             DecodeResult.success(Task.now(json))
           case Left(pf) =>
             DecodeResult.failure(MalformedMessageBodyFailure(
-              s"Invalid JSON", Some(pf.underlying)))
+              "Invalid JSON", Some(pf.underlying)))
         }
       } else {
         DecodeResult.failure(MalformedMessageBodyFailure(
