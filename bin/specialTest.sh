@@ -2,11 +2,8 @@
 
 . $TRAVIS_BUILD_DIR/bin/setup.sh
 
-start_watchdog 13m
-sbt $SBT_EXTRA_OPTS ++$TRAVIS_SCALA_VERSION "; mimaReportBinaryIssues; coverage; clean; test; coverageReport; coverageOff"
-exitCode=$?
-stop_watchdog
+sbt "; mimaReportBinaryIssues; coverage; clean; test; coverageReport; coverageOff"
 
 echo "Uploading codecov"
 bash <(curl -s https://codecov.io/bash)
-exit ${exitCode}
+

@@ -1,16 +1,11 @@
 language: scala
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
-
+dist: trusty
 jdk: oraclejdk8
 env:
   global:
-  - HUGO_VERSION=0.18
+  - HUGO_VERSION=0.24.1
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
-  - SBT_VERSION=0.13.15
 notifications:
   webhooks:
     urls:
@@ -24,6 +19,10 @@ cache:
   - "$HOME/.coursier/cache"
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
+before_cache:
+  # Cleanup the cached directories to avoid unnecessary cache updates
+  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+  - find $HOME/.sbt        -name "*.lock"               -print -delete
 
 jobs:
   include:
@@ -31,7 +30,6 @@ jobs:
       stage: Test
       scala: 2.12.2-bin-typelevel-4
       script: $TRAVIS_BUILD_DIR/bin/specialTest.sh
-
     - <<: *tests
       scala: 2.11.11-bin-typelevel-4
       script: $TRAVIS_BUILD_DIR/bin/test.sh
@@ -47,3 +45,4 @@ jobs:
     - <<: *publishSonatype
       scala: 2.11.11-bin-typelevel-4
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
+
