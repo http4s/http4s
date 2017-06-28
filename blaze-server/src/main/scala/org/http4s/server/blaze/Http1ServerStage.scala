@@ -10,7 +10,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{Try, Success, Failure}
 import scala.util.{Either, Left, Right}
 
-import cats.syntax.either._
+import cats.implicits._
 import fs2._
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.Http1Stage
@@ -32,12 +32,8 @@ private object Http1ServerStage {
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
             maxHeadersLen: Int): Http1ServerStage = {
-    // TODO fs2 port
-    /*
     if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen) with WebSocketSupport
     else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
-     */
-    new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
   }
 }
 
@@ -119,7 +115,7 @@ private class Http1ServerStage(service: HttpService,
           case Right(resp) => renderResponse(req, resp, cleanup)
           case Left(t)     => internalServerError(s"Error running route: $req", t, req, cleanup)
         }
-      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
+      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().withHttpVersion(protocol))
     }
   }
 
@@ -210,7 +206,7 @@ private class Http1ServerStage(service: HttpService,
     val resp = Response(Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
-  
+
   final protected def internalServerError(errorMsg: String, t: Throwable, req: Request, bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response(Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))

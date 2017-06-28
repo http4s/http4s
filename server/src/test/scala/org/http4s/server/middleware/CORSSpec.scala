@@ -4,6 +4,7 @@ package middleware
 
 import java.nio.charset.StandardCharsets
 
+import cats.implicits._
 import org.http4s.dsl._
 import org.http4s.headers._
 import org.specs2.mutable.Specification
@@ -20,7 +21,14 @@ class CORSSpec extends Http4sSpec {
     anyOrigin = false,
     allowCredentials = false,
     maxAge = 0,
-    allowedOrigins = Some(Set("http://allowed.com/"))))
+    allowedOrigins = Set("http://allowed.com/"),
+    allowedHeaders = Some(
+      Set(
+        "User-Agent",
+        "Keep-Alive",
+        "Content-Type")),
+      exposedHeaders = Some(
+      Set("x-header"))))
 
   def headerCheck(h: Header) = h is `Access-Control-Max-Age`
   def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String) =
@@ -44,6 +52,30 @@ class CORSSpec extends Http4sSpec {
       cors2.orNotFound(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRun
     }
 
+    "Respect Access-Control-Allow-Headers in preflight call" in {
+      val req = buildRequest("/foo", OPTIONS)
+      cors2.orNotFound(req).map{(resp: Response) =>
+        matchHeader(resp.headers, `Access-Control-Allow-Headers`, "User-Agent, Keep-Alive, Content-Type")}.unsafeRun
+    }
+
+    "Respect Access-Control-Expose-Headers in non-preflight call" in {
+      val req = buildRequest("/foo")
+      cors2.orNotFound(req).map{(resp: Response) =>
+        matchHeader(resp.headers, `Access-Control-Expose-Headers`, "x-header")}.unsafeRun
+    }
+
+    "Respect Access-Control-Allow-Headers in preflight call" in {
+      val req = buildRequest("/foo", OPTIONS)
+      cors2.orNotFound(req).map{(resp: Response) =>
+        matchHeader(resp.headers, `Access-Control-Allow-Headers`, "User-Agent, Keep-Alive, Content-Type")}.unsafeRun
+    }
+
+    "Respect Access-Control-Expose-Headers in non-preflight call" in {
+      val req = buildRequest("/foo")
+      cors2.orNotFound(req).map{(resp: Response) =>
+        matchHeader(resp.headers, `Access-Control-Expose-Headers`, "x-header")}.unsafeRun
+    }
+
     "Offer a successful reply to OPTIONS on fallthrough" in {
       val req = buildRequest("/unexistant", OPTIONS)
       cors1.orNotFound(req).map((resp: Response) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRun
@@ -56,6 +88,10 @@ class CORSSpec extends Http4sSpec {
       cors2.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafeRun
     }
 
+    "Respond with 403 when origin is not valid" in {
+      val req = buildRequest("/bar").replaceAllHeaders(Header("Origin", "http://blah.com/"))
+      cors2.orNotFound(req).map((resp: Response) => resp.status.code == 403).unsafeRun
+    }
     "Fall through" in {
       val req = buildRequest("/2")
       val s1 = CORS(HttpService { case GET -> Root / "1" => Ok() })

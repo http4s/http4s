@@ -13,7 +13,6 @@ import fs2._
 import fs2.io._
 import fs2.Stream._
 import org.http4s.headers._
-import org.http4s.batteries._
 import org.http4s.multipart._
 
 @implicitNotFound("Cannot convert from ${A} to an Entity, because no EntityEncoder[${A}] instance could be found.")

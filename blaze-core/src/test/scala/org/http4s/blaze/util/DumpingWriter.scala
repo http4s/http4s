@@ -3,12 +3,12 @@ package blaze
 package util
 
 import cats._
+import cats.implicits._
 import fs2._
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-import org.http4s.batteries._
 import org.http4s.util.chunk.ByteChunkMonoid
 
 object DumpingWriter {

@@ -4,7 +4,7 @@ import scala.io.Codec
 
 import cats._
 import cats.data._
-import org.http4s.batteries._
+import cats.implicits._
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._
@@ -80,6 +80,9 @@ object UrlForm {
 
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
+
+  def fromSeq(values: Seq[(String, String)]): UrlForm =
+    apply(values: _*)
 
   implicit def entityEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)

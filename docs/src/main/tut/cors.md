@@ -95,12 +95,12 @@ corsMethodSvc(duckPost).unsafeRun
 
 As you can see, the CORS headers were only added to the `GET` and `POST` requests.
 Next, we'll create a configuration that limits the origins to "yahoo.com" and
-"duckduckgo.com".
+"duckduckgo.com". allowedOrigins can use any expression that resolves into a boolean.
 
 ```tut:book
 val originConfig = CORSConfig(
   anyOrigin = false,
-  allowedOrigins = Some(Set("yahoo.com", "duckduckgo.com")),
+  allowedOrigins = Set("yahoo.com", "duckduckgo.com"),
   allowCredentials = false,
   maxAge = 1.day.toSeconds)
 

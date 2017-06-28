@@ -7,11 +7,11 @@ import java.nio.ByteBuffer
 import scala.concurrent._
 import scala.util._
 
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.interop.cats._
 import fs2.util.Attempt
-import org.http4s.batteries._
 import org.http4s.blaze.pipeline._
 
 /** Discards the body, killing it so as to clean up resources

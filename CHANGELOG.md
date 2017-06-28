@@ -1,6 +1,15 @@
+# v0.17.0-M3 (2017-05-27)
+* Fix file corruption issue when serving static files from the classpath
+
+# v0.17.0-M2 (2017-04-30)
+* `Timeout` middleware takes an implicit `Scheduler` and
+  `ExecutionContext`
+* Bring back `http4s-async-client`, based on `fs2-reactive-stream`
+* Restore support for WebSockets
+
 # v0.17.0-M1 (2017-04-08)
 * First release on cats and fs2
-    * All scalaz types and typeclasses replaced by cats equivalents
+    * All scalaz types and typeclasses replaced by cats equivalengts
 	* `scalaz.concurrent.Task` replaced by `fs2.Task`	
 	* `scalaz.stream.Process` replaced by `fs2.Stream`
 * Roughly at feature parity with v0.16.0-M1. Notable exceptions:
@@ -9,11 +18,40 @@
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
 
-# v0.16.0-SNAPSHOT
+# v0.16.0-M3 (2017-05-25)
+* Fix `WebjarService` so it matches assets.
+* `ServerApp` overrides `process` to leave a single abstract method
+* Add gzip trailer in `GZip` middleware
+* Upgraded dependencies:
+    * circe-0.8.0
+    * jetty-9.4.5.v20170502
+    * scalaz-7.2.13
+    * tomcat-8.5.15
+* `ProcessApp` uses a `Process[Task, Nothing]` rather than a 
+  `Process[Task, Unit]`
+* `Credentials` is split into `Credentials.AuthParams` for key-value pairs and
+  `Credentials.Token` for legacy token-based schemes.  `OAuthBearerToken` is
+  subsumed by `Credentials.Token`.  `BasicCredentials` no longer extends
+  `Credentials`, but is extractable from one.  This model permits the
+  definition of other arbitrary credential schemes.
+* Add `fromSeq` constructor to `UrlForm`
+* Allow `WebjarService` to pass on methods other than `GET`.  It previously
+  threw a `MatchError`.
+
+# v0.16.0-M2 (2017-04-30)
 * Upgraded dependencies:
     * argonaut-6.2
+    * jetty-9.4.4.v20170414
+    * tomcat-8.5.14
+* Fix `ProcessApp` to terminate on process errors
 * Set `secure` request attribute correctly in blaze server
-* Rename `ProcessApp.main` to `ProcessApp.process` to avoid overload confusion
+* Exit with code `-1` when `ProcessApp` fails
+* Make `ResourceService` respect `If-Modified-Since`
+* Rename `ProcessApp.main` to `ProcessApp.process` to avoid overload confusio
+* Avoid intermediate String allocation in Circe's `jsonEncoder`
+* Adaptive EntityDecoder[Json] for circe: works directly from a ByteBuffer for
+  small bodies, and incrementally through jawn for larger.
+* Capture more context in detail message of parse errors
 
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
@@ -58,7 +96,34 @@
   `Process.bracket`.
 * Implement a `Referer` header.
 
-# v0.15.9-SNAPSHOT
+# v0.15.13 (2017-05-25)
+* Patch-level upgrades to dependencies:
+    * async-http-client-2.0.32
+    * blaze-0.12.6 (fixes infinite loop in some SSL handshakes)
+    * jetty-9.3.19.v20170502
+    * json4s-3.5.2
+    * tomcat-8.0.44
+
+# v0.15.12 (2017-05-11)
+* Fix GZip middleware to render a correct stream
+
+# v0.15.11 (2017-04-29)
+* Upgrade to blaze-0.12.5 to pick up fix for `StackOverflowError` in
+  SSL handshake
+
+# v0.15.10 (2017-04-28)
+* Patch-level upgrades to dependencies
+    * argonaut-6.2
+    * scalaz-7.2.12
+* Allow preambles and epilogues in multipart bodies
+* Limit multipart headers to 40 kilobytes to avoid unbounded buffering
+  of long lines in a header
+* Remove `' '` and `'?'` from alphabet for generated multipart
+  boundaries, as these are not token characters and are known to cause
+  trouble for some multipart implementations
+* Fix multipart parsing for unlucky input chunk sizes
+
+# v0.15.9 (2017-04-19)
 * Terminate `ServerApp` even if the server fails to start
 * Make `ResourceService` respect `If-Modified-Since`
 * Patch-level upgrades to dependencies:
@@ -68,7 +133,7 @@
 	* log4s-1.3.4
     * metrics-core-3.1.4
     * scalacheck-1.13.5
-    * scalaz-7.1.12 or scalaz-7.2.11
+    * scalaz-7.1.13 or scalaz-7.2.11
     * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)

@@ -18,8 +18,6 @@ import scala.concurrent.duration._
 
 import fs2._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 import scodec.bits.ByteVector
 
 class Http1ServerStageSpec extends Http4sSpec {

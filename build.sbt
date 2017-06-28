@@ -27,13 +27,6 @@ lazy val parboiled2 = libraryProject("parboiled2")
     libraryDependencies ++= Seq(
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
-    unmanagedSourceDirectories in Compile ++= {
-      scalaBinaryVersion.value match {
-        // The 2.12 branch is compatible with 2.11
-        case "2.12" => Seq((sourceDirectory in Compile).value / "scala-2.11")
-        case _ => Seq.empty
-      }
-    },
     // https://issues.scala-lang.org/browse/SI-9490
     (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
     macroParadiseSetting
@@ -104,7 +97,7 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
-  .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile")
+  .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile", scalaXml % "test->compile")
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -125,17 +118,15 @@ lazy val blazeClient = libraryProject("blaze-client")
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
-/* TODO fs2 port
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
       Http4sPlugin.asyncHttpClient,
-      reactiveStreamsTck % "test"
+      fs2ReactiveStreams
     )
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
- */
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -244,9 +235,10 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(
-    description := "Benchmarks for http4s"
+    description := "Benchmarks for http4s",
+    libraryDependencies += circeParser
   )
-  .dependsOn(core)
+  .dependsOn(core, circe)
 
 lazy val loadTest = http4sProject("load-test")
   .enablePlugins(DisablePublishingPlugin)
@@ -266,6 +258,7 @@ lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incremen
 val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
 val siteStageDirectory    = SettingKey[File]("site-stage-directory")
 val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
+val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 lazy val docs = http4sProject("docs")
   .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
@@ -279,7 +272,7 @@ lazy val docs = http4sProject("docs")
       circeLiteral,
       cryptobits
     ),
-    addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+    macroParadiseSetting,
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -296,16 +289,22 @@ lazy val docs = http4sProject("docs")
     scalacOptions in (Compile,doc) ++= {
       scmInfo.value match {
         case Some(s) =>
-          val b = (baseDirectory in ThisBuild).value
-          val (major, minor) = apiVersion.value
-          val sourceTemplate =
-            if (version.value.endsWith("SNAPSHOT"))
-              s"${s.browseUrl}/tree/cats€{FILE_PATH}.scala"
+          val isMaster = git.gitCurrentBranch.value == "master"
+          val isSnapshot = git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
+
+          val path =
+            if (isSnapshot && isMaster)
+              s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
+            else if (isSnapshot)
+              s"${s.browseUrl}/blob/${git.gitHeadCommit.value.get}€{FILE_PATH}.scala"
             else
-              s"${s.browseUrl}/tree/v$major.$minor.0€{FILE_PATH}.scala"
-          Seq("-implicits",
-            "-doc-source-url", sourceTemplate,
-            "-sourcepath", b.getAbsolutePath)
+              s"${s.browseUrl}/blob/v${version.value}€{FILE_PATH}.scala"
+
+          Seq(
+            "-implicits",
+            "-doc-source-url", path,
+            "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath
+          )
         case _ => Seq.empty
       }
     },
@@ -336,8 +335,26 @@ lazy val docs = http4sProject("docs")
         targetFile = siteStageDirectory.value / "CHANGELOG.md",
         preserveLastModified = true)
     },
+    exportMetadataForSite := {
+      val dest = (sourceDirectory in Hugo).value / "data" / "build.toml"
+      val (major, minor) = apiVersion.value
+      // Would be more elegant if `[versions.http4s]` was nested, but then
+      // the index lookups in `shortcodes/version.html` get complicated.
+      val buildData: String =
+        s"""
+           |[versions]
+           |"http4s.api" = "$major.$minor"
+           |"http4s.current" = "${version.value}"
+           |"http4s.doc" = "${docExampleVersion(version.value)}"
+           |circe = "${circeJawn.revision}"
+           |cryptobits = "${cryptobits.revision}"
+           |"argonaut-shapeless_6.2" = "1.2.0-M5"
+         """.stripMargin
+      IO.write(dest, buildData)
+      dest
+    },
     copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
-    makeSite := makeSite.dependsOn(copySiteToStage).value,
+    makeSite := makeSite.dependsOn(copySiteToStage, exportMetadataForSite).value,
     baseURL in Hugo := {
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")

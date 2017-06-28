@@ -15,7 +15,7 @@ import org.http4s.Status._
 import org.http4s.dsl._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{ CaseInsensitiveString, NonEmptyList }
 
 class AuthenticationSpec extends Http4sSpec {
 
@@ -138,10 +138,12 @@ class AuthenticationSpec extends Http4sSpec {
       val nonce = challenge.params("nonce")
 
       val response = DigestUtil.computeResponse(method, username, realm, password, uri, nonce, nc, cnonce, qop)
-      val params: Map[String, String] = Map("username" -> username, "realm" -> realm, "nonce" -> nonce,
-        "uri" -> uri, "qop" -> qop, "nc" -> nc, "cnonce" -> cnonce, "response" -> response,
-        "method" -> method)
-      val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), params))
+      val params: NonEmptyList[(String, String)] = NonEmptyList(
+        "username" -> username, "realm" -> realm, "nonce" -> nonce,
+        "uri" -> uri, "qop" -> qop, "nc" -> nc, "cnonce" -> cnonce,
+        "response" -> response, "method" -> method
+      )
+      val header = Authorization(Credentials.AuthParams("Digest".ci, params))
 
       val req2 = Request(uri = Uri(path = "/"), headers = Headers(header))
       val res2 = digest.orNotFound(req2).run
@@ -221,15 +223,23 @@ class AuthenticationSpec extends Http4sSpec {
       val nonce = "abcdef"
 
       val response = DigestUtil.computeResponse(method, username, realm, password, uri, nonce, nc, cnonce, qop)
-      val params: Map[String, String] = Map("username" -> username, "realm" -> realm, "nonce" -> nonce,
-        "uri" -> uri, "qop" -> qop, "nc" -> nc, "cnonce" -> cnonce, "response" -> response,
-        "method" -> method)
+      val params = NonEmptyList(
+        "username" -> username,
+        "realm" -> realm,
+        "nonce" -> nonce,
+        "uri" -> uri,
+        "qop" -> qop,
+        "nc" -> nc,
+        "cnonce" -> cnonce,
+        "response" -> response,
+        "method" -> method
+      )
 
       val expected = (0 to params.size).map(i => Unauthorized)
 
       val result = (0 to params.size).map(i => {
-        val invalid_params = params.take(i) ++ params.drop(i + 1)
-        val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), invalid_params))
+        val invalidParams = params.list.take(i) ++ params.list.drop(i + 1)
+        val header = Authorization(Credentials.AuthParams("Digest".ci, invalidParams.head, invalidParams.tail: _*))
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
         val res = digestAuthService.orNotFound(req).run
 

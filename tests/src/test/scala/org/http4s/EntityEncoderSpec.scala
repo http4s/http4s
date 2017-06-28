@@ -25,7 +25,6 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "render futures" in {
-      import scala.concurrent.ExecutionContext.Implicits.global
       val hello = "Hello"
       writeToString(Future(hello)) must_== hello
     }

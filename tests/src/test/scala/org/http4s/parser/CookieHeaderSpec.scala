@@ -1,7 +1,6 @@
 package org.http4s
 package parser
 
-import org.http4s.batteries._
 import org.http4s.headers.{`Set-Cookie`}
 import org.specs2.mutable.Specification
 

@@ -6,6 +6,7 @@ import org.http4s.headers.Accept
 import org.http4s.Status.InternalServerError
 import fs2._
 import fs2.Stream._
+import fs2.interop.cats._
 import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
 import org.http4s.Method._
 

@@ -4,18 +4,13 @@ package server.blaze
 import java.nio.ByteBuffer
 
 import scala.collection.mutable.ListBuffer
-
-import cats.data._
-import fs2._
-import org.log4s.Logger
 import scala.util.Either
 
-import cats.syntax.all._
-// import cats.syntax.flatMap._
-// import cats.syntax.functor._
-// import cats.syntax.bifunctor._
+import cats.data._
+import cats.implicits._
+import fs2._
+import org.log4s.Logger
 import org.http4s.ParseResult.parseResultMonad
-
 
 private final class Http1ServerParser(logger: Logger,
                                       maxRequestLine: Int,

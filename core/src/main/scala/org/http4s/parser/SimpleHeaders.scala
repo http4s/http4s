@@ -22,7 +22,8 @@ import java.net.InetAddress
 import java.time.Instant
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
+import cats.implicits._
+import org.http4s.syntax.string._
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 

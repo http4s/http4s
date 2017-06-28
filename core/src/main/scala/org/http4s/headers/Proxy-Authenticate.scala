@@ -2,7 +2,6 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
 
 object `Proxy-Authenticate` extends HeaderKey.Internal[`Proxy-Authenticate`] with HeaderKey.Recurring {

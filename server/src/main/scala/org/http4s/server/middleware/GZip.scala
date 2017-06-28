@@ -2,14 +2,17 @@ package org.http4s
 package server
 package middleware
 
-import java.util.zip.Deflater
+import scala.annotation.tailrec
+import java.util.zip.{CRC32, Deflater}
+import javax.xml.bind.DatatypeConverter
 
 import fs2._
 import fs2.Stream._
 import fs2.compress._
-import org.http4s.batteries._
+import fs2.interop.cats._
 import org.http4s.headers._
 import org.log4s.getLogger
+import scodec.bits.ByteVector
 
 object GZip {
   private[this] val logger = getLogger
@@ -24,13 +27,17 @@ object GZip {
             case resp: Response =>
               if (isZippable(resp)) {
                 logger.trace("GZip middleware encoding content")
-                // Need to add the Gzip header
+                // Need to add the Gzip header and trailer
+                val trailerGen = new TrailerGen()
                 val b = chunk(header) ++
-                  resp.body.through(deflate(
-                    level = level,
-                    nowrap = true,
-                    bufferSize = bufferSize
-                  ))
+                  resp.body
+                    .through(trailer(trailerGen))
+                    .through(deflate(
+                      level = level,
+                      nowrap = true,
+                      bufferSize = bufferSize
+                    )) ++
+                  chunk(trailerFinish(trailerGen))
                 resp.removeHeader(`Content-Length`)
                   .putHeaders(`Content-Encoding`(ContentCoding.gzip))
                   .copy(body = b)
@@ -50,10 +57,8 @@ object GZip {
       (contentType.get.mediaType eq MediaType.`application/octet-stream`))
   }
 
-
-
   private val GZIP_MAGIC_NUMBER = 0x8b1f
-  private val TRAILER_LENGTH = 8
+  private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
 
   private val header: Chunk[Byte] = Chunk.bytes(Array(
     GZIP_MAGIC_NUMBER.toByte,           // Magic number (int16)
@@ -67,4 +72,30 @@ object GZip {
     0.toByte,                           // Extra flags
     0.toByte)                           // Operating system
   )
+
+  private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
+
+  private def trailer[F[_]](gen: TrailerGen): Pipe[F, Byte, Byte] =
+    pipe.covary[F, Byte, Byte](_.pull(_.await.flatMap(trailerStep(gen))))
+
+  private def trailerStep(gen: TrailerGen): ((Chunk[Byte], Handle[Pure, Byte])) => Pull[Pure, Byte, Handle[Pure, Byte]] = {
+    case (c, h) =>
+      val chunkArr = c.toArray
+      gen.crc.update(chunkArr)
+      gen.inputLength = gen.inputLength + chunkArr.length
+      Pull.output(c) >> trailerHandle(gen)(h)
+  }
+
+  private def trailerHandle(gen: TrailerGen)(h: Handle[Pure, Byte]): Pull[Pure, Byte, Handle[Pure, Byte]] =
+    h.await.flatMap(trailerStep(gen))
+
+  private def trailerFinish(gen: TrailerGen): Chunk[Byte] = {
+    // Temporary workaround to fix incorrect deflation of an empty stream in fs2
+    // See https://github.com/functional-streams-for-scala/fs2/pull/865
+    val extraBytes = if (gen.inputLength == 0) Array(3.toByte, 0.toByte) else Array[Byte]()
+    Chunk.bytes(
+      extraBytes ++
+        DatatypeConverter.parseHexBinary("%08x".format(gen.crc.getValue())).reverse ++
+        DatatypeConverter.parseHexBinary("%08x".format(gen.inputLength % GZIP_LENGTH_MOD)).reverse)
+  }
 }

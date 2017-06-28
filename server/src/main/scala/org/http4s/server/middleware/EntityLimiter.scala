@@ -7,7 +7,6 @@ import scala.util.control.NoStackTrace
 import fs2._
 import fs2.Pull._
 import fs2.Handle._
-import org.http4s.batteries._
 
 object EntityLimiter {
 
@@ -17,7 +16,7 @@ object EntityLimiter {
 
   def apply(service: HttpService, limit: Long = DefaultMaxEntitySize): HttpService =
     service.local { req: Request =>
-      req.copy(body = req.body.pull(takeLimited(limit)))
+      req.withBody(req.body.pull(takeLimited(limit)))
     }
 
   private def takeLimited[F[_]](n: Long)(h: Handle[F, Byte]): Pull[F, Byte, Nothing] =

@@ -17,10 +17,10 @@ class StreamAppSpec extends Http4sSpec {
       * and observably cleans up when the process is stopped.
       *
       */
-    class TestStreamApp(process: Stream[Task, Unit]) extends StreamApp {
+    class TestStreamApp(stream: Stream[Task, Nothing]) extends StreamApp {
       val cleanedUp : Signal[Task, Boolean] = async.signalOf(false)(Task.asyncInstance(testStrategy)).unsafeRun
-      override def stream(args: List[String]): Stream[Task, Unit] = {
-        process.onFinalize(cleanedUp.set(true))
+      override def stream(args: List[String]): Stream[Task, Nothing] = {
+        stream.onFinalize(cleanedUp.set(true))
       }
     }
 
@@ -28,32 +28,13 @@ class StreamAppSpec extends Http4sSpec {
       val testApp = new TestStreamApp(
         fail(new Throwable("Bad Initial Process"))
       )
-      testApp.doMain(Array.empty[String])
+      testApp.doMain(Array.empty[String]) should_== -1
       testApp.cleanedUp.get.unsafeRun should_== true
     }
 
     "Terminate Server on a Valid Process" in {
       val testApp = new TestStreamApp(
-        // emit one unit value
-        emit("Valid Process").map(_ => ())
-      )
-      testApp.doMain(Array.empty[String]) should_== 0
-      testApp.cleanedUp.get.unsafeRun should_== true
-    }
-
-    "Terminate Server on a Bad Task" in {
-      val testApp = new TestStreamApp(
-        // fail at task evaluation
-        eval(Task.fail(new Throwable("Bad Task")))
-      )
-      testApp.doMain(Array.empty[String]) should_== -1
-      testApp.cleanedUp.get.unsafeRun should_== true
-    }
-
-    "Terminate Server on a Valid Task" in {
-      val testApp = new TestStreamApp(
-        // emit one task evaluated unit value
-        eval(Task("Valid Task").map(_ => ()))
+        emit("Valid Process").drain
       )
       testApp.doMain(Array.empty[String]) should_== 0
       testApp.cleanedUp.get.unsafeRun should_== true

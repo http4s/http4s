@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats._
-import org.http4s.batteries._
+import cats.implicits._
 import org.scalacheck.{Arbitrary, Properties}
 import org.scalacheck.Prop._
 

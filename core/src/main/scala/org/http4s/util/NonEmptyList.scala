@@ -1,7 +1,6 @@
 package org.http4s.util
 
 import cats.data.NonEmptyList
-import org.http4s.batteries._
 
 trait NonEmptyListSyntax {
   implicit class NonEmptyListOps[A](self: NonEmptyList[A]) {

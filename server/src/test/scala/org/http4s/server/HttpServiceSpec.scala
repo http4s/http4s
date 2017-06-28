@@ -1,6 +1,8 @@
 package org.http4s
 package server
 
+import cats.implicits._
+
 class HttpServiceSpec extends Http4sSpec {
 
  val srvc1 = HttpService {

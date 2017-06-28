@@ -3,8 +3,8 @@ package org.http4s
 import cats._
 import cats.arrow.Choice
 import cats.data._
+import cats.implicits._
 import fs2._
-import org.http4s.batteries._
 
 object Service {
 

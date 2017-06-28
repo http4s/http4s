@@ -6,8 +6,9 @@ import java.util.concurrent.ExecutorService
 import javax.servlet._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
+import cats.implicits._
 import fs2.{Strategy, Task}
-import org.http4s.batteries._
+import fs2.interop.cats._
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server._
 import org.http4s.util.threads.DefaultPool

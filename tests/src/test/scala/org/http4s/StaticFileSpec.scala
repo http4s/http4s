@@ -1,5 +1,6 @@
 package org.http4s
 
+import fs2.Chunk
 import java.io.File
 import java.nio.file.Files
 import java.time.Instant
@@ -8,7 +9,9 @@ import java.util.concurrent.ExecutorService
 import org.http4s.Http4sSpec.TestPool
 import org.http4s.Status.NotModified
 import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
+import org.http4s.util.ByteVectorChunk
 import org.specs2.matcher.MatchResult
+import scodec.bits.ByteVector
 
 class StaticFileSpec extends Http4sSpec {
 
@@ -92,6 +95,18 @@ class StaticFileSpec extends Http4sSpec {
       }
 
       check(emptyFile)
+    }
+
+    "Read from a URL" in {
+      val url = getClass.getResource("/lorem-ipsum.txt")
+      val expected = scala.io.Source.fromURL(url, "utf-8").mkString
+      val s = StaticFile.fromURL(getClass.getResource("/lorem-ipsum.txt"))
+        .fold[EntityBody](sys.error("Couldn't find resource"))(_.body)
+      // Expose problem with readInputStream recycling buffer.  chunks.runLog
+      // saves chunks, which are mutated by naive usage of readInputStream.
+      // This ensures that we're making a defensive copy of the bytes for
+      // things like CachingChunkWriter that buffer the chunks.
+      new String(Chunk.concat(s.chunks.runLog.unsafeRun).toArray, "utf-8") must_== expected
     }
   }
 }
