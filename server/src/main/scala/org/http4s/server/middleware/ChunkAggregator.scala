@@ -23,6 +23,8 @@ object ChunkAggregator {
   private val removeChunkedTransferEncoding: Response => Response = {
     _.transformHeaders { headers =>
       headers.flatMap {
+        // Remove the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
+        // leaving the remaining values unchanged
         case e: `Transfer-Encoding` =>
           NonEmptyList.fromList(e.values.filterNot(_ == TransferCoding.chunked)).map(`Transfer-Encoding`.apply).toList
         case header =>
