@@ -45,8 +45,11 @@ object Status {
     def isSuccess: Boolean
 
     /** Match a [[Response]] based on [[Status]] category */
-    final def unapply[F[_]](resp: Response[F]): Option[Response[F]] =
-      if (resp.status.responseClass == this) Some(resp) else None
+    final def unapply[F[_]](resp: MaybeResponse[F]): Option[Response[F]] =
+      resp match {
+        case resp @ Response(status, _, _, _, _) if status.responseClass == this => Some(resp)
+        case _ => None
+      }
   }
 
   case object Informational extends ResponseClass { val isSuccess = true }
