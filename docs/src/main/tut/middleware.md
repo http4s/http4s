@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
 and some imports.
 
 ```tut:silent
+import cats.effect._
+import cats.implicits._
 import org.http4s._
 import org.http4s.dsl._
 ```
@@ -32,7 +34,7 @@ Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
 ```tut:book
-def myMiddle(service: HttpService, header: Header): HttpService = Service.lift { req =>
+def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = Service.lift { req: Request[IO] =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
@@ -43,28 +45,28 @@ def myMiddle(service: HttpService, header: Header): HttpService = Service.lift {
 ```
 
 All we do here is pass the request to the service,
-which returns a `Task[Response]`. So, we use `map` to get the request out of the task,
+which returns an `F[Response]`. So, we use `map` to get the request out of the task,
 add the header if the response is a success, and then pass the response on. We could
 just as easily modify the request before we passed it to the service.
 
 Now, let's create a simple service. As mentioned between [service] and [dsl], because `Service`
 is implemented as a [`Kleisli`], which is just a function at heart, we can test a
-service without a server. Because an `HttpService` returns a `Task[Response]`,
-we need to call `unsafeRun` on the result of the function to extract the `Response`.
+service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`,
+we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
 
 ```tut:book
-val service = HttpService {
+val service = HttpService[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
   case _ =>
     Ok()
 }
 
-val goodRequest = Request(Method.GET, uri("/"))
-val badRequest = Request(Method.GET, uri("/bad"))
+val goodRequest = Request[IO](Method.GET, uri("/"))
+val badRequest = Request[IO](Method.GET, uri("/bad"))
 
-service(goodRequest).unsafeRun
-service(badRequest).unsafeRun
+service(goodRequest).unsafeRunSync
+service(badRequest).unsafeRunSync
 ```
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
@@ -72,8 +74,8 @@ Now, we'll wrap the service in our middleware to create a new service, and try i
 ```tut:book
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
-wrappedService(goodRequest).unsafeRun
-wrappedService(badRequest).unsafeRun
+wrappedService(goodRequest).unsafeRunSync
+wrappedService(badRequest).unsafeRunSync
 ```
 
 Note that the successful response has your header added to it.
@@ -82,23 +84,21 @@ If you intend to use you middleware in multiple places,  you may want to impleme
 it as an `object` and use the `apply` method.
 
 ```tut:book
-import fs2.interop.cats._
-
 object MyMiddle {
-  def addHeader(mResp: MaybeResponse, header: Header) =
+  def addHeader(mResp: MaybeResponse[IO], header: Header) =
     mResp match {
       case Status.Successful(resp) => resp.putHeaders(header)
       case resp => resp
     }
 
-  def apply(service: HttpService, header: Header) =
+  def apply(service: HttpService[IO], header: Header) =
     service.map(addHeader(_, header))
 }
 
 val newService = MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-newService(goodRequest).unsafeRun
-newService(badRequest).unsafeRun
+newService(goodRequest).unsafeRunSync
+newService(badRequest).unsafeRunSync
 ```
 
 It is possible for the wrapped `Service` to have different `Request` and `Response`
@@ -108,7 +108,7 @@ AuthedService` (an alias for `Service[AuthedRequest[T], Response]`. There is a t
 defined for this in the `http4s.server` package:
 
 ```scala
-type AuthMiddleware[T] = Middleware[AuthedRequest[T], Response, Request, Response]
+type AuthMiddleware[F, T] = Middleware[AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 ```
 See the [Authentication] documentation for more details.
 
@@ -118,18 +118,17 @@ middleware with other, unwrapped, services, or services wrapped in other middlew
 You can also wrap a single service in multiple layers of middleware. For example:
 
 ```tut:book
-val apiService = HttpService {
+val apiService = HttpService[IO] {
   case GET -> Root / "api" =>
     Ok()
 }
 
-import cats.implicits._
 val aggregateService = apiService |+| MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-val apiRequest = Request(Method.GET, uri("/api"))
+val apiRequest = Request[IO](Method.GET, uri("/api"))
 
-aggregateService(goodRequest).unsafeRun
-aggregateService(apiRequest).unsafeRun
+aggregateService(goodRequest).unsafeRunSync
+aggregateService(apiRequest).unsafeRunSync
 ```
 
 Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` had

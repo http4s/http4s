@@ -17,15 +17,15 @@ similar static file hoster, but they're often fast enough.
 Http4s provides a few helpers to handle ETags for you, they're located in [StaticFile].
 
 ```tut:book
+import cats.effect._
 import org.http4s._
 import org.http4s.dsl._
 import java.io.File
-import fs2.Task
 
-val service = HttpService {
+val service = HttpService[IO] {
   case request @ GET -> Root / "index.html" =>
     StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
-      .map(Task.now) // This one is require to make the types match up
+      .map(IO.pure) // This one is require to make the types match up
       .getOrElse(NotFound()) // In case the file doesn't exist
 }
 ```
@@ -35,10 +35,10 @@ For simple file serving, it's possible to package resources with the jar and
 deliver them from there. Append to the `List` as needed.
 
 ```tut:book
-def static(file: String, request: Request) =
-  StaticFile.fromResource("/" + file, Some(request)).map(Task.now).getOrElse(NotFound())
+def static(file: String, request: Request[IO]) =
+  StaticFile.fromResource("/" + file, Some(request)).map(IO.pure).getOrElse(NotFound())
 
-val service = HttpService {
+val service = HttpService[IO] {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
     static(path, request)
 }
@@ -65,7 +65,7 @@ import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpService = webjarService(
+val webjars: HttpService[IO] = webjarService(
   Config(
     filter = isJsAsset
   )

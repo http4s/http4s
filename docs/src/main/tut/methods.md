@@ -8,7 +8,7 @@ For a REST API, your service will want to support different verbs/methods.
 Http4s has a list of all the [methods] you're familiar with, and a few more.
 
 ```tut:book
-import fs2.Task
+import cats.effect._
 import io.circe.generic._
 import io.circe.syntax._
 import org.http4s._, org.http4s.dsl._
@@ -17,15 +17,15 @@ import org.http4s.circe._
 @JsonCodec case class TweetWithId(id: Int, message: String)
 @JsonCodec case class Tweet(message: String)
 
-def getTweet(tweetId: Int): Task[Option[TweetWithId]] = ???
-def addTweet(tweet: Tweet): Task[TweetWithId] = ???
-def updateTweet(id: Int, tweet: Tweet): Task[Option[TweetWithId]] = ???
-def deleteTweet(id: Int): Task[Unit] = ???
+def getTweet(tweetId: Int): IO[Option[TweetWithId]] = ???
+def addTweet(tweet: Tweet): IO[TweetWithId] = ???
+def updateTweet(id: Int, tweet: Tweet): IO[Option[TweetWithId]] = ???
+def deleteTweet(id: Int): IO[Unit] = ???
 
-implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
-implicit val tweetDecoder = jsonOf[Tweet]
+implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
+implicit val tweetDecoder = jsonOf[IO, Tweet]
 
-val tweetService = HttpService {
+val tweetService = HttpService[IO] {
   case GET -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(Ok(_)))

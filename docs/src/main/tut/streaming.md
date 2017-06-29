@@ -6,32 +6,32 @@ weight: 305
 
 ## Introduction
 
-Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody`
-is just a type alias for `Stream[Task, Byte]`. Please see [entity] for details. This means
+Streaming lies at the heart of the http4s model of HTTP, in the literal sense that `EntityBody[F]`
+is just a type alias for `Stream[F, Byte]`. Please see [entity] for details. This means
 HTTP streaming is provided by both https' service support and its client support.
 
 ## Streaming responses from your service
 
-Because `EntityBody`s are streams anyway, returning a stream as a response from your service is
+Because `EntityBody[F]`s are streams anyway, returning a stream as a response from your service is
 simplicity itself:
 
 ```tut:book
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import cats.effect._
 import fs2.time
-import fs2.{Scheduler, Strategy, Task}
+import fs2.Scheduler
 import org.http4s._
 import org.http4s.dsl._
 
 // fs2's `time` module needs an implicit `Scheduler`
 implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
 
-// fs2 `Async` needs an implicit `Strategy`
-implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
-
 // An infinite stream of the periodic elapsed time
-val seconds = time.awakeEvery[Task](1.second)
+val seconds = time.awakeEvery[IO](1.second)
 
-val service = HttpService {
+val service = HttpService[IO] {
   case GET -> Root / "seconds" =>
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
@@ -46,16 +46,16 @@ it converts a stream of JSON objects to a JSON array, which is friendlier to cli
 ## Consuming streams with the client
 
 The http4s [client] supports consuming chunked HTTP responses as a stream, again because the
-`EntityBody` is a stream anyway. http4s' `Client` interface consumes streams with the `streaming`
-function, which takes a `Request` and a `Response => Stream[Task, A]` and returns a
-`Stream[Task, A]`. Since an `EntityBody` is just a `Stream[Task, Byte]`, then, the easiest way
+`EntityBody[F]` is a stream anyway. http4s' `Client` interface consumes streams with the `streaming`
+function, which takes a `Request[F]` and a `Response[F] => Stream[F, A]` and returns a
+`Stream[F, A]`. Since an `EntityBody[F]` is just a `Stream[F, Byte]`, then, the easiest way
 to consume a stream is just:
 
 ```tut:fail
 client.streaming(req)(resp => resp.body)
 ```
 
-That gives you a `Stream[Task, Byte]`, but you probably want something other than a `Byte`.
+That gives you a `Stream[F, Byte]`, but you probably want something other than a `Byte`.
 Here's some code intended to consume [Twitter's streaming APIs], which return a stream of JSON.
 
 First, let's assume we want to use [Circe] for JSON support. Please see [json] for details.
@@ -86,7 +86,7 @@ object twstream {
   import org.http4s._
   import org.http4s.client.blaze._
   import org.http4s.client.oauth1
-  import fs2.Task
+  import cats.effect._
   import fs2.Stream
   import fs2.io.stdout
   import fs2.text.{lines, utf8Encode}
@@ -97,21 +97,21 @@ object twstream {
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 
   // Remember, this `Client` needs to be cleanly shutdown
-  val client = PooledHttp1Client()
+  val client = PooledHttp1Client[IO]()
 
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request): Task[Request] = {
+  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request[IO]): IO[Request[IO]] = {
     val consumer = oauth1.Consumer(consumerKey, consumerSecret)
     val token    = oauth1.Token(accessToken, accessSecret)
     oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
   }
 
-  /* Sign the incoming `Request`, stream the `Response`, and `parseJsonStream` the `Response`.
-   * `sign` returns a `Task`, so we need to `Stream.eval` it to use a for-comprehension.
+  /* Sign the incoming `Request[IO]`, stream the `Response[IO]`, and `parseJsonStream` the `Response[IO]`.
+   * `sign` returns a `IO`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def stream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request): Stream[Task, Json] = for {
+  def stream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request[IO]): Stream[IO, Json] = for {
     sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
     res <- client.streaming(sr)(resp => resp.body.chunks.parseJsonStream)
   } yield res
@@ -123,13 +123,13 @@ object twstream {
    * Finally, when the stream is complete (you hit <crtl-C>), `shutdown` the `client`.
    */
   def runc = {
-    val req = Request(Method.GET, Uri.uri("https://stream.twitter.com/1.1/statuses/sample.json"))
+    val req = Request[IO](Method.GET, Uri.uri("https://stream.twitter.com/1.1/statuses/sample.json"))
     val s   = stream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout).onFinalize(client.shutdown).run
   }
   
   // Uncomment To Run App
-  // def main(args: Array[String]): Unit = runc.unsafeRun 
+  // def main(args: Array[String]): Unit = runc.unsafeRunSync()
 }
 ```
 

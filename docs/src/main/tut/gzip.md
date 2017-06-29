@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
 And we need some imports.
 
 ```tut:silent
+import cats.effect._
 import org.http4s._
 import org.http4s.dsl._
 ```
@@ -27,16 +28,16 @@ Let's start by making a simple service that returns a (relatively) large string
 in its body. We'll use `as[String]` to examine the body.
 
 ```tut:book
-val service = HttpService {
+val service = HttpService[IO] {
   case _ =>
     Ok("I repeat myself when I'm under stress. " * 3)
 }
 
-val request = Request(Method.GET, uri("/"))
+val request = Request[IO](Method.GET, uri("/"))
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = service.orNotFound(request).unsafeRun
-val body = response.as[String].unsafeRun
+val response = service.orNotFound(request).unsafeRunSync
+val body = response.as[String].unsafeRunSync
 body.length
 ```
 
@@ -47,8 +48,8 @@ import org.http4s.server.middleware._
 val zipService = GZip(service)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(request).unsafeRun
-val body = response.as[String].unsafeRun
+val response = zipService.orNotFound(request).unsafeRunSync
+val body = response.as[String].unsafeRunSync
 body.length
 ```
 
@@ -61,8 +62,8 @@ val acceptHeader = Header("Accept-Encoding", "gzip")
 val zipRequest = request.putHeaders(acceptHeader)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
-val response = zipService.orNotFound(zipRequest).unsafeRun
-val body = response.as[String].unsafeRun
+val response = zipService.orNotFound(zipRequest).unsafeRunSync
+val body = response.as[String].unsafeRunSync
 body.length
 ```
 
@@ -73,9 +74,9 @@ of **"gzip"**.
 As described in [Middleware], services and middleware can be composed such
 that only some of your endpoints are GZip enabled.
 
-**NOTE:** In this documentation, we are calling `unsafeRun` to extract values out of a
-service or middleware code. You can work with values while keeping them inside the
-Task using `map`, `flatMap` and/or `for`. Remember, your service returns a
-`Task[Response]`.
+**NOTE:** In this documentation, we are calling `unsafeRunSync` to extract values out 
+of a service or middleware code. You can work with values while keeping them inside the
+`F` using `map`, `flatMap` and/or `for`. Remember, your service returns an
+`F[Response]`.
 
 [Middleware]: ../middleware

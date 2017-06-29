@@ -4,33 +4,32 @@ weight: 120
 title: Authentication
 ---
 
-A [service] is a `Kleisli[Task, Request, Response]`, the composable version of
-`Request => Task[Response]`. http4s provides an alias called `Service[Request,
+A [service] is a `Kleisli[F, Request, Response]`, the composable version of
+`Request[F] => F[Response[F]]`. http4s provides an alias called `Service[F, Request,
 Response]`. A service with authentication also requires some kind of `User`
 object which identifies which user did the request. To store the `User` object
-along with the `Request`, there's `AuthedRequest[User]`, which is equivalent to
-`(User, Request)`. So the service has the signature `AuthedRequest[User] =>
-Task[Response]`, or `AuthedService[User]`. So we'll need a `Request => User`
-function, or more likely, a `Request => Task[User]`, because the `User` will
+along with the `Request`, there's `AuthedRequest[F, User]`, which is equivalent to
+`(User, Request[F])`. So the service has the signature `AuthedRequest[F, User] =>
+F[Response[F]]`, or `AuthedService[F, User]`. So we'll need a `Request[F] => User`
+function, or more likely, a `Request[F] => F[User]`, because the `User` will
 come from a database. We can convert that into an `AuthMiddleware` and apply it.
-Or in code:
+Or in code, using `cats.effect.IO` as the effect type:
 
 ```tut:book
-import fs2.Task
-import cats._, cats.implicits._, cats.data._
+import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server._
 
 case class User(id: Long, name: String)
 
-val authUser: Service[Request, User] = Kleisli(_ => Task.delay(???))
-val middleware = AuthMiddleware(authUser)
-val authedService: AuthedService[User] =
+val authUser: Service[IO, Request[IO], User] = Kleisli(_ => IO(???))
+val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
+val authedService: AuthedService[IO, User] =
   AuthedService {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
-val service: HttpService = middleware(authedService)
+val service: HttpService[IO] = middleware(authedService)
 ```
 
 ## Returning an Error Response
@@ -42,17 +41,17 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 
 ### With Kleisli
 
-To allow for failure, the `authUser` function has to be adjusted to a `Request
-=> Task[Either[String,User]]`. So we'll need to handle that possibility. For advanced
+To allow for failure, the `authUser` function has to be adjusted to a `Request[F]
+=> F[Either[String,User]]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```tut:book
-val authUser: Kleisli[Task, Request, Either[String,User]] = Kleisli(_ => Task.delay(???))
+val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedService[String] = Kleisli(req => Forbidden(req.authInfo))
+val onFailure: AuthedService[IO, String] = Kleisli(req => Forbidden(req.authInfo))
 val middleware = AuthMiddleware(authUser, onFailure)
 
-val service: HttpService = middleware(authedService)
+val service: HttpService[IO] = middleware(authedService)
 ```
 
 
@@ -86,9 +85,9 @@ val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(2
 val crypto = CryptoBits(key)
 val clock = Clock.systemUTC
 
-def verifyLogin(request: Request): Task[Either[String,User]] = ??? // gotta figure out how to do the form
-val logIn: Service[Request, Response] = Kleisli({ request =>
-  verifyLogin(request: Request).flatMap(_ match {
+def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
+val logIn: Service[IO, Request[IO], Response[IO]] = Kleisli({ request =>
+  verifyLogin(request: Request[IO]).flatMap(_ match {
     case Left(error) =>
       Forbidden(error)
     case Right(user) => {
@@ -102,10 +101,8 @@ val logIn: Service[Request, Response] = Kleisli({ request =>
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
 ```tut:book
-import fs2.interop.cats._ 
-
-def retrieveUser: Service[Long, User] = Kleisli(id => Task.delay(???))
-val authUser: Service[Request, Either[String,User]] = Kleisli({ request =>
+def retrieveUser: Service[IO, Long, User] = Kleisli(id => IO(???))
+val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- headers.Cookie.from(request.headers).toRight("Cookie parsing error")
     cookie <- header.values.toList.find(_.name == "authcookie").toRight("Couldn't find the authcookie")
@@ -126,7 +123,7 @@ function.
 import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
-val authUser: Service[Request, Either[String,User]] = Kleisli({ request =>
+val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- request.headers.get(Authorization).toRight("Couldn't find an Authorization header")
     token <- crypto.validateSignedToken(header.value).toRight("Cookie invalid")

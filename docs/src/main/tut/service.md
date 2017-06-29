@@ -50,7 +50,7 @@ Wherever you are in your studies, let's create our first
 `HttpService`.  Start by pasting these imports into your SBT console:
 
 ```tut:book
-import org.http4s._, org.http4s.dsl._
+import cats.effect._, org.http4s._, org.http4s.dsl._
 ```
 
 Using the [http4s-dsl], we can construct an `HttpService` by pattern
@@ -59,7 +59,7 @@ matching the request.  Let's build a service that matches requests to
 greet.
 
 ```tut:book
-val helloWorldService = HttpService {
+val helloWorldService = HttpService[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
@@ -79,21 +79,19 @@ reference it when serving the response, which can be seen as
 `Ok(getPopularTweets())`.
 
 ```tut:book
-import fs2.Task
-
 case class Tweet(id: Int, message: String)
 
-def tweetEncoder: EntityEncoder[Tweet] = ???
-implicit def tweetsEncoder: EntityEncoder[Seq[Tweet]] = ???
+implicit def tweetEncoder: EntityEncoder[IO, Tweet] = ???
+implicit def tweetsEncoder: EntityEncoder[IO, Seq[Tweet]] = ???
 
-def getTweet(tweetId: Int): Task[Tweet] = ???
-def getPopularTweets(): Task[Seq[Tweet]] = ???
+def getTweet(tweetId: Int): IO[Tweet] = ???
+def getPopularTweets(): IO[Seq[Tweet]] = ???
 
-val tweetService = HttpService {
+val tweetService = HttpService[IO] {
   case request @ GET -> Root / "tweets" / "popular" =>
     Ok(getPopularTweets())
   case request @ GET -> Root / "tweets" / IntVar(tweetId) =>
-    getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
+    getTweet(tweetId).flatMap(Ok(_))
 }
 ```
 
@@ -117,7 +115,7 @@ import org.http4s.server.syntax._
 import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api")
+val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api").start
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -127,7 +125,7 @@ associates a base path with a `HttpService`.
 A builder can be `run` to start the server.
 
 ```tut:book
-val server = builder.run
+val server = builder.unsafeRunSync()
 ```
 
 Use curl, or your favorite HTTP client, to see your service in action:
@@ -142,7 +140,7 @@ Our server consumes system resources. Let's clean up by shutting it
 down:
 
 ```tut:book
-server.shutdownNow()
+server.shutdown.unsafeRunSync()
 ```
 
 ### Running your service as an `App`
@@ -159,13 +157,13 @@ runs the process and adds a JVM shutdown hook to interrupt the infinite
 process and gracefully shut down your server when a SIGTERM is received.
 
 ```tut:book
-import fs2.{Stream, Task}
+import fs2.Stream
 import org.http4s.server.blaze._
 import org.http4s.util.StreamApp
 
-object Main extends StreamApp {
-  override def stream(args: List[String]): Stream[Task, Nothing] = {
-    BlazeBuilder
+object Main extends StreamApp[IO] {
+  override def stream(args: List[String]): Stream[IO, Nothing] = {
+    BlazeBuilder[IO]
       .bindHttp(8080, "localhost")
       .mountService(helloWorldService, "/")
       .mountService(services, "/api")

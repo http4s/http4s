@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
 And we need some imports.
 
 ```tut:silent
+import cats.effect._
 import org.http4s._
 import org.http4s.dsl._
 ```
@@ -26,14 +27,14 @@ import org.http4s.dsl._
 Let's start by making a simple service.
 
 ```tut:book
-val service = HttpService {
+val service = HttpService[IO] {
   case _ =>
     Ok()
 }
 
-val request = Request(Method.GET, uri("/"))
+val request = Request[IO](Method.GET, uri("/"))
 
-service(request).unsafeRun
+service(request).unsafeRunSync
 ```
 
 Now we can wrap the service in the `CORS` middleware.
@@ -42,7 +43,7 @@ Now we can wrap the service in the `CORS` middleware.
 import org.http4s.server.middleware._
 val corsService = CORS(service)
 
-corsService(request).unsafeRun
+corsService(request).unsafeRunSync
 ```
 
 So far, there was no change. That's because an `Origin` header is required
@@ -52,7 +53,7 @@ in the requests. This, of course, is the responsibility of the caller.
 val originHeader = Header("Origin", "somewhere.com")
 val corsRequest = request.putHeaders(originHeader)
 
-corsService(corsRequest).unsafeRun
+corsService(corsRequest).unsafeRunSync
 ```
 
 Notice how the response has the CORS headers added. How easy was
@@ -68,9 +69,9 @@ First, we'll create some requests to use in our example. We want these requests
 have a variety of origins and methods.
 
 ```tut:book
-val googleGet = Request(Method.GET, uri("/"), headers = Headers(Header("Origin", "google.com")))
-val yahooPut = Request(Method.PUT, uri("/"), headers = Headers(Header("Origin", "yahoo.com")))
-val duckPost = Request(Method.POST, uri("/"), headers = Headers(Header("Origin", "duckduckgo.com")))
+val googleGet = Request[IO](Method.GET, uri("/"), headers = Headers(Header("Origin", "google.com")))
+val yahooPut = Request[IO](Method.PUT, uri("/"), headers = Headers(Header("Origin", "yahoo.com")))
+val duckPost = Request[IO](Method.POST, uri("/"), headers = Headers(Header("Origin", "duckduckgo.com")))
 ```
 
 Now, we'll create a configuration that limits the allowed methods to `GET`
@@ -88,9 +89,9 @@ val methodConfig = CORSConfig(
 
 val corsMethodSvc = CORS(service, methodConfig)
 
-corsMethodSvc(googleGet).unsafeRun
-corsMethodSvc(yahooPut).unsafeRun
-corsMethodSvc(duckPost).unsafeRun
+corsMethodSvc(googleGet).unsafeRunSync
+corsMethodSvc(yahooPut).unsafeRunSync
+corsMethodSvc(duckPost).unsafeRunSync
 ```
 
 As you can see, the CORS headers were only added to the `GET` and `POST` requests.
@@ -106,9 +107,9 @@ val originConfig = CORSConfig(
 
 val corsOriginSvc = CORS(service, originConfig)
 
-corsOriginSvc(googleGet).unsafeRun
-corsOriginSvc(yahooPut).unsafeRun
-corsOriginSvc(duckPost).unsafeRun
+corsOriginSvc(googleGet).unsafeRunSync
+corsOriginSvc(yahooPut).unsafeRunSync
+corsOriginSvc(duckPost).unsafeRunSync
 ```
 
 Again, the results are as expected. You can, of course, create a configuration that
