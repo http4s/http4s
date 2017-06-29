@@ -246,7 +246,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Not expect body if request was a HEAD request" in {
       val contentLength = 12345L
       val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
-      val headRequest = FooRequest.copy(method = Method.HEAD)
+      val headRequest = FooRequest.withMethod(Method.HEAD)
       val tail = mkConnection(FooRequestKey)
       try {
         val h = new SeqTestHead(List(mkBuffer(resp)))

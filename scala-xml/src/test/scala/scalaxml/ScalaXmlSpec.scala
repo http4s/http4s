@@ -1,7 +1,8 @@
 package org.http4s
 package scalaxml
 
-import cats.effect.IO
+import cats.effect._
+import cats.implicits._
 import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.Status.Ok
@@ -20,15 +21,22 @@ class ScalaXmlSpec extends Http4sSpec {
     }
 
     "parse the XML" in {
-      val resp = server(Request[IO](body = strBody("<html><h1>h1</h1></html>"))).unsafeRunSync
-      resp.status must_==(Ok)
-      getBody(resp.body) must_== ("html".getBytes)
+      val resp = server(Request[IO](body = strBody("<html><h1>h1</h1></html>"))).unsafeRunSync()
+      resp.status must_== Ok
+      getBody(resp.body) must_== "html".getBytes
+    }
+
+    "parse XML in parallel" in {
+      // https://github.com/http4s/http4s/issues/1209
+      val resp = fs2.async.parallelTraverse((0 to 5).toList)(_ => server(Request(body = strBody("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>""")))).unsafeRunSync
+      resp.forall(_.status must_== Ok)
+      resp.forall(x => getBody(x.body) must_== "html".getBytes)
     }
 
     "return 400 on parse error" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request[IO](body = body))
-      tresp.unsafeRunSync.status must_== (Status.BadRequest)
+      tresp.unsafeRunSync.status must_== Status.BadRequest
     }
   }
 

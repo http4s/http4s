@@ -114,7 +114,7 @@ final case class GenericMessageBodyFailure(message: String,
 /** Indicates an syntactic error decoding the body of an HTTP [[Message]]. */
 sealed case class MalformedMessageBodyFailure(details: String, override val cause: Option[Throwable] = None) extends MessageBodyFailure {
   def message: String =
-    s"Malformed request body: $details"
+    s"Malformed message body: $details"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
     Response[F](Status.BadRequest, httpVersion).withBody(s"The request body was malformed.")(F, EntityEncoder.stringEncoder[F])
@@ -123,7 +123,7 @@ sealed case class MalformedMessageBodyFailure(details: String, override val caus
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
 sealed case class InvalidMessageBodyFailure(details: String, override val cause: Option[Throwable] = None) extends MessageBodyFailure {
   def message: String =
-    s"Invalid request body: $details"
+    s"Invalid message body: $details"
 
   override def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
     Response[F](Status.UnprocessableEntity, httpVersion).withBody(s"The request body was invalid.")(F, EntityEncoder.stringEncoder[F])

@@ -15,8 +15,7 @@ import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String, client: Client[IO])
-  extends Http4sSpec with JettyScaffold
-{
+  extends Http4sSpec with JettyScaffold {
   val timeout = 20.seconds
 
   Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>

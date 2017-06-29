@@ -24,6 +24,8 @@ libraryDependencies ++= Seq(
   // Optional for string interpolation to JSON model
   "io.circe" %% "circe-literal" % "{{< version circe >}}"
 )
+
+addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
 ```
 
 ### Argonaut
@@ -70,7 +72,7 @@ import org.http4s.dsl._
 
 def hello(name: String): Json =
   json"""{"hello": $name}"""
-  
+
 val greeting = hello("world")
 ```
 
@@ -130,10 +132,10 @@ Let's provide an encoder:
 
 ```tut:book
 implicit val HelloEncoder: Encoder[Hello] =
-  Encoder.instance { hello: Hello => 
+  Encoder.instance { hello: Hello =>
     json"""{"hello": ${hello.name}}"""
   }
-  
+
 Hello("Alice").asJson
 ```
 
