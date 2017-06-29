@@ -3,10 +3,12 @@ package ssl
 
 import java.nio.file.Paths
 
+import cats.syntax.option._
 import fs2._
 import org.http4s.server._
 import org.http4s.dsl._
 import org.http4s.{HttpService, Uri}
+import org.http4s.Uri.{Authority, RegName}
 import org.http4s.headers.Host
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.{ SSLKeyStoreSupport, ServerBuilder }
@@ -26,7 +28,7 @@ trait SslExampleWithRedirect extends StreamApp {
     case request =>
       request.headers.get(Host) match {
         case Some(Host(host, _)) =>
-          val baseUri = Uri.fromString(s"https://$host:$securePort/").getOrElse(uri("/"))
+          val baseUri = request.uri.copy(scheme = "https".ci.some, authority = Some(Authority(request.uri.authority.flatMap(_.userInfo), RegName(host), port = securePort.some)))
           MovedPermanently(baseUri.withPath(request.uri.path))
         case _ =>
           BadRequest()
