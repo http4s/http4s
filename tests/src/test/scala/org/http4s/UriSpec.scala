@@ -115,6 +115,16 @@ http://example.org/a file
 
   }
 
+  "Uri copy" should {
+    "support updating the schema" in {
+      uri("http://example.com/").copy(scheme = "https".ci.some) must_== uri("https://example.com/")
+      // Must add the authority to set the scheme and host
+      uri("/route/").copy(scheme = "https".ci.some, authority = Some(Authority(None, RegName("example.com")))) must_== uri("https://example.com/route/")
+      // You can add a port too
+      uri("/route/").copy(scheme = "https".ci.some, authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_== uri("https://example.com:8443/route/")
+    }
+  }
+
   "Uri toString" should {
     "render default URI" in {
       Uri().toString must be_==("")
