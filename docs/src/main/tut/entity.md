@@ -47,27 +47,25 @@ determine which of the chained decoders are to be used.
 ```tut
 import org.http4s._
 import org.http4s.dsl._
-import cats._
-import cats.implicits._
-import cats.data._
+import cats._, cats.effect._, cats.implicits._, cats.data._
 
 sealed trait Resp
 case class Audio(body: String) extends Resp
 case class Video(body: String) extends Resp
 
 val response = Ok().withBody("").withContentType(Some(MediaType.`audio/ogg`))
-val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =>
+val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =>
   EitherT {
     msg.as[String].map(s => Audio(s).asRight[DecodeFailure])
   }
 }
-val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =>
+val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =>
   EitherT {
     msg.as[String].map(s => Video(s).asRight[DecodeFailure])
   }
 }
-val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-println(response.as(bothDec).unsafeRun)
+implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
+println(response.as[Resp].unsafeRunSync)
 ```
 
 ## Presupplied Encoders/Decoders

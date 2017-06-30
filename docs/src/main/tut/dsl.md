@@ -4,8 +4,8 @@ weight: 110
 title: The http4s DSL
 ---
 
-Recall from earlier that an `HttpService` is just a type alias for
-`Kleisli[Task, Request, Response]`.  This provides a minimal
+Recall from earlier that an `HttpService[F]` is just a type alias for
+`Kleisli[F, Request[F], Response[F]]`.  This provides a minimal
 foundation for declaring services and executing them on blaze or a
 servlet container.  While this foundation is composeable, it is not
 highly productive.  Most service authors will seek a higher level DSL.
@@ -36,52 +36,54 @@ $ sbt console
 We'll need the following imports to get started:
 
 ```tut:book
+import cats.effect._
 import org.http4s._, org.http4s.dsl._
-import fs2.Task
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
-`HttpService` is declared as a simple series of case statements.  Each
+`HttpService[F]` is declared as a simple series of case statements.  Each
 case statement attempts to match and optionally extract from an
-incoming `Request`.  The code associated with the first matching case
-is used to generate a `Task[Response]`.
+incoming `Request[F]`.  The code associated with the first matching case
+is used to generate a `F[Response[F]]`.
 
 The simplest case statement matches all requests without extracting
 anything.  The right hand side of the request must return a
-`Task[Response]`.
+`F[Response[F]]`.
+
+In the following we use `cats.effect.IO` as the effect type `F`.
 
 ```tut:book
-val service = HttpService {
+val service = HttpService[IO] {
   case _ =>
-    Task.delay(Response(Status.Ok))
+    IO(Response(Status.Ok))
 }
 ```
 
 ## Testing the Service
 
-One beautiful thing about the `HttpService` model is that we don't
+One beautiful thing about the `HttpService[F]` model is that we don't
 need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
 ```tut
-val getRoot = Request(Method.GET, uri("/"))
+val getRoot = Request[IO](Method.GET, uri("/"))
 
-val task = service.run(getRoot)
+val io = service.run(getRoot)
 ```
 
-Where is our `Response`?  It hasn't been created yet.  We wrapped it
-in a `Task`.  In a real service, generating a `Response` is likely to
+Where is our `Response[F]`?  It hasn't been created yet.  We wrapped it
+in an `IO`.  In a real service, generating a `Response[F]` is likely to
 be an asynchronous operation with side effects, such as invoking
 another web service or querying a database, or maybe both.  Operating
-in a `Task` gives us control over the sequencing of operations and
+in a `F` gives us control over the sequencing of operations and
 lets us reason about our code like good functional programmers.  It is
-the `HttpService`'s job to describe the task, and the server's job to
+the `HttpService[F]`'s job to describe the task, and the server's job to
 run it.
 
 But here in the REPL, it's up to us to run it:
 
 ```tut
-val response = task.unsafeRun
+val response = io.unsafeRunSync
 ```
 
 Cool.
@@ -90,7 +92,7 @@ Cool.
 
 We'll circle back to more sophisticated pattern matching of requests,
 but it will be a tedious affair until we learn a more succinct way of
-generating `Task[Response]`s.
+generating `F[Response]`s.
 
 ### Status codes
 
@@ -98,17 +100,17 @@ http4s-dsl provides a shortcut to create a `Task[Response]` by
 applying a status code:
 
 ```tut
-val okTask = Ok()
-val ok = okTask.unsafeRun
+val okIo = Ok()
+val ok = okIo.unsafeRunSync
 ```
 
 This simple `Ok()` expression succinctly says what we mean in a
 service:
 
 ```tut:book
-HttpService {
+HttpService[IO] {
   case _ => Ok()
-}.run(getRoot).unsafeRun
+}.run(getRoot).unsafeRunSync
 ```
 
 This syntax works for other status codes as well.  In our example, we
@@ -116,9 +118,9 @@ don't return a body, so a `204 No Content` would be a more appropriate
 response:
 
 ```tut:book
-HttpService {
+HttpService[IO] {
   case _ => NoContent()
-}.run(getRoot).unsafeRun
+}.run(getRoot).unsafeRunSync
 ```
 
 ### Headers
@@ -126,7 +128,7 @@ HttpService {
 http4s adds a minimum set of headers depending on the response, e.g:
 
 ```tut
-Ok("Ok response.").unsafeRun.headers
+Ok("Ok response.").unsafeRunSync.headers
 ```
 
 Extra headers can be added using `putHeaders`, for example to specify cache policies:
@@ -139,7 +141,7 @@ import org.http4s.util.nonEmptyList
 ```
 
 ```tut
-Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRun.headers
+Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync.headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
@@ -147,7 +149,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand
 
 ```tut
-Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).unsafeRun.headers
+Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).unsafeRunSync.headers
 ```
 
 ### Cookies
@@ -156,7 +158,7 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```tut
-Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafeRun.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafeRunSync.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
@@ -164,23 +166,23 @@ Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafeRun.headers
 ```tut
 import java.time.Instant
 
-Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafeRun.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with `removeCookie`
 
 ```tut
-Ok("Ok response.").removeCookie("foo").unsafeRun.headers
+Ok("Ok response.").removeCookie("foo").unsafeRunSync.headers
 ```
 
 ### Responding with a body
 
 #### Simple bodies
 
-Most status codes take an argument as a body.  In http4s, `Request`
-and `Response` bodies are represented as a
-`fs2.Stream[Task, ByteVector]`.  It's also considered good
+Most status codes take an argument as a body.  In http4s, `Request[F]`
+and `Response[F]` bodies are represented as a
+`fs2.Stream[F, ByteVector]`.  It's also considered good
 HTTP manners to provide a `Content-Type` and, where known in advance,
 `Content-Length` header in one's responses.
 
@@ -191,10 +193,10 @@ implicit `EntityEncoder` in scope.  http4s provides several out of the
 box:
 
 ```tut
-Ok("Received request.").unsafeRun
+Ok("Received request.").unsafeRunSync
 
 import java.nio.charset.StandardCharsets.UTF_8
-Ok("binary".getBytes(UTF_8)).unsafeRun
+Ok("binary".getBytes(UTF_8)).unsafeRunSync
 ```
 
 Per the HTTP specification, some status codes don't support a body.
@@ -218,34 +220,33 @@ You can seamlessly respond with a `Future` of any type that has an
 `EntityEncoder`.
 
 ```tut
-val task = Ok(Future {
+val io = Ok(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
 })
-task.unsafeRun
+io.unsafeRunSync
 ```
 
 As good functional programmers who like to delay our side effects, we
-of course prefer to operate in [Task]s:
+of course prefer to operate in [F]s:
 
 ```tut
-implicit val strategy = fs2.Strategy.fromFixedDaemonPool(2, threadName = "strategy")
-val task = Ok(Task {
+val io = Ok(IO {
   println("I run when the Task is run.")
   "Mission accomplished!"
 })
-task.unsafeRun
+io.unsafeRunSync
 ```
 
 Note that in both cases, a `Content-Length` header is calculated.
-http4s waits for the `Future` or `Task` to complete before wrapping it
+http4s waits for the `Future` or `F` to complete before wrapping it
 in its HTTP envelope, and thus has what it needs to calculate a
 `Content-Length`.
 
 #### Streaming bodies
 
 Streaming bodies are supported by returning a `fs2.Stream`.
-Like `Future`s and `Task`s, the stream may be of any type that has an
+Like `Future`s and `IO`s, the stream may be of any type that has an
 `EntityEncoder`.
 
 An intro to `Stream` is out of scope, but we can glimpse the
@@ -256,24 +257,24 @@ for one second:
 implicit val scheduler = fs2.Scheduler.fromFixedDaemonPool(2, threadName = "scheduler")
 val drip = {
   import scala.concurrent.duration._
-  fs2.time.awakeEvery[Task](100.millis).map(_.toString).take(10)
+  fs2.time.awakeEvery[IO](100.millis).map(_.toString).take(10)
 }
 ```
 
 We can see it for ourselves in the REPL:
 
 ```tut
-val dripOutTask = drip.through(fs2.text.lines).through(_.evalMap(s => {Task.delay{println(s); s}})).run
-dripOutTask.unsafeRun
+val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s => {IO{println(s); s}})).run
+dripOutIO.unsafeRunSync
 ```
 
-When wrapped in a `Response`, http4s will flush each chunk of a
+When wrapped in a `Response[F]`, http4s will flush each chunk of a
 `Stream` as they are emitted.  Note that a stream's length can't
 generally be anticipated before it runs, so this triggers chunked
 transfer encoding:
 
 ```tut
-Ok(drip).unsafeRun
+Ok(drip).unsafeRunSync
 ```
 
 ## Matching and extracting requests
@@ -289,7 +290,7 @@ other side the path. Naturally, `_` is a valid matcher too, so any call to
 `/api` can be blocked, regardless of `Method`:
 
 ```tut
-HttpService {
+HttpService[IO] {
   case request @ _ -> Root / "api" => Forbidden()
 }
 ```
@@ -298,7 +299,7 @@ To also block all subcalls `/api/...`, you'll need `/:`, which is right
 associative, and matches everything after, and not just the next element:
 
 ```tut
-HttpService {
+HttpService[IO] {
   case request @ _ -> "api" /: _ => Forbidden()
 }
 ```
@@ -306,7 +307,7 @@ HttpService {
 For matching more than one `Method`, there's `|`:
 
 ```tut
-HttpService {
+HttpService[IO] {
   case request @ (GET | POST) -> Root / "api"  => ???
 }
 ```
@@ -314,7 +315,7 @@ HttpService {
 Honorable mention: `~`, for matching file extensions.
 
 ```tut
-HttpService {
+HttpService[IO] {
   case GET -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
 }
 ```
@@ -325,11 +326,9 @@ Path params can be extracted and converted to a specific type but are
 of `IntVar` and `LongVar`.
 
 ```tut:book
-import fs2.Task
+def getUserName(userId: Int): IO[String] = ???
 
-def getUserName(userId: Int): Task[String] = ???
-
-val usersService = HttpService {
+val usersService = HttpService[IO] {
   case request @ GET -> Root / "users" / IntVar(userId) =>
     Ok(getUserName(userId))
 }
@@ -342,7 +341,6 @@ in which `IntVar` does it.
 ```tut:book
 import java.time.LocalDate
 import scala.util.Try
-import fs2.Task
 import org.http4s.client._
 
 object LocalDateVar {
@@ -354,14 +352,14 @@ object LocalDateVar {
   }
 }
 
-def getTemperatureForecast(date: LocalDate): Task[Double] = Task(42.23)
+def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
-val dailyWeatherService = HttpService {
+val dailyWeatherService = HttpService[IO] {
   case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService(_)).unsafeRun)
+println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService(_)).unsafeRunSync)
 ```
 
 ### Handling query parameters
@@ -389,9 +387,9 @@ implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 
-def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double] = ???
+def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
 
-val averageTemperatureService = HttpService {
+val averageTemperatureService = HttpService[IO] {
   case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }

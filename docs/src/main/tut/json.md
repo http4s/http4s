@@ -62,6 +62,7 @@ bases its codecs on runtime reflection.
 Let's create a function to produce a simple JSON greeting with circe:
 
 ```tut:book
+import cats.effect._
 import io.circe._
 import io.circe.literal._
 import org.http4s._
@@ -76,7 +77,7 @@ val greeting = hello("world")
 We now have a JSON value, but we don't have enough to render it:
 
 ```tut:fail
-Ok(greeting).unsafeRun
+Ok(greeting).unsafeRunSync
 ```
 
 To encode a Scala value of type `A` into an entity, we need an
@@ -87,7 +88,7 @@ To encode a Scala value of type `A` into an entity, we need an
 ```tut:book
 import org.http4s.circe._
 
-Ok(greeting).unsafeRun
+Ok(greeting).unsafeRunSync
 ```
 
 The same `EntityEncoder[Json]` we use on server responses is also
@@ -96,7 +97,7 @@ useful on client requests:
 ```tut:book
 import org.http4s.client._
 
-POST(uri("/hello"), json"""{"name": "Alice"}""").unsafeRun
+POST(uri("/hello"), json"""{"name": "Alice"}""").unsafeRunSync
 ```
 
 ## Encoding case classes as JSON
@@ -150,8 +151,8 @@ Equipped with an `Encoder` and `.asJson`, we can send JSON in requests
 and responses for our case classes:
 
 ```tut:book
-Ok(Hello("Alice").asJson).unsafeRun
-POST(uri("/hello"), User("Bob").asJson).unsafeRun
+Ok(Hello("Alice").asJson).unsafeRunSync
+POST(uri("/hello"), User("Bob").asJson).unsafeRunSync
 ```
 
 ## Receiving raw JSON
@@ -164,8 +165,8 @@ The `org.http4s.circe._` package provides an implicit
 response body to JSON using the [`as` syntax]:
 
 ```tut:book
-Ok("""{"name":"Alice"}""").as[Json].unsafeRun
-POST(uri("/hello"),"""{"name":"Bob"}""").as[Json].unsafeRun
+Ok("""{"name":"Alice"}""").as[Json].unsafeRunSync
+POST(uri("/hello"),"""{"name":"Bob"}""").as[Json].unsafeRunSync
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -180,8 +181,9 @@ the way from HTTP to your type `A`.  Specifically, `jsonOf[A]` takes
 an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 
 ```tut:book
-Ok("""{"name":"Alice"}""").as(jsonOf[User]).unsafeRun
-POST(uri("/hello"), """{"name":"Bob"}""").as(jsonOf[User]).unsafeRun
+implicit val userDecoder = jsonOf[IO, User]
+Ok("""{"name":"Alice"}""").as[User].unsafeRunSync
+POST(uri("/hello"), """{"name":"Bob"}""").as[User].unsafeRunSync
 ```
 
 Note the argument to `as` is in parentheses instead of square
@@ -197,6 +199,8 @@ Our hello world service will parse a `User` from a request and offer a
 proper greeting.
 
 ```tut:silent
+import cats.effect._
+
 import io.circe._
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -208,19 +212,21 @@ import org.http4s.dsl._
 case class User(name: String)
 case class Hello(greeting: String)
 
-val jsonService = HttpService {
+implicit val decoder = jsonOf[IO, User]
+
+val jsonService = HttpService[IO] {
   case req @ POST -> Root / "hello" =>
     for {
 	  // Decode a User request
-	  user <- req.as(jsonOf[User])
+	  user <- req.as[User]
 	  // Encode a hello response
 	  resp <- Ok(Hello(user.name).asJson)
     } yield (resp)
 }
 
 import org.http4s.server.blaze._
-val builder = BlazeBuilder.bindHttp(8080).mountService(jsonService, "/")
-val blazeServer = builder.run
+val builder = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").start
+val blazeServer = builder.unsafeRunSync
 ```
 
 ## A Hello world client
@@ -229,15 +235,14 @@ Now let's make a client for the service above:
 
 ```tut:silent
 import org.http4s.client.blaze._
-import fs2.Task
 
-val httpClient = PooledHttp1Client()
+val httpClient = PooledHttp1Client[IO]()
 // Decode the Hello response
-def helloClient(name: String): Task[Hello] = {
+def helloClient(name: String): IO[Hello] = {
   // Encode a User request
   val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
   // Decode a Hello response
-  httpClient.expect(req)(jsonOf[Hello])
+  httpClient.expect(req)(jsonOf[IO, Hello])
 }
 ```
 
@@ -246,12 +251,12 @@ Finally, we post `User("Alice")` to our Hello service and expect
 
 ```tut:book
 val helloAlice = helloClient("Alice")
-helloAlice.unsafeRun
+helloAlice.unsafeRunSync
 ```
 
 ```tut:invisible
 httpClient.shutdownNow()
-blazeServer.shutdownNow()
+blazeServer.shutdown.unsafeRunSync()
 ```
 
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless

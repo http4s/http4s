@@ -27,18 +27,18 @@ libraryDependencies ++= Seq(
 Then we create the [service] again so tut picks it up:
 
 ```tut:book
+import cats.effect._
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.blaze._
 
-val service = HttpService {
+val service = HttpService[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
 
-import org.http4s.server.syntax._
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-val server = builder.run
+val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(service, "/").start
+val server = builder.unsafeRunSync
 ```
 
 ### Creating the client
@@ -50,7 +50,7 @@ speaks HTTP 1.x.
 ```tut:book
 import org.http4s.client.blaze._
 
-val httpClient = PooledHttp1Client()
+val httpClient = PooledHttp1Client[IO]()
 ```
 
 ### Describing a call
@@ -62,13 +62,13 @@ and the URI we want:
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
 ```
 
-Note that we don't have any output yet.  We have a `Task[String]`, to
+Note that we don't have any output yet.  We have a `IO[String]`, to
 represent the asynchronous nature of a client request.
 
 Furthermore, we haven't even executed the request yet.  A significant
-difference between a `Task` and a `scala.concurrent.Future` is that a
+difference between a `IO` and a `scala.concurrent.Future` is that a
 `Future` starts running immediately on its implicit execution context,
-whereas a `Task` runs when it's told.  Executing a request is an
+whereas a `IO` runs when it's told.  Executing a request is an
 example of a side effect.  In functional programming, we prefer to
 build a description of the program we're going to run, and defer its
 side effects to the end.
@@ -77,42 +77,36 @@ Let's describe how we're going to greet a collection of people in
 parallel:
 
 ```tut:book
-import fs2.Task
-import fs2.Strategy
-import fs2.interop.cats._
-import cats._
-import cats.implicits._
+import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
+import scala.concurrent.ExecutionContext.Implicits.global
 
-// fs2 `Async` needs an implicit `Strategy`
-implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
-
-def hello(name: String): Task[String] = {
+def hello(name: String): IO[String] = {
   val target = Uri.uri("http://localhost:8080/hello/") / name
   httpClient.expect[String](target)
 }
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 
-val greetingList = Task.parallelTraverse(people)(hello)
+val greetingList = fs2.async.parallelTraverse(people)(hello)
 ```
 
-Observe how simply we could combine a single `Task[String]` returned
-by `hello` into a scatter-gather to return a `Task[List[String]]`.
+Observe how simply we could combine a single `F[String]` returned
+by `hello` into a scatter-gather to return a `F[List[String]]`.
 
 ## Making the call
 
-It is best to run your `Task` "at the end of the world."  The "end of
+It is best to run your `F` "at the end of the world."  The "end of
 the world" varies by context:
 
 * In a command line app, it's your main method.
-* In an `HttpService`, a `Task[Response]` is returned to be run by the
+* In an `HttpService[F]`, an `F[Response[F]]` is returned to be run by the
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
 val greetingsStringTask = greetingList.map(_.mkString("\n"))
-greetingsStringTask.unsafeRun
+greetingsStringTask.unsafeRunSync
 ```
 
 ## Cleaning up
@@ -125,7 +119,7 @@ httpClient.shutdownNow()
 ```
 
 ```tut:book:invisible
-server.shutdownNow()
+server.shutdown.unsafeRunSync
 ```
 
 ## Calls to a JSON API
@@ -137,15 +131,15 @@ Take a look at [json].
 The reusable way to decode/encode a request is to write a custom `EntityDecoder`
 and `EntityEncoder`. For that topic, take a look at [entity].
 
-If you prefer the quick & dirty solution, some of the methods take a `Response
-=> Task[A]` argument, which lets you add a function which includes the decoding
+If you prefer the quick & dirty solution, some of the methods take a `Response[F]
+=> F[A]` argument, which lets you add a function which includes the decoding
 functionality, but ignores the media type.
 
 ```scala
 TODO: Example here
 ```
 
-However, your function has to consume the body before the returned `Task` exits.
+However, your function has to consume the body before the returned `F` exits.
 Don't do this:
 
 ```scala
