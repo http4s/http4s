@@ -24,9 +24,8 @@ import scala.util.{Failure, Success}
 
 private final class Http1Connection[F[_]](val requestKey: RequestKey,
                                           config: BlazeClientConfig,
-                                          executor: ExecutorService,
-                                          protected val ec: ExecutionContext)
-                                         (implicit protected val F: Effect[F])
+                                          protected val executionContext: ExecutionContext)
+                                         (implicit val F: Effect[F])
   extends Http1Stage[F] with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
 
@@ -168,7 +167,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
         cb(Left(t))
-    }(ec)
+    }(executionContext)
   }
 
   private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, doesntHaveBody: Boolean, cb: Callback[Response[F]]): Unit = {
@@ -228,7 +227,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
             cleanup()
             attributes -> rawBody
           } else {
-            attributes -> rawBody.onFinalize(Stream.eval_(F.shift(ec) >> F.delay { trailerCleanup(); cleanup(); stageShutdown() }).run)
+            attributes -> rawBody.onFinalize(Stream.eval_(F.shift(executionContext) >> F.delay { trailerCleanup(); cleanup(); stageShutdown() }).run)
           }
         }
         cb(Right(

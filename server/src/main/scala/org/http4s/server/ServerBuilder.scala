@@ -2,13 +2,13 @@ package org.http4s
 package server
 
 import java.net.{InetAddress, InetSocketAddress}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import cats.effect._
 import fs2._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 trait ServerBuilder[F[_]] {
@@ -25,7 +25,7 @@ trait ServerBuilder[F[_]] {
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
 
-  def withServiceExecutor(executorService: ExecutorService): Self
+  def withExecutionContext(executionContext: ExecutionContext): Self
 
   def mountService(service: HttpService[F], prefix: String = ""): Self
 

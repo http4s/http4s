@@ -58,14 +58,14 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage[F](ws.get)(F, ExecutionContext.fromExecutor(ec)))
+                val segment = LeafBuilder(new Http4sWSStage[F](ws.get)(F, executionContext))
                               .prepend(new WSFrameAggregator)
                               .prepend(new WebSocketDecoder(false))
 
                 this.replaceInline(segment)
 
               case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
-            }(ec)
+            }(executionContext)
         }
 
       } else super.renderResponse(req, resp, cleanup)

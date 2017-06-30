@@ -6,7 +6,6 @@ import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 
 import cats._
@@ -18,14 +17,15 @@ import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultPool
+import org.http4s.util.threads.DefaultExecutionContext
 import org.log4s.getLogger
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class BlazeBuilder[F[_]](
   socketAddress: InetSocketAddress,
-  serviceExecutor: ExecutorService,
+  executionContext: ExecutionContext,
   idleTimeout: Duration,
   isNio2: Boolean,
   connectorPoolSize: Int,
@@ -49,7 +49,7 @@ class BlazeBuilder[F[_]](
   private[this] val logger = getLogger(classOf[BlazeBuilder[F]])
 
   private def copy(socketAddress: InetSocketAddress = socketAddress,
-                 serviceExecutor: ExecutorService = serviceExecutor,
+                executionContext: ExecutionContext = executionContext,
                      idleTimeout: Duration = idleTimeout,
                           isNio2: Boolean = isNio2,
                connectorPoolSize: Int = connectorPoolSize,
@@ -60,7 +60,7 @@ class BlazeBuilder[F[_]](
                maxRequestLineLen: Int = maxRequestLineLen,
                    maxHeadersLen: Int = maxHeadersLen,
                    serviceMounts: Vector[ServiceMount[F]] = serviceMounts): Self =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
+    new BlazeBuilder(socketAddress, executionContext, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
 
   /** Configure HTTP parser length limits
     *
@@ -91,8 +91,9 @@ class BlazeBuilder[F[_]](
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  override def withServiceExecutor(serviceExecutor: ExecutorService): Self =
-    copy(serviceExecutor = serviceExecutor)
+
+  override def withExecutionContext(ec: ExecutionContext): BlazeBuilder[F] =
+    copy(executionContext = executionContext)
 
   override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
 
@@ -146,10 +147,10 @@ class BlazeBuilder[F[_]](
         }
 
       def http1Stage(secure: Boolean) =
-        Http1ServerStage(aggregateService, requestAttributes(secure = secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
+        Http1ServerStage(aggregateService, requestAttributes(secure = secure), executionContext, enableWebSockets, maxRequestLineLen, maxHeadersLen)
 
       def http2Stage(engine: SSLEngine) =
-        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), serviceExecutor)
+        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), executionContext)
 
       def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
         if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
@@ -247,7 +248,7 @@ object BlazeBuilder {
   def apply[F[_]](implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
-      serviceExecutor = DefaultPool,
+      executionContext = DefaultExecutionContext,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
       connectorPoolSize = channel.defaultPoolSize,

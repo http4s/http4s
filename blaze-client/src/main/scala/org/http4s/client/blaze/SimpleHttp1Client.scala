@@ -12,10 +12,10 @@ object SimpleHttp1Client {
     * @param config blaze configuration object
     */
   def apply[F[_]: Effect](config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
+    val (executionContext, shutdown) = bits.getExecutionContext(config)
+    val manager: ConnectionManager[F, BlazeConnection[F]] =
+      ConnectionManager.basic(Http1Support(config, executionContext))
 
-    val (ex, shutdown) = bits.getExecutor(config)
-
-    val manager: ConnectionManager[F, BlazeConnection[F]] = ConnectionManager.basic(Http1Support(config, ex))
     BlazeClient(manager, config, manager.shutdown() >> shutdown)
   }
 }
