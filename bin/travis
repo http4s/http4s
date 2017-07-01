@@ -46,5 +46,12 @@ sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVI
 
 echo "Uploading codecov"
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
-   bash <(curl -s https://codecov.io/bash)
+    # `env -u` to unset sensitive environment variables the Codecov script does not need to see
+    env \
+        -u encrypted_8735ae5b3321_iv \
+        -u encrypted_8735ae5b3321_key \
+        -u GITTER_WEBHOOK_URL \
+        -u SONATYPE_PASSWORD \
+        -u SONATYPE_USERNAME \
+        bash <(curl -s https://codecov.io/bash)
 fi
