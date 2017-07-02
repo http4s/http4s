@@ -7,6 +7,7 @@ import java.util.Locale
 
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
+import scala.concurrent.duration.FiniteDuration
 
 import cats.data.NonEmptyList
 import fs2._
@@ -37,6 +38,12 @@ object Renderer {
     override def render(writer: Writer, t: Instant): writer.type =
       writer << dateFormat.format(t)
 
+  }
+
+  // Render a finite duration in seconds
+  implicit val finiteDurationRenderer: Renderer[FiniteDuration] = new Renderer[FiniteDuration] {
+    override def render(writer: Writer, d: FiniteDuration): writer.type =
+      writer << d.toSeconds.toString
   }
 
   implicit def eitherRenderer[A, B](implicit ra: Renderer[A], rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {

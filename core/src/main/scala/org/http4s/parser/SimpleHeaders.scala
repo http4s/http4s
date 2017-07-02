@@ -94,6 +94,12 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
+  def AGE(value: String): ParseResult[Age] = new Http4sHeaderParser[Age](value) {
+    def entry = rule {
+      Digits ~ EOL ~> ((t: String) => Age(FiniteDuration(t.toLong, SECONDS)))
+    }
+  }.parse
+
 //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
@@ -114,7 +120,7 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
    */
-  
+
   def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] =
     new Http4sHeaderParser[`Last-Modified`](value) {
       def entry = rule {
