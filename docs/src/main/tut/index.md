@@ -84,7 +84,7 @@ Content-Length: 26
 
 To shut down your server, simply press `^C` in your console. Note that
 when running interactive SBT, `^C` will kill the SBT process. For rapid
-application development, you may wish to add the [sbt-resolver] plugin
+application development, you may wish to add the [sbt-revolver] plugin
 to your project and starting the server from the SBT prompt with `re-start`.
 
 With just a few commands, we have a fully functional app for creating
@@ -92,4 +92,4 @@ a simple JSON service.
 
 [giter8 template]: https://github.com/http4s/http4s.g8
 [versions]: /versions/
-[sbt-resolver]: https://github.com/spray/sbt-revolver
+[sbt-revolver]: https://github.com/spray/sbt-revolver
