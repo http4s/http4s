@@ -3,7 +3,6 @@ package server
 package blaze
 
 import java.nio.ByteBuffer
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLEngine
 
 import cats.effect.Effect

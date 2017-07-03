@@ -9,8 +9,6 @@
 
 package org.http4s
 
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
-
 import cats.MonadError
 import cats.effect.IO
 
@@ -111,11 +109,8 @@ trait Http4sSpec extends Specification
 }
 
 object Http4sSpec {
-  val TestPool: ExecutorService =
-    newDaemonPool("http4s-spec", timeout = true)
-
   val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(TestPool)
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
   val TestScheduler: Scheduler =
     Scheduler.fromFixedDaemonPool(4)

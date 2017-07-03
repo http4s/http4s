@@ -4,7 +4,6 @@ package blaze
 
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import cats.effect._

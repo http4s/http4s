@@ -2,7 +2,6 @@ package org.http4s.client.blaze
 
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
-import java.util.concurrent._
 import javax.net.ssl.{SSLContext, X509TrustManager}
 
 import cats.effect.Sync

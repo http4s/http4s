@@ -2,12 +2,10 @@ package org.http4s
 package servlet
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ExecutorService
 import javax.servlet._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import cats.effect._
-import cats.effect.implicits._
 import cats.implicits._
 import fs2.async
 import org.http4s.headers.`Transfer-Encoding`
@@ -118,8 +116,7 @@ class Http4sServlet[F[_]](service: HttpService[F],
           F.pure(())
         }
       } { _ =>
-        ctx.complete()
-        IO.unit
+        IO(ctx.complete())
       }
     }
   }
@@ -149,8 +146,9 @@ class Http4sServlet[F[_]](service: HttpService[F],
       async
         .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter)) { _ =>
           if (servletRequest.isAsyncStarted)
-            servletRequest.getAsyncContext.complete()
-          IO.unit
+            IO(servletRequest.getAsyncContext.complete())
+          else
+            IO.unit
         }
   }
 

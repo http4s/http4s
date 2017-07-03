@@ -3,8 +3,8 @@ package client
 package blaze
 
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.{ExecutorService, TimeoutException}
 
 import cats.effect._
 import cats.implicits._

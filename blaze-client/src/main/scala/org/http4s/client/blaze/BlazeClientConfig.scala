@@ -2,7 +2,6 @@ package org.http4s.client
 package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import org.http4s.headers.`User-Agent`

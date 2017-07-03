@@ -6,7 +6,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import cats.effect._
-import org.http4s.Http4sSpec.TestPool
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.client.blaze.bits.DefaultUserAgent
