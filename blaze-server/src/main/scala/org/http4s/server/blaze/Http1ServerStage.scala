@@ -4,7 +4,6 @@ package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.ExecutorService
 
 import cats.effect.{Effect, IO}
 import cats.implicits._
@@ -27,18 +26,18 @@ private object Http1ServerStage {
 
   def apply[F[_]: Effect](service: HttpService[F],
             attributes: AttributeMap,
-            pool: ExecutorService,
+            executionContext: ExecutionContext,
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
             maxHeadersLen: Int): Http1ServerStage[F] = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen) with WebSocketSupport[F]
-    else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
+    if (enableWebSockets) new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen) with WebSocketSupport[F]
+    else                  new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen)
   }
 }
 
 private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
                                             requestAttrs: AttributeMap,
-                                            pool: ExecutorService,
+                                            implicit protected val executionContext: ExecutionContext,
                                             maxRequestLineLen: Int,
                                             maxHeadersLen: Int)
                                            (implicit protected val F: Effect[F])
@@ -47,8 +46,6 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
-
-  protected implicit val ec = ExecutionContext.fromExecutorService(pool)
 
   val name = "Http4sServerStage"
 

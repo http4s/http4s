@@ -17,9 +17,9 @@ object PooledHttp1Client {
   def apply[F[_]: Effect](maxTotalConnections: Int = DefaultMaxTotalConnections,
                           config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
 
-    val (ex, shutdown) = bits.getExecutor[F](config)
-    val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config, ex)
-    val pool = ConnectionManager.pool(http1, maxTotalConnections, ex)
+    val (executionContext, shutdown) = bits.getExecutionContext[F](config)
+    val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config, executionContext)
+    val pool = ConnectionManager.pool(http1, maxTotalConnections, executionContext)
     BlazeClient(pool, config, pool.shutdown() >> shutdown)
   }
 }

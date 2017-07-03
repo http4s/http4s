@@ -6,7 +6,7 @@ import javax.servlet.{ServletContext, ServletRegistration}
 
 import cats.effect._
 import org.http4s.server.AsyncTimeoutSupport
-import org.http4s.util.threads.DefaultPool
+import org.http4s.util.threads.DefaultExecutionContext
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps = new ServletContextOps(self)
@@ -18,7 +18,7 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
     val servlet = new Http4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-      threadPool = DefaultPool,
+      executionContext = DefaultExecutionContext,
       servletIo = servletIo
     )
     val reg = self.addServlet(name, servlet)

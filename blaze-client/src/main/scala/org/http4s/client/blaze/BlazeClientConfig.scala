@@ -2,11 +2,11 @@ package org.http4s.client
 package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import org.http4s.headers.`User-Agent`
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 /** Config object for the blaze clients
@@ -47,7 +47,7 @@ final case class BlazeClientConfig(// HTTP properties
 
                                    // pipeline management
                                    bufferSize: Int,
-                                   customExecutor: Option[ExecutorService],
+                                   customExecutionContext: Option[ExecutionContext],
                                    group: Option[AsynchronousChannelGroup]
 ) {
   @deprecated("Parameter has been renamed to `checkEndpointIdentification`", "0.16")
@@ -71,7 +71,7 @@ object BlazeClientConfig {
       lenientParser = false,
 
       bufferSize = bits.DefaultBufferSize,
-      customExecutor = None,
+      customExecutionContext = None,
       group = None
     )
 

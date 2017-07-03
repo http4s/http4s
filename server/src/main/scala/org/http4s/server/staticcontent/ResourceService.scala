@@ -2,12 +2,11 @@ package org.http4s
 package server
 package staticcontent
 
-import java.util.concurrent.ExecutorService
-
-import cats._
 import cats.effect._
 import cats.implicits._
-import org.http4s.util.threads.DefaultPool
+import org.http4s.util.threads.DefaultExecutionContext
+
+import scala.concurrent.ExecutionContext
 
 object ResourceService {
 
@@ -16,20 +15,20 @@ object ResourceService {
     * @param basePath prefix of the path files will be served from
     * @param pathPrefix prefix of the Uri that content will be served from
     * @param bufferSize size hint of internal buffers to use when serving resources
-    * @param executor `ExecutorService` to use when collecting content
+    * @param executionContext `ExecutionContext` to use when collecting content
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](basePath: String,
                                 pathPrefix: String = "",
                                 bufferSize: Int = 50*1024,
-                                executor: ExecutorService = DefaultPool,
+                                executionContext: ExecutionContext = DefaultExecutionContext,
                                 cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
   private[staticcontent] def apply[F[_]](config: Config[F])
-                                        (implicit F: Monad[F], S: Sync[F]): HttpService[F] =
+                                        (implicit F: Sync[F]): HttpService[F] =
     Service.lift { req =>
-      implicit val executor = config.executor
+      implicit val executionContext = config.executionContext
       val uriPath = req.pathInfo
       if (!uriPath.startsWith(config.pathPrefix))
         Pass.pure[F]

@@ -3,7 +3,6 @@ package server
 package blaze
 
 import java.util.Locale
-import java.util.concurrent.ExecutorService
 
 import cats.effect.{Effect, IO}
 import cats.implicits._
@@ -26,7 +25,7 @@ import scala.util._
 
 private class Http2NodeStage[F[_]](streamId: Int,
                                    timeout: Duration,
-                                   executor: ExecutorService,
+                                   implicit private val executionContext: ExecutionContext,
                                    attributes: AttributeMap,
                                    service: HttpService[F])
                                   (implicit F: Effect[F])
@@ -34,8 +33,6 @@ private class Http2NodeStage[F[_]](streamId: Int,
 
   import Http2StageTools._
   import NodeMsg.{DataFrame, HeadersFrame}
-
-  private implicit def ec = ExecutionContext.fromExecutor(executor)   // for all the onComplete calls
 
   override def name = "Http2NodeStage"
 
@@ -221,7 +218,7 @@ private class Http2NodeStage[F[_]](streamId: Int,
       }
     }
 
-    new Http2Writer(this, hs, ec).writeEntityBody(resp.body).attempt.map {
+    new Http2Writer(this, hs, executionContext).writeEntityBody(resp.body).attempt.map {
       case Right(_)      => shutdownWithCommand(Cmd.Disconnect)
       case Left(Cmd.EOF) => stageShutdown()
       case Left(t)       => shutdownWithCommand(Cmd.Error(t))

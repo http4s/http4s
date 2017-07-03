@@ -3,14 +3,15 @@ package server
 package staticcontent
 
 import java.io.File
-import java.util.concurrent.ExecutorService
 
 import cats.data._
 import cats.effect._
 import cats.implicits._
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
-import org.http4s.util.threads.DefaultPool
+import org.http4s.util.threads.DefaultExecutionContext
+
+import scala.concurrent.ExecutionContext
 
 object FileService {
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => F[Option[Response[F]]]
@@ -21,24 +22,24 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param executor `ExecutorService` to use when collecting content
+    * @param executionContext `ExecutionContext` to use when collecting content
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](systemPath: String,
                                 pathCollector: PathCollector[F],
                                 pathPrefix: String,
                                 bufferSize: Int,
-                                executor: ExecutorService,
+                                executionContext: ExecutionContext,
                                 cacheStrategy: CacheStrategy[F])
 
   object Config {
     def apply[F[_]: Sync](systemPath: String,
                           pathPrefix: String = "",
                           bufferSize: Int = 50 * 1024,
-                          executor: ExecutorService = DefaultPool,
+                          executionContext: ExecutionContext = DefaultExecutionContext,
                           cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
       val pathCollector: PathCollector[F] = filesOnly
-      Config(systemPath, pathCollector, pathPrefix, bufferSize, executor, cacheStrategy)
+      Config(systemPath, pathCollector, pathPrefix, bufferSize, executionContext, cacheStrategy)
     }
   }
 
