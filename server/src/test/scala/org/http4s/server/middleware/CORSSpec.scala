@@ -23,7 +23,14 @@ class CORSSpec extends Http4sSpec {
     anyOrigin = false,
     allowCredentials = false,
     maxAge = 0,
-    allowedOrigins = Some(Set("http://allowed.com/"))))
+    allowedOrigins = Set("http://allowed.com/"),
+    allowedHeaders = Some(
+      Set(
+        "User-Agent",
+        "Keep-Alive",
+        "Content-Type")),
+      exposedHeaders = Some(
+      Set("x-header"))))
 
   def headerCheck(h: Header) = h is `Access-Control-Max-Age`
   def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String) =
@@ -43,20 +50,53 @@ class CORSSpec extends Http4sSpec {
 
     "Respect Access-Control-Allow-Credentials" in {
       val req = buildRequest("/foo")
-      cors1.orNotFound(req).map((resp: Response[IO]) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRunSync()
-      cors2.orNotFound(req).map((resp: Response[IO]) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRunSync()
+      cors1.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRunSync()
+      cors2.orNotFound(req).map(resp => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRunSync()
+    }
+
+    "Respect Access-Control-Allow-Headers in preflight call" in {
+      val req = buildRequest("/foo", OPTIONS)
+      cors2.orNotFound(req).map { resp =>
+        matchHeader(resp.headers, `Access-Control-Allow-Headers`, "User-Agent, Keep-Alive, Content-Type")
+      }.unsafeRunSync()
+    }
+
+    "Respect Access-Control-Expose-Headers in non-preflight call" in {
+      val req = buildRequest("/foo")
+      cors2.orNotFound(req).map { resp =>
+        matchHeader(resp.headers, `Access-Control-Expose-Headers`, "x-header")
+      }.unsafeRunSync()
+    }
+
+    "Respect Access-Control-Allow-Headers in preflight call" in {
+      val req = buildRequest("/foo", OPTIONS)
+      cors2.orNotFound(req).map { resp =>
+        matchHeader(resp.headers, `Access-Control-Allow-Headers`, "User-Agent, Keep-Alive, Content-Type")
+      }.unsafeRunSync()
+    }
+
+    "Respect Access-Control-Expose-Headers in non-preflight call" in {
+      val req = buildRequest("/foo")
+      cors2.orNotFound(req).map{ resp =>
+        matchHeader(resp.headers, `Access-Control-Expose-Headers`, "x-header")
+      }.unsafeRunSync()
     }
 
     "Offer a successful reply to OPTIONS on fallthrough" in {
       val req = buildRequest("/unexistant", OPTIONS)
-      cors1.orNotFound(req).map((resp: Response[IO]) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRunSync()
-      cors2.orNotFound(req).map((resp: Response[IO]) => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRunSync()
+      cors1.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).unsafeRunSync()
+      cors2.orNotFound(req).map(resp => resp.status.isSuccess && matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).unsafeRunSync()
     }
 
     "Always respond with 200 and empty body for OPTIONS request" in {
       val req = buildRequest("/bar", OPTIONS)
       cors1.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafeRunSync()
       cors2.orNotFound(req).map(_.headers must contain(headerCheck _)).unsafeRunSync()
+    }
+
+    "Respond with 403 when origin is not valid" in {
+      val req = buildRequest("/bar").replaceAllHeaders(Header("Origin", "http://blah.com/"))
+      cors2.orNotFound(req).map(resp => resp.status.code == 403).unsafeRunSync()
     }
 
     "Fall through" in {

@@ -20,7 +20,7 @@ object AutoSlash {
         if (p.isEmpty || p.charAt(p.length - 1) != '/')
           F.pure(Pass[F])
         else {
-          val withSlash = req.copy(uri = req.uri.copy(path = p.substring(0, p.length - 1)))
+          val withSlash = req.withUri(req.uri.copy(path = p.substring(0, p.length - 1)))
           service.apply(withSlash)
         }
       case resp =>

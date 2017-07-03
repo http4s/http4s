@@ -248,7 +248,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-      route(req.copy(body = chunk(Chunk.bytes(binData))))
+      route(req.withBody(chunk(Chunk.bytes(binData))))
 
     "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo", "bar")
@@ -259,8 +259,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
             }
         }.unsafeRunSync
 
-        readTextFile(tmpFile) must_== (new String(binData))
-        response.status must_== (Status.Ok)
+        readTextFile(tmpFile) must_== new String(binData)
+        response.status must_== Status.Ok
         getBody(response.body) must returnValue("Hello".getBytes)
       } finally {
         tmpFile.delete()
@@ -280,7 +280,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
         response must beStatus(Status.Ok)
         getBody(response.body) must returnValue("Hello".getBytes)
-        readFile(tmpFile) must_== (binData)
+        readFile(tmpFile) must_== binData
       } finally {
         tmpFile.delete()
         ()

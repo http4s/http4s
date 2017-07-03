@@ -42,7 +42,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   def isBodyPure: Boolean =
     body.unemit._2.isHalt
    */
-  
+
   def attributes: AttributeMap
 
   protected def change(body: EntityBody[F] = body,
@@ -116,7 +116,7 @@ object Message {
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-final case class Request[F[_]](
+sealed abstract case class Request[F[_]](
   method: Method = Method.GET,
   uri: Uri = Uri(path = "/"),
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
@@ -128,8 +128,50 @@ final case class Request[F[_]](
 
   type Self = Request[F]
 
+  private def requestCopy(
+      method: Method = this.method,
+      uri: Uri = this.uri,
+      httpVersion: HttpVersion = this.httpVersion,
+      headers: Headers = this.headers,
+      body: EntityBody[F] = this.body,
+      attributes: AttributeMap = this.attributes
+    ): Request[F] =
+    Request(
+      method = method,
+      uri = uri,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    )
+
+  @deprecated(message = "Copy method is unsafe for setting path info. Use with... methods instead", "0.17.0-M3")
+  def copy(
+    method: Method = this.method,
+    uri: Uri = this.uri,
+    httpVersion: HttpVersion = this.httpVersion,
+    headers: Headers = this.headers,
+    body: EntityBody[F] = this.body,
+    attributes: AttributeMap = this.attributes
+  ): Request[F] =
+    requestCopy(
+      method = method,
+      uri = uri,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    )
+
+  def withMethod(method: Method) = requestCopy(method = method)
+  def withUri(uri: Uri) = requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
+  def withHttpVersion(httpVersion: HttpVersion) = requestCopy(httpVersion = httpVersion)
+  def withHeaders(headers: Headers) = requestCopy(headers = headers)
+  def withBody(body: EntityBody[F]) = requestCopy(body = body)
+  def withAttributes(attributes: AttributeMap) = requestCopy(attributes = attributes)
+
   override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =
-    copy(body = body, headers = headers, attributes = attributes)
+    withBody(body).withHeaders(headers).withAttributes(attributes)
 
   lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
 
@@ -138,8 +180,8 @@ final case class Request[F[_]](
     uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String)(implicit F: Functor[F]): Request[F] =
-    copy(uri = uri.withPath(scriptName + pi))
+  def withPathInfo(pi: String): Request[F] =
+    withUri(uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
@@ -207,7 +249,7 @@ final case class Request[F[_]](
     decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
   override def toString: String =
-    s"""Request(method=$method, uri=$uri, headers=$headers"""
+    s"""Request(method=$method, uri=$uri, headers=$headers)"""
 
   // A request is idempotent if and only if its method is idempotent and its body
   // is pure.  If true, this request can be submitted multipe times.
@@ -219,6 +261,24 @@ final case class Request[F[_]](
 }
 
 object Request {
+
+  def apply[F[_]](
+    method: Method = Method.GET,
+    uri: Uri = Uri(path = "/"),
+    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    headers: Headers = Headers.empty,
+    body: EntityBody[F] = EmptyBody,
+    attributes: AttributeMap = AttributeMap.empty
+  ): Request[F] =
+    new Request[F](
+      method = method,
+      uri = uri,
+      httpVersion = httpVersion,
+      headers = headers,
+      body = body,
+      attributes = attributes
+    ) {}
+
 
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 

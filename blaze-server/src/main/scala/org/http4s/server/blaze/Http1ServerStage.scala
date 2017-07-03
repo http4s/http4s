@@ -113,7 +113,7 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
           case Left(t) =>
             IO(internalServerError(s"Error running route: $req", t, req, cleanup))
         }
-      case Left((e, protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request[F]().copy(httpVersion = protocol))
+      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request[F]().withHttpVersion(protocol))
     }
   }
 

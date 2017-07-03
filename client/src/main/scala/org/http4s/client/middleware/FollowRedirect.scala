@@ -75,14 +75,17 @@ object FollowRedirect {
           bodyOpt match {
             case Some(body) =>
               // Assume that all the headers can be propagated
-              req.copy(method = method, uri = nextUri, body = body)
+              req
+                .withMethod(method)
+                .withUri(nextUri)
+                .withBody(body)
             case None =>
-              req.copy(
-                method = method,
-                uri = nextUri,
-                body = EmptyBody,
+              req
+                .withMethod(method)
+                .withUri(nextUri)
+                .withBody(EmptyBody)
                 // We need to strip all payload headers
-                headers = req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
+                .withHeaders(req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
           }
 
         def doRedirect(method: Method): F[DisposableResponse[F]] = {
