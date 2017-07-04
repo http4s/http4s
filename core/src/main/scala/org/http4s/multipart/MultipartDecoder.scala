@@ -35,22 +35,6 @@ private[http4s] object MultipartDecoder {
       }
     }
 
-//  def gatherPart(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
-//    h.receive1{
-//      case (Left(headers), h) =>
-//        Part(headers, EmptyBody)
-//    }
-//
-//    h.receive1.flatMap{
-//      case (Left(headers), h1) =>
-//        val initialPart = Part(headers, EmptyBody)
-//        go(initialPart)(h1)
-//      case (Right(_), h1) =>
-//        Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
-//    }
-//  }
-
-
 //  def printBody : Pipe[Task, Byte, Byte] = s => {
 //    val bvStream = s.runLog
 //      .map(ByteVector(_))
