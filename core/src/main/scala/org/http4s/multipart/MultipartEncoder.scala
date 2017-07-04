@@ -15,7 +15,7 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
-  def toEntity(mp: Multipart): Task[Entity] = Task.now(Entity(renderParts(mp.boundary)(mp.parts), None))
+  def toEntity(mp: Multipart): Task[Entity] = Task.delay(Entity(renderParts(mp.boundary)(mp.parts), None))
 
   val dash : String = "--"
 

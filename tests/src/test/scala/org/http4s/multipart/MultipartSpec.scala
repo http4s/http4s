@@ -25,7 +25,7 @@ import scodec.bits.ByteVector
 
 class MultipartSpec extends Specification with DisjunctionMatchers {
   sequential
-    
+
   def is = s2"""
     Multipart form data can be
         encoded and decoded with    content types  $encodeAndDecodeMultipart
@@ -39,19 +39,19 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
       authority = Some(Authority(host = RegName("example.com"))),
       path = "/path/to/some/where")
 
-  implicit lazy val MultiPartEq : Eq[Multipart] = Eq.by(_.parts)
+  implicit def MultiPartEq : Eq[Multipart] = Eq.by(_.parts)
 
   implicit def PartEq(implicit eq: Eq[EntityBody]): Eq[Part] = Eq.instance{(a,b) =>
     a.headers.size == b.headers.size &&
-      (a.headers zip b.headers)
-        .forall { case (ah, bh) => ah == bh } //&&
+      (a.headers zip b.headers).forall { case (ah, bh) => ah == bh } //&&
 //      a.body === b.body
   }
 
-  // This one is shady.
-  implicit lazy val EntityBodyEq: Eq[EntityBody] = Eq.by(
-    _.through(text.utf8Decode).runLog.unsafeRun()
-  )
+  // Shady
+  implicit def EntityBodyEq: Eq[EntityBody] = Eq.instance{ (eb1, eb2) =>
+    def toBV(entityBody: EntityBody): ByteVector = ByteVector(entityBody.runLog.unsafeRun())
+    toBV(eb1) === toBV(eb2)
+  }
 
   def encodeAndDecodeMultipart = {
 
@@ -65,9 +65,9 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
                              body    = body,
                              headers = multipart.headers )
     val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.value.unsafeRun()
+    val result     = decoded.value.unsafeRun
 
-    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
+    result must beRight.like  { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
   }
 
   def encodeAndDecodeMultipartMissingContentType = {
@@ -108,7 +108,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.value.unsafeRun()
 
-    result must beRight.like { case mp => multipart === mp }
+    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
   }
 
   def decodeMultipartRequestWithContentTypes = {

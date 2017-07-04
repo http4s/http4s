@@ -115,7 +115,7 @@ object MultipartParser {
 
         val (headers, body) = generatePart(part)
 
-        val newAcc = Either.left(headers) :: Either.right(body) :: acc
+        val newAcc = Either.right(body) :: Either.left(headers) :: acc
 //        println(s"splitParts newAcc: ${newAcc}")
 
         if (rest.isEmpty){

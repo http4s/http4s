@@ -3,6 +3,7 @@ package multipart
 
 import fs2._
 import org.log4s.getLogger
+import scodec.bits.ByteVector
 
 private[http4s] object MultipartDecoder {
 
@@ -15,34 +16,65 @@ private[http4s] object MultipartDecoder {
         case Some(boundary) =>
           DecodeResult {
             msg.body
+//              .through(printBody)
               .through(MultipartParser.parse(Boundary(boundary)))
-              .through(gatherParts)
+//              .evalMap[Task, Task, Either[Headers, Byte]]{
+//                case l@Left(e) => Task.delay{println(e); l}
+//                case r@Right(b) => Task.delay(r)
+//              }
+              .pull(gatherParts)
               .runLog
               .map(parts => Right(Multipart(parts, Boundary(boundary))))
               .handle {
                 case e: InvalidMessageBodyFailure => Left(e)
                 case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-            }
+              }
           }
         case None =>
           DecodeResult.failure(InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
 
+//  def gatherPart(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
+//    h.receive1{
+//      case (Left(headers), h) =>
+//        Part(headers, EmptyBody)
+//    }
+//
+//    h.receive1.flatMap{
+//      case (Left(headers), h1) =>
+//        val initialPart = Part(headers, EmptyBody)
+//        go(initialPart)(h1)
+//      case (Right(_), h1) =>
+//        Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
+//    }
+//  }
 
-  def gatherParts : Pipe[Task, Either[Headers,Byte], Part] = _.open.flatMap{
+
+//  def printBody : Pipe[Task, Byte, Byte] = s => {
+//    val bvStream = s.runLog
+//      .map(ByteVector(_))
+//
+//    Stream.eval(bvStream.map(_.decodeAscii).flatMap{e => Task.delay(println(e))}) >> s
+//  }
+
+
+
+
+  def gatherParts(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
     def go(part: Part)(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
-      h.await1Option.flatMap{
-        case Some((Left(headers), h)) => Pull.output1(part) >> go(Part(headers, EmptyBody))(h)
-        case Some((Right(byte), h)) => go(part.copy(body = part.body ++ Stream.emit(byte)))(h)
+      h.receive1Option {
+        case Some((Left(headers), h1)) => Pull.output1(part) >> go(Part(headers, EmptyBody))(h1)
+        case Some((Right(byte), h1)) => //go(part.copy(body = part.body.append(Stream.emit(byte))))(h1)
+          go(Part(part.headers, part.body ++ Stream.emit(byte)))(h1)
         case None => Pull.output1(part) >> Pull.done
       }
     }
 
-    _.await1.flatMap{
-      case (Left(headers), h) => go(Part(headers, EmptyBody))(h)
+    h.receive1 {
+      case (Left(headers), h1) => go(Part(headers, EmptyBody))(h1)
       case (Right(byte), h) => Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
-
     }
-  }.close
+  }
 }
+
