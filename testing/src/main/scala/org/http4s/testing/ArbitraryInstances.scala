@@ -261,8 +261,9 @@ trait ArbitraryInstances {
 
   implicit val arbitraryAgeHeader: Arbitrary[headers.Age] =
     Arbitrary { for {
+      // age is always positive
       age <- genFiniteDuration
-    } yield headers.Age(age) }
+    } yield headers.Age.unsafeFromDuration(age) }
 
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
