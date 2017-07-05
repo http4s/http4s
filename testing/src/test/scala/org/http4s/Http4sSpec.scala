@@ -47,14 +47,9 @@ trait Http4sSpec extends Specification
   with TaskMatchers
   with Http4sMatchers
 {
-  def testPool: ExecutorService =
-    Http4sSpec.TestPool
-  implicit def testExecutionContext: ExecutionContext =
-    Http4sSpec.TestExecutionContext
-  implicit def testStrategy: Strategy =
-    Http4sSpec.TestStrategy
-  implicit def testScheduler: Scheduler =
-    Http4sSpec.TestScheduler
+  implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
+  implicit def testStrategy: Strategy                 = Http4sSpec.TestStrategy
+  implicit def testScheduler: Scheduler               = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
 

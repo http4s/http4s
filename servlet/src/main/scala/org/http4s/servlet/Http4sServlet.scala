@@ -2,27 +2,26 @@ package org.http4s
 package servlet
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ExecutorService
 import javax.servlet._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import cats.implicits._
-import fs2.{Strategy, Task}
 import fs2.interop.cats._
+import fs2.{Strategy, Task}
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server._
-import org.http4s.util.threads.DefaultPool
+import org.http4s.util.threads.DefaultExecutionContext
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    threadPool: ExecutorService = DefaultPool,
+                    implicit private[this] val executionContext: ExecutionContext = DefaultExecutionContext,
                     private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
-  extends HttpServlet
-{
+  extends HttpServlet {
   private[this] val logger = getLogger
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf

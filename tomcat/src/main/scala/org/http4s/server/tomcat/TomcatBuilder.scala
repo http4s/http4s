@@ -4,26 +4,24 @@ package tomcat
 
 import java.net.InetSocketAddress
 import java.util.EnumSet
-import javax.net.ssl.SSLContext
-import javax.servlet.{DispatcherType, Filter, ServletContainerInitializer, ServletContext}
 import javax.servlet.http.HttpServlet
-import java.util.concurrent.ExecutorService
+import javax.servlet.{DispatcherType, Filter}
 
-import fs2.{Strategy, Task}
-import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
-import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.servlet.{Http4sServlet, ServletContainer}
-import org.http4s.util.threads.DefaultPool
-
-import scala.collection.JavaConverters._
-import scala.concurrent.duration._
+import fs2.Task
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+import org.http4s.util.threads.DefaultExecutionContext
+
+import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 sealed class TomcatBuilder private (
   socketAddress: InetSocketAddress,
-  private val serviceExecutor: ExecutorService,
+  private val executionContext: ExecutionContext,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
@@ -33,20 +31,19 @@ sealed class TomcatBuilder private (
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
-  with SSLKeyStoreSupport
-{
+  with SSLKeyStoreSupport {
   type Self = TomcatBuilder
 
   private def copy(
     socketAddress: InetSocketAddress = socketAddress,
-    serviceExecutor: ExecutorService = serviceExecutor,
+    executionContext: ExecutionContext = executionContext,
     idleTimeout: Duration = idleTimeout,
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo = servletIo,
     sslBits: Option[KeyStoreBits] = sslBits,
     mounts: Vector[Mount] = mounts
-  ): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+  ): Self =
+    new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -55,8 +52,8 @@ sealed class TomcatBuilder private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
 
-  override def withServiceExecutor(serviceExecutor: ExecutorService): TomcatBuilder =
-    copy(serviceExecutor = serviceExecutor)
+  override def withExecutionContext(executionContext: ExecutionContext): Self =
+    copy(executionContext = executionContext)
 
   override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): TomcatBuilder =
     copy(mounts = mounts :+ Mount { (ctx, index, _) =>
@@ -91,7 +88,7 @@ sealed class TomcatBuilder private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        threadPool = builder.serviceExecutor
+        executionContext = builder.executionContext
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -103,10 +100,10 @@ sealed class TomcatBuilder private (
    * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection
    * may not timeout for an additional 59.999 seconds from the specified Duration
    */
-  override def withIdleTimeout(idleTimeout: Duration): TomcatBuilder =
+  override def withIdleTimeout(idleTimeout: Duration): Self =
     copy(idleTimeout = idleTimeout)
 
-  override def withAsyncTimeout(asyncTimeout: Duration): TomcatBuilder =
+  override def withAsyncTimeout(asyncTimeout: Duration): Self =
     copy(asyncTimeout = asyncTimeout)
 
   override def withServletIo(servletIo: ServletIo): Self =
@@ -180,7 +177,7 @@ object TomcatBuilder extends TomcatBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   // TODO fs2 port
   // This is garbage how do we shut this down I just want it to compile argh
-  serviceExecutor = DefaultPool,
+  executionContext = DefaultExecutionContext,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
