@@ -2,7 +2,6 @@ package org.http4s
 package client
 package blaze
 
-
 /** Create a HTTP1 client which will attempt to recycle connections */
 object PooledHttp1Client {
 
@@ -13,10 +12,9 @@ object PooledHttp1Client {
     */
   def apply( maxTotalConnections: Int = 10,
                           config: BlazeClientConfig = BlazeClientConfig.defaultConfig) = {
-
-    val (ex,shutdown) = bits.getExecutor(config)
-    val http1 = Http1Support(config, ex)
-    val pool = ConnectionManager.pool(http1, maxTotalConnections, ex)
-    BlazeClient(pool, config, pool.shutdown().flatMap(_ =>shutdown))
+    val (executionContext, shutdown) = bits.getExecutionContext(config)
+    val http1: ConnectionBuilder[BlazeConnection] = Http1Support(config, executionContext)
+    val pool = ConnectionManager.pool(http1, maxTotalConnections, executionContext)
+    BlazeClient(pool, config, pool.shutdown().flatMap(_ => shutdown))
   }
 }

@@ -1,21 +1,21 @@
 package org.http4s
 package client
 
-import java.util.concurrent.ExecutorService
+import fs2._
 import org.log4s.getLogger
+
 import scala.annotation.tailrec
 import scala.collection.mutable
-import fs2._
-import cats.implicits._
+import scala.concurrent.ExecutionContext
 
 private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
                                                  maxTotal: Int,
-                                                 es: ExecutorService)
+                                                 implicit private val executionContext: ExecutionContext)
   extends ConnectionManager[A] {
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
 
-  implicit val strategy : Strategy = Strategy.fromExecutor(es)
+  implicit val strategy : Strategy = Strategy.fromExecutionContext(executionContext)
 
   private[this] val logger = getLogger
   private var isClosed = false

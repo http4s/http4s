@@ -3,40 +3,37 @@ package server
 package blaze
 
 import java.util.Locale
-import java.util.concurrent.ExecutorService
 
-import scala.collection.mutable.{ListBuffer, ArrayBuffer}
+import cats.implicits._
+import fs2.Stream._
+import fs2._
+import org.http4s.Header.Raw
+import org.http4s.Status._
+import org.http4s.blaze.http.Headers
+import org.http4s.blaze.http.http20.Http2Exception._
+import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
+import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.util._
+import org.http4s.syntax.string._
+import org.http4s.{Headers => HHeaders, Method => HMethod}
+
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.util._
 
-import cats.data._
-import cats.implicits._
-import fs2._
-import fs2.Stream._
-import org.http4s.{Method => HMethod, Headers => HHeaders, _}
-import org.http4s.Header.Raw
-import org.http4s.Status._
-import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
-import org.http4s.blaze.http.http20.Http2Exception._
-import org.http4s.blaze.pipeline.{ Command => Cmd }
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.blaze.util._
-import org.http4s.syntax.string._
-
 private class Http2NodeStage(streamId: Int,
-                     timeout: Duration,
-                     executor: ExecutorService,
-                     attributes: AttributeMap,
-                     service: HttpService) extends TailStage[NodeMsg.Http2Msg]
-{
+                             timeout: Duration,
+                             implicit private val executionContext: ExecutionContext,
+                             attributes: AttributeMap,
+                             service: HttpService)
+  extends TailStage[NodeMsg.Http2Msg] {
+
 
   import Http2StageTools._
-  import NodeMsg.{ DataFrame, HeadersFrame }
+  import NodeMsg.{DataFrame, HeadersFrame}
 
-  private implicit def ec = ExecutionContext.fromExecutor(executor)   // for all the onComplete calls
-  private implicit val strategy = Strategy.fromExecutionContext(ec)
+  private implicit val strategy = Strategy.fromExecutionContext(executionContext)
 
   override def name = "Http2NodeStage"
 
@@ -222,8 +219,8 @@ private class Http2NodeStage(streamId: Int,
       }
     }
 
-    new Http2Writer(this, hs, ec).writeEntityBody(resp.body).unsafeRunAsync {
-      case Right(_)       => shutdownWithCommand(Cmd.Disconnect)
+    new Http2Writer(this, hs, executionContext).writeEntityBody(resp.body).attempt.map {
+      case Right(_)      => shutdownWithCommand(Cmd.Disconnect)
       case Left(Cmd.EOF) => stageShutdown()
       case Left(t)       => shutdownWithCommand(Cmd.Error(t))
     }    

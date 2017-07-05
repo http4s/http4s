@@ -4,16 +4,16 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 
 import fs2.Strategy
-import org.http4s.headers._
 import org.http4s._
 import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
-import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.websocket.Http4sWSStage
+import org.http4s.headers._
 import org.http4s.syntax.string._
+import org.http4s.websocket.WebsocketHandshake
 
-import scala.util.{Failure, Success}
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 private trait WebSocketSupport extends Http1ServerStage {
   override protected def renderResponse(req: Request, maybeResponse: MaybeResponse, cleanup: () => Future[ByteBuffer]): Unit = {
@@ -47,14 +47,14 @@ private trait WebSocketSupport extends Http1ServerStage {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage(ws.get)(Strategy.fromExecutor(ec)))
+                val segment = LeafBuilder(new Http4sWSStage(ws.get)(Strategy.fromExecutor(executionContext)))
                               .prepend(new WSFrameAggregator)
                               .prepend(new WebSocketDecoder(false))
 
                 this.replaceInline(segment)
 
               case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
-            }(ec)
+            }(executionContext)
         }
 
       } else super.renderResponse(req, resp, cleanup)

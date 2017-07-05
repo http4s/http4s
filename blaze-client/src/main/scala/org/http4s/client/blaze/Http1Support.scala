@@ -4,28 +4,25 @@ package blaze
 
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
+import cats.implicits._
+import fs2.{Strategy, Task}
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.syntax.string._
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import fs2.{Strategy, Task}
-import cats.implicits._
+
+import scala.concurrent.{ExecutionContext, Future}
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param config The client configuration object
    */
-  def apply(config: BlazeClientConfig, executor: ExecutorService): ConnectionBuilder[BlazeConnection] = {
-    val builder = new Http1Support(config, executor)
-    builder.makeClient
-  }
+  def apply(config: BlazeClientConfig, executionContext: ExecutionContext): ConnectionBuilder[BlazeConnection] =
+    new Http1Support(config, executionContext).makeClient
 
   private val Https: Scheme = "https".ci
   private val Http: Scheme  = "http".ci
@@ -33,18 +30,17 @@ private object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support(config: BlazeClientConfig, executor: ExecutorService) {
+final private class Http1Support(config: BlazeClientConfig, executionContext: ExecutionContext) {
   import Http1Support._
 
-  private val ec = ExecutionContext.fromExecutorService(executor)
-  private val strategy = Strategy.fromExecutionContext(ec)
+  private val strategy = Strategy.fromExecutionContext(executionContext)
   private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): Task[BlazeConnection] = getAddress(requestKey) match {
-    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, ec)
+    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, executionContext)
     case Left(t) => Task.fail(t)
   }
 
@@ -54,11 +50,11 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
       builder.base(head)
       head.inboundCommand(Command.Connected)
       t
-    }(ec)
+    }(executionContext)
   }
 
   private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection) = {
-    val t = new Http1Connection(requestKey, config, executor, ec)
+    val t = new Http1Connection(requestKey, config, executionContext)
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Https, auth) =>

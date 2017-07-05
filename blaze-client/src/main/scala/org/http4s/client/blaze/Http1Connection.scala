@@ -3,32 +3,29 @@ package client
 package blaze
 
 import java.nio.ByteBuffer
-import java.util.concurrent.{ExecutorService, TimeoutException}
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
+import cats.implicits._
+import fs2.interop.cats._
+import fs2.{Strategy, Task, _}
 import org.http4s.Uri.{Authority, RegName}
-import org.http4s.{headers => H}
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.EntityBodyWriter
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
+import org.http4s.{headers => H}
 
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import cats.implicits._
-import fs2.{Strategy, Task}
-import fs2._
-import fs2.interop.cats._
 
 private final class Http1Connection(val requestKey: RequestKey,
-                            config: BlazeClientConfig,
-                            executor: ExecutorService,
-                            protected val ec: ExecutionContext)
-  extends Http1Stage with BlazeConnection
-{
+                                    config: BlazeClientConfig,
+                                    protected val executionContext: ExecutionContext)
+  extends Http1Stage with BlazeConnection {
   import org.http4s.client.blaze.Http1Connection._
 
   override def name: String = getClass.getName
@@ -36,7 +33,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
                                config.maxChunkSize, config.lenientParser)
 
-  implicit private val strategy = Strategy.fromExecutor(executor)
+  implicit private val strategy = Strategy.fromExecutionContext(executionContext)
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
@@ -171,7 +168,7 @@ private final class Http1Connection(val requestKey: RequestKey,
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
         cb(Left(t))
-    }(ec)
+    }(executionContext)
   }
 
   private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, doesntHaveBody: Boolean, cb: Callback[Response]): Unit = {

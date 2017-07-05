@@ -20,8 +20,7 @@ import fs2._
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Http4sSpec {
 
-  val ec = org.http4s.blaze.util.Execution.trampoline
-  val es = TestPool
+  val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = Uri.uri("http://www.foo.test")
   val FooRequest = Request(uri = www_foo_test)
@@ -35,12 +34,12 @@ class Http1ClientStageSpec extends Http4sSpec {
   // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
   private val defaultConfig = BlazeClientConfig.defaultConfig
 
-  private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig, es, ec)
+  private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig, trampoline)
 
   private def mkBuffer(s: String): ByteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
   private def bracketResponse[T](req: Request, resp: String)(f: Response => Task[T]): Task[T] = {
-    val stage = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
+    val stage = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), trampoline)
     Task.suspend {
       val h = new SeqTestHead(resp.toSeq.map{ chr =>
         val b = ByteBuffer.allocate(1)
@@ -206,7 +205,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
+      val tail = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), trampoline)
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail)

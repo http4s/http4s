@@ -24,9 +24,9 @@ import scodec.bits.ByteVector
 trait Http1Stage { self: TailStage[ByteBuffer] =>
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
-  protected implicit def ec: ExecutionContext
+  protected implicit def executionContext: ExecutionContext
 
-  private implicit def strategy: Strategy = Strategy.fromExecutionContext(ec)
+  private implicit def strategy: Strategy = Strategy.fromExecutionContext(executionContext)
 
   protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 
