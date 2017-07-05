@@ -27,6 +27,8 @@ private final class Http1Connection(val requestKey: RequestKey,
   extends Http1Stage with BlazeConnection {
   import org.http4s.client.blaze.Http1Connection._
 
+  protected override val executionContext = config.executionContext
+
   override def name: String = getClass.getName
   private val parser =
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
