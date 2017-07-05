@@ -13,7 +13,6 @@ import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListene
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-import org.http4s.util.threads.DefaultExecutionContext
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -175,9 +174,7 @@ sealed class TomcatBuilder private (
 
 object TomcatBuilder extends TomcatBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  // TODO fs2 port
-  // This is garbage how do we shut this down I just want it to compile argh
-  executionContext = DefaultExecutionContext,
+  executionContext = ExecutionContext.global,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,

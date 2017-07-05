@@ -17,7 +17,6 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-import org.http4s.util.threads._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -206,7 +205,7 @@ sealed class JettyBuilder private(
 
 object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  executionContext = DefaultExecutionContext,
+  executionContext = ExecutionContext.global,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,

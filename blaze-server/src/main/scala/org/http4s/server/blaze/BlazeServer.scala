@@ -3,29 +3,23 @@ package server
 package blaze
 
 import java.io.FileInputStream
-import java.security.KeyStore
-import java.security.Security
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext, SSLEngine}
-import java.util.concurrent.ExecutorService
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration._
-import scala.concurrent.duration._
-
 import fs2._
 import org.http4s.blaze.channel
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultExecutionContext
 import org.log4s.getLogger
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class BlazeBuilder(
   socketAddress: InetSocketAddress,
@@ -246,7 +240,7 @@ class BlazeBuilder(
 
 object BlazeBuilder extends BlazeBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  executionContext = DefaultExecutionContext,
+  executionContext = ExecutionContext.global,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
   connectorPoolSize = channel.defaultPoolSize,
