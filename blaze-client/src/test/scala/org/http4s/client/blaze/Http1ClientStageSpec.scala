@@ -2,20 +2,17 @@ package org.http4s
 package client
 package blaze
 
-import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
+import fs2._
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.Http4sSpec.TestPool
-import org.http4s.util.threads.DefaultPool
-import bits.DefaultUserAgent
-import org.specs2.mutable.Specification
+import org.http4s.client.blaze.bits.DefaultUserAgent
 import scodec.bits.ByteVector
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import fs2._
 
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Http4sSpec {

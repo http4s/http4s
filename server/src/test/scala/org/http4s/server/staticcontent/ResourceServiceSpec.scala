@@ -9,7 +9,7 @@ import org.http4s.server.middleware.URITranslation
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
-  val s = resourceService(ResourceService.Config("", executor = Http4sSpec.TestPool))
+  val s = resourceService(ResourceService.Config("", executionContext = Http4sSpec.TestExecutionContext))
 
   "ResourceService" should {
 

@@ -47,7 +47,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage(ws.get)(Strategy.fromExecutor(executionContext)))
+                val segment = LeafBuilder(new Http4sWSStage(ws.get)(Strategy.fromExecutionContext(executionContext)))
                               .prepend(new WSFrameAggregator)
                               .prepend(new WebSocketDecoder(false))
 
