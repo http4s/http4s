@@ -21,8 +21,8 @@ private object Http1Support {
    *
    * @param config The client configuration object
    */
-  def apply(config: BlazeClientConfig, executionContext: ExecutionContext): ConnectionBuilder[BlazeConnection] =
-    new Http1Support(config, executionContext).makeClient
+  def apply(config: BlazeClientConfig): ConnectionBuilder[BlazeConnection] =
+    new Http1Support(config).makeClient
 
   private val Https: Scheme = "https".ci
   private val Http: Scheme  = "http".ci
@@ -30,17 +30,17 @@ private object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support(config: BlazeClientConfig, executionContext: ExecutionContext) {
+final private class Http1Support(config: BlazeClientConfig) {
   import Http1Support._
 
-  private val strategy = Strategy.fromExecutionContext(executionContext)
+  private val strategy = Strategy.fromExecutionContext(config.executionContext)
   private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
 
   def makeClient(requestKey: RequestKey): Task[BlazeConnection] = getAddress(requestKey) match {
-    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, executionContext)
+    case Right(a) => Task.fromFuture(buildPipeline(requestKey, a))(strategy, config.executionContext)
     case Left(t) => Task.fail(t)
   }
 
@@ -50,11 +50,11 @@ final private class Http1Support(config: BlazeClientConfig, executionContext: Ex
       builder.base(head)
       head.inboundCommand(Command.Connected)
       t
-    }(executionContext)
+    }(config.executionContext)
   }
 
   private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection) = {
-    val t = new Http1Connection(requestKey, config, executionContext)
+    val t = new Http1Connection(requestKey, config)
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Https, auth) =>

@@ -23,8 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 private final class Http1Connection(val requestKey: RequestKey,
-                                    config: BlazeClientConfig,
-                                    protected val executionContext: ExecutionContext)
+                                    config: BlazeClientConfig)
   extends Http1Stage with BlazeConnection {
   import org.http4s.client.blaze.Http1Connection._
 
@@ -33,7 +32,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
                                config.maxChunkSize, config.lenientParser)
 
-  implicit private val strategy = Strategy.fromExecutionContext(executionContext)
+  implicit private val strategy = Strategy.fromExecutionContext(config.executionContext)
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
@@ -168,7 +167,7 @@ private final class Http1Connection(val requestKey: RequestKey,
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
         cb(Left(t))
-    }(executionContext)
+    }(config.executionContext)
   }
 
   private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, doesntHaveBody: Boolean, cb: Callback[Response]): Unit = {

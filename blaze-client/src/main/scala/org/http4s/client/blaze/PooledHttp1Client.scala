@@ -10,11 +10,10 @@ object PooledHttp1Client {
     * @param maxTotalConnections maximum connections the client will have at any specific time
     * @param config blaze client configuration options
     */
-  def apply( maxTotalConnections: Int = 10,
-                          config: BlazeClientConfig = BlazeClientConfig.defaultConfig) = {
-    val (executionContext, shutdown) = bits.getExecutionContext(config)
-    val http1: ConnectionBuilder[BlazeConnection] = Http1Support(config, executionContext)
-    val pool = ConnectionManager.pool(http1, maxTotalConnections, executionContext)
-    BlazeClient(pool, config, pool.shutdown().flatMap(_ => shutdown))
+  def apply(maxTotalConnections: Int = 10,
+                         config: BlazeClientConfig = BlazeClientConfig.defaultConfig) = {
+    val http1: ConnectionBuilder[BlazeConnection] = Http1Support(config)
+    val pool = ConnectionManager.pool(http1, maxTotalConnections, config.executionContext)
+    BlazeClient(pool, config, pool.shutdown())
   }
 }
