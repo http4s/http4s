@@ -46,6 +46,12 @@ object Renderer {
       writer << d.toSeconds.toString
   }
 
+  // Render a long value, e.g. on the Age header
+  implicit val longRenderer: Renderer[Long] = new Renderer[Long] {
+    override def render(writer: Writer, d: Long): writer.type =
+      writer << d.toString
+  }
+
   implicit def eitherRenderer[A, B](implicit ra: Renderer[A], rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {
     override def render(writer: Writer, e: Either[A, B]): writer.type =
       e match {

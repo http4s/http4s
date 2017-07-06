@@ -26,11 +26,6 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[Age] =
     HttpHeaderParser.AGE(s)
 
-  // Render a finite duration in seconds
-  implicit val longRenderer: Renderer[Long] = new Renderer[Long] {
-    override def render(writer: Writer, d: Long): writer.type =
-      writer << d.toString
-  }
 }
 
 /**
