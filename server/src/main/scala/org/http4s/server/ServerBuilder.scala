@@ -2,15 +2,14 @@ package org.http4s
 package server
 
 import java.net.{InetAddress, InetSocketAddress}
+import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
+import fs2._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultPool
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-
-import fs2._
 
 trait ServerBuilder {
   import ServerBuilder._
@@ -25,6 +24,10 @@ trait ServerBuilder {
   final def bindLocal(port: Int): Self = bindHttp(port, DefaultHost)
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
+
+  @deprecated("Use withExecutionContext", "0.17")
+  def withExecutorService(executorService: ExecutorService): Self =
+    withExecutionContext(ExecutionContext.fromExecutorService(executorService))
 
   def withExecutionContext(executionContext: ExecutionContext): Self
 
