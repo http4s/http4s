@@ -96,7 +96,7 @@ private[parser] trait SimpleHeaders {
 
   def AGE(value: String): ParseResult[Age] = new Http4sHeaderParser[Age](value) {
     def entry = rule {
-      Digits ~ EOL ~> ((t: String) => Age.unsafeFromDuration(FiniteDuration(t.toLong, SECONDS)))
+      Digits ~ EOL ~> ((t: String) => Age.unsafeFromLong(t.toLong))
     }
   }.parse
 
