@@ -3,14 +3,14 @@ package server
 package staticcontent
 
 import java.io.File
-import java.util.concurrent.ExecutorService
 
-import cats.data.{NonEmptyList, OneAnd}
+import cats.data.NonEmptyList
 import fs2._
-import org.http4s.headers._
 import org.http4s.headers.Range.SubRange
-import org.http4s.util._
-import org.http4s.util.threads.DefaultPool
+import org.http4s.headers._
+import org.http4s.util.threads.DefaultExecutionContext
+
+import scala.concurrent.ExecutionContext
 
 object FileService {
 
@@ -20,14 +20,14 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param executor `ExecutorService` to use when collecting content
+    * @param executionContext `ExecutionContext` to use when collecting content
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config(systemPath: String,
                           pathPrefix: String = "",
                           pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50*1024,
-                          executor: ExecutorService = DefaultPool,
+                          executionContext: ExecutionContext= DefaultExecutionContext,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */

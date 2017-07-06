@@ -5,12 +5,11 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultPool
-
-import scala.concurrent.duration._
-
 import fs2._
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 trait ServerBuilder {
   import ServerBuilder._
@@ -26,7 +25,11 @@ trait ServerBuilder {
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
 
-  def withServiceExecutor(executorService: ExecutorService): Self
+  @deprecated("Use withExecutionContext", "0.17")
+  def withExecutorService(executorService: ExecutorService): Self =
+    withExecutionContext(ExecutionContext.fromExecutorService(executorService))
+
+  def withExecutionContext(executionContext: ExecutionContext): Self
 
   def mountService(service: HttpService, prefix: String = ""): Self
 

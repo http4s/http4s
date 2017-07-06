@@ -1,17 +1,14 @@
 package org.http4s.client.blaze
 
-import java.security.{NoSuchAlgorithmException, SecureRandom}
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.{SSLContext, X509TrustManager}
-import java.util.concurrent._
 
 import org.http4s.BuildInfo
-import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.blaze.util.TickWheelExecutor
-import org.http4s.util.threads
+import org.http4s.headers.{AgentProduct, `User-Agent`}
 
 import scala.concurrent.duration._
-import fs2.Task
 
 private[blaze] object bits {
   // Some default objects
@@ -20,13 +17,6 @@ private[blaze] object bits {
   val DefaultUserAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version))))
 
   val ClientTickWheel = new TickWheelExecutor()
-
-  def getExecutor(config: BlazeClientConfig): (ExecutorService, Task[Unit]) = config.customExecutor match {
-    case Some(exec) => (exec, Task.now(()))
-    case None =>
-      val exec = threads.newDaemonPool("http4s-blaze-client")
-      (exec, Task.delay(exec.shutdown()))
-  }
 
   /** Caution: trusts all certificates and disables endpoint identification */
   lazy val TrustingSslContext: SSLContext = {

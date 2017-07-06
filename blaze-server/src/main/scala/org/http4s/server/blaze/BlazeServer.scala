@@ -3,29 +3,27 @@ package server
 package blaze
 
 import java.io.FileInputStream
-import java.security.KeyStore
-import java.security.Security
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext, SSLEngine}
-import java.util.concurrent.ExecutorService
-
-import scala.concurrent.duration._
+import java.security.{KeyStore, Security}
+import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 
 import fs2._
 import org.http4s.blaze.channel
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class BlazeBuilder(
   socketAddress: InetSocketAddress,
-  serviceExecutor: ExecutorService,
+  executionContext: ExecutionContext,
   idleTimeout: Duration,
   isNio2: Boolean,
   connectorPoolSize: Int,
@@ -48,7 +46,7 @@ class BlazeBuilder(
   private[this] val logger = getLogger
 
   private def copy(socketAddress: InetSocketAddress = socketAddress,
-                 serviceExecutor: ExecutorService = serviceExecutor,
+                executionContext: ExecutionContext = executionContext,
                      idleTimeout: Duration = idleTimeout,
                           isNio2: Boolean = isNio2,
                connectorPoolSize: Int = connectorPoolSize,
@@ -58,8 +56,8 @@ class BlazeBuilder(
                     http2Support: Boolean = isHttp2Enabled,
                maxRequestLineLen: Int = maxRequestLineLen,
                    maxHeadersLen: Int = maxHeadersLen,
-                   serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
+                   serviceMounts: Vector[ServiceMount] = serviceMounts): Self =
+    new BlazeBuilder(socketAddress, executionContext, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
 
   /** Configure HTTP parser length limits
     *
@@ -87,8 +85,8 @@ class BlazeBuilder(
   override def bindSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
     copy(socketAddress = socketAddress)
 
-  override def withServiceExecutor(serviceExecutor: ExecutorService): BlazeBuilder =
-    copy(serviceExecutor = serviceExecutor)
+  override def withExecutionContext(ec: ExecutionContext): Self =
+    copy(executionContext = executionContext)
 
   override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
 
@@ -143,10 +141,10 @@ class BlazeBuilder(
         }
 
       def http1Stage(secure: Boolean) =
-        Http1ServerStage(aggregateService, requestAttributes(secure = secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
+        Http1ServerStage(aggregateService, requestAttributes(secure = secure), executionContext, enableWebSockets, maxRequestLineLen, maxHeadersLen)
 
       def http2Stage(engine: SSLEngine) =
-        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), serviceExecutor)
+        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), executionContext)
 
       def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
         if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
@@ -242,7 +240,7 @@ class BlazeBuilder(
 
 object BlazeBuilder extends BlazeBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  serviceExecutor = DefaultPool,
+  executionContext = ExecutionContext.global,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
   connectorPoolSize = channel.defaultPoolSize,
@@ -256,4 +254,3 @@ object BlazeBuilder extends BlazeBuilder(
 )
 
 private final case class ServiceMount(service: HttpService, prefix: String)
-

@@ -6,7 +6,6 @@ import java.nio.file.Files
 import java.time.Instant
 import java.util.concurrent.ExecutorService
 
-import org.http4s.Http4sSpec.TestPool
 import org.http4s.Status.NotModified
 import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
 import org.http4s.util.ByteVectorChunk

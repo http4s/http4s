@@ -2,26 +2,22 @@ package org.http4s
 package client
 package blaze
 
-import java.nio.charset.StandardCharsets
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
+import fs2._
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.Http4sSpec.TestPool
-import org.http4s.util.threads.DefaultPool
-import bits.DefaultUserAgent
-import org.specs2.mutable.Specification
+import org.http4s.client.blaze.bits.DefaultUserAgent
 import scodec.bits.ByteVector
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import fs2._
 
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Http4sSpec {
 
-  val ec = org.http4s.blaze.util.Execution.trampoline
-  val es = TestPool
+  val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = Uri.uri("http://www.foo.test")
   val FooRequest = Request(uri = www_foo_test)
@@ -33,14 +29,14 @@ class Http1ClientStageSpec extends Http4sSpec {
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
   // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
-  private val defaultConfig = BlazeClientConfig.defaultConfig
+  private val defaultConfig = BlazeClientConfig.defaultConfig.copy(executionContext = trampoline)
 
-  private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig, es, ec)
+  private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig)
 
   private def mkBuffer(s: String): ByteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
   private def bracketResponse[T](req: Request, resp: String)(f: Response => Task[T]): Task[T] = {
-    val stage = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
+    val stage = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None))
     Task.suspend {
       val h = new SeqTestHead(resp.toSeq.map{ chr =>
         val b = ByteBuffer.allocate(1)
@@ -206,7 +202,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
+      val tail = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None))
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail)

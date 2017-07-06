@@ -1,8 +1,6 @@
 package org.http4s
 package client
 
-
-
 package object blaze {
 
   /** Default blaze client
