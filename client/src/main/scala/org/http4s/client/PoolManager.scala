@@ -1,8 +1,6 @@
 package org.http4s
 package client
 
-import java.util.concurrent.ExecutorService
-
 import cats.effect._
 import fs2.async
 import org.log4s.getLogger
@@ -13,13 +11,14 @@ import scala.concurrent.ExecutionContext
 
 private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A],
                                                           maxTotal: Int,
-                                                          es: ExecutorService)
+                                                          implicit private val executionContext: ExecutionContext)
                                                          (implicit F: Effect[F])
   extends ConnectionManager[F, A] {
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
 
   private[this] val logger = getLogger(classOf[PoolManager[F, A]])
+
   private var isClosed = false
   private var allocated = 0
   private val idleQueue = new mutable.Queue[A]
@@ -27,7 +26,6 @@ private final class PoolManager[F[_], A <: Connection[F]](builder: ConnectionBui
 
   private def stats = s"allocated=$allocated idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
-  private implicit val ec = ExecutionContext.fromExecutorService(es)
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
     * then builds the connection with the given callback and completes the callback.

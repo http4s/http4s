@@ -9,30 +9,25 @@
 
 package org.http4s
 
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
-
-import cats.MonadError
 import cats.effect.IO
-
-import scala.concurrent.ExecutionContext
 import cats.implicits._
 import fs2._
 import fs2.text._
 import org.http4s.testing._
-import org.http4s.util.threads.{newDaemonPool, threadFactory}
+import org.http4s.util.threads.newDaemonPool
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck._
+import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
-import org.specs2.execute.AsResult
-import org.specs2.scalacheck.Parameters
 import org.specs2.matcher.{TaskMatchers => _, _}
 import org.specs2.mutable.Specification
-import org.specs2.specification.dsl.FragmentsDsl
-import org.specs2.specification.create.{DefaultFragmentFactory => ff}
+import org.specs2.scalacheck.Parameters
 import org.specs2.specification.core.Fragments
-import org.scalacheck._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.util.{FreqMap, Pretty}
-import org.typelevel.discipline.Laws
+import org.specs2.specification.create.{DefaultFragmentFactory => ff}
+import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
+
+import scala.concurrent.ExecutionContext
 
 /**
  * Common stack for http4s' own specs.
@@ -50,7 +45,6 @@ trait Http4sSpec extends Specification
   with IOMatchers
   with Http4sMatchers
 {
-  def testPool: ExecutorService                       = Http4sSpec.TestPool
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
   implicit def testScheduler: Scheduler               = Http4sSpec.TestScheduler
 
@@ -112,11 +106,8 @@ trait Http4sSpec extends Specification
 }
 
 object Http4sSpec {
-  val TestPool: ExecutorService =
-    newDaemonPool("http4s-spec", timeout = true)
-
   val TestExecutionContext: ExecutionContext =
-    ExecutionContext.fromExecutor(TestPool)
+    ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
   val TestScheduler: Scheduler =
     Scheduler.fromFixedDaemonPool(4)

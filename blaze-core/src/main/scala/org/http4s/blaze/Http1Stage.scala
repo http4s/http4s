@@ -5,27 +5,27 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-import cats.data._
 import cats.effect.Effect
 import cats.implicits._
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.interop.scodec.ByteVectorChunk
-import org.http4s.headers._
-import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
+import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util._
+import org.http4s.headers._
 import org.http4s.util.{StringWriter, Writer}
 import scodec.bits.ByteVector
+
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
 trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
-  protected implicit def ec: ExecutionContext
+  protected implicit def executionContext: ExecutionContext
 
   protected implicit def F: Effect[F]
 

@@ -4,7 +4,6 @@ package blaze
 
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import cats.effect._
@@ -16,15 +15,15 @@ import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.syntax.async._
 import org.http4s.syntax.string._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param config The client configuration object
    */
-  def apply[F[_]: Effect](config: BlazeClientConfig, executor: ExecutorService): ConnectionBuilder[F, BlazeConnection[F]] = {
-    val builder = new Http1Support(config, executor)
+  def apply[F[_]: Effect](config: BlazeClientConfig): ConnectionBuilder[F, BlazeConnection[F]] = {
+    val builder = new Http1Support(config)
     builder.makeClient
   }
 
@@ -34,11 +33,10 @@ private object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support[F[_]](config: BlazeClientConfig, executor: ExecutorService)
+final private class Http1Support[F[_]](config: BlazeClientConfig)
                                       (implicit F: Effect[F]) {
   import Http1Support._
 
-  private val ec = ExecutionContext.fromExecutorService(executor)
   private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
@@ -46,7 +44,7 @@ final private class Http1Support[F[_]](config: BlazeClientConfig, executor: Exec
 
   def makeClient(requestKey: RequestKey): F[BlazeConnection[F]] =
     getAddress(requestKey) match {
-      case Right(a) => F.fromFuture(buildPipeline(requestKey, a))(ec)
+      case Right(a) => F.fromFuture(buildPipeline(requestKey, a))(config.executionContext)
       case Left(t) => F.raiseError(t)
     }
 
@@ -56,10 +54,10 @@ final private class Http1Support[F[_]](config: BlazeClientConfig, executor: Exec
       builder.base(head)
       head.inboundCommand(Command.Connected)
       t
-    }(ec)
+    }(config.executionContext)
 
   private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection[F]) = {
-    val t = new Http1Connection(requestKey, config, executor, ec)
+    val t = new Http1Connection(requestKey, config)
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Https, auth) =>

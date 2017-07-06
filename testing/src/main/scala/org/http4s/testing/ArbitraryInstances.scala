@@ -259,6 +259,12 @@ trait ArbitraryInstances {
       instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), genFiniteDuration.map(Right(_)))
     } yield headers.`Retry-After`(instant) }
 
+  implicit val arbitraryAgeHeader: Arbitrary[headers.Age] =
+    Arbitrary { for {
+      // age is always positive
+      age <- genFiniteDuration
+    } yield headers.Age.unsafeFromDuration(age) }
+
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
