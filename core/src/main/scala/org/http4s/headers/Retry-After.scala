@@ -4,17 +4,12 @@ package headers
 import java.time.Instant
 
 import org.http4s.util.{Renderer, Writer}
+import org.http4s.util.Renderable._
 import org.http4s.parser.HttpHeaderParser
 
 import scala.concurrent.duration.FiniteDuration
 
 object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Singleton {
-  // Define the renderer locally. we may not want to render to seconds in all cases
-  implicit val finiteDurationRenderer: Renderer[FiniteDuration] = new Renderer[FiniteDuration] {
-    override def render(writer: Writer, d: FiniteDuration): writer.type =
-      writer << d.toSeconds.toString
-  }
-
   override def parse(s: String): ParseResult[`Retry-After`] =
     HttpHeaderParser.RETRY_AFTER(s)
 }

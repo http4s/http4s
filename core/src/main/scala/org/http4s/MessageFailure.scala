@@ -63,6 +63,7 @@ object ParseFailure {
 object ParseResult {
   def fail(sanitized: String, details: String): ParseResult[Nothing] =
     Either.left(ParseFailure(sanitized, details))
+
   def success[A](a: A): ParseResult[A] =
     Either.right(a)
 
