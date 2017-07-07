@@ -52,7 +52,7 @@ object Jsonp  {
     val end = EndJsonp
     val jsonpBody = chunk(begin) ++ resp.body ++ chunk(end)
     val newLengthHeaderOption = resp.headers.get(`Content-Length`).map { old =>
-      old.copy(length = begin.size + old.length + end.size)
+      old.modify(_ + begin.size + end.size)
     }
     resp.copy(body = jsonpBody).
       transformHeaders(_ ++ newLengthHeaderOption).

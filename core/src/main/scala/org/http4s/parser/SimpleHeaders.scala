@@ -57,7 +57,7 @@ private[parser] trait SimpleHeaders {
   }
 
   def CONTENT_LENGTH(value: String): ParseResult[`Content-Length`] = new Http4sHeaderParser[`Content-Length`](value) {
-    def entry = rule { Digits ~ EOL ~> {s: String => `Content-Length`(s.toLong)} }
+    def entry = rule { Digits ~ EOL ~> {s: String => `Content-Length`.unsafeFromLong(s.toLong)} }
   }.parse
 
   def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] = new Http4sHeaderParser[`Content-Encoding`](value) {
@@ -68,7 +68,7 @@ private[parser] trait SimpleHeaders {
 
   def CONTENT_DISPOSITION(value: String): ParseResult[`Content-Disposition`] = new Http4sHeaderParser[`Content-Disposition`](value) {
     def entry = rule {
-     Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOL ~> { (token:String, params: Seq[(String, String)]) =>
+     Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOL ~> { (token: String, params: Seq[(String, String)]) =>
       `Content-Disposition`(token, params.toMap)}
     }
   }.parse

@@ -66,7 +66,7 @@ sealed trait Message extends MessageOps { self =>
   def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
     w.toEntity(b).map { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`(l)::w.headers.toList
+        case Some(l) => `Content-Length`(l).fold(_ => w.headers.toList, _ :: w.headers.toList)
         case None    => w.headers
       }
       change(body = entity.body, headers = headers ++ hs)

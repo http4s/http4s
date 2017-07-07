@@ -12,17 +12,23 @@ import org.http4s.util.Writer
   *
   * @param length the length; throws an `IllegalArgumentException` if negative
   */
-final case class `Content-Length`(length: Long) extends Header.Parsed {
-  require(length >= 0L)
-
+sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed {
   override def key: `Content-Length`.type = `Content-Length`
   override def renderValue(writer: Writer): writer.type = writer.append(length)
+  def modify(f: Long => Long): `Content-Length` = new `Content-Length`(f(length)) {}
 }
 
 object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {
+  val zero = new `Content-Length`(0) {}
+
+  def apply(length: Long): ParseResult[`Content-Length`] = fromLong(length)
+
   def fromLong(length: Long): ParseResult[`Content-Length`] =
-    if (length >= 0L) ParseResult.success(`Content-Length`(length))
+    if (length >= 0L) ParseResult.success(new `Content-Length`(length) {})
     else ParseResult.fail("Invalid Content-Length", length.toString)
+
+  def unsafeFromLong(length: Long): `Content-Length` =
+    fromLong(length).fold(throw _, identity)
 
   def parse(s: String): ParseResult[`Content-Length`] =
     HttpHeaderParser.CONTENT_LENGTH(s)

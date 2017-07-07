@@ -5,11 +5,11 @@ class ContentLengthSpec extends HeaderLaws {
 
   "apply" should {
     "reject negative lengths" in prop { length: Long => length < 0 ==> {
-      `Content-Length`(length) must throwA[IllegalArgumentException]
+      `Content-Length`(length) must beLeft
     }}
 
     "accept non-negative lengths" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`(length).length must_== (length)
+      `Content-Length`(length).right.map(_.length) must beRight(length)
     }}
   }
 
@@ -19,7 +19,7 @@ class ContentLengthSpec extends HeaderLaws {
     }}
 
     "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.fromLong(length) must beRight(`Content-Length`(length))
+      `Content-Length`.fromLong(length) must_== `Content-Length`(length)
     }}
   }
 
@@ -33,7 +33,7 @@ class ContentLengthSpec extends HeaderLaws {
     }}
 
     "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.parse(length.toString) must beRight(`Content-Length`(length))
+      `Content-Length`.parse(length.toString) must_== `Content-Length`(length)
     }}
   }
 }
