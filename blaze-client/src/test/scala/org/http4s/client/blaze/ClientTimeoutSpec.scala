@@ -14,7 +14,6 @@ import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 
 class ClientTimeoutSpec extends Http4sSpec {
-  val ec = scala.concurrent.ExecutionContext.global
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request[IO](uri = www_foo_com)
@@ -24,7 +23,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
   private val defaultConfig = BlazeClientConfig.defaultConfig
 
-  private def mkConnection(): Http1Connection[IO] = new Http1Connection(FooRequestKey, defaultConfig, testPool, ec)
+  private def mkConnection(): Http1Connection[IO] = new Http1Connection(FooRequestKey, defaultConfig)
 
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
@@ -78,7 +77,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig, testPool, ec)
+      val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig)
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
@@ -97,7 +96,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig, testPool, ec)
+      val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig)
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(1.second, Duration.Inf)
@@ -116,9 +115,9 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request[IO](method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig, testPool, ec)
-      val (f,b) = resp.splitAt(resp.length - 1)
-      val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
+      val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig)
+      val (f, b) = resp.splitAt(resp.length - 1)
+      val h = new SeqTestHead(Seq(f, b).map(mkBuffer))
       val c = mkClient(h, tail)(10.second, 30.seconds)
 
       c.fetchAs[String](req).unsafeRunSync() must_== "done"
@@ -126,7 +125,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Request timeout on slow response body" in {
       val tail = mkConnection()
-      val (f,b) = resp.splitAt(resp.length - 1)
+      val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
@@ -137,7 +136,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Idle timeout on slow response body" in {
       val tail = mkConnection()
-      val (f,b) = resp.splitAt(resp.length - 1)
+      val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 

@@ -26,7 +26,6 @@ import org.http4s.util.CaseInsensitiveString
 import Header.Parsed
 import org.http4s.syntax.string._
 
-
 object HttpHeaderParser extends SimpleHeaders
                     with AcceptHeader
                     with AcceptLanguageHeader

@@ -3,8 +3,8 @@ package client
 package blaze
 
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.{ExecutorService, TimeoutException}
 
 import cats.effect._
 import cats.implicits._
@@ -19,16 +19,16 @@ import org.http4s.util.{StringWriter, Writer}
 import org.http4s.{headers => H}
 
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 private final class Http1Connection[F[_]](val requestKey: RequestKey,
-                                          config: BlazeClientConfig,
-                                          executor: ExecutorService,
-                                          protected val ec: ExecutionContext)
+                                          config: BlazeClientConfig)
                                          (implicit protected val F: Effect[F])
   extends Http1Stage[F] with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._
+
+  protected override val executionContext = config.executionContext
 
   override def name: String = getClass.getName
   private val parser =
@@ -168,7 +168,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
         cb(Left(t))
-    }(ec)
+    }(config.executionContext)
   }
 
   private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, doesntHaveBody: Boolean, cb: Callback[Response[F]]): Unit = {
@@ -228,7 +228,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
             cleanup()
             attributes -> rawBody
           } else {
-            attributes -> rawBody.onFinalize(Stream.eval_(F.shift(ec) >> F.delay { trailerCleanup(); cleanup(); stageShutdown() }).run)
+            attributes -> rawBody.onFinalize(Stream.eval_(F.shift(executionContext) >> F.delay { trailerCleanup(); cleanup(); stageShutdown() }).run)
           }
         }
         cb(Right(

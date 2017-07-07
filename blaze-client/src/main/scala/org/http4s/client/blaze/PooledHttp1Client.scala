@@ -3,7 +3,6 @@ package client
 package blaze
 
 import cats.effect._
-import cats.implicits._
 
 /** Create a HTTP1 client which will attempt to recycle connections */
 object PooledHttp1Client {
@@ -17,9 +16,8 @@ object PooledHttp1Client {
   def apply[F[_]: Effect](maxTotalConnections: Int = DefaultMaxTotalConnections,
                           config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
 
-    val (ex, shutdown) = bits.getExecutor[F](config)
-    val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config, ex)
-    val pool = ConnectionManager.pool(http1, maxTotalConnections, ex)
-    BlazeClient(pool, config, pool.shutdown() >> shutdown)
+    val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)
+    val pool = ConnectionManager.pool(http1, maxTotalConnections, config.executionContext)
+    BlazeClient(pool, config, pool.shutdown())
   }
 }

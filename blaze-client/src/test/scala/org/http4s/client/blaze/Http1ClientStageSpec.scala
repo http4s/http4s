@@ -6,7 +6,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import cats.effect._
-import org.http4s.Http4sSpec.TestPool
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.client.blaze.bits.DefaultUserAgent
@@ -18,8 +17,7 @@ import scala.concurrent.duration._
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Http4sSpec {
 
-  val ec = org.http4s.blaze.util.Execution.trampoline
-  val es = TestPool
+  val trampoline = org.http4s.blaze.util.Execution.trampoline
 
   val www_foo_test = Uri.uri("http://www.foo.test")
   val FooRequest = Request[IO](uri = www_foo_test)
@@ -31,14 +29,14 @@ class Http1ClientStageSpec extends Http4sSpec {
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
   // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
-  private val defaultConfig = BlazeClientConfig.defaultConfig
+  private val defaultConfig = BlazeClientConfig.defaultConfig.copy(executionContext = trampoline)
 
-  private def mkConnection(key: RequestKey) = new Http1Connection[IO](key, defaultConfig, es, ec)
+  private def mkConnection(key: RequestKey) = new Http1Connection[IO](key, defaultConfig)
 
   private def mkBuffer(s: String): ByteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
   private def bracketResponse[T](req: Request[IO], resp: String)(f: Response[IO] => IO[T]): IO[T] = {
-    val stage = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
+    val stage = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None))
     IO.suspend {
       val h = new SeqTestHead(resp.toSeq.map{ chr =>
         val b = ByteBuffer.allocate(1)
@@ -113,7 +111,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest).unsafeRunAsync{ case Right(a) => () ; case Left(e) => ()}  // we remain in the body
+        tail.runRequest(FooRequest).unsafeRunAsync{ case Right(_) => () ; case Left(_) => ()}  // we remain in the body
         tail.runRequest(FooRequest).unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
       }
       finally {
@@ -162,7 +160,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val (_, response) = getSubmission(FooRequest, resp)
 
-      response must_==("done")
+      response must_== "done"
     }
 
     "Utilize a provided Host header" in {
@@ -175,7 +173,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val requestLines = request.split("\r\n").toList
 
       requestLines must contain("Host: bar.test")
-      response must_==("done")
+      response must_== "done"
     }
 
     "Insert a User-Agent header" in {
@@ -186,7 +184,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val requestLines = request.split("\r\n").toList
 
       requestLines must contain(DefaultUserAgent.get.toString)
-      response must_==("done")
+      response must_== "done"
     }
 
     "Use User-Agent header provided in Request" in {
@@ -199,12 +197,12 @@ class Http1ClientStageSpec extends Http4sSpec {
       val requestLines = request.split("\r\n").toList
 
       requestLines must contain("User-Agent: myagent")
-      response must_==("done")
+      response must_== "done"
     }
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None), es, ec)
+      val tail = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None))
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail)
@@ -213,7 +211,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         val requestLines = request.split("\r\n").toList
 
         requestLines.find(_.startsWith("User-Agent")) must beNone
-        response must_==("done")
+        response must_== "done"
       }
       finally {
         tail.shutdown()
@@ -228,7 +226,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       val (request, response) = getSubmission(req, resp)
 
-      request must not contain("Host:")
+      request must not contain "Host:"
       response must_== "done"
     }.pendingUntilFixed
 
@@ -239,7 +237,7 @@ class Http1ClientStageSpec extends Http4sSpec {
        * scenarios before we consume the body.  Make sure we can handle
        * it.  Ensure that we still get a well-formed response.
        */
-      val (request, response) = getSubmission(req, resp)
+      val (_, response) = getSubmission(req, resp)
       response must_== "done"
     }
 
@@ -279,7 +277,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       "Support trailer headers" in {
         val hs: IO[Headers] = bracketResponse(req, resp){ response: Response[IO] =>
           for {
-            body  <- response.as[String]
+            _ <- response.as[String]
             hs <- response.trailerHeaders
           } yield hs
         }

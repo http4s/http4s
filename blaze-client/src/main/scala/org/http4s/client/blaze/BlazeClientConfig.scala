@@ -2,11 +2,11 @@ package org.http4s.client
 package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import org.http4s.headers.`User-Agent`
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 /** Config object for the blaze clients
@@ -27,7 +27,7 @@ import scala.concurrent.duration.Duration
   * @param maxChunkSize maximum size of chunked content chunks
   * @param lenientParser a lenient parser will accept illegal chars but replaces them with � (0xFFFD)
   * @param bufferSize internal buffer size of the blaze client
-  * @param customExecutor custom executor to run async computations. Will not be shutdown with client.
+  * @param executionContext custom executionContext to run async computations.
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
 final case class BlazeClientConfig(// HTTP properties
@@ -47,7 +47,7 @@ final case class BlazeClientConfig(// HTTP properties
 
                                    // pipeline management
                                    bufferSize: Int,
-                                   customExecutor: Option[ExecutorService],
+                                   executionContext: ExecutionContext,
                                    group: Option[AsynchronousChannelGroup]
 ) {
   @deprecated("Parameter has been renamed to `checkEndpointIdentification`", "0.16")
@@ -71,7 +71,7 @@ object BlazeClientConfig {
       lenientParser = false,
 
       bufferSize = bits.DefaultBufferSize,
-      customExecutor = None,
+      executionContext = ExecutionContext.global,
       group = None
     )
 

@@ -2,17 +2,15 @@ package org.http4s
 package servlet
 
 import java.net.InetSocketAddress
-import java.util.concurrent.ExecutorService
 import javax.servlet._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import cats.effect._
-import cats.effect.implicits._
 import cats.implicits._
 import fs2.async
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server._
-import org.http4s.util.threads.DefaultPool
+import org.http4s.util.threads.DefaultExecutionContext
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -21,7 +19,7 @@ import scala.concurrent.duration.Duration
 
 class Http4sServlet[F[_]](service: HttpService[F],
                           asyncTimeout: Duration = Duration.Inf,
-                          threadPool: ExecutorService = DefaultPool,
+                          implicit private[this] val executionContext: ExecutionContext = DefaultExecutionContext,
                           private[this] var servletIo: ServletIo[F])
                          (implicit F: Effect[F]) extends HttpServlet {
   private[this] val logger = getLogger(classOf[Http4sServlet[F]])
@@ -29,8 +27,6 @@ class Http4sServlet[F[_]](service: HttpService[F],
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
 
   private[this] var serverSoftware: ServerSoftware = _
-
-  private implicit val ec = ExecutionContext.fromExecutorService(threadPool)
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
@@ -100,6 +96,7 @@ class Http4sServlet[F[_]](service: HttpService[F],
         // Handle message failures _thrown_ by the service, just in case
         messageFailureHandler(request).andThen(_.widen[MaybeResponse[F]])
     }.flatten
+
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }
@@ -190,9 +187,9 @@ class Http4sServlet[F[_]](service: HttpService[F],
 object Http4sServlet {
   def apply[F[_]: Effect](service: HttpService[F],
                           asyncTimeout: Duration = Duration.Inf,
-                          threadPool: ExecutorService = DefaultPool): Http4sServlet[F] =
+                          executionContext: ExecutionContext = DefaultExecutionContext): Http4sServlet[F] =
     new Http4sServlet[F](service,
       asyncTimeout,
-      threadPool,
+      executionContext,
       BlockingServletIo[F](DefaultChunkSize))
 }

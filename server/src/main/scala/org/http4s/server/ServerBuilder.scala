@@ -9,6 +9,7 @@ import cats.effect._
 import fs2._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 trait ServerBuilder[F[_]] {
@@ -25,7 +26,11 @@ trait ServerBuilder[F[_]] {
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
 
-  def withServiceExecutor(executorService: ExecutorService): Self
+  @deprecated("Use withExecutionContext", "0.17")
+  def withExecutorService(executorService: ExecutorService): Self =
+    withExecutionContext(ExecutionContext.fromExecutorService(executorService))
+
+  def withExecutionContext(executionContext: ExecutionContext): Self
 
   def mountService(service: HttpService[F], prefix: String = ""): Self
 

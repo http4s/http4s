@@ -46,7 +46,7 @@ final case class Uri(
   def port: Option[Int] = authority.flatMap(_.port)
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
 
-  def resolve(relative: Uri): Uri = Uri.resolve(this,relative)
+  def resolve(relative: Uri): Uri = Uri.resolve(this, relative)
 
   /**
    * Representation of the query string as a map
