@@ -82,7 +82,7 @@ object MultipartParser {
       val rest = restWithExpected.drop(expected.length)
       Option((part, rest))
     } else {
-      Option.empty[(ByteVector, ByteVector)]
+      Option((byteVector, ByteVector.empty))
     }
   }
 
@@ -114,7 +114,7 @@ object MultipartParser {
         if (rest.isEmpty){
           newAcc.reverse
         } else {
-          splitParts(rest.drop(expected.length))(boundary)(newAcc)
+          splitParts(rest)(boundary)(newAcc)
         }
       case None => acc.reverse
     }

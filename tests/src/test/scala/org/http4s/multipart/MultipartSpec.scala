@@ -35,10 +35,6 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
         decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
      """
 
-  val tempOut ="""
-      |
-    """.stripMargin
-
   val url = Uri(
       scheme = Some(CaseInsensitiveString("https")),
       authority = Some(Authority(host = RegName("example.com"))),
@@ -61,12 +57,10 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.value.unsafeRun
 
-    body.runLog.map(ByteVector(_)).map(_.decodeUtf8.toOption).map(println).unsafeRun()
-
     result must beRight.like { case mp =>
-//      mp === multipart
+      mp === multipart
 //            mp.headers must_=== multipart.headers
-            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
+//            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
 //      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
     }
   }
@@ -116,9 +110,9 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val result     = decoded.value.unsafeRun()
 
     result must beRight.like { case mp =>
-//      mp === multipart
+      mp === multipart
       //      mp.headers must_=== multipart.headers
-            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
+//            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
       //      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
     }
   }

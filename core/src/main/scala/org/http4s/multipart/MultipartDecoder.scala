@@ -53,7 +53,6 @@ private[http4s] object MultipartDecoder {
       h.receive1Option {
         case Some((Left(headers), h1)) =>
           if (lastWasLeft){
-            println("Last was left exists - This Should Not Happen")
             go(Part(Headers(part.headers.toList ::: headers.toList), Task.delay(ByteVector.empty)), true)(h1)
           } else {
             Pull.output1(part) >>
