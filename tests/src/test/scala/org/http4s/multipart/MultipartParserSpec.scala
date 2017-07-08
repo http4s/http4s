@@ -296,13 +296,11 @@ object MultipartParserSpec extends Specification {
       // I have Changed This Test.
       // It previously only returned bar.
       // What spec needs to be met that drops the first section?
-      bv.decodeUtf8.toOption must_=== Option(
-        ruinDelims(
+      bv.decodeUtf8 must_=== Right(
           """this is a test
           |here's another test
           |catch me if you can!
-          |bar""".stripMargin
-        )
+          |bar""".stripMargin.replaceAllLiterally("\n", "\r\n")
       )
     }
 
