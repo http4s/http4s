@@ -22,8 +22,4 @@ eval "$(ssh-agent -s)";
 openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
 
 
-<<<<<<< HEAD
 sbt $SBT_EXTRA_OPTS ++$TRAVIS_SCALA_VERSION ";makeSite ;ghpagesPushSite"
-=======
-sbt ";makeSite ;ghpagesPushSite"
->>>>>>> release-0.16.x
