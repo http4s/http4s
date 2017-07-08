@@ -34,24 +34,18 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
         decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
         decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
      """
+
+  val tempOut ="""
+      |
+    """.stripMargin
+
   val url = Uri(
       scheme = Some(CaseInsensitiveString("https")),
       authority = Some(Authority(host = RegName("example.com"))),
       path = "/path/to/some/where")
 
-  implicit def MultiPartEq : Eq[Multipart] = Eq.by(_.parts)
+  def toBV(entityBody: EntityBody): ByteVector = ByteVector(entityBody.runLog.unsafeRun())
 
-  implicit def PartEq(implicit eq: Eq[EntityBody]): Eq[Part] = Eq.instance{(a,b) =>
-    a.headers.size == b.headers.size &&
-      (a.headers zip b.headers).forall { case (ah, bh) => ah == bh } //&&
-//      a.body === b.body
-  }
-
-  // Shady
-  implicit def EntityBodyEq: Eq[EntityBody] = Eq.instance{ (eb1, eb2) =>
-    def toBV(entityBody: EntityBody): ByteVector = ByteVector(entityBody.runLog.unsafeRun())
-    toBV(eb1) === toBV(eb2)
-  }
 
   def encodeAndDecodeMultipart = {
 
@@ -67,7 +61,14 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.value.unsafeRun
 
-    result must beRight.like  { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
+    body.runLog.map(ByteVector(_)).map(_.decodeUtf8.toOption).map(println).unsafeRun()
+
+    result must beRight.like { case mp =>
+//      mp === multipart
+//            mp.headers must_=== multipart.headers
+            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
+//      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
+    }
   }
 
   def encodeAndDecodeMultipartMissingContentType = {
@@ -84,7 +85,13 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.value.unsafeRun()
 
-    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
+    result must beRight.like { case mp =>
+        mp === multipart
+//      mp.headers must_=== multipart.headers
+//      mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
+//      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
+    }
+
   }
 
   def encodeAndDecodeMultipartWithBinaryFormData = {
@@ -108,12 +115,18 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.value.unsafeRun()
 
-    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Eq[Multipart].eqv) }
+    result must beRight.like { case mp =>
+//      mp === multipart
+      //      mp.headers must_=== multipart.headers
+            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
+      //      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
+    }
   }
+
 
   def decodeMultipartRequestWithContentTypes = {
 
-    val body       = """
+    val body       ="""
 ------WebKitFormBoundarycaZFo8IAKVROTEeD
 Content-Disposition: form-data; name="text"
 

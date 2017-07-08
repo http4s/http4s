@@ -20,7 +20,11 @@ package org.http4s
 
 import cats.Show
 
+<<<<<<< HEAD
 import scala.util.hashing.MurmurHash3
+=======
+import cats._
+>>>>>>> Switch To Task For Easier Comparison
 import cats.data.NonEmptyList
 import cats.implicits._
 import org.http4s.syntax.string._
@@ -123,7 +127,9 @@ object Header {
     }
   }
 
-  implicit val headerShow : Show[Header] = new Show[Header] {
-    def show(f: Header): String = f.toString
+  implicit val headerShow : Show[Header] = Show.show[Header] {
+    _.toString
   }
+
+  implicit val headerEq : Eq[Header] = Eq.by(_.value)
 }

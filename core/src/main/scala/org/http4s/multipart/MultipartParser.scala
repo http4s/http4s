@@ -52,7 +52,6 @@ object MultipartParser {
     }
   }
 
-  @tailrec
   def parseToParts(byteVector: ByteVector)(boundary: Boundary): Task[ByteVector] = {
     val startLine = startLineBytes(boundary)
     val startIndex = byteVector.indexOfSlice(startLine)
@@ -61,12 +60,13 @@ object MultipartParser {
 
     if (startIndex >= 0 && endIndex >= 0) {
       val parts = byteVector.slice(startIndex + startLine.length + CRLFBytes.length, endIndex - CRLFBytes.length)
-      if (parts.containsSlice(startLine)) {
-        val droppedInitialPrelude = byteVector.drop(startIndex + startLine.length + CRLFBytes.length)
-        parseToParts(droppedInitialPrelude)(boundary)
-      } else {
-        Task.now(parts)
-      }
+      Task.delay(parts)
+//      if (parts.containsSlice(startLine)) {
+//        val droppedInitialPrelude = byteVector.drop(startIndex + startLine.length + CRLFBytes.length)
+//        parseToParts(droppedInitialPrelude)(boundary)
+//      } else {
+//        Task.now(parts)
+//      }
     } else {
       Task.fail(MalformedMessageBodyFailure("Expected a multipart start or end line"))
     }
@@ -104,6 +104,7 @@ object MultipartParser {
 
     partOpt match {
       case Some((part, rest)) =>
+//        println(part.decodeUtf8.toOption)
 
         val (headers, body) = generatePart(part)
 
@@ -124,8 +125,8 @@ object MultipartParser {
     val doubleCRLF = CRLFBytes ++ CRLFBytes
     val index = byteVector.indexOfSlice(doubleCRLF)
     // Each Part Should Contain this Separation between bodies and headers -- We could handle failure.
-    val (headersSplit, bodyWithCRLF) = byteVector.splitAt(index)
-    val body = bodyWithCRLF.drop(doubleCRLF.length)
+    val (headersSplit, bodyWithCRLFs) = byteVector.splitAt(index)
+    val body = bodyWithCRLFs.drop(doubleCRLF.length)
 
 //    println(s"GeneratePart HeadersSplit ${headersSplit.decodeAscii}")
 //    println(s"GenerateParts Body ${body.decodeAscii}")
@@ -141,7 +142,7 @@ object MultipartParser {
     val headerO = splitHeader(byteVector)
 
     headerO match {
-      case Some((lineBV, restWithCRLF)) =>
+      case Some((lineBV, rest)) =>
         val headerO = for {
           line <- lineBV.decodeAscii.right.toOption
           idx <- Some(line indexOf ':')
@@ -152,7 +153,7 @@ object MultipartParser {
 
         val newHeaders = acc ++ headerO
 
-        val rest = restWithCRLF.drop(CRLFBytes.length)
+//        val rest = restWithCRLF.drop(CRLFBytes.length)
 
 //        println(s"Generate Headers Header0 = $headerO")
 //        println(s"Generate Headers rest = ${restWithCRLF.decodeAscii}")
@@ -166,11 +167,11 @@ object MultipartParser {
     val index = byteVector.indexOfSlice(CRLFBytes)
 
     if (index >= 0L) {
-      val (lineWithCRLF, rest) = byteVector.splitAt(index)
+      val (line, rest) = byteVector.splitAt(index)
 
 //      println(s"Split Header Line: ${lineWithCRLF.decodeAscii}")
 //      println(s"Split Header Rest: ${rest.decodeAscii}")
-      Option((lineWithCRLF, rest))
+      Option((line, rest.drop(CRLFBytes.length)))
     }
     else {
       Option.empty[(ByteVector, ByteVector)]

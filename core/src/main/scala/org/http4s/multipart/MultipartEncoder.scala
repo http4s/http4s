@@ -56,7 +56,7 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
       Stream.chunk(prelude) ++
         Stream.chunk(renderHeaders(part.headers)) ++
         Stream.chunk(Chunk.bytes(Boundary.CRLF.getBytes)) ++
-        part.body
+        Stream.eval(part.body).map(_.toSeq).flatMap(Stream.emits)
 
 
   def renderParts(boundary: Boundary)(parts: Vector[Part]): Stream[Task, Byte] =

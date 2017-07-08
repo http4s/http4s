@@ -39,6 +39,9 @@ private[http4s] object MultipartDecoder {
 //    val bvStream = s.runLog
 //      .map(ByteVector(_))
 //
+//    bvStream.map(_.decodeAscii)
+//  }
+//
 //    Stream.eval(bvStream.map(_.decodeAscii).flatMap{e => Task.delay(println(e))}) >> s
 //  }
 
@@ -46,17 +49,26 @@ private[http4s] object MultipartDecoder {
 
 
   def gatherParts(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
-    def go(part: Part)(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
+    def go(part: Part, lastWasLeft: Boolean)(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
       h.receive1Option {
-        case Some((Left(headers), h1)) => Pull.output1(part) >> go(Part(headers, EmptyBody))(h1)
-        case Some((Right(byte), h1)) => //go(part.copy(body = part.body.append(Stream.emit(byte))))(h1)
-          go(Part(part.headers, part.body ++ Stream.emit(byte)))(h1)
+        case Some((Left(headers), h1)) =>
+          if (lastWasLeft){
+            println("Last was left exists - This Should Not Happen")
+            go(Part(Headers(part.headers.toList ::: headers.toList), Task.delay(ByteVector.empty)), true)(h1)
+          } else {
+            Pull.output1(part) >>
+              go(Part(headers, Task.delay(ByteVector.empty)), true)(h1)
+          }
+        case Some((Right(byte), h1)) =>
+          go(part.copy(body = part.body.map( bv => bv ++ ByteVector.fromByte(byte))), false)(h1)
         case None => Pull.output1(part) >> Pull.done
       }
     }
 
+
     h.receive1 {
-      case (Left(headers), h1) => go(Part(headers, EmptyBody))(h1)
+      case (Left(headers), h1) =>
+        go(Part(headers, Task.delay(ByteVector.empty)), true)(h1)
       case (Right(byte), h) => Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
     }
   }

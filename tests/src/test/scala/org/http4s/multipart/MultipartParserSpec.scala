@@ -293,7 +293,45 @@ object MultipartParserSpec extends Specification {
         case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
+
+
       bv.decodeAscii mustEqual Right("bar")
+    }
+
+    "produce the correct headers from a two part input" in {
+      val unprocessedInput=
+        """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+
+      val input = ruinDelims(unprocessedInput)
+
+      val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+      val results: Stream[Task, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundaryTest))
+
+      val (headers, bv) = results.runLog.unsafeRun().foldLeft((List.empty[Headers], ByteVector.empty)) {
+        case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
+        case ((hsAcc, bvAcc), Left(hs)) => (hs :: hsAcc, bvAcc)
+      }
+
+
+      headers.reverse mustEqual List(
+        Headers(
+        `Content-Disposition`("form-data", Map("name" -> "field1")),
+        `Content-Type`(MediaType.`text/plain`)
+        ),
+        Headers(
+          `Content-Disposition`("form-data", Map("name" -> "field2"))
+        )
+      )
     }
 
     "fail with an MalformedMessageBodyFailure without an end line" in {
