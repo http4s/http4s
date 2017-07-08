@@ -293,9 +293,17 @@ object MultipartParserSpec extends Specification {
         case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
-
-
-      bv.decodeAscii mustEqual Right("bar")
+      // I have Changed This Test.
+      // It previously only returned bar.
+      // What spec needs to be met that drops the first section?
+      bv.decodeUtf8.toOption must_=== Option(
+        ruinDelims(
+          """this is a test
+          |here's another test
+          |catch me if you can!
+          |bar""".stripMargin
+        )
+      )
     }
 
     "produce the correct headers from a two part input" in {

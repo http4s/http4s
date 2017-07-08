@@ -61,12 +61,6 @@ object MultipartParser {
     if (startIndex >= 0 && endIndex >= 0) {
       val parts = byteVector.slice(startIndex + startLine.length + CRLFBytes.length, endIndex - CRLFBytes.length)
       Task.delay(parts)
-//      if (parts.containsSlice(startLine)) {
-//        val droppedInitialPrelude = byteVector.drop(startIndex + startLine.length + CRLFBytes.length)
-//        parseToParts(droppedInitialPrelude)(boundary)
-//      } else {
-//        Task.now(parts)
-//      }
     } else {
       Task.fail(MalformedMessageBodyFailure("Expected a multipart start or end line"))
     }
