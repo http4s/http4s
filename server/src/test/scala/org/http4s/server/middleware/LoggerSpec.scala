@@ -13,7 +13,7 @@ class LoggerSpec extends Http4sSpec {
     case req @ GET -> Root / "request" =>
       Ok("request response")
     case req @ POST -> Root / "post" =>
-      Ok("post response")
+      Ok(req.body)
   }
 
   val urlForm = UrlForm("foo" -> "bar")
@@ -28,7 +28,9 @@ class LoggerSpec extends Http4sSpec {
 
     "not effect a Post" in {
       val req = Request(uri = uri("/post"), method = POST).withBody(urlForm)
-      req.flatMap(responseLoggerService.orNotFound) must returnStatus(Status.Ok)
+      val res = req.flatMap(responseLoggerService.orNotFound)
+      res must returnStatus(Status.Ok)
+      res must returnBody(urlForm)
     }
   }
 
@@ -42,7 +44,9 @@ class LoggerSpec extends Http4sSpec {
 
     "not effect a Post" in {
       val req = Request(uri = uri("/post"), method = POST).withBody(urlForm)
-      req.flatMap(requestLoggerService.orNotFound) must returnStatus(Status.Ok)
+      val res = req.flatMap(requestLoggerService.orNotFound)
+      res must returnStatus(Status.Ok)
+      res must returnBody(urlForm)
     }
   }
 
@@ -56,7 +60,9 @@ class LoggerSpec extends Http4sSpec {
 
     "not effect a Post" in {
       val req = Request(uri = uri("/post"), method = POST).withBody(urlForm)
-      req.flatMap(loggerService.orNotFound) must returnStatus(Status.Ok)
+      val res = req.flatMap(loggerService.orNotFound)
+      res must returnStatus(Status.Ok)
+      res must returnBody(urlForm)
     }
   }
 
