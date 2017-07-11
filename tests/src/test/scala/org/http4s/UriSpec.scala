@@ -271,10 +271,18 @@ http://example.org/a file
         "git://github.com/rails/rails.git",
         "crid://broadcaster.com/movies/BestActionMovieEver",
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
-        "/relative/URI/with/absolute/path/to/resource.txt")
+        "/relative/URI/with/absolute/path/to/resource.txt"
+      )
       foreach (examples) { e =>
         Uri.fromString(e).map(_.toString) must beRight(e)
       }
+    }
+
+    "handle brackets in query string" in {
+      // These are illegal, but common in the wild.  We will be "conservative
+      // in our sending behavior and liberal in our receiving behavior", and
+      // encode them.
+      Uri.fromString("http://localhost:8080/index?filter[state]=public").map(_.toString) must be_\/-("http://localhost:8080/index?filter%5Bstate%5D=public")
     }
 
     "round trip with toString" in forAll { uri: Uri =>
