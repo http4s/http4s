@@ -22,3 +22,4 @@ atlassian-ide-plugin.xml
 .ensime_cache
 .cache-main
 .cache-tests
+.vagrant/
