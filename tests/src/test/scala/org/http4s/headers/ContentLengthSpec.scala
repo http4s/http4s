@@ -35,5 +35,17 @@ class ContentLengthSpec extends HeaderLaws {
     "be consistent with apply" in prop { length: Long => length >= 0 ==> {
       `Content-Length`.parse(length.toString) must_== `Content-Length`(length)
     }}
+    "roundtrip" in prop { l: Long => (l >= 0) ==> {
+        `Content-Length`(l).right.map(_.value).right.flatMap(`Content-Length`.parse) must_== `Content-Length`(l)
+    }}
+  }
+
+  "modify" should {
+    "update the length if positive" in prop { length: Long => length >= 0 ==> {
+      `Content-Length`.zero.modify(_ + length) must_== `Content-Length`(length).right.toOption
+    }}
+    "fail to update if the result is negative" in prop { length: Long => length > 0 ==> {
+      `Content-Length`.zero.modify(_ - length) must beNone
+    }}
   }
 }
