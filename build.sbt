@@ -622,7 +622,19 @@ lazy val mimaSettings = Seq(
       exclude[ReversedMissingMethodProblem]("org.http4s.RequestOps.addCookie$default$3"),
       exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
       exclude[DirectAbstractMethodProblem]("org.http4s.client.blaze.BlazeConnection.runRequest"),
-      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest")
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.runRequest"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.sb"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.org$parboiled2$StringBuilding$_setter_$sb_="),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.setSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.appendSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.appendSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.appendSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.appendSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.prependSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.prependSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.prependSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.prependSB"),
+      exclude[InheritedNewAbstractMethodProblem]("org.parboiled2.StringBuilding.clearSB")
     )
   }
 )

@@ -9,7 +9,7 @@ import scalaz.syntax.std.option._
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.{ Query => Q }
 
-private[parser] trait Rfc3986Parser { this: Parser =>
+private[parser] trait Rfc3986Parser extends StringBuilding { this: Parser =>
   // scalastyle:off public.methods.have.type
   import CharPredicate.{Alpha, Digit, HexDigit}
 
@@ -113,7 +113,18 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   def Pchar = rule { Unreserved | PctEncoded | SubDelims | ":" | "@" }
 
   // NOTE: The Query is NOT url decoded.
-  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
+  def Query = rule {
+    clearSB() ~ zeroOrMore(
+      capture(Pchar) ~> { s: String => appendSB(s) } |
+        "/" ~ appendSB() |
+        "?" ~ appendSB() |
+        // These are illegal, but common in the wild.  We will be "conservative
+        // in our sending behavior and liberal in our receiving behavior", and
+        // encode them.
+        "[" ~ appendSB("%5B") |
+        "]" ~ appendSB("%5D")
+    ) ~ push(sb.toString)
+  }
 
   // NOTE: The Fragment is NOT url decoded.
   def Fragment = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
