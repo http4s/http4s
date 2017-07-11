@@ -282,7 +282,7 @@ http://example.org/a file
       // These are illegal, but common in the wild.  We will be "conservative
       // in our sending behavior and liberal in our receiving behavior", and
       // encode them.
-      Uri.fromString("http://localhost:8080/index?filter[state]=public").map(_.toString) must be_\/-("http://localhost:8080/index?filter%5Bstate%5D=public")
+      Uri.fromString("http://localhost:8080/index?filter[state]=public").map(_.toString) must beRight("http://localhost:8080/index?filter%5Bstate%5D=public")
     }
 
     "round trip with toString" in forAll { uri: Uri =>
