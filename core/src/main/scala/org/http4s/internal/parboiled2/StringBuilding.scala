@@ -56,6 +56,7 @@ private[http4s] trait StringBuilding { this: Parser ⇒
     sb.setLength(0)
     sb.append(c)
     sb.append(saved)
+    ()
   }
 
   private def doPrepend(s: String): Unit = {
@@ -63,10 +64,12 @@ private[http4s] trait StringBuilding { this: Parser ⇒
     sb.setLength(0)
     sb.append(s)
     sb.append(saved)
+    ()
   }
 
   private def doSet(s: String): Unit = {
     sb.setLength(0)
     sb.append(s)
+    ()
   }
 }
