@@ -110,7 +110,6 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
-  /* TOOO fs2 port
   def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
     new Http4sHeaderParser[`Last-Event-Id`](value) {
       def entry = rule {
@@ -119,7 +118,6 @@ private[parser] trait SimpleHeaders {
         }
       }
     }.parse
-   */
 
   def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] =
     new Http4sHeaderParser[`Last-Modified`](value) {
