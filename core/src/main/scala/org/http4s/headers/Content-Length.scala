@@ -15,15 +15,13 @@ import org.http4s.util.Writer
 sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed {
   override def key: `Content-Length`.type = `Content-Length`
   override def renderValue(writer: Writer): writer.type = writer.append(length)
-  def modify(f: Long => Long): Option[`Content-Length`] = `Content-Length`.apply(f(length)).right.toOption
+  def modify(f: Long => Long): Option[`Content-Length`] = `Content-Length`.fromLong(f(length)).right.toOption
 }
 
 object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {
   private class ContentLengthImpl(length: Long) extends `Content-Length`(length)
 
   val zero: `Content-Length` = new ContentLengthImpl(0) {}
-
-  def apply(length: Long): ParseResult[`Content-Length`] = fromLong(length)
 
   def fromLong(length: Long): ParseResult[`Content-Length`] =
     if (length >= 0L) ParseResult.success(new ContentLengthImpl(length))

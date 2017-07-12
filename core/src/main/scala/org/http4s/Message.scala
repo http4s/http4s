@@ -67,7 +67,7 @@ sealed trait Message extends MessageOps { self =>
   def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
     w.toEntity(b).flatMap { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`(l).fold(_ =>
+        case Some(l) => `Content-Length`.fromLong(l).fold(_ =>
           Task.now {
             Message.logger.warn(s"Attempt to provide a negative content length of $l")
             w.headers.toList

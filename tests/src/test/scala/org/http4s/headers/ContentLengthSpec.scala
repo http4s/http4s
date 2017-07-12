@@ -3,23 +3,12 @@ package org.http4s.headers
 class ContentLengthSpec extends HeaderLaws {
   checkAll("Content-Length", headerLaws(`Content-Length`))
 
-  "apply" should {
-    "reject negative lengths" in prop { length: Long => length < 0 ==> {
-      `Content-Length`(length) must beLeft
-    }}
-
-    "accept non-negative lengths" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`(length).right.map(_.length) must beRight(length)
-    }}
-  }
-
   "fromLong" should {
     "reject negative lengths" in prop { length: Long => length < 0 ==> {
       `Content-Length`.fromLong(length) must beLeft
     }}
-
-    "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.fromLong(length) must_== `Content-Length`(length)
+    "accept non-negative lengths" in prop { length: Long => length >= 0 ==> {
+      `Content-Length`.fromLong(length).right.map(_.length) must beRight(length)
     }}
   }
 
@@ -33,16 +22,16 @@ class ContentLengthSpec extends HeaderLaws {
     }}
 
     "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.parse(length.toString) must_== `Content-Length`(length)
+      `Content-Length`.parse(length.toString) must_== `Content-Length`.fromLong(length)
     }}
     "roundtrip" in prop { l: Long => (l >= 0) ==> {
-        `Content-Length`(l).right.map(_.value).right.flatMap(`Content-Length`.parse) must_== `Content-Length`(l)
+      `Content-Length`.fromLong(l).right.map(_.value).right.flatMap(`Content-Length`.parse) must_== `Content-Length`.fromLong(l)
     }}
   }
 
   "modify" should {
     "update the length if positive" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.zero.modify(_ + length) must_== `Content-Length`(length).right.toOption
+      `Content-Length`.zero.modify(_ + length) must_== `Content-Length`.fromLong(length).right.toOption
     }}
     "fail to update if the result is negative" in prop { length: Long => length > 0 ==> {
       `Content-Length`.zero.modify(_ - length) must beNone

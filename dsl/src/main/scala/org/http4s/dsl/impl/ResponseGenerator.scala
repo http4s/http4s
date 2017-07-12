@@ -39,7 +39,7 @@ trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
   def apply[A](body: A, headers: Headers)(implicit w: EntityEncoder[A]): Task[Response] = {
     val h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
-      val headers = len.map { l => `Content-Length`(l).fold(_ => h, c => h put c) }.getOrElse(h)
+      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
       Task.now(Response(status = status, headers = headers, body = proc))
     }
   }

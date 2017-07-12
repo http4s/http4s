@@ -19,7 +19,7 @@ trait EntityRequestGenerator extends Any with EmptyRequestGenerator {
   final def apply[A](uri: Uri, body: A)(implicit w: EntityEncoder[A]): Task[Request] = {
     val h = w.headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
-      val headers = len.map { l => `Content-Length`(l).fold(_ => h, c => h put c) }.getOrElse(h)
+      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
       Task.now(Request(method = method, uri = uri, headers = headers, body = proc))
     }
   }
