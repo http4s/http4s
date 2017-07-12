@@ -175,6 +175,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     "toHttpService disposes of the response if the body is run, even if it fails" in {
       assertDisposes(_.toHttpService.flatMapK(_.orNotFound.body.flatMap(_ => Process.fail(SadTrombone).toSource).run).run(req))
     }
+
+    "toHttpService allows the response to be read" in {
+      client.toHttpService.orNotFound(req).as[String] must returnValue("hello")
+    }
   }
 
   "RequestResponseGenerator" should {
