@@ -373,7 +373,7 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/135143b3bcad619256423733099b80427cb732c0/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/68008bcdb07f75691661614ddbfd7671db8fd34d/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -506,10 +506,10 @@ for serious static content serving.
       <p class="shortcomment cmt">Returns a task to start a server.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a task to start a server.  The task completes with a
 reference to the server when it has started.
 </p></div></div>
-    </li><li name="org.http4s.server.ServerBuilder#withServiceExecutor" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withServiceExecutor(ExecutorService):Self"></a>
+    </li><li name="org.http4s.server.ServerBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):ServerBuilder.this.Self"></a><a id="withExecutionContext(ExecutionContext):Self"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#withExecutionContext(executionContext:scala.concurrent.ExecutionContext):ServerBuilder.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -518,7 +518,7 @@ reference to the server when it has started.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withServiceExecutor</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
+        <span class="name">withExecutionContext</span><span class="params">(<span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
       </span>
       
       
@@ -1118,7 +1118,29 @@ that runs for the rest of the JVM's life.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.ServerBuilder#withExecutorService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withExecutorService(ExecutorService):Self"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.17) Use withExecutionContext">withExecutorService</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17)</i> Use withExecutionContext</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

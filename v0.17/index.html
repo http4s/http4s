@@ -148,7 +148,10 @@ Content-Length: 26
 {&quot;message&quot;:&quot;Hello, world&quot;}
 </code></pre>
 
-<p>To shut down your server, simply press <code>^C</code> in your console.</p>
+<p>To shut down your server, simply press <code>^C</code> in your console. Note that
+when running interactive SBT, <code>^C</code> will kill the SBT process. For rapid
+application development, you may wish to add the <a href="https://github.com/spray/sbt-revolver">sbt-revolver</a> plugin
+to your project and starting the server from the SBT prompt with <code>re-start</code>.</p>
 
 <p>With just a few commands, we have a fully functional app for creating
 a simple JSON service.</p>
@@ -157,8 +160,6 @@ a simple JSON service.</p>
             
             <nav>
               <ul class="pager">
-                
-                <li class="previous"><a href="http://http4s.org/v0.17/build/"><i class="fa fa-arrow-left"></i> Get http4s</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/index.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 

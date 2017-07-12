@@ -179,7 +179,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/135143b3bcad619256423733099b80427cb732c0/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/68008bcdb07f75691661614ddbfd7671db8fd34d/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -544,9 +544,9 @@ a servlet container.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#mountServlet" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):org.http4s.server.jetty.JettyBuilder"></a><a id="mountServlet(HttpServlet,String,Option[String]):JettyBuilder"></a>
+      <a id="mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):JettyBuilder.this.Self"></a><a id="mountServlet(HttpServlet,String,Option[String]):Self"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/jetty/JettyBuilder$.html#mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):org.http4s.server.jetty.JettyBuilder" title="Permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder$.html#mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):JettyBuilder.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -555,7 +555,7 @@ a servlet container.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a></span>
+        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Mounts a servlet to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a servlet to the server.</p><p>The http4s way is to create an <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on servlet containers,
@@ -778,6 +778,22 @@ reference to the server when it has started.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):JettyBuilder.this.Self"></a><a id="withExecutionContext(ExecutionContext):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder$.html#withExecutionContext(executionContext:scala.concurrent.ExecutionContext):JettyBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withExecutionContext</span><span class="params">(<span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#withIdleTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withIdleTimeout(idleTimeout:scala.concurrent.duration.Duration):org.http4s.server.jetty.JettyBuilder"></a><a id="withIdleTimeout(Duration):JettyBuilder"></a>
       <span class="permalink">
@@ -826,22 +842,6 @@ reference to the server when it has started.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../SSLContextSupport.html" class="extype" name="org.http4s.server.SSLContextSupport">SSLContextSupport</a></dd></dl></div>
-    </li><li name="org.http4s.server.jetty.JettyBuilder#withServiceExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withServiceExecutor(serviceExecutor:java.util.concurrent.ExecutorService):org.http4s.server.jetty.JettyBuilder"></a><a id="withServiceExecutor(ExecutorService):JettyBuilder"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/jetty/JettyBuilder$.html#withServiceExecutor(serviceExecutor:java.util.concurrent.ExecutorService):org.http4s.server.jetty.JettyBuilder" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withServiceExecutor</span><span class="params">(<span name="serviceExecutor">serviceExecutor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#withServletIo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withServletIo(servletIo:org.http4s.servlet.ServletIo):JettyBuilder.this.Self"></a><a id="withServletIo(ServletIo):Self"></a>
       <span class="permalink">
@@ -866,7 +866,29 @@ Not to be confused with the server connectors.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.ServerBuilder#withExecutorService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withExecutorService(ExecutorService):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder$.html#withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.17) Use withExecutionContext">withExecutorService</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17)</i> Use withExecutionContext</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

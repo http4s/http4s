@@ -1035,7 +1035,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/135143b3bcad619256423733099b80427cb732c0/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/68008bcdb07f75691661614ddbfd7671db8fd34d/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -2437,7 +2437,7 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
       </span>
       
       
-    </li><li name="org.http4s.Request" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.Request" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="RequestextendsMessagewithRequestOpswithProductwithSerializable"></a><a id="Request:Request"></a>
       <span class="permalink">
       <a href="../../org/http4s/index.html#RequestextendsMessagewithRequestOpswithProductwithSerializable" title="Permalink">
@@ -2445,18 +2445,18 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier">sealed abstract </span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
         <a title="Representation of an incoming HTTP message" href="Request.html">
               <span class="name">Request</span>
-            </a><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody=fs2.Stream[fs2.Task,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="#EmptyBody:org.http4s.package.EntityBody">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Representation of an incoming HTTP message</p><div class="fullcomment"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body.
-</p></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Methodwithorg.http4s.Method.Semantics.Safewithorg.http4s.Method.NoBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Methodwithorg.http4s.Method.Semantics.Defaultwithorg.http4s.Method.PermitsBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion</p></dd></dl></div>
+</p></div></div>
     </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RequestCookieJarextendsIterable[org.http4s.Cookie]withIterableLike[org.http4s.Cookie,org.http4s.RequestCookieJar]"></a><a id="RequestCookieJar:RequestCookieJar"></a>
       <span class="permalink">

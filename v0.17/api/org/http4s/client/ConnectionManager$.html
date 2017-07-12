@@ -309,7 +309,7 @@ HTTP connection.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/135143b3bcad619256423733099b80427cb732c0/client/src/main/scala/org/http4s/client/ConnectionManager.scala" target="_blank">ConnectionManager.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/68008bcdb07f75691661614ddbfd7671db8fd34d/client/src/main/scala/org/http4s/client/ConnectionManager.scala" target="_blank">ConnectionManager.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -621,9 +621,9 @@ HTTP connection.">
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.client.ConnectionManager#pool" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="pool[A&lt;:org.http4s.client.Connection](builder:org.http4s.client.ConnectionBuilder[A],maxTotal:Int,es:java.util.concurrent.ExecutorService):org.http4s.client.ConnectionManager[A]"></a><a id="pool[A&lt;:Connection](ConnectionBuilder[A],Int,ExecutorService):ConnectionManager[A]"></a>
+      <a id="pool[A&lt;:org.http4s.client.Connection](builder:org.http4s.client.ConnectionBuilder[A],maxTotal:Int,executionContext:scala.concurrent.ExecutionContext):org.http4s.client.ConnectionManager[A]"></a><a id="pool[A&lt;:Connection](ConnectionBuilder[A],Int,ExecutionContext):ConnectionManager[A]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/ConnectionManager$.html#pool[A&lt;:org.http4s.client.Connection](builder:org.http4s.client.ConnectionBuilder[A],maxTotal:Int,es:java.util.concurrent.ExecutorService):org.http4s.client.ConnectionManager[A]" title="Permalink">
+      <a href="../../../org/http4s/client/ConnectionManager$.html#pool[A&lt;:org.http4s.client.Connection](builder:org.http4s.client.ConnectionBuilder[A],maxTotal:Int,executionContext:scala.concurrent.ExecutionContext):org.http4s.client.ConnectionManager[A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -632,12 +632,12 @@ HTTP connection.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">pool</span><span class="tparams">[<span name="A">A &lt;: <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>]</span><span class="params">(<span name="builder">builder: <a href="index.html#ConnectionBuilder[A&lt;:org.http4s.client.Connection]=org.http4s.client.RequestKey=&gt;fs2.Task[A]" class="extmbr" name="org.http4s.client.ConnectionBuilder">ConnectionBuilder</a>[<span class="extype" name="org.http4s.client.ConnectionManager.pool.A">A</span>]</span>, <span name="maxTotal">maxTotal: <span class="extype" name="scala.Int">Int</span></span>, <span name="es">es: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a>[<span class="extype" name="org.http4s.client.ConnectionManager.pool.A">A</span>]</span>
+        <span class="name">pool</span><span class="tparams">[<span name="A">A &lt;: <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>]</span><span class="params">(<span name="builder">builder: <a href="index.html#ConnectionBuilder[A&lt;:org.http4s.client.Connection]=org.http4s.client.RequestKey=&gt;fs2.Task[A]" class="extmbr" name="org.http4s.client.ConnectionBuilder">ConnectionBuilder</a>[<span class="extype" name="org.http4s.client.ConnectionManager.pool.A">A</span>]</span>, <span name="maxTotal">maxTotal: <span class="extype" name="scala.Int">Int</span></span>, <span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a>[<span class="extype" name="org.http4s.client.ConnectionManager.pool.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Create a <a href="ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a> that will attempt to recycle connections
 </p><div class="fullcomment"><div class="comment cmt"><p>Create a <a href="ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a> that will attempt to recycle connections
-</p></div><dl class="paramcmts block"><dt class="param">builder</dt><dd class="cmt"><p>generator of new connections</p></dd><dt class="param">maxTotal</dt><dd class="cmt"><p>max total connections</p></dd><dt class="param">es</dt><dd class="cmt"><p><code>ExecutorService</code> where async operations will execute</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">builder</dt><dd class="cmt"><p>generator of new connections</p></dd><dt class="param">maxTotal</dt><dd class="cmt"><p>max total connections</p></dd><dt class="param">executionContext</dt><dd class="cmt"><p><code>ExecutionContext</code> where async operations will execute</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
