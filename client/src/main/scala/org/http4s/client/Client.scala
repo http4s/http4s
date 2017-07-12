@@ -77,12 +77,12 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpService: HttpService = {
-    open.flatMapF{
-      case DisposableResponse(response, dispose) => dispose.flatMap(_ => Task.now(response))
+    open.map { case DisposableResponse(response, dispose) =>
+      response.copy(body = response.body.onFinalize(dispose))
     }
   }
 
-
+n
   def streaming[A](req: Request)(f: Response => Stream[Task, A]): Stream[Task, A] = {
     Stream.eval(open(req))
       .flatMap {
