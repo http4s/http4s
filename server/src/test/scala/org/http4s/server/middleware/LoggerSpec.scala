@@ -3,6 +3,10 @@ package server
 package middleware
 
 import org.http4s.dsl._
+import scala.io.Source
+import fs2.Task
+import fs2.io.readInputStream
+import java.nio.charset.StandardCharsets
 
 /**
   * Common Tests for Logger, RequestLogger, and ResponseLogger
@@ -16,8 +20,14 @@ class LoggerSpec extends Http4sSpec {
       Ok(req.body)
   }
 
-  val urlForm = UrlForm("foo" -> "bar")
+  def testResource = getClass.getResourceAsStream("/testresource.txt")
 
+  def body: EntityBody =
+    readInputStream[Task](Task.now(testResource), 4096)
+
+  val expectedBody: String =
+    Source.fromInputStream(testResource).mkString
+  
   "ResponseLogger" should {
     val responseLoggerService = ResponseLogger(true, true)(testService)
 
@@ -27,10 +37,10 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request(uri = uri("/post"), method = POST).withBody(urlForm)
-      val res = req.flatMap(responseLoggerService.orNotFound)
+      val req = Request(uri = uri("/post"), method = POST).withBody(body)
+      val res = responseLoggerService.orNotFound(req)
       res must returnStatus(Status.Ok)
-      res must returnBody(urlForm)
+      res must returnBody(expectedBody)
     }
   }
 
@@ -43,10 +53,10 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request(uri = uri("/post"), method = POST).withBody(urlForm)
-      val res = req.flatMap(requestLoggerService.orNotFound)
+      val req = Request(uri = uri("/post"), method = POST).withBody(body)
+      val res = requestLoggerService.orNotFound(req)
       res must returnStatus(Status.Ok)
-      res must returnBody(urlForm)
+      res must returnBody(expectedBody)
     }
   }
 
@@ -59,12 +69,10 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request(uri = uri("/post"), method = POST).withBody(urlForm)
-      val res = req.flatMap(loggerService.orNotFound)
+      val req = Request(uri = uri("/post"), method = POST).withBody(body)
+      val res = loggerService.orNotFound(req)
       res must returnStatus(Status.Ok)
-      res must returnBody(urlForm)
+      res must returnBody(expectedBody)
     }
   }
-
-
 }
