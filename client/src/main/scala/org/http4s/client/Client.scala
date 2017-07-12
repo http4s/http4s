@@ -82,7 +82,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     }
   }
 
-n
   def streaming[A](req: Request)(f: Response => Stream[Task, A]): Stream[Task, A] = {
     Stream.eval(open(req))
       .flatMap {
