@@ -1,236 +1,169 @@
-// TODO fs2 port
-/*
 package org.http4s
 package multipart
 
 import scodec.bits.ByteVector
+import fs2._
+import cats.implicits._
+import fs2.util.syntax._
+import fs2.Chunk
 
-<<<<<<< HEAD
-=======
-import scalaz.{-\/, \/-, \/, State}
-import scalaz.stream.{process1, Process, Process1, Writer1}
-
->>>>>>> release-0.16.x
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
-  import Process._
+
 
   private[this] val logger = org.log4s.getLogger
 
-  private val CRLF = ByteVector('\r', '\n')
-  private val DASHDASH = ByteVector('-', '-')
+  private val CRLF = "\r\n"
+  private val DASHDASH = "--"
+  private val startLine: Boundary => String = boundary => s"$DASHDASH${boundary.value}"
+  private val endLine: Boundary => String = boundary => s"${startLine(boundary)}$DASHDASH"
+  private val expected: Boundary => String = boundary => s"$CRLF${startLine(boundary)}"
 
-  private final case class Out[+A](a: A, tail: Option[ByteVector] = None)
+  private val CRLFBytes = ByteVector('\r','\n')
+  private val DashDashBytes = ByteVector('-', '-')
+  private val boundaryBytes : Boundary => ByteVector = boundary => ByteVector(boundary.value.getBytes)
+  private val startLineBytes : Boundary => ByteVector = boundaryBytes andThen (DashDashBytes ++ _)
+  private val endLineBytes: Boundary => ByteVector = startLineBytes andThen (_ ++ DashDashBytes)
+  private val expectedBytes: Boundary => ByteVector = startLineBytes andThen (CRLFBytes ++ _)
 
-  def parse(boundary: Boundary): Writer1[Headers, ByteVector, ByteVector] =
-    parse(boundary, 40 * 1024)
+  final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse(boundary: Boundary, headerLimit: Long): Writer1[Headers, ByteVector, ByteVector] = {
-    val boundaryBytes = boundary.toByteVector
-    val startLine = DASHDASH ++ boundaryBytes
-    val endLine = startLine ++ DASHDASH
+  def parse(boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[Task, Byte, Either[Headers, Byte]] = s => {
 
-    // At various points, we'll read up until we find this, to loop back into beginPart.
-    val expected = CRLF ++ startLine
+    val streamString = s.chunks
+      .through(text.utf8DecodeC)
+      .covary[Task]
+      .through(text.lines)
+      .dropWhile(_ != startLine(boundary)) // Drop Prelude
+      .drop(1)                             // Drop Start Line
+      .takeWhile(_ != endLine(boundary))   // Take Until EndLine
 
-    def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
-      def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
-        logger.trace(s"handle: ${bv.decodeUtf8}")
-        val index = bv indexOfSlice CRLF
+      val headers =
+        streamString
+          .takeWhile(_ != "")
+          .map(header)
+          .unNone
+          .fold(Headers.empty){(acc, h) => acc.put(h)}
+          .map(Either.left)
 
-        if (index >= 0) {
-          val (head, tailPre) = bv splitAt index
-          val tail = tailPre drop 2       // remove the line feed characters
-          val tailM = Some(tail) filter { !_.isEmpty }
-          emit(\/-(Out(head, tailM)))
+    val initBody = streamString
+        .dropWhile(_ != "")
+        .drop(1)
+        .takeWhile(_ != endLine(boundary))
+
+    val bodySansLast = initBody.dropLast.map(_ ++ CRLF)
+    val trimLast = initBody.last.unNone
+
+    val body = (bodySansLast ++ trimLast)
+        .through(text.utf8Encode)
+        .map(Either.right)
+
+
+    val autoFail =
+      streamString
+        .forall(_.length <= headerLimit)
+        .flatMap{ b =>
+          if (b) streamString.exists(_ != endLine(boundary))
+          else Stream.fail(MalformedMessageBodyFailure(s"Part header was longer than ${headerLimit}-byte limit"))
         }
-        else if (bv.nonEmpty && bv.get(bv.length - 1) == '\r') {
-          // The CRLF may have split across chunks.
-          val (head, cr) = bv.splitAt(bv.length - 1)
-          emit(-\/(head)) ++ receive1(next => handle(cr ++ next))
-        }
-        else {
-          emit(-\/(bv)) ++ receiveLine(None)
-        }
-      }
 
-      leading map handle getOrElse receive1(handle)
+    autoFail.flatMap{ bool =>
+      if (bool) headers ++ body
+      else Stream.fail(MalformedMessageBodyFailure(s"Expected a multipart start or end line"))
     }
 
-    def takeUpTo(n: Long): Process1[ByteVector, ByteVector] =
-      if (n > 0) receive1(bv => emit(bv) ++ takeUpTo(n - bv.size))
-      else fail(MalformedMessageBodyFailure(s"Part header was longer than ${headerLimit}-byte limit"))
+  }
 
-    def receiveCollapsedLine(leading: Option[ByteVector]): Process1[ByteVector, Out[ByteVector]] = {
-      receiveLine(leading) pipe process1.fold(Out(ByteVector.empty)) {
-        case (acc, -\/(partial)) => acc.copy(acc.a ++ partial)
-        case (acc, \/-(Out(term, tail))) => Out(acc.a ++ term, tail)
+  val header : String => Option[Header.Raw] = line => {
+    val idx = line indexOf ':'
+    if (idx >= 0 && idx < line.length - 1) Some(Header(line.substring(0, idx), line.substring(idx + 1).trim))
+    else None
+  }
+
+
+  val chunkToBV : Chunk[Byte] => ByteVector = chunk =>{
+    val bytes = chunk.toBytes
+    ByteVector(bytes.values, bytes.offset, bytes.size)
+  }
+
+  val bvToChunk: ByteVector => Chunk[Byte] = bv => Chunk.bytes(bv.toArray)
+
+  def receiveLine[F[_]](leading: Option[ByteVector])
+                       (h: Handle[F, ByteVector]): Pull[F,Either[ByteVector, Out[ByteVector]], Unit] = {
+    def handle(
+                bv: ByteVector,
+                h: Handle[F, ByteVector]
+              ): Pull[F, Either[ByteVector, Out[ByteVector]], Unit] = {
+
+      logger.error(s"handle: ${bv.decodeUtf8}")
+      val index = bv indexOfSlice CRLFBytes
+
+      if (index >= 0) {
+        val (head, tailPre) = bv splitAt index
+        val tail = tailPre drop 2       // remove the line feed characters
+        val tailM = Some(tail) filter { !_.isEmpty }
+        Pull.output1(Either.right(Out(head, tailM))) >> Pull.done
+      }
+      else if (bv.nonEmpty && bv.get(bv.length - 1) == '\r') {
+        // The CRLF may have split across chunks.
+        val (head, cr) = bv.splitAt(bv.length - 1)
+        Pull.output1(Either.left(head)) >> h.receive1((next, h) => handle(cr ++ next, h))
+      }
+      else {
+        Pull.output1(Either.left(bv)) >> receiveLine[F](None)(h)
       }
     }
 
-    def start: Writer1[Headers, ByteVector, ByteVector] = {
-      def preamble(leading: Option[ByteVector]): Process1[ByteVector, Option[ByteVector]] =
-        body(leading.map(_.compact), expected).flatMap {
-          case Out(chunk, None) =>
-            logger.trace(s"preamble chunk: ${chunk.decodeUtf8}")
-            halt
-          case Out(chunk, tail) =>
-            logger.trace(s"Last preamble chunk: $chunk.")
-            logger.trace(s"Resuming with $tail.")
-            emit(tail)
-        }
+    leading.map(handle(_, h)).getOrElse(h.receive1(handle))
+  }
 
-      def beginPart(leading: Option[ByteVector]): Process1[ByteVector, Option[ByteVector]] = {
-        def isStartLine(line: ByteVector): Boolean =
-          line.startsWith(startLine) && isTransportPadding(line.drop(startLine.size))
+  def receiveCollapsedLine[F[_]](leading: Option[ByteVector])(h: Handle[F, ByteVector]): Pull[F, Out[ByteVector], Unit] = {
+    receiveLine(leading)(h)
+      .close
+      .through(pipe.fold(Out(ByteVector.empty)){
+      case (acc, Left(partial)) => acc.copy(acc.a ++ partial)
+      case (acc, Right(Out(term, tail))) => Out(acc.a ++ term, tail)
+    }).output
+  }
 
-        def isEndLine(line: ByteVector): Boolean =
-          line.startsWith(endLine)
 
-        def isTransportPadding(bv: ByteVector): Boolean =
-          bv.toSeq.find(b => b != ' ' && b != '\t').isEmpty
+  def takeUpTo[F[_]](n: Long, headerLimit: Long)(h: Handle[F, ByteVector]): Pull[F, ByteVector, Unit] =
+    for {
+      (bv, h) <- if (n >= 0) h.await1 else Pull.fail(MalformedMessageBodyFailure(s"Part header was longer than ${headerLimit}-byte limit"))
+      out <- Pull.output1(bv) >> takeUpTo(n - bv.size, headerLimit)(h)
+    } yield out
 
-        receiveCollapsedLine(leading) flatMap { case Out(line, tail) =>
-          if (isStartLine(line)) {
-            logger.debug("Found start line. Beginning new part.")
-            emit(tail)
-          }
-          else if (isEndLine(line)) {
-            logger.debug("Found end line. Discarding epilogue.")
-            process1.skip.repeat
-          }
-          else fail(new MalformedMessageBodyFailure(s"Expected a multipart start or end line: ${line.decodeUtf8}"))
-        }
-      }
-
-      def headers(leading: Option[ByteVector]): Process1[ByteVector, Out[Headers]] = {
-        takeUpTo(headerLimit) pipe (for {
-          tail <- beginPart(leading)
-          headerPair <- header(tail, expected)
-          Out(headers, tail2) = headerPair
-          _ = logger.debug(s"Headers: $headers")
-        } yield Out(headers, tail2))
-      }
-
-      def go(leading: Option[ByteVector]): Writer1[Headers, ByteVector, ByteVector] = {
-        for {
-          headerPair <- headers(leading)
-          Out(headers, tail) = headerPair
-          part <- emit(-\/(headers)) ++ body(tail.map(_.compact), expected).flatMap {
-            case Out(chunk, None) =>
-              logger.debug(s"Chunk: $chunk")
-              emit(\/-(chunk))
-            case Out(ByteVector.empty, tail) =>
-              logger.trace(s"Resuming with $tail.")
-              go(tail)
-            case Out(chunk, tail) =>
-              logger.debug(s"Last chunk: $chunk.")
-              logger.trace(s"Resuming with $tail.")
-              emit(\/-(chunk)) ++ go(tail)
-          }
-        } yield part
-      }
-
-      // The requirement that the encapsulation boundary begins with a CRLF
-      // implies that the body of a multipart entity must itself begin with a
-      // CRLF before the first encapsulation line - that is, if the "preamble"
-      // area is not used, the entity headers must be followed by TWO CRLFs.
-      // This is indeed how such entities should be composed.  A tolerant mail
-      // reading program, however, may interpret a body of type multipart that
-      // begins with an encapsulation line NOT initiated by a CRLF as also
-      // being an encapsulation boundary, but a compliant mail sending program
-      // must not generate such entities. -- https://tools.ietf.org/html/rfc1341
-      //
-      // If we supply our own to start the preamble via `Some(CRLF)`,
-      // we are tolerant.  If it's in the body, it gets eaten as part
-      // of the preamble.
-      preamble(Some(CRLF)).flatMap(go)
-    }
-
-    def header(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[Headers]] = {
-      def go(leading: Option[ByteVector]): Writer1[Header, ByteVector, Option[ByteVector]] = {
-        logger.trace(s"Header go: ${leading.map(_.decodeUtf8)}  ")
-        receiveCollapsedLine(leading) flatMap {
-          case Out(bv, tail) => {
-            if (bv == expected) {
-              emitO(tail)
-            } else {
-              (for {
+/*
+  def header[F[_]](leading: Option[ByteVector], expected: ByteVector)(h: Handle[F, Out[ByteVector]]): Pull[F, Out[Headers], Unit] = {
+    def go(leading: Option[ByteVector])(h: Handle[F, Out[ByteVector]]): Pull[F, Either[Header,Option[ByteVector]], Unit] = {
+      logger.trace(s"Header go: ${leading.map(_.decodeUtf8)} ")
+      h.await1.flatMap{
+        case (Out(bv, tail), h) => {
+          if (bv == expected) {
+            Pull.output1(tail)
+          } else {
+            {
+              for {
                 line <- bv.decodeAscii.right.toOption
                 idx <- Some(line indexOf ':')
                 if idx >= 0
                 if idx < line.length - 1
-                header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
-              } yield emitW(header) ++ go(tail)).getOrElse(emitO(tail))
-            }
+              } yield Some(Header(line.substring(0, idx), line.substring(idx + 1).trim))
+            }.map{ header =>
+              Pull.output1(Left(header)) >> go(tail)(h)
+            }.getOrElse(
+              Pull.output1(Right(tail))
+            )
           }
         }
       }
-
-      go(leading).map(x => {logger.trace("Got: "+x.toString); x}).fold(Out(List.empty[Header])) {
-        case (acc, -\/(header)) => acc.copy(a = header :: acc.a)
-        case (acc, \/-(tail)) => acc.copy(tail = tail)
-      }.map { case Out(hs, tail) => Out(Headers(hs.reverse), tail) }
     }
-
-    def body(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
-      val heads = (0L until expected.length).scanLeft(expected) { (acc, _) =>
-        acc dropRight 1
-      }
-
-      def pre(bv: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
-        logger.trace(s"pre: $bv")
-        val idx = bv indexOfSlice expected
-        if (idx >= 0) {
-          // if we find the terminator *within* the chunk, we need to just trip and be done
-          // the +2 consumes the CRLF before the multipart boundary
-          emit(Out(bv take idx, Some(bv drop (idx + 2))))
-        } else {
-          // find goes from front to back, and heads is in order from longest to shortest, thus we always greedily match
-          heads find (bv endsWith) map { tail =>
-            emit(Out(bv dropRight tail.length)) ++ mid(tail, expected drop tail.length)
-          } getOrElse (emit(Out(bv)) ++ receive1(pre))
-        }
-      }
-
-      /* We might be looking at a boundary, or we might not.  This is how we
-       * decide that incrementally.
-       *
-       * @param found the part of the next boundary that we've matched so far
-       * @param remainder the part of the next boundary we're looking for on the next read.
-       */
-      def mid(found: ByteVector, remainder: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
-        logger.trace(s"mid: $found $remainder")
-        if (remainder.isEmpty) {
-          // found should start with a CRLF, because mid is called with it.
-          emit(Out(ByteVector.empty, Some(found.drop(2))))
-        } else {
-          receive1Or[ByteVector, Out[ByteVector]](
-            fail(new MalformedMessageBodyFailure("Part was not terminated"))) { bv =>
-            val (remFront, remBack) = remainder splitAt bv.length
-            logger.trace(s"remFront = $remFront; remBack = $remBack; bv = $bv")
-            if (bv startsWith remFront) {
-              // If remBack is nonEmpty, then the progress toward our match
-              // is represented by bv, and we'll loop back to read more to
-              // look for remBack.
-              //
-              // If remBack is empty, then `found ++ bv` starts with the
-              // next boundary, and we'll emit out everything we've read
-              // on the next loop.
-              mid(found ++ bv, remBack)
-            }
-            else {
-              // ok, so this buffer frame-slipped, but we might have a different terminator within bv
-              emit(Out(found)) ++ pre(bv)
-            }
-          }
-        }
-      }
-
-      leading map pre getOrElse receive1(pre)
-    }
-
-    start
+    go(leading)(h).map(x => {logger.trace("Got: "+x.toString); x}).close.through(pipe.fold(Out(List.empty[Header])) {
+      case (acc, Left(header)) => acc.copy(a = header :: acc.a)
+      case (acc, Right(tail)) => acc.copy(tail = tail)
+    }).map { case Out(hs, tail) => Out(Headers(hs.reverse), tail) }.output
   }
-}
 */
+
+
+}
