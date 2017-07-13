@@ -19,7 +19,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Content-Length" in {
-      val header = `Content-Length`(4)
+      val header = `Content-Length`.unsafeFromLong(4)
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")

@@ -11,6 +11,7 @@ import fs2.text._
 import org.http4s.headers._
 import org.http4s.util.nonEmptyList._
 import org.http4s.server.ServerSoftware
+import org.log4s.getLogger
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -64,12 +65,17 @@ sealed trait Message extends MessageOps { self =>
     * @return a new message with the new body
     */
   def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
-    w.toEntity(b).map { entity =>
+    w.toEntity(b).flatMap { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`(l)::w.headers.toList
-        case None    => w.headers
+        case Some(l) => `Content-Length`.fromLong(l).fold(_ =>
+          Task.now {
+            Message.logger.warn(s"Attempt to provide a negative content length of $l")
+            w.headers.toList
+          },
+          cl => Task.now(cl :: w.headers.toList))
+        case None    => Task.now(w.headers)
       }
-      change(body = entity.body, headers = headers ++ hs)
+      hs.map(newHeaders => change(body = entity.body, headers = headers ++ newHeaders))
     }
   }
 
@@ -100,6 +106,7 @@ sealed trait Message extends MessageOps { self =>
 }
 
 object Message {
+  private[http4s] val logger = getLogger
   object Keys {
     val TrailerHeaders = AttributeKey.http4s[Task[Headers]]("trailer-headers")
   }
