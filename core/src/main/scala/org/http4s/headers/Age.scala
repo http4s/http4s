@@ -10,18 +10,20 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
-  def apply(age: Long): ParseResult[Age] =
+  private class AgeImpl(age: Long) extends Age(age)
+
+  def fromLong(age: Long): ParseResult[Age] =
     if (age >= 0) {
-      ParseResult.success(new Age(age) {})
+      ParseResult.success(new AgeImpl(age))
     } else {
       ParseResult.fail("Invalid age value", s"Age param $age must be more or equal to 0 seconds")
     }
 
   def unsafeFromDuration(age: FiniteDuration): Age =
-    apply(age.toSeconds).fold(throw _, identity)
+    fromLong(age.toSeconds).fold(throw _, identity)
 
   def unsafeFromLong(age: Long): Age =
-    apply(age).fold(throw _, identity)
+    fromLong(age).fold(throw _, identity)
 
   override def parse(s: String): ParseResult[Age] =
     HttpHeaderParser.AGE(s)
