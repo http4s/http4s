@@ -228,7 +228,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       request must not contain("Host:")
       response must_==("done")
-    }.pendingUntilFixed
+    }
 
     "Support flushing the prelude" in {
       val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
