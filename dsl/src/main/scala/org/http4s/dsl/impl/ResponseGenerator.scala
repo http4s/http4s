@@ -40,9 +40,9 @@ trait EntityResponseGenerator[F[_]] extends Any with EmptyResponseGenerator[F] {
   def apply[A](body: A, headers: Headers)
               (implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] = {
     var h = w.headers ++ headers
-    w.toEntity(body).flatMap { entity =>
-      entity.length.foreach(l => h = h.put(`Content-Length`(l)))
-      F.pure(Response(status = status, headers = h, body = entity.body))
+    w.toEntity(body).flatMap { case Entity(proc, len) =>
+      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
+      F.pure(Response(status = status, headers = headers, body = proc))
     }
   }
 }

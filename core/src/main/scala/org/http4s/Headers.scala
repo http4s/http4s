@@ -1,5 +1,7 @@
 package org.http4s
 
+import cats.Show
+import cats.syntax.show._
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`
@@ -115,4 +117,9 @@ object Headers {
 
   private def newBuilder: mutable.Builder[Header, Headers] =
     new mutable.ListBuffer[Header] mapResult (b => new Headers(b))
+
+  implicit val headersShow: Show[Headers] =
+    new Show[Headers]{
+      def show(f: Headers): String = f.iterator.map(_.show).mkString("Headers(", ", ", ")")
+    }
 }

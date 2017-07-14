@@ -55,9 +55,8 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     *            response body afterward will result in an error.
     * @return The result of applying f to the response to req
     */
-  def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A] = {
+  def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A] =
     open.run(req).flatMap(_.apply(f))
-  }
 
   /**
     * Returns this client as a [[Service]].  All connections created by this
@@ -80,18 +79,18 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpService: HttpService[F] =
-    open.flatMapF {
-      case DisposableResponse(response, dispose) => dispose.flatMap(_ => F.pure(response))
+    open.map {
+      case DisposableResponse(response, dispose) =>
+        response.copy(body = response.body.onFinalize(dispose))
     }
 
-  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] = {
+  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(open(req))
       .flatMap {
         case DisposableResponse(response, dispose) =>
           f(response)
           .onFinalize(dispose)
       }
-  }
 
   /**
     * Submits a request and decodes the response on success.  On failure, the

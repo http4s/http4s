@@ -200,13 +200,13 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
 
   final protected def badMessage(debugMessage: String, t: ParserException, req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
-    val resp = Response[F](Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))
+    val resp = Response[F](Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
   final protected def internalServerError(errorMsg: String, t: Throwable, req: Request[F], bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
-    val resp = Response[F](Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))
+    val resp = Response[F](Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, bodyCleanup)  // will terminate the connection due to connection: close header
   }
 }
