@@ -42,6 +42,23 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
   def toBV(entityBody: EntityBody): ByteVector = ByteVector(entityBody.runLog.unsafeRun())
 
+  implicit def partEq : Eq[Part] = Eq.instance[Part] { case (a, b) =>
+    a.headers === b.headers &&
+      {
+        for {
+          abv <- a.body
+          bbv <- b.body
+        } yield abv === bbv
+      }.unsafeRun()
+
+  }
+
+  implicit val multipartEq : Eq[Multipart] = Eq.instance{ (a, b) =>
+    a.headers === b.headers &&
+      a.boundary === b.boundary &&
+      a.parts === b.parts
+  }
+
 
   def encodeAndDecodeMultipart = {
 

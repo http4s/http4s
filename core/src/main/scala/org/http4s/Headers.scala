@@ -1,12 +1,7 @@
 package org.http4s
 
-<<<<<<< HEAD
-import cats.Show
-import cats.syntax.show._
-=======
-import cats.Eq
+import cats._
 import cats.implicits._
->>>>>>> Switch To Task For Easier Comparison
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`

@@ -40,14 +40,4 @@ object Part {
       readInputStream(Task.delay(in), ChunkSize).runLog.map(ByteVector(_)))
   }
 
-  implicit def partEq : Eq[Part] = Eq.instance[Part] { case (a, b) =>
-    a.headers === b.headers &&
-      {
-        for {
-          abv <- a.body
-          bbv <- b.body
-        } yield abv === bbv
-      }.unsafeRun()
-
-  }
 }

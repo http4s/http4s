@@ -10,16 +10,6 @@ final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.cr
   def headers: Headers = Headers(`Content-Type`(MediaType.multipart("form-data", Some(boundary.value))))
 }
 
-object Multipart {
-
-  implicit val multipartEq : Eq[Multipart] = Eq.instance{ (a, b) =>
-    a.headers === b.headers &&
-    a.boundary === b.boundary &&
-    a.parts === b.parts
-  }
-
-}
-
 
 
 
