@@ -44,7 +44,7 @@ package object server {
   type SSLBits = SSLConfig
 
   object AuthMiddleware {
-    def apply[F[_]: Functor: FlatMap, T](authUser: Service[F, Request[F], T]): AuthMiddleware[F, T] = {
+    def apply[F[_]: Monad, T](authUser: Service[F, Request[F], T]): AuthMiddleware[F, T] = {
       service => service.compose(AuthedRequest(authUser.run))
     }
 
