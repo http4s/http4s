@@ -5,7 +5,8 @@
 sbt "; mimaReportBinaryIssues; coverage; clean; test; coverageReport; coverageOff"
 exitCode=$?
 
+
 echo "Uploading codecov"
 bash <(curl -s https://codecov.io/bash)
 
-exit exitCode
+exit ${exitCode}
