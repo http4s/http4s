@@ -218,8 +218,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       }
     }
 
-    // TODO fs2 port - Currently is elevating the http version to 1.1 causing this test to fail
-    "Allow an HTTP/1.0 request without a Host header" in {
+    "Allow an HTTP/1.0 request without a Host header and empty body" in {
       val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
 
       val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
@@ -227,6 +226,21 @@ class Http1ClientStageSpec extends Http4sSpec {
       val (request, response) = getSubmission(req, resp)
 
       request must not contain("Host:")
+      request must contain("HTTP/1.0")
+      response must_==("done")
+    }
+
+    "Allow an HTTP/1.0 request without a Host header and body present" in {
+      val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
+
+      val req = Request(uri = www_foo_test,
+        httpVersion = HttpVersion.`HTTP/1.0`,
+        body = Stream("request-body").through(fs2.text.utf8Encode))
+
+      val (request, response) = getSubmission(req, resp)
+
+      request must contain("Host:")
+      request must contain("HTTP/1.1")
       response must_==("done")
     }
 
