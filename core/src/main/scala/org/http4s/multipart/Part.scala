@@ -13,7 +13,7 @@ import org.http4s.headers.`Content-Disposition`
 import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
 
-final case class Part(headers: Headers, body: Task[ByteVector]) {
+final case class Part(headers: Headers, body: Stream[Task, Byte]) {
   def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
 }
 
@@ -21,11 +21,11 @@ object Part {
   private val ChunkSize = 8192
 
   val empty: Part =
-    Part(Headers.empty, EmptyBody.runLog.map(ByteVector(_)))
+    Part(Headers.empty, EmptyBody)
 
   def formData(name: String, value: String, headers: Header*): Part =
     Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers,
-      Stream.emit(value).covary[Task].through(utf8Encode).runLog.map(ByteVector(_)))
+      Stream.emit(value).covary[Task].through(utf8Encode))
 
   def fileData(name: String, file: File, headers: Header*): Part =
     fileData(name, file.getName, new FileInputStream(file), headers:_*)
@@ -37,7 +37,7 @@ object Part {
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
       Header("Content-Transfer-Encoding", "binary") +:
       headers,
-      readInputStream(Task.delay(in), ChunkSize).runLog.map(ByteVector(_)))
+      readInputStream(Task.delay(in), ChunkSize))
   }
 
 }

@@ -46,14 +46,14 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     a.headers === b.headers &&
       {
         for {
-          abv <- a.body
-          bbv <- b.body
+          abv <- a.body.runLog.map(ByteVector(_))
+          bbv <- b.body.runLog.map(ByteVector(_))
         } yield abv === bbv
       }.unsafeRun()
 
   }
 
-  implicit val multipartEq : Eq[Multipart] = Eq.instance{ (a, b) =>
+  implicit val multipartEq : Eq[Multipart] = Eq.instance[Multipart]{ (a, b) =>
     a.headers === b.headers &&
       a.boundary === b.boundary &&
       a.parts === b.parts

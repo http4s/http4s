@@ -39,8 +39,11 @@ object MultipartParser {
     * parseToParts - Removes Prelude and Trailer
     *
     * splitParts - Splits Into Parts
-    *   splitPart -
-    * @return
+    * splitPart - Takes a Single Part of the Front
+    * generatePart - Generates a tuple of Headers and a ByteVector of the Body, effectively a Part
+    *
+    * generateHeaders - Generate Headers from ByteVector
+    * splitHeader - Splits a Header into the Name and Value
     */
 
 
@@ -98,12 +101,12 @@ object MultipartParser {
 
     partOpt match {
       case Some((part, rest)) =>
-//        println(part.decodeUtf8.toOption)
+        logger.trace(s"splitParts part: ${part.decodeUtf8.toOption}")
 
         val (headers, body) = generatePart(part)
 
         val newAcc = Either.right(body) :: Either.left(headers) :: acc
-//        println(s"splitParts newAcc: ${newAcc}")
+        logger.trace(s"splitParts newAcc: $newAcc")
 
         if (rest.isEmpty){
           newAcc.reverse
@@ -122,10 +125,9 @@ object MultipartParser {
     val (headersSplit, bodyWithCRLFs) = byteVector.splitAt(index)
     val body = bodyWithCRLFs.drop(doubleCRLF.length)
 
-//    println(s"GeneratePart HeadersSplit ${headersSplit.decodeAscii}")
-//    println(s"GenerateParts Body ${body.decodeAscii}")
+    logger.trace(s"GeneratePart HeadersSplit ${headersSplit.decodeAscii}")
+    logger.trace(s"GenerateParts Body ${body.decodeAscii}")
 
-//    val headersBV = headersSplit.dropRight(doubleCRLF.length)
     val headers = generateHeaders(headersSplit ++ CRLFBytes)(Headers.empty)
 
     (headers, body)
@@ -147,10 +149,7 @@ object MultipartParser {
 
         val newHeaders = acc ++ headerO
 
-//        val rest = restWithCRLF.drop(CRLFBytes.length)
-
-//        println(s"Generate Headers Header0 = $headerO")
-//        println(s"Generate Headers rest = ${restWithCRLF.decodeAscii}")
+        logger.trace(s"Generate Headers Header0 = $headerO")
         generateHeaders(rest)(newHeaders)
       case None => acc
     }
@@ -163,8 +162,8 @@ object MultipartParser {
     if (index >= 0L) {
       val (line, rest) = byteVector.splitAt(index)
 
-//      println(s"Split Header Line: ${lineWithCRLF.decodeAscii}")
-//      println(s"Split Header Rest: ${rest.decodeAscii}")
+      logger.trace(s"Split Header Line: ${line.decodeAscii}")
+      logger.trace(s"Split Header Rest: ${rest.decodeAscii}")
       Option((line, rest.drop(CRLFBytes.length)))
     }
     else {
