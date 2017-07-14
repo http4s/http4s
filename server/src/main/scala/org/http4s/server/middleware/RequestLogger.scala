@@ -2,11 +2,9 @@ package org.http4s
 package server
 package middleware
 
+import cats.effect._
 import fs2._
 import org.log4s._
-import cats.implicits._
-import fs2.interop.cats._
-import scodec.bits._
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed
@@ -14,10 +12,13 @@ import scodec.bits._
 object RequestLogger {
   private[this] val logger = getLogger
 
-  def apply(logHeaders: Boolean, logBody: Boolean)(service: HttpService)(implicit strategy: Strategy): HttpService = Service.lift{ req =>
-    Stream(req)
-      .through(Logger.messageLogPipe[Request](logHeaders, logBody)(logger))
-      .evalMap[Task, Task, MaybeResponse]{req => service(req)}
-      .runFoldMap(identity)
-  }
+  def apply[F[_]: Effect](logHeaders: Boolean, logBody: Boolean)
+                         (service: HttpService[F]): HttpService[F] =
+    Service.lift{ req: Request[F] =>
+      Stream(req)
+        .covary[F]
+        .through(Logger.messageLogPipe[F, Request[F]](logHeaders, logBody)(logger))
+        .evalMap[MaybeResponse[F]]{req => service(req)}
+        .runFoldMonoid
+    }
 }

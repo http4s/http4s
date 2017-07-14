@@ -22,4 +22,5 @@ trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
       val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
       F.pure(Request(method = method, uri = uri, headers = headers, body = proc))
     }
+  }
 }

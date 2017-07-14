@@ -63,7 +63,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit F: Functor[F], w: EntityEncoder[F, T]): F[Self] =
+  def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): F[Self] =
     w.toEntity(b).flatMap { entity =>
       val hs = entity.length match {
         case Some(l) => `Content-Length`.fromLong(l).fold(_ =>
@@ -374,7 +374,7 @@ final case class Response[F[_]](
 }
 
 object Response {
-  def notFound[F[_]](request: Request[F])(implicit F: Functor[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
+  def notFound[F[_]](request: Request[F])(implicit F: Monad[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
     val body = s"${request.pathInfo} not found"
     Response[F](Status.NotFound).withBody(body)
   }

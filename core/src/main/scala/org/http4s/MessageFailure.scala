@@ -18,7 +18,7 @@ sealed abstract class MessageFailure extends RuntimeException {
     message
 
   /** Provides a default rendering of this failure as a [[Response]]. */
-  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]]
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]]
 
 }
 
@@ -42,7 +42,7 @@ final case class ParseFailure(sanitized: String, details: String) extends Parsin
     else if (details.isEmpty) sanitized
     else s"$sanitized: $details"
 
-  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] =
     Response[F](Status.BadRequest, httpVersion).withBody(sanitized)(F, EntityEncoder.stringEncoder[F])
 }
 
@@ -117,7 +117,7 @@ sealed case class MalformedMessageBodyFailure(details: String, override val caus
   def message: String =
     s"Malformed message body: $details"
 
-  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] =
     Response[F](Status.BadRequest, httpVersion).withBody(s"The request body was malformed.")(F, EntityEncoder.stringEncoder[F])
 }
 
@@ -126,7 +126,7 @@ sealed case class InvalidMessageBodyFailure(details: String, override val cause:
   def message: String =
     s"Invalid message body: $details"
 
-  override def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+  override def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] =
     Response[F](Status.UnprocessableEntity, httpVersion).withBody(s"The request body was invalid.")(F, EntityEncoder.stringEncoder[F])
 }
 
@@ -137,7 +137,7 @@ sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) ext
   val expectedMsg: String = s"Expected one of the following media ranges: ${expected.map(_.renderString).mkString(", ")}"
   val responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
-  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Applicative[F]): F[Response[F]] =
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] =
     Response[F](Status.UnsupportedMediaType, httpVersion)
       .withBody(responseMsg)(F, EntityEncoder.stringEncoder[F])
 }

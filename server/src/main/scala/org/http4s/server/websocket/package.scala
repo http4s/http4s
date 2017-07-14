@@ -10,7 +10,7 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 package object websocket {
   def websocketKey[F[_]]: AttributeKey[Websocket[F]] = AttributeKey.http4s[Websocket[F]]("websocket")
 
-  private def notImplementedResponse[F[_]](implicit F: Functor[F], W: EntityEncoder[F, String]) =
+  private def notImplementedResponse[F[_]](implicit F: Monad[F], W: EntityEncoder[F, String]) =
     Response[F](Status.NotImplemented).withBody("This is a WebSocket route.")
 
   /**
@@ -46,6 +46,6 @@ package object websocket {
 
   def WS[F[_]](read:   Stream[F, WebSocketFrame],
                write:  Sink[F, WebSocketFrame])
-              (implicit F: Functor[F], W: EntityEncoder[F, String]): F[Response[F]] =
+              (implicit F: Monad[F], W: EntityEncoder[F, String]): F[Response[F]] =
     WS(read, write, Response[F](Status.NotImplemented).withBody("This is a WebSocket route."))
 }

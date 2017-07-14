@@ -22,7 +22,7 @@ class UrlFormSpec extends Http4sSpec {
     val charset = Charset.`UTF-8`
 
     "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
-      DecodeResult.success(Request[IO]().withBody(urlForm)(Functor[IO], UrlForm.entityEncoder(Applicative[IO], charset)))
+      DecodeResult.success(Request[IO]().withBody(urlForm)(Monad[IO], UrlForm.entityEncoder(Applicative[IO], charset)))
         .flatMap { req =>
           UrlForm.entityDecoder[IO].decode(req, strict = false)
         } must returnRight(urlForm)
