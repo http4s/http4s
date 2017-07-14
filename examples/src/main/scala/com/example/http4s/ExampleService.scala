@@ -115,17 +115,17 @@ object ExampleService {
 
   // HEAD responses with Content-Lenght, but empty content
   case HEAD -> Root / "head" =>
-    Ok("").putHeaders(`Content-Length`(1024))
+    Ok("").putHeaders(`Content-Length`.unsafeFromLong(1024))
 
   // Response with invalid Content-Length header generates
   // an error (underflow causes the connection to be closed)
   case GET -> Root / "underflow" =>
-    Ok("foo").putHeaders(`Content-Length`(4))
+    Ok("foo").putHeaders(`Content-Length`.unsafeFromLong(4))
 
   // Response with invalid Content-Length header generates
   // an error (overflow causes the extra bytes to be ignored)
   case GET -> Root / "overflow" =>
-    Ok("foo").putHeaders(`Content-Length`(2))
+    Ok("foo").putHeaders(`Content-Length`.unsafeFromLong(2))
 
   ///////////////////////////////////////////////////////////////
   //////////////// Form encoding example ////////////////////////

@@ -12,12 +12,12 @@ function checkPublishable() {
         echo ""
         echo "Builds in Repositories other than http4s/http4s are not published to $publishLocation"
         exit 0
-    elif [[ $TRAVIS_BRANCH != "master" || $TRAVIS_BRANCH != "release-"* ]]; then
+    elif [[ $TRAVIS_BRANCH != "master" && $TRAVIS_BRANCH != "release-"* ]]; then
         echo ""
         echo "As set in bin/setup this is not a publishing branch to $publishLocation"
         exit 0
     else
-        echo "This Build Will Be Published To $publishLocation"
+        echo "This Build Will Be Published to $publishLocation"
     fi
 }
 

@@ -10,6 +10,7 @@ import fs2.text._
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import org.http4s.util.nonEmptyList._
+import org.log4s.getLogger
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -62,15 +63,19 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit F: Functor[F], w: EntityEncoder[F, T]): F[Self] = {
-    w.toEntity(b).map { entity =>
+  def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): F[Self] =
+    w.toEntity(b).flatMap { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`(l)::w.headers.toList
-        case None    => w.headers
+        case Some(l) => `Content-Length`.fromLong(l).fold(_ =>
+          F.pure {
+            Message.logger.warn(s"Attempt to provide a negative content length of $l")
+            w.headers.toList
+          },
+          cl => F.pure(cl :: w.headers.toList))
+        case None    => F.pure(w.headers)
       }
-      change(body = entity.body, headers = headers ++ hs)
+      hs.map(newHeaders => change(body = entity.body, headers = headers ++ newHeaders))
     }
-  }
 
   def contentLength: Option[Long] = headers.get(`Content-Length`).map(_.length)
 
@@ -99,6 +104,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
 }
 
 object Message {
+  private[http4s] val logger = getLogger
   object Keys {
     def TrailerHeaders[F[_]]: AttributeKey[F[Headers]] = AttributeKey.http4s[F[Headers]]("trailer-headers")
   }
@@ -368,7 +374,7 @@ final case class Response[F[_]](
 }
 
 object Response {
-  def notFound[F[_]](request: Request[F])(implicit F: Functor[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
+  def notFound[F[_]](request: Request[F])(implicit F: Monad[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
     val body = s"${request.pathInfo} not found"
     Response[F](Status.NotFound).withBody(body)
   }

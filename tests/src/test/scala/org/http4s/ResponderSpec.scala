@@ -23,7 +23,7 @@ class ResponderSpec extends Specification {
 
     "Replace content type" in {
       resp.contentType should be (None)
-      val c1 = resp.putHeaders(`Content-Length`(4))
+      val c1 = resp.putHeaders(`Content-Length`.unsafeFromLong(4))
         .withContentType(Some(`Content-Type`(MediaType.`text/plain`)))
         .putHeaders(Host("foo"))
 
@@ -49,7 +49,7 @@ class ResponderSpec extends Specification {
     }
 
     "Replace all headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
       val newHeaders = wHeader.replaceAllHeaders(Date(Instant.now))
@@ -58,7 +58,7 @@ class ResponderSpec extends Specification {
     }
 
     "Replace all headers II" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
       val newHeaders = wHeader.replaceAllHeaders(Headers(Date(Instant.now)))
@@ -67,7 +67,7 @@ class ResponderSpec extends Specification {
     }
 
     "Filter headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
       val newHeaders = wHeader.filterHeaders(_.name != "Connection".ci)

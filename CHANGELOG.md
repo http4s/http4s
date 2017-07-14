@@ -96,6 +96,13 @@
   `Process.bracket`.
 * Implement a `Referer` header.
 
+# v0.15.14 (2017-07-10)
+* Close parens in `Request.toString`
+* Use "message" instead of "request" in message body failure messages
+* Add `problem+json` media type
+* Tolerate `[` and `]` in queries parsing URIs. These characters are parsed, but
+  percent-encoded.
+
 # v0.15.13 (2017-05-25)
 * Patch-level upgrades to dependencies:
     * async-http-client-2.0.32

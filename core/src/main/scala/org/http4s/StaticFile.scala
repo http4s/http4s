@@ -85,8 +85,7 @@ object StaticFile {
         }
 
         val hs = `Last-Modified`(lastModified) ::
-          `Content-Length`(contentLength) ::
-          contentType.toList
+          `Content-Length`.fromLong(contentLength).fold(_ => contentType.toList, _ :: contentType.toList)
 
         val r = Response(
           headers = Headers(hs),
