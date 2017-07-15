@@ -37,9 +37,6 @@ Many parts of the HTTP spec require case-insensitive semantics. Use
 `org.http4s.util.CaseInsensitiveString` to represent these. This is important to
 get correct matching semantics when using case class extractors.
 
-## Method names
-
-
 ## Case classes
 
 ### `apply`
@@ -54,7 +51,8 @@ can be validated at compile time.
 
 ### Safe constructors
 
-Constructors that take an alternate type `A` should be named `fromA`.
+Constructors that take an alternate type `A` should be named `fromA`. This
+includes constructors that return a value as a `ParseResult`.
 
 ```scala
 case class Foo(seconds: Long)
@@ -62,8 +60,16 @@ case class Foo(seconds: Long)
 object Foo {
   def fromFiniteDuration(d: FiniteDuration): Foo =
     apply(d.toSeconds)
+    
+  def fromString(s: String): ParseResult[Foo] =
+    try s.toLong
+    catch { case e: NumberFormatException => 
+      new ParseFailure("not a long") 
+    }
 }
 ```
+
+Prefer `fromString` to `parse`.
 
 ### Unsafe constructors
 
