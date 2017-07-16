@@ -19,6 +19,9 @@ object AttributeKey {
 
   /** Construct a new [[AttributeKey]] */
   def apply[T]: AttributeKey[T] = new AttributeKey()
+
+  @deprecated("Removed because `name` suggests equality between keys with the same name", "0.17")
+  def apply[T](name: String): AttributeKey[T] = apply
 }
 
 /** An immutable map where an [[AttributeKey]]  for a fixed type `T` can only be associated with values of type `T`.
