@@ -126,5 +126,5 @@ object StaticFile {
     readAll[Task](f.toPath, DefaultBufferSize)
   }
 
-  private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")
+  private[http4s] val staticFileKey = AttributeKey[File]
 }

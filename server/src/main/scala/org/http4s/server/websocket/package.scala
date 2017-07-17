@@ -7,7 +7,7 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import fs2._
 
 package object websocket {
-  val websocketKey = AttributeKey.http4s[Websocket]("websocket")
+  val websocketKey = AttributeKey[Websocket]
 
   /**
    * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
