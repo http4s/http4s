@@ -26,13 +26,15 @@ lazy val core = libraryCrossProject("core")
       fs2Io,
       fs2Scodec,
       http4sWebsocket.value,
-      log4s.value,
       macroCompat.value,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scodecBits.value,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
+  )
+  .jvmSettings(
+    libraryDependencies += log4s
   )
   .jsSettings(
     libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M11"
@@ -435,7 +437,7 @@ def http4sProject(name: String) =
       initCommands()
     )
 
-def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.Pure)
+def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.Full)
   .settings(commonSettings)
   .settings(
     moduleName := s"http4s-$name",
