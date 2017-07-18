@@ -34,6 +34,9 @@ lazy val core = libraryCrossProject("core")
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
   )
+  .jvmSettings(
+    libraryDependencies += log4s
+  )
   .jsSettings(
     libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M11"
   )
@@ -490,7 +493,7 @@ def http4sProject(name: String) =
       initCommands()
     )
 
-def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.Pure)
+def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.Full)
   .settings(commonSettings)
   .settings(
     moduleName := s"http4s-$name",
