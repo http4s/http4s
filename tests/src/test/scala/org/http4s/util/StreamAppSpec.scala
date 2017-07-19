@@ -2,8 +2,9 @@ package org.http4s
 package util
 
 import cats.effect.IO
+import cats.implicits._
 import fs2.Stream._
-import fs2.{Stream, async}
+import fs2._
 import fs2.async.mutable.Signal
 
 import scala.concurrent.duration._
@@ -13,44 +14,51 @@ class StreamAppSpec extends Http4sSpec {
   "StreamApp" should {
 
     /**
-      * Simple Test Rig For Process Apps
-      * Takes the Process that constitutes the Process App
+      * Simple Test Rig For Stream Apps
+      * Takes the Stream that constitutes the Stream App
       * and observably cleans up when the process is stopped.
       */
-    class TestStreamApp(stream: Stream[IO, Nothing]) extends StreamApp[IO] {
-      val cleanedUp : Signal[IO, Boolean] = async.signalOf[IO, Boolean](false).unsafeRunSync
-      override def stream(args: List[String]): Stream[IO, Nothing] = {
-        stream.onFinalize(cleanedUp.set(true))
-      }
+    class TestStreamApp(stream: IO[Unit] => Stream[IO, Nothing]) extends StreamApp[IO] {
+      val cleanedUp: Signal[IO, Boolean] = async.signalOf[IO, Boolean](false).unsafeRunSync
+
+      override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
+        stream(requestShutdown).onFinalize(cleanedUp.set(true))
     }
 
-    "Terminate Server on a Process Failure" in {
-      val testApp = new TestStreamApp(
+    "Terminate Server on a Stream Failure" in {
+      val testApp = new TestStreamApp(_ =>
         fail(new Throwable("Bad Initial Process"))
       )
-      testApp.doMain(Array.empty[String]) should_== -1
-      testApp.cleanedUp.get.unsafeRunSync should_== true
+      testApp.mainStream(Array.empty).run.attempt.unsafeRunSync should beLeft
+      testApp.cleanedUp.get.unsafeRunSync should beTrue
     }
 
     "Terminate Server on a Valid Process" in {
-      val testApp = new TestStreamApp(
+      val testApp = new TestStreamApp(_ =>
         emit("Valid Process").drain
       )
-      testApp.doMain(Array.empty[String]) should_== 0
-      testApp.cleanedUp.get.unsafeRunSync should_== true
+      testApp.mainStream(Array.empty).run.attempt.unsafeRunSync should beRight
+      testApp.cleanedUp.get.unsafeRunSync should beTrue
     }
 
     "requestShutdown Shuts Down a Server From A Separate Thread" in {
-      val testApp = new TestStreamApp(
+      val requestShutdown = async.signalOf[IO, IO[Unit]](IO.unit).unsafeRunSync
+
+      val testApp = new TestStreamApp( shutdown =>
+        eval(requestShutdown.set(shutdown)) >>
         // run forever, emit nothing
-        eval_(IO.async[Nothing]{_ => })
+        eval_(IO.async[Nothing]{ _ => })
       )
+
       (for {
-        runApp <- async.start(IO(testApp.doMain(Array.empty[String])))
-        _ <- testApp.requestShutdown
-        exit <- runApp
+        runApp    <- async.start(testApp.mainStream(Array.empty).run.attempt)
+        // Wait for app to start
+        _         <- requestShutdown.discrete.takeWhile(_ == IO.unit).run
+        // Run shutdown task
+        _         <- requestShutdown.get.flatten
+        result    <- runApp
         cleanedUp <- testApp.cleanedUp.get
-      } yield (exit, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((0, true))
+      } yield (result, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((Right(()), true))
     }
   }
 }
