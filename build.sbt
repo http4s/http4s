@@ -25,8 +25,8 @@ lazy val core = libraryCrossProject("core")
     resolvers += "Sonatype OSS Snapshots".at(
       "https://oss.sonatype.org/content/repositories/snapshots"),
     libraryDependencies ++= Seq(
-      cats,
-      catsEffect,
+      cats.value,
+      catsEffect.value,
       fs2Io,
       log4s.value,
       parboiled.value,
@@ -35,7 +35,10 @@ lazy val core = libraryCrossProject("core")
     ),
   )
   .jvmSettings(
-    libraryDependencies += log4s
+    libraryDependencies ++= Seq(
+      log4s,
+      fs2Io
+    )
   )
   .jsSettings(
     libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M11"
