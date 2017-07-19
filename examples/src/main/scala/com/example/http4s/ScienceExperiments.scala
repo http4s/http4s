@@ -25,7 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   * and will likely get folded into unit tests later in life */
 object ScienceExperiments {
 
-  implicit val scheduler : fs2.Scheduler = fs2.Scheduler.fromFixedDaemonPool(2)
+  val scheduler = Scheduler.allocate[IO](corePoolSize = 2).map(_._1).unsafeRunSync()
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
@@ -115,7 +115,7 @@ object ScienceExperiments {
 
     case GET -> Root / "slow-body" =>
       val resp = "Hello world!".map(_.toString())
-      val body = time.awakeEvery[IO](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
+      val body = scheduler.awakeEvery[IO](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
       Ok(body)
 
       /*

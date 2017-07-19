@@ -170,16 +170,18 @@ object ExampleService {
        */
   }
 
-  implicit val defaultScheduler = Scheduler.fromFixedDaemonPool(1)
+  val scheduler = Scheduler.allocate[IO](corePoolSize = 1).map(_._1).unsafeRunSync()
 
   def helloWorldService: IO[Response[IO]] = Ok("Hello World!")
 
   // This is a mock data source, but could be a Process representing results from a database
   def dataStream(n: Int)(implicit ec: ExecutionContext): Stream[IO, String] = {
     val interval = 100.millis
-    val stream = time.awakeEvery[IO](interval)
-      .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
-      .take(n.toLong)
+    val stream =
+      scheduler
+        .awakeEvery[IO](interval)
+        .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
+        .take(n.toLong)
 
     Stream.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }

@@ -3,23 +3,19 @@ package com.example.http4s.blaze
 import java.util.concurrent.Executors
 
 import cats.effect._
-import cats.implicits._
+import fs2._
 import org.http4s._
-import org.http4s.util._
 import org.http4s.dsl._
-import org.http4s.server.websocket._
 import org.http4s.server.blaze.BlazeBuilder
-import org.http4s.util.StreamApp
+import org.http4s.server.websocket._
+import org.http4s.util.{StreamApp, _}
 import org.http4s.websocket.WebsocketBits._
 
-import scala.concurrent.duration._
-import fs2._
-import fs2.time.awakeEvery
-
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 object BlazeWebSocketExample extends StreamApp[IO] {
-  implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
+  val scheduler = Scheduler.allocate[IO](corePoolSize = 2).unsafeRunSync()._1
   val threadFactory = threads.threadFactory(name = l => s"worker-$l", daemon = true)
   implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(8, threadFactory))
 
@@ -28,7 +24,7 @@ object BlazeWebSocketExample extends StreamApp[IO] {
       Ok("Hello world.")
 
     case GET -> Root / "ws" =>
-      val toClient: Stream[IO, WebSocketFrame] = awakeEvery[IO](1.seconds).map{ d => Text(s"Ping! $d") }
+      val toClient: Stream[IO, WebSocketFrame] = scheduler.awakeEvery[IO](1.seconds).map(d => Text(s"Ping! $d"))
       val fromClient: Sink[IO, WebSocketFrame] = _.evalMap { (ws: WebSocketFrame) => ws match {
         case Text(t, _) => IO(println(t))
         case f          => IO(println(s"Unknown type: $f"))
