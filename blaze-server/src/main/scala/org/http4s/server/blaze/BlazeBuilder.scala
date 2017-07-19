@@ -43,8 +43,7 @@ class BlazeBuilder[F[_]](
   with IdleTimeoutSupport[F]
   with SSLKeyStoreSupport[F]
   with SSLContextSupport[F]
-  with server.WebSocketSupport[F]
-{
+  with server.WebSocketSupport[F] {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger(classOf[BlazeBuilder[F]])

@@ -6,7 +6,9 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.util.StreamApp
 
 object BlazeExample extends StreamApp[IO] {
-  def stream(args: List[String]) = BlazeBuilder[IO].bindHttp(8080)
-    .mountService(ExampleService.service, "/http4s")
-    .serve
+  def stream(args: List[String], requestShutdown: IO[Unit]) =
+    BlazeBuilder[IO]
+      .bindHttp(8080)
+      .mountService(ExampleService.service, "/http4s")
+      .serve
 }

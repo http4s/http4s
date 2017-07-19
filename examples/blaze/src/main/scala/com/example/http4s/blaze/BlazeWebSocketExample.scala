@@ -49,7 +49,7 @@ object BlazeWebSocketExample extends StreamApp[IO] {
       }
   }
 
-  def stream(args: List[String]) =
+  def stream(args: List[String], requestShutdown: IO[Unit]) =
     BlazeBuilder[IO]
       .bindHttp(8080)
       .withWebSockets(true)

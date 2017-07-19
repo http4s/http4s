@@ -11,10 +11,11 @@ object TomcatExample extends StreamApp[IO] {
   val metricsRegistry = new MetricRegistry
   val metrics = Metrics[IO](metricsRegistry)
 
-  def stream(args: List[String]) = TomcatBuilder[IO]
-    .bindHttp(8080)
-    .mountService(metrics(ExampleService.service), "/http4s")
-    .mountService(metricsService(metricsRegistry), "/metrics/*")
-    .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
-    .serve
+  def stream(args: List[String], requestShutdown: IO[Unit]) =
+    TomcatBuilder[IO]
+      .bindHttp(8080)
+      .mountService(metrics(ExampleService.service), "/http4s")
+      .mountService(metricsService(metricsRegistry), "/metrics/*")
+      .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
+      .serve
 }

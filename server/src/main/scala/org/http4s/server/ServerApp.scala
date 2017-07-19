@@ -32,8 +32,6 @@ trait ServerApp[F[_]] extends StreamApp[F] {
   def shutdown(server: Server[F]): F[Unit] =
     server.shutdown
 
-  override final def stream(args: List[String]): Stream[F, Nothing] =
-    Stream.bracket(server(args))({ s =>
-      Stream.eval_(F.async[Nothing](_ => ()))
-    }, _.shutdown)
+  override final def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+    Stream.bracket(server(args))(_ => Stream.empty, _.shutdown)
 }
