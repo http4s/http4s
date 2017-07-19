@@ -70,7 +70,8 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 1000.millis
-        time.awakeEvery[IO](interval)
+        testScheduler
+          .awakeEvery[IO](interval)
           .map(_ => "1".toByte)
           .take(n.toLong)
       }
@@ -89,7 +90,8 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 2.seconds
-        time.awakeEvery[IO](interval)
+        testScheduler
+          .awakeEvery[IO](interval)
           .map(_ => "1".toByte)
           .take(n.toLong)
       }
@@ -108,7 +110,8 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 100.millis
-        time.awakeEvery[IO](interval)
+        testScheduler
+          .awakeEvery[IO](interval)
           .map(_ => "1".toByte)
           .take(n.toLong)
       }

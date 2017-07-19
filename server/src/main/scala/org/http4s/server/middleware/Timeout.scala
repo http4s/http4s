@@ -13,7 +13,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 object Timeout {
 
   /** Transform the service to return whichever resolves first: the
-    * provided F[Response], or the service response task.  The
+    * provided F[Response[F]], or the service response task.  The
     * service response task continues to run in the background.  To
     * interrupt a server side response safely, look at
     * `scalaz.stream.wye.interrupt`.
@@ -23,18 +23,16 @@ object Timeout {
     */
   private def race[F[_]: Effect](timeoutResponse: F[Response[F]])
                                 (service: HttpService[F])
-                                (implicit ec: ExecutionContext): HttpService[F] =
+                                (implicit executionContext: ExecutionContext): HttpService[F] =
     service.mapF { resp =>
       async.race(resp, timeoutResponse).map(_.merge)
     }
 
   /** Creates an `F` that is scheduled to return `response` after `timeout`.
     */
-  private def delay[F[_]](duration: FiniteDuration, response: F[Response[F]])
-                            (implicit F: Effect[F], scheduler: Scheduler): F[Response[F]] =
-    F.async { (cb: (Either[Throwable, F[Response[F]]]) => Unit) =>
-      scheduler.scheduleOnce(duration)(cb(Right(response)))
-    }.flatten
+  private def delay[F[_]: Effect](duration: FiniteDuration, response: F[Response[F]])
+                                 (implicit executionContext: ExecutionContext, scheduler: Scheduler): F[Response[F]] =
+    scheduler.sleep_[F](duration).run.followedBy(response)
 
   /** Transform the service to return a timeout response [[Status]]
     * after the supplied duration if the service response is not yet
@@ -48,7 +46,7 @@ object Timeout {
     */
   def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])
                          (service: HttpService[F])
-                         (implicit scheduler: Scheduler, ec: ExecutionContext): HttpService[F] =
+                         (implicit executionContext: ExecutionContext, scheduler: Scheduler): HttpService[F] =
     timeout match {
       case fd: FiniteDuration => race(delay(fd, response))(service)
       case _                  => service
@@ -56,6 +54,6 @@ object Timeout {
 
   def apply[F[_]: Effect](timeout: Duration)
                          (service: HttpService[F])
-                         (implicit scheduler: Scheduler, ec: ExecutionContext): HttpService[F] =
+                         (implicit executionContext: ExecutionContext, scheduler: Scheduler): HttpService[F] =
     apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(service)
 }

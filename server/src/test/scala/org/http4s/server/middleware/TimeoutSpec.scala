@@ -62,9 +62,8 @@ class TimeoutSpec extends Http4sSpec {
     }
   }
 
-  private def delay[F[_], A](duration: FiniteDuration, fa: F[A])
-                            (implicit F: Effect[F], scheduler: Scheduler): F[A] =
-    F.async { (cb: (Either[Throwable, F[A]]) => Unit) =>
-      scheduler.scheduleOnce(duration)(cb(Right(fa)))
-    }.flatten
+  private val scheduler = Scheduler.allocate[IO](corePoolSize = 1).map(_._1).unsafeRunSync()
+
+  private def delay[F[_]: Effect, A](duration: FiniteDuration, fa: F[A]): F[A] =
+    scheduler.sleep_(duration).run.followedBy(fa)
 }
