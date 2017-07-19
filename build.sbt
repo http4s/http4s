@@ -62,12 +62,15 @@ lazy val testingJVM = testing.jvm
 lazy val testingJS  = testing.js
 
 // Defined outside core/src/test so it can depend on published testing
-lazy val tests = libraryProject("tests")
+lazy val tests = libraryCrossProject("tests")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Tests for core project",
   )
-  .dependsOn(coreJVM, testingJVM % "test->test")
+  .dependsOn(core, testing % "test->test")
+
+lazy val testsJVM = tests.jvm
+lazy val testsJS  = tests.js
 
 lazy val server = libraryProject("server")
   .settings(
