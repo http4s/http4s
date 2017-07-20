@@ -14,7 +14,7 @@ env:
   - SCALAZ_VERSION=7.2.12
   - SCALAZ_VERSION=7.1.13
 before_script:
-- mkdir $HOME/bin
+- mkdir -p $HOME/bin
 - export PATH=$HOME/bin:$PATH
 script: bash bin/travis
 notifications:

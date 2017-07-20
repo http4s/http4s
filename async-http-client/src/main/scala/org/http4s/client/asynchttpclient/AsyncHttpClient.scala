@@ -144,11 +144,17 @@ object AsyncHttpClient {
         .groupBy(_.name.toString)
         .mapValues(_.map(_.value).asJavaCollection)
         .asJava
-      ).setBody(getBodyGenerator(request.body))
+      ).setBody(getBodyGenerator(request))
       .build()
 
-  private def getBodyGenerator(body: EntityBody): BodyGenerator =
-    new InputStreamBodyGenerator(toInputStream(body))
+  private def getBodyGenerator(req: Request): BodyGenerator = {
+    val len = req.contentLength match {
+      case Some(len) => len
+      case _ if req.isChunked => -1L
+      case _ => 0L
+    }
+    new InputStreamBodyGenerator(toInputStream(req.body), len)
+  }
 
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
