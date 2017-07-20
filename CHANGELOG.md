@@ -1,3 +1,6 @@
+# v0.15.15 (2017-07-20)
+* Fix deadlock in async-http-client when request has a non-chunked body
+
 # v0.15.14 (2017-07-10)
 * Close parens in `Request.toString`
 * Use "message" instead of "request" in message body failure messages
