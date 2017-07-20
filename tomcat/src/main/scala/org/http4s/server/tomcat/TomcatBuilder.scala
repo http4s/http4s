@@ -179,17 +179,14 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
 object TomcatBuilder {
 
-  def apply[F[_]: Effect]: TomcatBuilder[F] =
-    new TomcatBuilder[F](
-      socketAddress = ServerBuilder.DefaultSocketAddress,
-      executionContext = ExecutionContext.global,
-      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-      asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-      servletIo = ServletContainer.DefaultServletIo[F],
-      sslBits = None,
-      mounts = Vector.empty
-    )
+  def apply[F[_]: Effect](socketAddress: InetSocketAddress = ServerBuilder.DefaultSocketAddress,
+                          executionContext: ExecutionContext = ExecutionContext.global,
+                          idleTimeout: Duration = IdleTimeoutSupport.DefaultIdleTimeout,
+                          asyncTimeout: Duration = AsyncTimeoutSupport.DefaultAsyncTimeout,
+                          servletIo: ServletIo[F] = ServletContainer.DefaultServletIo[F],
+                          sslBits: Option[KeyStoreBits] = None,
+                          mounts: Vector[Mount[F]] = Vector.empty): TomcatBuilder[F] =
+    new TomcatBuilder[F](socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 }
 
 private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)
-

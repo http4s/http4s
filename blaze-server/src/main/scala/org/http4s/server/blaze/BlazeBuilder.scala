@@ -244,21 +244,21 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
-    new BlazeBuilder(
-      socketAddress = ServerBuilder.DefaultSocketAddress,
-      executionContext = ExecutionContext.global,
-      idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-      isNio2 = false,
-      connectorPoolSize = channel.defaultPoolSize,
-      bufferSize = 64 * 1024,
-      enableWebSockets = true,
-      sslBits = None,
-      isHttp2Enabled = false,
-      maxRequestLineLen = 4 * 1024,
-      maxHeadersLen = 40 * 1024,
-      serviceMounts = Vector.empty
-    )
+  def apply[F[_]](socketAddress: InetSocketAddress = ServerBuilder.DefaultSocketAddress,
+                  executionContext: ExecutionContext = ExecutionContext.global,
+                  idleTimeout: Duration = IdleTimeoutSupport.DefaultIdleTimeout,
+                  isNio2: Boolean = false,
+                  connectorPoolSize: Int = channel.defaultPoolSize,
+                  bufferSize: Int = 64 * 1024,
+                  enableWebSockets: Boolean = true,
+                  sslBits: Option[SSLConfig] = None,
+                  isHttp2Enabled: Boolean = false,
+                  maxRequestLineLen: Int = 4 * 1024,
+                  maxHeadersLen: Int = 40 * 1024,
+                  serviceMounts: Vector[ServiceMount[F]] = Vector.empty)
+                 (implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
+    new BlazeBuilder(socketAddress, executionContext, idleTimeout, isNio2, connectorPoolSize, bufferSize,
+      enableWebSockets, sslBits, isHttp2Enabled, maxRequestLineLen, maxHeadersLen, serviceMounts)
 }
 
 private final case class ServiceMount[F[_]](service: HttpService[F], prefix: String)

@@ -202,15 +202,14 @@ sealed class JettyBuilder[F[_]: Effect] private (
 }
 
 object JettyBuilder {
-  def apply[F[_]: Effect] = new JettyBuilder[F](
-    socketAddress = ServerBuilder.DefaultSocketAddress,
-    executionContext = ExecutionContext.global,
-    idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-    asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-    servletIo = ServletContainer.DefaultServletIo,
-    sslBits = None,
-    mounts = Vector.empty
-  )
+  def apply[F[_]: Effect](socketAddress: InetSocketAddress = ServerBuilder.DefaultSocketAddress,
+                          executionContext: ExecutionContext = ExecutionContext.global,
+                          idleTimeout: Duration = IdleTimeoutSupport.DefaultIdleTimeout,
+                          asyncTimeout: Duration = AsyncTimeoutSupport.DefaultAsyncTimeout,
+                          servletIo: ServletIo[F] = ServletContainer.DefaultServletIo[F],
+                          sslBits: Option[SSLConfig] = None,
+                          mounts: Vector[Mount[F]] = Vector.empty) =
+    new JettyBuilder[F](socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 }
 
 private final case class Mount[F[_]](f: (ServletContextHandler, Int, JettyBuilder[F]) => Unit)
