@@ -14,9 +14,10 @@ trait SslExample extends StreamApp[IO] {
 
   def builder: ServerBuilder[IO] with SSLKeyStoreSupport[IO]
 
-  def stream(args: List[String]) = builder
-    .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
-    .mountService(ExampleService.service, "/http4s")
-    .bindHttp(8443)
-    .serve
+  def stream(args: List[String], requestShutdown: IO[Unit]) =
+    builder
+      .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
+      .mountService(ExampleService.service, "/http4s")
+      .bindHttp(8443)
+      .serve
 }

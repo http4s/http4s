@@ -50,5 +50,6 @@ trait SslExampleWithRedirect extends StreamApp[IO] {
     .bindHttp(8080)
     .serve
 
-  def stream(args: List[String]): Stream[IO, Nothing] = sslStream mergeHaltBoth redirectStream
+  def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
+    sslStream mergeHaltBoth redirectStream
 }

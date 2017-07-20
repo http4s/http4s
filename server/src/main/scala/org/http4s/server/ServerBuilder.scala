@@ -44,9 +44,7 @@ trait ServerBuilder[F[_]] {
    * that runs for the rest of the JVM's life.
    */
   final def serve(implicit F: Async[F]): Stream[F, Nothing] =
-    Stream.bracket(start)({ _: Server[F] =>
-      Stream.eval_(F.async[Unit](_ => ()))
-    }, _.shutdown)
+    Stream.bracket(start)(_ => Stream.empty, _.shutdown)
 }
 
 object ServerBuilder {

@@ -2,64 +2,46 @@ package org.http4s.util
 
 import cats.effect._
 import cats.effect.implicits._
+import fs2.Stream._
 import fs2._
 import fs2.async._
-import fs2.async.mutable.Signal
 import org.log4s.getLogger
-
-import scala.concurrent.SyncVar
 
 abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[this] val logger = getLogger(classOf[StreamApp[F]])
 
-  def stream(args: List[String]): Stream[F, Nothing]
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing]
 
-  // private implicit val strategy: Strategy = Strategy.sequential
-  // TODO: Not sure what this should be
   private implicit val executionContext = TrampolineExecutionContext
 
-  private[this] val shutdownRequested: Signal[F, Boolean] = {
-    val signal = new SyncVar[Either[Throwable, Signal[F, Boolean]]]
-    unsafeRunAsync(signalOf[F, Boolean](false)) { a =>
-      IO(signal.put(a))
-    }
-    signal.get.fold(throw _, identity)
-  }
-
-  final val requestShutdown =
-    shutdownRequested.set(true)
-
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
-  private[util] def doMain(args: Array[String]): Int = {
-    val s = Stream
-      .eval(signalOf[F, Boolean](false))
-      .flatMap { halted =>
-        val s = shutdownRequested
-          .interrupt(stream(args.toList))
-          .onFinalize(halted.set(true))
-
-        Stream
-          .eval(F.delay {
-            sys.addShutdownHook {
-              unsafeRunAsync(requestShutdown)(_ => IO.unit)
-              halted.discrete.takeWhile(_ == false).run.runAsync(_ => IO.unit).unsafeRunSync()
-            }
-          })
-          .flatMap(_ => s)
-      }
-      .run
-
-    val exit = new SyncVar[Int]
-    unsafeRunAsync(s) {
-      case Left(t) =>
-        logger.error(t)("Error running stream")
-        IO(exit.put(-1))
-      case Right(_) =>
-        IO(exit.put(0))
-    }
-    exit.get
+  private[util] def mainStream(args: Array[String]): Stream[F, Nothing] = {
+    val s = for {
+      shutdownRequested <- eval(signalOf[F, Boolean](false))
+      halted            <- eval(signalOf[F, Boolean](false))
+      _ <- eval(F.delay(sys.addShutdownHook {
+        unsafeRunAsync(shutdownRequested.set(true))(_ => IO.unit)
+        halted.discrete.takeWhile(_ == false).run.runAsync(_ => IO.unit).unsafeRunSync()
+      }))
+      res <- stream(args.toList, shutdownRequested.set(true))
+        .interruptWhen(shutdownRequested)
+        .onFinalize(halted.set(true))
+        .as(())
+    } yield res
+    s.drain
   }
 
   final def main(args: Array[String]): Unit =
-    sys.exit(doMain(args))
+    mainStream(args).run
+      .runAsync {
+        case Left(t) =>
+          IO {
+            logger.error(t)("Error running stream")
+            sys.exit(-1)
+          }
+        case Right(()) =>
+          IO(sys.exit(0))
+      }
+      .unsafeRunSync()
+
 }
