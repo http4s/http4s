@@ -25,7 +25,7 @@ title: Adopters
 : Eve Online fleet buddy based on the CREST API
 
 [http4s-demo](http://demo.http4s.org/)
-: an [open source](https://github.com/http4s/htt4ps_demo) demo app built with http4s
+: an [open source](https://github.com/http4s/http4s_demo) demo app built with http4s
 
 [httpize](http://httpize.herokuapp.com/)
 : a httpbin built with http4s [(source)](https://github.com/ppurang/httpize)
