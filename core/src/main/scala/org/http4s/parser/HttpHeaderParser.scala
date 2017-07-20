@@ -38,6 +38,7 @@ object HttpHeaderParser extends SimpleHeaders
                     with RangeParser
                     with LocationHeader
                     with RefererHeader
+                    with StrictTransportSecurityHeader
                     with ProxyAuthenticateHeader
                     with WwwAuthenticateHeader
                     with ZipkinHeader {
