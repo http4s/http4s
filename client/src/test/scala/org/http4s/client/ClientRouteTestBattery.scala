@@ -6,6 +6,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl._
+import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
 import org.http4s.internal.compatibility._
 
 import org.specs2.specification.core.Fragments
@@ -54,6 +55,33 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
         length mustNotEqual 0
       }
     }
+
+    "POST an empty body" in {
+      val name = address.getHostName
+      val port = address.getPort
+      val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+      val req = POST(uri)
+      val body = client.expect[String](req)
+      body must returnValue("")
+    }
+
+    "POST a normal body" in {
+      val name = address.getHostName
+      val port = address.getPort
+      val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+      val req = POST(uri, "This is normal.")
+      val body = client.expect[String](req)
+      body must returnValue("This is normal.")
+    }
+
+    "POST a chunked body" in {
+      val name = address.getHostName
+      val port = address.getPort
+      val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+      val req = POST(uri, Process.eval(Task.now("This is chunked.")))
+      val body = client.expect[String](req)
+      body must returnValue("This is chunked.")
+    }
   }
 
   override def map(fs: => Fragments) =
@@ -65,6 +93,13 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
         case Some(r) => renderResponse(srv, r)
         case None    => srv.sendError(404)
       }
+    }
+
+    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
+      srv.setStatus(200)
+      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+      srv.getOutputStream.print(s)
+      srv.getOutputStream.flush()
     }
   }
 
