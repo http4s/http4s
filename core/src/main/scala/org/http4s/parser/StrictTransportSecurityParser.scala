@@ -16,12 +16,12 @@ private[parser] trait StrictTransportSecurityHeader {
     }
 
     def maxAge: Rule1[`Strict-Transport-Security`] = rule {
-      "max-age=" ~ Digits ~> { (age: String) => `Strict-Transport-Security`(maxAge = age.toLong.seconds, includeSubDomains = false, preload = false) }
+      "max-age=" ~ Digits ~> { (age: String) => `Strict-Transport-Security`.unsafeFromLong(maxAge = age.toLong, includeSubDomains = false, preload = false) }
     }
 
     def stsAttributes: Rule[`Strict-Transport-Security`::HNil, `Strict-Transport-Security`::HNil] = rule {
-      capture("includeSubDomains") ~> { (sts: `Strict-Transport-Security`, _: String) => sts.copy(includeSubDomains = true) } |
-      capture("preload")           ~> { (sts: `Strict-Transport-Security`, _: String) => sts.copy(preload = true) }
+      capture("includeSubDomains") ~> { (sts: `Strict-Transport-Security`, _: String) => sts.withIncludeSubDomains(true) } |
+      capture("preload")           ~> { (sts: `Strict-Transport-Security`, _: String) => sts.withPreload(true) }
     }
   }
 }

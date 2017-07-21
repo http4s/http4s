@@ -275,7 +275,7 @@ trait ArbitraryInstances {
       age               <- genFiniteDuration
       includeSubDomains <- Gen.oneOf(true, false)
       preload           <- Gen.oneOf(true, false)
-    } yield headers.`Strict-Transport-Security`(age, includeSubDomains, preload) }
+    } yield headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload) }
 
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {

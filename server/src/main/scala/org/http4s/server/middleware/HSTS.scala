@@ -16,7 +16,7 @@ object HSTS {
 
   def apply(service: HttpService, maxAge: FiniteDuration = 365.days, includeSubDomains: Boolean = true, preload: Boolean = false): HttpService = Service.lift { req =>
 
-    val header = `Strict-Transport-Security`(maxAge, includeSubDomains, preload)
+    val header = `Strict-Transport-Security`.unsafeFromDuration(maxAge, includeSubDomains, preload)
 
     service.map {
       case resp: Response =>
