@@ -76,9 +76,6 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
     result must beRight.like { case mp =>
       mp === multipart
-//            mp.headers must_=== multipart.headers
-//            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
-//      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
     }
   }
 
@@ -98,9 +95,6 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
     result must beRight.like { case mp =>
         mp === multipart
-//      mp.headers must_=== multipart.headers
-//      mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
-//      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
     }
 
   }
@@ -128,9 +122,6 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
     result must beRight.like { case mp =>
       mp === multipart
-      //      mp.headers must_=== multipart.headers
-//            mp.parts.map(_.headers) must_=== multipart.parts.map(_.headers)
-      //      mp.parts.map(_.body.map(_.decodeUtf8).unsafeRun) must_=== multipart.parts.map(_.body.map(_.decodeUtf8).unsafeRun)
     }
   }
 
