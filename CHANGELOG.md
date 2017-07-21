@@ -96,6 +96,12 @@
   `Process.bracket`.
 * Implement a `Referer` header.
 
+# v0.15.16 (2017-07-20)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# v0.15.15 (2017-07-20)
+* Oops. Same as v0.15.14.
+
 # v0.15.14 (2017-07-10)
 * Close parens in `Request.toString`
 * Use "message" instead of "request" in message body failure messages

@@ -179,6 +179,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     "toHttpService allows the response to be read" in {
       client.toHttpService.orNotFound(req).as[String] must returnValue("hello")
     }
+
+    "toHttpService allows the response to be read" in {
+      client.toHttpService.orNotFound(req).as[String] must returnValue("hello")
+    }
   }
 
   "RequestResponseGenerator" should {
