@@ -629,6 +629,25 @@ http://example.org/a file
     }
   }
 
+  "Uri.withFragment convenience method" should {
+    "set a Fragment" in {
+      val u = Uri(path = "/")
+      val updated = u.withFragment("nonsense")
+      updated.renderString must_== "/#nonsense"
+    }
+    "set a new Fragment" in {
+      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val updated = u.withFragment("nonsense")
+      updated.renderString must_== "/#nonsense"
+    }
+    "set no Fragment on a null String" in {
+      val u = Uri(path = "/", fragment = Some("adjakda"))
+      val evilString : String = null
+      val updated = u.withFragment(evilString)
+      updated.renderString must_== "/"
+    }
+  }
+
   "Uri.renderString" should {
     "Encode special chars in the query" in {
       val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
