@@ -288,20 +288,13 @@ object MultipartParserSpec extends Specification {
 
       val results: Stream[Task, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
 
+      // Accumulator Bytevector Resets on New Header, so bv represents ByteVector of last Part.
       val (headers, bv) = results.runLog.unsafeRun().foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
-        case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
+        case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, ByteVector.empty)
       }
 
-      // I have Changed This Test.
-      // It previously only returned bar.
-      // What spec needs to be met that drops the first section?
-      bv.decodeUtf8 must_=== Right(
-          """this is a test
-          |here's another test
-          |catch me if you can!
-          |bar""".stripMargin.replaceAllLiterally("\n", "\r\n")
-      )
+      bv.decodeUtf8 must_=== Right("bar")
     }
 
     "produce the correct headers from a two part input" in {
