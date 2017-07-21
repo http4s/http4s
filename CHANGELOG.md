@@ -1,5 +1,8 @@
+# v0.15.16 (2017-07-20)
+* Backport rendering of details in `ParseFailure.getMessage`
+
 # v0.15.15 (2017-07-20)
-* Fix deadlock in async-http-client when request has a non-chunked body
+* Oops. Same as v0.15.14.
 
 # v0.15.14 (2017-07-10)
 * Close parens in `Request.toString`
