@@ -36,6 +36,8 @@ final case class Uri(
 
   def withFragment(fragment: Fragment): Uri = copy(fragment = Option(fragment))
 
+  def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
+
   def /(newSegment: Path): Uri = {
     val encoded = UrlCodingUtils.pathEncode(newSegment)
     val newPath =

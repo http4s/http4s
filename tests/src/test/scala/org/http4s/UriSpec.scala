@@ -648,6 +648,15 @@ http://example.org/a file
     }
   }
 
+  "Uri.withoutFragment convenience method" should {
+    "unset a Fragment" in {
+      val u = Uri(path = "/", fragment = Some("nonsense"))
+      val updated = u.withoutFragment
+      updated.renderString must_== "/"
+    }
+
+  }
+
   "Uri.renderString" should {
     "Encode special chars in the query" in {
       val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
