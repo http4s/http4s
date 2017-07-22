@@ -122,10 +122,10 @@ def deleteTweet(id: Int): Task[Unit] = ???
 // deleteTweet: (id: Int)fs2.Task[Unit]
 
 implicit val tweetWithIdEncoder = jsonEncoderOf[TweetWithId]
-// tweetWithIdEncoder: org.http4s.EntityEncoder[TweetWithId] = org.http4s.EntityEncoder$$anon$2@36a0b1fc
+// tweetWithIdEncoder: org.http4s.EntityEncoder[TweetWithId] = org.http4s.EntityEncoder$$anon$2@765e479e
 
 implicit val tweetDecoder = jsonOf[Tweet]
-// tweetDecoder: org.http4s.EntityDecoder[Tweet] = org.http4s.EntityDecoder$$anon$2@2f84e34d
+// tweetDecoder: org.http4s.EntityDecoder[Tweet] = org.http4s.EntityDecoder$$anon$2@75534610
 
 val tweetService = HttpService {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
@@ -144,7 +144,7 @@ val tweetService = HttpService {
     deleteTweet(tweetId)
       .flatMap(_ =&gt; Ok())
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6133/1372380598@4f6255a3)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6111/1986710700@53c1b494)
 </code></pre>
 
 <p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
