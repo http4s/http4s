@@ -35,3 +35,6 @@ title: Adopters
 
 [0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
 : A simple link-shortener
+
+[http4sbin](https://github.com/dbousamra/http4sbin)
+: A httpbin clone built with http4s
