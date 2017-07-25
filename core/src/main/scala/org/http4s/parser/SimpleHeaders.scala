@@ -88,8 +88,8 @@ private[parser] trait SimpleHeaders {
 
   def RETRY_AFTER(value: String): ParseResult[`Retry-After`] = new Http4sHeaderParser[`Retry-After`](value) {
     def entry = rule {
-      HttpDate ~ EOL ~> ((t: org.http4s.HttpDate) => `Retry-After`(Left(t))) | // Date value
-      Digits ~ EOL ~> ((t: String) => `Retry-After`(Right(FiniteDuration(t.toLong, SECONDS))))
+      HttpDate ~ EOL ~> ((t: org.http4s.HttpDate) => `Retry-After`(t)) | // Date value
+      Digits ~ EOL ~> ((t: String) => `Retry-After`.unsafeFromLong(t.toLong))
     }
   }.parse
 

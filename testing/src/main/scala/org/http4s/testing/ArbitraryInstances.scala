@@ -228,8 +228,11 @@ trait ArbitraryInstances {
 
   implicit val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
     Arbitrary { for {
-      instant <- Gen.oneOf(genHttpExpireDate.map(Left(_)), genFiniteDuration.map(Right(_)))
-    } yield headers.`Retry-After`(instant) }
+      retry <- Gen.oneOf(genHttpExpireDate.map(Left(_)), Gen.posNum[Long].map(Right(_)))
+    } yield retry.fold(
+      headers.`Retry-After`.apply,
+      headers.`Retry-After`.unsafeFromLong
+    ) }
 
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
