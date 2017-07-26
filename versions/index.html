@@ -309,7 +309,28 @@ After deliberations both internally and with <a href="https://github.com/http4s/
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
+      <h1 id="v0-17-0-m4-unreleased">v0.17.0-M4 (unreleased)</h1>
+
+<ul>
+<li>Port <code>ChunkAggregator</code> to fs2</li>
+<li>Add logging middleware</li>
+<li>Add <code>request#withUri</code>, which updates <code>request#pathInfo</code>. Remove
+<code>request#copy</code>, which could cause inconsistency with <code>request.pathInfo</code>.</li>
+<li>Standardize on <code>ExecutionContext</code> over <code>Strategy</code> and <code>ExecutorService</code></li>
+<li>Implement <code>Age</code> header</li>
+<li>Fix <code>Client#toHttpService</code> to not dispose until the body is consumed</li>
+<li>Change <code>Content-Length.apply</code> to <code>Contnet-Length.unsafeFromLong</code></li>
+<li>Add a buffered implementation of <code>EntityDecoder[Multipart]</code></li>
+<li>Remove <code>name</code> from <code>AttributeKey</code>. <code>AttributeKey</code>s are compared by reference,
+so the <code>name</code> was for display only.</li>
+<li>Add <code>Uri#withFragment</code> and <code>Uri#withoutFragment</code></li>
+<li>In async-http-client, don&rsquo;t use <code>ReactiveStreamsBodyGenerator</code> unless there is
+a body to transmit. This fixes an <code>IllegalStateException: unexpected message
+type</code></li>
+<li>Upgrade to async-http-client-2.0.33</li>
+</ul>
+
+<h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
 
 <ul>
 <li>Fix file corruption issue when serving static files from the classpath</li>
@@ -342,6 +363,16 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <li>Client retry middleware can&rsquo;t check idempotence of requests</li>
 <li>Utilties in <code>org.http4s.util.io</code> not yet ported</li>
 </ul></li>
+</ul>
+
+<h1 id="v0-16-0-m4-unreleased">v0.16.0-M4 (unreleased)</h1>
+
+<ul>
+<li>Remove laziness from <code>ArbitraryInstances</code></li>
+<li>Support an arbitrary predicate for CORS allowed origins</li>
+<li>Support <code>Access-Control-Expose-Headers</code> header for CORS</li>
+<li>Fix thread safety issue in <code>EntityDecoder[XML]</code>
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; release-0.16.x</li>
 </ul>
 
 <h1 id="v0-16-0-m3-2017-05-25">v0.16.0-M3 (2017-05-25)</h1>
