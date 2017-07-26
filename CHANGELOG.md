@@ -1,3 +1,9 @@
+# v0.16.0-M4 (unreleased)
+* Remove laziness from `ArbitraryInstances`
+* Support an arbitrary predicate for CORS allowed origins
+* Support `Access-Control-Expose-Headers` header for CORS
+* Fix thread safety issue in `EntityDecoder[XML]`
+
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
 * `ServerApp` overrides `process` to leave a single abstract method
