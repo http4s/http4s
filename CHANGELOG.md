@@ -1,3 +1,21 @@
+# v0.17.0-M4 (unreleased)
+* Port `ChunkAggregator` to fs2
+* Add logging middleware
+* Add `request#withUri`, which updates `request#pathInfo`. Remove
+  `request#copy`, which could cause inconsistency with `request.pathInfo`.
+* Standardize on `ExecutionContext` over `Strategy` and `ExecutorService`
+* Implement `Age` header
+* Fix `Client#toHttpService` to not dispose until the body is consumed
+* Change `Content-Length.apply` to `Contnet-Length.unsafeFromLong`
+* Add a buffered implementation of `EntityDecoder[Multipart]`
+* Remove `name` from `AttributeKey`. `AttributeKey`s are compared by reference,
+  so the `name` was for display only.
+* Add `Uri#withFragment` and `Uri#withoutFragment`
+* In async-http-client, don't use `ReactiveStreamsBodyGenerator` unless there is
+  a body to transmit. This fixes an `IllegalStateException: unexpected message
+  type`
+* Upgrade to async-http-client-2.0.33
+
 # v0.17.0-M3 (2017-05-27)
 * Fix file corruption issue when serving static files from the classpath
 
@@ -17,6 +35,13 @@
 	* Web sockets not yet supported
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
+
+# v0.16.0-M4 (unreleased)
+* Remove laziness from `ArbitraryInstances`
+* Support an arbitrary predicate for CORS allowed origins
+* Support `Access-Control-Expose-Headers` header for CORS
+* Fix thread safety issue in `EntityDecoder[XML]`
+>>>>>>> release-0.16.x
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
@@ -95,6 +120,12 @@
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
+
+# v0.15.16 (2017-07-20)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# v0.15.15 (2017-07-20)
+* Oops. Same as v0.15.14.
 
 # v0.15.14 (2017-07-10)
 * Close parens in `Request.toString`

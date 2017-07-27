@@ -12,7 +12,7 @@ import fs2._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
+import org.asynchttpclient.request.body.generator.{BodyGenerator, ByteArrayBodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.util.threads._
 import org.reactivestreams.Publisher
@@ -107,7 +107,11 @@ object AsyncHttpClient {
 
   private def getBodyGenerator[F[_]: Effect](req: Request[F])(implicit ec: ExecutionContext): BodyGenerator = {
     val publisher = StreamUnicastPublisher(req.body.chunks.map(chunk => ByteBuffer.wrap(chunk.toArray)))
-    new ReactiveStreamsBodyGenerator(publisher, req.contentLength.getOrElse(-1))
+    if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
+    else req.contentLength match {
+      case Some(len) => new ReactiveStreamsBodyGenerator(publisher, len)
+      case None => new ByteArrayBodyGenerator(Array.empty)
+    }
   }
 
   private def getStatus(status: HttpResponseStatus): Status =

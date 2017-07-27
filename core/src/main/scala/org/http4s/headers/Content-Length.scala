@@ -21,7 +21,7 @@ sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed 
 object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {
   private class ContentLengthImpl(length: Long) extends `Content-Length`(length)
 
-  val zero: `Content-Length` = new ContentLengthImpl(0) {}
+  val zero: `Content-Length` = new ContentLengthImpl(0)
 
   def fromLong(length: Long): ParseResult[`Content-Length`] =
     if (length >= 0L) ParseResult.success(new ContentLengthImpl(length))

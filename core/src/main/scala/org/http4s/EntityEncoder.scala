@@ -203,11 +203,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       Stream.bracket(r)(useReader, t => F.delay(t.close()))
     }
 
-  // TODO fs2 port
-  /*
   implicit val multipartEncoder: EntityEncoder[Multipart] =
     MultipartEncoder
-   */
 
   implicit def entityEncoderContravariant[F[_]]: Contravariant[EntityEncoder[F, ?]] =
     new Contravariant[EntityEncoder[F, ?]] {

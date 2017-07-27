@@ -95,7 +95,7 @@ object PushSupport {
   private [PushSupport] final case class PushLocation(location: String, cascade: Boolean)
   private [http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
-  private[PushSupport] val pushLocationKey = AttributeKey.http4s[Vector[PushLocation]]("pushLocation")
-  private[http4s] def pushResponsesKey[F[_]] = AttributeKey.http4s[F[Vector[PushResponse[F]]]]("pushResponses")
+  private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]
+  private[http4s] def pushResponsesKey[F[_]] = AttributeKey[F[Vector[PushResponse[F]]]]
 }
 

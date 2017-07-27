@@ -6,10 +6,11 @@ class AttributeMapSpec extends Specification {
 
   "AttributeMap" should {
 
-    val k1 = AttributeKey.apply[Int]("int")
-    val k2 = AttributeKey.apply[String]("string")
-    val k3 = AttributeKey.apply[Int]("missing")
-    val k1Clone = AttributeKey.apply[Int]("int")
+    val k1 = AttributeKey[Int]
+    val k2 = AttributeKey[String]
+    val k3 = AttributeKey[Int]
+    // TODO: Fix this mess
+    val k1Clone = AttributeKey[Int]
 
     val m = AttributeMap.empty ++ Seq(k1(1), k2("foo"))
 
@@ -29,7 +30,7 @@ class AttributeMapSpec extends Specification {
     // This is a compile test
     "Maintain the correct static type for keys" in {
       sealed case class Foo(stuff: String)
-      val mismatchedKey = AttributeKey.apply[Foo]("mismatched")
+      val mismatchedKey = AttributeKey[Foo]
 //      val ii = m(mismatchedKey) + 5   // FAILS TO COMPILE: Foo doesn't `+` with 5
 
       val i: Int = m.get(k1).get + 4

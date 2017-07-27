@@ -8,11 +8,11 @@ import cats.implicits._
 import fs2._
 import fs2.io._
 import org.http4s.headers.`Content-Type`
+import org.http4s.multipart.{Multipart, MultipartDecoder}
 import org.http4s.util.chunk._
 
 import scala.annotation.implicitNotFound
 import scala.util.control.NonFatal
-// TODO fs2 import org.http4s.multipart.{Multipart, MultipartDecoder}
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -170,11 +170,8 @@ trait EntityDecoderInstances {
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-// TODO fs2 port
-/*
   implicit def multipart: EntityDecoder[Multipart] =
     MultipartDecoder.decoder
-*/
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
