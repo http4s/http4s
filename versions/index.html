@@ -319,7 +319,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 <li>Standardize on <code>ExecutionContext</code> over <code>Strategy</code> and <code>ExecutorService</code></li>
 <li>Implement <code>Age</code> header</li>
 <li>Fix <code>Client#toHttpService</code> to not dispose until the body is consumed</li>
-<li>Change <code>Content-Length.apply</code> to <code>Contnet-Length.unsafeFromLong</code></li>
+<li>Change <code>Content-Length.apply</code> to <code>Content-Length.unsafeFromLong</code></li>
 <li>Add a buffered implementation of <code>EntityDecoder[Multipart]</code></li>
 <li>Remove <code>name</code> from <code>AttributeKey</code>. <code>AttributeKey</code>s are compared by reference,
 so the <code>name</code> was for display only.</li>
