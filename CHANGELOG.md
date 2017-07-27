@@ -1,4 +1,4 @@
-# v0.17.0-M4 (unreleased)
+# v0.17.0-RC1 (expected week of 2017-07-31)
 * Port `ChunkAggregator` to fs2
 * Add logging middleware
 * Add `request#withUri`, which updates `request#pathInfo`. Remove
@@ -36,12 +36,11 @@
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
 
-# v0.16.0-M4 (unreleased)
+# v0.16.0-RC1 (expected week of 2017-07-31)
 * Remove laziness from `ArbitraryInstances`
 * Support an arbitrary predicate for CORS allowed origins
 * Support `Access-Control-Expose-Headers` header for CORS
 * Fix thread safety issue in `EntityDecoder[XML]`
->>>>>>> release-0.16.x
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
