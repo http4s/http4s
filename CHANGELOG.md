@@ -6,7 +6,7 @@
 * Standardize on `ExecutionContext` over `Strategy` and `ExecutorService`
 * Implement `Age` header
 * Fix `Client#toHttpService` to not dispose until the body is consumed
-* Change `Content-Length.apply` to `Contnet-Length.unsafeFromLong`
+* Change `Content-Length.apply` to `Content-Length.unsafeFromLong`
 * Add a buffered implementation of `EntityDecoder[Multipart]`
 * Remove `name` from `AttributeKey`. `AttributeKey`s are compared by reference,
   so the `name` was for display only.
