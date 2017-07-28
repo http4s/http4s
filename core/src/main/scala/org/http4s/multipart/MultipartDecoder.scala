@@ -1,15 +1,13 @@
 package org.http4s
 package multipart
 
+import cats.effect._
+import cats.implicits._
 import fs2._
-import org.log4s.getLogger
-
 
 private[http4s] object MultipartDecoder {
 
-  private[this] val logger = getLogger
-
-  val decoder: EntityDecoder[Multipart] =
+  def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
 
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
@@ -17,10 +15,10 @@ private[http4s] object MultipartDecoder {
           DecodeResult {
             msg.body
               .through(MultipartParser.parse(Boundary(boundary)))
-              .pull(gatherParts)
+              .through(gatherParts)
               .runLog
-              .map(parts => Right(Multipart(parts, Boundary(boundary))))
-              .handle {
+              .map[Either[DecodeFailure, Multipart[F]]](parts => Right(Multipart(parts, Boundary(boundary))))
+              .handleError {
                 case e: InvalidMessageBodyFailure => Left(e)
                 case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
               }
@@ -30,28 +28,27 @@ private[http4s] object MultipartDecoder {
       }
     }
 
-
-  def gatherParts(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
-    def go(part: Part, lastWasLeft: Boolean)(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
-      h.receive1Option {
-        case Some((Left(headers), h1)) =>
-          if (lastWasLeft){
-            go(Part(Headers(part.headers.toList ::: headers.toList), EmptyBody), true)(h1)
+  def gatherParts[F[_]]: Pipe[F, Either[Headers, Byte], Part[F]] = s => {
+    def go(part: Part[F], lastWasLeft: Boolean)
+          (s: Stream[F, Either[Headers, Byte]]): Pull[F, Part[F], Option[Either[Headers, Byte]]] =
+      s.pull.uncons1.flatMap {
+        case Some((Left(headers), s)) =>
+          if (lastWasLeft) {
+            go(Part(Headers(part.headers.toList ::: headers.toList), EmptyBody), lastWasLeft = true)(s)
           } else {
-           Pull.output1(part) >> go(Part(headers, EmptyBody), true)(h1)
+            Pull.output1(part) >> go(Part(headers, EmptyBody), lastWasLeft = true)(s)
           }
-        case Some((Right(byte), h1)) =>
-          go(part.copy(body = part.body.append(Stream.emit[Task, Byte](byte))), false)(h1)
-        case None => Pull.output1(part) >> Pull.done
+        case Some((Right(byte), s)) =>
+          go(part.copy(body = part.body.append(Stream.emit(byte))), lastWasLeft = false)(s)
+        case None =>
+          Pull.output1(part) >> Pull.pure(None)
       }
-    }
 
-
-    h.receive1 {
-      case (Left(headers), h1) =>
-        go(Part(headers, EmptyBody), true)(h1)
-      case (Right(byte), h) => Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
-    }
+    s.pull.uncons1.flatMap {
+      case Some((Left(headers), s)) => go(Part(headers, EmptyBody), lastWasLeft = true)(s)
+      case Some((Right(byte), s)) => Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
+      case None => Pull.pure(None)
+    }.stream
   }
 
 }

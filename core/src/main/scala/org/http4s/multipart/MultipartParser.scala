@@ -1,12 +1,10 @@
 package org.http4s
 package multipart
 
-import scodec.bits.ByteVector
-import fs2._
+import cats.effect._
 import cats.implicits._
-import fs2.interop.cats._
-import fs2.util.syntax._
-import fs2.Chunk
+import fs2._
+import scodec.bits.ByteVector
 
 import scala.annotation.tailrec
 
@@ -24,13 +22,13 @@ object MultipartParser {
 
   final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse(boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[Task, Byte, Either[Headers, Byte]] = s => {
+  def parse[F[_]: Sync](boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[F, Byte, Either[Headers, Byte]] = s => {
     val bufferedMultipartT = s.runLog.map(vec => ByteVector(vec))
     val parts = bufferedMultipartT.flatMap(parseToParts(_)(boundary))
     val listT = parts.map(splitParts(_)(boundary)(List.empty[Either[Headers, ByteVector]]))
 
     Stream.eval(listT)
-      .flatMap(Stream.emits)
+      .flatMap(list => Stream.emits(list))
       .through(transformBV)
   }
 
@@ -46,16 +44,13 @@ object MultipartParser {
     * splitHeader - Splits a Header into the Name and Value
     */
 
-
-  def transformBV: Pipe[Task, Either[Headers, ByteVector], Either[Headers, Byte]] = s => {
-    s.flatMap{
-      case Left(headers) =>
-        Stream.emit(Either.left(headers))
+  def transformBV[F[_]]: Pipe[F, Either[Headers, ByteVector], Either[Headers, Byte]] =
+    _.flatMap {
+      case Left(headers) => Stream.emit(Either.left(headers))
       case Right(bv) => Stream.emits(bv.toSeq).map(Either.right(_))
     }
-  }
 
-  def parseToParts(byteVector: ByteVector)(boundary: Boundary): Task[ByteVector] = {
+  def parseToParts[F[_]](byteVector: ByteVector)(boundary: Boundary)(implicit F: Sync[F]): F[ByteVector] = {
     val startLine = startLineBytes(boundary)
     val startIndex = byteVector.indexOfSlice(startLine)
     val endLine = endLineBytes(boundary)
@@ -63,12 +58,11 @@ object MultipartParser {
 
     if (startIndex >= 0 && endIndex >= 0) {
       val parts = byteVector.slice(startIndex + startLine.length + CRLFBytes.length, endIndex - CRLFBytes.length)
-      Task.delay(parts)
+      F.delay(parts)
     } else {
-      Task.fail(MalformedMessageBodyFailure("Expected a multipart start or end line"))
+      F.raiseError(MalformedMessageBodyFailure("Expected a multipart start or end line"))
     }
   }
-
 
   def splitPart(byteVector: ByteVector)(boundary: Boundary): Option[(ByteVector, ByteVector)] = {
     val expected = expectedBytes(boundary)
@@ -170,5 +164,4 @@ object MultipartParser {
       Option.empty[(ByteVector, ByteVector)]
     }
   }
-
 }

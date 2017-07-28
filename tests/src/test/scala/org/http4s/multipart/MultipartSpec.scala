@@ -6,8 +6,10 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 import org.http4s._
+import cats.effect._
 import org.http4s.MediaType._
 import org.http4s.headers._
+import org.http4s.Headers._
 import org.http4s.Uri._
 import org.http4s.util._
 import org.http4s.Status.Ok
@@ -40,20 +42,19 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
       authority = Some(Authority(host = RegName("example.com"))),
       path = "/path/to/some/where")
 
-  def toBV(entityBody: EntityBody): ByteVector = ByteVector(entityBody.runLog.unsafeRun())
+  def toBV(entityBody: EntityBody[IO]): ByteVector = ByteVector(entityBody.runLog.unsafeRunSync())
 
-  implicit def partEq : Eq[Part] = Eq.instance[Part] { case (a, b) =>
+  implicit def partIOEq: Eq[Part[IO]] = Eq.instance[Part[IO]] { case (a, b) =>
     a.headers === b.headers &&
       {
         for {
           abv <- a.body.runLog.map(ByteVector(_))
           bbv <- b.body.runLog.map(ByteVector(_))
         } yield abv === bbv
-      }.unsafeRun()
-
+      }.unsafeRunSync()
   }
 
-  implicit val multipartEq : Eq[Multipart] = Eq.instance[Multipart]{ (a, b) =>
+  implicit def multipartIOEq: Eq[Multipart[IO]] = Eq.instance[Multipart[IO]] { (a, b) =>
     a.headers === b.headers &&
       a.boundary === b.boundary &&
       a.parts === b.parts
@@ -62,36 +63,37 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
   def encodeAndDecodeMultipart = {
 
-    val field1     = Part.formData("field1", "Text_Field_1", `Content-Type`(`text/plain`))
-    val field2     = Part.formData("field2", "Text_Field_2")
+    val field1     = Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(`text/plain`))
+    val field2     = Part.formData[IO]("field2", "Text_Field_2")
     val multipart  = Multipart(Vector(field1,field2))
-    val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.unsafeRun().body
+    val entity     = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+    val body       = entity.unsafeRunSync().body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
-    val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.value.unsafeRun
+    val decoded    = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val result     = decoded.value.unsafeRunSync()
 
     result must beRight.like { case mp =>
       mp === multipart
     }
   }
 
+
   def encodeAndDecodeMultipartMissingContentType = {
 
-    val field1     = Part.formData("field1", "Text_Field_1")
-    val multipart  = Multipart(Vector(field1))
+    val field1     = Part.formData[IO]("field1", "Text_Field_1")
+    val multipart  = Multipart[IO](Vector(field1))
 
-    val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.unsafeRun().body
+    val entity     = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+    val body       = entity.unsafeRunSync().body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
-    val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.value.unsafeRun()
+    val decoded    = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val result     = decoded.value.unsafeRunSync()
 
     result must beRight.like { case mp =>
         mp === multipart
@@ -99,26 +101,25 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
   }
 
+
   def encodeAndDecodeMultipartWithBinaryFormData = {
 
     val file       = new File(getClass.getResource("/Animated_PNG_example_bouncing_beach_ball.png").toURI)
 
-    val field1     = Part.formData("field1", "Text_Field_1")
+    val field1     = Part.formData[IO]("field1", "Text_Field_1")
+    val field2     = Part.fileData[IO]("image", file, `Content-Type`(`image/png`))
 
-    val ef2        = fileToEntity(file)
-    val field2     = Part.fileData("image", file, `Content-Type`(`image/png`))
+    val multipart  = Multipart[IO](Vector(field1, field2))
 
-    val multipart  = Multipart(Vector(field1,field2))
-
-    val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.unsafeRun().body
+    val entity     = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
+    val body       = entity.unsafeRunSync().body
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = body,
                              headers = multipart.headers )
 
-    val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.value.unsafeRun()
+    val decoded    = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val result     = decoded.value.unsafeRunSync()
 
     result must beRight.like { case mp =>
       mp === multipart
@@ -146,15 +147,15 @@ Content-Type: application/pdf
 ------WebKitFormBoundarycaZFo8IAKVROTEeD--
       """.replaceAllLiterally("\n", "\r\n")
     val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
-    val request    = Request(method  = Method.POST,
-                             uri     = url,
-                             body    = Stream.emit(body).covary[Task].through(text.utf8Encode),
-                             headers = header)
+    val request    = Request[IO](method  = Method.POST,
+                                 uri     = url,
+                                 body    = Stream.emit(body).through(text.utf8Encode),
+                                 headers = header)
 
-    val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.value.unsafeRun()
+    val decoded    = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val result     = decoded.value.unsafeRunSync()
 
-   result must beRight
+    result must beRight
   }
 
 
@@ -173,20 +174,20 @@ I am a big moose
 
       """.replaceAllLiterally("\n", "\r\n")
     val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
-    val request    = Request(method  = Method.POST,
-                             uri     = url,
-                             body    = Stream.emit(body).covary[Task].through(text.utf8Encode),
-                             headers = header)
-    val decoded    = EntityDecoder[Multipart].decode(request, true)
-    val result     = decoded.value.unsafeRun()
+    val request    = Request[IO](method  = Method.POST,
+                                 uri     = url,
+                                 body    = Stream.emit(body).through(text.utf8Encode),
+                                 headers = header)
+    val decoded    = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val result     = decoded.value.unsafeRunSync()
 
-   result must beRight
+    result must beRight
   }
 
 
-  private def fileToEntity(f: File): Entity = {
+  private def fileToEntity(f: File): Entity[IO] = {
     val bitVector = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
-    Entity(body = Stream.emits(ByteVector(bitVector.toBase64.getBytes).toSeq))
+    Entity[IO](body = Stream.emits(ByteVector(bitVector.toBase64.getBytes).toSeq))
   }
 
 }

@@ -73,7 +73,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
       val name = address.getHostName
       val port = address.getPort
       val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
-      val req = POST(uri, Stream.eval(Task.now("This is chunked.")))
+      val req = POST(uri, Stream.eval(IO.pure("This is chunked.")))
       val body = client.expect[String](req)
       body must returnValue("This is chunked.")
     }

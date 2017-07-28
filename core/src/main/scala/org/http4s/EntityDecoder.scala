@@ -170,7 +170,7 @@ trait EntityDecoderInstances {
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-  implicit def multipart: EntityDecoder[Multipart] =
+  implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */

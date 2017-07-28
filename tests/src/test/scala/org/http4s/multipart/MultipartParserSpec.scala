@@ -5,6 +5,7 @@ import org.http4s.headers._
 import org.specs2.mutable._
 import org.specs2.specification.core.Fragments
 
+import cats.effect._
 import fs2._
 import scodec.bits.ByteVector
 
@@ -17,7 +18,7 @@ object MultipartParserSpec extends Specification {
     case c => c.toString
   }
 
-  def unspool(str: String, limit: Int = Int.MaxValue): Stream[Task, Byte] = {
+  def unspool(str: String, limit: Int = Int.MaxValue): Stream[IO, Byte] = {
     if (str.isEmpty) {
       Stream.empty
     } else if (str.length <= limit) {
@@ -56,16 +57,16 @@ object MultipartParserSpec extends Specification {
               |catch me if you can!
               |""".stripMargin)
 
-        val results: Stream[Task, Either[Headers,Byte]] =
+        val results: Stream[IO, Either[Headers,Byte]] =
           unspool(input, chunkSize).through(MultipartParser.parse(boundary))
 
-        val (headers, bv) = results.runLog.unsafeRun().foldLeft((Headers.empty, ByteVector.empty)) {
+        val (headers, bv) = results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
           case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
         }
 
-        headers mustEqual (expectedHeaders)
-        bv.decodeAscii mustEqual Right(expected)
+        headers mustEqual expectedHeaders
+        bv.decodeAscii must beRight(expected)
       }
     }
 
@@ -82,7 +83,7 @@ object MultipartParserSpec extends Specification {
         |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
-      val results: Stream[Task, Either[Headers,Byte]] =
+      val results: Stream[IO, Either[Headers,Byte]] =
         unspool(input, 15).through(MultipartParser.parse(boundary))
 
       val expectedHeaders = Headers(
@@ -96,13 +97,13 @@ object MultipartParserSpec extends Specification {
               |catch me if you can!
               |""".stripMargin)
 
-      val (headers, bv) = results.runLog.unsafeRun().foldLeft((Headers.empty, ByteVector.empty)) {
+      val (headers, bv) = results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
         case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
-      headers mustEqual (expectedHeaders)
-      bv.decodeAscii mustEqual Right(expected)
+      headers mustEqual expectedHeaders
+      bv.decodeAscii must beRight(expected)
     }
 
     "discard preamble and epilogue" in {
@@ -131,37 +132,34 @@ object MultipartParserSpec extends Specification {
               |""".stripMargin)
 
 
-      val preamble : Stream[Task, Byte] =
+      val preamble: Stream[IO, Byte] =
         Stream.constant("Misery is the river of the world")
           .take(10)
-          .covary[Task]
           .through(text.utf8Encode)
 
-      val crlf : Stream[Task, Byte] =
+      val crlf: Stream[IO, Byte] =
         Stream.emit(Boundary.CRLF)
-          .covary[Task]
           .through(text.utf8Encode)
 
-      val epilogue : Stream[Task, Byte] =
+      val epilogue: Stream[IO, Byte] =
         Stream.constant("Everybody Row!\n")
           .take(10)
-          .covary[Task]
           .through(text.utf8Encode)
 
-      val results: Stream[Task, Either[Headers,Byte]] = (
+      val results: Stream[IO, Either[Headers,Byte]] = (
           preamble ++
           crlf ++
           unspool(input, 15) ++
           epilogue
         ).through(MultipartParser.parse(boundary))
 
-      val (headers, bv) = results.runLog.unsafeRun().foldLeft((Headers.empty, ByteVector.empty)) {
+      val (headers, bv) = results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
         case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
-      headers mustEqual (expectedHeaders)
-      bv.decodeAscii mustEqual Right(expected)
+      headers mustEqual expectedHeaders
+      bv.decodeAscii must beRight(expected)
     }
 
     "fail if the header is too large" in {
@@ -180,10 +178,10 @@ object MultipartParserSpec extends Specification {
         |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
       val input = ruinDelims(unprocessedInput)
 
-      val results: Stream[Task, Either[Headers,Byte]] =
+      val results: Stream[IO, Either[Headers,Byte]] =
         unspool(input, 15).through(MultipartParser.parse(boundary, 100))
 
-      results.runLog.unsafeRun() must throwA(MalformedMessageBodyFailure("Part header was longer than 100-byte limit"))
+      results.runLog.unsafeRunSync() must throwA(MalformedMessageBodyFailure("Part header was longer than 100-byte limit"))
     }.pendingUntilFixed("Due to Buffering All, Irrelevant")
 
     "handle an miserably large body on one line" in {
@@ -201,29 +199,27 @@ object MultipartParserSpec extends Specification {
         Header("Content-Transfer-Encoding", "binary")
       )
 
-      val crlf : Stream[Task, Byte] =
+      val crlf: Stream[IO, Byte] =
         Stream.emit(Boundary.CRLF)
-          .covary[Task]
           .through(text.utf8Encode)
 
-      val body : Stream[Task, Byte] = Stream.constant("Misery is the river of the world")
+      val body: Stream[IO, Byte] = Stream.constant("Misery is the river of the world")
         .take(100000)
-        .covary[Task]
         .through(text.utf8Encode)
 
-      val results: Stream[Task, Either[Headers,Byte]] = (
+      val results: Stream[IO, Either[Headers,Byte]] = (
           unspool(input) ++
             body ++
             crlf ++
             unspool(end)
         ).through(MultipartParser.parse(boundary))
 
-      val headers = results.runLog.unsafeRun().foldLeft(Headers.empty) {
+      val headers = results.runLog.unsafeRunSync().foldLeft(Headers.empty) {
         case (hsAcc, Right(_)) => hsAcc
         case (hsAcc, Left(hs)) => hsAcc ++ hs
       }
 
-      headers mustEqual (expectedHeaders)
+      headers mustEqual expectedHeaders
     }
 
     "produce the body from a single part input of one chunk" in {
@@ -252,19 +248,19 @@ object MultipartParserSpec extends Specification {
               |catch me if you can!
               |""".stripMargin)
 
-      val results: Stream[Task, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
+      val results: Stream[IO, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
 
-      val bytes = results.runLog.unsafeRun().collect {
+      val bytes = results.runLog.unsafeRunSync().collect {
         case Right(bv) => bv
       }
 
-      val (headers, bv) = results.runLog.unsafeRun().foldLeft((Headers.empty, ByteVector.empty)) {
+      val (headers, bv) = results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
         case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
-      headers mustEqual (expectedHeaders)
-      bv.decodeAscii mustEqual Right(expected)
+      headers mustEqual expectedHeaders
+      bv.decodeAscii must beRight(expected)
     }
 
     "produce the body from a two-part input" in {
@@ -286,15 +282,15 @@ object MultipartParserSpec extends Specification {
 
       val input = ruinDelims(unprocessedInput)
 
-      val results: Stream[Task, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
+      val results: Stream[IO, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
 
       // Accumulator Bytevector Resets on New Header, so bv represents ByteVector of last Part.
-      val (headers, bv) = results.runLog.unsafeRun().foldLeft((Headers.empty, ByteVector.empty)) {
+      val (headers, bv) = results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
         case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, ByteVector.empty)
       }
 
-      bv.decodeUtf8 must_=== Right("bar")
+      bv.decodeUtf8 must beRight("bar")
     }
 
     "produce the correct headers from a two part input" in {
@@ -314,18 +310,17 @@ object MultipartParserSpec extends Specification {
       val input = ruinDelims(unprocessedInput)
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
-      val results: Stream[Task, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundaryTest))
+      val results: Stream[IO, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundaryTest))
 
-      val (headers, bv) = results.runLog.unsafeRun().foldLeft((List.empty[Headers], ByteVector.empty)) {
+      val (headers, bv) = results.runLog.unsafeRunSync().foldLeft((List.empty[Headers], ByteVector.empty)) {
         case ((hsAcc, bvAcc), Right(byte)) => (hsAcc, bvAcc ++ ByteVector.fromByte(byte))
         case ((hsAcc, bvAcc), Left(hs)) => (hs :: hsAcc, bvAcc)
       }
 
-
       headers.reverse mustEqual List(
         Headers(
-        `Content-Disposition`("form-data", Map("name" -> "field1")),
-        `Content-Type`(MediaType.`text/plain`)
+          `Content-Disposition`("form-data", Map("name" -> "field1")),
+          `Content-Type`(MediaType.`text/plain`)
         ),
         Headers(
           `Content-Disposition`("form-data", Map("name" -> "field2"))
@@ -345,10 +340,9 @@ object MultipartParserSpec extends Specification {
         |catch me if you can!""".stripMargin
       val input = ruinDelims(unprocessedInput)
 
-      val results: Stream[Task, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
+      val results: Stream[IO, Either[Headers,Byte]] = unspool(input).through(MultipartParser.parse(boundary))
 
-      results.runLog.unsafeRun() must throwAn[MalformedMessageBodyFailure]
+      results.runLog.unsafeRunSync() must throwA[MalformedMessageBodyFailure]
     }
   }
-
 }

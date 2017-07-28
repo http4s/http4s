@@ -2,22 +2,19 @@ package org.http4s
 package multipart
 
 
-import org.http4s.EntityEncoder._
-import org.http4s.MediaType._
-import org.http4s.headers._
-import org.http4s.Uri._
-import org.http4s.util._
+import cats.effect.Sync
 import fs2._
+import org.http4s.util._
 
-private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
+private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Multipart[F]] {
   import scala.language.postfixOps
 
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
-  def toEntity(mp: Multipart): Task[Entity] = Task.delay(Entity(renderParts(mp.boundary)(mp.parts), None))
+  def toEntity(mp: Multipart[F]): F[Entity[F]] = Sync[F].delay(Entity(renderParts(mp.boundary)(mp.parts), None))
 
-  val dash : String = "--"
+  val dash: String = "--"
 
   val dashBoundary: Boundary => String =
     boundary => s"$dash${boundary.value}"
@@ -52,23 +49,22 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
         .append(Boundary.CRLF)
     }.toChunk
 
-  def renderPart(prelude: Chunk[Byte])(part: Part): Stream[Task, Byte] =
-      Stream.chunk(prelude) ++
-        Stream.chunk(renderHeaders(part.headers)) ++
-        Stream.chunk(Chunk.bytes(Boundary.CRLF.getBytes)) ++
-        part.body
+  def renderPart(prelude: Chunk[Byte])(part: Part[F]): Stream[F, Byte] =
+    Stream.chunk(prelude) ++
+      Stream.chunk(renderHeaders(part.headers)) ++
+      Stream.chunk(Chunk.bytes(Boundary.CRLF.getBytes)) ++
+      part.body
 
 
-  def renderParts(boundary: Boundary)(parts: Vector[Part]): Stream[Task, Byte] =
+  def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
     parts
       .tail
-      .foldLeft(renderPart(start(boundary))(parts.head)){(acc, part) =>
+      .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
         acc ++
           renderPart(
             Chunk.bytes(encapsulationWithoutBody(boundary).getBytes)
           )(part)
       } ++
       Stream.chunk(end(boundary))
-
 
 }

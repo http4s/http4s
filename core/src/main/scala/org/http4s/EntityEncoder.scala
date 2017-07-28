@@ -12,6 +12,7 @@ import fs2.Stream._
 import fs2._
 import fs2.io._
 import org.http4s.headers._
+import org.http4s.multipart.{Multipart, MultipartEncoder}
 import org.http4s.syntax.async._
 
 import scala.annotation.implicitNotFound
@@ -203,8 +204,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       Stream.bracket(r)(useReader, t => F.delay(t.close()))
     }
 
-  implicit val multipartEncoder: EntityEncoder[Multipart] =
-    MultipartEncoder
+  implicit def multipartEncoder[F[_]: Sync]: EntityEncoder[F, Multipart[F]] =
+    new MultipartEncoder[F]
 
   implicit def entityEncoderContravariant[F[_]]: Contravariant[EntityEncoder[F, ?]] =
     new Contravariant[EntityEncoder[F, ?]] {
