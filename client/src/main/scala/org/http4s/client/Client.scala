@@ -115,6 +115,15 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     }
   }
 
+  /** Submits a request and returns the response status */
+  def status(req: Request): Task[Status] =
+    fetch(req)(resp => Task.now(resp.status))
+
+  /** Submits a request and returns true if and only if the response status is
+    * successful */
+  def successful(req: Request): Task[Boolean] =
+    status(req).map(_.isSuccess)
+
   @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] =
     fetchAs(req)(d)
@@ -179,6 +188,15 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
 
   def expect[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
     req.flatMap(expect(_)(d))
+
+  /** Submits a request and returns the response status */
+  def status(req: Task[Request]): Task[Status] =
+    req.flatMap(status(_))
+
+  /** Submits a request and returns true if and only if the response status is
+   * successful */
+  def successful(req: Task[Request]): Task[Boolean] =
+    req.flatMap(successful(_))
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
