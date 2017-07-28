@@ -164,7 +164,9 @@ private[parser] trait SimpleHeaders {
 
   def X_FORWARDED_FOR(value: String): ParseResult[`X-Forwarded-For`] = new Http4sHeaderParser[`X-Forwarded-For`](value) {
     def entry = rule {
-      oneOrMore((Ip ~> (Some(_)))  | ("unknown" ~ push(None))).separatedBy(ListSep) ~
+      oneOrMore((Ip ~> (Some(_))) |
+                (capture(IPv6Address) ~> { s: String => Some(InetAddress.getByName(s)) }) |
+                ("unknown" ~ push(None))).separatedBy(ListSep) ~
         EOL ~> { xs: Seq[Option[InetAddress]] =>
         `X-Forwarded-For`(xs.head, xs.tail: _*)
       }
