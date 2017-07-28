@@ -121,16 +121,19 @@ trait ArbitraryInstances {
       major <- choose(0, 9)
       minor <- choose(0, 9)
     } yield HttpVersion.fromVersion(major, minor).yolo }
+
   implicit val cogenHttpVersion: Cogen[HttpVersion] =
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit val arbitraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+
   implicit val cogenNioCharset: Cogen[NioCharset] =
     Cogen[String].contramap(_.name)
 
   implicit val arbitraryCharset: Arbitrary[Charset] =
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
+
   implicit val cogenCharset: Cogen[Charset] =
     Cogen[NioCharset].contramap(_.nioCharset)
 
@@ -146,6 +149,7 @@ trait ArbitraryInstances {
       charsetRange <- genCharsetRangeNoQuality
       q <- arbitrary[QValue]
     } yield charsetRange.withQValue(q) }
+
   implicit val cogenCharsetRange: Cogen[CharsetRange] =
     Cogen[Either[(Charset, QValue), QValue]].contramap {
       case CharsetRange.Atom(charset, qValue) =>
@@ -264,6 +268,14 @@ trait ArbitraryInstances {
       // age is always positive
       age <- genFiniteDuration
     } yield headers.Age.unsafeFromDuration(age) }
+
+  implicit val arbitrarySTS: Arbitrary[headers.`Strict-Transport-Security`] =
+    Arbitrary { for {
+      // age is always positive
+      age               <- genFiniteDuration
+      includeSubDomains <- Gen.oneOf(true, false)
+      preload           <- Gen.oneOf(true, false)
+    } yield headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload) }
 
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
