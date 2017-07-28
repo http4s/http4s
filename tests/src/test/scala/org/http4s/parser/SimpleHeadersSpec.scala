@@ -127,7 +127,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       )
     }
 
-    "parse X-Forward-For" in {
+    "parse X-Forwarded-For" in {
       // ipv4
       val header2 = `X-Forwarded-For`(NonEmptyList(
         Some(InetAddress.getLocalHost),
@@ -146,7 +146,9 @@ class SimpleHeadersSpec extends Http4sSpec {
 
       val bad = Header("x-forwarded-for", "foo")
       HttpHeaderParser.parseHeader(bad) must be_-\/
+
+      val bad2 = Header("x-forwarded-for", "256.56.56.56")
+      HttpHeaderParser.parseHeader(bad2) must be_-\/
     }
   }
-
 }
