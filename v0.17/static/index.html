@@ -116,7 +116,7 @@ val service = HttpService {
       .map(Task.now) // This one is require to make the types match up
       .getOrElse(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8633/502446838@5467ea01)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8867/2083109733@2e57b6a6)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -132,7 +132,7 @@ val service = HttpService {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8633/502446838@524922d8)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8867/2083109733@2ffda88e)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -169,7 +169,7 @@ val webjars: HttpService = webjarService(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService = Kleisli(org.http4s.Service$$$Lambda$8639/520999897@286900e4)
+// webjars: org.http4s.HttpService = Kleisli(org.http4s.Service$$$Lambda$8873/1934813774@5048a92d)
 </code></pre>
 
           <footer>
@@ -177,7 +177,7 @@ val webjars: HttpService = webjarService(
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://http4s.org/v0.17/gzip/"><i class="fa fa-arrow-left"></i> GZip Compression</a></li>
+                <li class="previous"><a href="http://http4s.org/v0.17/hsts/"><i class="fa fa-arrow-left"></i> HSTS</a></li>
                 
                 <li><a href="https://github.com/http4s/http4s/edit/release-0.17.x/docs/src/main/tut/static.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
                 
@@ -218,6 +218,10 @@ val webjars: HttpService = webjarService(
               
               <li >
                 <a href="/v0.17/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/hsts/">HSTS</a>
               </li>
               
               <li class="active">

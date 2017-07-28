@@ -225,7 +225,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@6e030b6f
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@33752557
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -409,6 +409,10 @@ helloAlice.unsafeRun
               
               <li >
                 <a href="/v0.17/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.17/hsts/">HSTS</a>
               </li>
               
               <li >
