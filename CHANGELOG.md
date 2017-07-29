@@ -3,7 +3,17 @@
 * Support an arbitrary predicate for CORS allowed origins
 * Support `Access-Control-Expose-Headers` header for CORS
 * Fix thread safety issue in `EntityDecoder[XML]`
-* Support IPV6 headers in `X-Forwarded-For``
+* Support IPV6 headers in `X-Forwarded-For`
+* Upgraded dependencies:
+    * async-http-client-2.0.33
+    * http4s-websocket-0.2.0
+    * jetty-9.4.6.v20170531
+    * json4s-3.5.3
+    * log4s-1.3.6
+    * metrics-core-3.2.3
+    * scalaz-7.2.14
+    * tomcat-8.5.19
+    * twirl-1.3.3
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
