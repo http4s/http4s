@@ -3,12 +3,13 @@ package server
 package staticcontent
 
 import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Paths}
 
 import fs2._
 import scodec.bits.ByteVector
 import org.http4s.util.ByteVectorChunk
 
-private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
+private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
 
   def s: HttpService
 
@@ -18,6 +19,14 @@ private [staticcontent] trait StaticContentShared { this: Http4sSpec =>
     val bytes = scala.io.Source.fromInputStream(s)
       .mkString
       .getBytes(StandardCharsets.UTF_8)
+
+    ByteVectorChunk(ByteVector.view(bytes))
+  }
+
+  lazy val testResourceGzipped: Chunk[Byte] = {
+    val url = getClass.getResource("/testresource.txt.gz")
+    require(url != null, "Couldn't acquire resource!")
+    val bytes = Files.readAllBytes(Paths.get(url.toURI))
 
     ByteVectorChunk(ByteVector.view(bytes))
   }
