@@ -98,7 +98,7 @@ object Http4sPlugin extends AutoPlugin {
 
   val macroParadiseSetting =
     libraryDependencies ++= Seq(
-      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch)),
+      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)),
       VersionNumber(scalaVersion.value).numbers match {
         case Seq(2, 10, _*) => Seq(quasiquotes)
         case _ => Seq.empty
