@@ -41,7 +41,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Date" in {       // mills are lost, get rid of them
-      val header = Date(Instant.now).toRaw.parsed
+      val header = Date(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -60,7 +60,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Last-Modified" in {
-      val header = `Last-Modified`(Instant.now).toRaw.parsed
+      val header = `Last-Modified`(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -68,7 +68,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse If-Modified-Since" in {
-      val header = `If-Modified-Since`(Instant.now).toRaw.parsed
+      val header = `If-Modified-Since`(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
       val bad = Header(header.name.toString, "foo")

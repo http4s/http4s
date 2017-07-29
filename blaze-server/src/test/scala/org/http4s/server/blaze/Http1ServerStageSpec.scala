@@ -179,7 +179,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     "Honor an explicitly added date header" in {
-      val dateHeader = Date(Instant.ofEpochMilli(0))
+      val dateHeader = Date(HttpDate.Epoch)
       val service = HttpService {
         case req => Task.now(Response(body = req.body).replaceAllHeaders(dateHeader))
       }

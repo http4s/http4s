@@ -1,4 +1,5 @@
-package org.http4s.headers
+package org.http4s
+package headers
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
 
@@ -11,7 +12,7 @@ class RetryAfterSpec extends HeaderLaws {
 
   "render" should {
     "format GMT date according to RFC 1123" in {
-      `Retry-After`(Left(Instant.from(gmtDate))).renderString must_== "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT"
+      `Retry-After`(Left(HttpDate.unsafeFromZonedDateTime(gmtDate))).renderString must_== "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT"
     }
     "duration in seconds" in {
       `Retry-After`(Right(120.seconds)).renderString must_== "Retry-After: 120"
@@ -20,7 +21,7 @@ class RetryAfterSpec extends HeaderLaws {
 
   "parse" should {
     "accept http date" in {
-      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must be_\/-(Left(Instant.from(gmtDate)))
+      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must be_\/-(Left(HttpDate.unsafeFromZonedDateTime(gmtDate)))
     }
     "accept duration on seconds" in {
       `Retry-After`.parse("120").map(_.retry) must be_\/-(Right(120.seconds))

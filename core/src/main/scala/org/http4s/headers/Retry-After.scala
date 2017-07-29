@@ -26,7 +26,7 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
   *
   * @param retry Either the date of expiration or seconds until expiration
   */
-final case class `Retry-After`(retry: Either[Instant, FiniteDuration]) extends Header.Parsed {
+final case class `Retry-After`(retry: Either[HttpDate, FiniteDuration]) extends Header.Parsed {
   import `Retry-After`._
 
   val key = `Retry-After`
