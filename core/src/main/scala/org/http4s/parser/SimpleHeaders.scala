@@ -20,6 +20,7 @@ package parser
 
 import headers._
 import java.net.InetAddress
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 import org.http4s.headers.ETag.EntityTag
@@ -96,10 +97,12 @@ private[parser] trait SimpleHeaders {
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
   def HOST(value: String): ParseResult[Host] =
-    new Http4sHeaderParser[Host](value) with IpParser {
+    new Http4sHeaderParser[Host](value) with Rfc3986Parser {
+      def charset = StandardCharsets.UTF_8
+
       def entry = rule {
         (Token | IpLiteral) ~ OptWS ~
-          optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (Host(_:String, _:Option[Int]))
+          optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (org.http4s.headers.Host(_:String, _:Option[Int]))
       }
     }.parse
 

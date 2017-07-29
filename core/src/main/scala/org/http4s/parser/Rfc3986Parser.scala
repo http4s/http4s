@@ -63,6 +63,10 @@ private[parser] trait Rfc3986Parser
 
   def Port = rule { ":" ~ (capture(oneOrMore(Digit)) ~> {s: String => (Some(s.toInt))} |  push(None)) |  push(None) }
 
+  def IpLiteral = rule { "[" ~ capture(IpV6Address | IpVFuture) ~ "]" }
+
+  def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
+
   def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
 
   def Path: Rule1[String] = rule { (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String => decode(s)} }
@@ -106,7 +110,11 @@ private[parser] trait Rfc3986Parser
 
   def Reserved = rule { GenDelims | SubDelims }
 
+  def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
+
   def GenDelims = rule { ":" | "/" | "?" | "#" | "[" | "]" | "@" }
+
+  def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 
   private[this] def decode(s: String) = URLDecoder.decode(s, charset.name)
   // scalastyle:on public.methods.have.type
