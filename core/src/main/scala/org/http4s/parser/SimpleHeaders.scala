@@ -170,8 +170,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`X-Forwarded-For`](value) with IpParser {
       def entry = rule {
         oneOrMore(
-          (capture(IpV4Address) ~> { s: String => Some(InetAddress.getByName(s)) }) |
-            (capture(IpV6Address) ~> { s: String => Some(InetAddress.getByName(s)) }) |
+          (capture(IpV4Address | IpV6Address) ~> { s: String => Some(InetAddress.getByName(s)) }) |
             ("unknown" ~ push(None))).separatedBy(ListSep) ~
           EOL ~> { xs: Seq[Option[InetAddress]] =>
             `X-Forwarded-For`(xs.head, xs.tail: _*)

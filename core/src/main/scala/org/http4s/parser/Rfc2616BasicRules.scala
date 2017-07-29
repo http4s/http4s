@@ -17,8 +17,6 @@
  */
 package org.http4s.parser
 
-import scala.reflect.ClassTag
-import scalaz.Validation
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
 
