@@ -168,6 +168,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       client.streaming(req)(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.unsafePerformSync must_== Vector("hello")
     }
 
+    "streaming returns a stream from a requet task" in {
+      client.streaming(Task.delay(req))(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.unsafePerformSync must_== Vector("hello")
+    }
+
     "streaming disposes of the response on success" in {
       assertDisposes(_.streaming(req)(_.body).run)
     }
