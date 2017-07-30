@@ -171,5 +171,5 @@ object StaticFile {
     await(outer)(identity)
   }
 
-  private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")
+  private[http4s] val staticFileKey = AttributeKey[File]
 }

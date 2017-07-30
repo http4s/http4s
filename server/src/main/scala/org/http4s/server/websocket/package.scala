@@ -8,7 +8,7 @@ import scalaz.stream.{Exchange, Process, Sink}
 import scalaz.concurrent.Task
 
 package object websocket {
-  val websocketKey = AttributeKey.http4s[Websocket]("websocket")
+  val websocketKey = AttributeKey[Websocket]
 
   /**
    * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
