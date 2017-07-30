@@ -96,7 +96,7 @@ sealed trait Message extends MessageOps { self =>
 
 object Message {
   object Keys {
-    val TrailerHeaders = AttributeKey.http4s[Task[Headers]]("trailer-headers")
+    val TrailerHeaders = AttributeKey[Task[Headers]]
   }
 }
 
@@ -218,10 +218,10 @@ object Request {
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
-    val PathInfoCaret = AttributeKey.http4s[Int]("request.pathInfoCaret")
-    val PathTranslated = AttributeKey.http4s[File]("request.pathTranslated")
-    val ConnectionInfo = AttributeKey.http4s[Connection]("request.remote")
-    val ServerSoftware = AttributeKey.http4s[ServerSoftware]("request.serverSoftware")
+    val PathInfoCaret = AttributeKey[Int]
+    val PathTranslated = AttributeKey[File]
+    val ConnectionInfo = AttributeKey[Connection]
+    val ServerSoftware = AttributeKey[ServerSoftware]
   }
 }
 
