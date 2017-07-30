@@ -18,10 +18,10 @@ trait EmptyRequestGenerator extends Any with RequestGenerator {
 trait EntityRequestGenerator extends Any with EmptyRequestGenerator {
   /** Make a [[org.http4s.Request]] using this Method */
   final def apply[A](uri: Uri, body: A)(implicit w: EntityEncoder[A]): Task[Request] = {
-    var h = w.headers
+    val h = w.headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
-      len foreach { l => h = h put `Content-Length`(l) }
-      Task.now(Request(method = method, uri = uri, headers = h, body = proc))
+      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
+      Task.now(Request(method = method, uri = uri, headers = headers, body = proc))
     }
   }
 }

@@ -40,10 +40,10 @@ trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
     apply(body, Headers.empty)(w)
 
   def apply[A](body: A, headers: Headers)(implicit w: EntityEncoder[A]): Task[Response] = {
-    var h = w.headers ++ headers
+    val h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
-      len foreach { l => h = h put `Content-Length`(l) }
-      Task.now(Response(status = status, headers = h, body = proc))
+      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
+      Task.now(Response(status = status, headers = headers, body = proc))
     }
   }
 }

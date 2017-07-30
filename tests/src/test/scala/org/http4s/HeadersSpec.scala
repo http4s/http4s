@@ -4,7 +4,7 @@ import org.http4s.headers._
 
 class HeadersSpec extends Http4sSpec {
 
-  val clength = `Content-Length`(10)
+  val clength = `Content-Length`.unsafeFromLong(10)
   val raw = Header.Raw("raw-header".ci, "Raw value")
 
   val base = Headers(clength.toRaw, raw)
@@ -20,7 +20,7 @@ class HeadersSpec extends Http4sSpec {
     }
 
     "Replaces headers" in {
-      val newlen = `Content-Length`(0)
+      val newlen = `Content-Length`.zero
       base.put(newlen).get(newlen.key) should beSome(newlen)
       base.put(newlen.toRaw).get(newlen.key) should beSome (newlen)
     }
