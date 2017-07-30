@@ -99,7 +99,7 @@ object StaticFile {
       }
 
       val hs = `Last-Modified`(lastModified) ::
-               `Content-Length`(contentLength) ::
+               `Content-Length`.fromLong(contentLength).toList :::
                contentType.toList
 
       val r = Response(

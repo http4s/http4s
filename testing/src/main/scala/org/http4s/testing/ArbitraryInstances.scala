@@ -169,7 +169,7 @@ trait ArbitraryInstances {
   implicit val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
       long <- arbitrary[Long] if long > 0L
-    } yield `Content-Length`(long) }
+    } yield `Content-Length`.unsafeFromLong(long) }
 
   implicit val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary { for {
