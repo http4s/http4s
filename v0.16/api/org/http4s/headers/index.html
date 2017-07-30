@@ -1023,7 +1023,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/65cb58f90cb4bd05cbd75c287875d8d2eef8e97e/core/src/main/scala/org/http4s/headers/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/3d93687202d517ad1e5e805e7a76abed58584d3f/core/src/main/scala/org/http4s/headers/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1327,7 +1327,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.headers.Content-Length" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.headers.Content-Length" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Content-LengthextendsHeader.ParsedwithProductwithSerializable"></a><a id="Content-Length:Content-Length"></a>
       <span class="permalink">
       <a href="../../../org/http4s/headers/index.html#Content-LengthextendsHeader.ParsedwithProductwithSerializable" title="Permalink">
@@ -1335,18 +1335,18 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier">sealed abstract </span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
         <a title="Constructs a Content-Length header." href="Content$minusLength.html">
               <span title="gt4s: Content$minusLength" class="name">Content-Length</span>
-            </a><span class="params">(<span name="length">length: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Constructs a <code>Content-Length</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs a <code>Content-Length</code> header.</p><p>The HTTP RFCs do not specify a maximum length.  We have decided that <code>Long.MaxValue</code>
 bytes ought to be good enough for anybody in order to avoid the irritations of <code>BigInt</code>.
-</p></div><dl class="paramcmts block"><dt class="param">length</dt><dd class="cmt"><p>the length; throws an <code>IllegalArgumentException</code> if negative</p></dd></dl></div>
+t</p></div></div>
     </li><li name="org.http4s.headers.Content-Range" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Content-RangeextendsHeader.ParsedwithProductwithSerializable"></a><a id="Content-Range:Content-Range"></a>
       <span class="permalink">
