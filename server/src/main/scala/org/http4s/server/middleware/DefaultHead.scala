@@ -25,7 +25,7 @@ object DefaultHead {
 
   private def headAsTruncatedGet(service: HttpService) =
     HttpService.lift { req =>
-      val getReq = req.copy(method = Method.GET)
+      val getReq = req.withMethod(Method.GET)
       service(getReq).map(_.cata(resp => resp.copy(body = resp.body.kill), Pass))
     }
 }

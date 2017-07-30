@@ -75,18 +75,21 @@ object FollowRedirect {
         def dontRedirect =
           Task.now(dr)
 
-        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[ByteVector]) =
+        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[ByteVector]): Request =
           bodyOpt match {
             case Some(body) =>
               // Assume that all the headers can be propagated
-              req.copy(method = method, uri = nextUri, body = emit(body))
+              req
+                .withMethod(method)
+                .withUri(nextUri)
+                .withBody(emit(body))
             case None =>
-              req.copy(
-                method = method,
-                uri = nextUri,
-                body = EmptyBody,
+              req
+                .withMethod(method)
+                .withUri(nextUri)
+                .withBody(EmptyBody)
                 // We need to strip all payload headers
-                headers = req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
+                .withHeaders(req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
           }
 
         def doRedirect(method: Method) = {

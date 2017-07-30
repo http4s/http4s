@@ -32,8 +32,8 @@ class DefaultHeadSpec extends Http4sSpec {
     }
 
     "retain all headers of corresponding GET on fallthrough" in {
-      val get = Request(Method.GET, uri = uri("/hello"))      
-      val head = get.copy(method = Method.HEAD)
+      val get = Request(Method.GET, uri = uri("/hello"))
+      val head = get.withMethod(Method.HEAD)
       service.orNotFound(get).map(_.headers).unsafePerformSync must_== service.orNotFound(head).map(_.headers).unsafePerformSync
     }
 
