@@ -76,12 +76,6 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
   def ListSep = rule { oneOrMore("," ~ OptWS) }
 
   def LASTCHAR: Rule1[Char] = rule { push(input.charAt(cursor - 1)) }
-
-  // we don't match scoped IPv6 addresses
-  def IPv6Address = rule { oneOrMore(Hex | anyOf(":.")) }
-
-  def IPv6Reference: Rule1[String] = rule { capture("[" ~ IPv6Address ~ "]") }
-  // scalastyle:on public.methods.have.type
 }
 
 private[http4s] object Rfc2616BasicRules {

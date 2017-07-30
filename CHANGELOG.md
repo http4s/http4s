@@ -41,6 +41,7 @@
 * Support an arbitrary predicate for CORS allowed origins
 * Support `Access-Control-Expose-Headers` header for CORS
 * Fix thread safety issue in `EntityDecoder[XML]`
+* Support IPV6 headers in `X-Forwarded-For``
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
