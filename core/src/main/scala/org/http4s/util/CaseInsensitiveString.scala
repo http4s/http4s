@@ -28,7 +28,7 @@ sealed class CaseInsensitiveString private (val value: String)
         // to go in both directions. A character is not guaranteed to make this
         // round trip, but it doesn't matter as long as all equal characters
         // hash the same.
-        h = h * 31 + Character.toUpperCase(Character.toLowerCase(value.charAt(i)))
+        h = h * 31 + Character.toLowerCase(Character.toUpperCase(value.charAt(i)))
         i += 1
       }
       hash = h
