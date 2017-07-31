@@ -199,6 +199,7 @@ object MediaType extends Registry {
   val `application/excel`                                                         = app("excel", uncompressible, binary, "xl", "xla", "xlb", "xlc", "xld", "xlk", "xll", "xlm", "xls", "xlt", "xlv", "xlw")
   val `application/font-woff`                                                     = app("font-woff", uncompressible, binary, "woff")
   val `application/gnutar`                                                        = app("gnutar", uncompressible, binary, "tgz")
+  val `application/gzip`                                                          = app("gzip", uncompressible, binary, "gz")
   val `application/hal+json`                                                      = app("hal+json", compressible, binary) // we treat JSON as binary, since it's encoding is not variable but defined by RFC4627
   val `application/java-archive`                                                  = app("java-archive", uncompressible, binary, "jar", "war", "ear")
   val `application/javascript`                                                    = app("javascript", compressible, notBinary, "js")
@@ -242,7 +243,6 @@ object MediaType extends Registry {
   val `application/x-bzip2`                                                       = app("x-bzip2", uncompressible, binary, "boz", "bz2")
   val `application/x-chrome-extension`                                            = app("x-chrome-extension", uncompressible, binary, "crx")
   val `application/x-compress`                                                    = app("x-compress", uncompressible, binary, "z")
-  val `application/x-compressed`                                                  = app("x-compressed", uncompressible, binary, "gz")
   val `application/x-debian-package`                                              = app("x-debian-package", compressible, binary, "deb")
   val `application/x-dvi`                                                         = app("x-dvi", compressible, binary, "dvi")
   val `application/x-font-truetype`                                               = app("x-font-truetype", compressible, binary, "ttf")
