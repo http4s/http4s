@@ -116,7 +116,7 @@ val service = HttpService {
       .map(Task.now) // This one is require to make the types match up
       .getOrElse(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8863/153018258@bd39df)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8879/268058365@6f4c4192)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -132,7 +132,7 @@ val service = HttpService {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8863/153018258@3836c8d5)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8879/268058365@11906179)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -169,7 +169,7 @@ val webjars: HttpService = webjarService(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService = Kleisli(org.http4s.Service$$$Lambda$8869/834935267@7ccd89a7)
+// webjars: org.http4s.HttpService = Kleisli(org.http4s.Service$$$Lambda$8885/950175012@1f7df36c)
 </code></pre>
 
           <footer>
