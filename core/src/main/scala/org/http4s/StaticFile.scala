@@ -99,7 +99,7 @@ object StaticFile {
       }
 
       val hs = `Last-Modified`(lastModified) ::
-               `Content-Length`(contentLength) ::
+               `Content-Length`.fromLong(contentLength).toList :::
                contentType.toList
 
       val r = Response(
@@ -171,5 +171,5 @@ object StaticFile {
     await(outer)(identity)
   }
 
-  private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")
+  private[http4s] val staticFileKey = AttributeKey[File]
 }

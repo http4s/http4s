@@ -3,23 +3,12 @@ package org.http4s.headers
 class ContentLengthSpec extends HeaderLaws {
   checkAll("Content-Length", headerLaws(`Content-Length`))
 
-  "apply" should {
-    "reject negative lengths" in prop { length: Long => length < 0 ==> {
-      `Content-Length`(length) must throwA[IllegalArgumentException]
-    }}
-
-    "accept non-negative lengths" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`(length).length must_== (length)
-    }}
-  }
-
   "fromLong" should {
     "reject negative lengths" in prop { length: Long => length < 0 ==> {
       `Content-Length`.fromLong(length) must be_-\/
     }}
-
-    "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.fromLong(length) must be_\/-(`Content-Length`(length))
+    "accept non-negative lengths" in prop { length: Long => length >= 0 ==> {
+      `Content-Length`.fromLong(length).map(_.length) must be_\/-(length)
     }}
   }
 
@@ -33,7 +22,19 @@ class ContentLengthSpec extends HeaderLaws {
     }}
 
     "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.parse(length.toString) must be_\/-(`Content-Length`(length))
+      `Content-Length`.parse(length.toString) must_== `Content-Length`.fromLong(length)
+    }}
+    "roundtrip" in prop { l: Long => (l >= 0) ==> {
+      `Content-Length`.fromLong(l).map(_.value).flatMap(`Content-Length`.parse) must_== `Content-Length`.fromLong(l)
+    }}
+  }
+
+  "modify" should {
+    "update the length if positive" in prop { length: Long => length >= 0 ==> {
+      `Content-Length`.zero.modify(_ + length) must_== `Content-Length`.fromLong(length).toOption
+    }}
+    "fail to update if the result is negative" in prop { length: Long => length > 0 ==> {
+      `Content-Length`.zero.modify(_ - length) must beNone
     }}
   }
 }

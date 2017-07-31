@@ -29,7 +29,8 @@ object ChunkAggregator {
     case response: Response =>
       val chunks = compact(response.body)
       if (chunks.nonEmpty) {
-        val h = response.headers.put(`Content-Length`(chunks.head.length))
+        // safe because length is non-negative
+        val h = response.headers.put(`Content-Length`.unsafeFromLong(chunks.head.length))
         response.copy(body = emitAll(chunks), headers = h)
       }
       else response
