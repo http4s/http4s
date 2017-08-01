@@ -115,14 +115,6 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   def Digit4: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
 
   def NegDigit1: Rule1[Int] = rule { "-" ~ capture(Digit) ~> {s: String => s.toInt} }
-
-  def Ip4Number = rule { Digit3 | Digit2 | Digit1 }
-
-  def Ip: Rule1[InetAddress] = rule {
-    Ip4Number ~ ch('.') ~ Ip4Number ~ ch('.') ~ Ip4Number ~ ch('.') ~ Ip4Number  ~ OptWS ~>
-    { (a:Int,b:Int,c:Int,d:Int) => InetAddress.getByAddress(Array(a.toByte, b.toByte, c.toByte, d.toByte)) }
-  }
-
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int): Instant = {
     Try(ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC).toInstant).getOrElse {
       // TODO Would be better if this message had the real input.

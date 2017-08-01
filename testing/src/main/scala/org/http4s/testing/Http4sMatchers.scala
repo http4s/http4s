@@ -39,6 +39,11 @@ trait Http4sMatchers extends Matchers with TaskMatchers {
       m.headers.get(`Content-Type`).map(_.mediaType) aka "the media type header"
     }
 
+  def haveContentCoding(c: ContentCoding): Matcher[Message] =
+    beSome(c) ^^ { m: Message =>
+      m.headers.get(`Content-Encoding`).map(_.contentCoding) aka "the content encoding header"
+    }
+
   def beFallthrough[A](implicit F: Fallthrough[A]): Matcher[A] = { a: A => (
     F.isFallthrough(a),
     s"$a is the fallthrough",
