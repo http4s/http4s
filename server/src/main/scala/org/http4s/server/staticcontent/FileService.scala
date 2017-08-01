@@ -8,7 +8,6 @@ import cats.data.NonEmptyList
 import fs2._
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
-import org.http4s.util.threads.DefaultExecutionContext
 
 import scala.concurrent.ExecutionContext
 
@@ -27,7 +26,7 @@ object FileService {
                           pathPrefix: String = "",
                           pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50*1024,
-                          executionContext: ExecutionContext= DefaultExecutionContext,
+                          executionContext: ExecutionContext= ExecutionContext.global,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */

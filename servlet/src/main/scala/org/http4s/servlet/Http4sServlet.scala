@@ -10,7 +10,6 @@ import fs2.interop.cats._
 import fs2.{Strategy, Task}
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server._
-import org.http4s.util.threads.DefaultExecutionContext
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -19,7 +18,7 @@ import scala.concurrent.duration.Duration
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    implicit private[this] val executionContext: ExecutionContext = DefaultExecutionContext,
+                    implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
                     private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
   extends HttpServlet {
   private[this] val logger = getLogger

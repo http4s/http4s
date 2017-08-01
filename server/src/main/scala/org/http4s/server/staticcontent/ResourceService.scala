@@ -2,8 +2,6 @@ package org.http4s
 package server
 package staticcontent
 
-import org.http4s.util.threads.DefaultExecutionContext
-
 import scala.concurrent.ExecutionContext
 
 object ResourceService {
@@ -20,7 +18,7 @@ object ResourceService {
   final case class Config(basePath: String,
                           pathPrefix: String = "",
                           bufferSize: Int = 50*1024,
-                          executionContext: ExecutionContext = DefaultExecutionContext,
+                          executionContext: ExecutionContext = ExecutionContext.global,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy,
                           preferGzipped: Boolean = false)
 
