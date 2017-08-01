@@ -65,10 +65,4 @@ object threads {
   private[http4s] def newDaemonPoolExecutionContext(name: String, min: Int = 4, cpuFactor: Double = 3.0, timeout: Boolean = false): ExecutionContext =
     ExecutionContext.fromExecutorService(newDaemonPool(name, min, cpuFactor, timeout))
 
-  /** TODO: Servers and clients shouldn't run on a daemon. This will go away. */
-  private[http4s] lazy val DefaultPool =
-    newDaemonPool("http4s-pool")
-
-  private[http4s] lazy val DefaultExecutionContext =
-    ExecutionContext.fromExecutorService(DefaultPool)
 }

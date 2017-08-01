@@ -13,7 +13,7 @@ import fs2.util.Suspendable
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.http4s.util.ByteVectorChunk
-import org.http4s.util.threads.DefaultPool
+//import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 import scodec.bits.ByteVector
 
