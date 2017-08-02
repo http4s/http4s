@@ -1,11 +1,13 @@
 package org.http4s
 
 import scalaz.{ Equal, Validation, NonEmptyList }
+import scalaz.syntax.id._
 import scalaz.scalacheck.ScalazProperties._
 import scalaz.scalacheck.ScalazArbitrary._
 
 import org.scalacheck.{ Arbitrary, Cogen }
 import org.scalacheck.Arbitrary._
+import org.scalacheck.Prop._
 
 class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
 
@@ -21,6 +23,11 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Functor[QueryParamDecoder]", functor.laws[QueryParamDecoder])
   checkAll("PlusEmpty[QueryParamDecoder]", plusEmpty.laws[QueryParamDecoder])
   checkAll("Contravariant[QueryParamEncoder]", contravariant.laws[QueryParamEncoder])
+
+  // The PlusEmpty check above validates fail() but we need an explicit test for success().
+  "success(a) always succeeds" >> forAll { (n: Int, qpv: QueryParameterValue) =>
+    QueryParamDecoder.success(n).decode(qpv) must_== Validation.success(n)
+  }
 
 }
 
@@ -51,5 +58,7 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
   implicit def ArbQueryParamEncoder[A: Cogen]: Arbitrary[QueryParamEncoder[A]] =
     Arbitrary(arbitrary[A => String].map(QueryParamEncoder[String].contramap))
 
+  implicit val ArbQueryParameterValue: Arbitrary[QueryParameterValue] =
+    Arbitrary(arbitrary[String].map(QueryParameterValue))
 
 }
