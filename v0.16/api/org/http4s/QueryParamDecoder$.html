@@ -1005,7 +1005,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/37a248f60db2d88c6fcdc6dc1111e29e113a943a/core/src/main/scala/org/http4s/QueryParam.scala" target="_blank">QueryParam.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/268f8aabb50036e38073e72dbfd0fe0cba1a43f4/core/src/main/scala/org/http4s/QueryParam.scala" target="_blank">QueryParam.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1110,6 +1110,38 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.QueryParamDecoder#FunctorQueryParamDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FunctorQueryParamDecoder:scalaz.Functor[org.http4s.QueryParamDecoder]"></a><a id="FunctorQueryParamDecoder:Functor[QueryParamDecoder]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder$.html#FunctorQueryParamDecoder:scalaz.Functor[org.http4s.QueryParamDecoder]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">FunctorQueryParamDecoder</span><span class="result">: <span class="extype" name="scalaz.Functor">Functor</span>[<a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">QueryParamDecoder is a covariant functor.</p>
+    </li><li name="org.http4s.QueryParamDecoder#PlusEmptyQueryParamDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PlusEmptyQueryParamDecoder:scalaz.PlusEmpty[org.http4s.QueryParamDecoder]"></a><a id="PlusEmptyQueryParamDecoder:PlusEmpty[QueryParamDecoder]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder$.html#PlusEmptyQueryParamDecoder:scalaz.PlusEmpty[org.http4s.QueryParamDecoder]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">PlusEmptyQueryParamDecoder</span><span class="result">: <span class="extype" name="scalaz.PlusEmpty">PlusEmpty</span>[<a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">QueryParamDecoder is a PlusEmpty.</p>
     </li><li name="org.http4s.QueryParamDecoder#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="apply[T](implicitev:org.http4s.QueryParamDecoder[T]):org.http4s.QueryParamDecoder[T]"></a><a id="apply[T](QueryParamDecoder[T]):QueryParamDecoder[T]"></a>
       <span class="permalink">
@@ -1151,7 +1183,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">booleanQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Boolean">Boolean</span>]</span>
@@ -1167,7 +1199,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">charQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Char">Char</span>]</span>
@@ -1196,22 +1228,6 @@ conform string.">
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.QueryParamDecoder#decodeBy" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="decodeBy[T,U](f:U=&gt;T)(implicitevidence$3:org.http4s.QueryParamDecoder[U]):org.http4s.QueryParamDecoder[T]"></a><a id="decodeBy[T,U]((U)⇒T)(QueryParamDecoder[U]):QueryParamDecoder[T]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/QueryParamDecoder$.html#decodeBy[T,U](f:U=&gt;T)(implicitevidence$3:org.http4s.QueryParamDecoder[U]):org.http4s.QueryParamDecoder[T]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">decodeBy</span><span class="tparams">[<span name="T">T</span>, <span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.U">U</span>) ⇒ <span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.U">U</span>]</span>)</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.T">T</span>]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.QueryParamDecoder#doubleQueryParamDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="doubleQueryParamDecoder:org.http4s.QueryParamDecoder[Double]"></a><a id="doubleQueryParamDecoder:QueryParamDecoder[Double]"></a>
       <span class="permalink">
@@ -1221,7 +1237,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">doubleQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Double">Double</span>]</span>
@@ -1260,6 +1276,22 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.QueryParamDecoder#fail" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fail[A](sanitized:String,detail:String):org.http4s.QueryParamDecoder[A]"></a><a id="fail[A](String,String):QueryParamDecoder[A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder$.html#fail[A](sanitized:String,detail:String):org.http4s.QueryParamDecoder[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fail</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="detail">detail: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.fail.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">A decoder that always fails.</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -1291,7 +1323,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">floatQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Float">Float</span>]</span>
@@ -1355,7 +1387,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">intQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Int">Int</span>]</span>
@@ -1387,7 +1419,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">longQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Long">Long</span>]</span>
@@ -1451,7 +1483,7 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">shortQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Short">Short</span>]</span>
@@ -1467,13 +1499,29 @@ conform string.">
     </span>
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">stringQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       
+    </li><li name="org.http4s.QueryParamDecoder#success" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="success[A](a:A):org.http4s.QueryParamDecoder[A]"></a><a id="success[A](A):QueryParamDecoder[A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder$.html#success[A](a:A):org.http4s.QueryParamDecoder[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">success</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.QueryParamDecoder.success.A">A</span></span>)</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.success.A">A</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">A decoder that always succeeds.</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1506,6 +1554,22 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.QueryParamDecoder#unitQueryParamDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="unitQueryParamDecoder:org.http4s.QueryParamDecoder[Unit]"></a><a id="unitQueryParamDecoder:QueryParamDecoder[Unit]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder$.html#unitQueryParamDecoder:org.http4s.QueryParamDecoder[Unit]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unitQueryParamDecoder</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1578,7 +1642,29 @@ conform string.">
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.QueryParamDecoder#decodeBy" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="decodeBy[U,T](f:T=&gt;U)(implicitqpd:org.http4s.QueryParamDecoder[T]):org.http4s.QueryParamDecoder[U]"></a><a id="decodeBy[U,T]((T)⇒U)(QueryParamDecoder[T]):QueryParamDecoder[U]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder$.html#decodeBy[U,T](f:T=&gt;U)(implicitqpd:org.http4s.QueryParamDecoder[T]):org.http4s.QueryParamDecoder[U]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.16) Use QueryParamEncoder[T].map(f)">decodeBy</span><span class="tparams">[<span name="U">U</span>, <span name="T">T</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.T">T</span>) ⇒ <span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.U">U</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="qpd">qpd: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.T">T</span>]</span>)</span><span class="result">: <a href="QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.decodeBy.U">U</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Use QueryParamEncoder[T].map(f)</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
