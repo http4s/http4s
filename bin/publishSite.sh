@@ -2,8 +2,6 @@
 
 . $TRAVIS_BUILD_DIR/bin/setup.sh
 
-checkPublishable "ghPages"
-
 # Install hugo static site generator from GitHub releases page.
 curl -s -L "https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz" | tar xzf -
 mv "./hugo" "$HOME/bin/hugo"
@@ -22,4 +20,8 @@ eval "$(ssh-agent -s)";
 openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
 
 
-sbt ";makeSite ;ghpagesPushSite"
+sbt ";makeSite"
+
+checkPublishable "ghPages"
+
+sbt ";ghpagesPushSite"
