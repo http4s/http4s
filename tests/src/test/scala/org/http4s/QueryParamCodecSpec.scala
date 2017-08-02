@@ -6,6 +6,7 @@ import cats.implicits._
 import cats.laws.discipline.{ arbitrary => _, _}
 import org.scalacheck.{ Arbitrary, Cogen }
 import org.scalacheck.Arbitrary._
+import org.scalacheck.Prop._
 
 class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
@@ -20,6 +21,11 @@ class QueryParamCodecSpec extends Http4sSpec with QueryParamCodecInstances {
   checkAll("Functor[QueryParamDecoder]", FunctorTests[QueryParamDecoder].functor[Int, String, Boolean])
   checkAll("MonoidK[QueryParamDecoder]", MonoidKTests[QueryParamDecoder].monoidK[Int])
   checkAll("Contravariant[QueryParamEncoder]", ContravariantTests[QueryParamEncoder].contravariant[Int, String, Boolean])
+
+  // The PlusEmpty check above validates fail() but we need an explicit test for success().
+  "success(a) always succeeds" >> forAll { (n: Int, qpv: QueryParameterValue) =>
+    QueryParamDecoder.success(n).decode(qpv) must_== n.valid
+  }
 
 }
 
@@ -50,4 +56,6 @@ trait QueryParamCodecInstances { this: Http4sSpec =>
   implicit def ArbQueryParamEncoder[A: Cogen]: Arbitrary[QueryParamEncoder[A]] =
     Arbitrary(arbitrary[A => String].map(QueryParamEncoder[String].contramap))
 
+  implicit val ArbQueryParameterValue: Arbitrary[QueryParameterValue] =
+    Arbitrary(arbitrary[String].map(QueryParameterValue))
 }

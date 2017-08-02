@@ -66,13 +66,13 @@ object QueryParamEncoder {
         fa.contramap(f)
     }
 
-  @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.17")
+  @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
   def encodeBy[T, U](f: T => U)(
     implicit qpe: QueryParamEncoder[U]
   ): QueryParamEncoder[T] =
     qpe.contramap(f)
 
-  @deprecated("Use QueryParamEncoder[String].contramap(f)", "0.17")
+  @deprecated("Use QueryParamEncoder[String].contramap(f)", "0.16")
   def encode[T](f: T => String): QueryParamEncoder[T] =
     stringQueryParamEncoder.contramap(f)
 
@@ -142,24 +142,30 @@ object QueryParamDecoder {
   implicit val PlusEmptyQueryParamDecoder: MonoidK[QueryParamDecoder] =
     new MonoidK[QueryParamDecoder] {
       def empty[A] =
-        FunctorQueryParamDecoder.widen[Nothing, A](nothingQueryParamDecoder)
+        fail[A]("Decoding failed.", "Empty decoder (always fails).")
       def combineK[A](a: QueryParamDecoder[A], b: QueryParamDecoder[A]) =
         a.orElse(b)
     }
 
-  @deprecated("Use QueryParamEncoder[T].map(f)", "0.17")
+  @deprecated("Use QueryParamEncoder[T].map(f)", "0.16")
   def decodeBy[U, T](f: T => U)(
     implicit qpd: QueryParamDecoder[T]
   ): QueryParamDecoder[U] =
     qpd.map(f)
 
+  /** A decoder that always succeeds. */
+  def success[A](a: A): QueryParamDecoder[A] =
+    fromUnsafeCast[A](_ => a)("Success")
+
   /** A decoder that always fails. */
-  implicit lazy val nothingQueryParamDecoder: QueryParamDecoder[Nothing] =
-    new QueryParamDecoder[Nothing] {
+  def fail[A](sanitized: String, detail: String): QueryParamDecoder[A] =
+    new QueryParamDecoder[A] {
       override def decode(value: QueryParameterValue) =
-        ParseFailure("Failed.", "Nothing decoder always fails.").invalidNel
+        ParseFailure(sanitized, detail).invalidNel
     }
 
+  implicit lazy val unitQueryParamDecoder: QueryParamDecoder[Unit] =
+    success(())
   implicit lazy val booleanQueryParamDecoder: QueryParamDecoder[Boolean] =
     fromUnsafeCast[Boolean](_.value.toBoolean)("Boolean")
   implicit lazy val doubleQueryParamDecoder: QueryParamDecoder[Double] =
