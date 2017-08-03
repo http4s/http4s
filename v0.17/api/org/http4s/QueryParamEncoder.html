@@ -1021,7 +1021,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Type class defining how to encode a <code>T</code> as a <a href="QueryParameterValue.html" class="extype" name="org.http4s.QueryParameterValue">QueryParameterValue</a>s</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/337c505514a595b89a9cf9e74a54092dc09fd8e2/core/src/main/scala/org/http4s/QueryParam.scala" target="_blank">QueryParam.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p>QueryParamCodecLaws</p></span></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Type class defining how to encode a <code>T</code> as a <a href="QueryParameterValue.html" class="extype" name="org.http4s.QueryParameterValue">QueryParameterValue</a>s</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.QueryParamEncoder">QueryParamEncoder</a>[<span class="extype" name="org.http4s.QueryParamEncoder.T">T</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2b025cf225541adaf6b80fd539b425022fa3cfc/core/src/main/scala/org/http4s/QueryParam.scala" target="_blank">QueryParam.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p>QueryParamCodecLaws</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1231,6 +1231,22 @@ conform string.">
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.QueryParamEncoder#contramap" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="contramap[U](f:U=&gt;T):org.http4s.QueryParamEncoder[U]"></a><a id="contramap[U]((U)⇒T):QueryParamEncoder[U]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamEncoder.html#contramap[U](f:U=&gt;T):org.http4s.QueryParamEncoder[U]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">contramap</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.QueryParamEncoder.contramap.U">U</span>) ⇒ <span class="extype" name="org.http4s.QueryParamEncoder.T">T</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.QueryParamEncoder">QueryParamEncoder</a>[<span class="extype" name="org.http4s.QueryParamEncoder.contramap.U">U</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">QueryParamEncoder is a contravariant functor.</p>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((QueryParamEncoder[T])⇒Boolean,⇒Any):QueryParamEncoder[T]"></a>
       <span class="permalink">
