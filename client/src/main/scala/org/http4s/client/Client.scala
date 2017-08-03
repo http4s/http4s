@@ -56,6 +56,17 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   }
 
 
+  /** Submits a request, and provides a callback to process the response.
+   *
+   * @param req A Task of the request to submit
+   * @param f A callback for the response to req.  The underlying HTTP connection
+   *          is disposed when the returned task completes.  Attempts to read the
+   *          response body afterward will result in an error.
+   * @return The result of applying f to the response to req
+   */
+  def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
+    req.flatMap(fetch(_)(f))
+
   /**
     * Returns this client as a [[Service]].  All connections created by this
     * service are disposed on completion of callback task f.
@@ -91,6 +102,8 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
       }
   }
 
+  def streaming[A](req: Task[Request])(f: Response => Stream[Task, A]): Stream[Task, A] =
+    Stream.eval(req).flatMap(streaming(_)(f))
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
@@ -110,6 +123,25 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     }
   }
 
+  def expect[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
+    req.flatMap(expect(_)(d))
+
+  /**
+   * Submits a GET request to the specified URI and decodes the response on
+   * success.  On failure, the status code is returned.  The underlying HTTP
+   * connection is closed at the completion of the decoding.
+   */
+  def expect[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
+    expect(Request(Method.GET, uri))(d)
+
+  /**
+   * Submits a GET request to the URI specified by the String and decodes the
+   * response on success.  On failure, the status code is returned.  The
+   * underlying HTTP connection is closed at the completion of the decoding.
+   */
+  def expect[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
+    Uri.fromString(s).fold(Task.fail, expect[A])
+
   /**
     * Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
@@ -125,8 +157,38 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     }
   }
 
+  /**
+   * Submits a request and decodes the response, regardless of the status code.
+   * The underlying HTTP connection is closed at the completion of the
+   * decoding.
+   */
+  def fetchAs[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
+    req.flatMap(fetchAs(_)(d))
+
+  /** Submits a request and returns the response status */
+  def status(req: Request): Task[Status] =
+    fetch(req)(resp => Task.now(resp.status))
+
+  /** Submits a request and returns the response status */
+  def status(req: Task[Request]): Task[Status] =
+    req.flatMap(status(_))
+
+  /** Submits a request and returns true if and only if the response status is
+    * successful */
+  def successful(req: Request): Task[Boolean] =
+    status(req).map(_.isSuccess)
+
+  /** Submits a request and returns true if and only if the response status is
+   * successful */
+  def successful(req: Task[Request]): Task[Boolean] =
+    req.flatMap(successful(_))
+
   @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] =
+    fetchAs(req)(d)
+
+  @deprecated("Use expect", "0.14")
+  def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
     fetchAs(req)(d)
 
   /** Submits a GET request, and provides a callback to process the response.
@@ -149,22 +211,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     Uri.fromString(s).fold(Task.fail, uri => get(uri)(f))
 
   /**
-    * Submits a GET request to the specified URI and decodes the response on
-    * success.  On failure, the status code is returned.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  def expect[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
-    expect(Request(Method.GET, uri))(d)
-
-  /**
-    * Submits a GET request to the URI specified by the String and decodes the
-    * response on success.  On failure, the status code is returned.  The
-    * underlying HTTP connection is closed at the completion of the decoding.
-    */
-  def expect[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
-    Uri.fromString(s).fold(Task.fail, expect[A])
-
-  /**
     * Submits a GET request and decodes the response.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
@@ -175,33 +221,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   @deprecated("Use expect", "0.14")
   def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => expect[A](uri))
-
-  /** Submits a request, and provides a callback to process the response.
-    *
-    * @param req A Task of the request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
-    *          response body afterward will result in an error.
-    * @return The result of applying f to the response to req
-    */
-  def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
-    req.flatMap(fetch(_)(f))
-
-  def expect[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
-    req.flatMap(expect(_)(d))
-
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
-    * The underlying HTTP connection is closed at the completion of the
-    * decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def fetchAs[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
-    req.flatMap(fetchAs(_)(d))
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
-    fetchAs(req)(d)
 
   /** Shuts this client down, and blocks until complete. */
   def shutdownNow(): Unit = shutdown.unsafeRun()

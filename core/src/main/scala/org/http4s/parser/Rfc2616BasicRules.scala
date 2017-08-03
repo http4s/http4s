@@ -22,6 +22,7 @@ import cats._
 import cats.implicits._
 import org.http4s.{ParseFailure, ParseResult}
 import org.http4s.internal.parboiled2._
+import org.http4s.internal.parboiled2.CharPredicate.{ HexDigit => HEXDIG }
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {

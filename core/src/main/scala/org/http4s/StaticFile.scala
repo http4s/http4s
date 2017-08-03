@@ -70,7 +70,6 @@ object StaticFile {
 
   def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request]): Option[Response] = {
     if (f.isFile) {
-
       require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
       val lastModified = Instant.ofEpochMilli(f.lastModified())

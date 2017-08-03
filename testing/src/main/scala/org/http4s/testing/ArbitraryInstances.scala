@@ -394,7 +394,7 @@ trait ArbitraryInstances {
 
   val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
   val genUnreserved: Gen[Char] = oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
-  val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', ''', '(', ')', '*', '+', ',', ';', '='))
+  val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {

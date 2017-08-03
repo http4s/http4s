@@ -15,6 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/*
+ * ip parsing derived from https://github.com/akka/akka-http/blob/5932237a86a432d623fafb1e84eeeff56d7485fe/akka-http-core/src/main/scala/akka/http/impl/model/parser/IpAddressParsing.scala
+ * Copyright (C) 2009-2017 Lightbend Inc. <http://www.lightbend.com>
+ */
 package org.http4s
 package parser
 
