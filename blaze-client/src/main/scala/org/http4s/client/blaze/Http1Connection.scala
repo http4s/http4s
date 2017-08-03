@@ -213,7 +213,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
             if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
               val trailers = new AtomicReference(Headers.empty)
 
-              val attrs = AttributeMap.empty.put[F[Headers]](Message.Keys.TrailerHeaders, F.suspend {
+              val attrs = AttributeMap.empty.put[F[Headers]](Message.Keys.TrailerHeaders[F], F.suspend {
                 if (parser.contentComplete()) F.pure(trailers.get())
                 else F.raiseError(new IllegalStateException("Attempted to collect trailers before the body was complete."))
               })

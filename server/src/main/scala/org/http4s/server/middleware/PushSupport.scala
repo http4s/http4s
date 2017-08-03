@@ -35,9 +35,8 @@ object PushSupport {
     }
   }
 
-  private def handleException(t: Throwable): Unit = {
+  private def handleException(t: Throwable): Unit =
     logger.error(t)("Push resource route failure")
-  }
 
   private def locToRequest[F[_]: Functor](push: PushLocation, req: Request[F]): Request[F] =
     req.withPathInfo(push.location)
@@ -96,6 +95,11 @@ object PushSupport {
   private [http4s] final case class PushResponse[F[_]](location: String, resp: Response[F])
 
   private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]
-  private[http4s] def pushResponsesKey[F[_]] = AttributeKey[F[Vector[PushResponse[F]]]]
+  private[http4s] def pushResponsesKey[F[_]]: AttributeKey[F[Vector[PushResponse[F]]]] =
+    Keys.PushResponses.asInstanceOf[AttributeKey[F[Vector[PushResponse[F]]]]]
+
+  private[this] object Keys {
+    val PushResponses: AttributeKey[Any] = AttributeKey[Any]
+  }
 }
 

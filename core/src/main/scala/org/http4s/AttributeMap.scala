@@ -11,14 +11,14 @@ package org.http4s
 /** A key in an [[AttributeMap]] that constrains its associated value to be of type `T`.
   * The key is uniquely defined by its reference: there are no duplicate keys, even
   * those with the same name and type. */
-sealed abstract case class AttributeKey[T]() {
+final class AttributeKey[T] private {
   def apply(value: T): AttributeEntry[T] = AttributeEntry(this, value)
 }
 
 object AttributeKey {
 
   /** Construct an [[AttributeKey]] */
-  def apply[T]: AttributeKey[T] = new AttributeKey[T] {}
+  def apply[T]: AttributeKey[T] = new AttributeKey[T]
 
   @deprecated("Removed because `name` suggests equality between keys with the same name", "0.17")
   def apply[T](name: String): AttributeKey[T] = apply[T]
