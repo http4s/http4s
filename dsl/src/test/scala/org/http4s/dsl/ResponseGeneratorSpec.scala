@@ -13,7 +13,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
       old and (resultheaders.exists(_ == h) must_=== true)
     }
 
-    resultheaders.get(`Content-Length`) must_=== `Content-Length`.fromLong(body.getBytes.length.toLong).toOption
+    resultheaders.get(`Content-Length`) must_=== `Content-Length`.fromLong(body.getBytes.length.toLong).right.toOption
   }
 
   "Not duplicate headers when not provided" in {
