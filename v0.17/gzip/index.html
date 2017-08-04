@@ -106,7 +106,7 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$9980/1053048290@17ac3194)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$9980/1981023413@3999c9b4)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
@@ -128,7 +128,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$10148/333738424@488b91a0)
+// zipService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$10148/1812023157@2a404912)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRun
