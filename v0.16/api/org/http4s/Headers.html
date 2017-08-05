@@ -1005,7 +1005,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A collection of HTTP Headers</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/22386b369ee0b0c32f30366efa6ab41a53bb9827/core/src/main/scala/org/http4s/Headers.scala" target="_blank">Headers.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A collection of HTTP Headers</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/15e1371b7f42f84cd10c1710dcae54fa508f30b5/core/src/main/scala/org/http4s/Headers.scala" target="_blank">Headers.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -3555,7 +3555,29 @@ The passed headers are assumed to contain no duplicate Singleton headers.
     </li></ol>
             </div>
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.Headers#get" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="get(key:org.http4s.headers.Set-Cookie.type):Option[org.http4s.headers.Set-Cookie]"></a><a id="get(Set-Cookie.type):Option[Set-Cookie]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Headers.html#get(key:org.http4s.headers.Set-Cookie.type):Option[org.http4s.headers.Set-Cookie]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.16.0-RC1) Use response.cookies instead. Set-Cookie is unique among HTTP headers in that it can be repeated but can't be joined by a ','. This will return only the first Set-Cookie header. response.cookies will return the complete list.">get</span><span class="params">(<span name="key">key: <a href="headers/Set$minusCookie$.html" class="extype" name="org.http4s.headers.Set-Cookie">Set-Cookie</a>.type</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">Set-Cookie</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16.0-RC1)</i> Use response.cookies instead. Set-Cookie is unique among HTTP headers in that it can be repeated but can't be joined by a ','. This will return only the first Set-Cookie header. <code>response.cookies</code> will return the complete list.</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

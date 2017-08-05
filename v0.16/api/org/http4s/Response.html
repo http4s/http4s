@@ -1007,7 +1007,7 @@ conform string.">
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                  backend for additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/22386b369ee0b0c32f30366efa6ab41a53bb9827/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+                  backend for additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/15e1371b7f42f84cd10c1710dcae54fa508f30b5/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1432,6 +1432,25 @@ Does not introspect the body for media types that define a charset internally.</
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Response#cookies" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cookies:List[org.http4s.Cookie]"></a><a id="cookies:List[Cookie]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Response.html#cookies:List[org.http4s.Cookie]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cookies</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns a list of cookies from the <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a>
+headers.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a list of cookies from the <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a>
+headers. Includes expired cookies, such as those that represent cookie
+deletion.</p></div></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((Response)⇒Boolean,⇒Any):Response"></a>
       <span class="permalink">
