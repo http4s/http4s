@@ -304,7 +304,7 @@ request query params.">
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Simple Middleware for Logging Responses As They Are Processed
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1395ccffa9b2619785313d3f528416d3e43c527d/server/src/main/scala/org/http4s/server/middleware/ResponseLogger.scala" target="_blank">ResponseLogger.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d373472302c6df9d86991b4a459f12275984f0a6/server/src/main/scala/org/http4s/server/middleware/ResponseLogger.scala" target="_blank">ResponseLogger.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -410,9 +410,9 @@ request query params.">
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.ResponseLogger#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(logHeaders:Boolean,logBody:Boolean)(service:org.http4s.HttpService):org.http4s.HttpService"></a><a id="apply(Boolean,Boolean)(HttpService):HttpService"></a>
+      <a id="apply(logHeaders:Boolean,logBody:Boolean)(service:org.http4s.HttpService)(implicitstrategy:fs2.Strategy):org.http4s.HttpService"></a><a id="apply(Boolean,Boolean)(HttpService)(Strategy):HttpService"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/ResponseLogger$.html#apply(logHeaders:Boolean,logBody:Boolean)(service:org.http4s.HttpService):org.http4s.HttpService" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/ResponseLogger$.html#apply(logHeaders:Boolean,logBody:Boolean)(service:org.http4s.HttpService)(implicitstrategy:fs2.Strategy):org.http4s.HttpService" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -421,7 +421,7 @@ request query params.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
+        <span class="name">apply</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="strategy">strategy: <span class="extype" name="fs2.Strategy">Strategy</span></span>)</span><span class="result">: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
       </span>
       
       

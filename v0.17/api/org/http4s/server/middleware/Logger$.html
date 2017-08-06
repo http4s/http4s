@@ -304,7 +304,7 @@ request query params.">
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Simple Middleware for Logging All Requests and Responses
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1395ccffa9b2619785313d3f528416d3e43c527d/server/src/main/scala/org/http4s/server/middleware/Logger.scala" target="_blank">Logger.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d373472302c6df9d86991b4a459f12275984f0a6/server/src/main/scala/org/http4s/server/middleware/Logger.scala" target="_blank">Logger.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -517,22 +517,6 @@ request query params.">
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.Logger#getCharsetFromContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getCharsetFromContentType(m:org.http4s.Message):(Boolean,Option[org.http4s.Charset])"></a><a id="getCharsetFromContentType(Message):(Boolean,Option[Charset])"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/Logger$.html#getCharsetFromContentType(m:org.http4s.Message):(Boolean,Option[org.http4s.Charset])" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getCharsetFromContentType</span><span class="params">(<span name="m">m: <a href="../../Message.html" class="extype" name="org.http4s.Message">Message</a></span>)</span><span class="result">: (<span class="extype" name="scala.Boolean">Boolean</span>, <span class="extype" name="scala.Option">Option</span>[<a href="../../Charset.html" class="extype" name="org.http4s.Charset">Charset</a>])</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -581,10 +565,10 @@ request query params.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.Logger#messageLogPipe" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="messageLogPipe[A&lt;:org.http4s.Message](logHeaders:Boolean,logBody:Boolean)(logger:org.log4s.Logger):fs2.Pipe[fs2.Task,A,A]"></a><a id="messageLogPipe[A&lt;:Message](Boolean,Boolean)(log4s.Logger):Pipe[Task,A,A]"></a>
+    </li><li name="org.http4s.server.middleware.Logger#logMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="logMessage[A&lt;:org.http4s.Message](message:A)(logHeaders:Boolean,logBody:Boolean)(logger:org.log4s.Logger)(implicitstrategy:fs2.Strategy):fs2.Task[Unit]"></a><a id="logMessage[A&lt;:Message](A)(Boolean,Boolean)(log4s.Logger)(Strategy):Task[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/Logger$.html#messageLogPipe[A&lt;:org.http4s.Message](logHeaders:Boolean,logBody:Boolean)(logger:org.log4s.Logger):fs2.Pipe[fs2.Task,A,A]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/Logger$.html#logMessage[A&lt;:org.http4s.Message](message:A)(logHeaders:Boolean,logBody:Boolean)(logger:org.log4s.Logger)(implicitstrategy:fs2.Strategy):fs2.Task[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -593,11 +577,10 @@ request query params.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">messageLogPipe</span><span class="tparams">[<span name="A">A &lt;: <a href="../../Message.html" class="extype" name="org.http4s.Message">Message</a></span>]</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="params">(<span name="logger">logger: <span class="extype" name="org.log4s.Logger">log4s.Logger</span></span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="fs2.Task">Task</span>, <span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.A">A</span>, <span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.A">A</span>]</span>
+        <span class="name">logMessage</span><span class="tparams">[<span name="A">A &lt;: <a href="../../Message.html" class="extype" name="org.http4s.Message">Message</a></span>]</span><span class="params">(<span name="message">message: <span class="extype" name="org.http4s.server.middleware.Logger.logMessage.A">A</span></span>)</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="params">(<span name="logger">logger: <span class="extype" name="org.log4s.Logger">log4s.Logger</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="strategy">strategy: <span class="extype" name="fs2.Strategy">Strategy</span></span>)</span><span class="result">: <span class="extype" name="fs2.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Log Messages As They Pass
-</p>
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
