@@ -25,7 +25,7 @@ class ContentLengthSpec extends HeaderLaws {
       `Content-Length`.parse(length.toString) must_== `Content-Length`.fromLong(length)
     }}
     "roundtrip" in prop { l: Long => (l >= 0) ==> {
-      `Content-Length`.fromLong(l).map(_.value).flatMap(`Content-Length`.parse) must_== `Content-Length`.fromLong(l)
+      `Content-Length`.fromLong(l).map(_.value).flatMap(`Content-Length`.fromFieldValue) must_== `Content-Length`.fromLong(l)
     }}
   }
 

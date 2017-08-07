@@ -54,11 +54,11 @@ class MessageSpec extends Http4sSpec {
 
     "support cookies" should {
       "contain a Cookie header when an explicit cookie is added" in {
-        Request(Method.GET).addCookie(Cookie("token", "value")).headers.get("Cookie".ci).map(_.value) must beSome("token=value")
+        Request(Method.GET).addCookie(Cookie("token", "value")).headers.get(fn"Cookie").map(_.value) must beSome("token=value")
       }
 
       "contain a Cookie header when a name/value pair is added" in {
-        Request(Method.GET).addCookie("token", "value").headers.get("Cookie".ci).map(_.value) must beSome("token=value")
+        Request(Method.GET).addCookie("token", "value").headers.get(fn"Cookie").map(_.value) must beSome("token=value")
       }
     }
   }

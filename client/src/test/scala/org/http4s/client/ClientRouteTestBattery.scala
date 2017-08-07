@@ -126,7 +126,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   private def renderResponse(srv: HttpServletResponse, resp: Response): Unit = {
     srv.setStatus(resp.status.code)
     resp.headers.foreach { h =>
-      srv.addHeader(h.name.toString, h.value)
+      srv.addHeader(h.name.toString, h.value.toString)
     }
 
     val os = srv.getOutputStream

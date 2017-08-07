@@ -142,7 +142,7 @@ object AsyncHttpClient {
       .setUrl(request.uri.toString)
       .setHeaders(request.headers
         .groupBy(_.name.toString)
-        .mapValues(_.map(_.value).asJavaCollection)
+        .mapValues(_.map(_.value.toString).asJavaCollection)
         .asJava
       ).setBody(getBodyGenerator(request))
       .build()
@@ -161,7 +161,7 @@ object AsyncHttpClient {
 
   private def getHeaders(headers: HttpResponseHeaders): Headers = {
     Headers(headers.getHeaders.iterator.asScala.map { header =>
-      Header(header.getKey, header.getValue)
+      Header(FieldName.unsafeFromString(header.getKey), FieldValue.unsafeFromString(header.getValue))
     }.toList)
   }
 }

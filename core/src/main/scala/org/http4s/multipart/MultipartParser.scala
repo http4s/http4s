@@ -157,8 +157,17 @@ object MultipartParser {
                 idx <- Some(line indexOf ':')
                 if idx >= 0
                 if idx < line.length - 1
-                header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
-              } yield emitW(header) ++ go(tail)).getOrElse(emitO(tail))
+                fieldName = FieldName.fromString(line.substring(0, idx))
+                fieldValue = FieldValue.fromString(line.substring(idx + 1).trim)
+               } yield {
+                 fieldName.fold(
+                   fail,
+                   fn => fieldValue.fold(
+                     fail,
+                     fv => emitW(Header(fn, fv))
+                   )
+                 ) ++ go(tail)
+               }).getOrElse(emitO(tail))
             }
           }
         }

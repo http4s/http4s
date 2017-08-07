@@ -122,7 +122,7 @@ class Http4sServlet(service: HttpService,
       // a body and a status reason.  We sacrifice the status reason.
       servletResponse.setStatus(r.status.code)
       for (header <- r.headers if header.isNot(`Transfer-Encoding`))
-        servletResponse.addHeader(header.name.toString, header.value)
+        servletResponse.addHeader(header.name.toString, header.value.toString)
       bodyWriter(r)
     }
 
@@ -166,7 +166,9 @@ class Http4sServlet(service: HttpService,
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)
+    } yield
+        // Trust that servlet container rejected bad headers
+        Header(FieldName.unsafeFromString(name), FieldValue.unsafeFromString(value))
     Headers(headers.toSeq : _*)
   }
 }

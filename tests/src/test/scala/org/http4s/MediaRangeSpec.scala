@@ -23,9 +23,9 @@ class MediaRangeSpec extends Http4sSpec {
     }
 
     "Do a round trip through the Accept header" in {
-      val raw = Header("Accept", """text/csv;charset=UTF-8;columnDelimiter=" "; rowDelimiter=";"; quoteChar='; escapeChar="\\"""")
+      val raw = Header(fn"Accept", fv"""text/csv;charset=UTF-8;columnDelimiter=" "; rowDelimiter=";"; quoteChar='; escapeChar="\\"""")
       raw.parsed must beAnInstanceOf[headers.Accept]
-      Header("Accept", raw.parsed.value).parsed must_== raw.parsed
+      Header(fn"Accept", raw.parsed.value).parsed must_== raw.parsed
     }
   }
 }

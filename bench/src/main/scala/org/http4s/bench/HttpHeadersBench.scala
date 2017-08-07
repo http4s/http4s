@@ -37,10 +37,10 @@ class HeadersInput {
   @Setup
   def setup(): Unit = {
     headerSeq = (0 until size) map { i =>
-      Header(s"X-Headers-Benchmark-$i", i.toString)
+      Header(FieldName.unsafeFromString(s"X-Headers-Benchmark-$i"), fv"original")
     }
     headers = Headers(headerSeq:_*)
-    replacement = Header(s"X-Headers-Benchmark-${headers.size / 2}", "replacement")
+    replacement = Header(FieldName.unsafeFromString(s"X-Headers-Benchmark-${headers.size / 2}"), fv"replacement")
   }
 }
 

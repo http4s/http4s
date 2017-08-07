@@ -69,7 +69,7 @@ class ResponderSpec extends Specification {
       val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
-      val newHeaders = wHeader.filterHeaders(_.name != "Connection".ci)
+      val newHeaders = wHeader.filterHeaders(_.name != fn"Connection")
       newHeaders.headers.toList must have length 2
       newHeaders.headers.get(Connection) must beNone
     }

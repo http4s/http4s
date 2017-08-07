@@ -16,7 +16,7 @@ object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with Head
 final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Header.Recurring {
   override def key: `X-Forwarded-For`.type = `X-Forwarded-For`
   type Value = Option[InetAddress]
-  override lazy val value = super.value
+
   override def renderValue(writer: Writer): writer.type = {
     values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
     values.tail.foreach(append(writer, _))

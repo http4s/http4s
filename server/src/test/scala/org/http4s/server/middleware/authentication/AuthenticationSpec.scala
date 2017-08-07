@@ -99,7 +99,7 @@ class AuthenticationSpec extends Http4sSpec {
       val res = authedService.orNotFound(req).unsafePerformSync
 
       res.status must_== (Status.Unauthorized)
-      val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
+      val opt = res.headers.get(`WWW-Authenticate`).map(_.renderString)
       opt.isDefined must beTrue
       val challenge = parse(opt.get).values.head
       (challenge match {
@@ -117,7 +117,7 @@ class AuthenticationSpec extends Http4sSpec {
       val res = digest.orNotFound(req).unsafePerformSync
 
       res.status must_== (Unauthorized)
-      val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
+      val opt = res.headers.get(`WWW-Authenticate`).map(_.renderString)
       opt.isDefined must beTrue
       val challenge = parse(opt.get).values.head
       challenge

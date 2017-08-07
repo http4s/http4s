@@ -11,7 +11,7 @@ trait HeaderLaws extends Http4sSpec with Laws {
     new SimpleRuleSet(
       "header",
       """parse(a.value) == \/-(a)"""" -> prop { a: key.HeaderT =>
-        key.parse(a.value) must_== \/-(a)
+        key.fromFieldValue(a.value) must_== \/-(a)
       },
       """renderString == "name: value"""" -> prop { a: key.HeaderT =>
         a.renderString must_== s"${key.name}: ${a.value}"

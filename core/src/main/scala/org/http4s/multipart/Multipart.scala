@@ -20,7 +20,7 @@ import scalaz.stream.text.utf8Encode
 import scodec.bits.{ BitVector, ByteVector }
 
 final case class Part(headers: Headers, body: EntityBody) {
-  def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
+  def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
 }
 
 object Part {
@@ -40,7 +40,8 @@ object Part {
 
   private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part = {
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
-           Header("Content-Transfer-Encoding", "binary") +:
+           Header(FieldName.unsafeFromString("Content-Transfer-Encoding"),
+                  FieldValue.unsafeFromString("binary")) +:
            headers,
          constant(ChunkSize).toSource through chunkR(in))
    }

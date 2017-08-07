@@ -5,7 +5,7 @@ import org.http4s.headers._
 class HeadersSpec extends Http4sSpec {
 
   val clength = `Content-Length`.unsafeFromLong(10)
-  val raw = Header.Raw("raw-header".ci, "Raw value")
+  val raw = Header.Raw(fn"raw-header", fv"Raw value")
 
   val base = Headers(clength.toRaw, raw)
 
@@ -16,7 +16,7 @@ class HeadersSpec extends Http4sSpec {
 
     "Find an existing header and return its parsed form" in {
       base.get(`Content-Length`) should beSome (clength)
-      base.get("raw-header".ci) should beSome (raw)
+      base.get(fn"raw-header") should beSome (raw)
     }
 
     "Replaces headers" in {
@@ -28,7 +28,7 @@ class HeadersSpec extends Http4sSpec {
     "also find headers created raw" in {
       val headers = Headers(
         org.http4s.headers.`Cookie`(org.http4s.Cookie("foo", "bar")),
-        Header("Cookie", org.http4s.Cookie("baz", "quux").toString)
+        Header(fn"Cookie", FieldValue.unsafeFromString(org.http4s.Cookie("baz", "quux").renderString))
       )
       headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome (2)
     }
@@ -36,10 +36,10 @@ class HeadersSpec extends Http4sSpec {
     "Find the headers with DefaultHeaderKey keys" in {
       val headers = Headers(
         `Set-Cookie`(org.http4s.Cookie("foo", "bar")),
-        Header("Accept-Patch",""),
-        Header("Access-Control-Allow-Credentials","")
+        Header(fn"Accept-Patch",fv""),
+        Header(fn"Access-Control-Allow-Credentials",fv"")
       )
-      headers.get(`Accept-Patch`).map(_.value) must beSome ("")
+      headers.get(`Accept-Patch`).map(_.value) must beSome (fv"")
     }
 
     "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {
@@ -70,18 +70,18 @@ class HeadersSpec extends Http4sSpec {
     }
 
     "Preserve original headers when processing" in {
-      val rawAuth = Header("Authorization", "test this")
+      val rawAuth = Header(fn"Authorization", fv"test this")
 
       // Mapping to strings because Header equality is based on the *parsed* version
       (Headers(rawAuth) ++ base).map(_.toString) must contain(===(rawAuth.toString))
     }
 
     "hash the same when constructed with the same contents" in {
-      val h1 = Headers(Header("Test-Header", "Value"))
-      val h2 = Headers(Header("Test-Header", "Value"))
-      val h3 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
-      val h4 = Headers(List(Header("TestHeader", "other value"), Header("Test-Header", "Value")))
-      val h5 = Headers(List(Header("Test-Header", "Value"), Header("TestHeader", "other value")))
+      val h1 = Headers(Header(fn"Test-Header", fv"Value"))
+      val h2 = Headers(Header(fn"Test-Header", fv"Value"))
+      val h3 = Headers(List(Header(fn"Test-Header", fv"Value"), Header(fn"TestHeader", fv"other value")))
+      val h4 = Headers(List(Header(fn"TestHeader", fv"other value"), Header(fn"Test-Header", fv"Value")))
+      val h5 = Headers(List(Header(fn"Test-Header", fv"Value"), Header(fn"TestHeader", fv"other value")))
       h1.hashCode() must_== h2.hashCode()
       h1.equals(h2) must_== true
       h2.equals(h1) must_== true

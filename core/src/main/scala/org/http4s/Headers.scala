@@ -1,8 +1,8 @@
 package org.http4s
 
 import org.http4s.HeaderKey.StringKey
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`
+import org.http4s.util.CaseInsensitiveString
 
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -41,8 +41,16 @@ final class Headers private (headers: List[Header])
     *
     * @param key name of the header to find
     * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
-    */
+   */
+  @deprecated("Use get(FieldName) instead", "0.16")
   def get(key: CaseInsensitiveString): Option[Header] = headers.find(_.name == key)
+
+  /** Attempt to get a [[org.http4s.Header]] from this collection of headers
+   *
+   * @param fieldName name of the header to find
+   * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
+   */
+  def get(fieldName: FieldName): Option[Header] = headers.find(_.name == fieldName)
 
   /** Make a new collection adding the specified headers, replacing existing headers of singleton type
     * The passed headers are assumed to contain no duplicate Singleton headers.

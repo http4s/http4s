@@ -193,7 +193,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Use User-Agent header provided in Request" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.replaceAllHeaders(Header.Raw("User-Agent".ci, "myagent"))
+      val req = FooRequest.replaceAllHeaders(Header(fn"User-Agent", fv"myagent"))
 
       val (request, response) = getSubmission(req, resp)
 

@@ -51,7 +51,7 @@ object MultipartParserSpec extends Specification {
         val expectedHeaders = Headers(
           `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
           `Content-Type`(MediaType.`application/octet-stream`),
-          Header("Content-Transfer-Encoding", "binary")
+          Header(fn"Content-Transfer-Encoding", fv"binary")
         )
 
         val expected = ruinDelims("""this is a test
@@ -91,7 +91,7 @@ object MultipartParserSpec extends Specification {
       val expectedHeaders = Headers(
         `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.`application/octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        Header(fn"Content-Transfer-Encoding", fv"binary")
       )
 
       val expected = ruinDelims("""this is a test
@@ -125,7 +125,7 @@ object MultipartParserSpec extends Specification {
       val expectedHeaders = Headers(
         `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.`application/octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        Header(fn"Content-Transfer-Encoding", fv"binary")
       )
 
       val expected = ruinDelims("""this is a test
@@ -182,7 +182,7 @@ object MultipartParserSpec extends Specification {
       val expectedHeaders = Headers(
         `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.`application/octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        Header(fn"Content-Transfer-Encoding", fv"binary")
       )
 
       val body = emit(ByteVector.view("Misery is the river of the world".getBytes("ASCII"))).repeat.take(100000)
@@ -216,7 +216,7 @@ object MultipartParserSpec extends Specification {
       val expectedHeaders = Headers(
         `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
         `Content-Type`(MediaType.`application/octet-stream`),
-        Header("Content-Transfer-Encoding", "binary")
+        Header(fn"Content-Transfer-Encoding", fv"binary")
       )
 
       val expected = ruinDelims("""this is a test

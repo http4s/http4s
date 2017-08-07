@@ -20,7 +20,7 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
     "parse all encodings" in {
       foreach(ContentCoding.snapshot) { case (name, coding) =>
-        parse(coding.renderString).values.head should be_==(coding)
+        parse(FieldValue.unsafeFromString(coding.renderString)).values.head should be_==(coding)
       }
     }
   }
@@ -39,7 +39,7 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
     parse(gzip5.value) must be_==(gzip5)
     parse(gzip555.value) must be_==(gzip555)
 
-    parse("gzip; q=1.0, compress") must be_==(`Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
+    parse(fv"gzip; q=1.0, compress") must be_==(`Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
 
     parse(gzip1.value) must be_==(gzip)
   }

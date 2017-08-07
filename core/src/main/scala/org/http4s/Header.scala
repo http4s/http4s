@@ -20,8 +20,7 @@ package org.http4s
 
 import org.http4s.util.NonEmptyList
 
-import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
-import org.http4s.syntax.string._
+import org.http4s.util.{Writer, Renderable, StringWriter}
 
 import scala.util.hashing.MurmurHash3
 
@@ -32,16 +31,13 @@ import scala.util.hashing.MurmurHash3
 sealed trait Header extends Renderable with Product {
   import Header.Raw
 
-  def name: CaseInsensitiveString
+  def name: FieldName
 
   def parsed: Header
 
   def renderValue(writer: Writer): writer.type
 
-  def value: String = {
-    val w = new StringWriter
-    renderValue(w).result
-  }
+  def value: FieldValue
 
   def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
 
@@ -69,9 +65,14 @@ sealed trait Header extends Renderable with Product {
 }
 
 object Header {
-  def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
+  def unapply(header: Header): Option[(FieldName, FieldValue)] = Some((header.name, header.value))
 
-  def apply(name: String, value: String): Raw = Raw(name.ci, value)
+  @deprecated("""Validate the name with `fn"name"` or `FieldName.fromString(name)`". Validate the value wih `fv"value `FieldValue.fromString(value)`""", "0.16")
+  def apply(name: String, value: String): Raw =
+    Header(FieldName.unsafeFromString(name), FieldValue.unsafeFromString(value))
+
+  def apply(name: FieldName, value: FieldValue): Raw =
+    Raw(name, value)
 
   /**
    * Raw representation of the Header
@@ -81,7 +82,7 @@ object Header {
    * @param name case-insensitive string used to identify the header
    * @param value String representation of the header value
    */
-  final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
+  final case class Raw(name: FieldName, override val value: FieldValue) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
       if (_parsed == null) {
@@ -95,7 +96,7 @@ object Header {
   /** A Header that is already parsed from its String representation. */
   trait Parsed extends Header {
     def key: HeaderKey
-    def name: CaseInsensitiveString = key.name
+    def name: FieldName = key.name
     def parsed: this.type = this
   }
 

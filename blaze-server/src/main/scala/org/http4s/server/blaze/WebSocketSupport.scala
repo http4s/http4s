@@ -22,7 +22,7 @@ private trait WebSocketSupport extends Http1ServerStage {
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     if (ws.isDefined) {
-      val hdrs =  req.headers.map(h=>(h.name.toString,h.value))
+      val hdrs =  req.headers.map(h=>(h.name.toString,h.value.toString))
       if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
         WebsocketHandshake.serverHandshake(hdrs) match {
           case Left((code, msg)) =>
@@ -31,7 +31,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               .withBody(msg)
               .map(_.replaceAllHeaders(
                  Connection("close".ci),
-                 Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
+                 Header(headers.`Sec-WebSocket-Version`.name, fv"13")
               )).unsafePerformSync
 
             super.renderResponse(req, resp, cleanup)

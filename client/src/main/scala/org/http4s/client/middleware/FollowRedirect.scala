@@ -42,10 +42,10 @@ object FollowRedirect {
   //
   // https://tools.ietf.org/html/rfc7231#section-3.3
   private val PayloadHeaderKeys = Set(
-    "Content-Length".ci,
-    "Content-Range".ci,
-    "Trailer".ci,
-    "Transfer-Encoding".ci
+    fn"Content-Length",
+    fn"Content-Range",
+    fn"Trailer",
+    fn"Transfer-Encoding"
   )
 
   def apply(maxRedirects: Int)(client: Client): Client = {

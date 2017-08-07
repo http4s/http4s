@@ -20,8 +20,8 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
   val service = HttpService {
     case req @ _ -> Root / "ok" =>
       Ok(req.body).putHeaders(
-        Header("X-Original-Method", req.method.toString),
-        Header("X-Original-Content-Length", req.headers.get(`Content-Length`).fold(0L)(_.length).toString)
+        Header(fn"X-Original-Method", FieldValue.unsafeFromString(req.method.toString)),
+        Header(fn"X-Original-Content-Length", FieldValue.fromLong(req.headers.get(`Content-Length`).fold(0L)(_.length)))
       )
     case req @ _ -> Root / status =>
       Response(status = Status.fromInt(status.toInt).yolo)
@@ -53,7 +53,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
         }
         client.fetch(req) {
           case Ok(resp) =>
-            val method = resp.headers.get("X-Original-Method".ci).fold("")(_.value)
+            val method = resp.headers.get(fn"X-Original-Method").fold("")(_.renderString)
             val body = resp.as[String]
             body.map(RedirectResponse(method, _))
           case resp =>
@@ -105,7 +105,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       val req = Request(PUT, uri("http://localhost/303")).withBody("foo")
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[Task]
+          resp.headers.get(fn"X-Original-Content-Length").map(_.value).pure[Task]
       }.unsafePerformSyncAttempt must be_\/-(Some("0"))
     }
 

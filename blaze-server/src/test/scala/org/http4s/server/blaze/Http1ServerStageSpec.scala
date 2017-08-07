@@ -86,9 +86,9 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     def runError(path: String) = runRequest(List(path), exceptionService)
-        .map(parseAndDropDate)
-        .map{ case (s, h, r) =>
-        val close = h.exists{ h => h.toRaw.name == "connection".ci && h.toRaw.value == "close"}
+      .map(parseAndDropDate)
+      .map{ case (s, h, r) =>
+        val close = h.exists{ h => h.toRaw.name == fn"connection" && h.toRaw.value == fv"close"}
         (s, close, r)
       }
 

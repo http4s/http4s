@@ -14,16 +14,16 @@ class DefaultHeadSpec extends Http4sSpec {
       Ok("hello")
 
     case GET -> Root / "special" =>
-      Ok().putHeaders(Header("X-Handled-By", "GET"))
+      Ok().putHeaders(Header(fn"X-Handled-By", fv"GET"))
 
     case HEAD -> Root / "special" =>
-      Ok().putHeaders(Header("X-Handled-By", "HEAD"))
+      Ok().putHeaders(Header(fn"X-Handled-By", fv"HEAD"))
   })
 
   "DefaultHead" should {
     "honor HEAD routes" in {
       val req = Request(Method.HEAD, uri = uri("/special"))
-      service.orNotFound(req).map(_.headers.get("X-Handled-By".ci).map(_.value)) must returnValue(Some("HEAD"))
+      service.orNotFound(req).map(_.headers.get(fn"X-Handled-By").map(_.value)) must returnValue(Some("HEAD"))
     }
 
     "return truncated body of corresponding GET on fallthrough" in {

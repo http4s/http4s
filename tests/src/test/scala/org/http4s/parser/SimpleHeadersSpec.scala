@@ -23,7 +23,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header = `Content-Length`.unsafeFromLong(4)
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
-      val bad = Header(header.name.toString, "foo")
+      val bad = Header(header.name, fv"foo")
       HttpHeaderParser.parseHeader(bad) must be_-\/
     }
 
@@ -36,7 +36,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header = `Content-Disposition`("foo", Map("one" -> "two", "three" -> "four"))
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
-      val bad = Header(header.name.toString, "foo; bar")
+      val bad = Header(header.name, fv"foo; bar")
       HttpHeaderParser.parseHeader(bad) must be_-\/
     }
 
@@ -44,7 +44,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header = Date(Instant.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
-      val bad = Header(header.name.toString, "foo")
+      val bad = Header(header.name, fv"foo")
       HttpHeaderParser.parseHeader(bad) must be_-\/
     }
 
@@ -55,7 +55,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header2 = Host("foo", None)
       HttpHeaderParser.parseHeader(header2.toRaw) must be_\/-(header2)
 
-      val bad = Header(header1.name.toString, "foo:bar")
+      val bad = Header(header1.name, fv"foo:bar")
       HttpHeaderParser.parseHeader(bad) must be_-\/
     }
 
@@ -63,7 +63,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header = `Last-Modified`(Instant.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
-      val bad = Header(header.name.toString, "foo")
+      val bad = Header(header.name, fv"foo")
       HttpHeaderParser.parseHeader(bad) must be_-\/
     }
 
@@ -71,7 +71,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header = `If-Modified-Since`(Instant.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
-      val bad = Header(header.name.toString, "foo")
+      val bad = Header(header.name, fv"foo")
       HttpHeaderParser.parseHeader(bad) must be_-\/
     }
 
@@ -116,7 +116,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       header2.value must_== "foo bar/biz (blah)"
       HttpHeaderParser.parseHeader(header2.toRaw) must be_\/-(header2)
 
-      val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
+      val headerstr = fv"Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
       HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must be_\/-(
         `User-Agent`(AgentProduct("Mozilla", Some("5.0")), Seq(
             AgentComment("Android; Mobile; rv:30.0"),
@@ -144,10 +144,10 @@ class SimpleHeadersSpec extends Http4sSpec {
       val header4 = `X-Forwarded-For`(NonEmptyList(None))
       HttpHeaderParser.parseHeader(header4.toRaw) must be_\/-(header4)
 
-      val bad = Header("x-forwarded-for", "foo")
+      val bad = Header(fn"x-forwarded-for", fv"foo")
       HttpHeaderParser.parseHeader(bad) must be_-\/
 
-      val bad2 = Header("x-forwarded-for", "256.56.56.56")
+      val bad2 = Header(fn"x-forwarded-for", fv"256.56.56.56")
       HttpHeaderParser.parseHeader(bad2) must be_-\/
     }
   }

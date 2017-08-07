@@ -34,13 +34,13 @@ class CORSSpec extends Http4sSpec {
       Set("x-header"))))
 
   def headerCheck(h: Header) = h is `Access-Control-Max-Age`
-  def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String) =
+  def matchHeader(hs: Headers, hk: HeaderKey.Extractable, expected: String): Boolean =
     hs.get(hk).cata(_.value === expected, 1 === 0)
 
   def buildRequest(path: String, method: Method = GET) =
     Request(uri = Uri(path= path), method = method).replaceAllHeaders(
-      Header("Origin", "http://allowed.com/"),
-      Header("Access-Control-Request-Method", "GET"))
+      Header(fn"Origin", fv"http://allowed.com/"),
+      Header(fn"Access-Control-Request-Method", fv"GET"))
 
   "CORS" should {
     "Be omitted when unrequested" in {
@@ -80,7 +80,7 @@ class CORSSpec extends Http4sSpec {
     }
 
     "Respond with 403 when origin is not valid" in {
-      val req = buildRequest("/bar").replaceAllHeaders(Header("Origin", "http://blah.com/"))
+      val req = buildRequest("/bar").replaceAllHeaders(Header(fn"Origin", fv"http://blah.com/"))
       cors2.orNotFound(req).map((resp: Response) => resp.status.code == 403).unsafePerformSync
     }
     "Fall through" in {

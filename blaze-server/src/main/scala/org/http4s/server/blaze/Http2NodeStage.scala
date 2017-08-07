@@ -187,7 +187,14 @@ private class Http2NodeStage(streamId: Int,
             if (!v.equalsIgnoreCase("trailers")) error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
           // ignore otherwise
 
-          case (k,v) => headers += Raw(k.ci, v)
+          case (k,v) =>
+            FieldName.fromString(k).fold(
+              _ => error += s"Invalid field-name: ${k}",
+              fn => FieldValue.fromString(v).fold(
+                _ => error += s"Invalid field-value: ${v}",
+                fv => headers += Raw(fn, fv)
+              )
+            )
       }
     }
 
@@ -223,7 +230,7 @@ private class Http2NodeStage(streamId: Int,
       // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
       if (h.name != headers.`Transfer-Encoding`.name &&
           h.name != headers.Connection.name) {
-        hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value))
+        hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value.toString))
       }
     }
 

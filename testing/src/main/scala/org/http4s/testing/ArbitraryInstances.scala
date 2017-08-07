@@ -232,12 +232,15 @@ trait ArbitraryInstances {
       instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), genFiniteDuration.map(Right(_)))
     } yield headers.`Retry-After`(instant) }
 
+  implicit val arbitraryFieldName: Arbitrary[FieldName] =
+    Arbitrary(genToken.map(FieldName.unsafeFromString))
+
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
-        token <- genToken
+        fieldName <- arbitraryFieldName.arbitrary
         value <- genFieldValue
-      } yield Header.Raw(token.ci, value)
+      } yield Header(fieldName, FieldValue.unsafeFromString(value))
     }
 
   implicit val arbitraryHeader: Arbitrary[Header] =

@@ -63,7 +63,7 @@ private final class Http1ServerParser(logger: Logger,
   /////////////////// Stateful methods for the HTTP parser ///////////////////
   override protected def headerComplete(name: String, value: String) = {
     logger.trace(s"Received header '$name: $value'")
-    headers += Header(name, value)
+    headers += Header(FieldName.unsafeFromString(name), FieldValue.unsafeFromString(value))
     false
   }
 

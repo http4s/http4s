@@ -30,7 +30,6 @@ final case class `Retry-After`(retry: Either[Instant, FiniteDuration]) extends H
   import `Retry-After`._
 
   val key = `Retry-After`
-  override val value = Renderer.renderString(retry)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
+  override def renderValue(writer: Writer): writer.type = writer << retry
 }
 

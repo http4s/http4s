@@ -55,19 +55,19 @@ class ZipkinHeaderSpec extends HeaderLaws {
 
     "renders when no flags" >> {
       val result = `X-B3-Flags`(Set.empty).value
-      result must_=== "0"
+      result must_=== fv"0"
     }
     "renders when one flag" >> {
       val result = `X-B3-Flags`(Set(Flag.Debug)).value
-      result must_=== "1"
+      result must_=== fv"1"
     }
     "renders when no flags" >> {
       val result = `X-B3-Flags`(Set.empty).value
-      result must_=== "0"
+      result must_=== fv"0"
     }
     "renders when multiple flags" >> {
       val result = `X-B3-Flags`(Set(Flag.Debug, Flag.Sampled)).value
-      result must_=== "5"
+      result must_=== fv"5"
     }
   }
 

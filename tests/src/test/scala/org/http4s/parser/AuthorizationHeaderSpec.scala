@@ -13,14 +13,14 @@ class AuthorizationHeaderSpec extends Http4sSpec {
     "Parse a valid OAuth2 header" in {
       val token = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-._~+/".toSeq).mkString
       val h = Authorization(Credentials.Token(AuthScheme.Bearer, token + "="))
-      hparse(h.value) must be_\/-(h)
+      hparse(h.value.toString) must be_\/-(h)
     }
 
     "Reject an invalid OAuth2 header" in {
       val invalidTokens = Seq("f!@", "=abc", "abc d")
       forall(invalidTokens) { token =>
         val h = Authorization(Credentials.Token(AuthScheme.Bearer, token))
-        hparse(h.value) must be_-\/
+        hparse(h.value.toString) must be_-\/
       }
     }
 
@@ -28,7 +28,7 @@ class AuthorizationHeaderSpec extends Http4sSpec {
       val scheme = "foo"
       val params = NonEmptyList("abc" -> "123")
       val h = Authorization(Credentials.AuthParams(scheme.ci, params))
-      hparse(h.value) must be_\/-(h)
+      hparse(h.value.toString) must be_\/-(h)
     }
   }
 }

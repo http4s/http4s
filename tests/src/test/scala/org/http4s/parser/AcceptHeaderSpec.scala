@@ -18,17 +18,17 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
     "Parse all registered MediaRanges" in {
       // Parse a single one
-      parse("image/*").values.head must be_==~(`image/*`)
+      parse(fv"image/*").values.head must be_==~(`image/*`)
 
       // Parse the rest
       foreach(MediaRange.snapshot.values) { m =>
-        val r = parse(m.renderString).values.head
+        val r = parseString(m.renderString).values.head
         r must be_===(MediaRangeAndQValue(m))
       }
     }
 
     "Deal with '.' and '+' chars" in {
-      val value = "application/soap+xml, application/vnd.ms-fontobject"
+      val value = fv"application/soap+xml, application/vnd.ms-fontobject"
       val accept = Accept(`application/soap+xml`, `application/vnd.ms-fontobject`)
       parse(value) must be_===(accept)
 
@@ -36,11 +36,11 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
     "Parse all registered MediaTypes" in {
       // Parse a single one
-      parse("image/jpeg").values.head must be_==~(`image/jpeg`)
+      parse(fv"image/jpeg").values.head must be_==~(`image/jpeg`)
 
       // Parse the rest
       foreach(MediaType.snapshot.values) { m =>
-        val r = parse(m.renderString).values.head
+        val r = parseString(m.renderString).values.head
         r must be_===(MediaRangeAndQValue(m))
       }
     }
@@ -88,7 +88,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
     }
 
     "Deal with q and extensions" in {
-      val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
+      val value = fv"text/*;q=0.3, text/html;q=0.7, text/html;level=1"
       parse(value) must be_===(Accept(
         `text/*`.withQValue(q(0.3)),
         `text/html`.withQValue(q(0.7)),

@@ -45,7 +45,7 @@ object HttpHeaderParser extends SimpleHeaders
 
   type HeaderParser = String => ParseResult[Parsed]
 
-  private val allParsers = new util.concurrent.ConcurrentHashMap[CaseInsensitiveString, HeaderParser]
+  private val allParsers = new util.concurrent.ConcurrentHashMap[FieldName, HeaderParser]
 
 
   // Constructor
@@ -57,7 +57,7 @@ object HttpHeaderParser extends SimpleHeaders
     * @param parser [[Header]] parser
     * @return any existing parser already registered to that key
     */
-  def addParser(key: CaseInsensitiveString, parser: HeaderParser): Option[HeaderParser] =
+  def addParser(key: FieldName, parser: HeaderParser): Option[HeaderParser] =
     Option(allParsers.put(key, parser))
 
 
@@ -72,7 +72,7 @@ object HttpHeaderParser extends SimpleHeaders
   def parseHeader(header: Header.Raw): ParseResult[Header] = {
     allParsers.get(header.name) match {
       case null => ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
-      case parser => parser(header.value)
+      case parser => parser(header.value.renderString)
     }
   }
 
@@ -82,22 +82,22 @@ object HttpHeaderParser extends SimpleHeaders
    */
   def warmUp(): Unit = {
     val results = List(
-      Header("Accept", "*/*,text/plain,custom/custom"),
-      Header("Accept-Charset", "*,UTF-8"),
-      Header("Accept-Encoding", "gzip,custom"),
-      Header("Accept-Language", "*,nl-be,custom"),
-      Header("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
-      Header("Cache-Control", "no-cache"),
-      Header("Connection", "close"),
-      Header("Content-Disposition", "form-data"),
-      Header("Content-Encoding", "deflate"),
-      Header("Content-Length", "42"),
-      Header("Content-Type", "application/json"),
-      Header("Cookie", "http4s=cool"),
-      Header("Host", "http4s.org"),
-      Header("X-Forwarded-For", "1.2.3.4"),
-      Header("Fancy-Custom-Header", "yeah")
-    ) map parseHeader
+      "Accept" -> "*/*,text/plain,custom/custom",
+      "Accept-Charset" -> "*,UTF-8",
+      "Accept-Encoding" -> "gzip,custom",
+      "Accept-Language" -> "*,nl-be,custom",
+      "Authorization" -> "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==",
+      "Cache-Control" -> "no-cache",
+      "Connection" -> "close",
+      "Content-Disposition" -> "form-data",
+      "Content-Encoding" -> "deflate",
+      "Content-Length" -> "42",
+      "Content-Type" -> "application/json",
+      "Cookie" -> "http4s=cool",
+      "Host" -> "http4s.org",
+      "X-Forwarded-For" -> "1.2.3.4",
+      "Fancy-Custom-Header" -> "yeah"
+    ) map { case (k, v) => parseHeader(Header(FieldName.unsafeFromString(k), FieldValue.unsafeFromString(v))) }
     assert(results.forall(_.isRight))
   }
 
@@ -107,7 +107,7 @@ object HttpHeaderParser extends SimpleHeaders
       .getMethods
       .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
       .foreach { method =>
-      val key = method.getName.replace('_', '-').ci
+      val key = FieldName.unsafeFromString(method.getName.replace('_', '-'))
       val parser ={ value: String =>
         method.invoke(this, value)
       }.asInstanceOf[HeaderParser]

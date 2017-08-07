@@ -72,7 +72,8 @@ private final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
   }
 
   override protected def headerComplete(name: String, value: String): Boolean = {
-    headers += Header(name, value)
+    // Safe because blaze won't parse an invalid one
+    headers += Header(FieldName.unsafeFromString(name), FieldValue.unsafeFromString(value))
     false
   }
 }

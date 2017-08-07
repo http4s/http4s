@@ -4,13 +4,12 @@ import org.http4s.util.NonEmptyList
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import org.http4s.util.CaseInsensitiveString
-import org.http4s.syntax.string._
+
 
 sealed trait HeaderKey {
   type HeaderT <: Header
 
-  def name: CaseInsensitiveString
+  def name: FieldName
 
   def matchHeader(header: Header): Option[HeaderT]
   final def unapply(header: Header): Option[HeaderT] = matchHeader(header)
@@ -18,6 +17,9 @@ sealed trait HeaderKey {
   override def toString: String = s"HeaderKey($name)"
 
   def parse(s: String): ParseResult[HeaderT]
+
+  final def fromFieldValue(fv: FieldValue): ParseResult[HeaderT] =
+    parse(fv.toString)
 }
 
 object HeaderKey {
@@ -66,7 +68,7 @@ object HeaderKey {
 
   private[http4s] abstract class Internal[T <: Header : ClassTag] extends HeaderKey {
     type HeaderT = T
-    val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").ci
+    val name = FieldName.unsafeFromString(getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", ""))
     private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
     override def matchHeader(header: Header): Option[HeaderT] = {
       header match {
@@ -92,6 +94,6 @@ object HeaderKey {
     override type HeaderT = Header
 
     override def parse(s: String): ParseResult[Header] =
-      ParseResult.success(Header.Raw(name, s))
+      FieldValue.fromString(s).map(Header.Raw(name, _))
   }
 }

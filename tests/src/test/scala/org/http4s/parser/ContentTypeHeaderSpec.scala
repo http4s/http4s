@@ -32,7 +32,4 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
       parse(multipart.value) must be_==(multipart)
     }
   }
-
-
-
 }

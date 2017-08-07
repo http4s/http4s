@@ -1,7 +1,8 @@
 package org
 
-import scalaz.{Kleisli, EitherT, \/}
+import scala.language.experimental.macros
 
+import scalaz.{Kleisli, EitherT, \/}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import org.http4s.util.CaseInsensitiveString
@@ -96,4 +97,9 @@ package object http4s { // scalastyle:ignore
   type Http4sSyntax = syntax.AllSyntax
   @deprecated("Moved to org.http4s.syntax.all", "0.16")
   val Http4sSyntax = syntax.all
+
+  implicit class Http4sStringContext(private val sc: StringContext) extends AnyVal {
+    def fn(args: Any*): FieldName = macro Macros.fieldNameLiteral
+    def fv(args: Any*): FieldValue = macro Macros.fieldValueLiteral
+  }
 }
