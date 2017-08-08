@@ -23,6 +23,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
       val service: HttpService = HttpService.lift { _ =>
         Ok()
           .putHeaders(`Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
+          .removeHeader(`Content-Length`)
           .withBody(body)
       }
       ChunkAggregator(service).run(Request()).unsafeValue() must beSome.like {

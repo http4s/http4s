@@ -1,6 +1,8 @@
 package org.http4s
 
+import fs2.Task
 import org.http4s.dsl.impl._
+import org.http4s.headers.`Content-Length`
 
 package object dsl extends Http4s {
 
@@ -86,7 +88,10 @@ package object dsl extends Http4s {
   implicit class AcceptedSyntax(val status: Accepted.type) extends AnyVal with EntityResponseGenerator
   implicit class NonAuthoritativeInformationSyntax(val status: NonAuthoritativeInformation.type) extends AnyVal with EntityResponseGenerator
   implicit class NoContentSyntax(val status: NoContent.type) extends AnyVal with EmptyResponseGenerator
-  implicit class ResetContentSyntax(val status: ResetContent.type) extends AnyVal with EmptyResponseGenerator
+  implicit class ResetContentSyntax(val status: ResetContent.type) extends AnyVal with EmptyResponseGenerator {
+    override def apply(): Task[Response] =
+      Task.now(Response(ResetContent, headers = Headers(`Content-Length`.zero)))
+  }
   // TODO helpers for Content-Range and multipart/byteranges
   implicit class PartialContentSyntax(val status: PartialContent.type) extends AnyVal with EntityResponseGenerator
   implicit class Multiyntax(val status: Status.MultiStatus.type) extends AnyVal with EntityResponseGenerator

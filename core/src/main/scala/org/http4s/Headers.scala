@@ -39,6 +39,10 @@ final class Headers private (headers: List[Header])
     */
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 
+  @deprecated("Use response.cookies instead. Set-Cookie is unique among HTTP headers in that it can be repeated but can't be joined by a ','. This will return only the first Set-Cookie header. `response.cookies` will return the complete list.", "0.16.0-RC1")
+  def get(key: `Set-Cookie`.type): Option[`Set-Cookie`] =
+    key.from(this).headOption
+
   /** Attempt to get a [[org.http4s.Header]] from this collection of headers
     *
     * @param key name of the header to find

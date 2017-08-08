@@ -32,7 +32,10 @@ trait EmptyResponseGenerator extends Any with ResponseGenerator {
   * val resp: Task[Response] = Ok("Hello world!")
   * }}}
   */
-trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
+trait EntityResponseGenerator extends Any with ResponseGenerator {
+  def apply(): Task[Response] =
+    Task.now(Response(status, headers = Headers(`Content-Length`.zero)))
+
   def apply[A](body: A)(implicit w: EntityEncoder[A]): Task[Response] =
     apply(body, Headers.empty)(w)
 
