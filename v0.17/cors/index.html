@@ -107,13 +107,13 @@ import org.http4s.dsl._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8169/1841758351@29ce0ffb)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$8079/179643096@3846a5fa)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
 
 service(request).unsafeRun
-// res0: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
+// res0: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0))
 </code></pre>
 
 <p>Now we can wrap the service in the <code>CORS</code> middleware.</p>
@@ -122,10 +122,10 @@ service(request).unsafeRun
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$8249/19764209@7b9b75bb)
+// corsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$8159/679882424@7e185f38)
 
 corsService(request).unsafeRun
-// res1: org.http4s.MaybeResponse = Response(status=200, headers=Headers())
+// res1: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0))
 </code></pre>
 
 <p>So far, there was no change. That&rsquo;s because an <code>Origin</code> header is required
@@ -138,7 +138,7 @@ val corsRequest = request.putHeaders(originHeader)
 // corsRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Origin: somewhere.com))
 
 corsService(corsRequest).unsafeRun
-// res2: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: somewhere.com, Access-Control-Max-Age: 86400))
+// res2: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: somewhere.com, Access-Control-Max-Age: 86400))
 </code></pre>
 
 <p>Notice how the response has the CORS headers added. How easy was
@@ -176,19 +176,19 @@ val methodConfig = CORSConfig(
   allowedMethods = Some(Set(&quot;GET&quot;, &quot;POST&quot;)),
   allowCredentials = true,
   maxAge = 1.day.toSeconds)
-// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$8248/1411026640@7aa1a8ba,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
+// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$8158/1327235778@9b344d2,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$8249/19764209@485b56e1)
+// corsMethodSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$8159/679882424@57eaa6dc)
 
 corsMethodSvc(googleGet).unsafeRun
-// res3: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
+// res3: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
 
 corsMethodSvc(yahooPut).unsafeRun
 // res4: org.http4s.MaybeResponse = Response(status=403, headers=Headers())
 
 corsMethodSvc(duckPost).unsafeRun
-// res5: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
+// res5: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
 </code></pre>
 
 <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
@@ -203,16 +203,16 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Set(yahoo.com, duckduckgo.com),None,Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$8249/19764209@59916f20)
+// corsOriginSvc: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$8159/679882424@207035c)
 
 corsOriginSvc(googleGet).unsafeRun
 // res6: org.http4s.MaybeResponse = Response(status=403, headers=Headers())
 
 corsOriginSvc(yahooPut).unsafeRun
-// res7: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: PUT, Access-Control-Allow-Origin: yahoo.com, Access-Control-Max-Age: 86400))
+// res7: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: PUT, Access-Control-Allow-Origin: yahoo.com, Access-Control-Max-Age: 86400))
 
 corsOriginSvc(duckPost).unsafeRun
-// res8: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
+// res8: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
 </code></pre>
 
 <p>Again, the results are as expected. You can, of course, create a configuration that
