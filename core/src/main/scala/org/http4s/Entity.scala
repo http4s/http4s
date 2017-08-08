@@ -9,7 +9,7 @@ object Entity {
   implicit def entityInstance[F[_]]: Monoid[Entity[F]] =
     new Monoid[Entity[F]] {
       def combine(a1: Entity[F], a2: Entity[F]): Entity[F] =
-        Entity(a1.body ++ a2.body, (a1.length |@| a2.length).map(_ + _))
+        Entity(a1.body ++ a2.body, (a1.length, a2.length).mapN(_ + _))
       val empty: Entity[F] =
         Entity.empty
     }
