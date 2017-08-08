@@ -9,8 +9,7 @@ class AttributeMapSpec extends Specification {
     val k1 = AttributeKey[Int]
     val k2 = AttributeKey[String]
     val k3 = AttributeKey[Int]
-    // TODO: Fix this mess
-    val k1Clone = AttributeKey[Int]
+    val k1Imposter = AttributeKey[Int]
 
     val m = AttributeMap.empty ++ Seq(k1(1), k2("foo"))
 
@@ -23,15 +22,15 @@ class AttributeMapSpec extends Specification {
       m.get(k3) must beNone
     }
 
-    "Find a value by a key that is equal in value" in {
-      m.get(k1Clone) must beSome(1)
+    "Not allow imposter keys" in {
+      m.get(k1Imposter) must beNone
     }
 
     // This is a compile test
     "Maintain the correct static type for keys" in {
       sealed case class Foo(stuff: String)
       val mismatchedKey = AttributeKey[Foo]
-//      val ii = m(mismatchedKey) + 5   // FAILS TO COMPILE: Foo doesn't `+` with 5
+      // val ii = m(mismatchedKey) + 5   // FAILS TO COMPILE: Foo doesn't `+` with 5
 
       val i: Int = m.get(k1).get + 4
       i must_== 5
