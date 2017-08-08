@@ -29,4 +29,3 @@ final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) ex
     else w.append("unknown")
   }
 }
-

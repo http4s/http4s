@@ -372,6 +372,12 @@ final case class Response[F[_]](
     s"""Response(status=${status.code}, headers=$headers)"""
 
   def asMaybeResponse: MaybeResponse[F] = this
+
+  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+    * headers. Includes expired cookies, such as those that represent cookie
+    * deletion. */
+  def cookies: List[Cookie] =
+    `Set-Cookie`.from(headers).map(_.cookie)
 }
 
 object Response {

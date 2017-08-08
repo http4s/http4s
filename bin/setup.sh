@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # Publishing to gh-pages and sonatype only done from select branches and
 # never from pull requests.

@@ -18,24 +18,27 @@ object ResourceService {
     * @param bufferSize size hint of internal buffers to use when serving resources
     * @param executionContext `ExecutionContext` to use when collecting content
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
+    * @param preferGzipped whether to serve pre-gzipped files (with extension ".gz") if they exist
     */
   final case class Config[F[_]](basePath: String,
                                 pathPrefix: String = "",
                                 bufferSize: Int = 50*1024,
                                 executionContext: ExecutionContext = DefaultExecutionContext,
-                                cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
+                                cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+                                preferGzipped: Boolean = false)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply[F[_]](config: Config[F])
-                                        (implicit F: Monad[F], S: Sync[F]): HttpService[F] =
-    Service.lift { req =>
-      val uriPath = req.pathInfo
-      if (!uriPath.startsWith(config.pathPrefix))
-        Pass.pure[F]
-      else
-        StaticFile
-          .fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)), Some(req))
-          .map(config.cacheStrategy.cache(uriPath, _).widen[MaybeResponse[F]])
-          .getOrElse(Pass.pure[F])
-    }
+  private[staticcontent] def apply(config: Config): HttpService = Service.lift { req =>
+    val uriPath = req.pathInfo
+    if (!uriPath.startsWith(config.pathPrefix))
+      Pass.now
+    else
+      StaticFile
+        .fromResource(
+          sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)),
+          req = Some(req),
+          preferGzipped = config.preferGzipped
+        )
+        .fold(Pass.now)(config.cacheStrategy.cache(uriPath, _))
+  }
 }

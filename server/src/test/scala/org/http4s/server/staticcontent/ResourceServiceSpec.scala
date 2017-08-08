@@ -5,12 +5,13 @@ package staticcontent
 import java.time.Instant
 
 import cats.effect.IO
-import org.http4s.headers.`If-Modified-Since`
+import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.URITranslation
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
-  val s = resourceService(ResourceService.Config[IO]("", executionContext = Http4sSpec.TestExecutionContext))
+  val config = ResourceService.Config[IO]("", executionContext = Http4sSpec.TestExecutionContext)
+  val s = resourceService(config)
 
   "ResourceService" should {
 
@@ -35,6 +36,32 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
       rb must returnBody(testResource)
       rb must returnStatus(Status.Ok)
+    }
+
+    "Try to serve pre-gzipped content if asked to" in {
+      val req = Request(
+        uri = Uri.fromString("testresource.txt").yolo,
+        headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      )
+      val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
+
+      rb must returnBody(testResourceGzipped)
+      rb must returnStatus(Status.Ok)
+      rb must returnValue(haveMediaType(MediaType.`text/plain`))
+      rb must returnValue(haveContentCoding(ContentCoding.gzip))
+    }
+
+    "Fallback to un-gzipped file if pre-gzipped version doesn't exist" in {
+      val req = Request(
+        uri = Uri.fromString("testresource2.txt").yolo,
+        headers = Headers(`Accept-Encoding`(ContentCoding.gzip))
+      )
+      val rb = resourceService(config.copy(preferGzipped = true)).orNotFound(req)
+
+      rb must returnBody(testResource)
+      rb must returnStatus(Status.Ok)
+      rb must returnValue(haveMediaType(MediaType.`text/plain`))
+      rb must not(returnValue(haveContentCoding(ContentCoding.gzip)))
     }
 
     "Generate non on missing content" in {

@@ -19,6 +19,7 @@ package org.http4s
 package parser
 
 import java.net.InetAddress
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 import cats.data.NonEmptyList
@@ -26,8 +27,7 @@ import cats.implicits._
 import org.http4s.syntax.string._
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
-
-import org.http4s.internal.parboiled2.Rule1
+import org.http4s.internal.parboiled2.{Parser, Rule1}
 
 import scala.concurrent.duration.{FiniteDuration, SECONDS}
 
@@ -103,12 +103,15 @@ private[parser] trait SimpleHeaders {
 //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
-  def HOST(value: String): ParseResult[Host] = new Http4sHeaderParser[Host](value) {
-    def entry = rule {
-      (Token | IPv6Reference) ~ OptWS ~
-        optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (Host(_:String, _:Option[Int]))
-    }
-  }.parse
+  def HOST(value: String): ParseResult[Host] =
+    new Http4sHeaderParser[Host](value) with Rfc3986Parser {
+      def charset = StandardCharsets.UTF_8
+
+      def entry = rule {
+        (Token | IpLiteral) ~ OptWS ~
+          optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (org.http4s.headers.Host(_:String, _:Option[Int]))
+      }
+    }.parse
 
   def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
     new Http4sHeaderParser[`Last-Event-Id`](value) {
@@ -170,13 +173,15 @@ private[parser] trait SimpleHeaders {
     def RWS = rule { oneOrMore(anyOf(" \t")) }
   }.parse
 
-  def X_FORWARDED_FOR(value: String): ParseResult[`X-Forwarded-For`] = new Http4sHeaderParser[`X-Forwarded-For`](value) {
-    def entry = rule {
-      oneOrMore((Ip ~> (Some(_)))  | ("unknown" ~ push(None))).separatedBy(ListSep) ~
-        EOL ~> { xs: Seq[Option[InetAddress]] =>
-        `X-Forwarded-For`(xs.head, xs.tail: _*)
+  def X_FORWARDED_FOR(value: String): ParseResult[`X-Forwarded-For`] =
+    new Http4sHeaderParser[`X-Forwarded-For`](value) with IpParser {
+      def entry = rule {
+        oneOrMore(
+          (capture(IpV4Address | IpV6Address) ~> { s: String => Some(InetAddress.getByName(s)) }) |
+            ("unknown" ~ push(None))).separatedBy(ListSep) ~
+          EOL ~> { xs: Seq[Option[InetAddress]] =>
+            `X-Forwarded-For`(xs.head, xs.tail: _*)
+          }
       }
-    }
-  }.parse
-
+    }.parse
 }

@@ -379,11 +379,8 @@ import cats.data.ValidatedNel
 
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
-implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
-  def decode(queryParamValue: QueryParameterValue): ValidatedNel[ParseFailure, Year] = {
-    QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
-  }
-}
+implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 
