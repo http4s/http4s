@@ -7,7 +7,7 @@ import org.http4s._
 import org.http4s.internal.parboiled2._
 import cats.implicits._
 
-class IpParser(val input: ParserInput, val charset: NioCharset) extends Parser with Rfc3986Parser {
+class IpParserImpl(val input: ParserInput, val charset: NioCharset) extends Parser with IpParser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
   def CaptureIPv4: Rule1[String] = rule { capture(IpV4Address) }
 }
@@ -36,14 +36,14 @@ class UriParserSpec extends Http4sSpec {
       } yield (f + "::" + b))
 
       foreach(v) { s =>
-        Either.fromTry(new IpParser(s, StandardCharsets.UTF_8).CaptureIPv6.run()) must beRight(s)
+        Either.fromTry(new IpParserImpl(s, StandardCharsets.UTF_8).CaptureIPv6.run()) must beRight(s)
       }
     }
 
     "parse a IPv4 address" in {
       foreach(0 to 255) { i =>
         val addr = s"$i.$i.$i.$i"
-        Either.fromTry(new IpParser(addr, StandardCharsets.UTF_8).CaptureIPv4.run()) must beRight(addr)
+        Either.fromTry(new IpParserImpl(addr, StandardCharsets.UTF_8).CaptureIPv4.run()) must beRight(addr)
       }
     }
 

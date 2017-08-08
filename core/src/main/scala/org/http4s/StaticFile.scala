@@ -24,8 +24,19 @@ object StaticFile {
     fromFile(new File(url), req)
   }
 
-  def fromResource[F[_]: Sync](name: String, req: Option[Request[F]] = None): Option[Response[F]] = {
-    Option(getClass.getResource(name)).flatMap(fromURL(_, req))
+  def fromResource[F[_]: Sync](name: String, req: Option[Request[F]] = None, preferGzipped: Boolean = false): Option[Response[F]] = {
+    val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
+      acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`)
+    }
+
+    val gzUrl = if (tryGzipped) Option(getClass.getResource(name + ".gz")) else None
+    gzUrl.map { url =>
+      // Guess content type from the name without ".gz"
+      val contentType = nameToContentType(name)
+      val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
+
+      fromURL(url, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
+    } getOrElse Option(getClass.getResource(name)).flatMap(fromURL(_, req))
   }
 
   def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(implicit F: Sync[F]): Option[Response[F]] = {
@@ -34,10 +45,8 @@ object StaticFile {
       .flatMap(_.headers.get(`If-Modified-Since`)).forall(_.date.compareTo(lastmod) < 0)
 
     if (expired) {
-      val mime    = MediaType.forExtension(url.getPath.split('.').last)
-      val headers = Headers.apply(
-        mime.fold(List[Header](`Last-Modified`(lastmod)))
-          (`Content-Type`(_)::`Last-Modified`(lastmod)::Nil))
+      val contentType = nameToContentType(url.getPath)
+      val headers = Headers(`Last-Modified`(lastmod) :: contentType.toList)
 
       Some(Response(
         headers = headers,
@@ -55,7 +64,6 @@ object StaticFile {
 
   def fromFile[F[_]: Sync](f: File, start: Long, end: Long, buffsize: Int, req: Option[Request[F]]): Option[Response[F]] = {
     if (f.isFile) {
-
       require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
       val lastModified = Instant.ofEpochMilli(f.lastModified())
@@ -75,20 +83,12 @@ object StaticFile {
           if (f.length() < end) (empty.covary[F], 0L)
           else (fileToBody(f, start, end, buffsize), end - start)
 
-        val contentType = {
-          val name = f.getName
-
-          name.lastIndexOf('.') match {
-            case -1 => None
-            case i  => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
-          }
-        }
-
-        val hs = `Last-Modified`(lastModified) ::
+        val contentType = nameToContentType(f.getName)
+        val headers = `Last-Modified`(lastModified) ::
           `Content-Length`.fromLong(contentLength).fold(_ => contentType.toList, _ :: contentType.toList)
 
         val r = Response(
-          headers = Headers(hs),
+          headers = Headers(headers),
           body = body,
           attributes = AttributeMap.empty.put(staticFileKey, f)
         )
@@ -121,6 +121,12 @@ object StaticFile {
 
     readAll(f.toPath, DefaultBufferSize)
   }
+
+  private def nameToContentType(name: String): Option[`Content-Type`] =
+    name.lastIndexOf('.') match {
+      case -1 => None
+      case i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
+    }
 
   private[http4s] val staticFileKey = AttributeKey[File]
 }

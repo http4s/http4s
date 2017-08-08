@@ -9,7 +9,6 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
-import org.http4s.util.threads.DefaultExecutionContext
 
 import scala.concurrent.ExecutionContext
 
@@ -35,6 +34,7 @@ object FileService {
   object Config {
     def apply[F[_]: Sync](systemPath: String,
                           pathPrefix: String = "",
+                          pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50 * 1024,
                           executionContext: ExecutionContext= DefaultExecutionContext,
                           cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {

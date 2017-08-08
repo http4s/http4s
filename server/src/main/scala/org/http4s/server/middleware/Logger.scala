@@ -6,6 +6,7 @@ import cats.effect.Effect
 import cats.implicits._
 import fs2._
 import org.log4s.{Logger => SLogger}
+import scala.concurrent.ExecutionContext
 import scodec.bits.ByteVector
 
 /**
@@ -20,33 +21,37 @@ object Logger {
       )
     )
 
-  def getCharsetFromContentType[F[_]](m: Message[F]): (Boolean, Option[Charset]) = {
-    val init = m.charset
-    val binary = m.contentType.map(_.mediaType.binary).getOrElse(false)
-    (binary, init)
-  }
+  def logMessage[F[_], A <: Message[F]](message: A)
+                              (logHeaders: Boolean, logBody: Boolean)
+                              (logger: SLogger)
+                              (implicit executionContext: ExecutionContext = ExecutionContext.global): F[Unit] = {
 
-  /**
-    * Log Messages As They Pass
-    */
-  def messageLogPipe[F[_], A <: Message[F]](logHeaders: Boolean, logBody: Boolean)
-                                           (logger: SLogger)
-                                           (implicit F: Effect[F]): Pipe[F, A, A] = stream => {
-    stream.flatMap { req =>
-      val (binary, charset) = Logger.getCharsetFromContentType(req)
-      val headers = if (logHeaders) req.headers.toList.mkString("Headers(", ", ", ")") else ""
-      val bodyT: F[String] = {
-        if (logBody && !binary) {
-          req.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
-        } else if (logBody) {
-          req.body.map(ByteVector.fromByte).map(_.toHex)
-        } else {
-          Stream.empty.covaryAll[F, String]
-        }
-      }.runFoldMonoid
-      Stream.eval(bodyT.flatMap(body =>
-        F.delay(logger.info(s"$headers + Body: $body"))
-      )) >> Stream.emit(req)
+    val charset = message.charset
+    val binary = message.contentType.exists(_.mediaType.binary)
+
+    val headers = if (logHeaders) message.headers.toList.mkString("Headers(", ", ", ")") else ""
+
+    val bodyStream = if (logBody && !binary) {
+      message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
+    } else if (logBody) {
+      message.body.map(ByteVector.fromByte).map(_.toHex)
+    } else {
+      Stream.empty
+    }
+
+    val bodyText = if (logBody) {
+      bodyStream.fold("")(_ + _).map(text => s"""body="$text"""")
+    } else {
+      Stream("")
+    }
+
+
+    if (!logBody && !logHeaders){
+      F.pure(())
+    } else {
+      bodyText.map(body => s"$headers $body")
+        .map(text => logger.info(text))
+        .run
     }
   }
 }

@@ -28,9 +28,28 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
   "hashCode" should {
     "be consistent with equality" in {
       prop { s: String =>
-        val lc = s.toLowerCase(Locale.ROOT)
+        val lc = s.toUpperCase(Locale.ROOT)
         (s.ci == lc.ci) ==> (s.ci.## == lc.ci.##)
       }
+    }
+
+    "be consistent with equality for ὈΔΥΣΣΕΎΣ and Ὀδυσσεύς" in {
+      // ς and Σ are equal in their uppercase forms but not their lowercase
+      // forms, so these words are equal ignoring case, but a hashcode based on
+      // lowercase forms is not equal. This is the Greek word for Odysseus.
+      val s = "ὈΔΥΣΣΕΎΣ"
+      val t = "Ὀδυσσεύς"
+      (s.ci == t.ci) && (s.ci.## == t.ci.##)
+    }
+
+    "be consistent with equality for Straße and STRAẞE" in {
+      // ẞ and ß are equal in their lowercase forms but not their uppercase
+      // forms, so these words are equal ignoring case, but a hashcode based on
+      // uppercase forms is not equal. This is the German word for street,
+      // acceptably uppercased for a 2017 orthographical reform.
+      val s = "Straße"
+      val t = "STRAẞE"
+      (s.ci == t.ci) && (s.ci.## == t.ci.##)
     }
   }
 

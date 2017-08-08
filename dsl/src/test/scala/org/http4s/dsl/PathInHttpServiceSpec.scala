@@ -19,7 +19,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   final case class Limit(l: Long)
   implicit val limitQueryParam = QueryParam.fromKey[Limit]("limit")
-  implicit val limitDecoder    = QueryParamDecoder.decodeBy[Limit, Long](Limit.apply)
+  implicit val limitDecoder    = QueryParamDecoder[Long].map(Limit.apply)
 
   object L extends QueryParamMatcher[Limit]
 

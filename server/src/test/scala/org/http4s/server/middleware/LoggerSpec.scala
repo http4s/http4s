@@ -5,6 +5,10 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import org.http4s.dsl._
+import scala.io.Source
+import fs2.Task
+import fs2.io.readInputStream
+import java.nio.charset.StandardCharsets
 
 /**
   * Common Tests for Logger, RequestLogger, and ResponseLogger
@@ -18,8 +22,14 @@ class LoggerSpec extends Http4sSpec {
       Ok(req.body)
   }
 
-  val urlForm = UrlForm("foo" -> "bar")
+  def testResource = getClass.getResourceAsStream("/testresource.txt")
 
+  def body: EntityBody =
+    readInputStream[Task](Task.now(testResource), 4096)
+
+  val expectedBody: String =
+    Source.fromInputStream(testResource).mkString
+  
   "ResponseLogger" should {
     val responseLoggerService = ResponseLogger(true, true)(testService)
 
@@ -29,10 +39,10 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request[IO](uri = uri("/post"), method = POST).withBody(urlForm)
+      val req = Request[IO](uri = uri("/post"), method = POST).withBody(body)
       val res = req.flatMap(responseLoggerService.orNotFound)
       res must returnStatus(Status.Ok)
-      res must returnBody(urlForm)
+      res must returnBody(expectedBody)
     }
   }
 
@@ -45,10 +55,10 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request[IO](uri = uri("/post"), method = POST).withBody(urlForm)
+      val req = Request[IO](uri = uri("/post"), method = POST).withBody(body)
       val res = req.flatMap(requestLoggerService.orNotFound)
       res must returnStatus(Status.Ok)
-      res must returnBody(urlForm)
+      res must returnBody(expectedBody)
     }
   }
 
@@ -61,12 +71,10 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request[IO](uri = uri("/post"), method = POST).withBody(urlForm)
+      val req = Request[IO](uri = uri("/post"), method = POST).withBody(body)
       val res = req.flatMap(loggerService.orNotFound)
       res must returnStatus(Status.Ok)
-      res must returnBody(urlForm)
+      res must returnBody(expectedBody)
     }
   }
-
-
 }

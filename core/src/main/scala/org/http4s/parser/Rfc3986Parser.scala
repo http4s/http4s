@@ -10,7 +10,11 @@ import org.http4s.syntax.string._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.HNil
 
-private[parser] trait Rfc3986Parser extends StringBuilding { this: Parser =>
+private[parser] trait Rfc3986Parser
+    extends IpParser
+    with StringBuilding {
+  this: Parser =>
+
   // scalastyle:off public.methods.have.type
   import CharPredicate.{Alpha, Digit, HexDigit}
 
@@ -64,33 +68,6 @@ private[parser] trait Rfc3986Parser extends StringBuilding { this: Parser =>
 
   def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
 
-  def IpV6Address: Rule0 = rule {
-                                                   6.times(H16 ~ ":") ~ LS32 |
-                                            "::" ~ 5.times(H16 ~ ":") ~ LS32 |
-          optional(H16) ~                   "::" ~ 4.times(H16 ~ ":") ~ LS32 |
-    optional((1 to 2).times(H16).separatedBy(":"))  ~ "::" ~ 3.times(H16 ~ ":") ~ LS32 |
-    optional((1 to 3).times(H16).separatedBy(":"))  ~ "::" ~ 2.times(H16 ~ ":") ~ LS32 |
-    optional((1 to 4).times(H16).separatedBy(":"))  ~ "::" ~         H16 ~ ":"  ~ LS32 |
-    optional((1 to 5).times(H16).separatedBy(":"))  ~ "::" ~                      LS32 |
-    optional((1 to 6).times(H16).separatedBy(":"))  ~ "::" ~                      H16  |
-    optional((1 to 7).times(H16).separatedBy(":"))  ~ "::"
-  }
-
-  def H16 = rule { (1 to 4).times(HexDigit) }
-
-  def LS32 = rule { (H16 ~ ":" ~ H16) | IpV4Address }
-
-  def IpV4Address = rule { 3.times(DecOctet ~ ".") ~ DecOctet }
-
-
-  def DecOctet = rule {
-    "1"         ~ Digit       ~ Digit |
-    "2"         ~ ("0" - "4") ~ Digit |
-    "25"        ~ ("0" - "5")         |
-    ("1" - "9") ~ Digit               |
-    Digit
-  }
-
   def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
 
   def Path: Rule1[String] = rule { (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String => decode(s)} }
@@ -132,9 +109,9 @@ private[parser] trait Rfc3986Parser extends StringBuilding { this: Parser =>
 
   def PctEncoded = rule { "%" ~ 2.times(HexDigit) }
 
-  def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
-
   def Reserved = rule { GenDelims | SubDelims }
+
+  def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
 
   def GenDelims = rule { ":" | "/" | "?" | "#" | "[" | "]" | "@" }
 

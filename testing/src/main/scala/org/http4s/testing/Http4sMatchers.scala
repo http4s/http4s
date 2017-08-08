@@ -48,4 +48,9 @@ trait Http4sMatchers extends Matchers with IOMatchers {
     beLeft(m) ^^ { et: EitherT[IO, A, B] =>
       et.value.unsafeRunSync aka "the either task"
     }
+
+  def haveContentCoding[F[_]](c: ContentCoding): Matcher[Message[F]] =
+    beSome(c) ^^ { m: Message[F] =>
+      m.headers.get(`Content-Encoding`).map(_.contentCoding) aka "the content encoding header"
+    }
 }

@@ -58,6 +58,17 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   def fetch[A](req: Request[F])(f: Response[F] => F[A]): F[A] =
     open.run(req).flatMap(_.apply(f))
 
+  /** Submits a request, and provides a callback to process the response.
+   *
+   * @param req A Task of the request to submit
+   * @param f A callback for the response to req.  The underlying HTTP connection
+   *          is disposed when the returned task completes.  Attempts to read the
+   *          response body afterward will result in an error.
+   * @return The result of applying f to the response to req
+   */
+  def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
+    req.flatMap(fetch(_)(f))
+
   /**
     * Returns this client as a [[Service]].  All connections created by this
     * service are disposed on completion of callback task f.
@@ -92,6 +103,9 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
           .onFinalize(dispose)
       }
 
+  def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
+    Stream.eval(req).flatMap(streaming(_)(f))
+
   /**
     * Submits a request and decodes the response on success.  On failure, the
     * status code is returned.  The underlying HTTP connection is closed at the
@@ -110,6 +124,25 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     }
   }
 
+  def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
+    req.flatMap(expect(_)(d))
+
+  /**
+   * Submits a GET request to the specified URI and decodes the response on
+   * success.  On failure, the status code is returned.  The underlying HTTP
+   * connection is closed at the completion of the decoding.
+   */
+  def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
+    expect(Request[F](Method.GET, uri))(d)
+
+  /**
+   * Submits a GET request to the URI specified by the String and decodes the
+   * response on success.  On failure, the status code is returned.  The
+   * underlying HTTP connection is closed at the completion of the decoding.
+   */
+  def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
+    Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
+
   /**
     * Submits a request and decodes the response, regardless of the status code.
     * The underlying HTTP connection is closed at the completion of the
@@ -124,6 +157,32 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
       d.decode(resp, strict = false).fold(throw _, identity)
     }
   }
+
+  /**
+   * Submits a request and decodes the response, regardless of the status code.
+   * The underlying HTTP connection is closed at the completion of the
+   * decoding.
+   */
+  def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
+    req.flatMap(fetchAs(_)(d))
+
+  /** Submits a request and returns the response status */
+  def status(req: Request[F]): F[Status] =
+    fetch(req)(resp => F.pure(resp.status))
+
+  /** Submits a request and returns the response status */
+  def status(req: F[Request[F]]): F[Status] =
+    req.flatMap(status(_))
+
+  /** Submits a request and returns true if and only if the response status is
+    * successful */
+  def successful(req: Request[F]): F[Boolean] =
+    status(req).map(_.isSuccess)
+
+  /** Submits a request and returns true if and only if the response status is
+   * successful */
+  def successful(req: F[Request[F]]): F[Boolean] =
+    req.flatMap(successful(_))
 
   @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
@@ -149,22 +208,6 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     Uri.fromString(s).fold(F.raiseError, uri => get(uri)(f))
 
   /**
-    * Submits a GET request to the specified URI and decodes the response on
-    * success.  On failure, the status code is returned.  The underlying HTTP
-    * connection is closed at the completion of the decoding.
-    */
-  def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    expect(Request[F](Method.GET, uri))
-
-  /**
-    * Submits a GET request to the URI specified by the String and decodes the
-    * response on success.  On failure, the status code is returned.  The
-    * underlying HTTP connection is closed at the completion of the decoding.
-    */
-  def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, expect[A])
-
-  /**
     * Submits a GET request and decodes the response.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
@@ -175,29 +218,6 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   @deprecated("Use expect", "0.14")
   def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
-
-  /** Submits a request, and provides a callback to process the response.
-    *
-    * @param req A Task of the request to submit
-    * @param f A callback for the response to req.  The underlying HTTP connection
-    *          is disposed when the returned task completes.  Attempts to read the
-    *          response body afterward will result in an error.
-    * @return The result of applying f to the response to req
-    */
-  def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
-    req.flatMap(fetch(_)(f))
-
-  def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    req.flatMap(expect(_))
-
-  /**
-    * Submits a request and decodes the response, regardless of the status code.
-    * The underlying HTTP connection is closed at the completion of the
-    * decoding.
-    */
-  @deprecated("Use expect", "0.14")
-  def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    req.flatMap(fetchAs(_))
 
   @deprecated("Use expect", "0.14")
   def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T] =
