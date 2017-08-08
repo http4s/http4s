@@ -19,7 +19,7 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
     val servlet = new Http4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-      executionContext = executionContext,
+      executionContext = ec,
       servletIo = servletIo
     )
     val reg = self.addServlet(name, servlet)

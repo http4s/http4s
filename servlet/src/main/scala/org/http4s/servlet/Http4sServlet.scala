@@ -186,7 +186,7 @@ class Http4sServlet[F[_]](service: HttpService[F],
 object Http4sServlet {
   def apply[F[_]: Effect](service: HttpService[F],
                           asyncTimeout: Duration = Duration.Inf,
-                          executionContext: ExecutionContext = DefaultExecutionContext): Http4sServlet[F] =
+                          executionContext: ExecutionContext = ExecutionContext.global): Http4sServlet[F] =
     new Http4sServlet[F](service,
       asyncTimeout,
       executionContext,

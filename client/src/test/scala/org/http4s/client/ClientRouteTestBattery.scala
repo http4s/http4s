@@ -52,8 +52,6 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     }
 
     "POST an empty body" in {
-      val name = address.getHostName
-      val port = address.getPort
       val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
       val req = POST(uri)
       val body = client.expect[String](req)
@@ -61,8 +59,6 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     }
 
     "POST a normal body" in {
-      val name = address.getHostName
-      val port = address.getPort
       val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
       val req = POST(uri, "This is normal.")
       val body = client.expect[String](req)
@@ -70,10 +66,8 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     }
 
     "POST a chunked body" in {
-      val name = address.getHostName
-      val port = address.getPort
       val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
-      val req = POST(uri, Stream.eval(IO.pure("This is chunked.")))
+      val req = POST(uri, Stream("This is chunked.").covary[IO])
       val body = client.expect[String](req)
       body must returnValue("This is chunked.")
     }

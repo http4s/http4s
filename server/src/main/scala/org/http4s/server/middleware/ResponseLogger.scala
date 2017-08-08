@@ -16,14 +16,14 @@ object ResponseLogger {
 
   def apply[F[_]](logHeaders: Boolean, logBody: Boolean)
            (service: HttpService[F])
-           (implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
+           (implicit F: Effect[F], ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
     Service.lift { req => service(req).flatMap {
-        case Pass => Pass.now
-        case response: Response =>
+        case Pass() => Pass.pure
+        case response: Response[F] =>
           if (!logBody) {
-            Logger.logMessage(response)(logHeaders, logBody)(logger)(strategy) >> Task(response)
+            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody)(logger) >> F.delay(response)
           } else {
-            fs2.async.unboundedQueue[Task, Byte].map { queue =>
+            fs2.async.unboundedQueue[F, Byte].map { queue =>
               val newBody = Stream.eval(queue.size.get)
                 .flatMap(size => queue.dequeue.take(size.toLong))
 
@@ -31,7 +31,7 @@ object ResponseLogger {
                 body = response.body
                   .observe(queue.enqueue)
                   .onFinalize {
-                    Logger.logMessage(response.copy(body = newBody))(logHeaders, logBody)(logger)(strategy)
+                    Logger.logMessage[F, Response[F]](response.copy(body = newBody))(logHeaders, logBody)(logger)
                   }
               )
             }

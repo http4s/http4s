@@ -34,9 +34,8 @@ object FileService {
   object Config {
     def apply[F[_]: Sync](systemPath: String,
                           pathPrefix: String = "",
-                          pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50 * 1024,
-                          executionContext: ExecutionContext= DefaultExecutionContext,
+                          executionContext: ExecutionContext= ExecutionContext.global,
                           cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F]): Config[F] = {
       val pathCollector: PathCollector[F] = filesOnly
       Config(systemPath, pathCollector, pathPrefix, bufferSize, executionContext, cacheStrategy)

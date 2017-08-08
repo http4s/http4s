@@ -18,7 +18,6 @@ import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.threads.DefaultPool
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext

@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats.effect._
+import cats.implicits._
 import fs2._
 import org.log4s._
 import scala.concurrent.ExecutionContext
@@ -19,9 +20,9 @@ object RequestLogger {
 
     Service.lift{ req =>
       if (!logBody) {
-        Logger.logMessage(req)(logHeaders, logBody)(logger)(strategy) >> service(req)
+        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) >> service(req)
       } else {
-        async.unboundedQueue[Task, Byte].flatMap { queue =>
+        async.unboundedQueue[F, Byte].flatMap { queue =>
 
           val newBody = Stream.eval(queue.size.get)
             .flatMap(size => queue.dequeue.take(size.toLong))
@@ -29,7 +30,7 @@ object RequestLogger {
           val changedRequest = req.withBody(
             req.body
               .observe(queue.enqueue)
-              .onFinalize(Logger.logMessage(req.withBody(newBody))(logHeaders, logBody)(logger)(strategy))
+              .onFinalize(Logger.logMessage[F, Request[F]](req.withBody(newBody))(logHeaders, logBody)(logger))
           )
 
           service(changedRequest)
