@@ -35,7 +35,8 @@ class Http4sServlet(service: HttpService,
   private[this] val serviceFn = service.run
 
   object ServletRequestKeys {
-    val HttpSession: AttributeKey[HttpSession] = AttributeKey.http4s("request.httpSession")
+    val HttpSession: AttributeKey[Option[HttpSession]] =
+      AttributeKey[Option[HttpSession]]
   }
 
   override def init(config: ServletConfig): Unit = {
@@ -163,7 +164,7 @@ class Http4sServlet(service: HttpService,
           req.isSecure
         )),
         Request.Keys.ServerSoftware(serverSoftware),
-        ServletRequestKeys.HttpSession(req.getSession)
+        ServletRequestKeys.HttpSession(Option(req.getSession(false)))
       )
     )
 
