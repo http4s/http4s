@@ -1,6 +1,7 @@
 package org.http4s
 
 import fs2.Chunk
+import fs2.interop.cats._
 import java.io.File
 import java.nio.file.Files
 import java.time.Instant
@@ -18,7 +19,7 @@ class StaticFileSpec extends Http4sSpec {
     "Determine the media-type based on the files extension" in {
 
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
-        val r = StaticFile.fromFile(f)
+        val r = StaticFile.fromFile(f).value.unsafeRun
 
         r must beSome[Response]
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
@@ -38,14 +39,14 @@ class StaticFileSpec extends Http4sSpec {
     "handle an empty file" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      StaticFile.fromFile(emptyFile) must beSome[Response]
+      StaticFile.fromFile(emptyFile).value must returnValue(beSome[Response])
     }
 
     "Don't send unmodified files" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
       val request = Request().putHeaders(`If-Modified-Since`(Instant.MAX))
-      val response = StaticFile.fromFile(emptyFile, Some(request))
+      val response = StaticFile.fromFile(emptyFile, Some(request)).value.unsafeRun
       response must beSome[Response]
       response.map(_.status) must beSome(NotModified)
     }
@@ -53,7 +54,7 @@ class StaticFileSpec extends Http4sSpec {
     "Send partial file" in {
       def check(path: String): MatchResult[Any] = {
         val f = new File(path)
-        val r = StaticFile.fromFile(f, 0, 1, StaticFile.DefaultBufferSize, None)
+        val r = StaticFile.fromFile(f, 0, 1, StaticFile.DefaultBufferSize, None).value.unsafeRun
 
         r must beSome[Response]
         // Length is only 1 byte
@@ -81,7 +82,7 @@ class StaticFileSpec extends Http4sSpec {
       Files.write(emptyFile.toPath, gibberish)
 
       def check(file: File): MatchResult[Any] = {
-        val r = StaticFile.fromFile(file, 0, fileSize.toLong - 1, StaticFile.DefaultBufferSize, None)
+        val r = StaticFile.fromFile(file, 0, fileSize.toLong - 1, StaticFile.DefaultBufferSize, None).value.unsafeRun
 
         r must beSome[Response]
         // Length of the body must match
@@ -100,6 +101,7 @@ class StaticFileSpec extends Http4sSpec {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val expected = scala.io.Source.fromURL(url, "utf-8").mkString
       val s = StaticFile.fromURL(getClass.getResource("/lorem-ipsum.txt"))
+        .value.unsafeRun
         .fold[EntityBody](sys.error("Couldn't find resource"))(_.body)
       // Expose problem with readInputStream recycling buffer.  chunks.runLog
       // saves chunks, which are mutated by naive usage of readInputStream.

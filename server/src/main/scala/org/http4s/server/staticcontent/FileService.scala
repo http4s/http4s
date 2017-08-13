@@ -4,8 +4,10 @@ package staticcontent
 
 import java.io.File
 
-import cats.data.NonEmptyList
+import cats.data._
+import cats.implicits._
 import fs2._
+import fs2.interop.cats._
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 
@@ -24,7 +26,7 @@ object FileService {
     */
   final case class Config(systemPath: String,
                           pathPrefix: String = "",
-                          pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
+                          pathCollector: (File, Config, Request) => OptionT[Task, Response] = filesOnly,
                           bufferSize: Int = 50*1024,
                           executionContext: ExecutionContext= ExecutionContext.global,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
@@ -36,21 +38,22 @@ object FileService {
       Pass.now
     else
       getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
-        .map { f => config.pathCollector(f, config, req) }
-        .getOrElse(Task.now(None))
-        .flatMap(_.fold(Pass.now)(config.cacheStrategy.cache(uriPath, _)))
+        .flatMap { f => config.pathCollector(f, config, req) }
+        .orElse(OptionT.none[Task, Response])
+        .fold(Pass.now)(config.cacheStrategy.cache(uriPath, _))
+        .flatten
   }
 
   /* Returns responses for static files.
    * Directories are forbidden.
    */
-  private def filesOnly(file: File, config: Config, req: Request): Task[Option[Response]] = Task.now {
-    if (file.isDirectory()) Some(Response(Status.Unauthorized))
-    else if (!file.isFile) None
-    else getPartialContentFile(file, config, req) orElse
+  private def filesOnly(file: File, config: Config, req: Request): OptionT[Task, Response] = OptionT(Task.delay(
+    if (file.isDirectory) Task.now(Some(Response(Status.Unauthorized)))
+    else if (!file.isFile) Task.now(None)
+    else (getPartialContentFile(file, config, req) orElse
       StaticFile.fromFile(file, config.bufferSize, Some(req))
-                .map(_.putHeaders(AcceptRangeHeader))
-  }
+        .map(_.putHeaders(AcceptRangeHeader))).value
+  ).flatten)
 
   private def validRange(start: Long, end: Option[Long], fileLength: Long): Boolean = {
     start < fileLength && (end match {
@@ -60,8 +63,8 @@ object FileService {
   }
 
   // Attempt to find a Range header and collect only the subrange of content requested
-  private def getPartialContentFile(file: File, config: Config, req: Request): Option[Response] = req.headers.get(Range).flatMap {
-    case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)) if validRange(s, e, file.length) =>
+  private def getPartialContentFile(file: File, config: Config, req: Request): OptionT[Task, Response] = OptionT.fromOption[Task](req.headers.get(Range)).flatMap {
+    case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)) if validRange(s, e, file.length) => OptionT(Task.delay {
       val size = file.length()
       val start = if (s >= 0) s else math.max(0, size + s)
       val end = math.min(size - 1, e getOrElse (size - 1))  // end is inclusive
@@ -70,15 +73,15 @@ object FileService {
                   .map { resp =>
                     val hs = resp.headers.put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))
                     resp.copy(status = Status.PartialContent, headers = hs)
-                  }
+                  }.value}.flatten)
 
-    case _ => None
+    case _ => OptionT.none
   }
 
   // Attempts to sanitize the file location and retrieve the file. Returns None if the file doesn't exist.
-  private def getFile(unsafePath: String): Option[File] = {
+  private def getFile(unsafePath: String): OptionT[Task, File] = OptionT(Task.delay {
     val f = new File(sanitize(unsafePath))
     if (f.exists()) Some(f)
     else None
-  }
+  })
 }
