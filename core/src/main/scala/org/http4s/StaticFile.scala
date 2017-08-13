@@ -44,13 +44,19 @@ object StaticFile {
   }
 
   def fromURL(url: URL, req: Option[Request] = None): OptionT[Task, Response] = OptionT.liftF(Task.delay {
-    val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified)
+    val urlConn = url.openConnection
+    val lastmod = Instant.ofEpochMilli(urlConn.getLastModified)
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`)).forall(_.date.compareTo(lastmod) < 0)
 
     if (expired) {
       val contentType = nameToContentType(url.getPath)
-      val headers = Headers(`Last-Modified`(lastmod) :: contentType.toList)
+      val len = urlConn.getContentLengthLong
+      val lenHeader =
+        if (len >= 0) `Content-Length`.unsafeFromLong(len)
+        else `Transfer-Encoding`(TransferCoding.chunked)
+
+      val headers = Headers(lenHeader :: `Last-Modified`(lastmod) :: contentType.toList)
 
       Response(
         headers = headers,

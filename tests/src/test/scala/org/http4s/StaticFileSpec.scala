@@ -109,5 +109,12 @@ class StaticFileSpec extends Http4sSpec {
       // things like CachingChunkWriter that buffer the chunks.
       new String(Chunk.concat(s.chunks.runLog.unsafeRun).toArray, "utf-8") must_== expected
     }
+
+    "Set content-length header from a URL" in {
+      val url = getClass.getResource("/lorem-ipsum.txt")
+      val len = StaticFile.fromURL(getClass.getResource("/lorem-ipsum.txt"))
+        .value.map(_.flatMap(_.contentLength))
+      len must returnValue(Some(24005L))
+    }
   }
 }
