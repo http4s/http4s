@@ -66,7 +66,10 @@ object StaticFile {
           // immutable here for safety.
           .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)))
       )
-    } else Response(NotModified)
+    } else {
+      urlConn.getInputStream.close()
+      Response(NotModified)
+    }
   })
 
   def fromFile(f: File, req: Option[Request] = None): OptionT[Task, Response] =
