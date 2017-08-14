@@ -21,12 +21,12 @@ import org.http4s._
 import org.http4s.dsl._
 import java.io.File
 import fs2.Task
+import fs2.interop.cats._
 
 val service = HttpService {
   case request @ GET -> Root / "index.html" =>
     StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
-      .map(Task.now) // This one is require to make the types match up
-      .getOrElse(NotFound()) // In case the file doesn't exist
+      .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 ```
 
@@ -36,7 +36,7 @@ deliver them from there. Append to the `List` as needed.
 
 ```tut:book
 def static(file: String, request: Request) =
-  StaticFile.fromResource("/" + file, Some(request)).map(Task.now).getOrElse(NotFound())
+  StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
 val service = HttpService {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
