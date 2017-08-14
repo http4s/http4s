@@ -269,8 +269,10 @@ sealed abstract case class Request(
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 
-  override def toString: String =
-    s"""Request(method=$method, uri=$uri, headers=${headers})"""
+  override def toString: String = {
+    val newHeaders = headers.filter(_.is(Authorization)).filter(_.is(org.http4s.headers.Cookie))
+    s"""Request(method=$method, uri=$uri, headers=$newHeaders)"""
+  }
 
   /** A request is idempotent if and only if its method is idempotent and its body
     * is pure.  If true, this request can be submitted multipe times. */
@@ -382,8 +384,11 @@ final case class Response(
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 
-  override def toString: String =
-    s"""Response(status=${status.code}, headers=$headers)"""
+  override def toString: String = {
+    val newHeaders = headers.filter(_.is(`Set-Cookie`))
+    s"""Response(status=${status.code}, headers=$newHeaders)"""
+  }
+
 
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
