@@ -3,6 +3,7 @@ package org.http4s
 import java.net.InetSocketAddress
 
 import org.http4s.headers.`Content-Type`
+import org.http4s.headers.Authorization
 
 import scalaz.concurrent.Task
 
@@ -83,6 +84,18 @@ class MessageSpec extends Http4sSpec {
         originalReq.scriptName mustEqual updatedReq.scriptName
       }
     }
+
+    "toString" should {
+      "filter an Authorization header" in {
+        val request = Request(Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
+        request.toString must_==("Request(method=GET, uri=/, headers=Headers())")
+      }
+
+      "filter Cookie Headers" in {
+        val request = Request(Method.GET).addCookie("token", "value").addCookie("token2", "value2")
+        request.toString must_==("Request(method=GET, uri=/, headers=Headers())")
+      }
+    }
   }
 
   "Message" should {
@@ -98,6 +111,15 @@ class MessageSpec extends Http4sSpec {
           val resp = req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response()))
           resp must beStatus(Status.UnsupportedMediaType).run
         }
+      }
+    }
+  }
+
+  "Response" should {
+    "toString" should {
+      "filter a `Set-Cookie` header" in {
+        val resp = Response(headers = Headers(headers.`Set-Cookie`(Cookie("token", "value"))))
+        resp.toString must_==("Response(status=200, headers=Headers())")
       }
     }
   }
