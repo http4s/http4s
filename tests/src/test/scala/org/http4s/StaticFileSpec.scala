@@ -100,7 +100,7 @@ class StaticFileSpec extends Http4sSpec {
     "Read from a URL" in {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val expected = scala.io.Source.fromURL(url, "utf-8").mkString
-      val s = StaticFile.fromURL(getClass.getResource("/lorem-ipsum.txt"))
+      val s = StaticFile.fromURL(url)
         .value.unsafeRun
         .fold[EntityBody](sys.error("Couldn't find resource"))(_.body)
       // Expose problem with readInputStream recycling buffer.  chunks.runLog
@@ -112,7 +112,7 @@ class StaticFileSpec extends Http4sSpec {
 
     "Set content-length header from a URL" in {
       val url = getClass.getResource("/lorem-ipsum.txt")
-      val len = StaticFile.fromURL(getClass.getResource("/lorem-ipsum.txt"))
+      val len = StaticFile.fromURL(url)
         .value.map(_.flatMap(_.contentLength))
       len must returnValue(Some(24005L))
     }
