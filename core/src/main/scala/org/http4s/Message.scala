@@ -68,6 +68,18 @@ sealed trait Message extends MessageOps { self =>
     }
   }
 
+  /** Sets the entity body without affecting headers such as `Transfer-Encoding`
+   * or `Content-Length`. Most use cases are better served by [[withBody]],
+   * which uses an [[EntityEncoder]] to maintain the headers.
+   */
+  def withBodyStream(body: EntityBody): Self
+
+  /** Set an empty entity body on this message, and remove all payload headers
+   *  that make no sense with an empty body.
+   */
+  def withEmptyBody: Self =
+    withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
+
   def contentLength: Option[Long] = headers.get(`Content-Length`).map(_.length)
 
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
@@ -163,11 +175,13 @@ sealed abstract case class Request(
   def withUri(uri: Uri) = requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
   def withHttpVersion(httpVersion: HttpVersion) = requestCopy(httpVersion = httpVersion)
   def withHeaders(headers: Headers) = requestCopy(headers = headers)
-  def withBody(body: EntityBody) = requestCopy(body = body)
   def withAttributes(attributes: AttributeMap) = requestCopy(attributes = attributes)
 
+  def withBodyStream(body: EntityBody): Request =
+    requestCopy(body = body)
+
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
-    withBody(body).withHeaders(headers).withAttributes(attributes)
+    requestCopy(body = body, headers = headers, attributes = attributes)
 
   lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
 
@@ -351,6 +365,9 @@ final case class Response(
 
   override def withStatus(status: Status): Self =
     copy(status = status)
+
+  def withBodyStream(body: EntityBody): Response =
+    copy(body = body)
 
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)

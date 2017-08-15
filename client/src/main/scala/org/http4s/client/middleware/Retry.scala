@@ -55,7 +55,7 @@ object Retry {
 
     def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] =
       // TODO honor Retry-After header
-      Task.async { (prepareLoop(req.withBody(EmptyBody), attempts + 1).get after duration).unsafePerformAsync }
+      Task.async { (prepareLoop(req.withEmptyBody, attempts + 1).get after duration).unsafePerformAsync }
 
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }

@@ -22,7 +22,7 @@ object UrlFormLifter {
 
       val newRequest = req
         .withUri(req.uri.copy(query = newQuery))
-        .withBody(EmptyBody)
+        .withEmptyBody
       service(newRequest)
     }
 

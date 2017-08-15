@@ -36,18 +36,6 @@ import scodec.bits.ByteVector
   * not followed.
   */
 object FollowRedirect {
-
-  // TODO move this somewhere more sensible in 0.15, but we don't want to break
-  // bincompat in a bugfix for 0.14.
-  //
-  // https://tools.ietf.org/html/rfc7231#section-3.3
-  private val PayloadHeaderKeys = Set(
-    "Content-Length".ci,
-    "Content-Range".ci,
-    "Trailer".ci,
-    "Transfer-Encoding".ci
-  )
-
   def apply(maxRedirects: Int)(client: Client): Client = {
     def prepareLoop(req: Request, redirects: Int): Task[DisposableResponse] = {
       client.open(req).flatMap { case dr @ DisposableResponse(resp, dispose) =>
@@ -78,18 +66,18 @@ object FollowRedirect {
         def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[ByteVector]): Request =
           bodyOpt match {
             case Some(body) =>
-              // Assume that all the headers can be propagated
               req
                 .withMethod(method)
                 .withUri(nextUri)
-                .withBody(emit(body))
+                // Assume that all the headers can be propagated
+                // TODO we should be filtering sensitive headers if
+                // we're redirecting to a new host
+                .withBodyStream(emit(body))
             case None =>
               req
                 .withMethod(method)
                 .withUri(nextUri)
-                .withBody(EmptyBody)
-                // We need to strip all payload headers
-                .withHeaders(req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
+                .withEmptyBody
           }
 
         def doRedirect(method: Method) = {

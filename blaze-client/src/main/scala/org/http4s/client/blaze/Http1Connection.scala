@@ -258,7 +258,7 @@ private final class Http1Connection(val requestKey: RequestKey,
 
       // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
     if (minor == 0 && !req.body.isHalt && `Content-Length`.from(req.headers).isEmpty) {
-      logger.warn(s"Request ${req.withBody(halt)} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
+      logger.warn(s"Request ${req} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
       validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
     }
       // Ensure we have a host header for HTTP/1.1

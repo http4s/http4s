@@ -26,7 +26,7 @@ object MockClient {
     def disposableService(service: HttpService) =
       Service.lift { req: Request =>
         val disposed = new AtomicBoolean(false)
-        val req0 = req.withBody(interruptable(req.body, disposed))
+        val req0 = req.withBodyStream(interruptable(req.body, disposed))
         service(req0) map { resp =>
           DisposableResponse(
             resp.orNotFound.copy(body = interruptable(resp.orNotFound.body, disposed)),
