@@ -258,8 +258,8 @@ private final class Http1Connection(val requestKey: RequestKey,
 
       // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
     if (minor == 0 && !req.body.isHalt && `Content-Length`.from(req.headers).isEmpty) {
-      logger.warn(s"Request ${req.copy(body = halt)} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
-      validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.1`))
+      logger.warn(s"Request ${req} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
+      validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.1`))
     }
       // Ensure we have a host header for HTTP/1.1
     else if (minor == 1 && req.uri.host.isEmpty) { // this is unlikely if not impossible
@@ -269,15 +269,15 @@ private final class Http1Connection(val requestKey: RequestKey,
           case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
           case None => Authority(host = RegName(host.host), port = host.port)
         }
-        validateRequest(req.copy(uri = req.uri.copy(authority = Some(newAuth))))
+        validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
       }
       else if (req.body.isHalt || `Content-Length`.from(req.headers).nonEmpty) {  // translate to HTTP/1.0
-        validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.0`))
+        validateRequest(req.withHttpVersion(HttpVersion.`HTTP/1.0`))
       } else {
         Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
       }
     }
-    else if (req.uri.path == "") Right(req.copy(uri = req.uri.copy(path = "/")))
+    else if (req.uri.path == "") Right(req.withUri(req.uri.copy(path = "/")))
     else Right(req) // All appears to be well
   }
 

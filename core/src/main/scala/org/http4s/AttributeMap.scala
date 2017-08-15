@@ -51,6 +51,9 @@ final class AttributeMap private(private val backing: Map[AttributeKey[_], Any])
   /** Combines the mappings in `o` with the mappings in this map, with mappings in `o` taking precedence over existing mappings.*/
   def ++(o: AttributeMap): AttributeMap = new AttributeMap(backing ++ o.backing)
 
+  /** Removes an attribute key from the map*/
+  def --(k: AttributeKey[_]): AttributeMap = new AttributeMap(backing - k)
+
   /** All mappings in this map.  The [[AttributeEntry]] type preserves the typesafety of mappings, although the specific types are unknown.*/
   def entries: Iterable[AttributeEntry[_]] =
     for( (k: AttributeKey[kt], v) <- backing) yield AttributeEntry(k, v.asInstanceOf[kt])

@@ -3,6 +3,7 @@ package org.http4s
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`
+import org.http4s.syntax.string._
 
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -99,6 +100,14 @@ final class Headers private (headers: List[Header])
       this.toList.equals(otherheaders.toList)
     case _ => false
   }
+
+  /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
+    * `Transfer-Encoding` headers.
+    *
+    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    */
+  def removePayloadHeaders: Headers =
+    filterNot(h => Headers.PayloadHeaderKeys(h.name))
 }
 
 object Headers {
@@ -119,4 +128,11 @@ object Headers {
 
   private def newBuilder: mutable.Builder[Header, Headers] =
     new mutable.ListBuffer[Header] mapResult (b => new Headers(b))
+
+  private val PayloadHeaderKeys = Set(
+    "Content-Length".ci,
+    "Content-Range".ci,
+    "Trailer".ci,
+    "Transfer-Encoding".ci
+  )
 }

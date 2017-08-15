@@ -241,7 +241,7 @@ object Client {
     def disposableService(service: HttpService) =
       Service.lift { req: Request =>
         val disposed = new AtomicBoolean(false)
-        val req0 = req.copy(body = interruptible(req.body, disposed))
+        val req0 = req.withBodyStream(interruptible(req.body, disposed))
         service(req0) map { maybeResp =>
           val resp = maybeResp.orNotFound
           DisposableResponse(
