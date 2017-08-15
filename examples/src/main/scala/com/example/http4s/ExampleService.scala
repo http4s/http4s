@@ -5,6 +5,7 @@ import scala.concurrent._
 import scala.concurrent.duration._
 
 import fs2._
+import fs2.interop.cats._
 import _root_.io.circe.Json
 import org.http4s._
 import org.http4s.MediaType._
@@ -68,7 +69,7 @@ object ExampleService {
       // captures everything after "/static" into `path`
       // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
       // See also org.http4s.server.staticcontent to create a mountable service for static content
-      StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(Task.now)
+      StaticFile.fromResource(path.toString, Some(req)).getOrElseF(NotFound())
 
     ///////////////////////////////////////////////////////////////
     //////////////// Dealing with the message body ////////////////
@@ -151,8 +152,7 @@ object ExampleService {
 
     case req @ GET -> Root / "image.jpg" =>
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
-        .map(Task.now)
-        .getOrElse(NotFound())
+        .getOrElseF(NotFound())
 
     ///////////////////////////////////////////////////////////////
     //////////////////////// Multi Part //////////////////////////

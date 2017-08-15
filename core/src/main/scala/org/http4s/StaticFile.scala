@@ -5,8 +5,10 @@ import java.net.URL
 import java.nio.file.{Path, StandardOpenOption}
 import java.time.Instant
 
+import cats.data._
 import fs2._
 import fs2.Stream._
+import fs2.interop.cats._
 import fs2.io._
 import fs2.io.file.{FileHandle, pulls}
 import fs2.util.Suspendable
@@ -22,53 +24,62 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString(url: String, req: Option[Request] = None): Option[Response] = {
+  def fromString(url: String, req: Option[Request] = None): OptionT[Task, Response] = {
     fromFile(new File(url), req)
   }
 
-  def fromResource(name: String, req: Option[Request] = None, preferGzipped: Boolean = false): Option[Response] = {
+  def fromResource(name: String, req: Option[Request] = None, preferGzipped: Boolean = false): OptionT[Task, Response] = {
     val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
       acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`)
     }
 
-    val gzUrl = if (tryGzipped) Option(getClass.getResource(name + ".gz")) else None
-    gzUrl.map { url =>
+    val gzUrl: OptionT[Task, URL] =
+      if (tryGzipped) OptionT.fromOption(Option(getClass.getResource(name + ".gz")))      else OptionT.none
+    gzUrl.flatMap { url =>
       // Guess content type from the name without ".gz"
       val contentType = nameToContentType(name)
       val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
-
       fromURL(url, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
-    } getOrElse Option(getClass.getResource(name)).flatMap(fromURL(_, req))
+    } orElse OptionT.fromOption[Task](Option(getClass.getResource(name))).flatMap(fromURL(_, req))
   }
 
-  def fromURL(url: URL, req: Option[Request] = None): Option[Response] = {
-    val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified)
+  def fromURL(url: URL, req: Option[Request] = None): OptionT[Task, Response] = OptionT.liftF(Task.delay {
+    val urlConn = url.openConnection
+    val lastmod = Instant.ofEpochMilli(urlConn.getLastModified)
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`)).forall(_.date.compareTo(lastmod) < 0)
 
     if (expired) {
       val contentType = nameToContentType(url.getPath)
-      val headers = Headers(`Last-Modified`(lastmod) :: contentType.toList)
+      val len = urlConn.getContentLengthLong
+      val lenHeader =
+        if (len >= 0) `Content-Length`.unsafeFromLong(len)
+        else `Transfer-Encoding`(TransferCoding.chunked)
 
-      Some(Response(
+      val headers = Headers(lenHeader :: `Last-Modified`(lastmod) :: contentType.toList)
+
+      Response(
         headers = headers,
         body    = readInputStream[Task](Task.delay(url.openStream), DefaultBufferSize)
           // These chunks wrap a mutable array, and we might be buffering
           // or processing them concurrently later.  Convert to something
           // immutable here for safety.
           .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)))
-      ))
-    } else Some(Response(NotModified))
-  }
+      )
+    } else {
+      urlConn.getInputStream.close()
+      Response(NotModified)
+    }
+  })
 
-  def fromFile(f: File, req: Option[Request] = None): Option[Response] =
+  def fromFile(f: File, req: Option[Request] = None): OptionT[Task, Response] =
     fromFile(f, DefaultBufferSize, req)
 
-  def fromFile(f: File, buffsize: Int, req: Option[Request]): Option[Response] = {
+  def fromFile(f: File, buffsize: Int, req: Option[Request]): OptionT[Task, Response] = {
     fromFile(f, 0, f.length(), buffsize, req)
   }
 
-  def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request]): Option[Response] = {
+  def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request]): OptionT[Task, Response] = OptionT(Task.delay {
     if (f.isFile) {
       require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
@@ -105,7 +116,7 @@ object StaticFile {
     } else {
       None
     }
-  }
+  })
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int): EntityBody = {
     // Based on fs2 handling of files
@@ -120,7 +131,7 @@ object StaticFile {
       } yield next
 
     def readAll[F[_]: Suspendable](path: Path, chunkSize: Int): Stream[F, Byte] =
-      pulls.fromPath(path, List(StandardOpenOption.READ)).flatMap(readAllFromFileHandle(chunkSize, start, end)).close
+      pulls.fromPath[F](path, List(StandardOpenOption.READ)).flatMap(readAllFromFileHandle(chunkSize, start, end)).close
 
     readAll[Task](f.toPath, DefaultBufferSize)
   }

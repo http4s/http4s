@@ -2,6 +2,8 @@ package org.http4s
 package server
 package staticcontent
 
+import cats.implicits._
+import fs2.interop.cats._
 import scala.concurrent.ExecutionContext
 
 object ResourceService {
@@ -35,5 +37,6 @@ object ResourceService {
           preferGzipped = config.preferGzipped
         )
         .fold(Pass.now)(config.cacheStrategy.cache(uriPath, _))
+        .flatten
   }
 }

@@ -2,7 +2,9 @@ package org.http4s
 package server
 package staticcontent
 
+import cats.implicits._
 import fs2.Task
+import fs2.interop.cats._
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -99,4 +101,5 @@ object WebjarService {
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))
       .fold(Pass.now)(config.cacheStrategy.cache(request.pathInfo, _))
+      .flatten
 }
