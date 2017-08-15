@@ -110,13 +110,15 @@ import java.io.File
 import fs2.Task
 // import fs2.Task
 
+import fs2.interop.cats._
+// import fs2.interop.cats._
+
 val service = HttpService {
   case request @ GET -&gt; Root / &quot;index.html&quot; =&gt;
     StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), Some(request))
-      .map(Task.now) // This one is require to make the types match up
-      .getOrElse(NotFound()) // In case the file doesn't exist
+      .getOrElseF(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$11475/1739653656@6b775493)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$11517/223908535@4f519c75)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -125,14 +127,14 @@ val service = HttpService {
 deliver them from there. Append to the <code>List</code> as needed.</p>
 
 <pre><code class="language-scala">def static(file: String, request: Request) =
-  StaticFile.fromResource(&quot;/&quot; + file, Some(request)).map(Task.now).getOrElse(NotFound())
+  StaticFile.fromResource(&quot;/&quot; + file, Some(request)).getOrElseF(NotFound())
 // static: (file: String, request: org.http4s.Request)fs2.Task[org.http4s.Response]
 
 val service = HttpService {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$11475/1739653656@54068064)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$11517/223908535@32701cdd)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -143,10 +145,10 @@ class path, as you usually would:</p>
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 )
-// &lt;console&gt;:21: error: not found: value libraryDependencies
+// &lt;console&gt;:24: error: not found: value libraryDependencies
 //        libraryDependencies ++= Seq(
 //        ^
-// &lt;console&gt;:22: error: value % is not a member of String
+// &lt;console&gt;:25: error: value % is not a member of String
 //          &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 //                        ^
 </code></pre>
@@ -169,7 +171,7 @@ val webjars: HttpService = webjarService(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService = Kleisli(org.http4s.Service$$$Lambda$11481/1782353241@4df1851a)
+// webjars: org.http4s.HttpService = Kleisli(org.http4s.Service$$$Lambda$11523/521333865@77653e03)
 </code></pre>
 
           <footer>
