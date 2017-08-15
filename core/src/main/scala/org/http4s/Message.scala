@@ -1,10 +1,13 @@
 package org.http4s
 
 import java.io.File
-import java.net.{InetSocketAddress, InetAddress}
+import java.net.{InetAddress, InetSocketAddress}
+
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
+
 import scalaz.Monoid
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -119,6 +122,11 @@ object Message {
   private[http4s] val logger = getLogger
   object Keys {
     val TrailerHeaders = AttributeKey[Task[Headers]]
+  }
+
+  def redactHeaders(headers: Headers): Headers = headers.map {
+    case h if org.http4s.Headers.SensitiveHeaders(h.name) => Header.Raw(h.name, "<REDACTED>")
+    case h => h
   }
 }
 
@@ -270,7 +278,7 @@ sealed abstract case class Request(
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 
   override def toString: String = {
-    val newHeaders = headers.filter(_.is(Authorization)).filter(_.is(org.http4s.headers.Cookie))
+    val newHeaders = Message.redactHeaders(headers)
     s"""Request(method=$method, uri=$uri, headers=$newHeaders)"""
   }
 
@@ -385,7 +393,7 @@ final case class Response(
     copy(body = body, headers = headers, attributes = attributes)
 
   override def toString: String = {
-    val newHeaders = headers.filter(_.is(`Set-Cookie`))
+    val newHeaders = Message.redactHeaders(headers)
     s"""Response(status=${status.code}, headers=$newHeaders)"""
   }
 

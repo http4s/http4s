@@ -135,4 +135,10 @@ object Headers {
     "Trailer".ci,
     "Transfer-Encoding".ci
   )
+
+  val SensitiveHeaders = Set(
+    "Authorization".ci,
+    "Cookie".ci,
+    "Set-Cookie".ci,
+  )
 }
