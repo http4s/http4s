@@ -28,16 +28,16 @@ jobs:
   include:
     - &tests
       stage: Test
-      scala: 2.12.2-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
+      scala: 2.12.3-bin-typelevel-4
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/specialTest.sh
     - <<: *tests
-      scala: 2.12.2-bin-typelevel-4
+      scala: 2.12.3-bin-typelevel-4
       env: SCALAZ_VERSION=7.1.13
       script: $TRAVIS_BUILD_DIR/bin/test.sh
     - <<: *tests
       scala: 2.11.11-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/test.sh
     - <<: *tests
       scala: 2.11.11-bin-typelevel-4
@@ -45,7 +45,7 @@ jobs:
       script: $TRAVIS_BUILD_DIR/bin/test.sh
     - <<: *tests
       scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.13
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/test.sh
     - <<: *tests
       scala: 2.10.6
@@ -53,22 +53,22 @@ jobs:
       script: $TRAVIS_BUILD_DIR/bin/test.sh
 
     - stage: Publish Site
-      scala: 2.12.2-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
+      scala: 2.12.3-bin-typelevel-4
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
 
     - &publishSonatype
       stage: Publish Sonatype
-      scala: 2.12.2-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
+      scala: 2.12.3-bin-typelevel-4
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
     - <<: *publishSonatype
-      scala: 2.12.2-bin-typelevel-4
+      scala: 2.12.3-bin-typelevel-4
       env: SCALAZ_VERSION=7.1.13
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
     - <<: *publishSonatype
       scala: 2.11.11-bin-typelevel-4
-      env: SCALAZ_VERSION=7.2.13
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
     - <<: *publishSonatype
       scala: 2.11.11-bin-typelevel-4
@@ -76,7 +76,7 @@ jobs:
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
     - <<: *publishSonatype
       scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.13
+      env: SCALAZ_VERSION=7.2.14
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
     - <<: *publishSonatype
       scala: 2.10.6

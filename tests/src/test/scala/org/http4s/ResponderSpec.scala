@@ -22,7 +22,7 @@ class ResponderSpec extends Specification {
 
     "Replace content type" in {
       resp.contentType should be (None)
-      val c1 = resp.putHeaders(`Content-Length`(4))
+      val c1 = resp.putHeaders(`Content-Length`.unsafeFromLong(4))
         .withContentType(Some(`Content-Type`(MediaType.`text/plain`)))
         .putHeaders(Host("foo"))
 
@@ -48,7 +48,7 @@ class ResponderSpec extends Specification {
     }
 
     "Replace all headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
       val newHeaders = wHeader.replaceAllHeaders(Date(HttpDate.now))
@@ -57,7 +57,7 @@ class ResponderSpec extends Specification {
     }
 
     "Replace all headers II" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
       val newHeaders = wHeader.replaceAllHeaders(Headers(Date(HttpDate.now)))
@@ -66,7 +66,7 @@ class ResponderSpec extends Specification {
     }
 
     "Filter headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`(10), Host("foo"))
+      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
       val newHeaders = wHeader.filterHeaders(_.name != "Connection".ci)
@@ -74,15 +74,22 @@ class ResponderSpec extends Specification {
       newHeaders.headers.get(Connection) must beNone
     }
 
-    "Set cookie" in {
-      resp.addCookie("foo", "bar").headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
-      resp.addCookie(Cookie("foo", "bar")).headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
+    "Set cookie from tuple" in {
+      resp.addCookie("foo", "bar").cookies must_== List(org.http4s.Cookie("foo", "bar"))
+    }
+
+    "Set cookie from Cookie" in {
+      resp.addCookie(Cookie("foo", "bar")).cookies must_== List(org.http4s.Cookie("foo", "bar"))
+    }
+
+    "Set multiple cookies" in {
+      resp.addCookie(Cookie("foo", "bar")).addCookie(Cookie("baz", "quux")).cookies must_== List(org.http4s.Cookie("foo", "bar"), org.http4s.Cookie("baz", "quux"))
     }
 
     "Remove cookie" in {
       val cookie = Cookie("foo", "bar")
-      resp.removeCookie(cookie).headers.get(`Set-Cookie`) must
-        beSome(`Set-Cookie`(org.http4s.Cookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))))
+      resp.removeCookie(cookie).cookies must_== List(
+        org.http4s.Cookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L)))
     }
   }
 }

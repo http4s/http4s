@@ -126,6 +126,22 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       client.expect[String](Task.now(req)) must returnValue("hello")
     }
 
+    "status returns the status for a request" in {
+      client.status(req) must returnValue(Status.Ok)
+    }
+
+    "status returns the status for a request task" in {
+      client.status(Task.now(req)) must returnValue(Status.Ok)
+    }
+
+    "successful returns the success of the status for a request" in {
+      client.successful(req) must returnValue(true)
+    }
+
+    "successful returns the success of the status for a request task" in {
+      client.successful(Task.now(req)) must returnValue(true)
+    }
+
     "return an unexpected status when expect returns unsuccessful status" in {
       client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(-\/(UnexpectedStatus(Status.InternalServerError)))
     }
@@ -150,6 +166,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
     "streaming returns a stream" in {
       client.streaming(req)(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.unsafePerformSync must_== Vector("hello")
+    }
+
+    "streaming returns a stream from a requet task" in {
+      client.streaming(Task.delay(req))(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.unsafePerformSync must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {

@@ -169,7 +169,7 @@ trait ArbitraryInstances {
   implicit val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
       long <- arbitrary[Long] if long > 0L
-    } yield `Content-Length`(long) }
+    } yield `Content-Length`.unsafeFromLong(long) }
 
   implicit val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary { for {
@@ -347,7 +347,7 @@ trait ArbitraryInstances {
 
   val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
   val genUnreserved: Gen[Char] = oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
-  val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', ''', '(', ')', '*', '+', ',', ';', '='))
+  val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {

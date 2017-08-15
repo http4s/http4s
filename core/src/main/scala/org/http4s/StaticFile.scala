@@ -96,8 +96,9 @@ object StaticFile {
         }
       }
 
-      var hs: List[Header] = `Content-Length`(contentLength) :: contentType.toList
-      lastModified.foreach(lm => hs = `Last-Modified`(lm) :: hs)
+      val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
+               `Content-Length`.fromLong(contentLength).toList :::
+               contentType.toList
 
       val r = Response(
         headers = Headers(hs),
@@ -168,5 +169,5 @@ object StaticFile {
     await(outer)(identity)
   }
 
-  private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")
+  private[http4s] val staticFileKey = AttributeKey[File]
 }

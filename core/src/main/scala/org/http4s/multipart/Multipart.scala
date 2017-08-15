@@ -20,7 +20,7 @@ import scalaz.stream.text.utf8Encode
 import scodec.bits.{ BitVector, ByteVector }
 
 final case class Part(headers: Headers, body: EntityBody) {
-  def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
+  def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
 }
 
 object Part {

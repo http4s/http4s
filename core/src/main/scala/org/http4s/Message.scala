@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
+import org.log4s.getLogger
 import scalaz.Monoid
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -59,12 +60,17 @@ sealed trait Message extends MessageOps { self =>
     * @return a new message with the new body
     */
   def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
-    w.toEntity(b).map { entity =>
+    w.toEntity(b).flatMap { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`(l)::w.headers.toList
-        case None    => w.headers
+        case Some(l) => `Content-Length`.fromLong(l).fold(_ =>
+          Task.now {
+            Message.logger.warn(s"Attempt to provide a negative content length of $l")
+            w.headers.toList
+          },
+          cl => Task.now(cl :: w.headers.toList))
+        case None    => Task.now(w.headers)
       }
-      change(body = entity.body, headers = headers ++ hs)
+      hs.map(newHeaders => change(body = entity.body, headers = headers ++ newHeaders))
     }
   }
 
@@ -95,8 +101,9 @@ sealed trait Message extends MessageOps { self =>
 }
 
 object Message {
+  private[http4s] val logger = getLogger
   object Keys {
-    val TrailerHeaders = AttributeKey.http4s[Task[Headers]]("trailer-headers")
+    val TrailerHeaders = AttributeKey[Task[Headers]]
   }
 }
 
@@ -218,10 +225,10 @@ object Request {
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
-    val PathInfoCaret = AttributeKey.http4s[Int]("request.pathInfoCaret")
-    val PathTranslated = AttributeKey.http4s[File]("request.pathTranslated")
-    val ConnectionInfo = AttributeKey.http4s[Connection]("request.remote")
-    val ServerSoftware = AttributeKey.http4s[ServerSoftware]("request.serverSoftware")
+    val PathInfoCaret = AttributeKey[Int]
+    val PathTranslated = AttributeKey[File]
+    val ConnectionInfo = AttributeKey[Connection]
+    val ServerSoftware = AttributeKey[ServerSoftware]
   }
 }
 
@@ -297,6 +304,12 @@ final case class Response(
 
   override def toString: String =
     s"""Response(status=${status.code}, headers=$headers)"""
+
+  /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
+    * headers. Includes expired cookies, such as those that represent cookie
+    * deletion. */
+  def cookies: List[Cookie] =
+    `Set-Cookie`.from(headers).map(_.cookie)
 }
 
 object Response {
