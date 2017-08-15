@@ -695,10 +695,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -1005,8 +1005,9 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response
-while most of the functionality is found in <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> and <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/df1707216fcd71fab397897edd4b30fa2591dd28/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and
+Response while most of the functionality is found in <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> and
+<a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e739a5b0f7db9be663bfb04008d233abe5dc14bb/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1169,6 +1170,26 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       </span>
       
       
+    </li><li name="org.http4s.Message#withBodyStream" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="withBodyStream(body:org.http4s.EntityBody):Message.this.Self"></a><a id="withBodyStream(EntityBody):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withBodyStream(body:org.http4s.EntityBody):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withBodyStream</span><span class="params">(<span name="body">body: <a href="index.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>. Most use cases are better served by <a href="#withBody[T](b:T)(implicitw:org.http4s.EntityEncoder[T]):scalaz.concurrent.Task[Message.this.Self]" class="extmbr" name="org.http4s.Message#withBody">withBody</a>,
+which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> to maintain the headers.
+</p></div></div>
     </li></ol>
             </div>
 
@@ -1347,8 +1368,10 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <span class="name">charset</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present.
-Does not introspect the body for media types that define a charset internally.</p></div></div>
+      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present. Does
+not introspect the body for media types that define a charset
+internally.
+</p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -1625,7 +1648,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="name">isBodyPure</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       
-      <p class="shortcomment cmt">True if and only if the body is composed solely of Emits and Halt.</p><div class="fullcomment"><div class="comment cmt"><p>True if and only if the body is composed solely of Emits and Halt.  This
+      <p class="shortcomment cmt">True if and only if the body is composed solely of Emits and Halt.</p><div class="fullcomment"><div class="comment cmt"><p>True if and only if the body is composed solely of Emits and Halt. This
 indicates that the body can be re-run without side-effects.</p></div></div>
     </li><li name="org.http4s.Message#isChunked" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="isChunked:Boolean"></a>
@@ -1823,8 +1846,9 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="name">trailerHeaders</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
-task might not complete unless the entire body has been consumed.
+      <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616. The
+resulting task might not complete unless the entire body has been
+consumed.
 </p></div></div>
     </li><li name="org.http4s.Message#transformHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):Message.this.Self"></a><a id="transformHeaders((Headers)⇒Headers):Self"></a>
@@ -1978,6 +2002,23 @@ task might not complete unless the entire body has been consumed.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.Message#withEmptyBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withEmptyBody:Message.this.Self"></a><a id="withEmptyBody:Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withEmptyBody:Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withEmptyBody</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Set an empty entity body on this message, and remove all payload headers
+that make no sense with an empty body.</p>
     </li><li name="org.http4s.MessageOps#withTrailerHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withTrailerHeaders(trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]):MessageOps.this.Self"></a><a id="withTrailerHeaders(Task[Headers]):Self"></a>
       <span class="permalink">

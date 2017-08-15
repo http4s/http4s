@@ -695,10 +695,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -1005,7 +1005,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A collection of HTTP Headers</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/df1707216fcd71fab397897edd4b30fa2591dd28/core/src/main/scala/org/http4s/Headers.scala" target="_blank">Headers.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A collection of HTTP Headers</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e739a5b0f7db9be663bfb04008d233abe5dc14bb/core/src/main/scala/org/http4s/Headers.scala" target="_blank">Headers.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -2584,6 +2584,25 @@ The passed headers are assumed to contain no duplicate Singleton headers.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TraversableOnce → GenTraversableOnce</dd></dl></div>
+    </li><li name="org.http4s.Headers#removePayloadHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="removePayloadHeaders:org.http4s.Headers"></a><a id="removePayloadHeaders:Headers"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Headers.html#removePayloadHeaders:org.http4s.Headers" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">removePayloadHeaders</span><span class="result">: <a href="" class="extype" name="org.http4s.Headers">Headers</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Removes the <code>Content-Length</code>, <code>Content-Range</code>, <code>Trailer</code>, and
+<code>Transfer-Encoding</code> headers.</p><div class="fullcomment"><div class="comment cmt"><p>Removes the <code>Content-Length</code>, <code>Content-Range</code>, <code>Trailer</code>, and
+<code>Transfer-Encoding</code> headers.</p><p> https://tools.ietf.org/html/rfc7231#section-3.3
+</p></div></div>
     </li><li name="scala.collection.TraversableLike#repr" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="repr:Repr"></a><a id="repr:Headers"></a>
       <span class="permalink">
