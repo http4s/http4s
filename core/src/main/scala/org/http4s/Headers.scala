@@ -98,10 +98,10 @@ final class Headers private (headers: List[Header])
   }
 
   /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
-   *  `Transfer-Encoding` headers.
-   *
-   *  https://tools.ietf.org/html/rfc7231#section-3.3
-   */
+    * `Transfer-Encoding` headers.
+    *
+    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    */
   def removePayloadHeaders: Headers =
     filterNot(h => Headers.PayloadHeaderKeys(h.name))
 }
