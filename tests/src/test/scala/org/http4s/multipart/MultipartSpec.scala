@@ -33,6 +33,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
         encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData
         decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
         decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
+        extract name properly if it is present     $extractNameIfPresent
      """
 
   val url = Uri(
@@ -181,6 +182,11 @@ I am a big moose
     val result     = decoded.value.unsafeRun()
 
    result must beRight
+  }
+
+  def extractNameIfPresent = {
+    val part = Part(Headers(`Content-Disposition`("form-data",Map("name" -> "Rich Homie Quan"))), Stream.empty[Task, Byte])
+    part.name must beEqualTo(Some("Rich Homie Quan"))
   }
 
 

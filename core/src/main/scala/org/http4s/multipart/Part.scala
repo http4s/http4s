@@ -14,7 +14,7 @@ import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
 
 final case class Part(headers: Headers, body: Stream[Task, Byte]) {
-  def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
+  def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
 }
 
 object Part {
