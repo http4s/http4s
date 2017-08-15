@@ -108,6 +108,12 @@ final class Headers private (headers: List[Header])
     */
   def removePayloadHeaders: Headers =
     filterNot(h => Headers.PayloadHeaderKeys(h.name))
+
+  def redactSensitive(sensitiveHeaderNames: Set[CaseInsensitiveString] = Headers.SensitiveHeaders): Headers =
+    headers.map {
+      case h if sensitiveHeaderNames.contains(h.name) => Header.Raw(h.name, "<REDACTED>")
+      case h => h
+    }
 }
 
 object Headers {

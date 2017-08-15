@@ -123,11 +123,6 @@ object Message {
   object Keys {
     val TrailerHeaders = AttributeKey[Task[Headers]]
   }
-
-  def redactHeaders(headers: Headers): Headers = headers.map {
-    case h if org.http4s.Headers.SensitiveHeaders(h.name) => Header.Raw(h.name, "<REDACTED>")
-    case h => h
-  }
 }
 
 /** Representation of an incoming HTTP message
@@ -278,7 +273,7 @@ sealed abstract case class Request(
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 
   override def toString: String = {
-    val newHeaders = Message.redactHeaders(headers)
+    val newHeaders = headers.redactSensitive()
     s"""Request(method=$method, uri=$uri, headers=$newHeaders)"""
   }
 
@@ -393,7 +388,7 @@ final case class Response(
     copy(body = body, headers = headers, attributes = attributes)
 
   override def toString: String = {
-    val newHeaders = Message.redactHeaders(headers)
+    val newHeaders = headers.redactSensitive()
     s"""Response(status=${status.code}, headers=$newHeaders)"""
   }
 
