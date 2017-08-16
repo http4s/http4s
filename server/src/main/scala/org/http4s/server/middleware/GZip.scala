@@ -90,11 +90,7 @@ object GZip {
     h.await.flatMap(trailerStep(gen))
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] = {
-    // Temporary workaround to fix incorrect deflation of an empty stream in fs2
-    // See https://github.com/functional-streams-for-scala/fs2/pull/865
-    val extraBytes = if (gen.inputLength == 0) Array(3.toByte, 0.toByte) else Array[Byte]()
     Chunk.bytes(
-      extraBytes ++
         DatatypeConverter.parseHexBinary("%08x".format(gen.crc.getValue())).reverse ++
         DatatypeConverter.parseHexBinary("%08x".format(gen.inputLength % GZIP_LENGTH_MOD)).reverse)
   }
