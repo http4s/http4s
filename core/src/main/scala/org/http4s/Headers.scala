@@ -108,6 +108,12 @@ final class Headers private (headers: List[Header])
     */
   def removePayloadHeaders: Headers =
     filterNot(h => Headers.PayloadHeaderKeys(h.name))
+
+  def redactSensitive(redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+    headers.map {
+      case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
+      case h => h
+    }
 }
 
 object Headers {
@@ -134,5 +140,11 @@ object Headers {
     "Content-Range".ci,
     "Trailer".ci,
     "Transfer-Encoding".ci
+  )
+
+  val SensitiveHeaders = Set(
+    "Authorization".ci,
+    "Cookie".ci,
+    "Set-Cookie".ci
   )
 }
