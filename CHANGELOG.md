@@ -1,4 +1,4 @@
-# v0.16.0-RC1 (unreleased)
+# v0.16.0-RC1 (2018-08-16)
 * Remove laziness from `ArbitraryInstances`
 * Support an arbitrary predicate for CORS allowed origins
 * Support `Access-Control-Expose-Headers` header for CORS
