@@ -26,7 +26,7 @@ object FileService {
     */
   final case class Config(systemPath: String,
                           pathPrefix: String = "",
-                          pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
+                          pathCollector: (File, Config, Request) => Task[Option[Response]] = defaultFileCollector,
                           bufferSize: Int = 50*1024,
                           executor: ExecutorService = DefaultPool,
                           cacheStrategy: CacheStrategy = NoopCacheStrategy)
@@ -47,8 +47,8 @@ object FileService {
   /* Returns responses for static files.
    * Directories are forbidden.
    */
-  private def filesOnly(file: File, config: Config, req: Request): Task[Option[Response]] = Task.now {
-    if (file.isDirectory()) Some(Response(Status.Unauthorized))
+  def defaultFileCollector(file: File, config: Config, req: Request): Task[Option[Response]] = Task.now {
+    if (file.isDirectory) StaticFile.fromFile(new File(file, "index.html"), Some(req))
     else if (!file.isFile) None
     else getPartialContentFile(file, config, req) orElse
       StaticFile.fromFile(file, config.bufferSize, Some(req))(config.executor)
