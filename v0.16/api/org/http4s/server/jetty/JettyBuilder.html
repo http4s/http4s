@@ -179,7 +179,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/899035621dddfa63e972587a1d27ec8b75dc834f/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/9b3e88d05db4fd98b91c6eebce2f12400203d18f/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -982,6 +982,25 @@ reference to the server when it has started.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../SSLContextSupport.html" class="extype" name="org.http4s.server.SSLContextSupport">SSLContextSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#withServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler):org.http4s.server.jetty.JettyBuilder"></a><a id="withServiceErrorHandler(ServiceErrorHandler):JettyBuilder"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler):org.http4s.server.jetty.JettyBuilder" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withServiceErrorHandler</span><span class="params">(<span name="serviceErrorHandler">serviceErrorHandler: <a href="../index.html#ServiceErrorHandler=org.http4s.Request=&gt;PartialFunction[Throwable,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the handler for errors thrown invoking the service.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the handler for errors thrown invoking the service.  Is not
+guaranteed to be invoked on errors on the server backend, such as
+parsing a request or handling a context timeout.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#withServiceExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withServiceExecutor(serviceExecutor:java.util.concurrent.ExecutorService):org.http4s.server.jetty.JettyBuilder"></a><a id="withServiceExecutor(ExecutorService):JettyBuilder"></a>
       <span class="permalink">
