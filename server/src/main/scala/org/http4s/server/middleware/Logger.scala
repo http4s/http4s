@@ -5,6 +5,7 @@ package middleware
 import fs2._
 import cats.implicits._
 import fs2.interop.cats._
+import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
 import org.log4s.{Logger => SLogger}
 
@@ -12,7 +13,11 @@ import org.log4s.{Logger => SLogger}
   * Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-  def apply(logHeaders: Boolean, logBody: Boolean)(httpService: HttpService)(implicit strategy: Strategy): HttpService =
+  def apply(
+             logHeaders: Boolean,
+             logBody: Boolean,
+             redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+           )(httpService: HttpService)(implicit strategy: Strategy): HttpService =
     ResponseLogger(logHeaders, logBody)(
       RequestLogger(logHeaders, logBody)(
         httpService
@@ -21,14 +26,19 @@ object Logger {
 
 
   def logMessage[A <: Message](message: A)
-                              (logHeaders: Boolean, logBody: Boolean)
+                              (logHeaders: Boolean,
+                               logBody: Boolean,
+                               redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+                              )
                               (logger: SLogger)
                               (implicit strategy: Strategy): Task[Unit] = {
 
     val charset = message.charset
     val binary = message.contentType.exists(_.mediaType.binary)
 
-    val headers = if (logHeaders) message.headers.toList.mkString("Headers(", ", ", ")") else ""
+    val headers = if (logHeaders) {
+      message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
+    } else ""
 
     val bodyStream = if (logBody && !binary) {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
