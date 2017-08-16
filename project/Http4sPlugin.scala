@@ -91,7 +91,7 @@ object Http4sPlugin extends AutoPlugin {
   }
 
   val macroParadiseSetting =
-    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.patch)
+    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch)
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
@@ -106,7 +106,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.7.3"
   lazy val fs2Cats                          = "co.fs2"                 %% "fs2-cats"                  % "0.3.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.9.5"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.9.7"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.1.0"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.2.5"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
@@ -123,14 +123,14 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.3.6"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
-  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.3"
+  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.4"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
-  lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.4"
+  lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "3.8.6"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
