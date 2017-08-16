@@ -5,6 +5,7 @@ package middleware
 import fs2._
 import fs2.interop.cats._
 import cats.implicits._
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 
 /**
@@ -13,12 +14,16 @@ import org.log4s.getLogger
 object ResponseLogger {
   private[this] val logger = getLogger
 
-  def apply(logHeaders: Boolean, logBody: Boolean)(service: HttpService)(implicit strategy: Strategy): HttpService =
+  def apply(
+             logHeaders: Boolean,
+             logBody: Boolean,
+             redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+           )(service: HttpService)(implicit strategy: Strategy): HttpService =
     Service.lift { req => service(req).flatMap {
         case Pass => Pass.now
         case response: Response =>
           if (!logBody) {
-            Logger.logMessage(response)(logHeaders, logBody)(logger)(strategy) >> Task(response)
+            Logger.logMessage(response)(logHeaders, logBody, redactHeadersWhen)(logger)(strategy) >> Task(response)
           } else {
             fs2.async.unboundedQueue[Task, Byte].map { queue =>
               val newBody = Stream.eval(queue.size.get)
@@ -28,7 +33,7 @@ object ResponseLogger {
                 body = response.body
                   .observe(queue.enqueue)
                   .onFinalize {
-                    Logger.logMessage(response.copy(body = newBody))(logHeaders, logBody)(logger)(strategy)
+                    Logger.logMessage(response.copy(body = newBody))(logHeaders, logBody, redactHeadersWhen)(logger)(strategy)
                   }
               )
             }
