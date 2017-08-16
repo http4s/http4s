@@ -9,7 +9,3 @@ import org.http4s._
 final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.create) {
   def headers: Headers = Headers(`Content-Type`(MediaType.multipart("form-data", Some(boundary.value))))
 }
-
-
-
-

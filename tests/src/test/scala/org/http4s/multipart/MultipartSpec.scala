@@ -189,7 +189,6 @@ I am a big moose
     part.name must beEqualTo(Some("Rich Homie Quan"))
   }
 
-
   private def fileToEntity(f: File): Entity = {
     val bitVector = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
     Entity(body = Stream.emits(ByteVector(bitVector.toBase64.getBytes).toSeq))

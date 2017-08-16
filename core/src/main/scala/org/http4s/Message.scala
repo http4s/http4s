@@ -1,21 +1,24 @@
 package org.http4s
 
 import java.io.File
-import java.net.{InetSocketAddress, InetAddress}
+import java.net.{InetAddress, InetSocketAddress}
 
 import cats._
 import cats.implicits._
 import fs2._
 import fs2.interop.cats._
 import fs2.text._
+
 import org.http4s.headers._
 import org.http4s.util.nonEmptyList._
 import org.http4s.server.ServerSoftware
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 
 /**
- * Represents a HTTP Message. The interesting subclasses are Request and Response
- * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
+ * Represents a HTTP Message. The interesting subclasses are Request and
+ * Response while most of the functionality is found in [[MessageSyntax]] and
+ * [[ResponseOps]]
  * @see [[MessageSyntax]], [[ResponseOps]]
  */
 sealed trait Message extends MessageOps { self =>
@@ -37,7 +40,7 @@ sealed trait Message extends MessageOps { self =>
     }
   }
 
-  /** True if and only if the body is composed solely of Emits and Halt.  This
+  /** True if and only if the body is composed solely of Emits and Halt. This
     * indicates that the body can be re-run without side-effects. */
   // TODO fs2 port need to replace unemit
   /*
@@ -79,20 +82,34 @@ sealed trait Message extends MessageOps { self =>
     }
   }
 
+  /** Sets the entity body without affecting headers such as `Transfer-Encoding`
+    * or `Content-Length`. Most use cases are better served by [[withBody]],
+    * which uses an [[EntityEncoder]] to maintain the headers.
+    */
+  def withBodyStream(body: EntityBody): Self
+
+  /** Set an empty entity body on this message, and remove all payload headers
+    * that make no sense with an empty body.
+    */
+  def withEmptyBody: Self =
+    withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
+
   def contentLength: Option[Long] = headers.get(`Content-Length`).map(_.length)
 
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
-  /** Returns the charset parameter of the `Content-Type` header, if present.
-    * Does not introspect the body for media types that define a charset internally. */
+  /** Returns the charset parameter of the `Content-Type` header, if present. Does
+    * not introspect the body for media types that define a charset
+    * internally.
+    */
   def charset: Option[Charset] = contentType.flatMap(_.charset)
 
   def isChunked: Boolean = headers.get(`Transfer-Encoding`).exists(_.values.contains(TransferCoding.chunked))
 
-  /**
-   * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
-   * task might not complete unless the entire body has been consumed.
-   */
+  /** The trailer headers, as specified in Section 3.6.1 of RFC 2616. The
+    * resulting task might not complete unless the entire body has been
+    * consumed.
+    */
   def trailerHeaders: Task[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(Task.now(Headers.empty))
 
   /** Decode the [[Message]] to the specified type
@@ -175,11 +192,13 @@ sealed abstract case class Request(
   def withUri(uri: Uri) = requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
   def withHttpVersion(httpVersion: HttpVersion) = requestCopy(httpVersion = httpVersion)
   def withHeaders(headers: Headers) = requestCopy(headers = headers)
-  def withBody(body: EntityBody) = requestCopy(body = body)
   def withAttributes(attributes: AttributeMap) = requestCopy(attributes = attributes)
 
+  def withBodyStream(body: EntityBody): Request =
+    requestCopy(body = body)
+
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
-    withBody(body).withHeaders(headers).withAttributes(attributes)
+    requestCopy(body = body, headers = headers, attributes = attributes)
 
   lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
 
@@ -196,34 +215,33 @@ sealed abstract case class Request(
   def queryString: String = uri.query.renderString
 
   /**
-   * Representation of the query string as a map
-   *
-   * In case a parameter is available in query string but no value is there the
-   * sequence will be empty. If the value is empty the the sequence contains an
-   * empty string.
-   *
-   * =====Examples=====
-   * <table>
-   * <tr><th>Query String</th><th>Map</th></tr>
-   * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
-   * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
-   * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
-   * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
-   * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
-   * </table>
-   *
-   * The query string is lazily parsed. If an error occurs during parsing
-   * an empty `Map` is returned.
-   */
+    * Representation of the query string as a map
+    *
+    * In case a parameter is available in query string but no value is there the
+    * sequence will be empty. If the value is empty the the sequence contains an
+    * empty string.
+    *
+    * =====Examples=====
+    * <table>
+    * <tr><th>Query String</th><th>Map</th></tr>
+    * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
+    * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
+    * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
+    * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
+    * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+    * </table>
+    *
+    * The query string is lazily parsed. If an error occurs during parsing
+    * an empty `Map` is returned.
+    */
   def multiParams: Map[String, Seq[String]] = uri.multiParams
 
-  /**
-   * View of the head elements of the URI parameters in query string.
-   *
-   * In case a parameter has no value the map returns an empty string.
-   *
-   * @see multiParams
-   */
+  /** View of the head elements of the URI parameters in query string.
+    *
+    * In case a parameter has no value the map returns an empty string.
+    *
+    * @see multiParams
+    */
   def params: Map[String, String] = uri.params
 
   private lazy val connectionInfo = attributes.get(Keys.ConnectionInfo)
@@ -258,8 +276,10 @@ sealed abstract case class Request(
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).flatten
 
-  override def toString: String =
-    s"""Request(method=$method, uri=$uri, headers=${headers})"""
+  override def toString: String = {
+    val newHeaders = headers.redactSensitive()
+    s"""Request(method=$method, uri=$uri, headers=$newHeaders)"""
+  }
 
   // A request is idempotent if and only if its method is idempotent and its body
   // is pure.  If true, this request can be submitted multipe times.
@@ -300,10 +320,9 @@ object Request {
   }
 }
 
-/**
- * Represents that a service either returns a [[Response]] or a [[Pass]] to fall through
- * to another service.
- */
+/** Represents that a service either returns a [[Response]] or a [[Pass]] to
+  * fall through to another service.
+  */
 sealed trait MaybeResponse {
   def cata[A](f: Response => A, a: => A): A =
     this match {
@@ -348,13 +367,15 @@ case object Pass extends MaybeResponse {
 }
 
 /** Representation of the HTTP response to send back to the client
- *
- * @param status [[Status]] code and message
- * @param headers [[Headers]] containing all response headers
- * @param body scalaz.stream.Process[Task,Chunk] representing the possible body of the response
- * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
- *                   backend for additional processing such as java.io.File object
- */
+  *
+  * @param status [[Status]] code and message
+  * @param headers [[Headers]] containing all response headers
+  * @param body scalaz.stream.Process[Task,Chunk] representing the possible body
+  * of the response
+  * @param attributes [[AttributeMap]] containing additional parameters which
+  * may be used by the http4s backend for additional processing such as
+  * java.io.File object
+  */
 final case class Response(
   status: Status = Status.Ok,
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
@@ -367,11 +388,17 @@ final case class Response(
   override def withStatus(status: Status): Self =
     copy(status = status)
 
+  def withBodyStream(body: EntityBody): Response =
+    copy(body = body)
+
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 
-  override def toString: String =
-    s"""Response(status=${status.code}, headers=$headers)"""
+  override def toString: String = {
+    val newHeaders = headers.redactSensitive()
+    s"""Response(status=${status.code}, headers=$newHeaders)"""
+  }
+
 
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie

@@ -37,7 +37,7 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request(uri = uri("/post"), method = POST).withBody(body)
+      val req = Request(uri = uri("/post"), method = POST).withBodyStream(body)
       val res = responseLoggerService.orNotFound(req)
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)
@@ -53,7 +53,7 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request(uri = uri("/post"), method = POST).withBody(body)
+      val req = Request(uri = uri("/post"), method = POST).withBodyStream(body)
       val res = requestLoggerService.orNotFound(req)
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)
@@ -69,7 +69,7 @@ class LoggerSpec extends Http4sSpec {
     }
 
     "not effect a Post" in {
-      val req = Request(uri = uri("/post"), method = POST).withBody(body)
+      val req = Request(uri = uri("/post"), method = POST).withBodyStream(body)
       val res = loggerService.orNotFound(req)
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)

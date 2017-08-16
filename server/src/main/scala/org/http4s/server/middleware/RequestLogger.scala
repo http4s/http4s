@@ -25,10 +25,10 @@ object RequestLogger {
           val newBody = Stream.eval(queue.size.get)
             .flatMap(size => queue.dequeue.take(size.toLong))
 
-          val changedRequest = req.withBody(
+          val changedRequest = req.withBodyStream(
             req.body
               .observe(queue.enqueue)
-              .onFinalize(Logger.logMessage(req.withBody(newBody))(logHeaders, logBody)(logger)(strategy))
+              .onFinalize(Logger.logMessage(req.withBodyStream(newBody))(logHeaders, logBody)(logger)(strategy))
           )
 
           service(changedRequest)

@@ -217,7 +217,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     def mockServe(req: Request)(route: Request => Task[Response]) = {
-      route(req.withBody(chunk(Chunk.bytes(binData))))
+      route(req.withBodyStream(chunk(Chunk.bytes(binData))))
     }
 
     "Write a text file from a byte string" in {

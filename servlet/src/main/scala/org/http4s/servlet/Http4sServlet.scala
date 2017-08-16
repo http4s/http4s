@@ -3,7 +3,7 @@ package servlet
 
 import java.net.InetSocketAddress
 import javax.servlet._
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 
 import cats.implicits._
 import fs2.interop.cats._
@@ -29,6 +29,11 @@ class Http4sServlet(service: HttpService,
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
+
+  object ServletRequestKeys {
+    val HttpSession: AttributeKey[Option[HttpSession]] =
+      AttributeKey[Option[HttpSession]]
+  }
 
   override def init(config: ServletConfig): Unit = {
     val servletContext = config.getServletContext
@@ -154,7 +159,8 @@ class Http4sServlet(service: HttpService,
           InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
           req.isSecure
         )),
-        Request.Keys.ServerSoftware(serverSoftware)
+        Request.Keys.ServerSoftware(serverSoftware),
+        ServletRequestKeys.HttpSession(Option(req.getSession(false)))
       )
     )
 

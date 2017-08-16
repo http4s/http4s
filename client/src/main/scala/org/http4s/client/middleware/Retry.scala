@@ -2,11 +2,12 @@ package org.http4s
 package client
 package middleware
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{pow, min, random}
 import org.http4s.Status._
 import org.log4s.getLogger
-import fs2.Task
+import fs2.{Scheduler, Strategy, Task}
 
 import scala.Either
 import scala.Right
@@ -25,7 +26,9 @@ object Retry {
     GatewayTimeout
   )
 
-  def apply(backoff: Int => Option[FiniteDuration])(client: Client): Client = {
+  def apply(backoff: Int => Option[FiniteDuration])(client: Client)(implicit ec: ExecutionContext, scheduler: Scheduler): Client = {
+    implicit val s: Strategy = Strategy.fromExecutionContext(ec)
+
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
@@ -54,10 +57,9 @@ object Retry {
     }
 
     def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] = {
-        prepareLoop(req.withBody(EmptyBody), attempts + 1)
-    }
       // TODO honor Retry-After header
-      // Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1)) }
+      prepareLoop(req.withEmptyBody, attempts + 1).schedule(duration)
+    }
 
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }
