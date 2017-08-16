@@ -27,7 +27,7 @@ object Http4sPlugin extends AutoPlugin {
     releaseVersion := { ver =>
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
     },
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.2-bin-typelevel-4"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3-bin-typelevel-4"),
     scalaOrganization := {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n >= 11 => "org.typelevel"
