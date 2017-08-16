@@ -131,7 +131,7 @@ anything.  The right hand side of the request must return a
   case _ =&gt;
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@448d7c4)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@7f9156dd)
 </code></pre>
 
 <h2 id="testing-the-service">Testing the Service</h2>
@@ -144,7 +144,7 @@ and experiment directly in the REPL.</p>
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
 
 scala&gt; val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.MaybeResponse] = scalaz.concurrent.Task@66d0c65a
+task: scalaz.concurrent.Task[org.http4s.MaybeResponse] = scalaz.concurrent.Task@6ce2480b
 </code></pre>
 
 <p>Where is our <code>Response</code>?  It hasn&rsquo;t been created yet.  We wrapped it
@@ -176,7 +176,7 @@ generating <code>Task[Response]</code>s.</p>
 applying a status code:</p>
 
 <pre><code class="language-scala">scala&gt; val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@217bdbb3
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@2d05c7e0
 
 scala&gt; val ok = okTask.unsafePerformSync
 ok: org.http4s.Response = Response(status=200, headers=Headers(Content-Length: 0))
@@ -244,11 +244,8 @@ res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 
 <p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
 
-<pre><code class="language-scala">scala&gt; import java.time.Instant
-import java.time.Instant
-
-scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).unsafePerformSync.headers
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 16 Aug 2017 12:54:59 GMT; Secure; HttpOnly)
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafePerformSync.headers
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 16 Aug 2017 14:24:47 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -288,7 +285,7 @@ res9: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: a
 http4s prevents such nonsense at compile time:</p>
 
 <pre><code class="language-scala">scala&gt; NoContent(&quot;does not compile&quot;)
-&lt;console&gt;:25: error: no arguments allowed for nullary method apply: ()scalaz.concurrent.Task[org.http4s.Response] in trait EmptyResponseGenerator
+&lt;console&gt;:24: error: no arguments allowed for nullary method apply: ()scalaz.concurrent.Task[org.http4s.Response] in trait EmptyResponseGenerator
        NoContent(&quot;does not compile&quot;)
                  ^
 </code></pre>
@@ -312,8 +309,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
      |   println(&quot;I run when the future is constructed.&quot;)
      |   &quot;Greetings from the future!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7946df78
 I run when the future is constructed.
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@59ff9eba
 
 scala&gt; task.unsafePerformSync
 res11: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 26))
@@ -326,7 +323,7 @@ of course prefer to operate in [Task]s:</p>
      |   println(&quot;I run when the Task is run.&quot;)
      |   &quot;Mission accomplished!&quot;
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@374a1c94
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@133b11d7
 
 scala&gt; task.unsafePerformSync
 I run when the Task is run.
@@ -353,7 +350,7 @@ for one second:</p>
   implicit def defaultScheduler = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
   scalaz.stream.time.awakeEvery(100.millis).map(_.toString).take(10)
 }
-// drip: scalaz.stream.Process[scalaz.concurrent.Task,String] = Append(Halt(End),Vector(scalaz.stream.Process$Append$$Lambda$6840/443165679@4757c002))
+// drip: scalaz.stream.Process[scalaz.concurrent.Task,String] = Append(Halt(End),Vector(scalaz.stream.Process$Append$$Lambda$6846/433772511@42984219))
 </code></pre>
 
 <p>We can see it for ourselves in the REPL:</p>
@@ -385,7 +382,7 @@ other side the path. Naturally, <code>_</code> is a valid matcher too, so any ca
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ _ -&gt; Root / &quot;api&quot; =&gt; Forbidden()
      | }
-res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@793e08e3)
+res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@ea97680)
 </code></pre>
 
 <p>To also block all subcalls <code>/api/...</code>, you&rsquo;ll need <code>/:</code>, which is right
@@ -394,7 +391,7 @@ associative, and matches everything after, and not just the next element:</p>
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ _ -&gt; &quot;api&quot; /: _ =&gt; Forbidden()
      | }
-res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@cb7f661)
+res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@57fc4c7c)
 </code></pre>
 
 <p>For matching more than one <code>Method</code>, there&rsquo;s <code>|</code>:</p>
@@ -402,7 +399,7 @@ res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ (GET | POST) -&gt; Root / &quot;api&quot;  =&gt; ???
      | }
-res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@3d3396ce)
+res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@73914f4a)
 </code></pre>
 
 <p>Honorable mention: <code>~</code>, for matching file extensions.</p>
@@ -410,7 +407,7 @@ res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
      | }
-res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@3ed08e69)
+res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@4893db8c)
 </code></pre>
 
 <h3 id="handling-path-parameters">Handling path parameters</h3>
@@ -429,7 +426,7 @@ val usersService = HttpService {
   case request @ GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
     Ok(getUserName(userId))
 }
-// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@7e0da4bc)
+// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@69aca970)
 </code></pre>
 
 <p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
@@ -465,7 +462,7 @@ val dailyWeatherService = HttpService {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
     Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
 }
-// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@862db0f)
+// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@3eab4d)
 
 println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService).unsafePerformSync)
 // Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
@@ -494,7 +491,7 @@ object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;c
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@72cc38b6
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@3af9362d
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
@@ -506,7 +503,7 @@ val averageTemperatureService = HttpService {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
 }
-// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6695/812724765@7d021537)
+// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6699/1322195854@779ee01c)
 </code></pre>
 
           <footer>
