@@ -211,12 +211,6 @@ class EntityBodyWriterSpec extends Http4sSpec {
       clean must_== true
     }
 
-    // Some tests for the raw unwinding body without HTTP encoding.
-    "write a deflated stream" in {
-      val p = eval(Task.delay(messageBuffer)).flatMap(chunk) through deflate()
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
-    }
-
     val resource = (bracket(Task.delay("foo"))({ str =>
       val it = str.iterator
       emit {
@@ -227,11 +221,6 @@ class EntityBodyWriterSpec extends Http4sSpec {
 
     "write a resource" in {
       val p = resource
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
-    }
-
-    "write a deflated resource" in {
-      val p = resource through deflate()
       p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
     }
 
