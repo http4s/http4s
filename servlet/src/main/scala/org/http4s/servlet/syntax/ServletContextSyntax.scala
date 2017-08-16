@@ -4,7 +4,7 @@ package syntax
 
 import javax.servlet.{ServletRegistration, ServletContext}
 
-import org.http4s.server.AsyncTimeoutSupport
+import org.http4s.server.{AsyncTimeoutSupport, DefaultServiceErrorHandler}
 import org.http4s.util.threads.DefaultPool
 
 import scalaz.concurrent.Strategy
@@ -20,7 +20,8 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       threadPool = DefaultPool,
-      servletIo = servletIo
+      servletIo = servletIo,
+      serviceErrorHandler = DefaultServiceErrorHandler
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)

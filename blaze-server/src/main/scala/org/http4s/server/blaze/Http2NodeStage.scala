@@ -35,7 +35,8 @@ private class Http2NodeStage(streamId: Int,
                      timeout: Duration,
                      executor: ExecutorService,
                      attributes: AttributeMap,
-                     service: HttpService) extends TailStage[NodeMsg.Http2Msg]
+                     service: HttpService,
+                     serviceErrorHandler: ServiceErrorHandler) extends TailStage[NodeMsg.Http2Msg]
 {
 
   import Http2StageTools._
@@ -201,15 +202,16 @@ private class Http2NodeStage(streamId: Int,
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      Task.fork(service(req))(executor).unsafePerformAsync {
-        case \/-(resp) => renderResponse(req, resp)
-        case -\/(t) =>
-          val resp = Response(InternalServerError)
-                       .withBody("500 Internal Service Error\n" + t.getMessage)
-                       .unsafePerformSync
-
-          renderResponse(req, resp)
-      }
+      Task.fork(
+        try service(req).handleWith(serviceErrorHandler(req))
+        catch serviceErrorHandler(req)
+      )(executor)
+        .unsafePerformAsync {
+          case \/-(resp) => renderResponse(req, resp)
+          case -\/(t) =>
+            val resp = Response(InternalServerError, req.httpVersion)
+            renderResponse(req, resp)
+        }
     }
   }
 

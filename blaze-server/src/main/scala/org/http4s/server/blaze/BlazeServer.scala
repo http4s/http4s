@@ -36,7 +36,8 @@ class BlazeBuilder(
   isHttp2Enabled: Boolean,
   maxRequestLineLen: Int,
   maxHeadersLen: Int,
-  serviceMounts: Vector[ServiceMount]
+  serviceMounts: Vector[ServiceMount],
+  serviceErrorHandler: ServiceErrorHandler
 )
   extends ServerBuilder
   with IdleTimeoutSupport
@@ -59,8 +60,9 @@ class BlazeBuilder(
                     http2Support: Boolean = isHttp2Enabled,
                maxRequestLineLen: Int = maxRequestLineLen,
                    maxHeadersLen: Int = maxHeadersLen,
-                   serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
+                   serviceMounts: Vector[ServiceMount] = serviceMounts,
+             serviceErrorHandler: ServiceErrorHandler = serviceErrorHandler): BlazeBuilder =
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts, serviceErrorHandler)
 
   /** Configure HTTP parser length limits
     *
@@ -121,6 +123,8 @@ class BlazeBuilder(
     copy(serviceMounts = serviceMounts :+ ServiceMount(prefixedService, prefix))
   }
 
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): BlazeBuilder =
+    copy(serviceErrorHandler = serviceErrorHandler)
 
   def start: Task[Server] = Task.delay {
     val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service }: _*)
@@ -144,10 +148,10 @@ class BlazeBuilder(
         }
 
       def http1Stage(secure: Boolean) =
-        Http1ServerStage(aggregateService, requestAttributes(secure = secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen)
+        Http1ServerStage(aggregateService, requestAttributes(secure = secure), serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen, serviceErrorHandler)
 
       def http2Stage(engine: SSLEngine) =
-        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), serviceExecutor)
+        ProtocolSelector(engine, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttributes(secure = true), serviceExecutor, serviceErrorHandler)
 
       def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
         if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
@@ -253,7 +257,8 @@ object BlazeBuilder extends BlazeBuilder(
   isHttp2Enabled = false,
   maxRequestLineLen = 4*1024,
   maxHeadersLen = 40*1024,
-  serviceMounts = Vector.empty
+  serviceMounts = Vector.empty,
+  serviceErrorHandler = DefaultServiceErrorHandler
 )
 
 private final case class ServiceMount(service: HttpService, prefix: String)

@@ -40,7 +40,7 @@ class Http1ServerStageSpec extends Http4sSpec {
 
   def runRequest(req: Seq[String], service: HttpService, maxReqLine: Int = 4*1024, maxHeaders: Int = 16*1024): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = Http1ServerStage(service, AttributeMap.empty, testPool, true, maxReqLine, maxHeaders)
+    val httpStage = Http1ServerStage(service, AttributeMap.empty, testPool, true, maxReqLine, maxHeaders, DefaultServiceErrorHandler)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
@@ -118,6 +118,13 @@ class Http1ServerStageSpec extends Http4sSpec {
       val (s,c,_) = Await.result(runError(path), 10.seconds)
       s must_== UnprocessableEntity
       c must_== false
+    }
+
+    "Handle parse error" in {
+      val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
+      val (s,c,_) = Await.result(runError(path), 10.seconds)
+      s must_== BadRequest
+      c must_== true
     }
   }
 
