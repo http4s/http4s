@@ -9,11 +9,19 @@ import org.http4s.parser.HttpHeaderParser
 import scala.concurrent.duration.FiniteDuration
 
 object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Singleton {
-  // Define the renderer locally. we may not want to render to seconds in all cases
-  implicit val finiteDurationRenderer: Renderer[FiniteDuration] = new Renderer[FiniteDuration] {
-    override def render(writer: Writer, d: FiniteDuration): writer.type =
-      writer << d.toSeconds.toString
-  }
+  private class RetryAfterImpl(retry: Either[HttpDate, Long]) extends `Retry-After`(retry)
+
+  def apply(retry: HttpDate): `Retry-After` = new RetryAfterImpl(Left(retry))
+
+  def fromLong(retry: Long): ParseResult[`Retry-After`] =
+    if (retry >= 0) ParseResult.success(new RetryAfterImpl(Right(retry)))
+    else ParseResult.fail("Invalid retry value", s"Retry param $retry must be more or equal than 0 seconds")
+
+  def unsafeFromLong(retry: Long): `Retry-After` =
+    fromLong(retry).fold(throw _, identity)
+
+  def unsafeFromDuration(retry: FiniteDuration): `Retry-After` =
+    fromLong(retry.toSeconds).fold(throw _, identity)
 
   override def parse(s: String): ParseResult[`Retry-After`] =
     HttpHeaderParser.RETRY_AFTER(s)
@@ -26,7 +34,7 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
   *
   * @param retry Either the date of expiration or seconds until expiration
   */
-final case class `Retry-After`(retry: Either[Instant, FiniteDuration]) extends Header.Parsed {
+sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends Header.Parsed {
   import `Retry-After`._
 
   val key = `Retry-After`

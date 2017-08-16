@@ -81,15 +81,15 @@ private[parser] trait SimpleHeaders {
   def EXPIRES(value: String): ParseResult[Expires] = new Http4sHeaderParser[Expires](value) {
     def entry = rule {
       HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
-      Digit1 ~ EOL ~> ((t: Int) => Expires(Instant.ofEpochMilli(t.toLong))) | // Used for bogus http servers returning 0
-      NegDigit1 ~ EOL ~> ((_: Int) => Expires(Instant.ofEpochMilli(0.toLong))) // Used for bogus http servers returning -1
+      Digit1 ~ EOL ~> ((t: Int) => Expires(org.http4s.HttpDate.unsafeFromEpochSecond(t.toLong / 1000L))) | // Used for bogus http servers returning 0
+      NegDigit1 ~ EOL ~> ((_: Int) => Expires(org.http4s.HttpDate.Epoch)) // Used for bogus http servers returning -1
     }
   }.parse
 
   def RETRY_AFTER(value: String): ParseResult[`Retry-After`] = new Http4sHeaderParser[`Retry-After`](value) {
     def entry = rule {
-      HttpDate ~ EOL ~> ((t: Instant) => `Retry-After`(Left(t))) | // Date value
-      Digits ~ EOL ~> ((t: String) => `Retry-After`(Right(FiniteDuration(t.toLong, SECONDS))))
+      HttpDate ~ EOL ~> ((t: org.http4s.HttpDate) => `Retry-After`(t)) | // Date value
+      Digits ~ EOL ~> ((t: String) => `Retry-After`.unsafeFromLong(t.toLong))
     }
   }.parse
 

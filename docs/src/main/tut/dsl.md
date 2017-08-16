@@ -161,9 +161,7 @@ Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafePerformSync.headers
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-import java.time.Instant
-
-Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafePerformSync.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafePerformSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value

@@ -8,10 +8,10 @@ import java.nio.channels.{CompletionHandler, AsynchronousFileChannel}
 import java.util.concurrent.ExecutorService
 import java.time.Instant
 
-import scalaz.stream.Cause.{End, Terminated}
-import scalaz.{\/-, -\/}
+import scalaz._, Scalaz._
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.io
+import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.Process
 import Process._
 
@@ -39,17 +39,14 @@ object StaticFile {
 
   def fromURL(url: URL, req: Option[Request] = None)
              (implicit es: ExecutorService = DefaultPool): Option[Response] = {
-    val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified())
-    val expired = req
-      .flatMap(_.headers.get(`If-Modified-Since`))
-      .map(_.date.compareTo(lastmod) < 0)
-      .getOrElse(true)
+    val lastmod = HttpDate.fromEpochSecond(url.openConnection.getLastModified / 1000).toOption
+    val ifModifiedSince = req.flatMap(_.headers.get(`If-Modified-Since`))
+    val expired = (ifModifiedSince |@| lastmod)(_.date < _).getOrElse(true)
 
     if (expired) {
-      val mime    = MediaType.forExtension(url.getPath.split('.').last)
-      val headers = Headers.apply(
-        mime.fold(List[Header](`Last-Modified`(lastmod)))
-          (`Content-Type`(_)::`Last-Modified`(lastmod)::Nil))
+      val lastModHeader: List[Header] = lastmod.map(`Last-Modified`(_)).toList
+      val mime = MediaType.forExtension(url.getPath.split('.').last)
+      val headers = Headers(mime.fold(lastModHeader)(`Content-Type`(_) :: lastModHeader))
 
       Some(Response(
         headers = headers,
@@ -72,14 +69,15 @@ object StaticFile {
 
     require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
-    val lastModified = Instant.ofEpochMilli(f.lastModified())
+    val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
     // See if we need to actually resend the file
     val notModified = for {
       r   <- req
       h   <- r.headers.get(`If-Modified-Since`)
-      exp  = h.date.compareTo(lastModified) < 0
-      _    = logger.trace(s"Expired: ${exp}. Request age: ${h.date}, Modified: $lastModified")
+      lm  <- lastModified
+      exp  = h.date.compareTo(lm) < 0
+      _    = logger.trace(s"Expired: ${exp}. Request age: ${h.date}, Modified: $lm")
       nm   = Response(NotModified) if (!exp)
     } yield nm
 
@@ -98,7 +96,7 @@ object StaticFile {
         }
       }
 
-      val hs = `Last-Modified`(lastModified) ::
+      val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
                `Content-Length`.fromLong(contentLength).toList :::
                contentType.toList
 

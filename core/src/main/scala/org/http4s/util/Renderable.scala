@@ -45,6 +45,12 @@ object Renderer {
         case Right(b) => rb.render(writer, b)
       }
   }
+
+  implicit val longRenderer: Renderer[Long] =
+    new Renderer[Long] {
+      override def render(writer: Writer, l: Long): writer.type =
+        writer << l
+    }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */

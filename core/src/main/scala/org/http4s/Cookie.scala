@@ -123,7 +123,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
 final case class Cookie(
   name: String,
   content: String,
-  expires: Option[Instant] = None,
+  expires: Option[HttpDate] = None,
   maxAge: Option[Long] = None,
   domain: Option[String] = None,
   path: Option[String] = None,
@@ -147,6 +147,6 @@ final case class Cookie(
   }
 
   def clearCookie: headers.`Set-Cookie` = {
-    headers.`Set-Cookie`(copy(content = "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0L)))
+    headers.`Set-Cookie`(copy(content = "", expires = Some(HttpDate.Epoch), maxAge = Some(0L)))
   }
 }

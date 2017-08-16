@@ -1,8 +1,11 @@
-package org.http4s.headers
+package org.http4s
+package headers
 
 import java.time.{Instant, ZoneId, ZonedDateTime}
+import org.http4s.{ParseFailure, ParseResult}
 
 import scala.concurrent.duration._
+import scalaz.{-\/, \/-}
 
 class RetryAfterSpec extends HeaderLaws {
   checkAll("Retry-After", headerLaws(`Retry-After`))
@@ -11,19 +14,36 @@ class RetryAfterSpec extends HeaderLaws {
 
   "render" should {
     "format GMT date according to RFC 1123" in {
-      `Retry-After`(Left(Instant.from(gmtDate))).renderString must_== "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT"
+      `Retry-After`(HttpDate.unsafeFromZonedDateTime(gmtDate)).renderString must_== "Retry-After: Fri, 31 Dec 1999 23:59:59 GMT"
     }
     "duration in seconds" in {
-      `Retry-After`(Right(120.seconds)).renderString must_== "Retry-After: 120"
+      `Retry-After`.unsafeFromDuration(120.seconds).renderString must_== "Retry-After: 120"
+    }
+  }
+
+  "build" should {
+    "build correctly for positives" in {
+      `Retry-After`.fromLong(0).map(_.value) must beLike { case \/-("0") => ok }
+    }
+    "fail for negatives" in {
+      `Retry-After`.fromLong(-10).map(_.value) must be_-\/
+    }
+    "build unsafe for positives" in {
+      `Retry-After`.unsafeFromDuration(0.seconds).value must_== "0"
+      `Retry-After`.unsafeFromLong(10).value must_== "10"
+    }
+    "fail unsafe for negatives" in {
+      `Retry-After`.unsafeFromDuration(-10.seconds).value must throwA[ParseFailure]
+      `Retry-After`.unsafeFromLong(-10).value must throwA[ParseFailure]
     }
   }
 
   "parse" should {
     "accept http date" in {
-      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must be_\/-(Left(Instant.from(gmtDate)))
+      `Retry-After`.parse("Fri, 31 Dec 1999 23:59:59 GMT").map(_.retry) must be_\/-(Left(HttpDate.unsafeFromZonedDateTime(gmtDate)))
     }
     "accept duration on seconds" in {
-      `Retry-After`.parse("120").map(_.retry) must be_\/-(Right(120.seconds))
+      `Retry-After`.parse("120").map(_.retry) must be_\/-(Right(120L))
     }
   }
 }
