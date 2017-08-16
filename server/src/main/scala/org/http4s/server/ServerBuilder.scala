@@ -37,6 +37,12 @@ trait ServerBuilder {
     */
   def start: Task[Server]
 
+  /** Sets the handler for errors thrown invoking the service.  Is not
+    * guaranteed to be invoked on errors on the server backend, such as
+    * parsing a request or handling a context timeout.
+    */
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): Self
+
   /** Convenience method to run a server.  The method blocks
     * until the server is started.
     */
@@ -44,9 +50,9 @@ trait ServerBuilder {
     start.unsafePerformSync
 
   /**
-   * Runs the server as a process that never emits.  Useful for a server
-   * that runs for the rest of the JVM's life.
-   */
+    * Runs the server as a process that never emits.  Useful for a server
+    * that runs for the rest of the JVM's life.
+    */
   final def serve: Process[Task, Nothing] =
     Process.bracket(start)(s => Process.eval_(s.shutdown)) { s: Server =>
       Process.eval_(task.never)

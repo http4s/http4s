@@ -34,17 +34,19 @@ private object Http1ServerStage {
             pool: ExecutorService,
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
-            maxHeadersLen: Int): Http1ServerStage = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen) with WebSocketSupport
-    else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
+            maxHeadersLen: Int,
+            serviceErrorHandler: ServiceErrorHandler): Http1ServerStage = {
+    if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen, serviceErrorHandler) with WebSocketSupport
+    else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen, serviceErrorHandler)
   }
 }
 
 private class Http1ServerStage(service: HttpService,
-                       requestAttrs: AttributeMap,
-                       pool: ExecutorService,
-                       maxRequestLineLen: Int,
-                       maxHeadersLen: Int)
+                               requestAttrs: AttributeMap,
+                               pool: ExecutorService,
+                               maxRequestLineLen: Int,
+                               maxHeadersLen: Int,
+                               serviceErrorHandler: ServiceErrorHandler)
                   extends Http1Stage
                   with TailStage[ByteBuffer]
 {
@@ -108,11 +110,15 @@ private class Http1ServerStage(service: HttpService,
 
     parser.collectMessage(body, requestAttrs) match {
       case \/-(req) =>
-        Task.fork(serviceFn(req))(pool)
-          .handleWith(messageFailureHandler(req))
+        Task.fork(
+          try serviceFn(req).handleWith(serviceErrorHandler(req))
+          catch serviceErrorHandler(req)
+        )(pool)
           .unsafePerformAsync {
-            case \/-(resp) => renderResponse(req, resp, cleanup)
-            case -\/(t)    => internalServerError(s"Error running route: $req", t, req, cleanup)
+            case \/-(resp) =>
+              renderResponse(req, resp, cleanup)
+            case -\/(t)    =>
+              internalServerError("Unhandled error servicing request", t, req, cleanup)
           }
 
       case -\/((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().withHttpVersion(protocol))
@@ -206,7 +212,8 @@ private class Http1ServerStage(service: HttpService,
     val resp = Response(Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
-  
+
+  // The error handler of last resort
   final protected def internalServerError(errorMsg: String, t: Throwable, req: Request, bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response(Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
