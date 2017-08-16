@@ -45,6 +45,14 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       rb._2.status must_== Status.Ok
     }
 
+    "Return index.html if request points to a directory" in {
+      val req = Request(uri = uri("testDir/"))
+      val rb = runReq(req)
+
+      rb._2.as[String].unsafePerformSync must_== "<html>Hello!</html>"
+      rb._2.status must_== Status.Ok
+    }
+
     "Not find missing file" in {
       val req = Request(uri = uri("testresource.txtt"))
       runReq(req)._2.status must_== (Status.NotFound)
