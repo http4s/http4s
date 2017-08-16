@@ -55,9 +55,15 @@ object HttpDate {
   val Epoch: HttpDate =
     unsafeFromEpochSecond(0)
 
-  private val MinEpochSecond = -62135596800L
+  private val MinEpochSecond = -2208988800L
 
-  /** The earliest value reprsentable by RFC1123, `Mon, 01 Jan 0001 00:00:00 GMT`. */
+  /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
+    *
+    * The minimum year is specified by RFC5322 as 1900.
+    * 
+    * @see https://tools.ietf.org/html/rfc7231#page-65
+    * @see https://tools.ietf.org/html/rfc5322#page-14
+    */
   val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
 
   private val MaxEpochSecond = 253402300799L
@@ -65,7 +71,10 @@ object HttpDate {
   /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
   val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
-  /** Parses a date according to RFC7321, Section 7.1.1.1 */
+  /** Parses a date according to RFC7321, Section 7.1.1.1
+    *
+    * @see https://tools.ietf.org/html/rfc7231#page-65
+    */
   def fromString(s: String): ParseResult[HttpDate] =
     AdditionalRules.httpDate(s)
 

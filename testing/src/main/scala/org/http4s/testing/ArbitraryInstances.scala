@@ -200,7 +200,7 @@ trait ArbitraryInstances {
     } yield `X-B3-Sampled`(boolean) }
 
   val genHttpDate: Gen[HttpDate] = {
-    val min = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
     val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
     choose[Long](min, max).map(HttpDate.unsafeFromEpochSecond)
   }
