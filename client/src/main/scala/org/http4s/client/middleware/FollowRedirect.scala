@@ -5,6 +5,7 @@ package middleware
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.syntax.string._
+import org.http4s.util.CaseInsensitiveString
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
@@ -34,9 +35,12 @@ import scodec.bits.ByteVector
   * 
   * If the response does not contain a valid Location header, the redirect is
   * not followed.
+  *
+  * Headers whose names match `sensitiveHeaderFilter` are not exposed when
+  * redirecting to a different authority.
   */
 object FollowRedirect {
-  def apply(maxRedirects: Int)(client: Client): Client = {
+  def apply(maxRedirects: Int, sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(client: Client): Client = {
     def prepareLoop(req: Request, redirects: Int): Task[DisposableResponse] = {
       client.open(req).flatMap { case dr @ DisposableResponse(resp, dispose) =>
         def redirectUri =
@@ -63,10 +67,16 @@ object FollowRedirect {
         def dontRedirect =
           Task.now(dr)
 
+        def stripSensitiveHeaders(nextUri: Uri): Request =
+          if (req.uri.authority != nextUri.authority)
+            req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
+          else
+            req
+        
         def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[ByteVector]): Request =
           bodyOpt match {
             case Some(body) =>
-              req
+              stripSensitiveHeaders(nextUri)
                 .withMethod(method)
                 .withUri(nextUri)
                 // Assume that all the headers can be propagated
@@ -74,7 +84,7 @@ object FollowRedirect {
                 // we're redirecting to a new host
                 .withBodyStream(emit(body))
             case None =>
-              req
+              stripSensitiveHeaders(nextUri)
                 .withMethod(method)
                 .withUri(nextUri)
                 .withEmptyBody
