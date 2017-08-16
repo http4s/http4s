@@ -137,7 +137,7 @@ we need to call <code>unsafeRun</code> on the result of the function to extract 
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10353/54108911@3e1f983e)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10383/2004610@56c400d)
 
 val goodRequest = Request(Method.GET, uri(&quot;/&quot;))
 // goodRequest: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
@@ -155,7 +155,7 @@ service(badRequest).unsafeRun
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
 <pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
-// wrappedService: org.http4s.HttpService = Kleisli($$Lambda$10450/1682191732@6e4dd270)
+// wrappedService: org.http4s.HttpService = Kleisli($$Lambda$10480/946371177@29b50c01)
 
 wrappedService(goodRequest).unsafeRun
 // res2: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, SomeKey: SomeValue))
@@ -185,7 +185,7 @@ object MyMiddle {
 // defined object MyMiddle
 
 val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// newService: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.Kleisli$$Lambda$10461/1728903063@4db26d25)
+// newService: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.Kleisli$$Lambda$10491/2031079252@729aab5f)
 
 newService(goodRequest).unsafeRun
 // res4: org.http4s.MaybeResponse = Response(status=200, headers=Headers(Content-Length: 0, SomeKey: SomeValue))
@@ -215,13 +215,13 @@ You can also wrap a single service in multiple layers of middleware. For example
   case GET -&gt; Root / &quot;api&quot; =&gt;
     Ok()
 }
-// apiService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10353/54108911@51957808)
+// apiService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10383/2004610@78143d77)
 
 import cats.implicits._
 // import cats.implicits._
 
 val aggregateService = apiService |+| MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// aggregateService: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$10467/1391191323@667303de)
+// aggregateService: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$10497/668575784@1eea23d9)
 
 val apiRequest = Request(Method.GET, uri(&quot;/api&quot;))
 // apiRequest: org.http4s.Request = Request(method=GET, uri=/api, headers=Headers())
