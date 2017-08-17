@@ -1,4 +1,4 @@
-# v0.17.0-RC1 (2017-0-16)
+# v0.17.0-RC1 (2017-08-16)
 * Port `ChunkAggregator` to fs2
 * Add logging middleware
 * Standardize on `ExecutionContext` over `Strategy` and `ExecutorService`
@@ -16,6 +16,7 @@
   from a URL
 * Explicitly close `URLConnection``s if we are not reading the contents
 * Upgrade to:
+    * async-http-client-2.0.34
     * fs2-0.9.7
     * metrics-core-3.2.4
     * scodec-bits-1.1.5
