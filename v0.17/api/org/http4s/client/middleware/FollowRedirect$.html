@@ -213,8 +213,9 @@
 - the redirect is not followed otherwise</p><p>Whenever we follow with a GET or HEAD, an empty body is sent, and
 all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
 are stripped.</p><p>If the response does not contain a valid Location header, the redirect is
-not followed.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4953e517fff7a7ee1cc468a10f32961cf681d491/client/src/main/scala/org/http4s/client/middleware/FollowRedirect.scala" target="_blank">FollowRedirect.scala</a></dd></dl><div class="toggleContainer block">
+not followed.</p><p>Headers whose names match <code>sensitiveHeaderFilter</code> are not exposed when
+redirecting to a different authority.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/296f5460fb0b2bb00bec44ee2f5618620a7c4968/client/src/main/scala/org/http4s/client/middleware/FollowRedirect.scala" target="_blank">FollowRedirect.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -320,9 +321,9 @@ not followed.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.middleware.FollowRedirect#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(maxRedirects:Int)(client:org.http4s.client.Client):org.http4s.client.Client"></a><a id="apply(Int)(Client):Client"></a>
+      <a id="apply(maxRedirects:Int,sensitiveHeaderFilter:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(client:org.http4s.client.Client):org.http4s.client.Client"></a><a id="apply(Int,(CaseInsensitiveString)⇒Boolean)(Client):Client"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/middleware/FollowRedirect$.html#apply(maxRedirects:Int)(client:org.http4s.client.Client):org.http4s.client.Client" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/FollowRedirect$.html#apply(maxRedirects:Int,sensitiveHeaderFilter:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(client:org.http4s.client.Client):org.http4s.client.Client" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -331,7 +332,7 @@ not followed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="maxRedirects">maxRedirects: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
+        <span class="name">apply</span><span class="params">(<span name="maxRedirects">maxRedirects: <span class="extype" name="scala.Int">Int</span></span>, <span name="sensitiveHeaderFilter">sensitiveHeaderFilter: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="../../Headers$.html">Headers.SensitiveHeaders</a></span></span></span>)</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
       </span>
       
       

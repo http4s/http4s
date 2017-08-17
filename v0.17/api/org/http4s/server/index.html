@@ -677,7 +677,7 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4953e517fff7a7ee1cc468a10f32961cf681d491/server/src/main/scala/org/http4s/server/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/296f5460fb0b2bb00bec44ee2f5618620a7c4968/server/src/main/scala/org/http4s/server/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -961,6 +961,22 @@ middlewares for composing common functionality into services.
       </span>
       
       
+    </li><li name="org.http4s.server.ServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceErrorHandler=org.http4s.Request=&gt;PartialFunction[Throwable,fs2.Task[org.http4s.Response]]"></a><a id="ServiceErrorHandler:ServiceErrorHandler"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/index.html#ServiceErrorHandler=org.http4s.Request=&gt;PartialFunction[Throwable,fs2.Task[org.http4s.Response]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ServiceErrorHandler</span><span class="result alias"> = (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <span class="extype" name="fs2.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.server.WebSocketSupport" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="WebSocketSupportextendsAnyRef"></a><a id="WebSocketSupport:WebSocketSupport"></a>
       <span class="permalink">
@@ -1034,19 +1050,19 @@ respectively.
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.server#messageFailureHandler" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="messageFailureHandler(req:org.http4s.Request):PartialFunction[Throwable,fs2.Task[org.http4s.Response]]"></a><a id="messageFailureHandler(Request):PartialFunction[Throwable,Task[Response]]"></a>
+                <li name="org.http4s.server#DefaultServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DefaultServiceErrorHandler:org.http4s.server.package.ServiceErrorHandler"></a><a id="DefaultServiceErrorHandler:ServiceErrorHandler"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/index.html#messageFailureHandler(req:org.http4s.Request):PartialFunction[Throwable,fs2.Task[org.http4s.Response]]" title="Permalink">
+      <a href="../../../org/http4s/server/index.html#DefaultServiceErrorHandler:org.http4s.server.package.ServiceErrorHandler" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">messageFailureHandler</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scala.PartialFunction">PartialFunction</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <span class="extype" name="fs2.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>
+        <span class="name">DefaultServiceErrorHandler</span><span class="result">: <a href="#ServiceErrorHandler=org.http4s.Request=&gt;PartialFunction[Throwable,fs2.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a></span>
       </span>
       
       

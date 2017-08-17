@@ -135,7 +135,7 @@ anything.  The right hand side of the request must return a
   case _ =&gt;
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@1425c056)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@28db416f)
 </code></pre>
 
 <h2 id="testing-the-service">Testing the Service</h2>
@@ -251,11 +251,8 @@ res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 
 <p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
 
-<pre><code class="language-scala">scala&gt; import java.time.Instant
-import java.time.Instant
-
-scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(Instant.now), httpOnly = true, secure = true)).unsafeRun.headers
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Wed, 16 Aug 2017 22:11:33 GMT; Secure; HttpOnly)
+<pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafeRun.headers
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 17 Aug 2017 11:41:20 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -295,7 +292,7 @@ res9: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: a
 http4s prevents such nonsense at compile time:</p>
 
 <pre><code class="language-scala">scala&gt; NoContent(&quot;does not compile&quot;)
-&lt;console&gt;:26: error: no arguments allowed for nullary method apply: ()fs2.Task[org.http4s.Response] in trait EmptyResponseGenerator
+&lt;console&gt;:25: error: no arguments allowed for nullary method apply: ()fs2.Task[org.http4s.Response] in trait EmptyResponseGenerator
        NoContent(&quot;does not compile&quot;)
                  ^
 </code></pre>
@@ -359,7 +356,7 @@ power here.  This stream emits the elapsed time every 100 milliseconds
 for one second:</p>
 
 <pre><code class="language-scala">implicit val scheduler = fs2.Scheduler.fromFixedDaemonPool(2, threadName = &quot;scheduler&quot;)
-// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@404361cb[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
+// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@17fa15aa[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
 
 val drip = {
   import scala.concurrent.duration._
@@ -374,7 +371,7 @@ val drip = {
 dripOutTask: fs2.Task[Unit] = Task
 
 scala&gt; dripOutTask.unsafeRun
-101828984 nanoseconds201786193 nanoseconds301754107 nanoseconds401759548 nanoseconds501774120 nanoseconds601752436 nanoseconds701743942 nanoseconds801756694 nanoseconds901762438 nanoseconds1001774241 nanoseconds
+101729885 nanoseconds201665780 nanoseconds307253289 nanoseconds401698378 nanoseconds501657463 nanoseconds601630994 nanoseconds701680338 nanoseconds801694161 nanoseconds901699621 nanoseconds1001677556 nanoseconds
 </code></pre>
 
 <p>When wrapped in a <code>Response</code>, http4s will flush each chunk of a
@@ -401,7 +398,7 @@ other side the path. Naturally, <code>_</code> is a valid matcher too, so any ca
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ _ -&gt; Root / &quot;api&quot; =&gt; Forbidden()
      | }
-res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@27c1cf27)
+res15: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@6495ba67)
 </code></pre>
 
 <p>To also block all subcalls <code>/api/...</code>, you&rsquo;ll need <code>/:</code>, which is right
@@ -410,7 +407,7 @@ associative, and matches everything after, and not just the next element:</p>
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ _ -&gt; &quot;api&quot; /: _ =&gt; Forbidden()
      | }
-res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@198f43e4)
+res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@18273d1)
 </code></pre>
 
 <p>For matching more than one <code>Method</code>, there&rsquo;s <code>|</code>:</p>
@@ -418,7 +415,7 @@ res16: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case request @ (GET | POST) -&gt; Root / &quot;api&quot;  =&gt; ???
      | }
-res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@48a544f5)
+res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@46e624f4)
 </code></pre>
 
 <p>Honorable mention: <code>~</code>, for matching file extensions.</p>
@@ -426,7 +423,7 @@ res17: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$
 <pre><code class="language-scala">scala&gt; HttpService {
      |   case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
      | }
-res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@772cafe7)
+res18: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@62e50cd0)
 </code></pre>
 
 <h3 id="handling-path-parameters">Handling path parameters</h3>
@@ -445,7 +442,7 @@ val usersService = HttpService {
   case request @ GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
     Ok(getUserName(userId))
 }
-// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@1dc472f1)
+// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@6c7e4913)
 </code></pre>
 
 <p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
@@ -481,7 +478,7 @@ val dailyWeatherService = HttpService {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
     Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
 }
-// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@1a5d9d4)
+// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@3e5a6f0)
 
 println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService(_)).unsafeRun)
 // Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
@@ -510,7 +507,7 @@ object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;c
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@770dd01
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@3d184192
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
@@ -522,7 +519,7 @@ val averageTemperatureService = HttpService {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
 }
-// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10643/1365047199@2eda316d)
+// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$10632/1662373629@238d4c43)
 </code></pre>
 
           <footer>

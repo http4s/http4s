@@ -660,6 +660,14 @@ then service.orElse can be used.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpDate$.html" title=""></a>
+                        <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)."></a>
+                        <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).">
+                          HttpDate
+                        </a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$HttpService$.html" title=""></a>
                         <a href="package$$HttpService$.html" title="">
@@ -1035,7 +1043,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4953e517fff7a7ee1cc468a10f32961cf681d491/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/296f5460fb0b2bb00bec44ee2f5618620a7c4968/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1351,7 +1359,7 @@ for keys with the same label and same types.</p></div></div>
       <span class="symbol">
         <a title="" href="Cookie.html">
               <span class="name">Cookie</span>
-            </a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.time.Instant">Instant</span>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -1788,6 +1796,30 @@ then <code>service.orElse</code> can be used.</p>
       </span>
       
       
+    </li><li name="org.http4s.HttpDate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpDateextendsRenderablewithOrdered[org.http4s.HttpDate]"></a><a id="HttpDate:HttpDate"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpDateextendsRenderablewithOrdered[org.http4s.HttpDate]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)." href="HttpDate.html">
+              <span class="name">HttpDate</span>
+            </a><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).</p><div class="fullcomment"><div class="comment cmt"><p>An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC). It expresses time at a resolution of one second.  By using it
+over java.time.Instant in the model, we assure that if two headers render
+equally, their values are equal.
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>https://tools.ietf.org/html/rfc7231#page65</p></span></dd></dl></div>
     </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="HttpService:HttpService"></a>
       <span class="permalink">
@@ -3218,6 +3250,24 @@ with some commonly used instances which can be resolved implicitly.</p>
         <a title="" href="Http4sInstances$.html">
               <span class="name">Http4sInstances</span>
             </a><span class="result"> extends <a href="Http4sInstances.html" class="extype" name="org.http4s.Http4sInstances">Http4sInstances</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.HttpDate" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpDate"></a><a id="HttpDate:HttpDate"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpDate" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpDate$.html">
+              <span class="name">HttpDate</span>
+            </a>
       </span>
       
       

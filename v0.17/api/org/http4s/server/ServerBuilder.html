@@ -373,7 +373,7 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4953e517fff7a7ee1cc468a10f32961cf681d491/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/296f5460fb0b2bb00bec44ee2f5618620a7c4968/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -522,6 +522,25 @@ reference to the server when it has started.
       </span>
       
       
+    </li><li name="org.http4s.server.ServerBuilder#withServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler):ServerBuilder.this.Self"></a><a id="withServiceErrorHandler(ServiceErrorHandler):Self"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler):ServerBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withServiceErrorHandler</span><span class="params">(<span name="serviceErrorHandler">serviceErrorHandler: <a href="index.html#ServiceErrorHandler=org.http4s.Request=&gt;PartialFunction[Throwable,fs2.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the handler for errors thrown invoking the service.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the handler for errors thrown invoking the service.  Is not
+guaranteed to be invoked on errors on the server backend, such as
+parsing a request or handling a context timeout.
+</p></div></div>
     </li></ol>
             </div>
 

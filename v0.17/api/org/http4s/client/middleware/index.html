@@ -341,7 +341,8 @@
 - the redirect is not followed otherwise</p><p>Whenever we follow with a GET or HEAD, an empty body is sent, and
 all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
 are stripped.</p><p>If the response does not contain a valid Location header, the redirect is
-not followed.
+not followed.</p><p>Headers whose names match <code>sensitiveHeaderFilter</code> are not exposed when
+redirecting to a different authority.
 </p></div></div>
     </li><li name="org.http4s.client.middleware.Retry" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Retry"></a><a id="Retry:Retry"></a>

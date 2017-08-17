@@ -96,11 +96,11 @@
 <h2>Roadmap</h2>
 
 <ul>
-  <li><code>http4s-0.16</code> is the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes, but not new development.  A release candidate is expected the week of July 31, 2017.  <code>http4s-0.15</code> will be EOL after the release of http4s-0.16.0.</li>
+  <li><code>http4s-0.16</code> is the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes, but not new development.  <code>http4s-0.15</code> will be EOL after the release of http4s-0.16.0.</li>
   
-  <li><code>http4s-0.17</code> is the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  A release candidate is expected the week of July 31, 2017.</li>
+  <li><code>http4s-0.17</code> is the first official release series based on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.</li>
   
-  <li><code>http4s-0.18</code> will be the first release on <a href="https://github.com/typelevel/cats-effect/">cats-effect</a>.  A first milestone release is expected the week of July 31, 2017.</li>
+  <li><code>http4s-0.18</code> will be the first release on <a href="https://github.com/typelevel/cats-effect/">cats-effect</a>.</li>
   
   <li><code>http4s-1.0</code> will be published some time after <code>cats-1.0</code> and <code>fs2-1.0</code>.</li>
 </ul>
@@ -148,8 +148,8 @@
     </thead>
     <tbody>
       <tr>
-        <td>0.17.0-M3</td>
-        <td class="text-center"><span class="label label-warning">Milestone</span></td>
+        <td>0.17.0-RC1</td>
+        <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -158,8 +158,8 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0a-M3</td>
-        <td class="text-center"><span class="label label-warning">Milestone</span></td>
+        <td>0.16.0a-RC1</td>
+        <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -168,8 +168,8 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0-M3</td>
-        <td class="text-center"><span class="label label-warning">Milestone</span></td>
+        <td>0.16.0-RC1</td>
+        <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -309,25 +309,32 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-17-0-rc1-expected-week-of-2017-07-31">v0.17.0-RC1 (expected week of 2017-07-31)</h1>
+      <h1 id="v0-17-0-rc1-2017-0-16">v0.17.0-RC1 (2017-0-16)</h1>
 
 <ul>
 <li>Port <code>ChunkAggregator</code> to fs2</li>
 <li>Add logging middleware</li>
-<li>Add <code>request#withUri</code>, which updates <code>request#pathInfo</code>. Remove
-<code>request#copy</code>, which could cause inconsistency with <code>request.pathInfo</code>.</li>
 <li>Standardize on <code>ExecutionContext</code> over <code>Strategy</code> and <code>ExecutorService</code></li>
 <li>Implement <code>Age</code> header</li>
 <li>Fix <code>Client#toHttpService</code> to not dispose until the body is consumed</li>
-<li>Change <code>Content-Length.apply</code> to <code>Content-Length.unsafeFromLong</code></li>
 <li>Add a buffered implementation of <code>EntityDecoder[Multipart]</code></li>
-<li>Remove <code>name</code> from <code>AttributeKey</code>. <code>AttributeKey</code>s are compared by reference,
-so the <code>name</code> was for display only.</li>
-<li>Add <code>Uri#withFragment</code> and <code>Uri#withoutFragment</code></li>
 <li>In async-http-client, don&rsquo;t use <code>ReactiveStreamsBodyGenerator</code> unless there is
 a body to transmit. This fixes an <code>IllegalStateException: unexpected message
 type</code></li>
-<li>Upgrade to async-http-client-2.0.33</li>
+<li>Add <code>HSTS</code> middleware</li>
+<li>Add option to serve pre-gzipped resources</li>
+<li>Add RequestLogging and ResponseLogging middlewares</li>
+<li><code>StaticFile</code> options return <code>OptionT[Task, ?]</code></li>
+<li>Set <code>Content-Length</code> or <code>Transfer-Encoding: chunked</code> header when serving
+from a URL</li>
+<li>Explicitly close <code>URLConnection</code>`s if we are not reading the contents</li>
+<li>Upgrade to:
+
+<ul>
+<li>fs2-0.9.7</li>
+<li>metrics-core-3.2.4</li>
+<li>scodec-bits-1.1.5</li>
+</ul></li>
 </ul>
 
 <h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
@@ -365,7 +372,7 @@ type</code></li>
 </ul></li>
 </ul>
 
-<h1 id="v0-16-0-rc1-expected-week-of-2017-07-31">v0.16.0-RC1 (expected week of 2017-07-31)</h1>
+<h1 id="v0-16-0-rc1-2018-08-16">v0.16.0-RC1 (2018-08-16)</h1>
 
 <ul>
 <li>Remove laziness from <code>ArbitraryInstances</code></li>
@@ -373,18 +380,56 @@ type</code></li>
 <li>Support <code>Access-Control-Expose-Headers</code> header for CORS</li>
 <li>Fix thread safety issue in <code>EntityDecoder[XML]</code></li>
 <li>Support IPV6 headers in <code>X-Forwarded-For</code></li>
+<li>Add <code>status</code> and <code>successful</code> methods to client</li>
+<li>Overload <code>client.fetchAs</code> and <code>client.streaming</code> to accept a <code>Task[Request]</code></li>
+<li>Replace <code>Instant</code> with <code>HttpDate</code> to avoid silent truncation and constrain
+to dates that are legally renderable in HTTP.</li>
+<li>Fix bug in hash code of <code>CaseInsensitiveString</code></li>
+<li>Update <code>request.pathInfo</code> when changing <code>request.withUri</code>. To keep these
+values in sync, <code>request.copy</code> has been deprecated, but copy constructors
+based on <code>with</code> have been added.</li>
+<li>Remove <code>name</code> from <code>AttributeKey</code>.</li>
+<li>Add <code>withFragment</code> and <code>withoutFragment</code> to <code>Uri</code></li>
+<li>Construct <code>Content-Length</code> with <code>fromLong</code> to ensure validity, and
+<code>unsafeFromLong</code> when you can assert that it&rsquo;s positive.</li>
+<li>Add missing instances to <code>QueryParamDecoder</code> and <code>QueryParamEncoder</code>.</li>
+<li>Add <code>response.cookies</code> method to get a list of cookies from <code>Set-Cookie</code>
+header.  <code>Set-Cookie</code> is no longer a <code>Header.Extractable</code>, as it does
+not adhere to the HTTP spec of being concatenable by commas without
+changing semantics.</li>
+<li>Make servlet <code>HttpSession</code> available as a request attribute in servlet
+backends</li>
+<li>Fix <code>Part.name</code> to return the name from the <code>Content-Disposition</code> header
+instead of the name <em>of</em> the <code>Content-Disposition</code> header. Accordingly, it is
+no longer a <code>CaseInsensitiveString</code></li>
+<li><code>Request.toString</code> and <code>Response.toString</code> now redact sensitive headers. A
+method to redact arbitrary headers is added to <code>Headers</code>.</li>
+<li><code>Retry-After</code> is now modeled as a <code>Either[HttpDate, Long]</code> to reflect either
+an http-date or delta-seconds value.</li>
+<li>Look for index.html in <code>StaticFile</code> when rendering a directory instead of
+returning <code>401 Unauthorized</code>.</li>
+<li>Limit dates to a minimum of January 1, 1900, per RFC.</li>
+<li>Add <code>serviceErrorHandler</code> to <code>ServerBuilder</code> to allow pluggable error handlers
+when a server backend receives a failed task or a thrown Exception when
+invoking a service. The default calls <code>toHttpResponse</code> on <code>MessageFailure</code> and
+closes the connection with a <code>500 InternalServerError</code> on other non-fatal
+errors.  Fatal errors are left to the server.</li>
+<li><code>FollowRedirect</code> does not propagate sensitive headers when redirecting to a
+different authority.</li>
+<li>Add Content-Length header to empty response generators</li>
 <li>Upgraded dependencies:
 
 <ul>
-<li>async-http-client-2.0.33</li>
+<li>async-http-client-2.0.34</li>
 <li>http4s-websocket-0.2.0</li>
 <li>jetty-9.4.6.v20170531</li>
 <li>json4s-3.5.3</li>
 <li>log4s-1.3.6</li>
 <li>metrics-core-3.2.3</li>
-<li>scalaz-7.2.14</li>
-<li>tomcat-8.5.19</li>
-<li>twirl-1.3.3</li>
+<li>scala-2.12.3-bin-typelevel-4</li>
+<li>scalaz-7.2.15</li>
+<li>tomcat-8.5.20</li>
+<li>twirl-1.3.4</li>
 </ul></li>
 </ul>
 

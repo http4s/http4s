@@ -1022,7 +1022,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4953e517fff7a7ee1cc468a10f32961cf681d491/core/src/main/scala/org/http4s/headers/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/296f5460fb0b2bb00bec44ee2f5618620a7c4968/core/src/main/scala/org/http4s/headers/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1433,7 +1433,7 @@ t</p></div></div>
       <span class="symbol">
         <a title="" href="Date.html">
               <span class="name">Date</span>
-            </a><span class="params">(<span name="date">date: <span class="extype" name="java.time.Instant">Instant</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="date">date: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -1469,7 +1469,7 @@ t</p></div></div>
       <span class="symbol">
         <a title="Constructs an Expires header." href="Expires.html">
               <span class="name">Expires</span>
-            </a><span class="params">(<span name="expirationDate">expirationDate: <span class="extype" name="java.time.Instant">Instant</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="expirationDate">expirationDate: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Constructs an <code>Expires</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs an <code>Expires</code> header.</p><p>The HTTP RFCs indicate that Expires should be in the range of now to 1 year in the future.
@@ -1508,7 +1508,7 @@ Thus any instant is in practice allowed
       <span class="symbol">
         <a title="" href="If$minusModified$minusSince.html">
               <span title="gt4s: If$minusModified$minusSince" class="name">If-Modified-Since</span>
-            </a><span class="params">(<span name="date">date: <span class="extype" name="java.time.Instant">Instant</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="date">date: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -1562,7 +1562,7 @@ Thus any instant is in practice allowed
       <span class="symbol">
         <a title="" href="Last$minusModified.html">
               <span title="gt4s: Last$minusModified" class="name">Last-Modified</span>
-            </a><span class="params">(<span name="date">date: <span class="extype" name="java.time.Instant">Instant</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="params">(<span name="date">date: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       
@@ -1656,7 +1656,7 @@ Thus any instant is in practice allowed
       </span>
       
       
-    </li><li name="org.http4s.headers.Retry-After" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.headers.Retry-After" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="Retry-AfterextendsHeader.ParsedwithProductwithSerializable"></a><a id="Retry-After:Retry-After"></a>
       <span class="permalink">
       <a href="../../../org/http4s/headers/index.html#Retry-AfterextendsHeader.ParsedwithProductwithSerializable" title="Permalink">
@@ -1664,17 +1664,17 @@ Thus any instant is in practice allowed
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">final </span>
+        <span class="modifier">sealed abstract </span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
         <a title="Constructs a Retry-After header." href="Retry$minusAfter.html">
               <span title="gt4s: Retry$minusAfter" class="name">Retry-After</span>
-            </a><span class="params">(<span name="retry">retry: <span class="extype" name="scala.Either">Either</span>[<span class="extype" name="java.time.Instant">Instant</span>, <span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>]</span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+            </a><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       
       <p class="shortcomment cmt">Constructs a <code>Retry-After</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs a <code>Retry-After</code> header.</p><p>The value of this field can be either an HTTP-date or an integer number of seconds (in decimal) after the time of the response.
-</p></div><dl class="paramcmts block"><dt class="param">retry</dt><dd class="cmt"><p>Either the date of expiration or seconds until expiration</p></dd></dl></div>
+</p></div></div>
     </li><li name="org.http4s.headers.Set-Cookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Set-CookieextendsHeader.ParsedwithProductwithSerializable"></a><a id="Set-Cookie:Set-Cookie"></a>
       <span class="permalink">

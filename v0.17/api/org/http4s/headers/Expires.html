@@ -713,7 +713,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Expires</span><span class="params">(<span name="expirationDate">expirationDate: <span class="extype" name="java.time.Instant">Instant</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Expires</span><span class="params">(<span name="expirationDate">expirationDate: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
@@ -721,7 +721,7 @@
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Constructs an <code>Expires</code> header.</p><p>The HTTP RFCs indicate that Expires should be in the range of now to 1 year in the future.
 However, it is a usual practice to set it to the past of far in the future
 Thus any instant is in practice allowed
-</p></div><dl class="paramcmts block"><dt class="param">expirationDate</dt><dd class="cmt"><p>the date of expiration</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4953e517fff7a7ee1cc468a10f32961cf681d491/core/src/main/scala/org/http4s/headers/Expires.scala" target="_blank">Expires.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="paramcmts block"><dt class="param">expirationDate</dt><dd class="cmt"><p>the date of expiration</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/296f5460fb0b2bb00bec44ee2f5618620a7c4968/core/src/main/scala/org/http4s/headers/Expires.scala" target="_blank">Expires.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -777,9 +777,9 @@ Thus any instant is in practice allowed
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.Expires#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(expirationDate:java.time.Instant):org.http4s.headers.Expires"></a><a id="&lt;init&gt;:Expires"></a>
+      <a id="&lt;init&gt;(expirationDate:org.http4s.HttpDate):org.http4s.headers.Expires"></a><a id="&lt;init&gt;:Expires"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Expires.html#&lt;init&gt;(expirationDate:java.time.Instant):org.http4s.headers.Expires" title="Permalink">
+      <a href="../../../org/http4s/headers/Expires.html#&lt;init&gt;(expirationDate:org.http4s.HttpDate):org.http4s.headers.Expires" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -788,7 +788,7 @@ Thus any instant is in practice allowed
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Expires</span><span class="params">(<span name="expirationDate">expirationDate: <span class="extype" name="java.time.Instant">Instant</span></span>)</span>
+        <span class="name">Expires</span><span class="params">(<span name="expirationDate">expirationDate: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">expirationDate</dt><dd class="cmt"><p>the date of expiration</p></dd></dl></div>
@@ -1044,9 +1044,9 @@ Thus any instant is in practice allowed
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Header.html" class="extype" name="org.http4s.Header">Header</a> → Equals → AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.headers.Expires#expirationDate" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expirationDate:java.time.Instant"></a><a id="expirationDate:Instant"></a>
+      <a id="expirationDate:org.http4s.HttpDate"></a><a id="expirationDate:HttpDate"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Expires.html#expirationDate:java.time.Instant" title="Permalink">
+      <a href="../../../org/http4s/headers/Expires.html#expirationDate:org.http4s.HttpDate" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1055,7 +1055,7 @@ Thus any instant is in practice allowed
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">expirationDate</span><span class="result">: <span class="extype" name="java.time.Instant">Instant</span></span>
+        <span class="name">expirationDate</span><span class="result">: <a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a></span>
       </span>
       
       
