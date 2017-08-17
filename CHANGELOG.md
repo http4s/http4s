@@ -16,6 +16,7 @@
   from a URL
 * Explicitly close `URLConnection``s if we are not reading the contents
 * Upgrade to:
+    * async-http-client-2.0.34
     * fs2-0.9.7
     * metrics-core-3.2.4
     * scodec-bits-1.1.5
