@@ -41,7 +41,7 @@
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
 
-# v0.16.0-RC1 (2018-08-16)
+# v0.16.0-RC1 (2017-08-16)
 * Remove laziness from `ArbitraryInstances`
 * Support an arbitrary predicate for CORS allowed origins
 * Support `Access-Control-Expose-Headers` header for CORS
