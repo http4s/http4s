@@ -45,7 +45,7 @@ class StaticFileSpec extends Http4sSpec {
     "Don't send unmodified files" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      val request = Request().putHeaders(`If-Modified-Since`(Instant.MAX))
+      val request = Request().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
       val response = StaticFile.fromFile(emptyFile, Some(request)).value.unsafeRun
       response must beSome[Response]
       response.map(_.status) must beSome(NotModified)

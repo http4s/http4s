@@ -23,7 +23,7 @@ object Http4sPlugin extends AutoPlugin {
     releaseVersion := { ver =>
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
     },
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.2-bin-typelevel-4"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3-bin-typelevel-4"),
     scalaOrganization := {
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n >= 11 => "org.typelevel"
@@ -95,7 +95,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.33"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.34"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.6"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "0.9.0"
@@ -104,7 +104,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
-  lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.7.3"
+  lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.8"
   lazy val fs2Cats                          = "co.fs2"                 %% "fs2-cats"                  % "0.3.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.9.7"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.1.0"
@@ -131,10 +131,10 @@ object Http4sPlugin extends AutoPlugin {
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
   lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "3.8.6"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "3.9.4"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.19"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.20"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.3"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.4"
 }

@@ -28,7 +28,8 @@ sealed class JettyBuilder private(
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
   sslBits: Option[SSLConfig],
-  mounts: Vector[Mount]
+  mounts: Vector[Mount],
+  private val serviceErrorHandler: ServiceErrorHandler
 )
   extends ServerBuilder
     with ServletContainer
@@ -44,9 +45,10 @@ sealed class JettyBuilder private(
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo = servletIo,
     sslBits: Option[SSLConfig] = sslBits,
-    mounts: Vector[Mount] = mounts
+    mounts: Vector[Mount] = mounts,
+    serviceErrorHandler: ServiceErrorHandler = serviceErrorHandler
   ): Self =
-    new JettyBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+    new JettyBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
 
   override def withSSL(
     keyStore: StoreInfo,
@@ -94,13 +96,13 @@ sealed class JettyBuilder private(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext
+        executionContext = builder.executionContext,
+        serviceErrorHandler = builder.serviceErrorHandler
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
-    }
-    )
+    })
 
   override def withIdleTimeout(idleTimeout: Duration): JettyBuilder =
     copy(idleTimeout = idleTimeout)
@@ -110,6 +112,9 @@ sealed class JettyBuilder private(
 
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
+
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): JettyBuilder =
+    copy(serviceErrorHandler = serviceErrorHandler)
 
   private def getConnector(jetty: JServer): ServerConnector = {
     def serverConnector(sslContextFactory: SslContextFactory) = {
@@ -210,7 +215,8 @@ object JettyBuilder extends JettyBuilder(
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
-  mounts = Vector.empty
+  mounts = Vector.empty,
+  serviceErrorHandler = DefaultServiceErrorHandler
 )
 
 private final case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)

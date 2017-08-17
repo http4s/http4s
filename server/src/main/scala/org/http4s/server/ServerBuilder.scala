@@ -38,6 +38,12 @@ trait ServerBuilder {
     */
   def start: Task[Server]
 
+  /** Sets the handler for errors thrown invoking the service.  Is not
+    * guaranteed to be invoked on errors on the server backend, such as
+    * parsing a request or handling a context timeout.
+    */
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): Self
+
   /** Convenience method to run a server.  The method blocks
     * until the server is started.
     */

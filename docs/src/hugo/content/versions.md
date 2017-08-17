@@ -19,11 +19,11 @@ title: Versions
 <h2>Roadmap</h2>
 
 <ul>
-  <li><code>http4s-0.16</code> is the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes, but not new development.  A release candidate is expected the week of July 31, 2017.  <code>http4s-0.15</code> will be EOL after the release of http4s-0.16.0.</li>
+  <li><code>http4s-0.16</code> is the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes, but not new development.  <code>http4s-0.15</code> will be EOL after the release of http4s-0.16.0.</li>
   
-  <li><code>http4s-0.17</code> is the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  A release candidate is expected the week of July 31, 2017.</li>
+  <li><code>http4s-0.17</code> is the first official release series based on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.</li>
   
-  <li><code>http4s-0.18</code> will be the first release on <a href="https://github.com/typelevel/cats-effect/">cats-effect</a>.  A first milestone release is expected the week of July 31, 2017.</li>
+  <li><code>http4s-0.18</code> will be the first release on <a href="https://github.com/typelevel/cats-effect/">cats-effect</a>.</li>
   
   <li><code>http4s-1.0</code> will be published some time after <code>cats-1.0</code> and <code>fs2-1.0</code>.</li>
 </ul>
@@ -81,8 +81,8 @@ title: Versions
         <td>1.8+</td>
       </tr>
 	  <tr>
-	    <td>0.16.0a-M3</td>
-	    <td class="text-center"><span class="label label-warning">Milestone</span></td>
+	    <td>0.16.0a-RC1</td>
+	    <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -91,8 +91,8 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.0-M3</td>
-	    <td class="text-center"><span class="label label-warning">Milestone</span></td>
+	    <td>0.16.0-RC1</td>
+	    <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -236,4 +236,3 @@ title: Versions
     </div>
   </div>
 </div>
-

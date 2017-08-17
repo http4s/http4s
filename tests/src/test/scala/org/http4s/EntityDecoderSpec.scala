@@ -39,7 +39,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         EntityDecoder.text
           .flatMapR(s => DecodeResult.failure[String](MalformedMessageBodyFailure("bummer")))
           .decode(r, strict = false)
-      } must returnLeft(MalformedMessageBodyFailure("bummer"))
+      }.value must returnValue(Left(MalformedMessageBodyFailure("bummer")))
     }
 
     val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
@@ -152,8 +152,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val reqMediaType = MediaType.`text/x-h`
         val expectedMediaRanges = decoder1.consumes ++ decoder2.consumes ++ failDecoder.consumes
         val reqSomeOtherMediaType = Request(headers = Headers(`Content-Type`(reqMediaType)))
-        (decoder1 orElse decoder2 orElse failDecoder).decode(reqSomeOtherMediaType, strict = true) must returnLeft(MediaTypeMismatch(reqMediaType, expectedMediaRanges))
-        (decoder1 orElse decoder2 orElse failDecoder).decode(Request(), strict = true) must returnLeft(MediaTypeMissing(expectedMediaRanges))
+        (decoder1 orElse decoder2 orElse failDecoder).decode(reqSomeOtherMediaType, strict = true).value.unsafeRun must_== Left(MediaTypeMismatch(reqMediaType, expectedMediaRanges))
+        (decoder1 orElse decoder2 orElse failDecoder).decode(Request(), strict = true).value.unsafeRun must_== Left(MediaTypeMissing(expectedMediaRanges))
       }
     }
   }
@@ -165,7 +165,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
         request.decodeWith(happyDecoder, strict = false) { s => cb(Right(s)); Task.now(Response()) }.unsafeRun
-        ()                                                              
+        ()
       } must returnValue("hooray")
     }
 

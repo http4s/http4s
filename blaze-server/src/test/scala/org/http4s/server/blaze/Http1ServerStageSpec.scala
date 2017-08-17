@@ -38,7 +38,7 @@ class Http1ServerStageSpec extends Http4sSpec {
 
   def runRequest(req: Seq[String], service: HttpService, maxReqLine: Int = 4*1024, maxHeaders: Int = 16*1024): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = Http1ServerStage(service, AttributeMap.empty, testExecutionContext, enableWebSockets = true, maxReqLine, maxHeaders)
+    val httpStage = Http1ServerStage(service, AttributeMap.empty, testExecutionContext, enableWebSockets = true, maxReqLine, maxHeaders, DefaultServiceErrorHandler)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
@@ -123,6 +123,13 @@ class Http1ServerStageSpec extends Http4sSpec {
       s must_== UnprocessableEntity
       c must_== false
     }
+
+    "Handle parse error" in {
+      val path = "THIS\u0000IS\u0000NOT\u0000HTTP"
+      val (s,c,_) = Await.result(runError(path), 10.seconds)
+      s must_== BadRequest
+      c must_== true
+    }
   }
 
   "Http1ServerStage: routes" should {
@@ -183,7 +190,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     "Honor an explicitly added date header" in {
-      val dateHeader = Date(Instant.ofEpochMilli(0))
+      val dateHeader = Date(HttpDate.Epoch)
       val service = HttpService {
         case req => Task.now(Response(body = req.body).replaceAllHeaders(dateHeader))
       }

@@ -70,7 +70,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not send unmodified files" in {
       val req = Request(uri = uri("testresource.txt"))
-        .putHeaders(`If-Modified-Since`(Instant.MAX))
+        .putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
 
       runReq(req)._2.status must_== Status.NotModified
     }

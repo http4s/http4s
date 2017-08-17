@@ -25,7 +25,8 @@ sealed class TomcatBuilder private (
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
   sslBits: Option[KeyStoreBits],
-  mounts: Vector[Mount]
+  mounts: Vector[Mount],
+  private val serviceErrorHandler: ServiceErrorHandler
 )
   extends ServerBuilder
   with ServletContainer
@@ -40,9 +41,10 @@ sealed class TomcatBuilder private (
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo = servletIo,
     sslBits: Option[KeyStoreBits] = sslBits,
-    mounts: Vector[Mount] = mounts
+    mounts: Vector[Mount] = mounts,
+    serviceErrorHandler: ServiceErrorHandler = serviceErrorHandler
   ): Self =
-    new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+    new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -87,7 +89,8 @@ sealed class TomcatBuilder private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext
+        executionContext = builder.executionContext,
+        serviceErrorHandler = builder.serviceErrorHandler
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -107,6 +110,9 @@ sealed class TomcatBuilder private (
 
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
+
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): TomcatBuilder =
+    copy(serviceErrorHandler = serviceErrorHandler)
 
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
@@ -179,7 +185,8 @@ object TomcatBuilder extends TomcatBuilder(
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
-  mounts = Vector.empty
+  mounts = Vector.empty,
+  serviceErrorHandler = DefaultServiceErrorHandler
 )
 
 private final case class Mount(f: (Context, Int, TomcatBuilder) => Unit)

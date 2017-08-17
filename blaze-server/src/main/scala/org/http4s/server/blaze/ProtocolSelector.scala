@@ -19,12 +19,13 @@ private object ProtocolSelector {
             maxRequestLineLen: Int,
             maxHeadersLen: Int,
             requestAttributes: AttributeMap,
-            executionContext: ExecutionContext): ALPNSelector = {
+            executionContext: ExecutionContext,
+            serviceErrorHandler: ServiceErrorHandler): ALPNSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
 
       val newNode = { streamId: Int =>
-        LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, executionContext, requestAttributes, service))
+        LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, executionContext, requestAttributes, service, serviceErrorHandler))
       }
 
       Http2Stage(
@@ -38,7 +39,7 @@ private object ProtocolSelector {
     }
 
     def http1Stage(): TailStage[ByteBuffer] =
-      Http1ServerStage(service, requestAttributes, executionContext, enableWebSockets = false, maxRequestLineLen, maxHeadersLen)
+      Http1ServerStage(service, requestAttributes, executionContext, enableWebSockets = false, maxRequestLineLen, maxHeadersLen, serviceErrorHandler)
 
     def preference(protos: Seq[String]): String = {
       protos.find {

@@ -19,7 +19,7 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck._
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
-import org.specs2.matcher.{TaskMatchers => _, _}
+import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.scalacheck.Parameters
 import org.specs2.specification.core.Fragments

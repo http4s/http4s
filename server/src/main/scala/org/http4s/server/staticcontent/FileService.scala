@@ -48,7 +48,7 @@ object FileService {
    * Directories are forbidden.
    */
   private def filesOnly(file: File, config: Config, req: Request): OptionT[Task, Response] = OptionT(Task.delay(
-    if (file.isDirectory) Task.now(Some(Response(Status.Unauthorized)))
+    if (file.isDirectory) StaticFile.fromFile(new File(file, "index.html"), Some(req)).value
     else if (!file.isFile) Task.now(None)
     else (getPartialContentFile(file, config, req) orElse
       StaticFile.fromFile(file, config.bufferSize, Some(req))

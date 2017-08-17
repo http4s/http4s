@@ -230,23 +230,22 @@ trait ArbitraryInstances {
       boolean <- arbitrary[Boolean]
     } yield `X-B3-Sampled`(boolean) }
 
-  val genHttpDateInstant: Gen[Instant] = {
-    // RFC 5322 says 1900 is the minimum year
-    val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
-    val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
-    choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
+  val genHttpDate: Gen[HttpDate] = {
+    val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    choose[Long](min, max).map(HttpDate.unsafeFromEpochSecond)
   }
 
   implicit val arbitraryDateHeader: Arbitrary[headers.Date] =
     Arbitrary { for {
-      instant <- genHttpDateInstant
-    } yield headers.Date(instant) }
+      httpDate <- genHttpDate
+    } yield headers.Date(httpDate) }
 
-  val genHttpExpireInstant: Gen[Instant] = {
+  val genHttpExpireDate: Gen[HttpDate] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
-    val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli
-    val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli
-    choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
+    val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    choose[Long](min, max).map(HttpDate.unsafeFromEpochSecond)
   }
 
   val genFiniteDuration: Gen[FiniteDuration] =
@@ -255,13 +254,16 @@ trait ArbitraryInstances {
 
   implicit val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
     Arbitrary { for {
-      instant <- genHttpExpireInstant
-    } yield headers.Expires(instant) }
+      date <- genHttpExpireDate
+    } yield headers.Expires(date) }
 
   implicit val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
     Arbitrary { for {
-      instant <- Gen.oneOf(genHttpExpireInstant.map(Left(_)), genFiniteDuration.map(Right(_)))
-    } yield headers.`Retry-After`(instant) }
+      retry <- Gen.oneOf(genHttpExpireDate.map(Left(_)), Gen.posNum[Long].map(Right(_)))
+    } yield retry.fold(
+      headers.`Retry-After`.apply,
+      headers.`Retry-After`.unsafeFromLong
+    ) }
 
   implicit val arbitraryAgeHeader: Arbitrary[headers.Age] =
     Arbitrary { for {

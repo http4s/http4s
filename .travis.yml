@@ -36,6 +36,7 @@ jobs:
 
     - stage: Publish Site
       scala: 2.12.3-bin-typelevel-4
+      env: SCALAZ_VERSION=7.2.15
       script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
 
     - &publishSonatype
@@ -45,4 +46,3 @@ jobs:
     - <<: *publishSonatype
       scala: 2.11.11-bin-typelevel-4
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-

@@ -19,8 +19,9 @@ import scala.concurrent.duration.Duration
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
                     implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
-                    private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
-  extends HttpServlet {
+                    private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize),
+                    serviceErrorHandler: ServiceErrorHandler = DefaultServiceErrorHandler) extends HttpServlet
+{
   private[this] val logger = getLogger
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
@@ -89,10 +90,10 @@ class Http4sServlet(service: HttpService,
     val response = Task.start {
       try serviceFn(request)
         // Handle message failures coming out of the service as failed tasks
-        .handleWith(messageFailureHandler(request))
+        .handleWith(serviceErrorHandler(request))
       catch
         // Handle message failures _thrown_ by the service, just in case
-        messageFailureHandler(request)
+        serviceErrorHandler(request)
     }(Strategy.fromExecutionContext(executionContext)).flatten
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)

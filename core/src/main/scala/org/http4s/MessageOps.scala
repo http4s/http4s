@@ -124,7 +124,7 @@ trait RequestOps extends Any with MessageOps {
   /** Add a Cookie header with the provided values */
   final def addCookie(name: String,
                       content: String,
-                      expires: Option[Instant] = None): Self =
+                      expires: Option[HttpDate] = None): Self =
     addCookie(Cookie(name, content, expires))
 }
 
@@ -143,15 +143,15 @@ trait ResponseOps extends Any with MessageOps {
   /** Add a Set-Cookie header with the provided values */
   final def addCookie(name: String,
                       content: String,
-                      expires: Option[Instant] = None): Self =
+                      expires: Option[HttpDate] = None): Self =
     addCookie(Cookie(name, content, expires))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   final def removeCookie(cookie: Cookie): Self = putHeaders(`Set-Cookie`(cookie.copy(content = "",
-    expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))))
+    expires = Some(HttpDate.Epoch), maxAge = Some(0))))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   final def removeCookie(name: String): Self = putHeaders(`Set-Cookie`(
-    Cookie(name, "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))
+    Cookie(name, "", expires = Some(HttpDate.Epoch), maxAge = Some(0))
   ))
 }
