@@ -162,7 +162,7 @@ import org.http4s.server.blaze._
 import org.http4s.util.StreamApp
 
 object Main extends StreamApp[IO] {
-  override def stream(args: List[String]): Stream[IO, Nothing] = {
+  override def stream(args: List[String], requestShutdown: IO[Unit]) = {
     BlazeBuilder[IO]
       .bindHttp(8080, "localhost")
       .mountService(helloWorldService, "/")

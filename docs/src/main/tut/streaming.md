@@ -20,16 +20,12 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
-import fs2.time
 import fs2.Scheduler
 import org.http4s._
 import org.http4s.dsl._
 
-// fs2's `time` module needs an implicit `Scheduler`
-implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
-
 // An infinite stream of the periodic elapsed time
-val seconds = time.awakeEvery[IO](1.second)
+val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
 
 val service = HttpService[IO] {
   case GET -> Root / "seconds" =>
@@ -127,7 +123,7 @@ object twstream {
     val s   = stream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
     s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout).onFinalize(client.shutdown).run
   }
-  
+
   // Uncomment To Run App
   // def main(args: Array[String]): Unit = runc.unsafeRunSync()
 }
