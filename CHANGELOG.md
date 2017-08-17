@@ -1,20 +1,24 @@
-# v0.17.0-RC1 (expected week of 2017-07-31)
+# v0.17.0-RC1 (2017-0-16)
 * Port `ChunkAggregator` to fs2
 * Add logging middleware
-* Add `request#withUri`, which updates `request#pathInfo`. Remove
-  `request#copy`, which could cause inconsistency with `request.pathInfo`.
 * Standardize on `ExecutionContext` over `Strategy` and `ExecutorService`
 * Implement `Age` header
 * Fix `Client#toHttpService` to not dispose until the body is consumed
-* Change `Content-Length.apply` to `Content-Length.unsafeFromLong`
 * Add a buffered implementation of `EntityDecoder[Multipart]`
-* Remove `name` from `AttributeKey`. `AttributeKey`s are compared by reference,
-  so the `name` was for display only.
-* Add `Uri#withFragment` and `Uri#withoutFragment`
 * In async-http-client, don't use `ReactiveStreamsBodyGenerator` unless there is
   a body to transmit. This fixes an `IllegalStateException: unexpected message
   type`
-* Upgrade to async-http-client-2.0.33
+* Add `HSTS` middleware
+* Add option to serve pre-gzipped resources
+* Add RequestLogging and ResponseLogging middlewares
+* `StaticFile` options return `OptionT[Task, ?]`
+* Set `Content-Length` or `Transfer-Encoding: chunked` header when serving
+  from a URL
+* Explicitly close `URLConnection``s if we are not reading the contents
+* Upgrade to:
+    * fs2-0.9.7
+    * metrics-core-3.2.4
+    * scodec-bits-1.1.5
 
 # v0.17.0-M3 (2017-05-27)
 * Fix file corruption issue when serving static files from the classpath
@@ -78,6 +82,7 @@
   errors.  Fatal errors are left to the server.
 * `FollowRedirect` does not propagate sensitive headers when redirecting to a
   different authority.
+* Add Content-Length header to empty response generators
 * Upgraded dependencies:
     * async-http-client-2.0.34
     * http4s-websocket-0.2.0
