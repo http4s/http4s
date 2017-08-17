@@ -20,21 +20,21 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     val json: JValue = JObject(JField("test", JString("json4s")))
 
     "have json content type" in {
-      jsonEncoder[IO, JValue].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoder[IO, JValue].headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
-      writeToString(json) must_== ("""{"test":"json4s"}""")
+      writeToString(json) must_== """{"test":"json4s"}"""
     }
   }
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON with a json4s writer" in {
-      writeToString(42.some)(jsonEncoderOf[IO, Option[Int]]) must_== ("""42""")
+      writeToString(42.some)(jsonEncoderOf[IO, Option[Int]]) must_== """42"""
     }
   }
 
@@ -73,7 +73,7 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
       // TODO would benefit from Arbitrary[Uri]
       val uri = Uri.uri("http://www.example.com/")
       val format = implicitly[JsonFormat[Uri]]
-      format.read(format.write(uri)) must_== (uri)
+      format.read(format.write(uri)) must_== uri
     }
   }
 }
