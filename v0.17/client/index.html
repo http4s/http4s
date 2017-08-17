@@ -118,13 +118,13 @@ val service = HttpService {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6998/1299687914@5dfc0abe)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6996/1179341221@7a8bae3)
 
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@47d59399
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@4980cb4c
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -140,7 +140,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$7036/653160571@3b72adc2),Task)
+// httpClient: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$7034/531181221@4ccc6f39),Task)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
