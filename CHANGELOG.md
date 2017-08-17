@@ -1,4 +1,4 @@
-# v0.17.0-RC1 (2017-0-16)
+# v0.17.0-RC1 (2017-08-16)
 * Port `ChunkAggregator` to fs2
 * Add logging middleware
 * Standardize on `ExecutionContext` over `Strategy` and `ExecutorService`
