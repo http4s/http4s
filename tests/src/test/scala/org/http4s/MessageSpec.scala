@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 import cats.effect.IO
 import fs2._
 import org.http4s.headers.`Content-Type`
+import org.http4s.headers.Authorization
 
 class MessageSpec extends Http4sSpec {
 
@@ -85,6 +86,18 @@ class MessageSpec extends Http4sSpec {
         originalReq.scriptName mustEqual updatedReq.scriptName
       }
     }
+
+    "toString" should {
+      "redact an Authorization header" in {
+        val request = Request(Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
+        request.toString must_==("Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
+      }
+
+      "redact Cookie Headers" in {
+        val request = Request(Method.GET).addCookie("token", "value").addCookie("token2", "value2")
+        request.toString must_==("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
+      }
+    }
   }
 
   "Message" should {
@@ -100,6 +113,15 @@ class MessageSpec extends Http4sSpec {
           val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
           resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }
+      }
+    }
+  }
+
+  "Response" should {
+    "toString" should {
+      "redact a `Set-Cookie` header" in {
+        val resp = Response().putHeaders(headers.`Set-Cookie`(Cookie("token", "value")))
+        resp.toString must_==("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
       }
     }
   }

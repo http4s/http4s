@@ -5,6 +5,7 @@ import cats.implicits._
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`
+import org.http4s.syntax.string._
 
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -101,6 +102,20 @@ final class Headers private (headers: List[Header])
       this.toList.equals(otherheaders.toList)
     case _ => false
   }
+
+  /** Removes the `Content-Length`, `Content-Range`, `Trailer`, and
+    * `Transfer-Encoding` headers.
+    *
+    *  https://tools.ietf.org/html/rfc7231#section-3.3
+    */
+  def removePayloadHeaders: Headers =
+    filterNot(h => Headers.PayloadHeaderKeys(h.name))
+
+  def redactSensitive(redactWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains): Headers =
+    headers.map {
+      case h if redactWhen(h.name) => Header.Raw(h.name, "<REDACTED>")
+      case h => h
+    }
 }
 
 object Headers {
@@ -129,4 +144,16 @@ object Headers {
 
   implicit val HeadersEq : Eq[Headers] = Eq.by(_.toList)
 
+  private val PayloadHeaderKeys = Set(
+    "Content-Length".ci,
+    "Content-Range".ci,
+    "Trailer".ci,
+    "Transfer-Encoding".ci
+  )
+
+  val SensitiveHeaders = Set(
+    "Authorization".ci,
+    "Cookie".ci,
+    "Set-Cookie".ci
+  )
 }

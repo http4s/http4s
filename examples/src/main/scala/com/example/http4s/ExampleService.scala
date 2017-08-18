@@ -6,6 +6,8 @@ import cats.effect.IO
 import cats.implicits._
 import fs2._
 import org.http4s.MediaType._
+import fs2.interop.cats._
+import _root_.io.circe.Json
 import org.http4s._
 import org.http4s.server._
 import org.http4s.circe._
@@ -63,11 +65,11 @@ object ExampleService {
     Ok("<h2>This will have an html content type!</h2>")
       .withContentType(Some(`Content-Type`(`text/html`)))
 
-  case req @ GET -> "static" /: path =>
-    // captures everything after "/static" into `path`
-    // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
-    // See also org.http4s.server.staticcontent to create a mountable service for static content
-    StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(IO.pure(_))
+    case req @ GET -> "static" /: path =>
+      // captures everything after "/static" into `path`
+      // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
+      // See also org.http4s.server.staticcontent to create a mountable service for static content
+      StaticFile.fromResource(path.toString, Some(req)).getOrElseF(NotFound())
 
   ///////////////////////////////////////////////////////////////
   //////////////// Dealing with the message body ////////////////
@@ -150,10 +152,9 @@ object ExampleService {
       .push("/image.jpg")(req)
      */
 
-  case req @ GET -> Root / "image.jpg" =>
-    StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
-      .map(IO.pure)
-      .getOrElse(NotFound())
+    case req @ GET -> Root / "image.jpg" =>
+      StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
+        .getOrElseF(NotFound())
 
     ///////////////////////////////////////////////////////////////
     //////////////////////// Multi Part //////////////////////////

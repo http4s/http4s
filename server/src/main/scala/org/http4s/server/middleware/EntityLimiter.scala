@@ -14,7 +14,7 @@ object EntityLimiter {
 
   def apply[F[_]](service: HttpService[F], limit: Long = DefaultMaxEntitySize): HttpService[F] =
     service.local { req: Request[F] =>
-      req.withBody(req.body.through(takeLimited(limit)))
+      req.withBodyStream(req.body.through(takeLimited(limit)))
     }
 
   private def takeLimited[F[_]](n: Long): Pipe[F, Byte, Byte] =

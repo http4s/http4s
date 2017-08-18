@@ -4,7 +4,6 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 
 import cats._
-import cats.implicits._
 import cats.effect.IO
 import fs2.Stream._
 import fs2._
@@ -42,7 +41,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           .text[IO]
           .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
           .decode(r, strict = false)
-      } must returnLeft(MalformedMessageBodyFailure("bummer"))
+      }.value must returnValue(Left(MalformedMessageBodyFailure("bummer")))
     }
 
     val nonMatchingDecoder: EntityDecoder[IO, String] =
@@ -183,7 +182,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     val request = Request[IO]().withBody("whatever")
 
     "invoke the function with  the right on a success" in {
-      val happyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      val happyDecoder: EntityDecoder[IO, String] =
+        EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
       IO.async[String] { cb =>
         request
           .decodeWith(happyDecoder, strict = false) { s =>
@@ -248,7 +248,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     def mockServe(req: Request[IO])(route: Request[IO] => IO[Response[IO]]) =
-      route(req.withBody(chunk(Chunk.bytes(binData))))
+      route(req.withBodyStream(chunk(Chunk.bytes(binData))))
 
     "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo", "bar")

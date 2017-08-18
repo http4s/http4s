@@ -34,10 +34,9 @@ object ScienceExperiments {
     case req @ POST -> Root / "root-element-name" =>
       req.decode { root: Elem => Ok(root.label) }
 
-    case GET -> Root / "date" =>
-      val date = Instant.ofEpochMilli(100)
-      Ok(date.toString)
-        .putHeaders(Date(date))
+    case req @ GET -> Root / "date" =>
+      val date = HttpDate.now
+      Ok(date.toString()).putHeaders(Date(date))
 
     case req @ GET -> Root / "echo-headers" =>
       Ok(req.headers.mkString("\n"))

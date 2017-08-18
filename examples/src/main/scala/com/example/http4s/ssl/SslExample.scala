@@ -19,7 +19,7 @@ trait SslExample extends StreamApp[IO] {
   def stream(args: List[String], requestShutdown: IO[Unit]) =
     builder
       .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
-      .mountService(ExampleService.service, "/http4s")
-      .bindHttp(8443)
-      .serve
+    .mountService(HSTS(ExampleService.service), "/http4s")
+    .bindHttp(8443)
+    .serve
 }

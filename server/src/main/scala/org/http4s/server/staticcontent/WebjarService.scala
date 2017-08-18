@@ -3,8 +3,8 @@ package server
 package staticcontent
 
 import cats._
-import cats.implicits._
 import cats.effect._
+import cats.implicits._
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -101,7 +101,6 @@ private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])
                                   (webjarAsset: WebjarAsset): F[MaybeResponse[F]] =
   StaticFile
     .fromResource(webjarAsset.pathInJar, Some(request))
-    .fold(Pass.pure[F])(
-      config.cacheStrategy.cache(request.pathInfo, _).widen[MaybeResponse[F]]
-    )
+    .fold(Pass.pure[F])(config.cacheStrategy.cache(request.pathInfo, _).widen[MaybeResponse[F]])
+    .flatten
 }

@@ -19,8 +19,11 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
     case req @ _ -> Root / "ok" =>
       Ok(req.body).putHeaders(
         Header("X-Original-Method", req.method.toString),
-        Header("X-Original-Content-Length", req.headers.get(`Content-Length`).fold(0L)(_.length).toString)
+        Header("X-Original-Content-Length", req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
+        Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
       )
+    case req @ _ -> Root / "different-authority" =>
+      TemporaryRedirect(uri("http://www.example.com/ok"))
     case req @ _ -> Root / status =>
       Response[IO](status = Status.fromInt(status.toInt).yolo)
         .putHeaders(Location(uri("/ok")))
@@ -136,6 +139,26 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       val client = FollowRedirect(3)(Client(disposingService, IO.unit))
       client.expect[String](uri("http://localhost/301")).unsafeRunSync()
       disposed must_== 2 // one for the original, one for the redirect
+    }
+
+    "Not send sensitive headers when redirecting to a different authority" in {
+      val req = Request(PUT, uri("http://localhost/different-authority"))
+        .withBody("Don't expose mah secrets!")
+        .putHeaders(Header("Authorization", "Bearer s3cr3t"))
+      client.fetch(req) {
+        case Ok(resp) =>
+          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[Task]
+      }.attempt.unsafeRun must beRight(Some(""))
+    }
+
+    "Send sensitive headers when redirecting to same authority" in {
+      val req = Request(PUT, uri("http://localhost/307"))
+        .withBody("You already know mah secrets!")
+        .putHeaders(Header("Authorization", "Bearer s3cr3t"))
+      client.fetch(req) {
+        case Ok(resp) =>
+          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[Task]
+      }.attempt.unsafeRun must beRight(Some("Bearer s3cr3t"))
     }
   }
 }

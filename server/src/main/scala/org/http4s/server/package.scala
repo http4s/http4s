@@ -1,8 +1,13 @@
 package org.http4s
 
 import cats._
+import scala.util.control.NonFatal
+
 import cats.arrow.Choice
 import cats.implicits._
+import fs2._
+import org.http4s.headers.{Connection, `Content-Length`}
+import org.http4s.syntax.string._
 import org.log4s.getLogger
 
 package object server {
@@ -66,9 +71,20 @@ package object server {
   }
 
   private[this] val messageFailureLogger = getLogger("org.http4s.server.message-failures")
-  def messageFailureHandler[F[_]: Monad](req: Request[F]): PartialFunction[Throwable, F[Response[F]]] = {
+  private[this] val serviceErrorLogger = getLogger("org.http4s.server.service-errors")
+
+  type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
+
+  def DefaultServiceErrorHandler[F[_]](implicit F: Applicative[F]): ServiceErrorHandler[F] = req => {
     case mf: MessageFailure =>
       messageFailureLogger.debug(mf)(s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
+    case NonFatal(t) =>
+      serviceErrorLogger.error(t)(s"""Error servicing request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}""")
+      F.pure(Response(Status.InternalServerError, req.httpVersion,
+        Headers(
+          Connection("close".ci),
+          `Content-Length`.zero
+        )))
   }
 }

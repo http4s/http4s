@@ -45,4 +45,3 @@ jobs:
     - <<: *publishSonatype
       scala: 2.11.11-bin-typelevel-4
       script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-

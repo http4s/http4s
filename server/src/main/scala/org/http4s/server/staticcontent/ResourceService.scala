@@ -4,7 +4,6 @@ package staticcontent
 
 import cats.effect._
 import cats.implicits._
-
 import scala.concurrent.ExecutionContext
 
 object ResourceService {
@@ -38,5 +37,6 @@ object ResourceService {
           preferGzipped = config.preferGzipped
         )
         .fold(Pass.pure[F])(config.cacheStrategy.cache(uriPath, _).widen[MaybeResponse[F]])
+        .flatten
   }
 }

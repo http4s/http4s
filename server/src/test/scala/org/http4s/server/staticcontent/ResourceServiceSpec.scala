@@ -2,8 +2,6 @@ package org.http4s
 package server
 package staticcontent
 
-import java.time.Instant
-
 import cats.effect._
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
 import org.http4s.server.middleware.URITranslation
@@ -71,7 +69,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not send unmodified files" in {
       val req = Request[IO](uri = uri("testresource.txt"))
-        .putHeaders(`If-Modified-Since`(Instant.MAX))
+        .putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
 
       runReq(req)._2.status must_== Status.NotModified
     }

@@ -3,7 +3,7 @@ package servlet
 
 import java.net.InetSocketAddress
 import javax.servlet._
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 
 import cats.effect._
 import cats.implicits._
@@ -19,7 +19,8 @@ import scala.concurrent.duration.Duration
 class Http4sServlet[F[_]](service: HttpService[F],
                           asyncTimeout: Duration = Duration.Inf,
                           implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
-                          private[this] var servletIo: ServletIo[F])
+                          private[this] var servletIo: ServletIo[F],
+                          serviceErrorHandler: ServiceErrorHandler[F])
                          (implicit F: Effect[F]) extends HttpServlet {
   private[this] val logger = getLogger(classOf[Http4sServlet[F]])
 
@@ -29,6 +30,10 @@ class Http4sServlet[F[_]](service: HttpService[F],
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
+
+  object ServletRequestKeys {
+    val HttpSession: AttributeKey[Option[HttpSession]] = AttributeKey[Option[HttpSession]]
+  }
 
   override def init(config: ServletConfig): Unit = {
     val servletContext = config.getServletContext
@@ -67,10 +72,10 @@ class Http4sServlet[F[_]](service: HttpService[F],
         case Right(()) =>
           IO(ctx.complete())
         case Left(t) =>
-          IO(errorHandler(servletRequest, servletResponse)(t))
+          IO(serviceErrorHandler(servletRequest, servletResponse)(t))
       }
     }
-    catch errorHandler(servletRequest, servletResponse)
+    catch serviceErrorHandler(servletRequest, servletResponse)
 
   private def onParseFailure(parseFailure: ParseFailure,
                              servletResponse: HttpServletResponse,
@@ -90,10 +95,10 @@ class Http4sServlet[F[_]](service: HttpService[F],
     val response = async.start {
       try serviceFn(request)
         // Handle message failures coming out of the service as failed tasks
-        .recoverWith(messageFailureHandler(request).andThen(_.widen[MaybeResponse[F]]))
+        .recoverWith(serviceErrorHandler(request).andThen(_.widen[MaybeResponse[F]]))
       catch
         // Handle message failures _thrown_ by the service, just in case
-        messageFailureHandler(request).andThen(_.widen[MaybeResponse[F]])
+        serviceErrorHandler(request).andThen(_.widen[MaybeResponse[F]])
     }.flatten
 
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
@@ -146,9 +151,10 @@ class Http4sServlet[F[_]](service: HttpService[F],
       // anyway, so we use a NullBodyWriter.
       async
         .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter)) { _ =>
-          if (servletRequest.isAsyncStarted)
-            servletRequest.getAsyncContext.complete()
-          IO.unit
+          IO {
+            if (servletRequest.isAsyncStarted)
+              servletRequest.getAsyncContext.complete()
+          }
         }
   }
 
@@ -170,7 +176,8 @@ class Http4sServlet[F[_]](service: HttpService[F],
           InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
           req.isSecure
         )),
-        Request.Keys.ServerSoftware(serverSoftware)
+        Request.Keys.ServerSoftware(serverSoftware),
+        ServletRequestKeys.HttpSession(Option(req.getSession(false)))
       )
     )
 
@@ -187,8 +194,11 @@ object Http4sServlet {
   def apply[F[_]: Effect](service: HttpService[F],
                           asyncTimeout: Duration = Duration.Inf,
                           executionContext: ExecutionContext = ExecutionContext.global): Http4sServlet[F] =
-    new Http4sServlet[F](service,
+    new Http4sServlet[F](
+      service,
       asyncTimeout,
       executionContext,
-      BlockingServletIo[F](DefaultChunkSize))
+      BlockingServletIo[F](DefaultChunkSize),
+      DefaultServiceErrorHandler
+    )
 }

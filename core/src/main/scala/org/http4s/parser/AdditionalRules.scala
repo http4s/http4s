@@ -30,7 +30,7 @@ import cats.implicits._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{HNil, ::}
 
-private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
+private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
   // scalastyle:off public.methods.have.type
 
   def EOL: Rule0 = rule { OptWS ~ EOI }  // Strip trailing whitespace
@@ -41,10 +41,10 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Parameter: Rule1[(String,String)] = rule { Token ~ "=" ~ OptWS ~ Value ~> ((_: String, _: String)) }
 
-  def HttpDate: Rule1[Instant] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) }
+  def HttpDate: Rule1[HttpDate] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) }
 
   // RFC1123 date string, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`
-  def RFC1123Date: Rule1[Instant] = rule {
+  def RFC1123Date: Rule1[HttpDate] = rule {
     // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
   Wkday ~ str(", ") ~ Date1 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
       (wkday: Int, day: Int, month: Int, year: Int, hour: Int, min: Int, sec: Int) =>
@@ -53,7 +53,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   }
 
   // RFC 850 date string, e.g. `Sunday, 06-Nov-94 08:49:37 GMT`
-  def RFC850Date: Rule1[Instant] = rule {
+  def RFC850Date: Rule1[HttpDate] = rule {
     // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
     Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
       (wkday: Int, day: Int, month: Int, year: Int, hour: Int, min: Int, sec: Int) =>
@@ -64,7 +64,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   }
 
   // ANSI C's asctime() format, e.g. `Sun Nov  6 08:49:37 1994`
-  def ASCTimeDate: Rule1[Instant] = rule {
+  def ASCTimeDate: Rule1[HttpDate] = rule {
     Wkday ~ ch(' ') ~ Date3 ~ ch(' ') ~ Time ~ ch(' ') ~ Digit4 ~> {
       (wkday:Int, month:Int, day:Int, hour:Int, min:Int, sec:Int, year:Int) =>
         createDateTime(year, month, day, hour, min, sec, wkday)
@@ -119,10 +119,11 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   def Digit4: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
 
   def NegDigit1: Rule1[Int] = rule { "-" ~ capture(Digit) ~> {s: String => s.toInt} }
-  private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int): Instant = {
-    Try(ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC).toInstant).getOrElse {
+
+  private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int): HttpDate = {
+    Try(org.http4s.HttpDate.unsafeFromZonedDateTime(ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC))).getOrElse {
       // TODO Would be better if this message had the real input.
-      throw new Exception(s"Invalid date: $year-$month-$day $hour:$min:$sec")
+      throw new ParseFailure("Invalid date", s"$year-$month-$day $hour:$min:$sec")
     }
   }
 
@@ -156,4 +157,13 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     }
   }
   // scalastyle:on public.methods.have.type
+}
+
+private[http4s] object AdditionalRules {
+  def httpDate(s: String): ParseResult[HttpDate] =
+    new Parser with AdditionalRules {
+      override def input: ParserInput = s
+    }.HttpDate.run()(Parser.DeliveryScheme.Either).leftMap(
+      e => ParseFailure("Invalid HTTP date", e.format(s))
+    )
 }

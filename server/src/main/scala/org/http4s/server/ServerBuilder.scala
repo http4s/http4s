@@ -32,6 +32,12 @@ trait ServerBuilder[F[_]] {
 
   def withExecutionContext(executionContext: ExecutionContext): Self
 
+  /** Sets the handler for errors thrown invoking the service.  Is not
+    * guaranteed to be invoked on errors on the server backend, such as
+    * parsing a request or handling a context timeout.
+    */
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self
+
   def mountService(service: HttpService[F], prefix: String = ""): Self
 
   /** Returns a task to start a server.  The task completes with a
