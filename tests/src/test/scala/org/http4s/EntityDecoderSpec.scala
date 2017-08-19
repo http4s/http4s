@@ -168,7 +168,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       "if decode is called with strict, will produce a MediaTypeMissing or MediaTypeMismatch " +
         "with ALL supported media types of the composite decoder" in {
         val reqMediaType          = MediaType.`text/x-h`
-        val expectedMediaRanges   = decoder1.consumes ++ decoder2.consumes ++ failDecoder.consumes
+        val expectedMediaRanges   = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
         val reqSomeOtherMediaType = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
         (decoder1 orElse decoder2 orElse failDecoder).decode(reqSomeOtherMediaType, strict = true) must returnLeft(
           MediaTypeMismatch(reqMediaType, expectedMediaRanges))
