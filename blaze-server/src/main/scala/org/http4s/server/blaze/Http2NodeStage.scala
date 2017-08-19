@@ -28,7 +28,7 @@ private class Http2NodeStage[F[_]](streamId: Int,
                                    implicit private val executionContext: ExecutionContext,
                                    attributes: AttributeMap,
                                    service: HttpService[F],
-                                   serviceErrorHandler: ServiceErrorHandler)
+                                   serviceErrorHandler: ServiceErrorHandler[F])
                                   (implicit F: Effect[F])
   extends TailStage[NodeMsg.Http2Msg] {
 
@@ -194,16 +194,15 @@ private class Http2NodeStage[F[_]](streamId: Int,
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
       async.unsafeRunAsync {
-        {
-          try service(req).handleErrorWith(serviceErrorHandler(req))
-          catch serviceErrorHandler(req)
-        }.flatMap {
-          case Right(resp) => renderResponse(req, resp)
-          case Left(t) =>
-            val resp = Response[F](InternalServerError, req.httpVersion)
-            renderResponse(req, resp)
-        }
-      }(_ => IO.unit)
+        try  service(req).recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+        catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
+      } {
+        case Right(resp) =>
+          IO(renderResponse(req, resp))
+        case Left(t) =>
+          val resp = Response[F](InternalServerError, req.httpVersion)
+          IO(renderResponse(req, resp))
+      }
     }
   }
 

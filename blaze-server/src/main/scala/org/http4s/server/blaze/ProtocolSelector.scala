@@ -20,7 +20,7 @@ private object ProtocolSelector {
                           maxHeadersLen: Int,
                           requestAttributes: AttributeMap,
                           executionContext: ExecutionContext,
-                          serviceErrorHandler: ServiceErrorHandler): ALPNSelector = {
+                          serviceErrorHandler: ServiceErrorHandler[F]): ALPNSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
 

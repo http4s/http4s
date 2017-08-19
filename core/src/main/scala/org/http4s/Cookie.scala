@@ -122,11 +122,9 @@ class RequestCookieJar(private val headers: Seq[Cookie]) extends Iterable[Cookie
   override def hashCode(): Int =
     headers.##
 
-  override def toString(): String = {
+  override def toString(): String =
     s"RequestCookieJar(${map(_.renderString).mkString("\n")})"
-  }
 }
-
 
 // see http://tools.ietf.org/html/rfc6265
 final case class Cookie(
@@ -155,7 +153,6 @@ final case class Cookie(
     writer
   }
 
-  def clearCookie: headers.`Set-Cookie` = {
+  def clearCookie: headers.`Set-Cookie` =
     headers.`Set-Cookie`(copy(content = "", expires = Some(HttpDate.Epoch), maxAge = Some(0L)))
-  }
 }

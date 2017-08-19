@@ -30,7 +30,7 @@ object RequestLogger {
           Stream.eval(queue.size.get)
             .flatMap(size => queue.dequeue.take(size.toLong))
 
-        val changedRequest = req.withBody(
+        val changedRequest = req.withBodyStream(
           req.body
             .observe(queue.enqueue)
             .onFinalize(

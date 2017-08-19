@@ -30,9 +30,9 @@ private object Http1ServerStage {
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
             maxHeadersLen: Int,
-            serviceErrorHandler: ServiceErrorHandler): Http1ServerStage[F] = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen) with WebSocketSupport[F]
-    else                  new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen)
+            serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] = {
+    if (enableWebSockets) new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen, serviceErrorHandler) with WebSocketSupport[F]
+    else                  new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen, serviceErrorHandler)
   }
 }
 
@@ -41,7 +41,7 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
                                             implicit protected val executionContext: ExecutionContext,
                                             maxRequestLineLen: Int,
                                             maxHeadersLen: Int,
-                                            serviceErrorHandler: ServiceErrorHandler)
+                                            serviceErrorHandler: ServiceErrorHandler[F])
                                            (implicit protected val F: Effect[F])
   extends Http1Stage[F] with TailStage[ByteBuffer] {
 
@@ -104,8 +104,8 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
         async.unsafeRunAsync {
-          try serviceFn(req).handleErrorWith(serviceErrorHandler(req)).andThen(_.widen[MaybeResponse[F]]))
-          catch messageFailureHandler(req).andThen(_.widen[MaybeResponse[F]])
+          try serviceFn(req).handleErrorWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+          catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
         } {
           case Right(resp) =>
             IO(renderResponse(req, resp, cleanup))

@@ -18,9 +18,8 @@ object Router {
     define(mappings:_*)(HttpService.empty[F])
 
   /**
-    * Defines an HttpService based on list of mappings,
-    * a default Service to be used when none in the list match incomming requests,
-    * and an implicit Fallthrough which decides whether a request was matched.
+    * Defines an HttpService based on list of mappings and
+    * a default Service to be used when none in the list match incomming requests.
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */

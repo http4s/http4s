@@ -26,7 +26,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   private val servletIo: ServletIo[F],
   sslBits: Option[KeyStoreBits],
   mounts: Vector[Mount[F]],
-  private val serviceErrorHandler: ServiceErrorHandler
+  private val serviceErrorHandler: ServiceErrorHandler[F]
 ) extends ServletContainer[F]
   with ServerBuilder[F]
   with IdleTimeoutSupport[F]
@@ -43,7 +43,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     servletIo: ServletIo[F] = servletIo,
     sslBits: Option[KeyStoreBits] = sslBits,
     mounts: Vector[Mount[F]] = mounts,
-    serviceErrorHandler: ServiceErrorHandler = serviceErrorHandler
+    serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
   ): Self =
     new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
 
@@ -114,7 +114,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   override def withServletIo(servletIo: ServletIo[F]): Self =
     copy(servletIo = servletIo)
 
-  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): TomcatBuilder =
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
 
   override def start: F[Server[F]] = F.delay {

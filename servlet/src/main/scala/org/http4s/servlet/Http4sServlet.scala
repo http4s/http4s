@@ -72,10 +72,10 @@ class Http4sServlet[F[_]](service: HttpService[F],
         case Right(()) =>
           IO(ctx.complete())
         case Left(t) =>
-          IO(serviceErrorHandler(servletRequest, servletResponse)(t))
+          IO(errorHandler(servletRequest, servletResponse)(t))
       }
     }
-    catch serviceErrorHandler(servletRequest, servletResponse)
+    catch errorHandler(servletRequest, servletResponse)
 
   private def onParseFailure(parseFailure: ParseFailure,
                              servletResponse: HttpServletResponse,
@@ -146,7 +146,7 @@ class Http4sServlet[F[_]](service: HttpService[F],
 
     case t: Throwable =>
       logger.error(t)("Error processing request")
-      val response = F.pure(Response[F](Status.InternalServerError)).widen[MaybeResponse[F]]
+      val response = F.pure(Response[F](Status.InternalServerError).asMaybeResponse)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
       async

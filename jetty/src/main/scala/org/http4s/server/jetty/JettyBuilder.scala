@@ -29,7 +29,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
   private val servletIo: ServletIo[F],
   sslBits: Option[SSLConfig],
   mounts: Vector[Mount[F]],
-  private val serviceErrorHandler: ServiceErrorHandler
+  private val serviceErrorHandler: ServiceErrorHandler[F]
 )
   extends ServletContainer[F]
     with ServerBuilder[F]
@@ -48,7 +48,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
     servletIo: ServletIo[F] = servletIo,
     sslBits: Option[SSLConfig] = sslBits,
     mounts: Vector[Mount[F]] = mounts,
-    serviceErrorHandler: ServiceErrorHandler = serviceErrorHandler
+    serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
   ): Self =
     new JettyBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
 
@@ -114,7 +114,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
   override def withServletIo(servletIo: ServletIo[F]): Self =
     copy(servletIo = servletIo)
 
-  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler): JettyBuilder =
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
 
   private def getConnector(jetty: JServer): ServerConnector = {

@@ -7,12 +7,9 @@ import cats._
 import cats.implicits._
 import fs2._
 import fs2.text._
-
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import org.http4s.util.nonEmptyList._
-import org.http4s.server.ServerSoftware
-import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 
 /**
@@ -85,12 +82,12 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * or `Content-Length`. Most use cases are better served by [[withBody]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
-  def withBodyStream(body: EntityBody): Self
+  def withBodyStream(body: EntityBody[F]): Self
 
   /** Set an empty entity body on this message, and remove all payload headers
     * that make no sense with an empty body.
     */
-  def withEmptyBody: Self =
+  def withEmptyBody(implicit F: Functor[F]): Self =
     withBodyStream(EmptyBody).transformHeaders(_.removePayloadHeaders)
 
   def contentLength: Option[Long] = headers.get(`Content-Length`).map(_.length)
@@ -194,7 +191,7 @@ sealed abstract case class Request[F[_]](
   def withHeaders(headers: Headers) = requestCopy(headers = headers)
   def withAttributes(attributes: AttributeMap) = requestCopy(attributes = attributes)
 
-  def withBodyStream(body: EntityBody): Request =
+  def withBodyStream(body: EntityBody[F]): Request[F] =
     requestCopy(body = body)
 
   override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =
@@ -271,11 +268,13 @@ sealed abstract case class Request[F[_]](
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)
+                   (f: A => F[Response[F]])
+                   (implicit F: Monad[F]): F[Response[F]] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
   override def toString: String =
-    s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive})"""
+    s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
 
   // A request is idempotent if and only if its method is idempotent and its body
   // is pure.  If true, this request can be submitted multipe times.
@@ -305,7 +304,6 @@ object Request {
       attributes = attributes
     ) {}
 
-
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
@@ -319,6 +317,8 @@ object Request {
 /** Represents that a service either returns a [[Response]] or a [[Pass]] to
   * fall through to another service.
   */
+sealed trait MaybeResponse[F[_]] {
+  def cata[A](f: Response[F] => A, a: => A): A =
     this match {
       case r: Response[F] => f(r)
       case _: Pass[F] => a
@@ -381,7 +381,7 @@ final case class Response[F[_]](
   override def withStatus(status: Status)(implicit F: Functor[F]): Self =
     copy(status = status)
 
-  def withBodyStream(body: EntityBody): Response =
+  def withBodyStream(body: EntityBody[F]): Self =
     copy(body = body)
 
   override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =

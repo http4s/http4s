@@ -7,9 +7,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
-import scodec.bits.ByteVector
 
 /**
   * Client middleware to follow redirect responses.

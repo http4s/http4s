@@ -6,8 +6,6 @@ import cats.effect.IO
 import cats.implicits._
 import fs2._
 import org.http4s.MediaType._
-import fs2.interop.cats._
-import _root_.io.circe.Json
 import org.http4s._
 import org.http4s.server._
 import org.http4s.circe._

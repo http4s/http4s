@@ -69,17 +69,6 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
     req.flatMap(fetch(_)(f))
 
-  /** Submits a request, and provides a callback to process the response.
-   *
-   * @param req A Task of the request to submit
-   * @param f A callback for the response to req.  The underlying HTTP connection
-   *          is disposed when the returned task completes.  Attempts to read the
-   *          response body afterward will result in an error.
-   * @return The result of applying f to the response to req
-   */
-  def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
-    req.flatMap(fetch(_)(f))
-
   /**
     * Returns this client as a [[Service]].  All connections created by this
     * service are disposed on completion of callback task f.
@@ -183,7 +172,7 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
 
   /** Submits a request and returns the response status */
   def status(req: F[Request[F]]): F[Status] =
-    req.flatMap(status(_))
+    req.flatMap(status)
 
   /** Submits a request and returns true if and only if the response status is
     * successful */
@@ -193,14 +182,10 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   /** Submits a request and returns true if and only if the response status is
    * successful */
   def successful(req: F[Request[F]]): F[Boolean] =
-    req.flatMap(successful(_))
+    req.flatMap(successful)
 
   @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
-    fetchAs(req)(d)
-
-  @deprecated("Use expect", "0.14")
-  def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
     fetchAs(req)(d)
 
   /** Submits a GET request, and provides a callback to process the response.

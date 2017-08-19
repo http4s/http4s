@@ -52,7 +52,7 @@ object FileService {
         getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
           .flatMap(f => config.pathCollector(f, config, req))
           .orElse(OptionT.none[F, Response[F]])
-          .fold(Pass.pure)(config.cacheStrategy.cache(uriPath, _))
+          .fold(Pass.pure[F])(config.cacheStrategy.cache(uriPath, _).widen[MaybeResponse[F]])
           .flatten
           .widen[MaybeResponse[F]]
   }

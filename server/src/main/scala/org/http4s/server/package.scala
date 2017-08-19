@@ -75,7 +75,7 @@ package object server {
 
   type ServiceErrorHandler[F[_]] = Request[F] => PartialFunction[Throwable, F[Response[F]]]
 
-  def DefaultServiceErrorHandler[F[_]](implicit F: Applicative[F]): ServiceErrorHandler[F] = req => {
+  def DefaultServiceErrorHandler[F[_]](implicit F: Monad[F]): ServiceErrorHandler[F] = req => {
     case mf: MessageFailure =>
       messageFailureLogger.debug(mf)(s"""Message failure handling request: ${req.method} ${req.pathInfo} from ${req.remoteAddr.getOrElse("<unknown>")}""")
       mf.toHttpResponse(req.httpVersion)
