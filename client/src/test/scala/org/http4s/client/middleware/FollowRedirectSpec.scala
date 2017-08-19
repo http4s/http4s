@@ -128,7 +128,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       client.fetch(Request[IO](uri = uri("http://localhost/loop"))) {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => IO.pure(-1)
-      }.unsafeRunSync() must_==(4)
+      } must returnValue(4)
     }
 
     "Dispose of original response when redirecting" in {
@@ -142,23 +142,23 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
     }
 
     "Not send sensitive headers when redirecting to a different authority" in {
-      val req = Request(PUT, uri("http://localhost/different-authority"))
+      val req = Request[IO](PUT, uri("http://localhost/different-authority"))
         .withBody("Don't expose mah secrets!")
         .putHeaders(Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[Task]
-      }.attempt.unsafeRun must beRight(Some(""))
+          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+      } must returnValue(Some(""))
     }
 
     "Send sensitive headers when redirecting to same authority" in {
-      val req = Request(PUT, uri("http://localhost/307"))
+      val req = Request[IO](PUT, uri("http://localhost/307"))
         .withBody("You already know mah secrets!")
         .putHeaders(Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
-          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[Task]
-      }.attempt.unsafeRun must beRight(Some("Bearer s3cr3t"))
+          resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
+      } must returnValue(Some("Bearer s3cr3t"))
     }
   }
 }

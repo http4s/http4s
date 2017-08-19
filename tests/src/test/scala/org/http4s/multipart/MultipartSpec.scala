@@ -186,7 +186,7 @@ I am a big moose
   }
 
   def extractNameIfPresent = {
-    val part = Part(Headers(`Content-Disposition`("form-data",Map("name" -> "Rich Homie Quan"))), Stream.empty[Task, Byte])
+    val part = Part(Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))), Stream.empty.covary[IO])
     part.name must beEqualTo(Some("Rich Homie Quan"))
   }
 

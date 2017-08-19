@@ -144,7 +144,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "status returns the status for a request task" in {
-      client.status(Task.now(req)) must returnValue(Status.Ok)
+      client.status(IO.pure(req)) must returnValue(Status.Ok)
     }
 
     "successful returns the success of the status for a request" in {
@@ -152,7 +152,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "successful returns the success of the status for a request task" in {
-      client.successful(Task.now(req)) must returnValue(true)
+      client.successful(IO.pure(req)) must returnValue(true)
     }
 
     "return an unexpected status when expect returns unsuccessful status" in {

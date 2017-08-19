@@ -89,12 +89,12 @@ class MessageSpec extends Http4sSpec {
 
     "toString" should {
       "redact an Authorization header" in {
-        val request = Request(Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
+        val request = Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
         request.toString must_==("Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
       }
 
       "redact Cookie Headers" in {
-        val request = Request(Method.GET).addCookie("token", "value").addCookie("token2", "value2")
+        val request = Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
         request.toString must_==("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
       }
     }

@@ -34,7 +34,7 @@ class Http1ServerStageSpec extends Http4sSpec {
 
   def runRequest(req: Seq[String], service: HttpService[IO], maxReqLine: Int = 4*1024, maxHeaders: Int = 16*1024): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = Http1ServerStage(service, AttributeMap.empty, testExecutionContext, enableWebSockets = true, maxReqLine, maxHeaders, DefaultServiceErrorHandler)
+    val httpStage = Http1ServerStage[IO](service, AttributeMap.empty, testExecutionContext, enableWebSockets = true, maxReqLine, maxHeaders, DefaultServiceErrorHandler)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
