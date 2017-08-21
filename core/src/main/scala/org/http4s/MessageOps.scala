@@ -1,10 +1,7 @@
 package org.http4s
 
-import java.time.Instant
-
 import cats._
 import cats.data._
-import fs2._
 import org.http4s.headers._
 
 trait MessageOps[F[_]] extends Any {
@@ -123,7 +120,7 @@ trait RequestOps[F[_]] extends Any with MessageOps[F] {
   /** Add a Cookie header with the provided values */
   final def addCookie(name: String,
                       content: String,
-                      expires: Option[Instant] = None)(implicit F: Functor[F]): Self =
+                      expires: Option[HttpDate] = None)(implicit F: Functor[F]): Self =
     addCookie(Cookie(name, content, expires))
 }
 
@@ -142,16 +139,14 @@ trait ResponseOps[F[_]] extends Any with MessageOps[F] {
   /** Add a Set-Cookie header with the provided values */
   final def addCookie(name: String,
                       content: String,
-                      expires: Option[Instant] = None)(implicit F: Functor[F]): Self =
+                      expires: Option[HttpDate] = None)(implicit F: Functor[F]): Self =
     addCookie(Cookie(name, content, expires))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   final def removeCookie(cookie: Cookie)(implicit F: Functor[F]): Self =
-    putHeaders(`Set-Cookie`(cookie.copy(content = "",
-      expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))))
+    putHeaders(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
-  final def removeCookie(name: String)(implicit F: Functor[F]): Self = putHeaders(`Set-Cookie`(
-    Cookie(name, "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))
-  ))
+  final def removeCookie(name: String)(implicit F: Functor[F]): Self =
+    putHeaders(Cookie(name, "").clearCookie)
 }

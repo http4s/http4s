@@ -39,6 +39,11 @@ trait Http4sMatchers extends Matchers with IOMatchers {
       m.headers.get(`Content-Type`).map(_.mediaType) aka "the media type header"
     }
 
+  def haveContentCoding(c: ContentCoding): Matcher[Message[IO]] =
+    beSome(c) ^^ { m: Message[IO] =>
+      m.headers.get(`Content-Encoding`).map(_.contentCoding) aka "the content encoding header"
+    }
+
   def returnRight[A, B](m: ValueCheck[B]): Matcher[EitherT[IO, A, B]] =
     beRight(m) ^^ { et: EitherT[IO, A, B] =>
       et.value.unsafeRunSync aka "the either task"

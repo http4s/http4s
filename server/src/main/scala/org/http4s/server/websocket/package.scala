@@ -8,10 +8,10 @@ import org.http4s.websocket.Websocket
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
 package object websocket {
-  def websocketKey[F[_]]: AttributeKey[Websocket[F]] = AttributeKey.http4s[Websocket[F]]("websocket")
-
-  private def notImplementedResponse[F[_]](implicit F: Monad[F], W: EntityEncoder[F, String]) =
-    Response[F](Status.NotImplemented).withBody("This is a WebSocket route.")
+  private[this] object Keys {
+    val WebSocket: AttributeKey[Any] = AttributeKey[Any]
+  }
+  def websocketKey[F[_]]: AttributeKey[Websocket[F]] = Keys.WebSocket.asInstanceOf[AttributeKey[Websocket[F]]]
 
   /**
    * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the

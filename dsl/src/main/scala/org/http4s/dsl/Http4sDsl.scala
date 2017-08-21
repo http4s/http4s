@@ -1,7 +1,9 @@
 package org.http4s.dsl
 
+import cats.Applicative
 import org.http4s._
 import org.http4s.dsl.impl._
+import org.http4s.headers.`Content-Length`
 
 trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses {
   import Http4sDsl._
@@ -78,7 +80,10 @@ object Http4sDsl {
   final class AcceptedOps[F[_]](val status: Accepted.type) extends AnyVal with EntityResponseGenerator[F]
   final class NonAuthoritativeInformationOps[F[_]](val status: NonAuthoritativeInformation.type) extends AnyVal with EntityResponseGenerator[F]
   final class NoContentOps[F[_]](val status: NoContent.type) extends AnyVal with EmptyResponseGenerator[F]
-  final class ResetContentOps[F[_]](val status: ResetContent.type) extends AnyVal with EmptyResponseGenerator[F]
+  final class ResetContentOps[F[_]](val status: ResetContent.type) extends AnyVal with EmptyResponseGenerator[F] {
+    override def apply()(implicit F: Applicative[F]): F[Response[F]] =
+      F.pure(Response(ResetContent, headers = Headers(`Content-Length`.zero)))
+  }
   // TODO helpers for Content-Range and multipart/byteranges
   final class PartialContentOps[F[_]](val status: PartialContent.type) extends AnyVal with EntityResponseGenerator[F]
   final class MultiStatusOps[F[_]](val status: Status.MultiStatus.type) extends AnyVal with EntityResponseGenerator[F]

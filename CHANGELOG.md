@@ -1,3 +1,26 @@
+# v0.17.0-RC1 (2017-08-16)
+* Port `ChunkAggregator` to fs2
+* Add logging middleware
+* Standardize on `ExecutionContext` over `Strategy` and `ExecutorService`
+* Implement `Age` header
+* Fix `Client#toHttpService` to not dispose until the body is consumed
+* Add a buffered implementation of `EntityDecoder[Multipart]`
+* In async-http-client, don't use `ReactiveStreamsBodyGenerator` unless there is
+  a body to transmit. This fixes an `IllegalStateException: unexpected message
+  type`
+* Add `HSTS` middleware
+* Add option to serve pre-gzipped resources
+* Add RequestLogging and ResponseLogging middlewares
+* `StaticFile` options return `OptionT[Task, ?]`
+* Set `Content-Length` or `Transfer-Encoding: chunked` header when serving
+  from a URL
+* Explicitly close `URLConnection``s if we are not reading the contents
+* Upgrade to:
+    * async-http-client-2.0.34
+    * fs2-0.9.7
+    * metrics-core-3.2.4
+    * scodec-bits-1.1.5
+
 # v0.17.0-M3 (2017-05-27)
 * Fix file corruption issue when serving static files from the classpath
 
@@ -17,6 +40,61 @@
 	* Web sockets not yet supported
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
+
+# v0.16.0-RC1 (2017-08-16)
+* Remove laziness from `ArbitraryInstances`
+* Support an arbitrary predicate for CORS allowed origins
+* Support `Access-Control-Expose-Headers` header for CORS
+* Fix thread safety issue in `EntityDecoder[XML]`
+* Support IPV6 headers in `X-Forwarded-For`
+* Add `status` and `successful` methods to client
+* Overload `client.fetchAs` and `client.streaming` to accept a `Task[Request]`
+* Replace `Instant` with `HttpDate` to avoid silent truncation and constrain
+  to dates that are legally renderable in HTTP.
+* Fix bug in hash code of `CaseInsensitiveString`
+* Update `request.pathInfo` when changing `request.withUri`. To keep these
+  values in sync, `request.copy` has been deprecated, but copy constructors
+  based on `with` have been added.
+* Remove `name` from `AttributeKey`.
+* Add `withFragment` and `withoutFragment` to `Uri`
+* Construct `Content-Length` with `fromLong` to ensure validity, and
+  `unsafeFromLong` when you can assert that it's positive.
+* Add missing instances to `QueryParamDecoder` and `QueryParamEncoder`.
+* Add `response.cookies` method to get a list of cookies from `Set-Cookie`
+  header.  `Set-Cookie` is no longer a `Header.Extractable`, as it does
+  not adhere to the HTTP spec of being concatenable by commas without
+  changing semantics.
+* Make servlet `HttpSession` available as a request attribute in servlet
+  backends
+* Fix `Part.name` to return the name from the `Content-Disposition` header
+  instead of the name _of_ the `Content-Disposition` header. Accordingly, it is
+  no longer a `CaseInsensitiveString`
+* `Request.toString` and `Response.toString` now redact sensitive headers. A
+  method to redact arbitrary headers is added to `Headers`.
+* `Retry-After` is now modeled as a `Either[HttpDate, Long]` to reflect either
+  an http-date or delta-seconds value.
+* Look for index.html in `StaticFile` when rendering a directory instead of
+  returning `401 Unauthorized`.
+* Limit dates to a minimum of January 1, 1900, per RFC.
+* Add `serviceErrorHandler` to `ServerBuilder` to allow pluggable error handlers
+  when a server backend receives a failed task or a thrown Exception when
+  invoking a service. The default calls `toHttpResponse` on `MessageFailure` and
+  closes the connection with a `500 InternalServerError` on other non-fatal
+  errors.  Fatal errors are left to the server.
+* `FollowRedirect` does not propagate sensitive headers when redirecting to a
+  different authority.
+* Add Content-Length header to empty response generators
+* Upgraded dependencies:
+    * async-http-client-2.0.34
+    * http4s-websocket-0.2.0
+    * jetty-9.4.6.v20170531
+    * json4s-3.5.3
+    * log4s-1.3.6
+    * metrics-core-3.2.3
+    * scala-2.12.3-bin-typelevel-4
+    * scalaz-7.2.15
+    * tomcat-8.5.20
+    * twirl-1.3.4
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
@@ -95,6 +173,12 @@
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
+
+# v0.15.16 (2017-07-20)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# v0.15.15 (2017-07-20)
+* Oops. Same as v0.15.14.
 
 # v0.15.14 (2017-07-10)
 * Close parens in `Request.toString`

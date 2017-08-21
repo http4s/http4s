@@ -28,7 +28,8 @@ sealed class JettyBuilder[F[_]: Effect] private (
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo[F],
   sslBits: Option[SSLConfig],
-  mounts: Vector[Mount[F]]
+  mounts: Vector[Mount[F]],
+  private val serviceErrorHandler: ServiceErrorHandler[F]
 )
   extends ServletContainer[F]
     with ServerBuilder[F]
@@ -46,9 +47,10 @@ sealed class JettyBuilder[F[_]: Effect] private (
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo[F] = servletIo,
     sslBits: Option[SSLConfig] = sslBits,
-    mounts: Vector[Mount[F]] = mounts
+    mounts: Vector[Mount[F]] = mounts,
+    serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
   ): Self =
-    new JettyBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+    new JettyBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
 
   override def withSSL(
     keyStore: StoreInfo,
@@ -95,7 +97,8 @@ sealed class JettyBuilder[F[_]: Effect] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext
+        executionContext = builder.executionContext,
+        serviceErrorHandler = builder.serviceErrorHandler
       )
       val servletName = s"servlet-$index"
       val urlMapping = ServletContainer.prefixMapping(prefix)
@@ -110,6 +113,9 @@ sealed class JettyBuilder[F[_]: Effect] private (
 
   override def withServletIo(servletIo: ServletIo[F]): Self =
     copy(servletIo = servletIo)
+
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
+    copy(serviceErrorHandler = serviceErrorHandler)
 
   private def getConnector(jetty: JServer): ServerConnector = {
     def serverConnector(sslContextFactory: SslContextFactory) = {
@@ -209,7 +215,8 @@ object JettyBuilder {
     asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
     servletIo = ServletContainer.DefaultServletIo,
     sslBits = None,
-    mounts = Vector.empty
+    mounts = Vector.empty,
+    serviceErrorHandler = DefaultServiceErrorHandler
   )
 }
 

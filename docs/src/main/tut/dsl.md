@@ -164,9 +164,7 @@ Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafeRunSync.headers
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-import java.time.Instant
-
-Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(Instant.now), httpOnly = true, secure = true)).unsafeRunSync.headers
+Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
@@ -379,11 +377,8 @@ import cats.data.ValidatedNel
 
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
-implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
-  def decode(queryParamValue: QueryParameterValue): ValidatedNel[ParseFailure, Year] = {
-    QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
-  }
-}
+implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 

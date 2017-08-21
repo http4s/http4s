@@ -1,7 +1,7 @@
 package org.http4s
 package json4s
 
-import _root_.jawn.support.json4s.Parser.facade
+import _root_.jawn.support.json4s.Parser
 import cats._
 import cats.effect._
 import org.http4s.headers.`Content-Type`
@@ -10,7 +10,11 @@ import org.json4s._
 
 import scala.util.control.NonFatal
 
+object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
+
 trait Json4sInstances[J] {
+  import CustomParser.facade
+
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JValue] =
     jawn.jawnDecoder
 

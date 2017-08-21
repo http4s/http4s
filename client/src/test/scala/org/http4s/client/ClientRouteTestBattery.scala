@@ -10,6 +10,8 @@ import cats.implicits._
 import fs2._
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl._
+import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
+
 import org.specs2.specification.core.Fragments
 
 import scala.concurrent.duration._
@@ -48,6 +50,27 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
         fetchBody.run(url).map(_.length)
       ).unsafeRunTimed(timeout).forall(_ mustNotEqual 0)
     }
+
+    "POST an empty body" in {
+      val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+      val req = POST(uri)
+      val body = client.expect[String](req)
+      body must returnValue("")
+    }
+
+    "POST a normal body" in {
+      val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+      val req = POST(uri, "This is normal.")
+      val body = client.expect[String](req)
+      body must returnValue("This is normal.")
+    }
+
+    "POST a chunked body" in {
+      val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+      val req = POST(uri, Stream("This is chunked.").covary[IO])
+      val body = client.expect[String](req)
+      body must returnValue("This is chunked.")
+    }
   }
 
   override def map(fs: => Fragments): Fragments =
@@ -59,6 +82,13 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
         case Some(r) => renderResponse(srv, r)
         case None    => srv.sendError(404)
       }
+    }
+
+    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
+      srv.setStatus(200)
+      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+      srv.getOutputStream.print(s)
+      srv.getOutputStream.flush()
     }
   }
 

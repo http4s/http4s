@@ -20,7 +20,7 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
   *
   * @param expirationDate the date of expiration
   */
-final case class Expires(expirationDate: Instant) extends Header.Parsed {
+final case class Expires(expirationDate: HttpDate) extends Header.Parsed {
   val key = `Expires`
   override val value = Renderer.renderString(expirationDate)
   override def renderValue(writer: Writer): writer.type = writer.append(value)

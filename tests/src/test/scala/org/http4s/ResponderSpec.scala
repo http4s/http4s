@@ -52,7 +52,7 @@ class ResponderSpec extends Specification {
       val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
-      val newHeaders = wHeader.replaceAllHeaders(Date(Instant.now))
+      val newHeaders = wHeader.replaceAllHeaders(Date(HttpDate.now))
       newHeaders.headers.toList must have length 1
       newHeaders.headers.get(Connection) must beNone
     }
@@ -61,7 +61,7 @@ class ResponderSpec extends Specification {
       val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
-      val newHeaders = wHeader.replaceAllHeaders(Headers(Date(Instant.now)))
+      val newHeaders = wHeader.replaceAllHeaders(Headers(Date(HttpDate.now)))
       newHeaders.headers.toList must have length 1
       newHeaders.headers.get(Connection) must beNone
     }
@@ -75,15 +75,23 @@ class ResponderSpec extends Specification {
       newHeaders.headers.get(Connection) must beNone
     }
 
-    "Set cookie" in {
-      resp.addCookie("foo", "bar").headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
-      resp.addCookie(Cookie("foo", "bar")).headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
+    "Set cookie from tuple" in {
+      resp.addCookie("foo", "bar").cookies must_== List(org.http4s.Cookie("foo", "bar"))
+    }
+
+    "Set cookie from Cookie" in {
+      resp.addCookie(Cookie("foo", "bar")).cookies must_== List(org.http4s.Cookie("foo", "bar"))
+    }
+
+    "Set multiple cookies" in {
+      resp.addCookie(Cookie("foo", "bar")).addCookie(Cookie("baz", "quux")).cookies must_== List(org.http4s.Cookie("foo", "bar"), org.http4s.Cookie("baz", "quux"))
     }
 
     "Remove cookie" in {
       val cookie = Cookie("foo", "bar")
-      resp.removeCookie(cookie).headers.get(`Set-Cookie`) must
-        beSome(`Set-Cookie`(org.http4s.Cookie("foo", "", expires = Option(Instant.ofEpochSecond(0)), maxAge = Some(0L))))
+      resp.removeCookie(cookie).cookies must_== List(
+        org.http4s.Cookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
+      )
     }
   }
 }

@@ -40,7 +40,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Date" in {       // mills are lost, get rid of them
-      val header = Date(Instant.now).toRaw.parsed
+      val header = Date(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -59,7 +59,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Last-Modified" in {
-      val header = `Last-Modified`(Instant.now).toRaw.parsed
+      val header = `Last-Modified`(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -67,7 +67,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse If-Modified-Since" in {
-      val header = `If-Modified-Since`(Instant.now).toRaw.parsed
+      val header = `If-Modified-Since`(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -126,18 +126,28 @@ class SimpleHeadersSpec extends Http4sSpec {
       )
     }
 
-    "parse X-Forward-Spec" in {
-      val header1 = `X-Forwarded-For`(NonEmptyList.of(InetAddress.getLocalHost.some))
-      HttpHeaderParser.parseHeader(header1.toRaw) must beRight(header1)
-
-      val header2 = `X-Forwarded-For`(
-        InetAddress.getLocalHost.some,
-        InetAddress.getLoopbackAddress.some)
+    "parse X-Forwarded-For" in {
+      // ipv4
+      val header2 = `X-Forwarded-For`(NonEmptyList.of(
+        Some(InetAddress.getLocalHost),
+        Some(InetAddress.getLoopbackAddress)))
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
-      val bad = Header(header1.name.toString, "foo")
+      // ipv6
+      val header3 = `X-Forwarded-For`(NonEmptyList.of(
+        Some(InetAddress.getByName("::1")),
+        Some(InetAddress.getByName("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))))
+      HttpHeaderParser.parseHeader(header3.toRaw) must beRight(header3)
+
+      // "unknown"
+      val header4 = `X-Forwarded-For`(NonEmptyList.of(None))
+      HttpHeaderParser.parseHeader(header4.toRaw) must beRight(header4)
+
+      val bad = Header("x-forwarded-for", "foo")
       HttpHeaderParser.parseHeader(bad) must beLeft
+
+      val bad2 = Header("x-forwarded-for", "256.56.56.56")
+      HttpHeaderParser.parseHeader(bad2) must beLeft
     }
   }
-
 }

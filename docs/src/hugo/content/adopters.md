@@ -12,6 +12,9 @@ title: Adopters
 
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
+
+[看录取 Kanluqu](https://www.kanluqu.com)
+: College application resources for Chinese high school students, built entirely upon the Typelevel stack. 
 	
 ## Open Source
 
@@ -22,7 +25,7 @@ title: Adopters
 : Eve Online fleet buddy based on the CREST API
 
 [http4s-demo](http://demo.http4s.org/)
-: an [open source](https://github.com/http4s/htt4ps_demo) demo app built with http4s
+: an [open source](https://github.com/http4s/http4s_demo) demo app built with http4s
 
 [httpize](http://httpize.herokuapp.com/)
 : a httpbin built with http4s [(source)](https://github.com/ppurang/httpize)
@@ -32,3 +35,6 @@ title: Adopters
 
 [0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
 : A simple link-shortener
+
+[http4sbin](https://github.com/dbousamra/http4sbin)
+: A httpbin clone built with http4s

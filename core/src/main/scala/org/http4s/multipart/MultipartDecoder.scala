@@ -1,58 +1,55 @@
-// TODO fs2 port
-/*
 package org.http4s
 package multipart
 
-import scala.util.{Try, Success, Failure}
-import scala.util.control._
-
-import cats._
+import cats.effect._
+import cats.implicits._
 import fs2._
-import org.http4s.parser._
-import org.http4s.headers._
-import org.log4s.getLogger
-import org.http4s.internal.parboiled2._
-import scodec.bits.ByteVector
 
 private[http4s] object MultipartDecoder {
 
-  private[this] val logger = getLogger
-
-  val decoder: EntityDecoder[Multipart] =
+  def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      def gatherParts = {
-        def go(part: Part): Process1[Headers \/ ByteVector, Part] =
-          receive1Or[Headers \/ ByteVector, Part](emit(part)) {
-            case -\/(headers) =>
-              emit(part) fby go(Part(headers, EmptyBody))
-            case \/-(chunk) =>
-              go(part.copy(body = part.body ++ emit(chunk)))
-          }
-
-        receive1[Headers \/ ByteVector, Part] {
-          case -\/(headers) =>
-            go(Part(headers, EmptyBody))
-          case \/-(chunk) =>
-            Process.fail(InvalidMessageBodyFailure("No headers in first part"))
-        }
-      }
 
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
             msg.body
-              .pipe(MultipartParser.parse(Boundary(boundary)))
-              .pipe(gatherParts)
+              .through(MultipartParser.parse(Boundary(boundary)))
+              .through(gatherParts)
               .runLog
-              .map(parts => \/-(Multipart(parts, Boundary(boundary))))
-              .handle {
-                case e: InvalidMessageBodyFailure => -\/(e)
-                case e => -\/(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-            }
+              .map[Either[DecodeFailure, Multipart[F]]](parts => Right(Multipart(parts, Boundary(boundary))))
+              .handleError {
+                case e: InvalidMessageBodyFailure => Left(e)
+                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
+              }
           }
         case None =>
           DecodeResult.failure(InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
       }
     }
+
+  def gatherParts[F[_]]: Pipe[F, Either[Headers, Byte], Part[F]] = s => {
+    def go(part: Part[F], lastWasLeft: Boolean)
+          (s: Stream[F, Either[Headers, Byte]]): Pull[F, Part[F], Option[Either[Headers, Byte]]] =
+      s.pull.uncons1.flatMap {
+        case Some((Left(headers), s)) =>
+          if (lastWasLeft) {
+            go(Part(Headers(part.headers.toList ::: headers.toList), EmptyBody), lastWasLeft = true)(s)
+          } else {
+            Pull.output1(part) >> go(Part(headers, EmptyBody), lastWasLeft = true)(s)
+          }
+        case Some((Right(byte), s)) =>
+          go(part.copy(body = part.body.append(Stream.emit(byte))), lastWasLeft = false)(s)
+        case None =>
+          Pull.output1(part) >> Pull.pure(None)
+      }
+
+    s.pull.uncons1.flatMap {
+      case Some((Left(headers), s)) => go(Part(headers, EmptyBody), lastWasLeft = true)(s)
+      case Some((Right(byte), s)) => Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
+      case None => Pull.pure(None)
+    }.stream
+  }
+
 }
-*/*/
+

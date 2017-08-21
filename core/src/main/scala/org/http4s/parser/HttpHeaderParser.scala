@@ -18,6 +18,7 @@
 package org.http4s
 package parser
 
+import java.lang.reflect.InvocationTargetException
 import java.util
 
 import org.http4s.headers._
@@ -38,6 +39,7 @@ object HttpHeaderParser extends SimpleHeaders
                     with RangeParser
                     with LocationHeader
                     with RefererHeader
+                    with StrictTransportSecurityHeader
                     with ProxyAuthenticateHeader
                     with WwwAuthenticateHeader
                     with ZipkinHeader {
@@ -71,7 +73,16 @@ object HttpHeaderParser extends SimpleHeaders
   def parseHeader(header: Header.Raw): ParseResult[Header] = {
     allParsers.get(header.name) match {
       case null => ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
-      case parser => parser(header.value)
+      case parser =>
+        try parser(header.value)
+        catch {
+          // We need a way to bail on invalid dates without throwing.  There should be a better way.
+          case e: ParseFailure =>
+            ParseResult.success(header)
+          case e: InvocationTargetException if e.getCause.isInstanceOf[ParseFailure] =>
+            // TODO curse this runtime reflection
+            ParseResult.success(header)
+        }
     }
   }
 

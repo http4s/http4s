@@ -6,7 +6,6 @@ import java.io.File
 
 import cats.effect._
 import fs2._
-import org.http4s.Http4sSpec._
 import org.http4s.server.middleware.URITranslation
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
@@ -33,6 +32,14 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       val req = Request[IO](uri = uri("testresource.txt"))
       s.orNotFound(req) must returnBody(testResource)
       s.orNotFound(req) must returnStatus(Status.Ok)
+    }
+
+    "Return index.html if request points to a directory" in {
+      val req = Request[IO](uri = uri("testDir/"))
+      val rb = runReq(req)
+
+      rb._2.as[String] must returnValue("<html>Hello!</html>")
+      rb._2.status must_== Status.Ok
     }
 
     "Not find missing file" in {

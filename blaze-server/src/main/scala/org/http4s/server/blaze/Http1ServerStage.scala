@@ -29,9 +29,10 @@ private object Http1ServerStage {
             executionContext: ExecutionContext,
             enableWebSockets: Boolean,
             maxRequestLineLen: Int,
-            maxHeadersLen: Int): Http1ServerStage[F] = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen) with WebSocketSupport[F]
-    else                  new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen)
+            maxHeadersLen: Int,
+            serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] = {
+    if (enableWebSockets) new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen, serviceErrorHandler) with WebSocketSupport[F]
+    else                  new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen, serviceErrorHandler)
   }
 }
 
@@ -39,7 +40,8 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
                                             requestAttrs: AttributeMap,
                                             implicit protected val executionContext: ExecutionContext,
                                             maxRequestLineLen: Int,
-                                            maxHeadersLen: Int)
+                                            maxHeadersLen: Int,
+                                            serviceErrorHandler: ServiceErrorHandler[F])
                                            (implicit protected val F: Effect[F])
   extends Http1Stage[F] with TailStage[ByteBuffer] {
 
@@ -102,8 +104,8 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
         async.unsafeRunAsync {
-          try serviceFn(req).handleErrorWith(messageFailureHandler(req).andThen(_.widen[MaybeResponse[F]]))
-          catch messageFailureHandler(req).andThen(_.widen[MaybeResponse[F]])
+          try serviceFn(req).handleErrorWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+          catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
         } {
           case Right(resp) =>
             IO(renderResponse(req, resp, cleanup))
@@ -204,6 +206,7 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
+  // The error handler of last resort
   final protected def internalServerError(errorMsg: String, t: Throwable, req: Request[F], bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
     val resp = Response[F](Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)

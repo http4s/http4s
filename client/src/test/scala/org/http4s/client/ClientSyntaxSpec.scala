@@ -123,6 +123,38 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       client.expect[String](IO.pure(req)) must returnValue("hello")
     }
 
+    "status returns the status for a request" in {
+      client.status(req) must returnValue(Status.Ok)
+    }
+
+    "status returns the status for a request task" in {
+      client.status(IO.pure(req)) must returnValue(Status.Ok)
+    }
+
+    "successful returns the success of the status for a request" in {
+      client.successful(req) must returnValue(true)
+    }
+
+    "successful returns the success of the status for a request task" in {
+      client.successful(IO.pure(req)) must returnValue(true)
+    }
+
+    "status returns the status for a request" in {
+      client.status(req) must returnValue(Status.Ok)
+    }
+
+    "status returns the status for a request task" in {
+      client.status(IO.pure(req)) must returnValue(Status.Ok)
+    }
+
+    "successful returns the success of the status for a request" in {
+      client.successful(req) must returnValue(true)
+    }
+
+    "successful returns the success of the status for a request task" in {
+      client.successful(IO.pure(req)) must returnValue(true)
+    }
+
     "return an unexpected status when expect returns unsuccessful status" in {
       client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(Left(UnexpectedStatus(Status.InternalServerError)))
     }
@@ -149,9 +181,13 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
        client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRunSync() must_== Vector("hello")
      }
 
-     "streaming disposes of the response on success" in {
-       assertDisposes(_.streaming(req)(_.body).run)
-     }
+    "streaming returns a stream from a request task" in {
+      client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRunSync() must_== Vector("hello")
+    }
+
+    "streaming disposes of the response on success" in {
+      assertDisposes(_.streaming(req)(_.body).run)
+    }
 
      "streaming disposes of the response on failure" in {
        assertDisposes(_.streaming(req)(_ => Stream.fail(SadTrombone)).run)
@@ -172,6 +208,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
      "toHttpService disposes of the response if the body is run, even if it fails" in {
        assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.flatMap(_ => Stream.fail(SadTrombone)).run).run(req))
      }
+
+    "toHttpService allows the response to be read" in {
+      client.toHttpService.orNotFound(req).as[String] must returnValue("hello")
+    }
 
     "toHttpService allows the response to be read" in {
       client.toHttpService.orNotFound(req).as[String] must returnValue("hello")
