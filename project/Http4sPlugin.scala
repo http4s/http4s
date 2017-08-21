@@ -102,7 +102,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "0.9.0"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.8.0"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.9.0-M1"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
