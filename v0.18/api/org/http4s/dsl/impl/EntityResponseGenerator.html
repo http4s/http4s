@@ -202,20 +202,20 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">EntityResponseGenerator</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.F">F</span>]</span>
+        <span class="name">EntityResponseGenerator</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><p>While it is possible to construct the <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
 offer shortcut syntax to make intention clear and concise.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd><div class="block">Example:
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd><div class="block">Example:
                <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: IO[Response] = Ok(<span class="lit">"Hello world!"</span>)</pre></li></ol>
             </div></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.F">F</span>], <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
@@ -246,7 +246,7 @@ offer shortcut syntax to make intention clear and concise.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.dsl.impl.EntityResponseGenerator"><span>EntityResponseGenerator</span></li><li class="in" name="org.http4s.dsl.impl.EmptyResponseGenerator"><span>EmptyResponseGenerator</span></li><li class="in" name="org.http4s.dsl.impl.ResponseGenerator"><span>ResponseGenerator</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.dsl.impl.EntityResponseGenerator"><span>EntityResponseGenerator</span></li><li class="in" name="org.http4s.dsl.impl.ResponseGenerator"><span>ResponseGenerator</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -436,7 +436,7 @@ offer shortcut syntax to make intention clear and concise.
       </span>
       
       
-    </li><li name="org.http4s.dsl.impl.EmptyResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply()(Applicative[F]):F[Response[F]]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/dsl/impl/EntityResponseGenerator.html#apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
@@ -451,7 +451,7 @@ offer shortcut syntax to make intention clear and concise.
         <span class="name">apply</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Applicative">Applicative</span>[<span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.F">F</span>]]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a></dd></dl></div>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -665,9 +665,7 @@ offer shortcut syntax to make intention clear and concise.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.dsl.impl.EmptyResponseGenerator">
-              <h3>Inherited from <a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.F">F</span>]</h3>
-            </div><div class="parent" name="org.http4s.dsl.impl.ResponseGenerator">
+        <div class="parent" name="org.http4s.dsl.impl.ResponseGenerator">
               <h3>Inherited from <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>

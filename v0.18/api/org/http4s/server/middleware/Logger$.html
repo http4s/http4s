@@ -205,6 +205,16 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="HSTS$.html" title="Middleware to add HTTP Strict Transport Security (HSTS) support adding
+the Strict Transport Security headers
+"></a>
+                        <a href="HSTS$.html" title="Middleware to add HTTP Strict Transport Security (HSTS) support adding
+the Strict Transport Security headers
+">
+                          HSTS
+                        </a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="object" href="Jsonp$.html" title="Middleware to support wrapping json responses in jsonp."></a>
                         <a href="Jsonp$.html" title="Middleware to support wrapping json responses in jsonp.">
                           Jsonp
@@ -294,7 +304,7 @@ request query params.">
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Simple Middleware for Logging All Requests and Responses
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/server/src/main/scala/org/http4s/server/middleware/Logger.scala" target="_blank">Logger.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/server/src/main/scala/org/http4s/server/middleware/Logger.scala" target="_blank">Logger.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -400,9 +410,9 @@ request query params.">
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.Logger#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](logHeaders:Boolean,logBody:Boolean)(httpService:org.http4s.HttpService[F])(implicitevidence$1:cats.effect.Effect[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](Boolean,Boolean)(HttpService[F])(Effect[F]):HttpService[F]"></a>
+      <a id="apply[F[_]](logHeaders:Boolean,logBody:Boolean,redactHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(httpService:org.http4s.HttpService[F])(implicitevidence$1:cats.effect.Effect[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](Boolean,Boolean,(CaseInsensitiveString)⇒Boolean)(HttpService[F])(Effect[F]):HttpService[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/Logger$.html#apply[F[_]](logHeaders:Boolean,logBody:Boolean)(httpService:org.http4s.HttpService[F])(implicitevidence$1:cats.effect.Effect[F]):org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/Logger$.html#apply[F[_]](logHeaders:Boolean,logBody:Boolean,redactHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(httpService:org.http4s.HttpService[F])(implicitevidence$1:cats.effect.Effect[F]):org.http4s.HttpService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -411,7 +421,7 @@ request query params.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="params">(<span name="httpService">httpService: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.Logger.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.middleware.Logger.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.Logger.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="redactHeadersWhen">redactHeadersWhen: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="../../Headers$.html">Headers.SensitiveHeaders.contains</a></span></span></span>)</span><span class="params">(<span name="httpService">httpService: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.Logger.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.middleware.Logger.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.Logger.apply.F">F</span>]</span>
       </span>
       
       
@@ -446,7 +456,7 @@ request query params.">
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -500,29 +510,13 @@ request query params.">
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.Logger#getCharsetFromContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getCharsetFromContentType[F[_]](m:org.http4s.Message[F]):(Boolean,Option[org.http4s.Charset])"></a><a id="getCharsetFromContentType[F[_]](Message[F]):(Boolean,Option[Charset])"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/Logger$.html#getCharsetFromContentType[F[_]](m:org.http4s.Message[F]):(Boolean,Option[org.http4s.Charset])" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getCharsetFromContentType</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="m">m: <a href="../../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.server.middleware.Logger.getCharsetFromContentType.F">F</span>]</span>)</span><span class="result">: (<span class="extype" name="scala.Boolean">Boolean</span>, <span class="extype" name="scala.Option">Option</span>[<a href="../../Charset.html" class="extype" name="org.http4s.Charset">Charset</a>])</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -571,10 +565,10 @@ request query params.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.Logger#messageLogPipe" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="messageLogPipe[F[_],A&lt;:org.http4s.Message[F]](logHeaders:Boolean,logBody:Boolean)(logger:org.log4s.Logger)(implicitF:cats.effect.Effect[F]):fs2.Pipe[F,A,A]"></a><a id="messageLogPipe[F[_],A&lt;:Message[F]](Boolean,Boolean)(log4s.Logger)(Effect[F]):Pipe[F,A,A]"></a>
+    </li><li name="org.http4s.server.middleware.Logger#logMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="logMessage[F[_],A&lt;:org.http4s.Message[F]](message:A)(logHeaders:Boolean,logBody:Boolean,redactHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(logger:org.log4s.Logger)(implicitF:cats.effect.Sync[F],implicitexecutionContext:scala.concurrent.ExecutionContext):F[Unit]"></a><a id="logMessage[F[_],A&lt;:Message[F]](A)(Boolean,Boolean,(CaseInsensitiveString)⇒Boolean)(log4s.Logger)(Sync[F],ExecutionContext):F[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/Logger$.html#messageLogPipe[F[_],A&lt;:org.http4s.Message[F]](logHeaders:Boolean,logBody:Boolean)(logger:org.log4s.Logger)(implicitF:cats.effect.Effect[F]):fs2.Pipe[F,A,A]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/Logger$.html#logMessage[F[_],A&lt;:org.http4s.Message[F]](message:A)(logHeaders:Boolean,logBody:Boolean,redactHeadersWhen:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(logger:org.log4s.Logger)(implicitF:cats.effect.Sync[F],implicitexecutionContext:scala.concurrent.ExecutionContext):F[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -583,11 +577,10 @@ request query params.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">messageLogPipe</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A &lt;: <a href="../../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.F">F</span>]</span>]</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="params">(<span name="logger">logger: <span class="extype" name="org.log4s.Logger">log4s.Logger</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.F">F</span>, <span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.A">A</span>, <span class="extype" name="org.http4s.server.middleware.Logger.messageLogPipe.A">A</span>]</span>
+        <span class="name">logMessage</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A &lt;: <a href="../../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.server.middleware.Logger.logMessage.F">F</span>]</span>]</span><span class="params">(<span name="message">message: <span class="extype" name="org.http4s.server.middleware.Logger.logMessage.A">A</span></span>)</span><span class="params">(<span name="logHeaders">logHeaders: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="logBody">logBody: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="redactHeadersWhen">redactHeadersWhen: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="../../Headers$.html">Headers.SensitiveHeaders.contains</a></span></span></span>)</span><span class="params">(<span name="logger">logger: <span class="extype" name="org.log4s.Logger">log4s.Logger</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.Logger.logMessage.F">F</span>]</span>, <span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span> = <span class="symbol">ExecutionContext.global</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.Logger.logMessage.F">F</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Log Messages As They Pass
-</p>
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">

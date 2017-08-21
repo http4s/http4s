@@ -646,6 +646,14 @@ entire resulting A.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpDate$.html" title=""></a>
+                        <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)."></a>
+                        <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).">
+                          HttpDate
+                        </a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$HttpService$.html" title=""></a>
                         <a href="package$$HttpService$.html" title="">
@@ -695,10 +703,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -996,12 +1004,12 @@ conform string.">
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Cookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.time.Instant">Instant</span>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Cookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/core/src/main/scala/org/http4s/Cookie.scala" target="_blank">Cookie.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/Cookie.scala" target="_blank">Cookie.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1057,9 +1065,9 @@ conform string.">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.Cookie#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(name:String,content:String,expires:Option[java.time.Instant],maxAge:Option[Long],domain:Option[String],path:Option[String],secure:Boolean,httpOnly:Boolean,extension:Option[String]):org.http4s.Cookie"></a><a id="&lt;init&gt;:Cookie"></a>
+      <a id="&lt;init&gt;(name:String,content:String,expires:Option[org.http4s.HttpDate],maxAge:Option[Long],domain:Option[String],path:Option[String],secure:Boolean,httpOnly:Boolean,extension:Option[String]):org.http4s.Cookie"></a><a id="&lt;init&gt;:Cookie"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Cookie.html#&lt;init&gt;(name:String,content:String,expires:Option[java.time.Instant],maxAge:Option[Long],domain:Option[String],path:Option[String],secure:Boolean,httpOnly:Boolean,extension:Option[String]):org.http4s.Cookie" title="Permalink">
+      <a href="../../org/http4s/Cookie.html#&lt;init&gt;(name:String,content:String,expires:Option[org.http4s.HttpDate],maxAge:Option[Long],domain:Option[String],path:Option[String],secure:Boolean,httpOnly:Boolean,extension:Option[String]):org.http4s.Cookie" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1068,7 +1076,7 @@ conform string.">
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Cookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.time.Instant">Instant</span>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span>
+        <span class="name">Cookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span>
       </span>
       
       
@@ -1220,7 +1228,7 @@ conform string.">
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -1356,9 +1364,9 @@ conform string.">
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.Cookie#expires" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="expires:Option[java.time.Instant]"></a><a id="expires:Option[Instant]"></a>
+      <a id="expires:Option[org.http4s.HttpDate]"></a><a id="expires:Option[HttpDate]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Cookie.html#expires:Option[java.time.Instant]" title="Permalink">
+      <a href="../../org/http4s/Cookie.html#expires:Option[org.http4s.HttpDate]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1367,7 +1375,7 @@ conform string.">
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">expires</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.time.Instant">Instant</span>]</span>
+        <span class="name">expires</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>]</span>
       </span>
       
       
@@ -1402,7 +1410,7 @@ conform string.">
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>

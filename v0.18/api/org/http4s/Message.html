@@ -646,6 +646,14 @@ entire resulting A.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpDate$.html" title=""></a>
+                        <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)."></a>
+                        <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).">
+                          HttpDate
+                        </a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$HttpService$.html" title=""></a>
                         <a href="package$$HttpService$.html" title="">
@@ -695,10 +703,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -1003,8 +1011,9 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response
-while most of the functionality is found in <span class="extype" name="MessageSyntax">MessageSyntax</span> and <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><span class="extype" name="MessageSyntax">MessageSyntax</span>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and
+Response while most of the functionality is found in <span class="extype" name="MessageSyntax">MessageSyntax</span> and
+<a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><span class="extype" name="MessageSyntax">MessageSyntax</span>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1102,7 +1111,7 @@ while most of the functionality is found in <span class="extype" name="MessageSy
         <span class="name">attributes</span><span class="result">: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>
       </span>
       
-      <p class="shortcomment cmt">True if and only if the body is composed solely of Emits and Halt.</p><div class="fullcomment"><div class="comment cmt"><p>True if and only if the body is composed solely of Emits and Halt.  This
+      <p class="shortcomment cmt">True if and only if the body is composed solely of Emits and Halt.</p><div class="fullcomment"><div class="comment cmt"><p>True if and only if the body is composed solely of Emits and Halt. This
 indicates that the body can be re-run without side-effects.</p></div></div>
     </li><li name="org.http4s.Message#body" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="body:org.http4s.EntityBody[F]"></a><a id="body:EntityBody[F]"></a>
@@ -1168,6 +1177,26 @@ indicates that the body can be re-run without side-effects.</p></div></div>
       </span>
       
       
+    </li><li name="org.http4s.Message#withBodyStream" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="withBodyStream(body:org.http4s.EntityBody[F]):Message.this.Self"></a><a id="withBodyStream(EntityBody[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withBodyStream(body:org.http4s.EntityBody[F]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withBodyStream</span><span class="params">(<span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>. Most use cases are better served by <a href="#withBody[T](b:T)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]" class="extmbr" name="org.http4s.Message#withBody">withBody</a>,
+which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> to maintain the headers.
+</p></div></div>
     </li></ol>
             </div>
 
@@ -1346,8 +1375,10 @@ indicates that the body can be re-run without side-effects.</p></div></div>
         <span class="name">charset</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present.
-Does not introspect the body for media types that define a charset internally.</p></div></div>
+      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present. Does
+not introspect the body for media types that define a charset
+internally.
+</p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -1363,7 +1394,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -1547,7 +1578,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -1960,6 +1991,23 @@ task might not complete unless the entire body has been consumed.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.Message#withEmptyBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withEmptyBody(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="withEmptyBody(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Message.html#withEmptyBody(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withEmptyBody</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Message.F">F</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message[F]{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Set an empty entity body on this message, and remove all payload headers
+that make no sense with an empty body.</p>
     </li><li name="org.http4s.MessageOps#withTrailerHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withTrailerHeaders(trailerHeaders:F[org.http4s.Headers])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withTrailerHeaders(F[Headers])(Functor[F]):Self"></a>
       <span class="permalink">

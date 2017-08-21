@@ -261,7 +261,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/core/src/main/scala/org/http4s/syntax/EffectResponseSyntax.scala" target="_blank">EffectResponseSyntax.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/syntax/EffectResponseSyntax.scala" target="_blank">EffectResponseSyntax.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -453,9 +453,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.ResponseOps#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addCookie(name:String,content:String,expires:Option[java.time.Instant])(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="addCookie(String,String,Option[Instant])(Functor[F]):Self"></a>
+      <a id="addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate])(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="addCookie(String,String,Option[HttpDate])(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/syntax/EffectResponseOps.html#addCookie(name:String,content:String,expires:Option[java.time.Instant])(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
+      <a href="../../../org/http4s/syntax/EffectResponseOps.html#addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate])(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -464,7 +464,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.time.Instant">Instant</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectResponseOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectResponseOps.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<a href="../HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectResponseOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectResponseOps.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Add a Set-Cookie header with the provided values</p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header with the provided values</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>
@@ -549,7 +549,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -701,7 +701,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>

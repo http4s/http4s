@@ -35,6 +35,10 @@
 	  </li>
 	
 	  <li >
+	    <a href="/standards/">Coding Standard</a>
+	  </li>
+	
+	  <li >
 	    <a href="/adopters/">Adopters</a>
 	  </li>
 	
@@ -117,7 +121,7 @@ val service = HttpService[IO] {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5158/1787886279@c65fd1e)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$4775/1581756791@b1b0764)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -150,7 +154,7 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.18.0-SNAPSHOT&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.8.0&quot;
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.9.0-M1&quot;
 )
 </code></pre>
 
@@ -265,6 +269,10 @@ example as a bonus!</p>
               
               <li >
                 <a href="/v0.18/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.18/hsts/">HSTS</a>
               </li>
               
               <li >

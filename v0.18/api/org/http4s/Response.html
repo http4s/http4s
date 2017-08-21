@@ -646,6 +646,14 @@ entire resulting A.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpDate$.html" title=""></a>
+                        <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)."></a>
+                        <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).">
+                          HttpDate
+                        </a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$HttpService$.html" title=""></a>
                         <a href="package$$HttpService$.html" title="">
@@ -695,10 +703,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -1005,7 +1013,7 @@ conform string.">
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                  backend for additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+                  backend for additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1198,9 +1206,9 @@ conform string.">
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.ResponseOps#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addCookie(name:String,content:String,expires:Option[java.time.Instant])(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="addCookie(String,String,Option[Instant])(Functor[F]):Self"></a>
+      <a id="addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate])(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="addCookie(String,String,Option[HttpDate])(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Response.html#addCookie(name:String,content:String,expires:Option[java.time.Instant])(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Response.html#addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate])(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1209,7 +1217,7 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.time.Instant">Instant</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Response[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Response[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Add a Set-Cookie header with the provided values</p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header with the provided values</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>
@@ -1390,8 +1398,10 @@ conform string.">
         <span class="name">charset</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present.
-Does not introspect the body for media types that define a charset internally.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present. Does
+not introspect the body for media types that define a charset
+internally.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -1407,7 +1417,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -1446,6 +1456,25 @@ Does not introspect the body for media types that define a charset internally.</
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Response#cookies" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cookies:List[org.http4s.Cookie]"></a><a id="cookies:List[Cookie]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Response.html#cookies:List[org.http4s.Cookie]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cookies</span><span class="result">: <span class="extype" name="scala.List">List</span>[<a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns a list of cookies from the <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a>
+headers.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a list of cookies from the <a href="headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a>
+headers. Includes expired cookies, such as those that represent cookie
+deletion.</p></div></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((Response[F])⇒Boolean,⇒Any):Response[F]"></a>
       <span class="permalink">
@@ -1575,7 +1604,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -2084,6 +2113,26 @@ task might not complete unless the entire body has been consumed.
       <p class="shortcomment cmt">Replace the body of this message with a new body
 </p><div class="fullcomment"><div class="comment cmt"><p>Replace the body of this message with a new body
 </p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the Body</p></dd><dt class="param">b</dt><dd class="cmt"><p>body to attach to this method</p></dd><dt class="param">w</dt><dd class="cmt"><p><a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> with which to convert the body to an <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></p></dd><dt>returns</dt><dd class="cmt"><p>a new message with the new body</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Response#withBodyStream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBodyStream(body:org.http4s.EntityBody[F]):Response.this.Self"></a><a id="withBodyStream(EntityBody[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Response.html#withBodyStream(body:org.http4s.EntityBody[F]):Response.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withBodyStream</span><span class="params">(<span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Response[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the entity body without affecting headers such as <code>Transfer-Encoding</code>
+or <code>Content-Length</code>. Most use cases are better served by <a href="#withBody[T](b:T)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,T]):F[Message.this.Self]" class="extmbr" name="org.http4s.Response#withBody">withBody</a>,
+which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> to maintain the headers.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withContentType(contentType:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Option[Content-Type])(Functor[F]):Self"></a>
       <span class="permalink">
@@ -2100,6 +2149,25 @@ task might not complete unless the entire body has been consumed.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.Message#withEmptyBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withEmptyBody(implicitF:cats.Functor[F]):Message.this.Self"></a><a id="withEmptyBody(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Response.html#withEmptyBody(implicitF:cats.Functor[F]):Message.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withEmptyBody</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Response[F]" class="extmbr" name="org.http4s.Response.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Set an empty entity body on this message, and remove all payload headers
+that make no sense with an empty body.</p><div class="fullcomment"><div class="comment cmt"><p>Set an empty entity body on this message, and remove all payload headers
+that make no sense with an empty body.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Response#withStatus" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withStatus(status:org.http4s.Status)(implicitF:cats.Functor[F]):Response.this.Self"></a><a id="withStatus(Status)(Functor[F]):Self"></a>
       <span class="permalink">

@@ -646,6 +646,14 @@ entire resulting A.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpDate$.html" title=""></a>
+                        <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)."></a>
+                        <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).">
+                          HttpDate
+                        </a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$HttpService$.html" title=""></a>
                         <a href="package$$HttpService$.html" title="">
@@ -695,10 +703,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -1001,7 +1009,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/core/src/main/scala/org/http4s/StaticFile.scala" target="_blank">StaticFile.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/StaticFile.scala" target="_blank">StaticFile.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1153,7 +1161,7 @@ conform string.">
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -1207,7 +1215,7 @@ conform string.">
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -1215,9 +1223,9 @@ conform string.">
               
         </dd></dl></div>
     </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$5:cats.effect.Sync[F]):Option[org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Long,Long,Int,Option[Request[F]])(Sync[F]):Option[Response[F]]"></a>
+      <a id="fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Long,Long,Int,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$5:cats.effect.Sync[F]):Option[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1226,14 +1234,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="end">end: <span class="extype" name="scala.Long">Long</span></span>, <span name="buffsize">buffsize: <span class="extype" name="scala.Int">Int</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="start">start: <span class="extype" name="scala.Long">Long</span></span>, <span name="end">end: <span class="extype" name="scala.Long">Long</span></span>, <span name="buffsize">buffsize: <span class="extype" name="scala.Int">Int</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.data.OptionT">OptionT</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):Option[org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Int,Option[Request[F]])(Sync[F]):Option[Response[F]]"></a>
+      <a id="fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Int,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):Option[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1242,14 +1250,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="buffsize">buffsize: <span class="extype" name="scala.Int">Int</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="buffsize">buffsize: <span class="extype" name="scala.Int">Int</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.data.OptionT">OptionT</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$3:cats.effect.Sync[F]):Option[org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]])(Sync[F]):Option[Response[F]]"></a>
+      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$3:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$3:cats.effect.Sync[F]):Option[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$3:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1258,14 +1266,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.data.OptionT">OptionT</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromResource" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromResource[F[_]](name:String,req:Option[org.http4s.Request[F]])(implicitevidence$2:cats.effect.Sync[F]):Option[org.http4s.Response[F]]"></a><a id="fromResource[F[_]](String,Option[Request[F]])(Sync[F]):Option[Response[F]]"></a>
+      <a id="fromResource[F[_]](name:String,req:Option[org.http4s.Request[F]],preferGzipped:Boolean)(implicitevidence$2:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromResource[F[_]](String,Option[Request[F]],Boolean)(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromResource[F[_]](name:String,req:Option[org.http4s.Request[F]])(implicitevidence$2:cats.effect.Sync[F]):Option[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromResource[F[_]](name:String,req:Option[org.http4s.Request[F]],preferGzipped:Boolean)(implicitevidence$2:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1274,14 +1282,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromResource</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]]</span>
+        <span class="name">fromResource</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]] = <span class="symbol">None</span></span>, <span name="preferGzipped">preferGzipped: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.data.OptionT">OptionT</span>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromResource.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromString" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromString[F[_]](url:String,req:Option[org.http4s.Request[F]])(implicitevidence$1:cats.effect.Sync[F]):Option[org.http4s.Response[F]]"></a><a id="fromString[F[_]](String,Option[Request[F]])(Sync[F]):Option[Response[F]]"></a>
+      <a id="fromString[F[_]](url:String,req:Option[org.http4s.Request[F]])(implicitevidence$1:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromString[F[_]](String,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromString[F[_]](url:String,req:Option[org.http4s.Request[F]])(implicitevidence$1:cats.effect.Sync[F]):Option[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromString[F[_]](url:String,req:Option[org.http4s.Request[F]])(implicitevidence$1:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1290,14 +1298,14 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromString</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]]</span>
+        <span class="name">fromString</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.data.OptionT">OptionT</span>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromString.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromURL" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromURL[F[_]](url:java.net.URL,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):Option[org.http4s.Response[F]]"></a><a id="fromURL[F[_]](URL,Option[Request[F]])(Sync[F]):Option[Response[F]]"></a>
+      <a id="fromURL[F[_]](url:java.net.URL,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromURL[F[_]](URL,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromURL[F[_]](url:java.net.URL,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):Option[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromURL[F[_]](url:java.net.URL,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1306,7 +1314,7 @@ conform string.">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromURL</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]]</span>
+        <span class="name">fromURL</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="url">url: <span class="extype" name="java.net.URL">URL</span></span>, <span name="req">req: <span class="extype" name="scala.Option">Option</span>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.data.OptionT">OptionT</span>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromURL.F">F</span>]]</span>
       </span>
       
       

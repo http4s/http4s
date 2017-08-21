@@ -646,6 +646,14 @@ entire resulting A.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpDate$.html" title=""></a>
+                        <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC)."></a>
+                        <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
+Time (UTC).">
+                          HttpDate
+                        </a>
+                      </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="package$$HttpService$.html" title=""></a>
                         <a href="package$$HttpService$.html" title="">
@@ -695,10 +703,10 @@ entire resulting A.">
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to fall through
-to another service.">
+                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service."></a>
+                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
+fall through to another service.">
                           MaybeResponse
                         </a>
                       </li><li class="current-entities indented2">
@@ -1003,7 +1011,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Type class defining how to decode a <a href="QueryParameterValue.html" class="extype" name="org.http4s.QueryParameterValue">QueryParameterValue</a> into a <code>T</code></p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/core/src/main/scala/org/http4s/QueryParam.scala" target="_blank">QueryParam.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p>QueryParamCodecLaws</p></span></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Type class defining how to decode a <a href="QueryParameterValue.html" class="extype" name="org.http4s.QueryParameterValue">QueryParameterValue</a> into a <code>T</code></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.T">T</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/QueryParam.scala" target="_blank">QueryParam.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p>QueryParamCodecLaws</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1206,7 +1214,7 @@ conform string.">
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -1340,7 +1348,7 @@ conform string.">
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -1418,6 +1426,22 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.QueryParamDecoder#map" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="map[U](f:T=&gt;U):org.http4s.QueryParamDecoder[U]"></a><a id="map[U]((T)⇒U):QueryParamDecoder[U]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder.html#map[U](f:T=&gt;U):org.http4s.QueryParamDecoder[U]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">map</span><span class="tparams">[<span name="U">U</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.QueryParamDecoder.T">T</span>) ⇒ <span class="extype" name="org.http4s.QueryParamDecoder.map.U">U</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.map.U">U</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">QueryParamDecoder is a covariant functor.</p>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -1466,6 +1490,22 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.QueryParamDecoder#orElse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="orElse[U&gt;:T](qpd:org.http4s.QueryParamDecoder[U]):org.http4s.QueryParamDecoder[U]"></a><a id="orElse[U&gt;:T](QueryParamDecoder[U]):QueryParamDecoder[U]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/QueryParamDecoder.html#orElse[U&gt;:T](qpd:org.http4s.QueryParamDecoder[U]):org.http4s.QueryParamDecoder[U]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">orElse</span><span class="tparams">[<span name="U">U &gt;: <span class="extype" name="org.http4s.QueryParamDecoder.T">T</span></span>]</span><span class="params">(<span name="qpd">qpd: <a href="" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.orElse.U">U</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.QueryParamDecoder.orElse.U">U</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Use another decoder if this one fails.</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">

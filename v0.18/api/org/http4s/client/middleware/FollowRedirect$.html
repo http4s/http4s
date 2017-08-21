@@ -213,8 +213,9 @@
 - the redirect is not followed otherwise</p><p>Whenever we follow with a GET or HEAD, an empty body is sent, and
 all payload headers defined in https://tools.ietf.org/html/rfc7231#section-3.3
 are stripped.</p><p>If the response does not contain a valid Location header, the redirect is
-not followed.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/client/src/main/scala/org/http4s/client/middleware/FollowRedirect.scala" target="_blank">FollowRedirect.scala</a></dd></dl><div class="toggleContainer block">
+not followed.</p><p>Headers whose names match <code>sensitiveHeaderFilter</code> are not exposed when
+redirecting to a different authority.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/client/src/main/scala/org/http4s/client/middleware/FollowRedirect.scala" target="_blank">FollowRedirect.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -320,9 +321,9 @@ not followed.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.middleware.FollowRedirect#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](maxRedirects:Int)(client:org.http4s.client.Client[F])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]"></a><a id="apply[F[_]](Int)(Client[F])(MonadError[F,Throwable]):Client[F]"></a>
+      <a id="apply[F[_]](maxRedirects:Int,sensitiveHeaderFilter:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(client:org.http4s.client.Client[F])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]"></a><a id="apply[F[_]](Int,(CaseInsensitiveString)⇒Boolean)(Client[F])(MonadError[F,Throwable]):Client[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/middleware/FollowRedirect$.html#apply[F[_]](maxRedirects:Int)(client:org.http4s.client.Client[F])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/FollowRedirect$.html#apply[F[_]](maxRedirects:Int,sensitiveHeaderFilter:org.http4s.util.CaseInsensitiveString=&gt;Boolean)(client:org.http4s.client.Client[F])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -331,7 +332,7 @@ not followed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="maxRedirects">maxRedirects: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.FollowRedirect.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadError">MonadError</span>[<span class="extype" name="org.http4s.client.middleware.FollowRedirect.apply.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.FollowRedirect.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="maxRedirects">maxRedirects: <span class="extype" name="scala.Int">Int</span></span>, <span name="sensitiveHeaderFilter">sensitiveHeaderFilter: (<a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="../../Headers$.html">Headers.SensitiveHeaders</a></span></span></span>)</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.FollowRedirect.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.MonadError">MonadError</span>[<span class="extype" name="org.http4s.client.middleware.FollowRedirect.apply.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.FollowRedirect.apply.F">F</span>]</span>
       </span>
       
       
@@ -366,7 +367,7 @@ not followed.
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -420,7 +421,7 @@ not followed.
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>

@@ -179,7 +179,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d2ace51335625853dfcaf78d85e7538d440f9b13/blaze-server/src/main/scala/org/http4s/server/blaze/BlazeBuilder.scala" target="_blank">BlazeBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/blaze-server/src/main/scala/org/http4s/server/blaze/BlazeBuilder.scala" target="_blank">BlazeBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -235,9 +235,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.blaze.BlazeBuilder#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount[F]])(implicitF:cats.effect.Effect[F],implicitS:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.server.blaze.BlazeBuilder[F]"></a><a id="&lt;init&gt;:BlazeBuilder[F]"></a>
+      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount[F]],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F])(implicitF:cats.effect.Effect[F],implicitS:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.server.blaze.BlazeBuilder[F]"></a><a id="&lt;init&gt;:BlazeBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount[F]])(implicitF:cats.effect.Effect[F],implicitS:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.server.blaze.BlazeBuilder[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#&lt;init&gt;(socketAddress:java.net.InetSocketAddress,executionContext:scala.concurrent.ExecutionContext,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLConfig],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount[F]],serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F])(implicitF:cats.effect.Effect[F],implicitS:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.server.blaze.BlazeBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -246,7 +246,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="isNio2">isNio2: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="connectorPoolSize">connectorPoolSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="bufferSize">bufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="enableWebSockets">enableWebSockets: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="sslBits">sslBits: <span class="extype" name="scala.Option">Option</span>[<a href="../SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxRequestLineLen">maxRequestLineLen: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxHeadersLen">maxHeadersLen: <span class="extype" name="scala.Int">Int</span></span>, <span name="serviceMounts">serviceMounts: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="org.http4s.server.blaze.ServiceMount">ServiceMount</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>, <span name="S">S: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>[<a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]]]</span>)</span>
+        <span class="name">BlazeBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>, <span name="idleTimeout">idleTimeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="isNio2">isNio2: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="connectorPoolSize">connectorPoolSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="bufferSize">bufferSize: <span class="extype" name="scala.Int">Int</span></span>, <span name="enableWebSockets">enableWebSockets: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="sslBits">sslBits: <span class="extype" name="scala.Option">Option</span>[<a href="../SSLConfig.html" class="extype" name="org.http4s.server.SSLConfig">SSLConfig</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="maxRequestLineLen">maxRequestLineLen: <span class="extype" name="scala.Int">Int</span></span>, <span name="maxHeadersLen">maxHeadersLen: <span class="extype" name="scala.Int">Int</span></span>, <span name="serviceMounts">serviceMounts: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="org.http4s.server.blaze.ServiceMount">ServiceMount</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]]</span>, <span name="serviceErrorHandler">serviceErrorHandler: <a href="../index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>, <span name="S">S: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>[<a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]]]</span>)</span>
       </span>
       
       
@@ -465,7 +465,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
@@ -615,7 +615,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java/lang/index.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
       <span class="symbol">classOf[java.lang.Throwable]</span>
@@ -1021,6 +1021,25 @@ for example, an infinite request line.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../SSLContextSupport.html" class="extype" name="org.http4s.server.SSLContextSupport">SSLContextSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.blaze.BlazeBuilder#withServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F]):BlazeBuilder.this.Self"></a><a id="withServiceErrorHandler(ServiceErrorHandler[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F]):BlazeBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withServiceErrorHandler</span><span class="params">(<span name="serviceErrorHandler">serviceErrorHandler: <a href="../index.html#ServiceErrorHandler[F[_]]=org.http4s.Request[F]=&gt;PartialFunction[Throwable,F[org.http4s.Response[F]]]" class="extmbr" name="org.http4s.server.ServiceErrorHandler">ServiceErrorHandler</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Sets the handler for errors thrown invoking the service.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the handler for errors thrown invoking the service.  Is not
+guaranteed to be invoked on errors on the server backend, such as
+parsing a request or handling a context timeout.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.blaze.BlazeBuilder#withWebSockets" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withWebSockets(enableWebsockets:Boolean):BlazeBuilder.this.Self"></a><a id="withWebSockets(Boolean):Self"></a>
       <span class="permalink">

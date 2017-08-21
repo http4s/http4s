@@ -35,6 +35,10 @@
 	  </li>
 	
 	  <li >
+	    <a href="/standards/">Coding Standard</a>
+	  </li>
+	
+	  <li >
 	    <a href="/adopters/">Adopters</a>
 	  </li>
 	
@@ -143,24 +147,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1961137098
+response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1727273046
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@52e32c8f
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@3abba69e
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@13f2e05d
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@20d496a6
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@2439dfd3
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@44312fa1
 
 scala&gt; println(response.as[Resp].unsafeRunSync)
 Audio()
@@ -251,6 +255,10 @@ cause conflicts with the builtin Decoders.</p>
               
               <li >
                 <a href="/v0.18/gzip/">GZip Compression</a>
+              </li>
+              
+              <li >
+                <a href="/v0.18/hsts/">HSTS</a>
               </li>
               
               <li >
