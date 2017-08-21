@@ -22,20 +22,21 @@ And we need some imports.
 ```tut:silent
 import org.http4s._
 import org.http4s.dsl._
+import cats.effect.IO
 ```
 
 Let's make a simple service that will be exposed and wrapped with HSTS.
 
 ```tut:book
-val service = HttpService {
+val service = HttpService[IO] {
   case _ =>
     Ok("ok")
 }
 
-val request = Request(Method.GET, uri("/"))
+val request = Request[IO](Method.GET, uri("/"))
 
-// Do not call 'unsafeRun' in your code
-val response = service.orNotFound(request).unsafeRun
+// Do not call 'unsafeRunSync' in your code
+val response = service.orNotFound(request).unsafeRunSync
 response.headers
 ```
 
@@ -45,8 +46,8 @@ If we were to wrap this on the `HSTS` middleware.
 import org.http4s.server.middleware._
 val hstsService = HSTS(service)
 
-// Do not call 'unsafeRun' in your code
-val response = hstsService.orNotFound(request).unsafeRun
+// Do not call 'unsafeRunSync' in your code
+val response = hstsService.orNotFound(request).unsafeRunSync
 response.headers
 ```
 
@@ -70,8 +71,8 @@ import scala.concurrent.duration._
 val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, includeSubDomains = true, preload = true)
 val hstsService = HSTS(service, hstsHeader)
 
-// Do not call 'unsafeRun' in your code
-val response = hstsService.orNotFound(request).unsafeRun
+// Do not call 'unsafeRunSync' in your code
+val response = hstsService.orNotFound(request).unsafeRunSync
 response.headers
 ```
 
