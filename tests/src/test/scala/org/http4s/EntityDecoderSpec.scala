@@ -4,7 +4,8 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 
 import cats._
-import cats.effect.IO
+import cats.effect._
+import cats.implicits._
 import fs2.Stream._
 import fs2._
 import org.http4s.Status.Ok
