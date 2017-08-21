@@ -172,7 +172,7 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
 
   /** Submits a request and returns the response status */
   def status(req: F[Request[F]]): F[Status] =
-    req.flatMap(status(_))
+    req.flatMap(status)
 
   /** Submits a request and returns true if and only if the response status is
     * successful */
@@ -182,7 +182,7 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   /** Submits a request and returns true if and only if the response status is
    * successful */
   def successful(req: F[Request[F]]): F[Boolean] =
-    req.flatMap(successful(_))
+    req.flatMap(successful)
 
   @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
@@ -266,7 +266,7 @@ object Client {
     def disposableService(service: HttpService[F]): Service[F, Request[F], DisposableResponse[F]] =
       Service.lift { req: Request[F] =>
         val disposed = new AtomicBoolean(false)
-        val req0 = req.withBody(interruptible(req.body, disposed))
+        val req0 = req.withBodyStream(interruptible(req.body, disposed))
         service(req0) map { maybeResp =>
           val resp = maybeResp.orNotFound
           DisposableResponse(

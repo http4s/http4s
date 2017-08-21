@@ -35,6 +35,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
         encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData
         decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
         decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
+        extract name properly if it is present     $extractNameIfPresent
      """
 
   val url = Uri(
@@ -184,6 +185,10 @@ I am a big moose
     result must beRight
   }
 
+  def extractNameIfPresent = {
+    val part = Part(Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))), Stream.empty.covary[IO])
+    part.name must beEqualTo(Some("Rich Homie Quan"))
+  }
 
   private def fileToEntity(f: File): Entity[IO] = {
     val bitVector = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)

@@ -52,15 +52,21 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
 
 trait LocationResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply(location: Uri)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response[F](status).putHeaders(`Content-Length`.zero, Location(location)))
+    F.pure(Response[F](status = status, headers = Headers(`Content-Length`.zero, Location(location))))
 }
 
 trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply(challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response[F](status).putHeaders(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*)))
+    F.pure(Response[F](
+      status = status,
+      headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
+    ))
 }
 
 trait ProxyAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply(challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response[F](status).putHeaders(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*)))
+    F.pure(Response[F](
+      status = status,
+      headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
+    ))
 }

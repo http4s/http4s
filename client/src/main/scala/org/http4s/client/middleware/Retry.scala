@@ -3,10 +3,13 @@ package client
 package middleware
 
 import cats._
+import cats.effect.Async
 import cats.implicits._
+import fs2._
 import org.http4s.Status._
 import org.log4s.getLogger
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
@@ -25,8 +28,8 @@ object Retry {
 
   def apply[F[_]](backoff: Int => Option[FiniteDuration])
                  (client: Client[F])
-                 (implicit F: MonadError[F, Throwable]): Client[F] = {
-    def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] = {
+                 (implicit F: Async[F], scheduler: Scheduler, executionContext: ExecutionContext): Client[F] = {
+    def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
       client.open(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
         case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if RetriableStatuses(status) =>
@@ -51,13 +54,11 @@ object Retry {
               F.raiseError[DisposableResponse[F]](e)
           }
       }
-    }
 
-    def nextAttempt(req: Request[F], attempts: Int, duration: FiniteDuration): F[DisposableResponse[F]] = {
-        prepareLoop(req.withBody(EmptyBody), attempts + 1)
-    }
+    def nextAttempt(req: Request[F], attempts: Int, duration: FiniteDuration)
+                   (implicit F: Async[F], executionContext: ExecutionContext): F[DisposableResponse[F]] =
       // TODO honor Retry-After header
-      // Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1)) }
+      scheduler.sleep_[F](duration).run >> prepareLoop(req.withEmptyBody, attempts + 1)
 
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }

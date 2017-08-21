@@ -52,7 +52,7 @@ object RequestCookieJar {
     }
 
 }
-class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with IterableLike[Cookie, RequestCookieJar] {
+class RequestCookieJar(private val headers: Seq[Cookie]) extends Iterable[Cookie] with IterableLike[Cookie, RequestCookieJar] {
   override protected[this] def newBuilder: mutable.Builder[Cookie, RequestCookieJar] = RequestCookieJar.newBuilder
   def iterator: Iterator[Cookie] = headers.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
@@ -113,17 +113,24 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
     result
   }
 
-  override def toString(): String = {
-    s"RequestCookieJar(${map(_.renderString).mkString("\n")})"
-  }
-}
+  override def equals(o: Any) =
+    o match {
+      case that: RequestCookieJar => this.headers == that.headers
+      case _ => false
+    }
 
+  override def hashCode(): Int =
+    headers.##
+
+  override def toString(): String =
+    s"RequestCookieJar(${map(_.renderString).mkString("\n")})"
+}
 
 // see http://tools.ietf.org/html/rfc6265
 final case class Cookie(
   name: String,
   content: String,
-  expires: Option[Instant] = None,
+  expires: Option[HttpDate] = None,
   maxAge: Option[Long] = None,
   domain: Option[String] = None,
   path: Option[String] = None,
@@ -146,7 +153,6 @@ final case class Cookie(
     writer
   }
 
-  def clearCookie: headers.`Set-Cookie` = {
-    headers.`Set-Cookie`(copy(content = "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0L)))
-  }
+  def clearCookie: headers.`Set-Cookie` =
+    headers.`Set-Cookie`(copy(content = "", expires = Some(HttpDate.Epoch), maxAge = Some(0L)))
 }

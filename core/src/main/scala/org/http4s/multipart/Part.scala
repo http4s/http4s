@@ -12,7 +12,7 @@ import org.http4s.util.CaseInsensitiveString
 import org.http4s.{EmptyBody, Header, Headers}
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
-  def name: Option[CaseInsensitiveString] = headers.get(`Content-Disposition`).map(_.name)
+  def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
 }
 
 object Part {

@@ -25,7 +25,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo[F],
   sslBits: Option[KeyStoreBits],
-  mounts: Vector[Mount[F]]
+  mounts: Vector[Mount[F]],
+  private val serviceErrorHandler: ServiceErrorHandler[F]
 ) extends ServletContainer[F]
   with ServerBuilder[F]
   with IdleTimeoutSupport[F]
@@ -34,7 +35,6 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   private val F = Effect[F]
   type Self = TomcatBuilder[F]
 
-
   private def copy(
     socketAddress: InetSocketAddress = socketAddress,
     executionContext: ExecutionContext = executionContext,
@@ -42,13 +42,13 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     asyncTimeout: Duration = asyncTimeout,
     servletIo: ServletIo[F] = servletIo,
     sslBits: Option[KeyStoreBits] = sslBits,
-    mounts: Vector[Mount[F]] = mounts
-  ): TomcatBuilder[F] =
-    new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+    mounts: Vector[Mount[F]] = mounts,
+    serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
+  ): Self =
+    new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
 
-  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
+  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self =
     copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
-  }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -92,7 +92,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext
+        executionContext = builder.executionContext,
+        serviceErrorHandler = builder.serviceErrorHandler
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
@@ -112,6 +113,9 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
   override def withServletIo(servletIo: ServletIo[F]): Self =
     copy(servletIo = servletIo)
+
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
+    copy(serviceErrorHandler = serviceErrorHandler)
 
   override def start: F[Server[F]] = F.delay {
     val tomcat = new Tomcat
@@ -187,9 +191,9 @@ object TomcatBuilder {
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       servletIo = ServletContainer.DefaultServletIo[F],
       sslBits = None,
-      mounts = Vector.empty
+      mounts = Vector.empty,
+      serviceErrorHandler = DefaultServiceErrorHandler
     )
 }
 
 private final case class Mount[F[_]](f: (Context, Int, TomcatBuilder[F]) => Unit)
-

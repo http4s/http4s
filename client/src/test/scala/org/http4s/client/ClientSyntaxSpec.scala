@@ -139,6 +139,22 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       client.successful(IO.pure(req)) must returnValue(true)
     }
 
+    "status returns the status for a request" in {
+      client.status(req) must returnValue(Status.Ok)
+    }
+
+    "status returns the status for a request task" in {
+      client.status(IO.pure(req)) must returnValue(Status.Ok)
+    }
+
+    "successful returns the success of the status for a request" in {
+      client.successful(req) must returnValue(true)
+    }
+
+    "successful returns the success of the status for a request task" in {
+      client.successful(IO.pure(req)) must returnValue(true)
+    }
+
     "return an unexpected status when expect returns unsuccessful status" in {
       client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(Left(UnexpectedStatus(Status.InternalServerError)))
     }

@@ -5,7 +5,7 @@ package syntax
 import javax.servlet.{ServletContext, ServletRegistration}
 
 import cats.effect._
-import org.http4s.server.AsyncTimeoutSupport
+import org.http4s.server.{AsyncTimeoutSupport, DefaultServiceErrorHandler}
 
 import scala.concurrent.ExecutionContext
 
@@ -15,12 +15,14 @@ trait ServletContextSyntax {
 
 final class ServletContextOps private[syntax](val self: ServletContext) extends AnyVal {
   /** Wraps an HttpService and mounts it as a servlet */
-  def mountService[F[_]: Effect](name: String, service: HttpService[F], mapping: String = "/*")(implicit ec: ExecutionContext = ExecutionContext.global): ServletRegistration.Dynamic = {
+  def mountService[F[_]: Effect](name: String, service: HttpService[F], mapping: String = "/*")
+                                (implicit ec: ExecutionContext = ExecutionContext.global): ServletRegistration.Dynamic = {
     val servlet = new Http4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       executionContext = ec,
-      servletIo = servletIo
+      servletIo = servletIo,
+      serviceErrorHandler = DefaultServiceErrorHandler[F]
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)

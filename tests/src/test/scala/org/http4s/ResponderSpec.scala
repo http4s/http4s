@@ -52,7 +52,7 @@ class ResponderSpec extends Specification {
       val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
-      val newHeaders = wHeader.replaceAllHeaders(Date(Instant.now))
+      val newHeaders = wHeader.replaceAllHeaders(Date(HttpDate.now))
       newHeaders.headers.toList must have length 1
       newHeaders.headers.get(Connection) must beNone
     }
@@ -61,7 +61,7 @@ class ResponderSpec extends Specification {
       val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       wHeader.headers.toList must have length 3
 
-      val newHeaders = wHeader.replaceAllHeaders(Headers(Date(Instant.now)))
+      val newHeaders = wHeader.replaceAllHeaders(Headers(Date(HttpDate.now)))
       newHeaders.headers.toList must have length 1
       newHeaders.headers.get(Connection) must beNone
     }
@@ -90,7 +90,7 @@ class ResponderSpec extends Specification {
     "Remove cookie" in {
       val cookie = Cookie("foo", "bar")
       resp.removeCookie(cookie).cookies must_== List(
-        org.http4s.Cookie("foo", "", expires = Option(Instant.ofEpochSecond(0)), maxAge = Some(0L))
+        org.http4s.Cookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
       )
     }
   }

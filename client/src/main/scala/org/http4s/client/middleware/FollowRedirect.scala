@@ -7,7 +7,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.Method._
 import org.http4s.headers._
-import org.http4s.syntax.string._
+import org.http4s.util.CaseInsensitiveString
 
 /**
   * Client middleware to follow redirect responses.
@@ -32,21 +32,13 @@ import org.http4s.syntax.string._
   *
   * If the response does not contain a valid Location header, the redirect is
   * not followed.
+  *
+  * Headers whose names match `sensitiveHeaderFilter` are not exposed when
+  * redirecting to a different authority.
   */
 object FollowRedirect {
-
-  // TODO move this somewhere more sensible in 0.15, but we don't want to break
-  // bincompat in a bugfix for 0.14.
-  //
-  // https://tools.ietf.org/html/rfc7231#section-3.3
-  private val PayloadHeaderKeys = Set(
-    "Content-Length".ci,
-    "Content-Range".ci,
-    "Trailer".ci,
-    "Transfer-Encoding".ci
-  )
-
-  def apply[F[_]](maxRedirects: Int)
+  def apply[F[_]](maxRedirects: Int,
+                  sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)
                  (client: Client[F])
                  (implicit F: MonadError[F, Throwable]): Client[F] = {
     def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] = {
@@ -71,21 +63,24 @@ object FollowRedirect {
 
         def dontRedirect: F[DisposableResponse[F]] = F.pure(dr)
 
+        def stripSensitiveHeaders(nextUri: Uri): Request[F] =
+          if (req.uri.authority != nextUri.authority)
+            req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
+          else
+            req
+
         def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[F, Byte]]): Request[F] =
           bodyOpt match {
             case Some(body) =>
-              // Assume that all the headers can be propagated
-              req
+              stripSensitiveHeaders(nextUri)
                 .withMethod(method)
                 .withUri(nextUri)
-                .withBody(body)
+                .withBodyStream(body)
             case None =>
-              req
+              stripSensitiveHeaders(nextUri)
                 .withMethod(method)
                 .withUri(nextUri)
-                .withBody(EmptyBody)
-                // We need to strip all payload headers
-                .withHeaders(req.headers.filterNot(h => PayloadHeaderKeys(h.name)))
+                .withEmptyBody
           }
 
         def doRedirect(method: Method): F[DisposableResponse[F]] = {
