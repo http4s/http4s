@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import cats._
@@ -9,6 +9,7 @@ import fs2._
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
+import org.http4s.blaze.util.Execution
 import org.http4s.util.chunk.ByteChunkMonoid
 
 object DumpingWriter {

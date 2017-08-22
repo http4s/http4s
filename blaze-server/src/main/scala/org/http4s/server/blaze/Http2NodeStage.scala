@@ -14,6 +14,7 @@ import org.http4s.blaze.http.http20.Http2Exception._
 import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util._
+import org.http4s.blazecore.util.{End, Http2Writer}
 import org.http4s.syntax.string._
 import org.http4s.{Headers => HHeaders, Method => HMethod}
 

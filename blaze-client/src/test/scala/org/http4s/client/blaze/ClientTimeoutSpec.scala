@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 import fs2.Task._
 import fs2._
 import org.http4s.blaze.pipeline.HeadStage
-import org.http4s.blaze.{SeqTestHead, SlowTestHead}
+import org.http4s.blazecore.{SeqTestHead, SlowTestHead}
 
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._

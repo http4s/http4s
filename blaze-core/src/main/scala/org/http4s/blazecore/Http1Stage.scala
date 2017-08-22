@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -17,6 +17,7 @@ import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util._
+import org.http4s.blazecore.util._
 import org.http4s.util.{ByteVectorChunk, Writer, StringWriter}
 import scodec.bits.ByteVector
 

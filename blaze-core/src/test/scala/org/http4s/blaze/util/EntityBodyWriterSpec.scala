@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import java.nio.ByteBuffer
@@ -12,8 +12,8 @@ import scala.concurrent.duration.Duration
 import fs2._
 import fs2.Stream._
 import fs2.compress.deflate
-import org.http4s.blaze.TestHead
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.blazecore.TestHead
 import org.http4s.util.StringWriter
 
 class EntityBodyWriterSpec extends Http4sSpec {

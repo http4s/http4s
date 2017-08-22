@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets

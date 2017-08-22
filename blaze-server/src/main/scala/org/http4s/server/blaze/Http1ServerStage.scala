@@ -7,13 +7,13 @@ import java.nio.charset.StandardCharsets
 
 import cats.implicits._
 import fs2._
-import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
-import org.http4s.blaze.util.BodylessWriter
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
+import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.util.BodylessWriter
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
