@@ -1,12 +1,11 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.http4s.Headers
-import org.http4s.blaze.TestHead
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.internal.compatibility._
 import org.http4s.util.StringWriter

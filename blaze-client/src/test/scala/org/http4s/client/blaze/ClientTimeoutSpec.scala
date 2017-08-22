@@ -5,8 +5,8 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.http4s.blaze.{SeqTestHead, SlowTestHead}
 import org.http4s.blaze.pipeline.HeadStage
+import org.http4s.blazecore.{SeqTestHead, SlowTestHead}
 import scodec.bits.ByteVector
 
 import scala.concurrent.TimeoutException

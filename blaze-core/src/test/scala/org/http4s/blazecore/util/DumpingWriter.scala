@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import scodec.bits.ByteVector
@@ -10,6 +10,7 @@ import scalaz.concurrent.Task
 
 import scalaz.stream.Process
 
+import org.http4s.blaze.util.Execution
 import org.http4s.internal.compatibility._
 
 object DumpingWriter {

@@ -1,4 +1,6 @@
-package org.http4s.blaze.util
+package org.http4s
+package blazecore
+package util
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
@@ -19,7 +21,7 @@ class ChunkProcessWriter(private var headers: StringWriter,
                          trailer: Task[Headers])
                          (implicit val ec: ExecutionContext) extends ProcessWriter {
 
-  import org.http4s.blaze.util.ChunkProcessWriter._
+  import ChunkProcessWriter._
 
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     if (chunk.nonEmpty) pipe.channelWrite(encodeChunk(chunk, Nil))
