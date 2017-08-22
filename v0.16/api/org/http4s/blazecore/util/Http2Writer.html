@@ -107,10 +107,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../../index.html" class="extype" name="org">org</a></dd></dl></div>
-    </li><li name="org.http4s.blaze" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="blaze"></a><a id="blaze:blaze"></a>
+    </li><li name="org.http4s.blazecore" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="blazecore"></a><a id="blazecore:blazecore"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#blaze" title="Permalink">
+      <a href="../../org/http4s/index.html#blazecore" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -120,15 +120,15 @@
       </span>
       <span class="symbol">
         <a title="" href="../index.html">
-              <span class="name">blaze</span>
+              <span class="name">blazecore</span>
             </a>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
-    </li><li name="org.http4s.blaze.util" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.blazecore.util" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="util"></a><a id="util:util"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/blaze/index.html#util" title="Permalink">
+      <a href="../../../org/http4s/blazecore/index.html#util" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -142,7 +142,7 @@
             </a>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.blaze">blaze</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.blazecore">blazecore</a></dd></dl></div>
     </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="BodylessWriter.html" title="Discards the body, killing it so as to clean up resources
@@ -153,8 +153,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">
+                        <a class="class" href="CachingChunkWriter.html" title=""></a>
+                        <a href="CachingChunkWriter.html" title="">
                           CachingChunkWriter
                         </a>
                       </li><li class="current-entities indented4">
@@ -171,8 +171,8 @@
                         </a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="Http2Writer.html" title=""></a>
-                        <a href="Http2Writer.html" title="">
+                        <a class="class" href="" title=""></a>
+                        <a href="" title="">
                           Http2Writer
                         </a>
                       </li><li class="current-entities indented4">
@@ -195,9 +195,9 @@
             <body class="class type">
       <div id="definition">
         <div class="big-circle class">c</div>
-        <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.blaze">blaze</a>.<a href="index.html" class="extype" name="org.http4s.blaze.util">util</a></p>
-        <h1>CachingChunkWriter<span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html" title="Permalink">
+        <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.blazecore">blazecore</a>.<a href="index.html" class="extype" name="org.http4s.blazecore.util">util</a></p>
+        <h1>Http2Writer<span class="permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -210,16 +210,16 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">CachingChunkWriter</span><span class="result"> extends <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a></span>
+        <span class="name">Http2Writer</span><span class="result"> extends <a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e5e40bcc8adb161f8cd03532a284c7dead58d59d/blaze-core/src/main/scala/org/http4s/blaze/util/CachingChunkWriter.scala" target="_blank">CachingChunkWriter.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/5d01158523a904432062e35dac1aec86ad47cfb0/blaze-core/src/main/scala/org/http4s/blazecore/util/Http2Writer.scala" target="_blank">Http2Writer.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a>, <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -245,7 +245,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.blaze.util.CachingChunkWriter"><span>CachingChunkWriter</span></li><li class="in" name="org.http4s.blaze.util.ChunkProcessWriter"><span>ChunkProcessWriter</span></li><li class="in" name="org.http4s.blaze.util.ProcessWriter"><span>ProcessWriter</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.blazecore.util.Http2Writer"><span>Http2Writer</span></li><li class="in" name="org.http4s.blazecore.util.ProcessWriter"><span>ProcessWriter</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -270,10 +270,10 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.blaze.util.CachingChunkWriter#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(headers:org.http4s.util.StringWriter,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],trailer:scalaz.concurrent.Task[org.http4s.Headers],bufferMaxSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.util.CachingChunkWriter"></a><a id="&lt;init&gt;:CachingChunkWriter"></a>
+              <ol><li name="org.http4s.blazecore.util.Http2Writer#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(tail:org.http4s.blaze.pipeline.TailStage[org.http4s.blaze.http.http20.NodeMsg.Http2Msg],headers:org.http4s.blaze.http.Headers,ec:scala.concurrent.ExecutionContext):org.http4s.blazecore.util.Http2Writer"></a><a id="&lt;init&gt;:Http2Writer"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#&lt;init&gt;(headers:org.http4s.util.StringWriter,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],trailer:scalaz.concurrent.Task[org.http4s.Headers],bufferMaxSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.util.CachingChunkWriter" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#&lt;init&gt;(tail:org.http4s.blaze.pipeline.TailStage[org.http4s.blaze.http.http20.NodeMsg.Http2Msg],headers:org.http4s.blaze.http.Headers,ec:scala.concurrent.ExecutionContext):org.http4s.blazecore.util.Http2Writer" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -282,7 +282,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">CachingChunkWriter</span><span class="params">(<span name="headers">headers: <a href="../../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="pipe">pipe: <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>, <span name="trailer">trailer: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>, <span name="bufferMaxSize">bufferMaxSize: <span class="extype" name="scala.Int">Int</span> = <span class="symbol">10*1024</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span>
+        <span class="name">Http2Writer</span><span class="params">(<span name="tail">tail: <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="org.http4s.blaze.http.http20.NodeMsg.Http2Msg">Http2Msg</span>]</span>, <span name="headers">headers: <span class="extype" name="org.http4s.blaze.http.Headers">blaze.http.Headers</span></span>, <span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span>
       </span>
       
       
@@ -299,7 +299,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -315,7 +315,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -331,7 +331,7 @@
     </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="+(other:String):String"></a><a id="+(String):String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#+(other:String):String" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#+(other:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -344,14 +344,14 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(CachingChunkWriter,B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(Http2Writer,B)"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -360,12 +360,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -374,7 +374,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -390,7 +390,7 @@
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -406,7 +406,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -425,26 +425,26 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.blaze.util.ChunkProcessWriter#ec" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.blazecore.util.Http2Writer#ec" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ec:scala.concurrent.ExecutionContext"></a><a id="ec:ExecutionContext"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#ec:scala.concurrent.ExecutionContext" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#ec:scala.concurrent.ExecutionContext" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
         <span class="name">ec</span><span class="result">: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((CachingChunkWriter)⇒Boolean,⇒Any):CachingChunkWriter"></a>
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((Http2Writer)⇒Boolean,⇒Any):Http2Writer"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -453,18 +453,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((CachingChunkWriter)⇒Boolean):CachingChunkWriter"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((Http2Writer)⇒Boolean):Http2Writer"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -473,18 +473,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):CachingChunkWriter"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):Http2Writer"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -493,18 +493,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):CachingChunkWriter"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):Http2Writer"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#ensuring(cond:Boolean):A" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -513,18 +513,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -540,7 +540,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -553,10 +553,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.blaze.util.CachingChunkWriter#exceptionFlush" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.blazecore.util.ProcessWriter#exceptionFlush" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="exceptionFlush():scala.concurrent.Future[Unit]"></a><a id="exceptionFlush():Future[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#exceptionFlush():scala.concurrent.Future[Unit]" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#exceptionFlush():scala.concurrent.Future[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -568,11 +568,11 @@
         <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+      <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -594,7 +594,7 @@
     </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#formatted(fmtstr:String):String" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#formatted(fmtstr:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -607,8 +607,8 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -617,7 +617,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -633,7 +633,7 @@
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -649,7 +649,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -665,7 +665,7 @@
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -681,7 +681,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -697,7 +697,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -713,7 +713,7 @@
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -729,7 +729,7 @@
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -745,7 +745,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -767,7 +767,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -789,7 +789,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -808,10 +808,10 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.blaze.util.CachingChunkWriter#writeBodyChunk" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.blazecore.util.Http2Writer#writeBodyChunk" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="writeBodyChunk(chunk:scodec.bits.ByteVector,flush:Boolean):scala.concurrent.Future[Unit]"></a><a id="writeBodyChunk(ByteVector,Boolean):Future[Unit]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#writeBodyChunk(chunk:scodec.bits.ByteVector,flush:Boolean):scala.concurrent.Future[Unit]" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#writeBodyChunk(chunk:scodec.bits.ByteVector,flush:Boolean):scala.concurrent.Future[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -826,11 +826,11 @@
       <p class="shortcomment cmt">Write a ByteVector to the wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write a ByteVector to the wire.
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
-</p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> → <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
-    </li><li name="org.http4s.blaze.util.CachingChunkWriter#writeEnd" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+</p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+    </li><li name="org.http4s.blazecore.util.Http2Writer#writeEnd" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Boolean]"></a><a id="writeEnd(ByteVector):Future[Boolean]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Boolean]" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Boolean]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -849,11 +849,11 @@ method should return a failed Future with Cancelled as the
 exception, or a Future with a Boolean to indicate whether the
 connection is to be closed or not.
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue (if <code>false</code>) or
-to close the connection (if <code>true</code>)</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> → <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
-    </li><li name="org.http4s.blaze.util.ProcessWriter#writeProcess" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+to close the connection (if <code>true</code>)</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+    </li><li name="org.http4s.blazecore.util.ProcessWriter#writeProcess" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="writeProcess(p:org.http4s.EntityBody):scalaz.concurrent.Task[Boolean]"></a><a id="writeProcess(EntityBody):Task[Boolean]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#writeProcess(p:org.http4s.EntityBody):scalaz.concurrent.Task[Boolean]" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#writeProcess(p:org.http4s.EntityBody):scalaz.concurrent.Task[Boolean]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -867,11 +867,11 @@ to close the connection (if <code>true</code>)</p></dd></dl><dl class="attribute
       
       <p class="shortcomment cmt">Creates a Task that writes the contents the Process to the output.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a Task that writes the contents the Process to the output.
 Cancelled exceptions fall through to the Task cb
-</p></div><dl class="paramcmts block"><dt class="param">p</dt><dd class="cmt"><p>EntityBody to write out</p></dd><dt>returns</dt><dd class="cmt"><p>the Task which when run will unwind the Process</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">p</dt><dd class="cmt"><p>EntityBody to write out</p></dd><dt>returns</dt><dd class="cmt"><p>the Task which when run will unwind the Process</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(CachingChunkWriter,B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(Http2Writer,B)"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/blaze/util/CachingChunkWriter.html#→[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../../org/http4s/blazecore/util/Http2Writer.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -880,12 +880,12 @@ Cancelled exceptions fall through to the Task cb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -898,10 +898,8 @@ Cancelled exceptions fall through to the Task cb
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.blaze.util.ChunkProcessWriter">
-              <h3>Inherited from <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a></h3>
-            </div><div class="parent" name="org.http4s.blaze.util.ProcessWriter">
-              <h3>Inherited from <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></h3>
+        <div class="parent" name="org.http4s.blazecore.util.ProcessWriter">
+              <h3>Inherited from <a href="ProcessWriter.html" class="extype" name="org.http4s.blazecore.util.ProcessWriter">ProcessWriter</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
@@ -909,19 +907,19 @@ Cancelled exceptions fall through to the Task cb
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.blazecore.util.Http2Writer">Http2Writer</a>]
               </h3>
             </div>
         </div>
