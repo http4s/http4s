@@ -9,6 +9,7 @@ import org.http4s.headers.{`Transfer-Encoding`, Date, `Content-Length`}
 import org.http4s.{headers => H, _}
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
+import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl._
 import org.specs2.specification.core.Fragment
 

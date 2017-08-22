@@ -1,7 +1,7 @@
 package org.http4s
-package blaze
+package blazecore
 
-import http.http_parser.Http1ClientParser
+import org.http4s.blaze.http.http_parser.Http1ClientParser
 import org.http4s.Status
 import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer

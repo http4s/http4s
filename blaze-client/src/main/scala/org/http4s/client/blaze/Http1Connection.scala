@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicReference
 
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.{headers => H}
-import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.util.ProcessWriter
+import org.http4s.blazecore.Http1Stage
+import org.http4s.blazecore.util.ProcessWriter
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 

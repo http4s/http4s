@@ -13,7 +13,7 @@ import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
 import org.http4s.{Method => HMethod, Headers => HHeaders, _}
 import org.http4s.blaze.pipeline.{ Command => Cmd }
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.blaze.util.Http2Writer
+import org.http4s.blazecore.util.Http2Writer
 import org.http4s.internal.compatibility._
 import Http2Exception.{ PROTOCOL_ERROR, INTERNAL_ERROR }
 
