@@ -204,7 +204,7 @@ sealed abstract case class Request[F[_]](
     uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String): Request[F] =
+  def withPathInfo(pi: String)(implicit F: Functor[F]): Self =
     withUri(uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
