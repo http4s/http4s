@@ -147,7 +147,7 @@ object QueryParamDecoder {
         a.orElse(b)
     }
 
-  @deprecated("Use QueryParamEncoder[T].map(f)", "0.16")
+  @deprecated("Use QueryParamDecoder[T].map(f)", "0.16")
   def decodeBy[U, T](f: T => U)(
     implicit qpd: QueryParamDecoder[T]
   ): QueryParamDecoder[U] =
