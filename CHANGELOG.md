@@ -53,7 +53,11 @@
   Give it an `orNotFound` that returns a `Service`.  The
   `orNotFound(a: A)` overload is left for compatibility with Scala
   2.10.
+* Build with Lightbend compiler instead of Typelevel compiler so we
+  don't expose `org.typelevel` dependencies that are incompatible with
+  their counterparts in `org.scala-lang`.
 * Upgraded dependencies:
+    * blaze-0.12.7 (fixes eviction notice in http4s-websocket)
     * twirl-1.3.4
 
 # v0.16.0-RC1 (2017-08-16)
