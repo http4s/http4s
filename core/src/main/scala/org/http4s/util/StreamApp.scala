@@ -7,15 +7,17 @@ import fs2._
 import fs2.async.mutable.Signal
 import org.log4s.getLogger
 
+import scala.concurrent.ExecutionContext
+
 abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[this] val logger = getLogger(classOf[StreamApp[F]])
 
   def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing]
 
-  private implicit val executionContext = TrampolineExecutionContext
+  private implicit val executionContext: ExecutionContext = TrampolineExecutionContext
 
   /** Adds a shutdown hook that interrupts the stream and waits for it to finish */
-  private[util] def addShutdownHook(requestShutdown: Signal[F, Boolean], halted: Signal[IO, Boolean]): F[Unit] =
+  private def addShutdownHook(requestShutdown: Signal[F, Boolean], halted: Signal[IO, Boolean]): F[Unit] =
     F.delay(sys.addShutdownHook {
       val hook = requestShutdown.set(true).runAsync(_ => IO.unit) >> halted.discrete.takeWhile(_ == false).run
       hook.unsafeRunSync()
