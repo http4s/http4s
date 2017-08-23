@@ -3,12 +3,13 @@ package org.http4s.build
 import sbt._, Keys._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
-import org.http4s.build.ScalazPlugin.autoImport._
-import org.http4s.build.ScalazPlugin.scalazVersionRewriters
 import sbtrelease._
 import sbtrelease.ReleasePlugin.autoImport._
 import scala.util.Properties.envOrNone
 import verizon.build.RigPlugin, RigPlugin._
+import verizon.build.ScalazPlugin
+import verizon.build.ScalazPlugin.autoImport._
+import verizon.build.ScalazPlugin.{scalazSourceDirectory, scalazVersionRewriters}
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -22,6 +23,13 @@ object Http4sPlugin extends AutoPlugin {
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalazVersionRewriter := scalazVersionRewriters.scalazStream_0_8,
+
+    // This is set in ScalazPlugin's projectSettings. Why isn't it effective for
+    // us?
+    unmanagedSourceDirectories in Compile +=
+      (sourceDirectory in Compile).value / scalazSourceDirectory(scalazVersion.value),
+    unmanagedSourceDirectories in Test +=
+      (sourceDirectory in Test).value / scalazSourceDirectory(scalazVersion.value),
 
     // Override rig's default of the Travis build number being the bugfix number
     releaseVersion := { ver =>
