@@ -19,7 +19,8 @@ trait EffectMessageSyntax[F[+_], M <: Message[F]] extends Any with MessageOps[F]
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     self.map(_.withAttribute(key, value))
 
-  override def attemptAs[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] = EitherT(self.flatMap { msg =>
-    decoder.decode(msg, false).value
-  })
+  override def attemptAs[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+    EitherT(self.flatMap { msg =>
+      decoder.decode(msg, false).value
+    })
 }

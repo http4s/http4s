@@ -88,7 +88,7 @@ trait MessageOps[F[_]] extends Any {
 }
 
 trait RequestOps[F[_]] extends Any with MessageOps[F] {
-  def withPathInfo(pi: String): Self
+  def withPathInfo(pi: String)(implicit F: Functor[F]): Self
 
   /** Helper method for decoding [[Request]]s
     *
