@@ -144,7 +144,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5385/2146358992@5c4936c1)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5389/601642704@50bd040c)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -182,7 +182,7 @@ val tweetService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5385/2146358992@1f7e7f58)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5389/601642704@5ec46b5e)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -209,10 +209,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$5404/1221754187@2e52f1ce)
+// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$5408/1382320779@43e2b45c)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1552110855
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1419662741
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
