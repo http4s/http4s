@@ -25,23 +25,20 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[util] def doMain(args: List[String]): IO[Int] =
     async.ref[IO, Int].flatMap { exitCode =>
       async.signalOf[IO, Boolean](false).flatMap { halted =>
-        async
-          .signalOf[F, Boolean](false)
-          .flatMap { requestShutdown =>
-            addShutdownHook(requestShutdown, halted) >>
-              stream(args, requestShutdown.set(true))
-                .interruptWhen(requestShutdown)
-                .run
-          }
-          .runAsync {
-            case Left(t) =>
-              IO(logger.error(t)("Error running stream")) >>
-                halted.set(true) >>
-                exitCode.setSyncPure(-1)
-            case Right(_) =>
+        async.signalOf[F, Boolean](false).flatMap { requestShutdown =>
+          addShutdownHook(requestShutdown, halted) >>
+            stream(args, requestShutdown.set(true))
+              .interruptWhen(requestShutdown)
+              .run
+        }.runAsync {
+          case Left(t) =>
+            IO(logger.error(t)("Error running stream")) >>
               halted.set(true) >>
-                exitCode.setSyncPure(0)
-          } >>
+              exitCode.setSyncPure(-1)
+          case Right(_) =>
+            halted.set(true) >>
+              exitCode.setSyncPure(0)
+        } >>
           exitCode.get
       }
     }
