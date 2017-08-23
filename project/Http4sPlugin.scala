@@ -140,5 +140,5 @@ object Http4sPlugin extends AutoPlugin {
   def scalazStream(szv: String)             = "org.scalaz.stream"      %% "scalaz-stream"             % "0.8.6" forScalaz szv
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.20"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.3"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.4"
 }
