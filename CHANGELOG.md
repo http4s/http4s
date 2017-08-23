@@ -1,4 +1,15 @@
-# v0.16.0-RC1 (2018-08-16)
+# v0.16.0-RC2
+* Move http4s-blaze-core from `org.http4s.blaze` to
+  `org.http4s.blazecore` to avoid a conflict with the non-http4s
+  blaze-core module.
+* Change `ServiceOps` to operate on a `Service[?, MaybeResponse]`.
+  Give it an `orNotFound` that returns a `Service`.  The
+  `orNotFound(a: A)` overload is left for compatibility with Scala
+  2.10.
+* Upgraded dependencies:
+    * twirl-1.3.4
+
+# v0.16.0-RC1 (2017-08-16)
 * Remove laziness from `ArbitraryInstances`
 * Support an arbitrary predicate for CORS allowed origins
 * Support `Access-Control-Expose-Headers` header for CORS
@@ -50,7 +61,6 @@
     * scala-2.12.3-bin-typelevel-4
     * scalaz-7.2.15
     * tomcat-8.5.20
-    * twirl-1.3.4
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
