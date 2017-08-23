@@ -29,7 +29,7 @@ class StreamAppSpec extends Http4sSpec {
       val testApp = new TestStreamApp(_ =>
         fail(new Throwable("Bad Initial Process"))
       )
-      testApp.mainStream(Array.empty).run.attempt.unsafeRunSync should beLeft
+      testApp.doMain(List.empty) should returnValue(-1)
       testApp.cleanedUp.get.unsafeRunSync should beTrue
     }
 
@@ -37,7 +37,7 @@ class StreamAppSpec extends Http4sSpec {
       val testApp = new TestStreamApp(_ =>
         emit("Valid Process").drain
       )
-      testApp.mainStream(Array.empty).run.attempt.unsafeRunSync should beRight
+      testApp.doMain(List.empty) should returnValue(0)
       testApp.cleanedUp.get.unsafeRunSync should beTrue
     }
 
@@ -51,14 +51,14 @@ class StreamAppSpec extends Http4sSpec {
       )
 
       (for {
-        runApp    <- async.start(testApp.mainStream(Array.empty).run.attempt)
+        runApp    <- async.start(testApp.doMain(List.empty))
         // Wait for app to start
         _         <- requestShutdown.discrete.takeWhile(_ == IO.unit).run
         // Run shutdown task
         _         <- requestShutdown.get.flatten
         result    <- runApp
         cleanedUp <- testApp.cleanedUp.get
-      } yield (result, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((Right(()), true))
+      } yield (result, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((0, true))
     }
   }
 }
