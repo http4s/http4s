@@ -1013,7 +1013,7 @@ conform string.">
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/668e9b6d76870a48e5ab71f3364e4edc51bc3a26/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/bc6e586ddc25d2bb7100baf943be7a7acff30dfc/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -2436,9 +2436,9 @@ that make no sense with an empty body.
       
       
     </li><li name="org.http4s.Request#withPathInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withPathInfo(pi:String):org.http4s.Request[F]"></a><a id="withPathInfo(String):Request[F]"></a>
+      <a id="withPathInfo(pi:String)(implicitF:cats.Functor[F]):Request.this.Self"></a><a id="withPathInfo(String)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Request.html#withPathInfo(pi:String):org.http4s.Request[F]" title="Permalink">
+      <a href="../../org/http4s/Request.html#withPathInfo(pi:String)(implicitF:cats.Functor[F]):Request.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2447,7 +2447,7 @@ that make no sense with an empty body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withPathInfo</span><span class="params">(<span name="pi">pi: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>
+        <span class="name">withPathInfo</span><span class="params">(<span name="pi">pi: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a></dd></dl></div>
