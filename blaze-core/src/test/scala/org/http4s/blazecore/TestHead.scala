@@ -12,8 +12,6 @@ import scala.util.{Success, Failure, Try}
 
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
-  val scheduler = new TickWheelExecutor()
-
   private var acc = Vector[Array[Byte]]()
   private val p = Promise[ByteBuffer]
 
@@ -35,7 +33,6 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   override def stageShutdown(): Unit = synchronized {
     closed = true
-    scheduler.shutdown()
     super.stageShutdown()
     p.trySuccess(ByteBuffer.wrap(getBytes()))
     ()
@@ -55,7 +52,7 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   }
 }
 
-final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") { self =>
+final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: TickWheelExecutor) extends TestHead("Slow TestHead") { self =>
 
   private val bodyIt = body.iterator
   private var currentRequest: Option[Promise[ByteBuffer]] = None
