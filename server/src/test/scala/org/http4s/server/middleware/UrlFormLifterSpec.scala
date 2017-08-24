@@ -20,18 +20,18 @@ class UrlFormLifterSpec extends Http4sSpec {
   "UrlFormLifter" should {
     "Add application/x-www-form-urlencoded bodies to the query params" in {
       val req = Request(method = POST).withBody(urlForm)
-      req.flatMap(service.orNotFound) must returnStatus(Ok)
+      req.flatMap(service.orNotFound.run) must returnStatus(Ok)
     }
 
     "Add application/x-www-form-urlencoded bodies after query params" in {
       val req = Request(method = Method.POST, uri = Uri.uri("/foo?foo=biz")).withBody(urlForm)
-      req.flatMap(service.orNotFound) must returnStatus(Ok)
-      req.flatMap(service.orNotFound) must returnBody("biz,bar")
+      req.flatMap(service.orNotFound.run) must returnStatus(Ok)
+      req.flatMap(service.orNotFound.run) must returnBody("biz,bar")
     }
 
     "Ignore Requests that don't have application/x-www-form-urlencoded bodies" in {
       val req = Request(method = Method.POST).withBody("foo")
-      req.flatMap(service.orNotFound) must returnStatus(BadRequest)
+      req.flatMap(service.orNotFound.run) must returnStatus(BadRequest)
     }
   }
 }

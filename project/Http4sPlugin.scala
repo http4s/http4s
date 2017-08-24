@@ -23,13 +23,7 @@ object Http4sPlugin extends AutoPlugin {
     releaseVersion := { ver =>
       Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
     },
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3-bin-typelevel-4"),
-    scalaOrganization := {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 11 => "org.typelevel"
-        case _ => "org.scala-lang"
-      }
-    },
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
 
     scalacOptions in Compile ++= Seq(
       "-Yno-adapted-args", // Curiously missing from RigPlugin
@@ -96,7 +90,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.34"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.6"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.7"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "0.9.0"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision

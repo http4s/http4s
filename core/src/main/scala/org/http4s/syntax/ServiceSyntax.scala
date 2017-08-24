@@ -1,14 +1,15 @@
 package org.http4s
 package syntax
 
-import fs2.Task
+import cats.data.Kleisli
 
 trait ServiceSyntax {
-  implicit def http4sServiceSyntax[A, B](service: Service[A, B]): ServiceOps[A, B] =
-    new ServiceOps[A, B](service)
+  implicit def http4sServiceSyntax[A](service: Service[A, MaybeResponse]): ServiceOps[A] =
+    new ServiceOps[A](service)
 }
 
-final class ServiceOps[A, B](self: Service[A, B]) {
-  def orNotFound(a: A)(implicit ev: B <:< MaybeResponse): Task[Response] =
-    self.run(a).map(_.orNotFound)
+
+final class ServiceOps[A](self: Service[A, MaybeResponse]) {
+  def orNotFound: Service[A, Response] =
+    Kleisli(a => self.run(a).map(_.orNotFound))
 }
