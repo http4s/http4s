@@ -5,29 +5,30 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-import scala.concurrent.{Future, ExecutionContext, Promise}
-import scala.util.{Failure, Success}
-
-import cats.data._
+import cats.effect.Effect
 import cats.implicits._
-import fs2._
 import fs2.Stream._
-import org.http4s.headers._
-import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
+import fs2._
+import fs2.interop.scodec.ByteVectorChunk
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
-import org.http4s.blaze.util._
+import org.http4s.blaze.util.BufferTools.emptyBuffer
+import org.http4s.blaze.util.BufferTools
 import org.http4s.blazecore.util._
-import org.http4s.util.{ByteVectorChunk, Writer, StringWriter}
+import org.http4s.headers._
+import org.http4s.util.{StringWriter, Writer}
 import scodec.bits.ByteVector
 
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
+
 /** Utility bits for dealing with the HTTP 1.x protocol */
-trait Http1Stage { self: TailStage[ByteBuffer] =>
+trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
   protected implicit def executionContext: ExecutionContext
 
-  private implicit def strategy: Strategy = Strategy.fromExecutionContext(executionContext)
+  protected implicit def F: Effect[F]
 
   protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 
@@ -52,29 +53,29 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   }
 
   /** Get the proper body encoder based on the message headers */
-  final protected def getEncoder(msg: Message,
+  final protected def getEncoder(msg: Message[F],
                                  rr: StringWriter,
                                  minor: Int,
-                                 closeOnFinish: Boolean): EntityBodyWriter = {
+                                 closeOnFinish: Boolean): EntityBodyWriter[F] = {
     val headers = msg.headers
     getEncoder(Connection.from(headers),
-               `Transfer-Encoding`.from(headers),
-               `Content-Length`.from(headers),
-               msg.trailerHeaders,
-               rr,
-               minor,
-               closeOnFinish)
+      `Transfer-Encoding`.from(headers),
+      `Content-Length`.from(headers),
+      msg.trailerHeaders,
+      rr,
+      minor,
+      closeOnFinish)
   }
 
   /** Get the proper body encoder based on the message headers,
     * adding the appropriate Connection and Transfer-Encoding headers along the way */
   final protected def getEncoder(connectionHeader: Option[Connection],
-                                     bodyEncoding: Option[`Transfer-Encoding`],
-                                     lengthHeader: Option[`Content-Length`],
-                                          trailer: Task[Headers],
-                                               rr: StringWriter,
-                                            minor: Int,
-                                    closeOnFinish: Boolean): EntityBodyWriter = lengthHeader match {
+                                 bodyEncoding: Option[`Transfer-Encoding`],
+                                 lengthHeader: Option[`Content-Length`],
+                                 trailer: F[Headers],
+                                 rr: StringWriter,
+                                 minor: Int,
+                                 closeOnFinish: Boolean): EntityBodyWriter[F] = lengthHeader match {
     case Some(h) if bodyEncoding.map(!_.hasChunked).getOrElse(true) || minor == 0 =>
       // HTTP 1.1: we have a length and no chunked encoding
       // HTTP 1.0: we have a length
@@ -107,7 +108,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       else bodyEncoding match { // HTTP >= 1.1 request without length and/or with chunked encoder
         case Some(enc) => // Signaling chunked means flush every chunk
           if (!enc.hasChunked) {
-             logger.warn(s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
+            logger.warn(s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
           }
 
           if (lengthHeader.isDefined) {
@@ -129,15 +130,15 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and `Command.EOF` as the end of the body while a server cannot.
     */
-  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Either[Throwable, Option[Chunk[Byte]]]): (EntityBody, () => Future[ByteBuffer]) = {
+  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Either[Throwable, Option[Chunk[Byte]]]): (EntityBody[F], () => Future[ByteBuffer]) = {
     if (contentComplete()) {
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
     }
-      // try parsing the existing buffer: many requests will come as a single chunk
-    else if (buffer.hasRemaining()) doParseContent(buffer) match {
+    // try parsing the existing buffer: many requests will come as a single chunk
+    else if (buffer.hasRemaining) doParseContent(buffer) match {
       case Some(chunk) if contentComplete() =>
-        Stream.chunk(ByteVectorChunk(ByteVector.view(chunk))) -> Http1Stage.futureBufferThunk(buffer)
+        Stream.chunk(ByteVectorChunk(ByteVector.view(chunk))).covary[F] -> Http1Stage.futureBufferThunk(buffer)
 
       case Some(chunk) =>
         val (rst,end) = streamingBody(buffer, eofCondition)
@@ -149,16 +150,16 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
       case None => streamingBody(buffer, eofCondition)
     }
-      // we are not finished and need more data.
+    // we are not finished and need more data.
     else streamingBody(buffer, eofCondition)
   }
 
   // Streams the body off the wire
-  private def streamingBody(buffer: ByteBuffer, eofCondition:() => Either[Throwable, Option[Chunk[Byte]]]): (EntityBody, () => Future[ByteBuffer]) = {
+  private def streamingBody(buffer: ByteBuffer, eofCondition:() => Either[Throwable, Option[Chunk[Byte]]]): (EntityBody[F], () => Future[ByteBuffer]) = {
     @volatile var currentBuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = Task.async[Option[Chunk[Byte]]]{ cb =>
+    val t = F.async[Option[Chunk[Byte]]] { cb =>
       if (!contentComplete()) {
 
         def go(): Unit = try {
@@ -199,7 +200,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       else cb(End)
     }
 
-    (pipe.unNoneTerminate(repeatEval(t)).flatMap(chunk), () => drainBody(currentBuffer))
+    (repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[F]), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred
@@ -250,12 +251,11 @@ object Http1Stage {
   def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
     headers.foreach { h =>
-        if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
-          if (isServer && h.name == Date.name) dateEncoded = true
-          rr << h << "\r\n"
-        }
-
+      if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
+        if (isServer && h.name == Date.name) dateEncoded = true
+        rr << h << "\r\n"
       }
+    }
 
     if (isServer && !dateEncoded) {
       rr << Date.name << ": " << Instant.now << "\r\n"
