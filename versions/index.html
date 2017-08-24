@@ -148,6 +148,16 @@
     </thead>
     <tbody>
       <tr>
+        <td>0.18.0-M1</td>
+        <td class="text-center"><span class="label label-warning">Milestone</span></td>
+        <td class="text-center"><i class="fa fa-ban"></i></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td>cats-1.0.0-MF</td>
+        <td>fs2-0.10.0-M6</td>
+        <td>1.8+</td>
+      </tr>
+      <tr>
         <td>0.17.0-RC2</td>
         <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
@@ -309,7 +319,49 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-17-0-rc2-2017-08-24">v0.17.0-RC2 (2017-08-24)</h1>
+      <h1 id="v0-18-0-m1">v0.18.0-M1</h1>
+
+<p>This release is the product of a long period of parallel development
+across different foundation libraries, making a detailed changelog
+difficult.  This is a living document, so if any important points are
+missed here, please send a PR.</p>
+
+<p>The most important change in http4s-0.18 is that the effect type is
+parameterized.  Where previous versions were specialized on
+<code>scalaz.concurrent.Task</code> or <code>fs2.Task</code>, this version supports anything
+with a <code>cats.effect.Effect</code> instance.  The easiest way to port an
+existing service is to replace your <code>Task</code> with <code>cats.effect.IO</code>,
+which has a similar API and is already available on your classpath.
+If you prefer to bring your own effect, such as <code>monix.eval.Task</code> or
+stick to <code>scalaz.concurrent.Task</code> or put a transformer on <code>IO</code>, that&rsquo;s
+fine, too!</p>
+
+<p>The parameterization chanages many core signatures throughout http4s:
+- <code>Request</code> and <code>Response</code> become <code>Request[F[_]]</code> and
+  <code>Response[F[_]]</code>.  The <code>F</code> is the effect type of the body (i.e.,
+  <code>Stream[F, Byte]</code>), or what the body <code>.run</code>s to.
+- <code>HttpService</code> becomes <code>HttpService[F[_]]</code>, so that the service
+  returns an <code>F[Response[F]]</code>.  Instead of constructing with
+  <code>HttpService { ... }</code>, we now declare the effect type of the
+  service, like <code>HttpService[IO] { ... }</code>.  This determines the type
+  of request and response handled by the service.
+- <code>EntityEncoder[A]</code> and <code>EntityDecoder[A]</code> are now
+  <code>EntityEncoder[F[_], A]</code> and <code>EntityDecoder[F[_], A]</code>, respectively.
+  These act as a codec for <code>Request[F]</code> and <code>Response[F]</code>.  In practice,
+  this change tends to be transparent in the DSL.
+- The server builders now take an <code>F</code> parameter, which needs to match
+  the services mounted to them.
+- The client now takes an <code>F</code> parameter, which determines the requests
+  and responses it handles.</p>
+
+<p>Several dependencies are upgraded:
+- cats-1.0.0.MF
+- circe-0.9.0-M1
+- fs2-0.10.0-M6
+- fs2-reactive-streams-0.2.2
+- jawn-fs2-0.12.0-M1</p>
+
+<h1 id="v0-17-0-rc2-2017-08-24">v0.17.0-RC2 (2017-08-24)</h1>
 
 <ul>
 <li>Remove <code>ServiceSyntax.orNotFound(a: A): Task[Response]</code> in favor of
