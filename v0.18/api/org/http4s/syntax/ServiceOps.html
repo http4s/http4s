@@ -256,12 +256,12 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceOps</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">ServiceOps</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/f35620cd0a93d0c00aaf92fd0ac3c378b7221082/core/src/main/scala/org/http4s/syntax/ServiceSyntax.scala" target="_blank">ServiceSyntax.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/7069418ed996c61f7eed463d053995d3a39ef908/core/src/main/scala/org/http4s/syntax/ServiceSyntax.scala" target="_blank">ServiceSyntax.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -317,9 +317,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.syntax.ServiceOps#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(self:org.http4s.Service[F,A,B]):org.http4s.syntax.ServiceOps[F,A,B]"></a><a id="&lt;init&gt;:ServiceOps[F,A,B]"></a>
+      <a id="&lt;init&gt;(self:org.http4s.Service[F,A,org.http4s.MaybeResponse[F]])(implicitevidence$2:cats.Functor[F]):org.http4s.syntax.ServiceOps[F,A]"></a><a id="&lt;init&gt;:ServiceOps[F,A]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/syntax/ServiceOps.html#&lt;init&gt;(self:org.http4s.Service[F,A,B]):org.http4s.syntax.ServiceOps[F,A,B]" title="Permalink">
+      <a href="../../../org/http4s/syntax/ServiceOps.html#&lt;init&gt;(self:org.http4s.Service[F,A,org.http4s.MaybeResponse[F]])(implicitevidence$2:cats.Functor[F]):org.http4s.syntax.ServiceOps[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -328,7 +328,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceOps</span><span class="params">(<span name="self">self: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]</span>)</span>
+        <span class="name">ServiceOps</span><span class="params">(<span name="self">self: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>]</span>)</span>
       </span>
       
       
@@ -390,12 +390,12 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(ServiceOps[F,A,B],B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(ServiceOps[F,A],B)"></a>
       <span class="permalink">
       <a href="../../../org/http4s/syntax/ServiceOps.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
@@ -406,12 +406,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -472,7 +472,7 @@
               
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((ServiceOps[F,A,B])⇒Boolean,⇒Any):ServiceOps[F,A,B]"></a>
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((ServiceOps[F,A])⇒Boolean,⇒Any):ServiceOps[F,A]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/syntax/ServiceOps.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
@@ -483,16 +483,16 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((ServiceOps[F,A,B])⇒Boolean):ServiceOps[F,A,B]"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((ServiceOps[F,A])⇒Boolean):ServiceOps[F,A]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/syntax/ServiceOps.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
@@ -503,16 +503,16 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):ServiceOps[F,A,B]"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):ServiceOps[F,A]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/syntax/ServiceOps.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
@@ -523,16 +523,16 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):ServiceOps[F,A,B]"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):ServiceOps[F,A]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/syntax/ServiceOps.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
@@ -543,12 +543,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]</span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -621,8 +621,8 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -725,9 +725,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.syntax.ServiceOps#orNotFound" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="orNotFound(a:A)(implicitF:cats.Functor[F],implicitev:B&lt;:&lt;org.http4s.MaybeResponse[F]):F[org.http4s.Response[F]]"></a><a id="orNotFound(A)(Functor[F],&lt;:&lt;[B,MaybeResponse[F]]):F[Response[F]]"></a>
+      <a id="orNotFound:org.http4s.Service[F,A,org.http4s.Response[F]]"></a><a id="orNotFound:Service[F,A,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/syntax/ServiceOps.html#orNotFound(a:A)(implicitF:cats.Functor[F],implicitev:B&lt;:&lt;org.http4s.MaybeResponse[F]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../org/http4s/syntax/ServiceOps.html#orNotFound:org.http4s.Service[F,A,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -736,7 +736,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">orNotFound</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>]</span>, <span name="ev">ev: <span class="extype" name="scala.Predef.&lt;:&lt;">&lt;:&lt;</span>[<span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>, <a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>]]</span>)</span><span class="result">: <span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>]]</span>
+        <span class="name">orNotFound</span><span class="result">: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>]]</span>
       </span>
       
       
@@ -839,7 +839,7 @@
               
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(ServiceOps[F,A,B],B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(ServiceOps[F,A],B)"></a>
       <span class="permalink">
       <a href="../../../org/http4s/syntax/ServiceOps.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
@@ -850,12 +850,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -875,19 +875,19 @@
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]]
+                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]]
+                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]]
+                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.B">B</span>]]
+                <a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.syntax.ServiceOps">ServiceOps</a>[<span class="extype" name="org.http4s.syntax.ServiceOps.F">F</span>, <span class="extype" name="org.http4s.syntax.ServiceOps.A">A</span>]]
               </h3>
             </div>
         </div>
