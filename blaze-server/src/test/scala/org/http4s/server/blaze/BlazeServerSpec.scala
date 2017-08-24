@@ -2,6 +2,10 @@ package org.http4s
 package server
 package blaze
 
+import java.util.concurrent.Executors
+
+import scala.concurrent.ExecutionContext
+
 class BlazeServerSpec extends ServerAddressSpec {
   def builder = BlazeBuilder
 
@@ -11,6 +15,20 @@ class BlazeServerSpec extends ServerAddressSpec {
     "Startup and shutdown without blocking" in {
       val s = BlazeBuilder
         .bindAny()
+        .run
+
+      s.shutdownNow()
+
+      true must_== true
+    }
+
+    "Startup with a custom ExecutionContext" in {
+      val s = BlazeBuilder
+        .bindAny()
+        .withExecutionContext(
+          ExecutionContext.
+            fromExecutorService(
+              Executors.newFixedThreadPool(5)))
         .run
 
       s.shutdownNow()
