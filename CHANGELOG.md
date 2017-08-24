@@ -1,3 +1,45 @@
+# v0.18.0-M1
+
+This release is the product of a long period of parallel development
+across different foundation libraries, making a detailed changelog
+difficult.  This is a living document, so if any important points are
+missed here, please send a PR.
+
+The most important change in http4s-0.18 is that the effect type is
+parameterized.  Where previous versions were specialized on
+`scalaz.concurrent.Task` or `fs2.Task`, this version supports anything
+with a `cats.effect.Effect` instance.  The easiest way to port an
+existing service is to replace your `Task` with `cats.effect.IO`,
+which has a similar API and is already available on your classpath.
+If you prefer to bring your own effect, such as `monix.eval.Task` or
+stick to `scalaz.concurrent.Task` or put a transformer on `IO`, that's
+fine, too!
+
+The parameterization chanages many core signatures throughout http4s:
+- `Request` and `Response` become `Request[F[_]]` and
+  `Response[F[_]]`.  The `F` is the effect type of the body (i.e.,
+  `Stream[F, Byte]`), or what the body `.run`s to.
+- `HttpService` becomes `HttpService[F[_]]`, so that the service
+  returns an `F[Response[F]]`.  Instead of constructing with
+  `HttpService { ... }`, we now declare the effect type of the
+  service, like `HttpService[IO] { ... }`.  This determines the type
+  of request and response handled by the service.
+- `EntityEncoder[A]` and `EntityDecoder[A]` are now
+  `EntityEncoder[F[_], A]` and `EntityDecoder[F[_], A]`, respectively.
+  These act as a codec for `Request[F]` and `Response[F]`.  In practice,
+  this change tends to be transparent in the DSL.
+- The server builders now take an `F` parameter, which needs to match
+  the services mounted to them.
+- The client now takes an `F` parameter, which determines the requests
+  and responses it handles.
+
+Several dependencies are upgraded:
+- cats-1.0.0.MF
+- circe-0.9.0-M1
+- fs2-0.10.0-M6
+- fs2-reactive-streams-0.2.2
+- jawn-fs2-0.12.0-M1
+
 # v0.17.0-RC2 (2017-08-24)
 * Remove `ServiceSyntax.orNotFound(a: A): Task[Response]` in favor of
   `ServiceSyntax.orNotFound: Service[Request, Response]`

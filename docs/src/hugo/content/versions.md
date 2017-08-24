@@ -71,6 +71,16 @@ title: Versions
 	</thead>
 	<tbody>
       <tr>
+        <td>0.18.0-M1</td>
+        <td class="text-center"><span class="label label-warning">Milestone</span></td>
+        <td class="text-center"><i class="fa fa-ban"></i></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td class="text-center"><i class="fa fa-check"></i></td>
+        <td>cats-1.0.0-MF</td>
+        <td>fs2-0.10.0-M6</td>
+        <td>1.8+</td>
+      </tr>
+      <tr>
         <td>0.17.0-RC2</td>
         <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
