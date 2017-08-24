@@ -1,3 +1,7 @@
+# v0.17.0-RC2
+* Remove `ServiceSyntax.orNotFound(a: A): Task[Response]` in favor of
+  `ServiceSyntax.orNotFound: Service[Request, Response]`
+
 # v0.17.0-RC1 (2017-08-16)
 * Port `ChunkAggregator` to fs2
 * Add logging middleware
@@ -40,6 +44,21 @@
 	* Web sockets not yet supported
 	* Client retry middleware can't check idempotence of requests
 	* Utilties in `org.http4s.util.io` not yet ported
+
+# v0.16.0-RC2
+* Move http4s-blaze-core from `org.http4s.blaze` to
+  `org.http4s.blazecore` to avoid a conflict with the non-http4s
+  blaze-core module.
+* Change `ServiceOps` to operate on a `Service[?, MaybeResponse]`.
+  Give it an `orNotFound` that returns a `Service`.  The
+  `orNotFound(a: A)` overload is left for compatibility with Scala
+  2.10.
+* Build with Lightbend compiler instead of Typelevel compiler so we
+  don't expose `org.typelevel` dependencies that are incompatible with
+  their counterparts in `org.scala-lang`.
+* Upgraded dependencies:
+    * blaze-0.12.7 (fixes eviction notice in http4s-websocket)
+    * twirl-1.3.4
 
 # v0.16.0-RC1 (2017-08-16)
 * Remove laziness from `ArbitraryInstances`
@@ -94,7 +113,6 @@
     * scala-2.12.3-bin-typelevel-4
     * scalaz-7.2.15
     * tomcat-8.5.20
-    * twirl-1.3.4
 
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.

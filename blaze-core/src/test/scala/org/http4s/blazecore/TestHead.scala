@@ -1,8 +1,9 @@
-package org.http4s.blaze
+package org.http4s
+package blazecore
 
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command.{Disconnected, Disconnect, OutboundCommand, EOF}
-
+import org.http4s.blaze.util.TickWheelExecutor
 import java.nio.ByteBuffer
 
 import scala.concurrent.duration.Duration
@@ -10,7 +11,6 @@ import scala.concurrent.{ Promise, Future }
 import scala.util.{Success, Failure, Try}
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
-
   private var acc = Vector[Array[Byte]]()
   private val p = Promise[ByteBuffer]
 
@@ -51,8 +51,7 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   }
 }
 
-final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") { self =>
-  import org.http4s.blaze.util.Execution.scheduler
+final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: TickWheelExecutor) extends TestHead("Slow TestHead") { self =>
 
   private val bodyIt = body.iterator
   private var currentRequest: Option[Promise[ByteBuffer]] = None

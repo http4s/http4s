@@ -8,6 +8,7 @@ import java.time.Instant
 import cats.effect._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
+import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.{headers => H, _}

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for SCALA_VERSION in 2.12.3-bin-typelevel-4 2.11.11-bin-typelevel-4;  do
+for SCALA_VERSION in 2.12.3 2.11.11; do
     env SCALA_VERSION=$SCALA_VERSION sbt +clean +publishSigned
 done
 sbt sonatypeRelease
