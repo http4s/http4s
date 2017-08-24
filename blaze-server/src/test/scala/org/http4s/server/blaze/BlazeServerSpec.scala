@@ -22,19 +22,6 @@ class BlazeServerSpec extends ServerAddressSpec {
       true must_== true
     }
 
-    "Startup with a custom ExecutionContext" in {
-      val s = BlazeBuilder
-        .bindAny()
-        .withExecutionContext(
-          ExecutionContext.
-            fromExecutorService(
-              Executors.newFixedThreadPool(5)))
-        .run
-
-      s.shutdownNow()
-
-      true must_== true
-    }
   }
 
 }
