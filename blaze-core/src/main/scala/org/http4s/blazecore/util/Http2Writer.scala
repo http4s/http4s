@@ -1,4 +1,6 @@
-package org.http4s.blaze.util
+package org.http4s
+package blazecore
+package util
 
 import cats.effect._
 import fs2._

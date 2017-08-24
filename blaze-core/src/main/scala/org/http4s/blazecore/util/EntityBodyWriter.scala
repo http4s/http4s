@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import cats._

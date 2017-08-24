@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import java.nio.ByteBuffer
@@ -21,7 +21,7 @@ class ChunkEntityBodyWriter[F[_]](private var headers: StringWriter,
                                   protected val ec: ExecutionContext)
   extends EntityBodyWriter[F] {
 
-  import org.http4s.blaze.util.ChunkEntityBodyWriter._
+  import ChunkEntityBodyWriter._
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (chunk.isEmpty) Future.successful(())

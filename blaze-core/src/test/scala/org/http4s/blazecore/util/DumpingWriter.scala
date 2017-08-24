@@ -1,11 +1,12 @@
 package org.http4s
-package blaze
+package blazecore
 package util
 
 import cats._
-import cats.effect._
+import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
+import org.http4s.blaze.util.Execution
 import org.http4s.util.chunk.ByteChunkMonoid
 
 import scala.collection.mutable.ListBuffer
