@@ -309,7 +309,14 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-17-0-rc1-2017-08-16">v0.17.0-RC1 (2017-08-16)</h1>
+      <h1 id="v0-17-0-rc2">v0.17.0-RC2</h1>
+
+<ul>
+<li>Remove <code>ServiceSyntax.orNotFound(a: A): Task[Response]</code> in favor of
+<code>ServiceSyntax.orNotFound: Service[Request, Response]</code></li>
+</ul>
+
+<h1 id="v0-17-0-rc1-2017-08-16">v0.17.0-RC1 (2017-08-16)</h1>
 
 <ul>
 <li>Port <code>ChunkAggregator</code> to fs2</li>
@@ -373,6 +380,27 @@ from a URL</li>
 </ul></li>
 </ul>
 
+<h1 id="v0-16-0-rc2">v0.16.0-RC2</h1>
+
+<ul>
+<li>Move http4s-blaze-core from <code>org.http4s.blaze</code> to
+<code>org.http4s.blazecore</code> to avoid a conflict with the non-http4s
+blaze-core module.</li>
+<li>Change <code>ServiceOps</code> to operate on a <code>Service[?, MaybeResponse]</code>.
+Give it an <code>orNotFound</code> that returns a <code>Service</code>.  The
+<code>orNotFound(a: A)</code> overload is left for compatibility with Scala
+2.10.</li>
+<li>Build with Lightbend compiler instead of Typelevel compiler so we
+don&rsquo;t expose <code>org.typelevel</code> dependencies that are incompatible with
+their counterparts in <code>org.scala-lang</code>.</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>blaze-0.12.7 (fixes eviction notice in http4s-websocket)</li>
+<li>twirl-1.3.4</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-16-0-rc1-2017-08-16">v0.16.0-RC1 (2017-08-16)</h1>
 
 <ul>
@@ -430,7 +458,6 @@ different authority.</li>
 <li>scala-2.12.3-bin-typelevel-4</li>
 <li>scalaz-7.2.15</li>
 <li>tomcat-8.5.20</li>
-<li>twirl-1.3.4</li>
 </ul></li>
 </ul>
 
