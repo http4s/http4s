@@ -12,6 +12,7 @@ object CentralRequirementsPlugin extends AutoPlugin {
   override lazy val projectSettings = Seq(
     sonatypeProfileName := "org.http4s",
     developers ++= List(
+      Developer("aeons"                , "Bjørn Madsen"          , "bm@aeons.dk"                      , url("https://github.com/aeons")),
       Developer("before"               , "André Rouel"           , ""                                 , url("https://github.com/before")),
       Developer("bfritz"               , "Brad Fritz"            , ""                                 , url("https://github.com/bfritz")),
       Developer("bryce-anderson"       , "Bryce L. Anderson"     , "bryce.anderson22@gmail.com"       , url("https://github.com/bryce-anderson")),
