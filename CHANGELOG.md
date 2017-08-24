@@ -1,4 +1,4 @@
-# v0.16.0-RC2
+# v0.16.0-RC2 (2017-08-24)
 * Move http4s-blaze-core from `org.http4s.blaze` to
   `org.http4s.blazecore` to avoid a conflict with the non-http4s
   blaze-core module.
