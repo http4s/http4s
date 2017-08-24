@@ -8,7 +8,7 @@ import org.http4s._
 import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
 import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.websocket.Http4sWSStage
+import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.internal.compatibility._
 import org.http4s.syntax.string._
 
