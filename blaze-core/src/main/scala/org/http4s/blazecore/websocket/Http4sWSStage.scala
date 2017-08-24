@@ -1,5 +1,5 @@
 package org.http4s
-package blaze
+package blazecore
 package websocket
 
 import fs2.async.mutable.Signal
@@ -7,13 +7,13 @@ import org.http4s.websocket.WebsocketBits._
 
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
+import org.http4s.blaze.pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.{websocket => ws4s}
 
 import fs2.async
 import fs2._
-
-import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 
 class Http4sWSStage(ws: ws4s.Websocket)(implicit val strategy: Strategy) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"

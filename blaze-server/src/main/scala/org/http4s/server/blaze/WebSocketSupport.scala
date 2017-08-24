@@ -7,7 +7,7 @@ import fs2.Strategy
 import org.http4s._
 import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.websocket.Http4sWSStage
+import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
 import org.http4s.syntax.string._
 import org.http4s.websocket.WebsocketHandshake
