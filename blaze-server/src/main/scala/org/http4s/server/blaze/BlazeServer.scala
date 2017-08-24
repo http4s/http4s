@@ -88,7 +88,7 @@ class BlazeBuilder(
     copy(socketAddress = socketAddress)
 
   override def withExecutionContext(ec: ExecutionContext): Self =
-    copy(executionContext = executionContext)
+    copy(executionContext = ec)
 
   override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
 
