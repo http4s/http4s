@@ -145,10 +145,14 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] =
     chunkEncoder.contramap(Chunk.bytes)
 
-  // TODO fs2 port this is gone in master but is needed by sourceEncoder.
-  // That's troubling.  Make this go away.
-  implicit val byteEncoder: EntityEncoder[Byte] =
-    chunkEncoder.contramap(Chunk.singleton)
+  /** Encodes an entity body.  Chunking of the stream is preserved.  A
+    * `Transfer-Encoding: chunked` header is set, as we cannot know
+    * the content length without running the stream.
+    */
+  implicit def entityBodyEncoder: EntityEncoder[EntityBody] =
+    encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { body =>
+      Task.now(Entity(body, None))
+    }
 
   implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
     override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)
@@ -167,13 +171,13 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   implicit def inputStreamEncoder[A <: InputStream]: EntityEncoder[Eval[A]] =
-    sourceEncoder[Byte].contramap { in: Eval[A] =>
+    entityBodyEncoder.contramap { in: Eval[A] =>
       readInputStream[Task](Task.delay(in.value), DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
   implicit def readerEncoder[A <: Reader](implicit charset: Charset = DefaultCharset): EntityEncoder[Task[A]] =
-    sourceEncoder[Byte].contramap { r: Task[Reader] =>
+    entityBodyEncoder.contramap { r: Task[Reader] =>
 
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
@@ -214,6 +218,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   }
 
   implicit val serverSentEventEncoder: EntityEncoder[EventStream] =
-    sourceEncoder[Byte].contramap[EventStream] { _.through(ServerSentEvent.encoder) }
+    entityBodyEncoder.contramap[EventStream] { _.through(ServerSentEvent.encoder) }
       .withContentType(MediaType.`text/event-stream`)
 }

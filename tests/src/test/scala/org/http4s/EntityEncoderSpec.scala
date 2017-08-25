@@ -34,18 +34,18 @@ class EntityEncoderSpec extends Http4sSpec {
       writeToString(Task.now(hello)) must_== hello
     }
 
-    "render processes" in {
+    "render streams" in {
       val helloWorld = Stream("hello", "world")
       writeToString(helloWorld) must_== "helloworld"
     }
 
-    "render processes with chunked transfer encoding" in {
+    "render streams with chunked transfer encoding" in {
       implicitly[EntityEncoder[Stream[Task, String]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding.hasChunked must beTrue
       }
     }
 
-    "render processes with chunked transfer encoding without wiping out other encodings" in {
+    "render streams with chunked transfer encoding without wiping out other encodings" in {
       trait Foo
       implicit val FooEncoder: EntityEncoder[Foo] =
         EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.gzip)) { _ => Task.now(Entity.empty) }
@@ -54,13 +54,17 @@ class EntityEncoderSpec extends Http4sSpec {
       }
     }
 
-    "render processes with chunked transfer encoding without duplicating chunked transfer encoding" in {
+    "render streams with chunked transfer encoding without duplicating chunked transfer encoding" in {
       trait Foo
       implicit val FooEncoder: EntityEncoder[Foo] =
         EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { _ => Task.now(Entity.empty) }
       implicitly[EntityEncoder[Stream[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
+    }
+
+    "render entity bodies with chunked transfer encoding" in {
+      implicitly[EntityEncoder[EntityBody]].headers.get(`Transfer-Encoding`) must beSome(`Transfer-Encoding`(TransferCoding.chunked))
     }
 
     "render files" in {
