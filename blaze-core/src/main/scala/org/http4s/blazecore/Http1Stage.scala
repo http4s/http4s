@@ -55,7 +55,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   final protected def getEncoder(msg: Message,
                                  rr: StringWriter,
                                  minor: Int,
-                                 closeOnFinish: Boolean): EntityBodyWriter = {
+                                 closeOnFinish: Boolean): Http1Writer = {
     val headers = msg.headers
     getEncoder(Connection.from(headers),
                `Transfer-Encoding`.from(headers),
@@ -74,7 +74,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                                           trailer: Task[Headers],
                                                rr: StringWriter,
                                             minor: Int,
-                                    closeOnFinish: Boolean): EntityBodyWriter = lengthHeader match {
+                                    closeOnFinish: Boolean): Http1Writer = lengthHeader match {
     case Some(h) if bodyEncoding.map(!_.hasChunked).getOrElse(true) || minor == 0 =>
       // HTTP 1.1: we have a length and no chunked encoding
       // HTTP 1.0: we have a length
@@ -88,20 +88,18 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       // add KeepAlive to Http 1.0 responses if the header isn't already present
       rr << (if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
 
-      val b = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
-      new IdentityWriter(b, h.length, this)
+      new IdentityWriter(h.length, this)
 
     case _ =>  // No Length designated for body or Transfer-Encoding included for HTTP 1.1
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
           rr << "\r\n"
-          val b = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
-          new IdentityWriter(b, -1, this)
+          new IdentityWriter(-1, this)
         }
         else {  // HTTP 1.0, but request was Keep-Alive.
           logger.trace("Using static encoder without length")
-          new CachingStaticWriter(rr, this) // will cache for a bit, then signal close if the body is long
+          new CachingStaticWriter(this) // will cache for a bit, then signal close if the body is long
         }
       }
       else bodyEncoding match { // HTTP >= 1.1 request without length and/or with chunked encoder
@@ -114,11 +112,11 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
             logger.warn(s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
           }
 
-          new ChunkEntityBodyWriter(rr, this, trailer)
+          new FlushingChunkWriter(this, trailer)
 
         case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
           logger.trace("Using Caching Chunk Encoder")
-          new CachingChunkWriter(rr, this, trailer)
+          new CachingChunkWriter(this, trailer)
       }
   }
 

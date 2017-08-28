@@ -176,12 +176,12 @@ object ExampleService {
 
   // This is a mock data source, but could be a Process representing results from a database
   def dataStream(n: Int): Stream[Task, String] = {
-    val interval = 100.millis
+    val interval = 1000.millis
     val stream = time.awakeEvery[Task](interval)(Task.asyncInstance, defaultScheduler)
       .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
       .take(n.toLong)
 
-    Stream.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
+    stream // Stream.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }
 
   // Services can be protected using HTTP authentication.

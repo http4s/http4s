@@ -13,15 +13,17 @@ import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
 
-class ChunkEntityBodyWriter(private var headers: StringWriter,
+abstract class ChunkEntityBodyWriter(
                          pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers])
-                         (implicit val ec: ExecutionContext) extends EntityBodyWriter {
+                         (implicit val ec: ExecutionContext) extends Http1Writer {
 
   import ChunkEntityBodyWriter._
 
+  protected var pendingHeaders: StringWriter = null
+
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
-    if (chunk.isEmpty) Future.successful(())
+    if (chunk.isEmpty) FutureUnit
     else pipe.channelWrite(encodeChunk(chunk, Nil))
   }
 
@@ -48,9 +50,9 @@ class ChunkEntityBodyWriter(private var headers: StringWriter,
       promise.future
     }
 
-    val f = if (headers != null) {  // This is the first write, so we can add a body length instead of chunking
-      val h = headers
-      headers = null
+    val f = if (pendingHeaders != null) {  // This is the first write, so we can add a body length instead of chunking
+      val h = pendingHeaders
+      pendingHeaders = null
 
       if (!chunk.isEmpty) {
         val body = chunk.toByteBuffer
@@ -82,10 +84,10 @@ class ChunkEntityBodyWriter(private var headers: StringWriter,
 
   private def encodeChunk(chunk: Chunk[Byte], last: List[ByteBuffer]): List[ByteBuffer] = {
     val list = writeLength(chunk.size.toLong) :: chunk.toByteBuffer :: CRLF :: last
-    if (headers != null) {
-      headers << "Transfer-Encoding: chunked\r\n\r\n"
-      val b = ByteBuffer.wrap(headers.result.getBytes(ISO_8859_1))
-      headers = null
+    if (pendingHeaders != null) {
+      pendingHeaders << "Transfer-Encoding: chunked\r\n\r\n"
+      val b = ByteBuffer.wrap(pendingHeaders.result.getBytes(ISO_8859_1))
+      pendingHeaders = null
       b::list
     } else list
   }

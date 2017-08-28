@@ -9,18 +9,27 @@ import scala.concurrent.{ExecutionContext, Future}
 import fs2._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.chunk._
+import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
-class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])
+class IdentityWriter(size: Long, out: TailStage[ByteBuffer])
                     (implicit val ec: ExecutionContext)
-    extends EntityBodyWriter {
+    extends Http1Writer {
 
   private[this] val logger = getLogger
+  private[this] var headers: ByteBuffer = null
 
   private var bodyBytesWritten = 0L
 
   private def willOverflow(count: Long) =
     if (size < 0L) false else (count + bodyBytesWritten > size)
+
+  def writeHeader(headerWriter: StringWriter): Future[Unit] = {
+
+
+    headers = Http1Writer.headersToByteBuffer(headerWriter.result)
+    FutureUnit
+  }
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (willOverflow(chunk.size.toLong)) {

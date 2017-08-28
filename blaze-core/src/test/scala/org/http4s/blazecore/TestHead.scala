@@ -27,7 +27,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
       val cpy = new Array[Byte](data.remaining())
       data.get(cpy)
       acc :+= cpy
-      Future.successful(())
+      util.FutureUnit
     }
   }
 

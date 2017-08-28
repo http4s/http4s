@@ -14,7 +14,7 @@ import org.http4s.{headers => H}
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
-import org.http4s.blazecore.util.EntityBodyWriter
+import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 import org.http4s.{headers => H}
@@ -139,13 +139,14 @@ private final class Http1Connection(val requestKey: RequestKey,
           case None => getHttpMinor(req) == 0
         }
 
-        val bodyTask : Task[Boolean] = getChunkEncoder(req, mustClose, rr)
-          .writeEntityBody(req.body)
-          .handle { case EOF => false }
+        val encoder = getChunkEncoder(req, mustClose, rr)
+
+        val renderTask = encoder.write(rr, req.body).handle { case EOF => false }
+
         // If we get a pipeline closed, we might still be good. Check response
         val responseTask : Task[Response] = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
-        bodyTask
+        renderTask
           .followedBy(responseTask)
           .handleWith { case t =>
             fatalError(t, "Error executing request")
@@ -280,7 +281,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     else Either.right(req) // All appears to be well
   }
 
-  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): EntityBodyWriter =
+  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): Http1Writer =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
 }
 

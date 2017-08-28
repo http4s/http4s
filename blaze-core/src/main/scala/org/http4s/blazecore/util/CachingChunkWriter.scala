@@ -3,6 +3,7 @@ package blazecore
 package util
 
 import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 
 import scala.concurrent._
 
@@ -11,13 +12,17 @@ import org.http4s.Headers
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 
-class CachingChunkWriter(headers: StringWriter,
-                         pipe: TailStage[ByteBuffer],
+class CachingChunkWriter(pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers],
                          bufferMaxSize: Int = 10*1024)(implicit ec: ExecutionContext)
-              extends ChunkEntityBodyWriter(headers, pipe, trailer) {
+              extends ChunkEntityBodyWriter(pipe, trailer) {
 
   private var bodyBuffer: Chunk[Byte] = null
+
+  override def writeHeader(headerWriter: StringWriter): Future[Unit] = {
+    pendingHeaders = headerWriter
+    FutureUnit
+  }
 
   private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
     if (bodyBuffer == null) bodyBuffer = b
@@ -30,7 +35,7 @@ class CachingChunkWriter(headers: StringWriter,
     val c = bodyBuffer
     bodyBuffer = null
     if (c != null && !c.isEmpty) super.writeBodyChunk(c, true)  // TODO: would we want to writeEnd?
-    else Future.successful(())
+    else FutureUnit
   }
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
@@ -45,6 +50,6 @@ class CachingChunkWriter(headers: StringWriter,
       bodyBuffer = null
       super.writeBodyChunk(c, true)
     }
-    else Future.successful(())    // Pretend to be done.
+    else FutureUnit    // Pretend to be done.
   }
 }

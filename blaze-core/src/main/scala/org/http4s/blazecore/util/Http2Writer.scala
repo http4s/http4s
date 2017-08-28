@@ -27,7 +27,7 @@ class Http2Writer(tail: TailStage[Http2Msg],
   }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
-    if (chunk.isEmpty) Future.successful(())
+    if (chunk.isEmpty) FutureUnit
     else {
       if (headers == null) tail.channelWrite(DataFrame(false, chunk.toByteBuffer))
       else {
