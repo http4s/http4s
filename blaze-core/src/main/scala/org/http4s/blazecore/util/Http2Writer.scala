@@ -10,7 +10,7 @@ import org.http4s.blaze.http.Headers
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.http.http20.NodeMsg._
 
-class Http2Writer(tail: TailStage[Http2Msg],
+private[http4s] class Http2Writer(tail: TailStage[Http2Msg],
                   private var headers: Headers,
                   protected val ec: ExecutionContext) extends EntityBodyWriter {
 
@@ -27,7 +27,7 @@ class Http2Writer(tail: TailStage[Http2Msg],
   }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
-    if (chunk.isEmpty) Future.successful(())
+    if (chunk.isEmpty) FutureUnit
     else {
       if (headers == null) tail.channelWrite(DataFrame(false, chunk.toByteBuffer))
       else {

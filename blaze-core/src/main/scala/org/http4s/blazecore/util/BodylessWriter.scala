@@ -13,6 +13,7 @@ import fs2.Stream._
 import fs2.interop.cats._
 import fs2.util.Attempt
 import org.http4s.blaze.pipeline._
+import org.http4s.util.StringWriter
 
 /** Discards the body, killing it so as to clean up resources
   *
@@ -20,26 +21,24 @@ import org.http4s.blaze.pipeline._
   * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
   * @param ec an ExecutionContext which will be used to complete operations
   */
-class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Boolean)
-                    (implicit protected val ec: ExecutionContext) extends EntityBodyWriter {
+private[http4s] class BodylessWriter(pipe: TailStage[ByteBuffer], close: Boolean)
+  (implicit protected val ec: ExecutionContext) extends Http1Writer {
+  private[this] var headers: ByteBuffer = null
 
-  private lazy val doneFuture = Future.successful( () )
+  def writeHeaders(headerWriter: StringWriter): Future[Unit] =
+    pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary
     *
     * @param p an entity body that will be killed
     * @return the Task which, when run, will send the headers and kill the entity body
     */
-  override def writeEntityBody(p: EntityBody): Task[Boolean] = Task.async { cb =>
-    val callback = cb.compose((t: Attempt[Unit]) => t.map(_ => close))
+  override def writeEntityBody(p: EntityBody): Task[Boolean] =
+    p.drain.run.map(_ => close)
 
-    pipe.channelWrite(headers).onComplete {
-      case Success(_) => p.open.close.run.unsafeRunAsync(callback)
-      case Failure(t) => p.pull(_ => Pull.fail(t)).run.unsafeRunAsync(callback)
-    }
-  }
+  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
+    Future.successful(close)
 
-  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = doneFuture.map(_ => close)
-
-  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = doneFuture
+  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
+    FutureUnit
 }

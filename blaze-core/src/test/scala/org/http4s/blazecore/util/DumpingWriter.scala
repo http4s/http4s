@@ -36,6 +36,6 @@ class DumpingWriter extends EntityBodyWriter {
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     buffers += chunk
-    Future.successful(())
+    FutureUnit
   }
 }

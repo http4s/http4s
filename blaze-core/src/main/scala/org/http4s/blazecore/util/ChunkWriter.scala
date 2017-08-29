@@ -13,7 +13,7 @@ import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
 
-private[util] object ChunkEntityBodyWriter {
+private[util] object ChunkWriter {
   val CRLFBytes = "\r\n".getBytes(ISO_8859_1)
   private[this] val CRLFBuffer = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
   def CRLF = CRLFBuffer.duplicate()
@@ -22,6 +22,7 @@ private[util] object ChunkEntityBodyWriter {
     ByteBuffer.wrap("0\r\n\r\n".getBytes(ISO_8859_1)).asReadOnlyBuffer()
   def ChunkEndBuffer = chunkEndBuffer.duplicate()
 
+  val TransferEncodingChunkedString = "Transfer-Encoding: chunked\r\n\r\n"
   private[this] val TransferEncodingChunkedBytes = "Transfer-Encoding: chunked\r\n\r\n".getBytes(ISO_8859_1)
   private[this] val transferEncodingChunkedBuffer = ByteBuffer.wrap(TransferEncodingChunkedBytes).asReadOnlyBuffer
   def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
