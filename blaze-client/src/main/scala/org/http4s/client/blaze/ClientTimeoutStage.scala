@@ -14,22 +14,26 @@ import org.http4s.blaze.pipeline.Command.{Error, OutboundCommand, EOF, Disconnec
 import org.http4s.blaze.util.{ Cancellable, TickWheelExecutor }
 
 
-final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Duration, exec: TickWheelExecutor)
+final private class ClientTimeoutStage(responseHeaderTimeout: Duration, idleTimeout: Duration, requestTimeout: Duration, exec: TickWheelExecutor)
   extends MidStage[ByteBuffer, ByteBuffer]
 { stage =>
 
-  import ClientTimeoutStage.Closed
+  import ClientTimeoutStage._
 
   private implicit val ec = org.http4s.blaze.util.Execution.directec
 
-  // The 'per request' timeout. Lasts the lifetime of the stage.
-  private val activeReqTimeout = new AtomicReference[ Cancellable](null)
+  // The timeout between request body completion and response header
+  // completion.
+  private val activeResponseHeaderTimeout = new AtomicReference[Cancellable](null)
+
+  // The total timeout for the request. Lasts the lifetime of the stage.
+  private val activeReqTimeout = new AtomicReference[Cancellable](null)
 
   // The timeoutState contains a Cancellable, null, or a TimeoutException
   // It will also act as the point of synchronization
   private val timeoutState = new AtomicReference[AnyRef](null)
 
-  override def name: String = s"ClientTimeoutStage: Idle: $idleTimeout, Request: $requestTimeout"
+  override def name: String = s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout, Request: $requestTimeout"
 
   /////////// Private impl bits //////////////////////////////////////////
   private def killswitch(name: String, timeout: Duration) = new Runnable {
@@ -42,6 +46,8 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
         case c: Cancellable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.
       }
+
+      cancelResponseHeaderTimeout()
 
       // Cancel the active request timeout if it exists
       activeReqTimeout.getAndSet(Closed) match {
@@ -57,6 +63,7 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
     }
   }
 
+  private val responseHeaderTimeoutKillswitch = killswitch("response header", responseHeaderTimeout)
   private val idleTimeoutKillswitch = killswitch("idle", idleTimeout)
   private val requestTimeoutKillswitch = killswitch("request", requestTimeout)
 
@@ -79,6 +86,12 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
     // We want to swallow `TimeoutException`'s we have created
     case Error(t: TimeoutException) if t eq timeoutState.get() =>
       sendOutboundCommand(Disconnect)
+
+    case RequestSendComplete =>
+      activateResponseHeaderTimeout()
+
+    case ResponseHeaderComplete =>
+      cancelResponseHeaderTimeout()
 
     case cmd => super.outboundCommand(cmd)
   }
@@ -151,11 +164,31 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
   }
 
   private def cancelTimeout(): Unit = setAndCancel(null)
+
+  private def activateResponseHeaderTimeout(): Unit = {
+    val timeout = exec.schedule(responseHeaderTimeoutKillswitch, ec, responseHeaderTimeout)
+    if (!activeResponseHeaderTimeout.compareAndSet(null, timeout))
+      timeout.cancel()
+  }
+
+  private def cancelResponseHeaderTimeout(): Unit = {
+    activeResponseHeaderTimeout.getAndSet(Closed) match {
+      case null => // no-op
+      case timeout => timeout.cancel()
+    }
+  }
 }
 
-private object ClientTimeoutStage {
+private[blaze] object ClientTimeoutStage {
+  // Sent when we have sent the complete request
+  private[blaze] object RequestSendComplete extends OutboundCommand
+
+  // Sent when we have received the complete response
+  private[blaze] object ResponseHeaderComplete extends OutboundCommand
+
   // Make sure we have our own _stable_ copy for synchronization purposes
   private val Closed = new Cancellable {
     def cancel() = ()
+    override def toString = "Closed"
   }
 }

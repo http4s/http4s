@@ -141,7 +141,9 @@ private final class Http1Connection(val requestKey: RequestKey,
 
         val encoder = getChunkEncoder(req, mustClose, rr)
 
-        val renderTask = encoder.write(rr, req.body).handle { case EOF => false }
+        val renderTask = encoder.write(rr, req.body)
+          .handle { case EOF => false }
+          .onFinish { _ => Task.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete)) }
 
         // If we get a pipeline closed, we might still be good. Check response
         val responseTask : Task[Response] = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
@@ -179,6 +181,8 @@ private final class Http1Connection(val requestKey: RequestKey,
       if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing")
       else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing")
       else {
+        sendOutboundCommand(ClientTimeoutStage.ResponseHeaderComplete)
+
         // Get headers and determine if we need to close
         val headers : Headers         = parser.getHeaders()
         val status : Status           = parser.getStatus()
