@@ -168,8 +168,8 @@ class ClientTimeoutSpec extends Http4sSpec {
     "No Response head timeout on fast header" in {
       val tail = mkConnection()
       val (f,b) = resp.splitAt(resp.indexOf("\r\n\r\n"+4))
-      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 500.millis, scheduler)
-      // header is split into two chunks, we wait for 2.5x
+      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 125.millis, scheduler)
+      // header is split into two chunks, we wait for 10x
       val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
       val result = tail.runRequest(FooRequest).as[String]
