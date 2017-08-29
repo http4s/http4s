@@ -1,3 +1,8 @@
+# v0.17.0-RC3 (2017-08-29)
+* In blaze-server, when doing chunked transfer encoding, flush the
+  header as soon as it is available.  It previously buffered until the
+  first chunk was available.
+
 # v0.16.0-RC3 (2017-08-29)
 * Add a `responseHeaderTimeout` property to `BlazeClientConfig`.  This
   measures the time between the completion of writing the request body
