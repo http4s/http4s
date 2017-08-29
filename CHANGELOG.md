@@ -1,3 +1,10 @@
+# v0.16.0-RC3 (2017-08-29)
+* Add a `responseHeaderTimeout` property to `BlazeClientConfig`.  This
+  measures the time between the completion of writing the request body
+  to the reception of a complete response header.
+* Upgraded dependencies:
+    * async-http-client-2.0.35
+
 # v0.16.0-RC2 (2017-08-24)
 * Move http4s-blaze-core from `org.http4s.blaze` to
   `org.http4s.blazecore` to avoid a conflict with the non-http4s
