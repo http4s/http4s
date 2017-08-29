@@ -1,4 +1,4 @@
-package org.http4s.dsl
+package org.http4s.dsl.impl
 
 import org.http4s.Status
 
