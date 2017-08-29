@@ -108,7 +108,7 @@ import org.http4s.dsl._
   case _ =&gt;
     Ok(&quot;ok&quot;)
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$5334/1419914674@3a8f4b26)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$5354/924832009@4bed5b25)
 
 val request = Request(Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request = Request(method=GET, uri=/, headers=Headers())
@@ -127,7 +127,7 @@ response.headers
 // import org.http4s.server.middleware._
 
 val hstsService = HSTS(service)
-// hstsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$5436/244790104@49e8c308)
+// hstsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$5456/1613171761@355877b4)
 
 // Do not call 'unsafeRun' in your code
 val response = hstsService.orNotFound(request).unsafeRun
@@ -160,7 +160,7 @@ val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, include
 // hstsHeader: org.http4s.headers.Strict-Transport-Security = Strict-Transport-Security: max-age=2592000; includeSubDomains; preload
 
 val hstsService = HSTS(service, hstsHeader)
-// hstsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$5436/244790104@5daa8d90)
+// hstsService: org.http4s.HttpService = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$5456/1613171761@6ec0f481)
 
 // Do not call 'unsafeRun' in your code
 val response = hstsService.orNotFound(request).unsafeRun
