@@ -2,7 +2,7 @@ package org.http4s
 package blazecore
 
 import org.http4s.blaze.pipeline.HeadStage
-import org.http4s.blaze.pipeline.Command.{Disconnected, Disconnect, OutboundCommand, EOF}
+import org.http4s.blaze.pipeline.Command._
 import org.http4s.blaze.util.TickWheelExecutor
 import java.nio.ByteBuffer
 
@@ -36,6 +36,13 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     super.stageShutdown()
     p.trySuccess(ByteBuffer.wrap(getBytes()))
     ()
+  }
+
+  override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
+    case Connect    => stageStartup()
+    case Disconnect => stageShutdown()
+    case Error(e)   => logger.error(e)(s"$name received unhandled error command")
+    case _          => // hushes ClientStageTimeout commands that we can't see here
   }
 }
 
@@ -75,7 +82,7 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
   override def outboundCommand(cmd: OutboundCommand): Unit = self.synchronized {
     cmd match {
       case Disconnect => clear()
-      case _          => sys.error(s"TestHead received weird command: $cmd")
+      case _          => 
     }
     super.outboundCommand(cmd)
   }

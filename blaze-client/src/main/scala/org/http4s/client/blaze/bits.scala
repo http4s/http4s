@@ -16,6 +16,7 @@ import scalaz.concurrent.Task
 
 private[blaze] object bits {
   // Some default objects
+  val DefaultResponseHeaderTimeout: Duration = 10.seconds
   val DefaultTimeout: Duration = 60.seconds
   val DefaultBufferSize: Int = 8*1024
   val DefaultUserAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version))))

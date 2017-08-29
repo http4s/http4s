@@ -140,6 +140,8 @@ private final class Http1Connection(val requestKey: RequestKey,
         val bodyTask = getChunkEncoder(req, mustClose, rr)
           .writeProcess(req.body)
           .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
+          .onFinish { _ => Task.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete)) }
+
         val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
         Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
           .handleWith { case t =>
@@ -173,6 +175,8 @@ private final class Http1Connection(val requestKey: RequestKey,
       if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing")
       else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing")
       else {
+        sendOutboundCommand(ClientTimeoutStage.ResponseHeaderComplete)
+
         // Get headers and determine if we need to close
         val headers = parser.getHeaders()
         val status = parser.getStatus()

@@ -11,8 +11,14 @@ import scala.concurrent.duration.Duration
 
 /** Config object for the blaze clients
   *
-  * @param idleTimeout duration that a connection can wait without traffic before timeout
-  * @param requestTimeout maximum duration for a request to complete before a timeout
+  * @param responseHeaderTimeout duration between the completion of a request
+  * and the completion of the response header.  Does not include time
+  * to acquire the connection or the time to read the response.
+  * @param idleTimeout duration that a connection can wait without
+  * traffic being read or written before timeout
+  * @param requestTimeout maximum duration for a request to complete
+  * before a timeout.  Does not include time to acquire the the
+  * connection, but does include time to read the response
   * @param userAgent optional custom user agent header
   * @param sslContext optional custom `SSLContext` to use to replace
   * the default, `SSLContext.getDefault`.
@@ -31,6 +37,7 @@ import scala.concurrent.duration.Duration
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
 final case class BlazeClientConfig(// HTTP properties
+                                   responseHeaderTimeout: Duration,
                                    idleTimeout: Duration,
                                    requestTimeout: Duration,
                                    userAgent: Option[`User-Agent`],
@@ -58,6 +65,7 @@ object BlazeClientConfig {
   /** Default configuration of a blaze client. */
   val defaultConfig =
     BlazeClientConfig(
+      responseHeaderTimeout = bits.DefaultResponseHeaderTimeout,
       idleTimeout = bits.DefaultTimeout,
       requestTimeout = Duration.Inf,
       userAgent = bits.DefaultUserAgent,
