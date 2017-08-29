@@ -143,7 +143,12 @@ private final class Http1Connection(val requestKey: RequestKey,
 
         val renderTask = encoder.write(rr, req.body)
           .handle { case EOF => false }
-          .onFinish { _ => Task.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete)) }
+          .attempt
+          .flatMap { r =>
+            Task.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete)).flatMap { _ =>
+              Task.fromAttempt(r)
+            }
+          }
 
         // If we get a pipeline closed, we might still be good. Check response
         val responseTask : Task[Response] = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
