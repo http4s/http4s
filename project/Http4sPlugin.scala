@@ -101,7 +101,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.34"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.35"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.7"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.8.0"
