@@ -13,7 +13,7 @@ import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
 
-abstract class ChunkEntityBodyWriter(
+private[http4s] abstract class ChunkEntityBodyWriter(
                          pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers])
                          (implicit val ec: ExecutionContext) extends Http1Writer {
@@ -93,7 +93,7 @@ abstract class ChunkEntityBodyWriter(
   }
 }
 
-object ChunkEntityBodyWriter {
+private[http4s] object ChunkEntityBodyWriter {
   private val CRLFBytes = "\r\n".getBytes(ISO_8859_1)
 
   private def CRLF = CRLFBuffer.duplicate()

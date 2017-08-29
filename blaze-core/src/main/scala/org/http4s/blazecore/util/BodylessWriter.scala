@@ -21,11 +21,11 @@ import org.http4s.util.StringWriter
   * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
   * @param ec an ExecutionContext which will be used to complete operations
   */
-class BodylessWriter(pipe: TailStage[ByteBuffer], close: Boolean)
+private[http4s] class BodylessWriter(pipe: TailStage[ByteBuffer], close: Boolean)
   (implicit protected val ec: ExecutionContext) extends Http1Writer {
   private[this] var headers: ByteBuffer = null
 
-  def writeHeader(headerWriter: StringWriter): Future[Unit] =
+  def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
 
   /** Doesn't write the entity body, just the headers. Kills the stream, if an error if necessary

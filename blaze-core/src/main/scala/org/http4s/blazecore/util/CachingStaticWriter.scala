@@ -12,7 +12,7 @@ import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
-class CachingStaticWriter(out: TailStage[ByteBuffer],
+private[http4s] class CachingStaticWriter(out: TailStage[ByteBuffer],
                           bufferSize: Int = 8*1024)
                          (implicit val ec: ExecutionContext)
                           extends Http1Writer {
@@ -25,7 +25,7 @@ class CachingStaticWriter(out: TailStage[ByteBuffer],
   private var writer: StringWriter = null
   private var innerWriter: InnerWriter = null
 
-  def writeHeader(headerWriter: StringWriter): Future[Unit] = {
+  def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     this.writer = headerWriter
     FutureUnit
   }

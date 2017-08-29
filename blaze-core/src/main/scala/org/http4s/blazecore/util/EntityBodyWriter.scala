@@ -10,7 +10,7 @@ import fs2.Stream._
 import fs2.interop.cats._
 import org.http4s.util.StringWriter
 
-trait EntityBodyWriter {
+private[http4s] trait EntityBodyWriter {
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
   implicit protected def ec: ExecutionContext

@@ -12,14 +12,14 @@ import org.http4s.Headers
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 
-class CachingChunkWriter(pipe: TailStage[ByteBuffer],
+private[http4s] class CachingChunkWriter(pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers],
                          bufferMaxSize: Int = 10*1024)(implicit ec: ExecutionContext)
               extends ChunkEntityBodyWriter(pipe, trailer) {
 
   private var bodyBuffer: Chunk[Byte] = null
 
-  override def writeHeader(headerWriter: StringWriter): Future[Unit] = {
+  override def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     pendingHeaders = headerWriter
     FutureUnit
   }

@@ -13,16 +13,19 @@ import org.http4s.blaze.http.http20.NodeMsg._
 import org.http4s.util.StringWriter
 import org.http4s.util.chunk._
 
-trait Http1Writer extends EntityBodyWriter {
+private[http4s] trait Http1Writer extends EntityBodyWriter {
   final def write(headerWriter: StringWriter, body: EntityBody): Task[Boolean] =
-    Task.fromFuture(writeHeader(headerWriter)).flatMap(_ => writeEntityBody(body))
+    Task.fromFuture(writeHeaders(headerWriter)).attempt.flatMap {
+      case Left(t)  => body.drain.run.map(_ => true)
+      case Right(_) => writeEntityBody(body)
+    }
 
   /* Writes the header.  It is up to the writer whether to flush immediately or to
    * buffer the header with a subsequent chunk. */
-  def writeHeader(headerWriter: StringWriter): Future[Unit]
+  def writeHeaders(headerWriter: StringWriter): Future[Unit]
 }
 
-object Http1Writer {
+private[util] object Http1Writer {
   def headersToByteBuffer(headers: String): ByteBuffer =
     ByteBuffer.wrap(headers.getBytes(StandardCharsets.ISO_8859_1))
 }

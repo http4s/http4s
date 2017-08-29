@@ -12,7 +12,7 @@ import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
 
-class IdentityWriter(size: Long, out: TailStage[ByteBuffer])
+private[http4s] class IdentityWriter(size: Long, out: TailStage[ByteBuffer])
                     (implicit val ec: ExecutionContext)
     extends Http1Writer {
 
@@ -24,9 +24,7 @@ class IdentityWriter(size: Long, out: TailStage[ByteBuffer])
   private def willOverflow(count: Long) =
     if (size < 0L) false else (count + bodyBytesWritten > size)
 
-  def writeHeader(headerWriter: StringWriter): Future[Unit] = {
-
-
+  def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     headers = Http1Writer.headersToByteBuffer(headerWriter.result)
     FutureUnit
   }

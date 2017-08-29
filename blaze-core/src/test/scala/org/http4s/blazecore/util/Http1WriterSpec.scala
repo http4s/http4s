@@ -19,7 +19,7 @@ import org.http4s.util.StringWriter
 class Http1WriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException
 
-  def writeEntityBody(p: EntityBody)(builder: TailStage[ByteBuffer] => Http1Writer): String = {
+  final def writeEntityBody(p: EntityBody)(builder: TailStage[ByteBuffer] => Http1Writer): String = {
     val tail = new TailStage[ByteBuffer] {
       override def name: String = "TestTail"
     }
@@ -34,7 +34,7 @@ class Http1WriterSpec extends Http4sSpec {
 
     val hs = new StringWriter() << "Content-Type: text/plain\r\n"
     (for {
-      _ <- Task.fromFuture(w.writeHeader(hs))
+      _ <- Task.fromFuture(w.writeHeaders(hs))
       _ <- w.writeEntityBody(p)
     } yield ()).unsafeRun
     head.stageShutdown()
@@ -45,7 +45,7 @@ class Http1WriterSpec extends Http4sSpec {
   val message = "Hello world!"
   val messageBuffer = Chunk.bytes(message.getBytes(StandardCharsets.ISO_8859_1))
 
-  def runNonChunkedTests(builder: TailStage[ByteBuffer] => Http1Writer) = {
+  final def runNonChunkedTests(builder: TailStage[ByteBuffer] => Http1Writer) = {
     "Write a single emit" in {
       writeEntityBody(chunk(messageBuffer))(builder) must_== "Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message
     }
