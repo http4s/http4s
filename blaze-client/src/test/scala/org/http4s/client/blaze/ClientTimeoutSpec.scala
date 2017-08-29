@@ -158,9 +158,9 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Response head timeout on slow header" in {
       val tail = mkConnection()
       val (f,b) = resp.splitAt(resp.indexOf("\r\n\r\n"))
-      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 250.millis, scheduler)
+      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 500.millis, scheduler)
       // header is split into two chunks, we wait for 1.5x
-      val c = mkClient(h, tail)(responseHeaderTimeout = 375.millis)
+      val c = mkClient(h, tail)(responseHeaderTimeout = 750.millis)
 
       c.fetchAs[String](FooRequest).unsafePerformSync must throwA[TimeoutException]
     }
@@ -168,9 +168,9 @@ class ClientTimeoutSpec extends Http4sSpec {
     "No Response head timeout on fast header" in {
       val tail = mkConnection()
       val (f,b) = resp.splitAt(resp.indexOf("\r\n\r\n"+4))
-      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 250.millis, scheduler)
+      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 500.millis, scheduler)
       // header is split into two chunks, we wait for 2.5x
-      val c = mkClient(h, tail)(responseHeaderTimeout = 625.millis)
+      val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
       val result = tail.runRequest(FooRequest).as[String]
 
