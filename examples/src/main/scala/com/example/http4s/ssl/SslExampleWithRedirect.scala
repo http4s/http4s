@@ -9,7 +9,7 @@ import cats.syntax.option._
 import fs2._
 import org.http4s.HttpService
 import org.http4s.Uri.{Authority, RegName}
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers.Host
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}

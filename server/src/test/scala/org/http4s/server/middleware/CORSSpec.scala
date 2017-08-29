@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 import cats.effect._
 import cats._
 import cats.implicits._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.specs2.mutable.Specification
 

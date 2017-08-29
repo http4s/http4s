@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats.effect._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 class UrlFormLifterSpec extends Http4sSpec {
   val urlForm = UrlForm("foo" -> "bar")

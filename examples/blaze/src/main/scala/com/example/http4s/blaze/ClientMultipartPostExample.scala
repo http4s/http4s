@@ -6,7 +6,7 @@ import org.http4s.Uri._
 import org.http4s._
 import org.http4s.client._
 import org.http4s.client.blaze.{defaultClient => client}
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.multipart._
 

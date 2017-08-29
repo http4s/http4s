@@ -3,7 +3,7 @@ package site
 
 import cats.effect.IO
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 object HelloBetterWorld {
   val service = HttpService[IO] {

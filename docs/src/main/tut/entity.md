@@ -46,7 +46,7 @@ determine which of the chained decoders are to be used.
 
 ```tut
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import cats._, cats.effect._, cats.implicits._, cats.data._
 
 sealed trait Resp

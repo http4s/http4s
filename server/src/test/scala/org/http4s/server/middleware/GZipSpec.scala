@@ -9,7 +9,7 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import org.http4s.server.syntax._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.headers._
 import org.scalacheck.Prop.forAll

@@ -21,7 +21,7 @@ And we need some imports.
 
 ```tut:silent
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import cats.effect.IO
 ```
 

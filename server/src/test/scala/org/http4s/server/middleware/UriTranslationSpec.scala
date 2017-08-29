@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats.effect._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 class UriTranslationSpec extends Http4sSpec {
 

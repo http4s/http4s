@@ -19,7 +19,7 @@ Http4s provides a few helpers to handle ETags for you, they're located in [Stati
 ```tut:book
 import cats.effect._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import java.io.File
 
 val service = HttpService[IO] {

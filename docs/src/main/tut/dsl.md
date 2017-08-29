@@ -37,7 +37,7 @@ We'll need the following imports to get started:
 
 ```tut:book
 import cats.effect._
-import org.http4s._, org.http4s.dsl._
+import org.http4s._, org.http4s.dsl.io._
 ```
 
 The central concept of http4s-dsl is pattern matching.  An

@@ -6,7 +6,7 @@ package jetty
 import cats.effect.IO
 import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.servlet.Http4sServlet
 
 object Issue454 {

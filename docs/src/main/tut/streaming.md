@@ -22,7 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import cats.effect._
 import fs2.Scheduler
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 // An infinite stream of the periodic elapsed time
 val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))

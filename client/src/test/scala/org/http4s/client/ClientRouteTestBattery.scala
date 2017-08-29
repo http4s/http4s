@@ -9,7 +9,7 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import org.http4s.client.testroutes.GetRoutes
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
 
 import org.specs2.specification.core.Fragments

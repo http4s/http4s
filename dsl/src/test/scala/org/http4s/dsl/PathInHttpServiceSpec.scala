@@ -3,7 +3,7 @@ package dsl
 
 import cats.data.Validated._
 import cats.effect.IO
-import fs2._
+import org.http4s.dsl.io._
 import org.http4s.util.nonEmptyList._
 
 object PathInHttpServiceSpec extends Http4sSpec {

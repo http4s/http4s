@@ -8,6 +8,7 @@ package org.http4s
 package dsl
 
 import cats.effect.IO
+import org.http4s.dsl.io._
 
 class PathSpec extends Http4sSpec {
   "Path" should {
