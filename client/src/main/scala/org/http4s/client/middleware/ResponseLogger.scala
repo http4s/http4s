@@ -1,5 +1,5 @@
 package org.http4s
-package server
+package client
 package middleware
 
 import cats.effect._

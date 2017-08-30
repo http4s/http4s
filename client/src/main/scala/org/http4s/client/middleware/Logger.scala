@@ -1,11 +1,11 @@
 package org.http4s
-package server
+package client
 package middleware
 
 import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
-import org.log4s.{Logger => SLogger}
+import org.log4s.{Logger ⇒ SLogger}
 import scodec.bits.ByteVector
 
 import scala.concurrent.ExecutionContext
