@@ -1,3 +1,8 @@
+# v0.17.0-SNAPSHOT
+* Honor `Retry-After` header in `Retry` middleware.  The response will
+  not be retried until the maximum of the backoff strategy and any
+  time specified by the `Retry-After` header of the response.
+
 # v0.17.0-RC3 (2017-08-29)
 * In blaze-server, when doing chunked transfer encoding, flush the
   header as soon as it is available.  It previously buffered until the
