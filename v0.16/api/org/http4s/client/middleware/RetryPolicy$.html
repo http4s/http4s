@@ -202,7 +202,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/0a284db5e740760c838c73d13fc3162884381c90/client/src/main/scala/org/http4s/client/middleware/Retry.scala" target="_blank">Retry.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6f71979c6b171b12cd8689e969014082b6161191/client/src/main/scala/org/http4s/client/middleware/Retry.scala" target="_blank">Retry.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -307,6 +307,46 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.client.middleware.RetryPolicy#RetriableStatuses" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RetriableStatuses:scala.collection.immutable.Set[org.http4s.Status]"></a><a id="RetriableStatuses:Set[Status]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/RetryPolicy$.html#RetriableStatuses:scala.collection.immutable.Set[org.http4s.Status]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RetriableStatuses</span><span class="result">: <span class="extype" name="scala.collection.immutable.Set">Set</span>[<a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Statuses that are retriable, per HTTP spec</p>
+    </li><li name="org.http4s.client.middleware.RetryPolicy#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(backoff:Int=&gt;Option[scala.concurrent.duration.FiniteDuration],retriable:(org.http4s.Request,Throwable\/org.http4s.Response)=&gt;Boolean):org.http4s.client.middleware.RetryPolicy"></a><a id="apply((Int)⇒Option[FiniteDuration],(Request,\/[Throwable,Response])⇒Boolean):RetryPolicy"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/RetryPolicy$.html#apply(backoff:Int=&gt;Option[scala.concurrent.duration.FiniteDuration],retriable:(org.http4s.Request,Throwable\/org.http4s.Response)=&gt;Boolean):org.http4s.client.middleware.RetryPolicy" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="backoff">backoff: (<span class="extype" name="scala.Int">Int</span>) ⇒ <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>]</span>, <span name="retriable">retriable: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.\/">\/</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="#defaultRetriable(req:org.http4s.Request,result:Throwable\/org.http4s.Response):Boolean">defaultRetriable</a></span></span></span>)</span><span class="result">: <a href="index.html#RetryPolicy=(org.http4s.Request,Throwable\/org.http4s.Response,Int)=&gt;Option[scala.concurrent.duration.FiniteDuration]" class="extmbr" name="org.http4s.client.middleware.RetryPolicy">RetryPolicy</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Decomposes a retry policy into components that are typically configured
+individually.</p><div class="fullcomment"><div class="comment cmt"><p>Decomposes a retry policy into components that are typically configured
+individually.
+</p></div><dl class="paramcmts block"><dt class="param">backoff</dt><dd class="cmt"><p>a function of attempts to an optional
+FiniteDuration.  Return None to stop retrying, or some
+duration after which the request will be retried.  See
+<code>exponentialBackoff</code> for a useful implementation.</p></dd><dt class="param">retriable</dt><dd class="cmt"><p>determines whether the request is retriable
+from the request and either the throwable or response that was
+returned.  Defaults to <code>defaultRetriable</code>.</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -345,6 +385,22 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.client.middleware.RetryPolicy#defaultRetriable" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="defaultRetriable(req:org.http4s.Request,result:Throwable\/org.http4s.Response):Boolean"></a><a id="defaultRetriable(Request,\/[Throwable,Response]):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/middleware/RetryPolicy$.html#defaultRetriable(req:org.http4s.Request,result:Throwable\/org.http4s.Response):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultRetriable</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="result">result: <span class="extype" name="scalaz.\/">\/</span>[<span class="extype" name="scala.Throwable">Throwable</span>, <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      
+      <p class="shortcomment cmt">Default logic for whether a request is retriable.</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
