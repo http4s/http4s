@@ -2,16 +2,20 @@ package org.http4s
 package client
 package middleware
 
+import java.time.Instant
+
 import cats._
 import cats.effect.Async
 import cats.implicits._
 import fs2._
 import org.http4s.Status._
+import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
+import java.time.temporal.ChronoUnit
 
 object Retry {
 
@@ -32,11 +36,11 @@ object Retry {
     def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
       client.open(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
-        case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if RetriableStatuses(status) =>
+        case Right(dr @ DisposableResponse(Response(status, _, headers, _, _), _)) if RetriableStatuses(status) =>
           backoff(attempts) match {
             case Some(duration) =>
               logger.info(s"Request $req has failed on attempt #$attempts with reason $status. Retrying after $duration.")
-              dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
+              dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration, headers.get(`Retry-After`)))
             case None =>
               logger.info(s"Request $req has failed on attempt #$attempts with reason $status. Giving up.")
               F.pure(dr)
@@ -55,10 +59,17 @@ object Retry {
           }
       }
 
-    def nextAttempt(req: Request[F], attempts: Int, duration: FiniteDuration)
-                   (implicit F: Async[F], executionContext: ExecutionContext): F[DisposableResponse[F]] =
-      // TODO honor Retry-After header
-      scheduler.sleep_[F](duration).run >> prepareLoop(req.withEmptyBody, attempts + 1)
+    def nextAttempt(req: Request[F], attempts: Int, duration: FiniteDuration, retryHeader: Option[`Retry-After`] = None)
+                   (implicit F: Async[F], executionContext: ExecutionContext): F[DisposableResponse[F]] = {
+      val headerDuration = retryHeader.map { h =>
+        h.retry match {
+          case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
+          case Right(secs) => secs
+        }
+      }.getOrElse(0L)
+      val sleepDuration = Math.max(headerDuration, duration.length).seconds
+      scheduler.sleep_[F](sleepDuration).run >> prepareLoop(req.withEmptyBody, attempts + 1)
+    }
 
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }
