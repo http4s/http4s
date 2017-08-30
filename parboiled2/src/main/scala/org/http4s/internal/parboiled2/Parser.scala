@@ -18,6 +18,7 @@ package org.http4s.internal.parboiled2
 
 import scala.annotation.tailrec
 import scala.collection.immutable.VectorBuilder
+import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.util.{ Failure, Success, Try }
 import scala.util.control.{ NonFatal, NoStackTrace }
@@ -449,10 +450,11 @@ private[http4s] abstract class Parser(initialValueStackSize: Int = 16,
    * THIS IS NOT PUBLIC API and might become hidden in future. Use only if you know what you are doing!
    */
   def __matchMap(m: Map[String, Any]): Boolean = {
-    val keys = m.keysIterator
-    while (keys.hasNext) {
+    val prioritizedKeys = new mutable.PriorityQueue[String]()(Ordering.by(_.length))
+    prioritizedKeys ++= m.keysIterator
+    while (prioritizedKeys.nonEmpty) {
       val mark = __saveState
-      val key = keys.next()
+      val key = prioritizedKeys.dequeue()
       if (__matchString(key)) {
         __push(m(key))
         return true
@@ -465,12 +467,13 @@ private[http4s] abstract class Parser(initialValueStackSize: Int = 16,
    * THIS IS NOT PUBLIC API and might become hidden in future. Use only if you know what you are doing!
    */
   def __matchMapWrapped(m: Map[String, Any]): Boolean = {
-    val keys = m.keysIterator
+    val prioritizedKeys = new mutable.PriorityQueue[String]()(Ordering.by(_.length))
+    prioritizedKeys ++= m.keysIterator
     val start = _cursor
     try {
-      while (keys.hasNext) {
+      while (prioritizedKeys.nonEmpty) {
         val mark = __saveState
-        val key = keys.next()
+        val key = prioritizedKeys.dequeue()
         if (__matchStringWrapped(key)) {
           __push(m(key))
           return true
