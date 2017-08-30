@@ -143,10 +143,14 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def byteArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.bytes)
 
-  // TODO fs2 port this is gone in master but is needed by sourceEncoder.
-  // That's troubling.  Make this go away.
-  implicit def byteEncoder[F[_]: Applicative]: EntityEncoder[F, Byte] =
-    chunkEncoder[F].contramap(Chunk.singleton)
+  /** Encodes an entity body.  Chunking of the stream is preserved.  A
+    * `Transfer-Encoding: chunked` header is set, as we cannot know
+    * the content length without running the stream.
+    */
+  implicit def entityBodyEncoder[F[_]](implicit F: Applicative[F]): EntityEncoder[F, EntityBody[F]] =
+    encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { body =>
+      F.pure(Entity(body, None))
+    }
 
   implicit def effectEncoder[F[_], A](implicit F: FlatMap[F], W: EntityEncoder[F, A]): EntityEncoder[F, F[A]] =
     new EntityEncoder[F, F[A]] {
@@ -166,13 +170,13 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
-    streamEncoder[F, Byte].contramap { in: F[IS] =>
+    entityBodyEncoder[F].contramap { in: F[IS] =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
   implicit def readerEncoder[F[_], R <: Reader](implicit F: Sync[F], charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
-    streamEncoder[F, Byte].contramap { r: F[R] =>
+    entityBodyEncoder[F].contramap { r: F[R] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
       val readToBytes: F[Option[Chunk[Byte]]] = r.map { r =>
@@ -214,6 +218,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     }
 
   implicit def serverSentEventEncoder[F[_]: Applicative]: EntityEncoder[F, EventStream[F]] =
-    streamEncoder[F, Byte].contramap[EventStream[F]] { _.through(ServerSentEvent.encoder) }
+    entityBodyEncoder[F].contramap[EventStream[F]] { _.through(ServerSentEvent.encoder) }
       .withContentType(MediaType.`text/event-stream`)
 }

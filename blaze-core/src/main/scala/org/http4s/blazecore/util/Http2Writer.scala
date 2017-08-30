@@ -11,7 +11,7 @@ import org.http4s.util.chunk._
 
 import scala.concurrent._
 
-class Http2Writer[F[_]](tail: TailStage[Http2Msg],
+private[http4s] class Http2Writer[F[_]](tail: TailStage[Http2Msg],
                         private var headers: Headers,
                         protected val ec: ExecutionContext)
                        (implicit protected val F: Effect[F])
@@ -32,7 +32,7 @@ class Http2Writer[F[_]](tail: TailStage[Http2Msg],
   }
 
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
-    if (chunk.isEmpty) Future.successful(())
+    if (chunk.isEmpty) FutureUnit
     else {
       if (headers == null) tail.channelWrite(DataFrame(endStream = false, chunk.toByteBuffer))
       else {

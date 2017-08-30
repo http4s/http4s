@@ -1,6 +1,7 @@
 package org.http4s
 package blazecore
 
+import scala.concurrent.Future
 import fs2._
 
 package object util {
@@ -12,4 +13,7 @@ package object util {
       case Some((hd, tl)) => Pull.output(hd) as Some(tl)
       case None => Pull.done as None
     }}
+
+  private[http4s] val FutureUnit =
+    Future.successful(())
 }

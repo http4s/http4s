@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import org.http4s.Http4sSpec
 import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder, TailStage}
+import org.http4s.blazecore.util.FutureUnit
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Awaitable, Future, Promise}
@@ -83,7 +84,7 @@ class ReadBufferStageSpec extends Http4sSpec {
     val readCount = new AtomicInteger(0)
     override def readRequest(size: Int): Future[Unit] = {
       readCount.incrementAndGet()
-      Future.successful(())
+      FutureUnit
     }
 
     override def writeRequest(data: Unit): Future[Unit] = ???

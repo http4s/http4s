@@ -81,7 +81,7 @@ title: Versions
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.17.0-RC2</td>
+        <td>0.17.0-RC3</td>
         <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -91,7 +91,7 @@ title: Versions
         <td>1.8+</td>
       </tr>
 	  <tr>
-	    <td>0.16.0a-RC2</td>
+	    <td>0.16.0a-RC3</td>
 	    <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -101,7 +101,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.0-RC2</td>
+	    <td>0.16.0-RC3</td>
 	    <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>

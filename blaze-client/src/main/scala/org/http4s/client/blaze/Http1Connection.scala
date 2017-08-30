@@ -6,6 +6,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
+import cats.ApplicativeError
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -14,7 +15,7 @@ import org.http4s.{headers => H}
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
-import org.http4s.blazecore.util.EntityBodyWriter
+import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
 import org.http4s.{headers => H}
@@ -136,15 +137,22 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
           case None => getHttpMinor(req) == 0
         }
 
-        val bodyTask : F[Boolean] = getChunkEncoder(req, mustClose, rr)
-          .writeEntityBody(req.body)
+        val renderTask : F[Boolean] = getChunkEncoder(req, mustClose, rr)
+          .write(rr, req.body)
           .recover {
             case EOF => false
           }
+          .attempt
+          .flatMap { r =>
+            F.delay(sendOutboundCommand(ClientTimeoutStage.RequestSendComplete)).flatMap { _ =>
+              ApplicativeError[F, Throwable].fromEither(r)
+            }
+          }
+
         // If we get a pipeline closed, we might still be good. Check response
         val responseTask : F[Response[F]] = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
-        bodyTask
+        renderTask
           .followedBy(responseTask)
           .handleErrorWith { t =>
             fatalError(t, "Error executing request")
@@ -177,6 +185,8 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
       if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing")
       else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing")
       else {
+        sendOutboundCommand(ClientTimeoutStage.ResponseHeaderComplete)
+
         // Get headers and determine if we need to close
         val headers : Headers         = parser.getHeaders()
         val status : Status           = parser.getStatus()
@@ -279,7 +289,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey,
     else Right(req) // All appears to be well
   }
 
-  private def getChunkEncoder(req: Request[F], closeHeader: Boolean, rr: StringWriter): EntityBodyWriter[F] =
+  private def getChunkEncoder(req: Request[F], closeHeader: Boolean, rr: StringWriter): Http1Writer[F] =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
 }
 

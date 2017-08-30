@@ -14,7 +14,7 @@ import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
 import org.http4s.blazecore.Http1Stage
-import org.http4s.blazecore.util.{BodylessWriter, EntityBodyWriter}
+import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
@@ -133,7 +133,7 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
                         }.getOrElse(parser.minorVersion == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
-    val bodyEncoder: EntityBodyWriter[F] = {
+    val bodyEncoder: Http1Writer[F] = {
       if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
@@ -154,13 +154,12 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
         // add KeepAlive to Http 1.0 responses if the header isn't already present
         rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
 
-        val b = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
-        new BodylessWriter(b, this, closeOnFinish)
+        new BodylessWriter[F](this, closeOnFinish)
       }
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)
     }
 
-    async.unsafeRunAsync(bodyEncoder.writeEntityBody(resp.body)) {
+    async.unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
       case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
           logger.trace("Request/route requested closing connection.")

@@ -12,16 +12,22 @@ import org.http4s.util.StringWriter
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer],
+private[http4s] class CachingStaticWriter[F[_]](out: TailStage[ByteBuffer],
                                 bufferSize: Int = 8*1024)
                                (implicit protected val F: Effect[F],
                                 protected val ec: ExecutionContext)
-  extends EntityBodyWriter[F] {
+  extends Http1Writer[F] {
 
   @volatile
   private var _forceClose = false
   private var bodyBuffer: Chunk[Byte] = _
+  private var writer: StringWriter = null
   private var innerWriter: InnerWriter = _
+
+  def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
+    this.writer = headerWriter
+    FutureUnit
+  }
 
   private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
     if (bodyBuffer == null) bodyBuffer = b
@@ -35,8 +41,7 @@ class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer]
 
     if (innerWriter == null) {  // We haven't written anything yet
       writer << "\r\n"
-      val b = ByteBuffer.wrap(writer.result.getBytes(StandardCharsets.ISO_8859_1))
-      new InnerWriter(b).writeBodyChunk(c, flush = true)
+      new InnerWriter().writeBodyChunk(c, flush = true)
     }
     else writeBodyChunk(c, flush = true)    // we are already proceeding
   }
@@ -47,9 +52,7 @@ class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer]
       val c = addChunk(chunk)
       writer << "Content-Length: " << c.size << "\r\nConnection: keep-alive\r\n\r\n"
 
-      val b = ByteBuffer.wrap(writer.result.getBytes(StandardCharsets.ISO_8859_1))
-
-      new InnerWriter(b).writeEnd(c).map(_ || _forceClose)
+      new InnerWriter().writeEnd(c).map(_ || _forceClose)
     }
   }
 
@@ -60,16 +63,15 @@ class CachingStaticWriter[F[_]](writer: StringWriter, out: TailStage[ByteBuffer]
       if (flush || c.size >= bufferSize) { // time to just abort and stream it
         _forceClose = true
         writer << "\r\n"
-        val b = ByteBuffer.wrap(writer.result.getBytes(StandardCharsets.ISO_8859_1))
-        innerWriter = new InnerWriter(b)
+        innerWriter = new InnerWriter
         innerWriter.writeBodyChunk(chunk, flush)
       }
-      else Future.successful(())
+      else FutureUnit
     }
   }
 
   // Make the write stuff public
-  private class InnerWriter(buffer: ByteBuffer) extends IdentityWriter(buffer, -1, out) {
+  private class InnerWriter extends IdentityWriter(-1, out) {
     override def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = super.writeEnd(chunk)
     override def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = super.writeBodyChunk(chunk, flush)
   }

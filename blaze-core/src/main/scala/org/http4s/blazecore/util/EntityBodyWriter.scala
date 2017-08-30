@@ -11,7 +11,7 @@ import org.http4s.syntax.async._
 
 import scala.concurrent._
 
-trait EntityBodyWriter[F[_]] {
+private[http4s] trait EntityBodyWriter[F[_]] {
 
   implicit protected def F: Effect[F]
 
@@ -40,7 +40,7 @@ trait EntityBodyWriter[F[_]] {
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean]
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
-  protected def exceptionFlush(): Future[Unit] = Future.successful(())
+  protected def exceptionFlush(): Future[Unit] = FutureUnit
 
   /** Creates a Task that writes the contents of the EntityBody to the output.
     * Cancelled exceptions fall through to the Task cb
@@ -55,7 +55,7 @@ trait EntityBodyWriter[F[_]] {
     val writeBodyEnd: F[Boolean] = F.fromFuture(writeEnd(Chunk.empty))
     writeBody >> writeBodyEnd
   }
-  
+
   /** Writes each of the body chunks, if the write fails it returns
     * the failed future which throws an error.
     * If it errors the error stream becomes the stream, which performs an

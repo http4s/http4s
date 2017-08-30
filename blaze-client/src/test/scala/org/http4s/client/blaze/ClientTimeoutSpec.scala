@@ -36,15 +36,15 @@ class ClientTimeoutSpec extends Http4sSpec {
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
   
   private def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeConnection[IO])
-              (idleTimeout: Duration, requestTimeout: Duration): Client[IO] = {
+              (responseHeaderTimeout: Duration = Duration.Inf, idleTimeout: Duration = Duration.Inf, requestTimeout: Duration = Duration.Inf): Client[IO] = {
     val manager = MockClientBuilder.manager(head, tail)
-    BlazeClient(manager, defaultConfig.copy(idleTimeout = idleTimeout, requestTimeout = requestTimeout), IO.unit)
+    BlazeClient(manager, defaultConfig.copy(responseHeaderTimeout = responseHeaderTimeout, idleTimeout = idleTimeout, requestTimeout = requestTimeout), IO.unit)
   }
 
   "Http1ClientStage responses" should {
     "Timeout immediately with an idle timeout of 0 seconds" in {
       val c = mkClient(new SlowTestHead(List(mkBuffer(resp)), 0.seconds, scheduler),
-                       mkConnection())(0.milli, Duration.Inf)
+                       mkConnection())(idleTimeout = Duration.Zero)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -52,7 +52,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Timeout immediately with a request timeout of 0 seconds" in {
       val tail = mkConnection()
       val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds, scheduler)
-      val c = mkClient(h, tail)(Duration.Inf, 0.milli)
+      val c = mkClient(h, tail)(requestTimeout = 0.milli)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -60,7 +60,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Idle timeout on slow response" in {
       val tail = mkConnection()
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, scheduler)
-      val c = mkClient(h, tail)(1.second, Duration.Inf)
+      val c = mkClient(h, tail)(idleTimeout = 1.second)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -68,7 +68,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Request timeout on slow response" in {
       val tail = mkConnection()
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, scheduler)
-      val c = mkClient(h, tail)(Duration.Inf, 1.second)
+      val c = mkClient(h, tail)(requestTimeout = 1.second)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -88,7 +88,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig)
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
-      val c = mkClient(h, tail)(Duration.Inf, 1.second)
+      val c = mkClient(h, tail)(requestTimeout = 1.second)
 
       c.fetchAs[String](req).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -108,7 +108,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig)
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
-      val c = mkClient(h, tail)(1.second, Duration.Inf)
+      val c = mkClient(h, tail)(idleTimeout = 1.second)
 
       c.fetchAs[String](req).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -128,7 +128,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = new Http1Connection[IO](RequestKey.fromRequest(req), defaultConfig)
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f, b).map(mkBuffer))
-      val c = mkClient(h, tail)(10.second, 30.seconds)
+      val c = mkClient(h, tail)(idleTimeout = 10.second, requestTimeout = 30.seconds)
 
       c.fetchAs[String](req).unsafeRunSync() must_== "done"
     }
@@ -137,7 +137,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = mkConnection()
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis, scheduler)
-      val c = mkClient(h, tail)(Duration.Inf, 1.second)
+      val c = mkClient(h, tail)(requestTimeout = 1.second)
 
       val result = tail.runRequest(FooRequest).as[String]
 
@@ -148,11 +148,33 @@ class ClientTimeoutSpec extends Http4sSpec {
       val tail = mkConnection()
       val (f, b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis, scheduler)
-      val c = mkClient(h, tail)(1.second, Duration.Inf)
+      val c = mkClient(h, tail)(idleTimeout = 1.second)
 
       val result = tail.runRequest(FooRequest).as[String]
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
+    }
+
+    "Response head timeout on slow header" in {
+      val tail = mkConnection()
+      val (f,b) = resp.splitAt(resp.indexOf("\r\n\r\n"))
+      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 500.millis, scheduler)
+      // header is split into two chunks, we wait for 1.5x
+      val c = mkClient(h, tail)(responseHeaderTimeout = 750.millis)
+
+      c.fetchAs[String](FooRequest).unsafeRunSync must throwA[TimeoutException]
+    }
+
+    "No Response head timeout on fast header" in {
+      val tail = mkConnection()
+      val (f,b) = resp.splitAt(resp.indexOf("\r\n\r\n"+4))
+      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 125.millis, scheduler)
+      // header is split into two chunks, we wait for 10x
+      val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
+
+      val result = tail.runRequest(FooRequest).as[String]
+
+      c.fetchAs[String](FooRequest).unsafeRunSync must_== "done"
     }
   }
 }

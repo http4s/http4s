@@ -54,13 +54,17 @@ class EntityEncoderSpec extends Http4sSpec {
       }
     }
 
-    "render processes with chunked transfer encoding without duplicating chunked transfer encoding" in {
+    "render streams with chunked transfer encoding without duplicating chunked transfer encoding" in {
       trait Foo
       implicit val FooEncoder =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ => IO.pure(Entity.empty))
       EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
+    }
+
+    "render entity bodies with chunked transfer encoding" in {
+      EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) must beSome(`Transfer-Encoding`(TransferCoding.chunked))
     }
 
     "render files" in {

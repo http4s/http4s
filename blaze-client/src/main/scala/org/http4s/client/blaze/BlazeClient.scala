@@ -34,7 +34,7 @@ object BlazeClient {
 
       def loop(next: manager.NextConnection): F[DisposableResponse[F]] = {
         // Add the timeout stage to the pipeline
-        val ts = new ClientTimeoutStage(config.idleTimeout, config.requestTimeout, bits.ClientTickWheel)
+        val ts = new ClientTimeoutStage(config.responseHeaderTimeout, config.idleTimeout, config.requestTimeout, bits.ClientTickWheel)
         next.connection.spliceBefore(ts)
         ts.initialize()
 

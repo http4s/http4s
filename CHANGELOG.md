@@ -1,4 +1,16 @@
-# v0.18.0-M1
+# v0.17.0-RC3 (2017-08-29)
+* In blaze-server, when doing chunked transfer encoding, flush the
+  header as soon as it is available.  It previously buffered until the
+  first chunk was available.
+
+# v0.16.0-RC3 (2017-08-29)
+* Add a `responseHeaderTimeout` property to `BlazeClientConfig`.  This
+  measures the time between the completion of writing the request body
+  to the reception of a complete response header.
+* Upgraded dependencies:
+    * async-http-client-2.0.35
+
+# v0.18.0-M1 (2107-08-24)
 
 This release is the product of a long period of parallel development
 across different foundation libraries, making a detailed changelog
@@ -44,6 +56,21 @@ Several dependencies are upgraded:
 * Remove `ServiceSyntax.orNotFound(a: A): Task[Response]` in favor of
   `ServiceSyntax.orNotFound: Service[Request, Response]`
 
+# v0.16.0-RC2 (2017-08-24)
+* Move http4s-blaze-core from `org.http4s.blaze` to
+  `org.http4s.blazecore` to avoid a conflict with the non-http4s
+  blaze-core module.
+* Change `ServiceOps` to operate on a `Service[?, MaybeResponse]`.
+  Give it an `orNotFound` that returns a `Service`.  The
+  `orNotFound(a: A)` overload is left for compatibility with Scala
+  2.10.
+* Build with Lightbend compiler instead of Typelevel compiler so we
+  don't expose `org.typelevel` dependencies that are incompatible with
+  ntheir counterparts in `org.scala-lang`.
+* Upgraded dependencies:
+    * blaze-0.12.7 (fixes eviction notice in http4s-websocket)
+    * twirl-1.3.4
+
 # v0.17.0-RC1 (2017-08-16)
 * Port `ChunkAggregator` to fs2
 * Add logging middleware
@@ -66,41 +93,6 @@ Several dependencies are upgraded:
     * fs2-0.9.7
     * metrics-core-3.2.4
     * scodec-bits-1.1.5
-
-# v0.17.0-M3 (2017-05-27)
-* Fix file corruption issue when serving static files from the classpath
-
-# v0.17.0-M2 (2017-04-30)
-* `Timeout` middleware takes an implicit `Scheduler` and
-  `ExecutionContext`
-* Bring back `http4s-async-client`, based on `fs2-reactive-stream`
-* Restore support for WebSockets
-
-# v0.17.0-M1 (2017-04-08)
-* First release on cats and fs2
-    * All scalaz types and typeclasses replaced by cats equivalengts
-	* `scalaz.concurrent.Task` replaced by `fs2.Task`	
-	* `scalaz.stream.Process` replaced by `fs2.Stream`
-* Roughly at feature parity with v0.16.0-M1. Notable exceptions:
-	* Multipart not yet supported
-	* Web sockets not yet supported
-	* Client retry middleware can't check idempotence of requests
-	* Utilties in `org.http4s.util.io` not yet ported
-
-# v0.16.0-RC2 (2017-08-24)
-* Move http4s-blaze-core from `org.http4s.blaze` to
-  `org.http4s.blazecore` to avoid a conflict with the non-http4s
-  blaze-core module.
-* Change `ServiceOps` to operate on a `Service[?, MaybeResponse]`.
-  Give it an `orNotFound` that returns a `Service`.  The
-  `orNotFound(a: A)` overload is left for compatibility with Scala
-  2.10.
-* Build with Lightbend compiler instead of Typelevel compiler so we
-  don't expose `org.typelevel` dependencies that are incompatible with
-  their counterparts in `org.scala-lang`.
-* Upgraded dependencies:
-    * blaze-0.12.7 (fixes eviction notice in http4s-websocket)
-    * twirl-1.3.4
 
 # v0.16.0-RC1 (2017-08-16)
 * Remove laziness from `ArbitraryInstances`
@@ -156,6 +148,22 @@ Several dependencies are upgraded:
     * scalaz-7.2.15
     * tomcat-8.5.20
 
+# v0.15.16 (2017-07-20)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# ~~v0.15.15 (2017-07-20)~~
+* Oops. Same as v0.15.14.
+
+# v0.15.14 (2017-07-10)
+* Close parens in `Request.toString`
+* Use "message" instead of "request" in message body failure messages
+* Add `problem+json` media type
+* Tolerate `[` and `]` in queries parsing URIs. These characters are parsed, but
+  percent-encoded.
+
+# v0.17.0-M3 (2017-05-27)
+* Fix file corruption issue when serving static files from the classpath
+
 # v0.16.0-M3 (2017-05-25)
 * Fix `WebjarService` so it matches assets.
 * `ServerApp` overrides `process` to leave a single abstract method
@@ -165,7 +173,7 @@ Several dependencies are upgraded:
     * jetty-9.4.5.v20170502
     * scalaz-7.2.13
     * tomcat-8.5.15
-* `ProcessApp` uses a `Process[Task, Nothing]` rather than a 
+* `ProcessApp` uses a `Process[Task, Nothing]` rather than a
   `Process[Task, Unit]`
 * `Credentials` is split into `Credentials.AuthParams` for key-value pairs and
   `Credentials.Token` for legacy token-based schemes.  `OAuthBearerToken` is
@@ -175,6 +183,23 @@ Several dependencies are upgraded:
 * Add `fromSeq` constructor to `UrlForm`
 * Allow `WebjarService` to pass on methods other than `GET`.  It previously
   threw a `MatchError`.
+
+# v0.15.13 (2017-05-25)
+* Patch-level upgrades to dependencies:
+    * async-http-client-2.0.32
+    * blaze-0.12.6 (fixes infinite loop in some SSL handshakes)
+    * jetty-9.3.19.v20170502
+    * json4s-3.5.2
+    * tomcat-8.0.44
+
+# v0.15.12 (2017-05-11)
+* Fix GZip middleware to render a correct stream
+
+# v0.17.0-M2 (2017-04-30)
+* `Timeout` middleware takes an implicit `Scheduler` and
+  `ExecutionContext`
+* Bring back `http4s-async-client`, based on `fs2-reactive-stream`
+* Restore support for WebSockets
 
 # v0.16.0-M2 (2017-04-30)
 * Upgraded dependencies:
@@ -191,6 +216,46 @@ Several dependencies are upgraded:
   small bodies, and incrementally through jawn for larger.
 * Capture more context in detail message of parse errors
 
+# v0.15.11 (2017-04-29)
+* Upgrade to blaze-0.12.5 to pick up fix for `StackOverflowError` in
+  SSL handshake
+
+# v0.15.10 (2017-04-28)
+* Patch-level upgrades to dependencies
+* argonaut-6.2
+* scalaz-7.2.12
+* Allow preambles and epilogues in multipart bodies
+* Limit multipart headers to 40 kilobytes to avoid unbounded buffering
+  of long lines in a header
+* Remove `' '` and `'?'` from alphabet for generated multipart
+  boundaries, as these are not token characters and are known to cause
+  trouble for some multipart implementations
+* Fix multipart parsing for unlucky input chunk sizes
+
+# v0.15.9 (2017-04-19)
+* Terminate `ServerApp` even if the server fails to start
+* Make `ResourceService` respect `If-Modified-Since`
+* Patch-level upgrades to dependencies:
+* async-http-client-2.0.31
+* jetty-9.3.18.v20170406
+* json4s-3.5.1
+* log4s-1.3.4
+* metrics-core-3.1.4
+* scalacheck-1.13.5
+* scalaz-7.1.13 or scalaz-7.2.11
+* tomcat-8.0.43
+
+# v0.17.0-M1 (2017-04-08)
+* First release on cats and fs2
+    * All scalaz types and typeclasses replaced by cats equivalengts
+	* `scalaz.concurrent.Task` replaced by `fs2.Task`	
+	* `scalaz.stream.Process` replaced by `fs2.Stream`
+* Roughly at feature parity with v0.16.0-M1. Notable exceptions:
+	* Multipart not yet supported
+	* Web sockets not yet supported
+	* Client retry middleware can't check idempotence of requests
+	* Utilties in `org.http4s.util.io` not yet ported
+
 # v0.16.0-M1 (2017-04-08)
 * Fix type of `AuthedService.empty`
 * Eliminate `Fallthrough` typeclass.  An `HttpService` now returns
@@ -203,13 +268,13 @@ Several dependencies are upgraded:
 * Upgraded dependencies for various modules:
     * async-http-client-2.0.31
     * circe-0.7.1
-	* jetty-9.4.3.v20170317
-	* json4s-3.5.1
-	* logback-1.2.1
-	* log4s-1.3.4
-	* metrics-3.2.0
-	* scalacheck-1.13.5
-	* tomcat-8.0.43
+    * jetty-9.4.3.v20170317
+    * json4s-3.5.1
+    * logback-1.2.1
+    * log4s-1.3.4
+    * metrics-3.2.0
+    * scalacheck-1.13.5
+    * tomcat-8.0.43
 * Deprecate `EntityEncoder[ByteBuffer]` and
   `EntityEncoder[CharBuffer]`.
 * Add `EntityDecoder[Unit]`.
@@ -233,59 +298,6 @@ Several dependencies are upgraded:
   `ProcessApp` is easier to compose all the resources a server needs via
   `Process.bracket`.
 * Implement a `Referer` header.
-
-# v0.15.16 (2017-07-20)
-* Backport rendering of details in `ParseFailure.getMessage`
-
-# v0.15.15 (2017-07-20)
-* Oops. Same as v0.15.14.
-
-# v0.15.14 (2017-07-10)
-* Close parens in `Request.toString`
-* Use "message" instead of "request" in message body failure messages
-* Add `problem+json` media type
-* Tolerate `[` and `]` in queries parsing URIs. These characters are parsed, but
-  percent-encoded.
-
-# v0.15.13 (2017-05-25)
-* Patch-level upgrades to dependencies:
-    * async-http-client-2.0.32
-    * blaze-0.12.6 (fixes infinite loop in some SSL handshakes)
-    * jetty-9.3.19.v20170502
-    * json4s-3.5.2
-    * tomcat-8.0.44
-
-# v0.15.12 (2017-05-11)
-* Fix GZip middleware to render a correct stream
-
-# v0.15.11 (2017-04-29)
-* Upgrade to blaze-0.12.5 to pick up fix for `StackOverflowError` in
-  SSL handshake
-
-# v0.15.10 (2017-04-28)
-* Patch-level upgrades to dependencies
-    * argonaut-6.2
-    * scalaz-7.2.12
-* Allow preambles and epilogues in multipart bodies
-* Limit multipart headers to 40 kilobytes to avoid unbounded buffering
-  of long lines in a header
-* Remove `' '` and `'?'` from alphabet for generated multipart
-  boundaries, as these are not token characters and are known to cause
-  trouble for some multipart implementations
-* Fix multipart parsing for unlucky input chunk sizes
-
-# v0.15.9 (2017-04-19)
-* Terminate `ServerApp` even if the server fails to start
-* Make `ResourceService` respect `If-Modified-Since`
-* Patch-level upgrades to dependencies:
-    * async-http-client-2.0.31
-    * jetty-9.3.18.v20170406
-    * json4s-3.5.1
-	* log4s-1.3.4
-    * metrics-core-3.1.4
-    * scalacheck-1.13.5
-    * scalaz-7.1.13 or scalaz-7.2.11
-    * tomcat-8.0.43
 
 # v0.15.8 (2017-04-06)
 * Cache charset lookups to avoid synchronization.  Resolution of
@@ -336,6 +348,12 @@ Several dependencies are upgraded:
 
 # v0.15.2 (2016-12-29)
 * Add helpers to add cookies to requests
+
+# v0.12.6 (2016-12-29)
+* Backport rendering of details in `ParseFailure.getMessage`
+
+# ~~v0.12.5 (2016-12-29)~~
+* ~~Backport rendering of details in `ParseFailure.getMessage`~~ Oops.
 
 # v0.15.1 (2016-12-20)
 * Fix GZip middleware to fallthrough non-matching responses
@@ -391,7 +409,8 @@ Several dependencies are upgraded:
 * Upgrade to Tomcat 8.0.37
 
 # v0.14.7 (2016-09-25)
-* Retry middleware now only retries requests with idempotent methods and pure bodies and appropriate status codes
+* Retry middleware now only retries requests with idempotent methods
+  and pure bodies and appropriate status codes
 * Fix bug where redirects followed when an effectful chunk (i.e., `Await`) follows pure ones.
 * Don't uppercase two hex digits after "%25" when percent encoding.
 * Tolerate invalid percent-encodings when decoding.
@@ -478,12 +497,6 @@ Several dependencies are upgraded:
 * Provide an optional external executor to blaze clients.
 * Fix Argonaut string interpolation
 
-# v0.12.6 (2016-12-29)
-* Backport rendering of details in `ParseFailure.getMessage`
-
-# v0.12.5 (2016-12-29)
-* ~~Backport rendering of details in `ParseFailure.getMessage`~~ Oops.
-
 # v0.12.4 (2016-03-10)
 * Fix bug on rejection of invalid URIs.
 * Do not send `Transfer-Encoding` or `Content-Length` headers for 304 and others.
@@ -501,7 +514,8 @@ Several dependencies are upgraded:
 
 # v0.12.0 (2016-01-15)
 * Refactor the client API for resource safety when not reading the entire body.
-* Rewrite client connection pool to support  maximum concurrent connections instead of maximum idle connections.
+* Rewrite client connection pool to support maximum concurrent
+  connections instead of maximum idle connections.
 * Optimize body collection for better connection keep-alive rate.
 * Move `Service` and `HttpService`, because a `Client` can be viewed as a `Service`.
 * Remove custom `DateTime` in favor of `java.time.Instant`.
@@ -528,7 +542,7 @@ Several dependencies are upgraded:
 * Reduce noise from timeout exceptions in `ClientTimeoutStage`.
 * Address file descriptor leaks in blaze-client.
 * Fix `FollowRedirect` middleware for 303 responses.
-* Support keep-alives for client requests with bodies. 
+* Support keep-alives for client requests with bodies.
 
 # v0.11.1 (2015-11-29)
 * Honor `connectorPoolSize` and `bufferSize` parameters in `BlazeBuilder`.
@@ -567,6 +581,10 @@ Several dependencies are upgraded:
 * Fix metrics incompatibility when using Jetty 9.3 backend.
 * Preserve original headers when appending as opposed to quoting.
 
+# v0.8.5 (2015-08-26)
+* Preserve original headers when appending as opposed to quoting.
+* Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh
+
 # v0.9.1 (2015-08-19)
 * Fix bug in servlet nio handler.
 
@@ -575,19 +593,15 @@ Several dependencies are upgraded:
 * `StaticFile` uses the filename extension exclusively to determine media-type.
 * Add `/` method to `Uri`.
 * Add `UrlFormLifter` middleware to aggregate url-form parameters with the query parameters.
-* Add local address information to the `Request` type. 
+* Add local address information to the `Request` type.
 * Add a Http method 'or' (`|`) extractor.
 * Add `VirtualHost` middleware for serving multiple sites from one server.
 * Add websocket configuration to the blaze server builder.
-* Redefine default timeout status code to 500. 
+* Redefine default timeout status code to 500.
 * Redefine the `Service` arrow result from `Task[Option[_]]` to `Task[_]`.
 * Don't extend `AllInstances` with `Http4s` omnibus import object.
 * Use UTF-8 as the default encoding for text bodies.
 * Numerous bug fixes by numerous contributors!
-
-# v0.8.5 (2015-08-26)
-* Preserve original headers when appending as opposed to quoting.
-* Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh
 
 # v0.8.4 (2015-07-13)
 * Honor the buffer size parameter in gzip middleware.
@@ -746,8 +760,8 @@ Several dependencies are upgraded:
 
 # v0.4.0 (2014-11-18)
 
-* Change HttpService form a `PartialFunction[Request,Task[Response]]` to `Service[Request, Response]`,
-  a type that encapsulates a `Request => Task[Option[Response]]`
+* Change HttpService form a `PartialFunction[Request,Task[Response]]`
+  to `Service[Request, Response]`, a type that encapsulates a `Request => Task[Option[Response]]`
 * Upgrade to scalaz-stream-0.6a
 * Upgrade to blaze-0.3.0
 * Drop scala-logging for log4s
@@ -766,7 +780,7 @@ Several dependencies are upgraded:
 * Upgrade to scalaz-7.1.0 and scalaz-stream-0.5a
 * JSON Writable support through Argonaut and json4s.
 * Add EntityDecoders for parsing bodies.
-* Moved request and response generators to http4s-dsl to be more flexible to 
+* Moved request and response generators to http4s-dsl to be more flexible to
   other frameworks'' syntax needs.
 * Phased out exception-throwing methods for the construction of various
   model objects in favor of disjunctions and macro-enforced literals.
@@ -776,7 +790,7 @@ Several dependencies are upgraded:
 
 * Scala 2.11 support
 * Spun off http4s-server module. http4s-core is neutral between server and
-  the future client.
+the future client.
 * New builder for running Blaze, Jetty, and Tomcat servers.
 * Configurable timeouts in each server backend.
 * Replace Chunk with scodec.bits.ByteVector.
