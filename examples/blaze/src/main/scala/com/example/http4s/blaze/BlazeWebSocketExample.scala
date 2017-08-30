@@ -5,7 +5,7 @@ import java.util.concurrent.Executors
 import cats.effect._
 import fs2._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.websocket._
 import org.http4s.util.{StreamApp, _}

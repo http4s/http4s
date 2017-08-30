@@ -11,7 +11,7 @@ Http4s has a list of all the [methods] you're familiar with, and a few more.
 import cats.effect._
 import io.circe.generic._
 import io.circe.syntax._
-import org.http4s._, org.http4s.dsl._
+import org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
 
 @JsonCodec case class TweetWithId(id: Int, message: String)

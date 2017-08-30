@@ -4,7 +4,7 @@ import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.server.AuthMiddleware
 
 class AuthMiddlewareSpec extends Http4sSpec {

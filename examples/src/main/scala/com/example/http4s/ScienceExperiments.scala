@@ -4,7 +4,7 @@ import java.time.Instant
 
 import org.http4s._
 import org.http4s.circe._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.headers.Date
 import org.http4s.scalaxml._
 import io.circe._

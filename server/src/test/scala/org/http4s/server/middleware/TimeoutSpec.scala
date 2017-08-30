@@ -8,7 +8,7 @@ import cats.effect._
 import cats.implicits._
 import fs2.Scheduler
 import org.http4s.Http4sSpec._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 import scala.concurrent.duration._
 

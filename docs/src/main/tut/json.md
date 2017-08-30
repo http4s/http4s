@@ -68,7 +68,7 @@ import cats.effect._
 import io.circe._
 import io.circe.literal._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 def hello(name: String): Json =
   json"""{"hello": $name}"""
@@ -209,7 +209,7 @@ import io.circe.syntax._
 
 import org.http4s._
 import org.http4s.circe._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 case class User(name: String)
 case class Hello(greeting: String)

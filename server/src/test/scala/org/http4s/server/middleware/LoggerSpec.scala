@@ -4,7 +4,7 @@ package middleware
 
 import cats.effect._
 import fs2.io.readInputStream
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 
 import scala.io.Source
 

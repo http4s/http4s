@@ -5,20 +5,18 @@
  * https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/main/scala/com/twitter/finagle/http/path/Path.scala
  */
 
-package org.http4s
-package dsl
+package org.http4s.dsl.impl
+
+import cats.data.Validated._
+import cats.data._
+import cats.implicits._
+import org.http4s._
+import org.http4s.util.UrlCodingUtils
 
 import scala.util.Try
 
-import collection.immutable.BitSet
-
-import cats.data._
-import cats.data.Validated._
-import cats.implicits._
-import org.http4s.util.UrlCodingUtils
-
 /** Base class for path extractors. */
-abstract class Path {
+trait Path {
   def /(child: String) = new /(this, child)
   def toList: List[String]
   def parent: Path
@@ -41,27 +39,29 @@ object Path {
   def apply(first: String, rest: String*): Path =
     rest.foldLeft(Root / first)(_ / _)
 
-  def apply(list: List[String]): Path = list.foldLeft(Root: Path)(_ / _)
+  def apply(list: List[String]): Path =
+    list.foldLeft(Root: Path)(_ / _)
 
-  def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
+  def unapplySeq(path: Path): Some[List[String]] =
+    Some(path.toList)
 
-  def unapplySeq[F[_]](request: Request[F]): Option[List[String]] = Some(Path(request.pathInfo).toList)
+  def unapplySeq[F[_]](request: Request[F]): Some[List[String]] =
+    Some(Path(request.pathInfo).toList)
 }
 
 object :? {
-  def unapply[F[_]](req: Request[F]): Option[(Request[F], Map[String, Seq[String]])] = {
+  def unapply[F[_]](req: Request[F]): Some[(Request[F], Map[String, Seq[String]])] =
     Some((req, req.multiParams))
-  }
 }
 
 /** File extension extractor */
 object ~ {
   /**
-   * File extension extractor for Path:
-   *   Path("example.json") match {
-   *     case Root / "example" ~ "json" => ...
-   */
-  def unapply(path: Path): Option[(Path, String)] = {
+    * File extension extractor for Path:
+    *   Path("example.json") match {
+    *     case Root / "example" ~ "json" => ...
+    */
+  def unapply(path: Path): Option[(Path, String)] =
     path match {
       case Root => None
       case parent / last =>
@@ -69,84 +69,89 @@ object ~ {
           case (base, ext) => (parent / base, ext)
         }
     }
-  }
 
   /**
-   * File extension matcher for String:
-   * {{{
-   *   "example.json" match {
-   *      case => "example" ~ "json" => ...
-   * }}}
-   */
-  def unapply(fileName: String): Option[(String, String)] = {
+    * File extension matcher for String:
+    * {{{
+    *   "example.json" match {
+    *      case => "example" ~ "json" => ...
+    * }}}
+    */
+  def unapply(fileName: String): Option[(String, String)] =
     fileName.lastIndexOf('.') match {
       case -1 => Some((fileName, ""))
       case index => Some((fileName.substring(0, index), fileName.substring(index + 1)))
     }
-  }
 }
 
-final case class /(parent: Path, child: String) extends Path {
+case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
-  def lastOption: Option[String] = Some(child)
-  lazy val asString = s"${parent}/${UrlCodingUtils.pathEncode(child)}"
-  override def toString = asString
-  def startsWith(other: Path) = {
+
+  def lastOption: Some[String] = Some(child)
+
+  lazy val asString: String = s"$parent/${UrlCodingUtils.pathEncode(child)}"
+
+  override def toString: String = asString
+
+  def startsWith(other: Path): Boolean = {
     val components = other.toList
-    (toList take components.length) == components
+    toList.take(components.length) === components
   }
 }
 
 object -> {
   /**
-   * HttpMethod extractor:
-   * {{{
-   *   (request.method, Path(request.path)) match {
-   *     case Method.GET -> Root / "test.json" => ...
-   * }}}
-   */
-  def unapply[F[_]](req: Request[F]): Option[(Method, Path)] = {
+    * HttpMethod extractor:
+    * {{{
+    *   (request.method, Path(request.path)) match {
+    *     case Method.GET -> Root / "test.json" => ...
+    * }}}
+    */
+  def unapply[F[_]](req: Request[F]): Some[(Method, Path)] =
     Some((req.method, Path(req.pathInfo)))
-  }
 }
 
 class MethodConcat(val methods: Set[Method]) {
   /**
-   * HttpMethod 'or' extractor:
-   * {{{
-   *  val request: Request = ???
-   *  request match {
-   *    case (Method.GET | Method.POST) -> Root / "123" => ???
-   *  }
-   * }}}
-   */
-  def unapply(method: Method): Option[Method] = 
-    if (methods(method)) Some(method) else None
+    * HttpMethod 'or' extractor:
+    * {{{
+    *  val request: Request = ???
+    *  request match {
+    *    case (Method.GET | Method.POST) -> Root / "123" => ???
+    *  }
+    * }}}
+    */
+  def unapply(method: Method): Option[Method] =
+    Some(method).filter(methods)
 }
 
 /**
- * Root extractor:
- * {{{
- *   Path("/") match {
- *     case Root => ...
- *   }
- * }}}
- */
+  * Root extractor:
+  * {{{
+  *   Path("/") match {
+  *     case Root => ...
+  *   }
+  * }}}
+  */
 case object Root extends Path {
   def toList: List[String] = Nil
-  def parent = this
-  def lastOption: Option[String] = None
+
+  def parent: Path = this
+
+  def lastOption: None.type = None
+
   override def toString = ""
-  def startsWith(other: Path) = other == Root
+
+  def startsWith(other: Path): Boolean = other == Root
 }
 
 /**
- * Path separator extractor:
- * {{{
- *   Path("/1/2/3/test.json") match {
- *     case "1" /: "2" /: _ =>  ...
- * }}}
- */
+  * Path separator extractor:
+  * {{{
+  *   Path("/1/2/3/test.json") match {
+  *     case "1" /: "2" /: _ =>  ...
+  * }}}
+  */
 object /: {
   def unapply(path: Path): Option[(String, Path)] =
     path.toList match {
@@ -157,57 +162,57 @@ object /: {
 
 // Base class for Integer and Long path variable extractors.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
-  def unapply(str: String): Option[A] = {
+  def unapply(str: String): Option[A] =
     if (!str.isEmpty)
       Try(cast(str)).toOption
     else
       None
-  }
 }
 
 /**
- * Integer extractor of a path variable:
- * {{{
- *   Path("/user/123") match {
- *      case Root / "user" / IntVar(userId) => ...
- * }}}
- */
+  * Integer extractor of a path variable:
+  * {{{
+  *   Path("/user/123") match {
+  *      case Root / "user" / IntVar(userId) => ...
+  * }}}
+  */
 object IntVar extends NumericPathVar(_.toInt)
 
 /**
- * Long extractor of a path variable:
- * {{{
- *   Path("/user/123") match {
- *      case Root / "user" / LongVar(userId) => ...
- * }}}
- */
+  * Long extractor of a path variable:
+  * {{{
+  *   Path("/user/123") match {
+  *      case Root / "user" / LongVar(userId) => ...
+  * }}}
+  */
 object LongVar extends NumericPathVar(_.toLong)
 
 /**
- * Multiple param extractor:
- * {{{
- *   object A extends QueryParamDecoderMatcher[String]("a")
- *   object B extends QueryParamDecoderMatcher[Int]("b")
- *   val service: HttpService = {
- *     case GET -> Root / "user" :? A(a) +& B(b) => ...
- * }}}
- */
+  * Multiple param extractor:
+  * {{{
+  *   object A extends QueryParamDecoderMatcher[String]("a")
+  *   object B extends QueryParamDecoderMatcher[Int]("b")
+  *   val service: HttpService = {
+  *     case GET -> Root / "user" :? A(a) +& B(b) => ...
+  * }}}
+  */
 object +& {
-  def unapply(params: Map[String, Seq[String]]) = Some((params, params))
+  def unapply(params: Map[String, Seq[String]]): Some[(Map[String, Seq[String]], Map[String, Seq[String]])] =
+    Some((params, params))
 }
 
 
 /**
- * param extractor using [[QueryParamDecoder]]:
- * {{{
- *   case class Foo(i: Int)
- *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
- *
- *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
- *   val service: HttpService = {
- *     case GET -> Root / "closest" :? FooMatcher(2) => ...
- * }}}
- */
+  * param extractor using [[QueryParamDecoder]]:
+  * {{{
+  *   case class Foo(i: Int)
+  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *
+  *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
+  *   val service: HttpService = {
+  *     case GET -> Root / "closest" :? FooMatcher(2) => ...
+  * }}}
+  */
 abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
     params.get(name).flatMap(values =>
@@ -234,7 +239,7 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   *   val service: HttpService = {
   *     case GET -> Root / "closest" :? FooMatcher(2) => ...
   * }}}
- */
+  */
 abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
   extends QueryParamDecoderMatcher[T](QueryParam[T].key.value)
 
@@ -269,18 +274,15 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] = {
     params.get(name) match {
-      case Some(values) => {
-        val parses: Seq[ValidatedNel[ParseFailure, T]] = values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
-        val parsed: ValidatedNel[ParseFailure, Seq[T]] = parses.foldLeft(Valid(Seq[T]()) : ValidatedNel[ParseFailure, Seq[T]])((
-          acc: ValidatedNel[ParseFailure, Seq[T]],
-          elem: ValidatedNel[ParseFailure, T]
-        ) => elem match {
-          case Valid(a) => acc.map(v => v :+ a)
-          case Invalid(f) => Invalid(f)
-        })
-
+      case Some(values) =>
+        val parses: Seq[ValidatedNel[ParseFailure, T]] =
+          values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+        val parsed: ValidatedNel[ParseFailure, Seq[T]] =
+          parses.foldLeft(Valid(Seq[T]()) : ValidatedNel[ParseFailure, Seq[T]]) {
+            case (acc, Valid(a)) => acc.map(_ :+ a)
+            case (_, Invalid(f)) => Invalid(f)
+          }
         Some(parsed.map(_.toList))
-      }
       case None => Some(Valid(Nil)) // absent
     }
   }
@@ -341,7 +343,7 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   * }}}
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidatedNel[ParseFailure, T]]] =
+  def unapply(params: Map[String, Seq[String]]): Some[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
       params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
         s => Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))

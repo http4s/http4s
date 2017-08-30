@@ -27,7 +27,7 @@ and some imports.
 import cats.effect._
 import cats.implicits._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 ```
 
 Then, we can create a middleware that adds a header to successful responses from

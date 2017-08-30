@@ -21,7 +21,7 @@ And we need some imports.
 ```tut:silent
 import cats.effect._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 ```
 
 Let's start by making a simple service that returns a (relatively) large string

@@ -18,7 +18,7 @@ Or in code, using `cats.effect.IO` as the effect type:
 ```tut:book
 import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
-import org.http4s.dsl._
+import org.http4s.dsl.io._
 import org.http4s.server._
 
 case class User(id: Long, name: String)
