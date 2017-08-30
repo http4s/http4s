@@ -22,11 +22,11 @@ class RetrySpec extends Http4sSpec with Tables {
 
   val defaultClient = Client.fromHttpService(route)
 
-  "Retry Client" should {
+  "default policy" should {
     def countRetries(client: Client, method: Method, status: Status, body: EntityBody): Int = {
       val max = 2
       var attemptsCounter = 1
-      val policy = (attempts: Int) => {
+      val policy = RetryPolicy { attempts: Int =>
         if (attempts >= max) None
         else {
           attemptsCounter = attemptsCounter + 1
