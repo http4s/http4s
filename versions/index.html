@@ -158,7 +158,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.17.0-RC2</td>
+        <td>0.17.0-RC3</td>
         <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -168,7 +168,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0a-RC2</td>
+        <td>0.16.0a-RC3</td>
         <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -178,7 +178,7 @@
         <td>1.8+</td>
       </tr>
       <tr>
-        <td>0.16.0-RC2</td>
+        <td>0.16.0-RC3</td>
         <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>
@@ -319,7 +319,28 @@
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-18-0-m1">v0.18.0-M1</h1>
+      <h1 id="v0-17-0-rc3-2017-08-29">v0.17.0-RC3 (2017-08-29)</h1>
+
+<ul>
+<li>In blaze-server, when doing chunked transfer encoding, flush the
+header as soon as it is available.  It previously buffered until the
+first chunk was available.</li>
+</ul>
+
+<h1 id="v0-16-0-rc3-2017-08-29">v0.16.0-RC3 (2017-08-29)</h1>
+
+<ul>
+<li>Add a <code>responseHeaderTimeout</code> property to <code>BlazeClientConfig</code>.  This
+measures the time between the completion of writing the request body
+to the reception of a complete response header.</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>async-http-client-2.0.35</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-0-m1-2107-08-24">v0.18.0-M1 (2107-08-24)</h1>
 
 <p>This release is the product of a long period of parallel development
 across different foundation libraries, making a detailed changelog
@@ -368,6 +389,27 @@ fine, too!</p>
 <code>ServiceSyntax.orNotFound: Service[Request, Response]</code></li>
 </ul>
 
+<h1 id="v0-16-0-rc2-2017-08-24">v0.16.0-RC2 (2017-08-24)</h1>
+
+<ul>
+<li>Move http4s-blaze-core from <code>org.http4s.blaze</code> to
+<code>org.http4s.blazecore</code> to avoid a conflict with the non-http4s
+blaze-core module.</li>
+<li>Change <code>ServiceOps</code> to operate on a <code>Service[?, MaybeResponse]</code>.
+Give it an <code>orNotFound</code> that returns a <code>Service</code>.  The
+<code>orNotFound(a: A)</code> overload is left for compatibility with Scala
+2.10.</li>
+<li>Build with Lightbend compiler instead of Typelevel compiler so we
+don&rsquo;t expose <code>org.typelevel</code> dependencies that are incompatible with
+ntheir counterparts in <code>org.scala-lang</code>.</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>blaze-0.12.7 (fixes eviction notice in http4s-websocket)</li>
+<li>twirl-1.3.4</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-17-0-rc1-2017-08-16">v0.17.0-RC1 (2017-08-16)</h1>
 
 <ul>
@@ -394,62 +436,6 @@ from a URL</li>
 <li>fs2-0.9.7</li>
 <li>metrics-core-3.2.4</li>
 <li>scodec-bits-1.1.5</li>
-</ul></li>
-</ul>
-
-<h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
-
-<ul>
-<li>Fix file corruption issue when serving static files from the classpath</li>
-</ul>
-
-<h1 id="v0-17-0-m2-2017-04-30">v0.17.0-M2 (2017-04-30)</h1>
-
-<ul>
-<li><code>Timeout</code> middleware takes an implicit <code>Scheduler</code> and
-<code>ExecutionContext</code></li>
-<li>Bring back <code>http4s-async-client</code>, based on <code>fs2-reactive-stream</code></li>
-<li>Restore support for WebSockets</li>
-</ul>
-
-<h1 id="v0-17-0-m1-2017-04-08">v0.17.0-M1 (2017-04-08)</h1>
-
-<ul>
-<li>First release on cats and fs2
-
-<ul>
-<li>All scalaz types and typeclasses replaced by cats equivalengts</li>
-<li><code>scalaz.concurrent.Task</code> replaced by <code>fs2.Task</code><br /></li>
-<li><code>scalaz.stream.Process</code> replaced by <code>fs2.Stream</code></li>
-</ul></li>
-<li>Roughly at feature parity with v0.16.0-M1. Notable exceptions:
-
-<ul>
-<li>Multipart not yet supported</li>
-<li>Web sockets not yet supported</li>
-<li>Client retry middleware can&rsquo;t check idempotence of requests</li>
-<li>Utilties in <code>org.http4s.util.io</code> not yet ported</li>
-</ul></li>
-</ul>
-
-<h1 id="v0-16-0-rc2-2017-08-24">v0.16.0-RC2 (2017-08-24)</h1>
-
-<ul>
-<li>Move http4s-blaze-core from <code>org.http4s.blaze</code> to
-<code>org.http4s.blazecore</code> to avoid a conflict with the non-http4s
-blaze-core module.</li>
-<li>Change <code>ServiceOps</code> to operate on a <code>Service[?, MaybeResponse]</code>.
-Give it an <code>orNotFound</code> that returns a <code>Service</code>.  The
-<code>orNotFound(a: A)</code> overload is left for compatibility with Scala
-2.10.</li>
-<li>Build with Lightbend compiler instead of Typelevel compiler so we
-don&rsquo;t expose <code>org.typelevel</code> dependencies that are incompatible with
-their counterparts in <code>org.scala-lang</code>.</li>
-<li>Upgraded dependencies:
-
-<ul>
-<li>blaze-0.12.7 (fixes eviction notice in http4s-websocket)</li>
-<li>twirl-1.3.4</li>
 </ul></li>
 </ul>
 
@@ -513,6 +499,34 @@ different authority.</li>
 </ul></li>
 </ul>
 
+<h1 id="v0-15-16-2017-07-20">v0.15.16 (2017-07-20)</h1>
+
+<ul>
+<li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
+</ul>
+
+<h1 id="v0-15-15-2017-07-20"><del>v0.15.15 (2017-07-20)</del></h1>
+
+<ul>
+<li>Oops. Same as v0.15.14.</li>
+</ul>
+
+<h1 id="v0-15-14-2017-07-10">v0.15.14 (2017-07-10)</h1>
+
+<ul>
+<li>Close parens in <code>Request.toString</code></li>
+<li>Use &ldquo;message&rdquo; instead of &ldquo;request&rdquo; in message body failure messages</li>
+<li>Add <code>problem+json</code> media type</li>
+<li>Tolerate <code>[</code> and <code>]</code> in queries parsing URIs. These characters are parsed, but
+percent-encoded.</li>
+</ul>
+
+<h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
+
+<ul>
+<li>Fix file corruption issue when serving static files from the classpath</li>
+</ul>
+
 <h1 id="v0-16-0-m3-2017-05-25">v0.16.0-M3 (2017-05-25)</h1>
 
 <ul>
@@ -539,6 +553,35 @@ definition of other arbitrary credential schemes.</li>
 threw a <code>MatchError</code>.</li>
 </ul>
 
+<h1 id="v0-15-13-2017-05-25">v0.15.13 (2017-05-25)</h1>
+
+<ul>
+<li>Patch-level upgrades to dependencies:
+
+<ul>
+<li>async-http-client-2.0.32</li>
+<li>blaze-0.12.6 (fixes infinite loop in some SSL handshakes)</li>
+<li>jetty-9.3.19.v20170502</li>
+<li>json4s-3.5.2</li>
+<li>tomcat-8.0.44</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-15-12-2017-05-11">v0.15.12 (2017-05-11)</h1>
+
+<ul>
+<li>Fix GZip middleware to render a correct stream</li>
+</ul>
+
+<h1 id="v0-17-0-m2-2017-04-30">v0.17.0-M2 (2017-04-30)</h1>
+
+<ul>
+<li><code>Timeout</code> middleware takes an implicit <code>Scheduler</code> and
+<code>ExecutionContext</code></li>
+<li>Bring back <code>http4s-async-client</code>, based on <code>fs2-reactive-stream</code></li>
+<li>Restore support for WebSockets</li>
+</ul>
+
 <h1 id="v0-16-0-m2-2017-04-30">v0.16.0-M2 (2017-04-30)</h1>
 
 <ul>
@@ -558,6 +601,64 @@ threw a <code>MatchError</code>.</li>
 <li>Adaptive EntityDecoder[Json] for circe: works directly from a ByteBuffer for
 small bodies, and incrementally through jawn for larger.</li>
 <li>Capture more context in detail message of parse errors</li>
+</ul>
+
+<h1 id="v0-15-11-2017-04-29">v0.15.11 (2017-04-29)</h1>
+
+<ul>
+<li>Upgrade to blaze-0.12.5 to pick up fix for <code>StackOverflowError</code> in
+SSL handshake</li>
+</ul>
+
+<h1 id="v0-15-10-2017-04-28">v0.15.10 (2017-04-28)</h1>
+
+<ul>
+<li>Patch-level upgrades to dependencies</li>
+<li>argonaut-6.2</li>
+<li>scalaz-7.2.12</li>
+<li>Allow preambles and epilogues in multipart bodies</li>
+<li>Limit multipart headers to 40 kilobytes to avoid unbounded buffering
+of long lines in a header</li>
+<li>Remove <code>' '</code> and <code>'?'</code> from alphabet for generated multipart
+boundaries, as these are not token characters and are known to cause
+trouble for some multipart implementations</li>
+<li>Fix multipart parsing for unlucky input chunk sizes</li>
+</ul>
+
+<h1 id="v0-15-9-2017-04-19">v0.15.9 (2017-04-19)</h1>
+
+<ul>
+<li>Terminate <code>ServerApp</code> even if the server fails to start</li>
+<li>Make <code>ResourceService</code> respect <code>If-Modified-Since</code></li>
+<li>Patch-level upgrades to dependencies:</li>
+<li>async-http-client-2.0.31</li>
+<li>jetty-9.3.18.v20170406</li>
+<li>json4s-3.5.1</li>
+<li>log4s-1.3.4</li>
+<li>metrics-core-3.1.4</li>
+<li>scalacheck-1.13.5</li>
+<li>scalaz-7.1.13 or scalaz-7.2.11</li>
+<li>tomcat-8.0.43</li>
+</ul>
+
+<h1 id="v0-17-0-m1-2017-04-08">v0.17.0-M1 (2017-04-08)</h1>
+
+<ul>
+<li>First release on cats and fs2
+
+<ul>
+<li>All scalaz types and typeclasses replaced by cats equivalengts</li>
+<li><code>scalaz.concurrent.Task</code> replaced by <code>fs2.Task</code><br /></li>
+<li><code>scalaz.stream.Process</code> replaced by <code>fs2.Stream</code></li>
+</ul></li>
+<li>Roughly at feature parity with v0.16.0-M1. Notable exceptions:
+
+<ul>
+<li>Multipart not yet supported</li>
+<li>Web sockets not yet supported</li>
+<li>Client retry middleware can&rsquo;t check idempotence of requests</li>
+<li>Utilties in <code>org.http4s.util.io</code> not yet ported</li>
+</ul></li>
 </ul>
 
 <h1 id="v0-16-0-m1-2017-04-08">v0.16.0-M1 (2017-04-08)</h1>
@@ -607,92 +708,6 @@ pre-flight checks of authenticated services.</li>
 <code>ProcessApp</code> is easier to compose all the resources a server needs via
 <code>Process.bracket</code>.</li>
 <li>Implement a <code>Referer</code> header.</li>
-</ul>
-
-<h1 id="v0-15-16-2017-07-20">v0.15.16 (2017-07-20)</h1>
-
-<ul>
-<li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
-</ul>
-
-<h1 id="v0-15-15-2017-07-20">v0.15.15 (2017-07-20)</h1>
-
-<ul>
-<li>Oops. Same as v0.15.14.</li>
-</ul>
-
-<h1 id="v0-15-14-2017-07-10">v0.15.14 (2017-07-10)</h1>
-
-<ul>
-<li>Close parens in <code>Request.toString</code></li>
-<li>Use &ldquo;message&rdquo; instead of &ldquo;request&rdquo; in message body failure messages</li>
-<li>Add <code>problem+json</code> media type</li>
-<li>Tolerate <code>[</code> and <code>]</code> in queries parsing URIs. These characters are parsed, but
-percent-encoded.</li>
-</ul>
-
-<h1 id="v0-15-13-2017-05-25">v0.15.13 (2017-05-25)</h1>
-
-<ul>
-<li>Patch-level upgrades to dependencies:
-
-<ul>
-<li>async-http-client-2.0.32</li>
-<li>blaze-0.12.6 (fixes infinite loop in some SSL handshakes)</li>
-<li>jetty-9.3.19.v20170502</li>
-<li>json4s-3.5.2</li>
-<li>tomcat-8.0.44</li>
-</ul></li>
-</ul>
-
-<h1 id="v0-15-12-2017-05-11">v0.15.12 (2017-05-11)</h1>
-
-<ul>
-<li>Fix GZip middleware to render a correct stream</li>
-</ul>
-
-<h1 id="v0-15-11-2017-04-29">v0.15.11 (2017-04-29)</h1>
-
-<ul>
-<li>Upgrade to blaze-0.12.5 to pick up fix for <code>StackOverflowError</code> in
-SSL handshake</li>
-</ul>
-
-<h1 id="v0-15-10-2017-04-28">v0.15.10 (2017-04-28)</h1>
-
-<ul>
-<li>Patch-level upgrades to dependencies
-
-<ul>
-<li>argonaut-6.2</li>
-<li>scalaz-7.2.12</li>
-</ul></li>
-<li>Allow preambles and epilogues in multipart bodies</li>
-<li>Limit multipart headers to 40 kilobytes to avoid unbounded buffering
-of long lines in a header</li>
-<li>Remove <code>' '</code> and <code>'?'</code> from alphabet for generated multipart
-boundaries, as these are not token characters and are known to cause
-trouble for some multipart implementations</li>
-<li>Fix multipart parsing for unlucky input chunk sizes</li>
-</ul>
-
-<h1 id="v0-15-9-2017-04-19">v0.15.9 (2017-04-19)</h1>
-
-<ul>
-<li>Terminate <code>ServerApp</code> even if the server fails to start</li>
-<li>Make <code>ResourceService</code> respect <code>If-Modified-Since</code></li>
-<li>Patch-level upgrades to dependencies:
-
-<ul>
-<li>async-http-client-2.0.31</li>
-<li>jetty-9.3.18.v20170406</li>
-<li>json4s-3.5.1</li>
-<li>log4s-1.3.4</li>
-<li>metrics-core-3.1.4</li>
-<li>scalacheck-1.13.5</li>
-<li>scalaz-7.1.13 or scalaz-7.2.11</li>
-<li>tomcat-8.0.43</li>
-</ul></li>
 </ul>
 
 <h1 id="v0-15-8-2017-04-06">v0.15.8 (2017-04-06)</h1>
@@ -769,6 +784,18 @@ server error.</li>
 <li>Add helpers to add cookies to requests</li>
 </ul>
 
+<h1 id="v0-12-6-2016-12-29">v0.12.6 (2016-12-29)</h1>
+
+<ul>
+<li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
+</ul>
+
+<h1 id="v0-12-5-2016-12-29"><del>v0.12.5 (2016-12-29)</del></h1>
+
+<ul>
+<li><del>Backport rendering of details in <code>ParseFailure.getMessage</code></del> Oops.</li>
+</ul>
+
 <h1 id="v0-15-1-2016-12-20">v0.15.1 (2016-12-20)</h1>
 
 <ul>
@@ -843,7 +870,8 @@ just a String username.</li>
 <h1 id="v0-14-7-2016-09-25">v0.14.7 (2016-09-25)</h1>
 
 <ul>
-<li>Retry middleware now only retries requests with idempotent methods and pure bodies and appropriate status codes</li>
+<li>Retry middleware now only retries requests with idempotent methods
+and pure bodies and appropriate status codes</li>
 <li>Fix bug where redirects followed when an effectful chunk (i.e., <code>Await</code>) follows pure ones.</li>
 <li>Don&rsquo;t uppercase two hex digits after &ldquo;%25&rdquo; when percent encoding.</li>
 <li>Tolerate invalid percent-encodings when decoding.</li>
@@ -964,18 +992,6 @@ throws an exception. Fixes a resource leak.</li>
 <li>Fix Argonaut string interpolation</li>
 </ul>
 
-<h1 id="v0-12-6-2016-12-29">v0.12.6 (2016-12-29)</h1>
-
-<ul>
-<li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
-</ul>
-
-<h1 id="v0-12-5-2016-12-29">v0.12.5 (2016-12-29)</h1>
-
-<ul>
-<li><del>Backport rendering of details in <code>ParseFailure.getMessage</code></del> Oops.</li>
-</ul>
-
 <h1 id="v0-12-4-2016-03-10">v0.12.4 (2016-03-10)</h1>
 
 <ul>
@@ -1007,7 +1023,8 @@ throws an exception. Fixes a resource leak.</li>
 
 <ul>
 <li>Refactor the client API for resource safety when not reading the entire body.</li>
-<li>Rewrite client connection pool to support  maximum concurrent connections instead of maximum idle connections.</li>
+<li>Rewrite client connection pool to support maximum concurrent
+connections instead of maximum idle connections.</li>
 <li>Optimize body collection for better connection keep-alive rate.</li>
 <li>Move <code>Service</code> and <code>HttpService</code>, because a <code>Client</code> can be viewed as a <code>Service</code>.</li>
 <li>Remove custom <code>DateTime</code> in favor of <code>java.time.Instant</code>.</li>
@@ -1098,6 +1115,13 @@ throws an exception. Fixes a resource leak.</li>
 <li>Preserve original headers when appending as opposed to quoting.</li>
 </ul>
 
+<h1 id="v0-8-5-2015-08-26">v0.8.5 (2015-08-26)</h1>
+
+<ul>
+<li>Preserve original headers when appending as opposed to quoting.</li>
+<li>Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh</li>
+</ul>
+
 <h1 id="v0-9-1-2015-08-19">v0.9.1 (2015-08-19)</h1>
 
 <ul>
@@ -1120,13 +1144,6 @@ throws an exception. Fixes a resource leak.</li>
 <li>Don&rsquo;t extend <code>AllInstances</code> with <code>Http4s</code> omnibus import object.</li>
 <li>Use UTF-8 as the default encoding for text bodies.</li>
 <li>Numerous bug fixes by numerous contributors!</li>
-</ul>
-
-<h1 id="v0-8-5-2015-08-26">v0.8.5 (2015-08-26)</h1>
-
-<ul>
-<li>Preserve original headers when appending as opposed to quoting.</li>
-<li>Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh</li>
 </ul>
 
 <h1 id="v0-8-4-2015-07-13">v0.8.4 (2015-07-13)</h1>
@@ -1374,8 +1391,8 @@ throws an exception. Fixes a resource leak.</li>
 <h1 id="v0-4-0-2014-11-18">v0.4.0 (2014-11-18)</h1>
 
 <ul>
-<li>Change HttpService form a <code>PartialFunction[Request,Task[Response]]</code> to <code>Service[Request, Response]</code>,
-a type that encapsulates a <code>Request =&gt; Task[Option[Response]]</code></li>
+<li>Change HttpService form a <code>PartialFunction[Request,Task[Response]]</code>
+to <code>Service[Request, Response]</code>, a type that encapsulates a <code>Request =&gt; Task[Option[Response]]</code></li>
 <li>Upgrade to scalaz-stream-0.6a</li>
 <li>Upgrade to blaze-0.3.0</li>
 <li>Drop scala-logging for log4s</li>

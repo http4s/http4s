@@ -125,24 +125,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
-    </li><li name="org.http4s.blazecore.util" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="util"></a><a id="util:util"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/blazecore/index.html#util" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="util/index.html">
-              <span class="name">util</span>
-            </a>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s.blazecore">blazecore</a></dd></dl></div>
     </li><li name="org.http4s.blazecore.websocket" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="websocket"></a><a id="websocket:websocket"></a>
       <span class="permalink">
@@ -197,7 +179,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Utility bits for dealing with the HTTP 1.x protocol</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.blazecore.Http1Stage">Http1Stage</a>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>] with <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/13b721ced3c85d741bd0877b4cdef9688d058516/blaze-core/src/main/scala/org/http4s/blazecore/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Utility bits for dealing with the HTTP 1.x protocol</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.blazecore.Http1Stage">Http1Stage</a>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>] with <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ac541db06e1954b369bd7e7651de357172a5a6d9/blaze-core/src/main/scala/org/http4s/blazecore/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -700,9 +682,9 @@ The method logs an error and shuts down the stage, sending the error outbound</p
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.blazecore.Http1Stage#getEncoder" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getEncoder(connectionHeader:Option[org.http4s.headers.Connection],bodyEncoding:Option[org.http4s.headers.Transfer-Encoding],lengthHeader:Option[org.http4s.headers.Content-Length],trailer:F[org.http4s.Headers],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.EntityBodyWriter[F]"></a><a id="getEncoder(Option[Connection],Option[Transfer-Encoding],Option[Content-Length],F[Headers],StringWriter,Int,Boolean):EntityBodyWriter[F]"></a>
+      <a id="getEncoder(connectionHeader:Option[org.http4s.headers.Connection],bodyEncoding:Option[org.http4s.headers.Transfer-Encoding],lengthHeader:Option[org.http4s.headers.Content-Length],trailer:F[org.http4s.Headers],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.Http1Writer[F]"></a><a id="getEncoder(Option[Connection],Option[Transfer-Encoding],Option[Content-Length],F[Headers],StringWriter,Int,Boolean):Http1Writer[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/blazecore/Http1Stage.html#getEncoder(connectionHeader:Option[org.http4s.headers.Connection],bodyEncoding:Option[org.http4s.headers.Transfer-Encoding],lengthHeader:Option[org.http4s.headers.Content-Length],trailer:F[org.http4s.Headers],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.EntityBodyWriter[F]" title="Permalink">
+      <a href="../../../org/http4s/blazecore/Http1Stage.html#getEncoder(connectionHeader:Option[org.http4s.headers.Connection],bodyEncoding:Option[org.http4s.headers.Transfer-Encoding],lengthHeader:Option[org.http4s.headers.Content-Length],trailer:F[org.http4s.Headers],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.Http1Writer[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -711,16 +693,16 @@ The method logs an error and shuts down the stage, sending the error outbound</p
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getEncoder</span><span class="params">(<span name="connectionHeader">connectionHeader: <span class="extype" name="scala.Option">Option</span>[<a href="../headers/Connection.html" class="extype" name="org.http4s.headers.Connection">Connection</a>]</span>, <span name="bodyEncoding">bodyEncoding: <span class="extype" name="scala.Option">Option</span>[<a href="../headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>]</span>, <span name="lengthHeader">lengthHeader: <span class="extype" name="scala.Option">Option</span>[<a href="../headers/Content$minusLength.html" class="extype" name="org.http4s.headers.Content-Length">Content-Length</a>]</span>, <span name="trailer">trailer: <span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>, <span name="rr">rr: <a href="../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="minor">minor: <span class="extype" name="scala.Int">Int</span></span>, <span name="closeOnFinish">closeOnFinish: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="util/EntityBodyWriter.html" class="extype" name="org.http4s.blazecore.util.EntityBodyWriter">EntityBodyWriter</a>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>]</span>
+        <span class="name">getEncoder</span><span class="params">(<span name="connectionHeader">connectionHeader: <span class="extype" name="scala.Option">Option</span>[<a href="../headers/Connection.html" class="extype" name="org.http4s.headers.Connection">Connection</a>]</span>, <span name="bodyEncoding">bodyEncoding: <span class="extype" name="scala.Option">Option</span>[<a href="../headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>]</span>, <span name="lengthHeader">lengthHeader: <span class="extype" name="scala.Option">Option</span>[<a href="../headers/Content$minusLength.html" class="extype" name="org.http4s.headers.Content-Length">Content-Length</a>]</span>, <span name="trailer">trailer: <span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>, <span name="rr">rr: <a href="../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="minor">minor: <span class="extype" name="scala.Int">Int</span></span>, <span name="closeOnFinish">closeOnFinish: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.blazecore.util.Http1Writer">Http1Writer</span>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Get the proper body encoder based on the message headers,
 adding the appropriate Connection and Transfer-Encoding headers along the way</p><div class="fullcomment"><div class="comment cmt"><p>Get the proper body encoder based on the message headers,
 adding the appropriate Connection and Transfer-Encoding headers along the way</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.blazecore.Http1Stage#getEncoder" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getEncoder(msg:org.http4s.Message[F],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.EntityBodyWriter[F]"></a><a id="getEncoder(Message[F],StringWriter,Int,Boolean):EntityBodyWriter[F]"></a>
+      <a id="getEncoder(msg:org.http4s.Message[F],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.Http1Writer[F]"></a><a id="getEncoder(Message[F],StringWriter,Int,Boolean):Http1Writer[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/blazecore/Http1Stage.html#getEncoder(msg:org.http4s.Message[F],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.EntityBodyWriter[F]" title="Permalink">
+      <a href="../../../org/http4s/blazecore/Http1Stage.html#getEncoder(msg:org.http4s.Message[F],rr:org.http4s.util.StringWriter,minor:Int,closeOnFinish:Boolean):org.http4s.blazecore.util.Http1Writer[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -729,7 +711,7 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getEncoder</span><span class="params">(<span name="msg">msg: <a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>]</span>, <span name="rr">rr: <a href="../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="minor">minor: <span class="extype" name="scala.Int">Int</span></span>, <span name="closeOnFinish">closeOnFinish: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="util/EntityBodyWriter.html" class="extype" name="org.http4s.blazecore.util.EntityBodyWriter">EntityBodyWriter</a>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>]</span>
+        <span class="name">getEncoder</span><span class="params">(<span name="msg">msg: <a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>]</span>, <span name="rr">rr: <a href="../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="minor">minor: <span class="extype" name="scala.Int">Int</span></span>, <span name="closeOnFinish">closeOnFinish: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.blazecore.util.Http1Writer">Http1Writer</span>[<span class="extype" name="org.http4s.blazecore.Http1Stage.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Get the proper body encoder based on the message headers</p><div class="fullcomment"><div class="comment cmt"><p>Get the proper body encoder based on the message headers</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
