@@ -19,15 +19,15 @@ object Retry {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
         case \/-(dr) =>
-          policy(req, Right(dr.response), attempts) match {
+          policy(req, \/-(dr.response), attempts) match {
             case Some(duration) =>
               logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${dr.response.status}. Retrying after ${duration}.")
               dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
             case None =>
               Task.now(dr)
           }
-        case -\/(e) =>
-          policy(req, Left(e), attempts) match {
+        case left @ -\/(e) =>
+          policy(req, left, attempts) match {
             case Some(duration) =>
               logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
               nextAttempt(req, attempts, duration)
@@ -60,7 +60,7 @@ object RetryPolicy {
     */
   def apply(
     backoff: Int => Option[FiniteDuration],
-    retriable: (Request, Either[Throwable, Response]) => Boolean = defaultRetriable
+    retriable: (Request, Throwable \/ Response) => Boolean = defaultRetriable
   ): RetryPolicy = { (req, result, retries) =>
     if (retriable(req, result)) backoff(retries)
     else None
@@ -77,11 +77,11 @@ object RetryPolicy {
   )
 
   /** Default logic for whether a request is retriable. */
-  def defaultRetriable(req: Request, result: Either[Throwable, Response]): Boolean = {
+  def defaultRetriable(req: Request, result: Throwable \/ Response): Boolean = {
     if (req.isIdempotent)
       result match {
-        case Left(_) => true
-        case Right(resp) => RetriableStatuses(resp.status)
+        case -\/(_) => true
+        case \/-(resp) => RetriableStatuses(resp.status)
       }
     else
       false
