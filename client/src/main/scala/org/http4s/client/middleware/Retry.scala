@@ -15,41 +15,25 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  private[this] val RetriableStatuses = Set(
-    RequestTimeout,
-    // TODO Leaving PayloadTooLarge out until we model Retry-After
-    InternalServerError,
-    ServiceUnavailable,
-    BadGateway,
-    GatewayTimeout
-  )
-
-  def apply(backoff: Int => Option[FiniteDuration])(client: Client): Client = {
+  def apply(policy: RetryPolicy)(client: Client): Client = {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
-        case \/-(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if req.isIdempotent && RetriableStatuses(status) =>
-          backoff(attempts) match {
+        case \/-(dr) =>
+          policy(req, \/-(dr.response), attempts) match {
             case Some(duration) =>
-              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Retrying after ${duration}.")
+              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${dr.response.status}. Retrying after ${duration}.")
               dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
             case None =>
-              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Giving up.")
               Task.now(dr)
           }
-        case \/-(dr) =>
-          Task.now(dr)
-        case -\/(e) if req.isIdempotent =>
-          backoff(attempts) match {
+        case left @ -\/(e) =>
+          policy(req, left, attempts) match {
             case Some(duration) =>
               logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
               nextAttempt(req, attempts, duration)
             case None =>
-              // info instead of error(e), because e is not discarded
-              logger.info(s"Request ${req} threw an exception on attempt #${attempts} attempts. Giving up.")
               Task.fail(e)
           }
-        case -\/(e) =>
-          Task.fail(e)
       }
     }
 
@@ -61,8 +45,47 @@ object Retry {
   }
 }
 
-
 object RetryPolicy {
+  /** Decomposes a retry policy into components that are typically configured
+    * individually.
+    * 
+    * @param backoff a function of attempts to an optional
+    * FiniteDuration.  Return None to stop retrying, or some
+    * duration after which the request will be retried.  See
+    * `exponentialBackoff` for a useful implementation.
+    * 
+    * @param retriable determines whether the request is retriable
+    * from the request and either the throwable or response that was
+    * returned.  Defaults to `defaultRetriable`.
+    */
+  def apply(
+    backoff: Int => Option[FiniteDuration],
+    retriable: (Request, Throwable \/ Response) => Boolean = defaultRetriable
+  ): RetryPolicy = { (req, result, retries) =>
+    if (retriable(req, result)) backoff(retries)
+    else None
+  }
+
+  /** Statuses that are retriable, per HTTP spec */
+  val RetriableStatuses = Set(
+    RequestTimeout,
+    // TODO Leaving PayloadTooLarge out until we model Retry-After
+    InternalServerError,
+    ServiceUnavailable,
+    BadGateway,
+    GatewayTimeout
+  )
+
+  /** Default logic for whether a request is retriable. */
+  def defaultRetriable(req: Request, result: Throwable \/ Response): Boolean = {
+    if (req.isIdempotent)
+      result match {
+        case -\/(_) => true
+        case \/-(resp) => RetriableStatuses(resp.status)
+      }
+    else
+      false
+  }
 
   def exponentialBackoff(maxWait: Duration, maxRetry: Int): Int => Option[FiniteDuration] = {
     val maxInMillis = maxWait.toMillis
