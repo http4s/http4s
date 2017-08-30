@@ -15,8 +15,6 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  type Policy = (Request, Either[Throwable, Response], Int) => Option[FiniteDuration]
-
   def apply(policy: RetryPolicy)(client: Client): Client = {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
