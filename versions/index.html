@@ -333,6 +333,10 @@ requests regardless of method, use
 <code>RetryPolicy.recklesslyRetriable</code>.</li>
 <li>Fix <code>Logger</code> middleware to render JSON bodies as text, not as a hex
 dump.</li>
+<li><code>MultipartParser.parse</code> returns a stream of <code>ByteVector</code> instead of
+a stream of <code>Byte</code>. This perserves chunking when parsing into the
+high-level <code>EntityDecoder[Multipart]</code>, and substantially improves
+performance on large files.  The high-level API is not affected.</li>
 </ul>
 
 <h1 id="v0-16-0-snapshot">v0.16.0-SNAPSHOT</h1>
@@ -342,6 +346,7 @@ dump.</li>
 strategy.  A <code>RetryPolicy</code> is a function of the request, the
 response, and the number of attempts.  Wrap the previous <code>backoff</code>
 in <code>RetryPolicy {}</code> for compatible behavior.</li>
+<li>Expose a <code>Part.fileData</code> constructor that accepts an <code>EntityBody</code>.</li>
 </ul>
 
 <h1 id="v0-17-0-rc3-2017-08-29">v0.17.0-RC3 (2017-08-29)</h1>

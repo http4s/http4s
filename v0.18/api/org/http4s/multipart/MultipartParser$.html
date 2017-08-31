@@ -184,7 +184,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart].</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4e726f2736e4ad6cbb28e2f579f38ae782114b35/core/src/main/scala/org/http4s/multipart/MultipartParser.scala" target="_blank">MultipartParser.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart].</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/41db115bd37ef505570d135ff93deff001f2d930/core/src/main/scala/org/http4s/multipart/MultipartParser.scala" target="_blank">MultipartParser.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -534,9 +534,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.multipart.MultipartParser#parse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parse[F[_]](boundary:org.http4s.multipart.Boundary,headerLimit:Long)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,Byte]]"></a><a id="parse[F[_]](Boundary,Long)(Sync[F]):Pipe[F,Byte,Either[Headers,Byte]]"></a>
+      <a id="parse[F[_]](boundary:org.http4s.multipart.Boundary,headerLimit:Long)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]"></a><a id="parse[F[_]](Boundary,Long)(Sync[F]):Pipe[F,Byte,Either[Headers,ByteVector]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#parse[F[_]](boundary:org.http4s.multipart.Boundary,headerLimit:Long)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,Byte]]" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#parse[F[_]](boundary:org.http4s.multipart.Boundary,headerLimit:Long)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -545,11 +545,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">parse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>, <span name="headerLimit">headerLimit: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">40 * 1024</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>, <span class="extype" name="scala.Byte">Byte</span>, <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="scala.Byte">Byte</span>]]</span>
+        <span class="name">parse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>, <span name="headerLimit">headerLimit: <span class="extype" name="scala.Long">Long</span> = <span class="symbol">40 * 1024</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>, <span class="extype" name="scala.Byte">Byte</span>, <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]]</span>
       </span>
       
       
-    </li><li name="org.http4s.multipart.MultipartParser#parseToParts" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.multipart.MultipartParser#parseToParts" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="parseToParts[F[_]](byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(implicitF:cats.effect.Sync[F]):F[scodec.bits.ByteVector]"></a><a id="parseToParts[F[_]](ByteVector)(Boundary)(Sync[F]):F[ByteVector]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/multipart/MultipartParser$.html#parseToParts[F[_]](byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(implicitF:cats.effect.Sync[F]):F[scodec.bits.ByteVector]" title="Permalink">
@@ -564,7 +564,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="name">parseToParts</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="byteVector">byteVector: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToParts.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.multipart.MultipartParser.parseToParts.F">F</span>[<span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">parseToParts - Removes Prelude and Trailer</p><div class="fullcomment"><div class="comment cmt"><p>parseToParts - Removes Prelude and Trailer</p><p>splitParts - Splits Into Parts
+splitPart - Takes a Single Part of the Front
+generatePart - Generates a tuple of Headers and a ByteVector of the Body, effectively a Part</p><p>generateHeaders - Generate Headers from ByteVector
+splitHeader - Splits a Header into the Name and Value
+</p></div></div>
     </li><li name="org.http4s.multipart.MultipartParser#splitHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="splitHeader(byteVector:scodec.bits.ByteVector):Option[(scodec.bits.ByteVector,scodec.bits.ByteVector)]"></a><a id="splitHeader(ByteVector):Option[(ByteVector,ByteVector)]"></a>
       <span class="permalink">
@@ -648,26 +652,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.multipart.MultipartParser#transformBV" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="transformBV[F[_]]:fs2.Pipe[F,Either[org.http4s.Headers,scodec.bits.ByteVector],Either[org.http4s.Headers,Byte]]"></a><a id="transformBV[F[_]]:Pipe[F,Either[Headers,ByteVector],Either[Headers,Byte]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#transformBV[F[_]]:fs2.Pipe[F,Either[org.http4s.Headers,scodec.bits.ByteVector],Either[org.http4s.Headers,Byte]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">transformBV</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.transformBV.F">F</span>, <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="scodec.bits.ByteVector">ByteVector</span>], <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="scala.Byte">Byte</span>]]</span>
-      </span>
-      
-      <p class="shortcomment cmt">parseToParts - Removes Prelude and Trailer</p><div class="fullcomment"><div class="comment cmt"><p>parseToParts - Removes Prelude and Trailer</p><p>splitParts - Splits Into Parts
-splitPart - Takes a Single Part of the Front
-generatePart - Generates a tuple of Headers and a ByteVector of the Body, effectively a Part</p><p>generateHeaders - Generate Headers from ByteVector
-splitHeader - Splits a Header into the Name and Value
-</p></div></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
