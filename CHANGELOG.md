@@ -1,3 +1,10 @@
+# v0.16.0-SNAPSHOT
+* `Retry` middleware takes a `RetryPolicy` instead of a backoff
+  strategy.  A `RetryPolicy` is a function of the request, the
+  response, and the number of attempts.  Wrap the previous `backoff`
+  in `RetryPolicy {}` for compatible behavior.
+* Expose a `Part.fileData` constructor that accepts an `EntityBody`.
+
 # v0.16.0-RC3 (2017-08-29)
 * Add a `responseHeaderTimeout` property to `BlazeClientConfig`.  This
 measures the time between the completion of writing the request body
