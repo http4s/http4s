@@ -4,6 +4,7 @@ package multipart
 import cats.effect._
 import cats.implicits._
 import fs2._
+import fs2.interop.scodec.ByteVectorChunk
 import scodec.bits.ByteVector
 
 import scala.annotation.tailrec
@@ -22,16 +23,14 @@ object MultipartParser {
 
   final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse[F[_]: Sync](boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[F, Byte, Either[Headers, Byte]] = s => {
+  def parse[F[_]: Sync](boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[F, Byte, Either[Headers, ByteVector]] = s => {
     val bufferedMultipartT = s.runLog.map(vec => ByteVector(vec))
     val parts = bufferedMultipartT.flatMap(parseToParts(_)(boundary))
     val listT = parts.map(splitParts(_)(boundary)(List.empty[Either[Headers, ByteVector]]))
 
     Stream.eval(listT)
       .flatMap(list => Stream.emits(list))
-      .through(transformBV)
   }
-
 
   /**
     * parseToParts - Removes Prelude and Trailer
@@ -43,12 +42,6 @@ object MultipartParser {
     * generateHeaders - Generate Headers from ByteVector
     * splitHeader - Splits a Header into the Name and Value
     */
-
-  def transformBV[F[_]]: Pipe[F, Either[Headers, ByteVector], Either[Headers, Byte]] =
-    _.flatMap {
-      case Left(headers) => Stream.emit(Either.left(headers))
-      case Right(bv) => Stream.emits(bv.toSeq).map(Either.right(_))
-    }
 
   def parseToParts[F[_]](byteVector: ByteVector)(boundary: Boundary)(implicit F: Sync[F]): F[ByteVector] = {
     val startLine = startLineBytes(boundary)

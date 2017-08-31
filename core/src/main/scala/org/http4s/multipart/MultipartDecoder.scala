@@ -5,6 +5,10 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 
+import fs2.interop.scodec.ByteVectorChunk
+import org.log4s.getLogger
+import scodec.bits.ByteVector
+
 private[http4s] object MultipartDecoder {
 
   def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
@@ -28,9 +32,9 @@ private[http4s] object MultipartDecoder {
       }
     }
 
-  def gatherParts[F[_]]: Pipe[F, Either[Headers, Byte], Part[F]] = s => {
+  def gatherParts[F[_]]: Pipe[F, Either[Headers, ByteVector], Part[F]] = s => {
     def go(part: Part[F], lastWasLeft: Boolean)
-          (s: Stream[F, Either[Headers, Byte]]): Pull[F, Part[F], Option[Either[Headers, Byte]]] =
+          (s: Stream[F, Either[Headers, ByteVector]]): Pull[F, Part[F], Option[Either[Headers, ByteVector]]] =
       s.pull.uncons1.flatMap {
         case Some((Left(headers), s)) =>
           if (lastWasLeft) {
@@ -38,8 +42,8 @@ private[http4s] object MultipartDecoder {
           } else {
             Pull.output1(part) >> go(Part(headers, EmptyBody), lastWasLeft = true)(s)
           }
-        case Some((Right(byte), s)) =>
-          go(part.copy(body = part.body.append(Stream.emit(byte))), lastWasLeft = false)(s)
+        case Some((Right(bv), s)) =>
+          go(part.copy(body = part.body.append(Stream.chunk(ByteVectorChunk(bv)))), lastWasLeft = false)(s)
         case None =>
           Pull.output1(part) >> Pull.pure(None)
       }
