@@ -112,7 +112,7 @@ import org.http4s.dsl._
 
 // fs2's `time` module needs an implicit `Scheduler`
 implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
-// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@3d2f572a[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
+// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@4210a4b6[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
 
 // fs2 `Async` needs an implicit `Strategy`
 implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
@@ -126,7 +126,7 @@ val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$3339/2003081408@44fe4875)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$3341/1437818787@262e24c2)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
