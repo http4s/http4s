@@ -21,11 +21,10 @@ class RetrySpec extends Http4sSpec with Tables {
 
   val defaultClient: Client[IO] = Client.fromHttpService(route)
 
-  "Retry Client" should {
-    def countRetries(client: Client[IO], method: Method, status: Status, body: EntityBody[IO]): Int = {
+  def countRetries(client: Client[IO], method: Method, status: Status, body: EntityBody[IO]): Int = {
       val max = 2
       var attemptsCounter = 1
-      val policy = (attempts: Int) => {
+      val policy = RetryPolicy[IO] { attempts: Int =>
         if (attempts >= max) None
         else {
           attemptsCounter = attemptsCounter + 1
@@ -38,6 +37,7 @@ class RetrySpec extends Http4sSpec with Tables {
       attemptsCounter
     }
 
+  "defaultRetriable" should {
     "retry GET based on status code" in {
       "status"                | "retries" |>
       Ok                      ! 1         |
@@ -52,15 +52,15 @@ class RetrySpec extends Http4sSpec with Tables {
       GatewayTimeout          ! 2         |
       HttpVersionNotSupported ! 1         |
       { countRetries(defaultClient, GET, _, EmptyBody) must_== _ }
-    }.pendingUntilFixed
+    }
 
-    "not retry POSTs" in prop { s: Status =>
+    "not retry non-idempotent methods" in prop { s: Status =>
       countRetries(defaultClient, POST, s, EmptyBody) must_== 1
-    }.pendingUntilFixed
+    }
 
     "not retry effectful bodies" in prop { s: Status =>
       countRetries(defaultClient, PUT, s, Stream.eval_(IO.unit)) must_== 1
-    }.pendingUntilFixed
+    }
 
     "retry exceptions" in {
       val failClient = Client[IO](Service.const(IO.raiseError(new Exception("boom"))), IO.unit)
