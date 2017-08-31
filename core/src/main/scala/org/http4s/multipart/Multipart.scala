@@ -38,12 +38,18 @@ object Part {
   def fileData(name: String, resource: URL, headers: Header*): Part =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers:_*)
 
-  private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part = {
+  def fileData(name: String, filename: String, entityBody: EntityBody, headers: Header*): Part =
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
-           Header("Content-Transfer-Encoding", "binary") +:
-           headers,
-         constant(ChunkSize).toSource through chunkR(in))
-   }
+      Header("Content-Transfer-Encoding", "binary") +:
+      headers,
+      entityBody)
+
+  // The InputStream is passed by name, and we open it in the by-name
+  // argument in callers, so we can avoid lifting into a Task.  Exposing
+  // this API publicly would invite unsafe use, and the `EntityBody` version
+  // should be safe.
+  private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part =
+    fileData(name, filename, constant(ChunkSize).toSource through chunkR(in), headers: _*)
 }
 
 final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.create) {
