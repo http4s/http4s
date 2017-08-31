@@ -21,37 +21,45 @@ class RetrySpec extends Http4sSpec with Tables {
 
   val defaultClient: Client[IO] = Client.fromHttpService(route)
 
-  def countRetries(client: Client[IO], method: Method, status: Status, body: EntityBody[IO]): Int = {
-      val max = 2
-      var attemptsCounter = 1
-      val policy = RetryPolicy[IO] { attempts: Int =>
-        if (attempts >= max) None
-        else {
-          attemptsCounter = attemptsCounter + 1
-          Some(10.milliseconds)
-        }
+  def countRetries(
+      client: Client[IO],
+      method: Method,
+      status: Status,
+      body: EntityBody[IO]): Int = {
+    val max = 2
+    var attemptsCounter = 1
+    val policy = RetryPolicy[IO] { attempts: Int =>
+      if (attempts >= max) None
+      else {
+        attemptsCounter = attemptsCounter + 1
+        Some(10.milliseconds)
       }
-      val retryClient = Retry[IO](policy)(client)
-      val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withBody(body)
-      val resp = retryClient.fetch(req) { _ => IO.unit }.attempt.unsafeRunSync()
-      attemptsCounter
     }
+    val retryClient = Retry[IO](policy)(client)
+    val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withBody(body)
+    val resp = retryClient
+      .fetch(req) { _ =>
+        IO.unit
+      }
+      .attempt
+      .unsafeRunSync()
+    attemptsCounter
+  }
 
   "defaultRetriable" should {
     "retry GET based on status code" in {
-      "status"                | "retries" |>
-      Ok                      ! 1         |
-      Found                   ! 1         |
-      BadRequest              ! 1         |
-      NotFound                ! 1         |
-      RequestTimeout          ! 2         |
-      InternalServerError     ! 2         |
-      NotImplemented          ! 1         |
-      BadGateway              ! 2         |
-      ServiceUnavailable      ! 2         |
-      GatewayTimeout          ! 2         |
-      HttpVersionNotSupported ! 1         |
-      { countRetries(defaultClient, GET, _, EmptyBody) must_== _ }
+      "status" | "retries" |>
+        Ok ! 1 |
+        Found ! 1 |
+        BadRequest ! 1 |
+        NotFound ! 1 |
+        RequestTimeout ! 2 |
+        InternalServerError ! 2 |
+        NotImplemented ! 1 |
+        BadGateway ! 2 |
+        ServiceUnavailable ! 2 |
+        GatewayTimeout ! 2 |
+        HttpVersionNotSupported ! 1 | { countRetries(defaultClient, GET, _, EmptyBody) must_== _ }
     }
 
     "not retry non-idempotent methods" in prop { s: Status =>

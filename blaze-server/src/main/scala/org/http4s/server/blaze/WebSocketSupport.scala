@@ -20,15 +20,16 @@ import scala.util.{Failure, Success}
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
   protected implicit def F: Effect[F]
 
-  override protected def renderResponse(req: Request[F],
-                                        maybeResponse: MaybeResponse[F],
-                                        cleanup: () => Future[ByteBuffer]): Unit = {
+  override protected def renderResponse(
+      req: Request[F],
+      maybeResponse: MaybeResponse[F],
+      cleanup: () => Future[ByteBuffer]): Unit = {
     val resp = maybeResponse.orNotFound
     val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey[F])
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     if (ws.isDefined) {
-      val hdrs =  req.headers.map(h=>(h.name.toString,h.value))
+      val hdrs = req.headers.map(h => (h.name.toString, h.value))
       if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
         WebsocketHandshake.serverHandshake(hdrs) match {
           case Left((code, msg)) =>
@@ -36,10 +37,11 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
             async.unsafeRunAsync {
               Response[F](Status.BadRequest)
                 .withBody(msg)
-                .map(_.replaceAllHeaders(
-                  Connection("close".ci),
-                  Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
-                ))
+                .map(
+                  _.replaceAllHeaders(
+                    Connection("close".ci),
+                    Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
+                  ))
             } {
               case Right(resp) =>
                 IO(super.renderResponse(req, resp, cleanup))
@@ -47,10 +49,12 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 IO.unit
             }
 
-          case Right(hdrs) =>  // Successful handshake
+          case Right(hdrs) => // Successful handshake
             val sb = new StringBuilder
             sb.append("HTTP/1.1 101 Switching Protocols\r\n")
-            hdrs.foreach { case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n') }
+            hdrs.foreach {
+              case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
+            }
             sb.append('\r').append('\n')
 
             // write the accept headers and reform the pipeline
@@ -59,8 +63,8 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 logger.debug("Switching pipeline segments for websocket")
 
                 val segment = LeafBuilder(new Http4sWSStage[F](ws.get))
-                              .prepend(new WSFrameAggregator)
-                              .prepend(new WebSocketDecoder(false))
+                  .prepend(new WSFrameAggregator)
+                  .prepend(new WebSocketDecoder(false))
 
                 this.replaceInline(segment)
 

@@ -13,4 +13,3 @@ object RequestKey {
     RequestKey(uri.scheme.getOrElse("http".ci), uri.authority.getOrElse(Authority()))
   }
 }
-

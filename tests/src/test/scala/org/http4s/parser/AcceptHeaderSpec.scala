@@ -8,11 +8,9 @@ import org.specs2.mutable.Specification
 
 class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] with Http4s {
 
-
   def hparse(value: String): ParseResult[Accept] = HttpHeaderParser.ACCEPT(value)
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
-
 
   "Accept-Header parser" should {
 
@@ -53,12 +51,11 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
       val accept2 = Accept(`audio/*`.withQValue(q(0.2)), `video/*`)
       parse(accept2.value) must be_===(accept2)
 
-
       // Go through all of them
       {
         val samples = MediaRange.snapshot.values.map(MediaRangeAndQValue(_))
         foreach(samples.sliding(4).toArray) { sample =>
-          val h = Accept(sample.head, sample.tail.toSeq:_*)
+          val h = Accept(sample.head, sample.tail.toSeq: _*)
           parse(h.value) must be_===(h)
         }
       }
@@ -67,7 +64,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
       {
         val samples = MediaRange.snapshot.values.map(_.withExtensions(ext).withQValue(q(0.2)))
         foreach(samples.sliding(4).toArray) { sample =>
-          val h = Accept(sample.head, sample.tail.toSeq:_*)
+          val h = Accept(sample.head, sample.tail.toSeq: _*)
           parse(h.value) must be_===(h)
         }
       }
@@ -82,23 +79,24 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
       // Go through all of them
       val samples = MediaType.snapshot.values.map(MediaRangeAndQValue(_))
       foreach(samples.sliding(4).toArray) { sample =>
-        val h = Accept(sample.head, sample.tail.toSeq:_*)
+        val h = Accept(sample.head, sample.tail.toSeq: _*)
         parse(h.value) must be_===(h)
       }
     }
 
     "Deal with q and extensions" in {
       val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
-      parse(value) must be_===(Accept(
-        `text/*`.withQValue(q(0.3)),
-        `text/html`.withQValue(q(0.7)),
-        `text/html`.withExtensions(Map("level" -> "1"))
-      ))
+      parse(value) must be_===(
+        Accept(
+          `text/*`.withQValue(q(0.3)),
+          `text/html`.withQValue(q(0.7)),
+          `text/html`.withExtensions(Map("level" -> "1"))
+        ))
 
       // Go through all of them
       val samples = MediaType.snapshot.values.map(_.withExtensions(ext).withQValue(q(0.2)))
       foreach(samples.sliding(4).toArray) { sample =>
-        val h = Accept(sample.head, sample.tail.toSeq:_*)
+        val h = Accept(sample.head, sample.tail.toSeq: _*)
         parse(h.value) must be_===(h)
       }
     }

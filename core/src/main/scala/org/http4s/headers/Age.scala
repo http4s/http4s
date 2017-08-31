@@ -51,4 +51,3 @@ sealed abstract case class Age(age: Long) extends Header.Parsed {
   def unsafeDuration: FiniteDuration = age.seconds
 
 }
-

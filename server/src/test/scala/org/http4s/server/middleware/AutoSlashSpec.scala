@@ -1,7 +1,7 @@
 package org.http4s.server.middleware
 
 import cats.effect._
-import org.http4s.{Status, Request, Http4sSpec}
+import org.http4s.{Http4sSpec, Request, Status}
 import org.http4s.server.MockRoute
 
 class AutoSlashSpec extends Http4sSpec {
@@ -17,7 +17,8 @@ class AutoSlashSpec extends Http4sSpec {
 
     "Match a route defined with a slash" in {
       AutoSlash(route).orNotFound(Request[IO](uri = uri("/withslash"))) must returnStatus(Status.Ok)
-      AutoSlash(route).orNotFound(Request[IO](uri = uri("/withslash/"))) must returnStatus(Status.Accepted)
+      AutoSlash(route).orNotFound(Request[IO](uri = uri("/withslash/"))) must returnStatus(
+        Status.Accepted)
     }
 
     "Respect an absent trailing slash" in {

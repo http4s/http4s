@@ -29,12 +29,11 @@ trait CirceInstances {
           case Right(json) =>
             DecodeResult.success[F, Json](json)
           case Left(pf) =>
-            DecodeResult.failure[F, Json](MalformedMessageBodyFailure(
-              "Invalid JSON", Some(pf.underlying)))
+            DecodeResult.failure[F, Json](
+              MalformedMessageBodyFailure("Invalid JSON", Some(pf.underlying)))
         }
       } else {
-        DecodeResult.failure[F, Json](MalformedMessageBodyFailure(
-          "Invalid JSON: empty body", None))
+        DecodeResult.failure[F, Json](MalformedMessageBodyFailure("Invalid JSON: empty body", None))
       }
     }
 
@@ -51,11 +50,14 @@ trait CirceInstances {
 
   def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
-      decoder.decodeJson(json).fold(
-        failure => DecodeResult.failure(InvalidMessageBodyFailure(
-          s"Could not decode JSON: $json", Some(failure))),
-        DecodeResult.success(_)
-      )
+      decoder
+        .decodeJson(json)
+        .fold(
+          failure =>
+            DecodeResult.failure(
+              InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),
+          DecodeResult.success(_)
+        )
     }
 
   protected def defaultPrinter: Printer
@@ -63,16 +65,21 @@ trait CirceInstances {
   implicit def jsonEncoder[F[_]: EntityEncoder[?[_], String]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  def jsonEncoderWithPrinter[F[_]: EntityEncoder[?[_], String]: Applicative](printer: Printer): EntityEncoder[F, Json] =
-    EntityEncoder[F, Chunk[Byte]].contramap[Json] { json =>
-      val bytes = printer.prettyByteBuffer(json)
-      ByteVectorChunk(ByteVector.view(bytes))
-    }.withContentType(`Content-Type`(MediaType.`application/json`))
+  def jsonEncoderWithPrinter[F[_]: EntityEncoder[?[_], String]: Applicative](
+      printer: Printer): EntityEncoder[F, Json] =
+    EntityEncoder[F, Chunk[Byte]]
+      .contramap[Json] { json =>
+        val bytes = printer.prettyByteBuffer(json)
+        ByteVectorChunk(ByteVector.view(bytes))
+      }
+      .withContentType(`Content-Type`(MediaType.`application/json`))
 
-  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](
+      implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderWithPrinterOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](printer: Printer)(
+      implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
   implicit val encodeUri: Encoder[Uri] =
@@ -85,12 +92,11 @@ trait CirceInstances {
 }
 
 object CirceInstances {
-  def withPrinter(p: Printer): CirceInstances = {
+  def withPrinter(p: Printer): CirceInstances =
     new CirceInstances {
       val defaultPrinter: Printer = p
       def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] = defaultJsonDecoder
     }
-  }
 
   // default cutoff value is based on benchmarks results
   def defaultJsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =

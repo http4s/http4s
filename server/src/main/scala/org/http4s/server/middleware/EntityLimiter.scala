@@ -18,8 +18,11 @@ object EntityLimiter {
     }
 
   private def takeLimited[F[_]](n: Long): Pipe[F, Byte, Byte] =
-    _.pull.take(n).flatMap {
-      case Some(_) => Pull.fail(EntityTooLarge(n))
-      case None    => Pull.done
-    }.stream
+    _.pull
+      .take(n)
+      .flatMap {
+        case Some(_) => Pull.fail(EntityTooLarge(n))
+        case None => Pull.done
+      }
+      .stream
 }

@@ -50,9 +50,11 @@ class AgeSpec extends HeaderLaws {
       Age.parse("-120").map(_.age) must beLeft
     }
     "roundtrip" in {
-      forAll { l: Long => (l >= 0) ==> {
-        Age.fromLong(l).map(_.value).flatMap(Age.parse) must_== Age.fromLong(l)
-      }}
+      forAll { l: Long =>
+        (l >= 0) ==> {
+          Age.fromLong(l).map(_.value).flatMap(Age.parse) must_== Age.fromLong(l)
+        }
+      }
     }
   }
 }

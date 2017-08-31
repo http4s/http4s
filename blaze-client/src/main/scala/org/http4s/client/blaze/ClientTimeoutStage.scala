@@ -13,8 +13,12 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
-final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, idleTimeout: Duration, requestTimeout: Duration, exec: TickWheelExecutor)
-  extends MidStage[ByteBuffer, ByteBuffer] { stage =>
+final private[blaze] class ClientTimeoutStage(
+    responseHeaderTimeout: Duration,
+    idleTimeout: Duration,
+    requestTimeout: Duration,
+    exec: TickWheelExecutor)
+    extends MidStage[ByteBuffer, ByteBuffer] { stage =>
 
   import ClientTimeoutStage._
 
@@ -31,7 +35,8 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
   // It will also act as the point of synchronization
   private val timeoutState = new AtomicReference[AnyRef](null)
 
-  override def name: String = s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout, Request: $requestTimeout"
+  override def name: String =
+    s"ClientTimeoutStage: Response Header: $responseHeaderTimeout, Idle: $idleTimeout, Request: $requestTimeout"
 
   /////////// Private impl bits //////////////////////////////////////////
   private def killswitch(name: String, timeout: Duration) = new Runnable {
@@ -49,10 +54,11 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
 
       // Cancel the active request timeout if it exists
       activeReqTimeout.getAndSet(Closed) match {
-        case null    => /* We beat the startup. Maybe timeout is 0? */
+        case null =>
+          /* We beat the startup. Maybe timeout is 0? */
           sendOutboundCommand(Disconnect)
 
-        case Closed  => /* Already closed, no need to disconnect */
+        case Closed => /* Already closed, no need to disconnect */
 
         case timeout =>
           timeout.cancel()
@@ -99,7 +105,7 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
   override protected def stageShutdown(): Unit = {
     cancelTimeout()
     activeReqTimeout.getAndSet(Closed) match {
-      case null    => logger.error("Shouldn't get here.")
+      case null => logger.error("Shouldn't get here.")
       case timeout => timeout.cancel()
     }
     super.stageShutdown()
@@ -111,10 +117,9 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
     if (!activeReqTimeout.compareAndSet(null, timeout)) {
       activeReqTimeout.get() match {
         case Closed => // NOOP: the timeout already triggered
-        case _      => logger.error("Shouldn't get here.")
+        case _ => logger.error("Shouldn't get here.")
       }
-    }
-    else resetTimeout()
+    } else resetTimeout()
   }
 
   /////////// Private stuff ////////////////////////////////////////////////
@@ -123,20 +128,21 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
     val p = Promise[T]
 
     f.onComplete {
-      case s@ Success(_) =>
+      case s @ Success(_) =>
         resetTimeout()
         p.tryComplete(s)
 
-      case eof@ Failure(EOF) => timeoutState.get() match {
-        case t: TimeoutException => p.tryFailure(t)
-        case c: Cancellable =>
-          c.cancel()
-          p.tryComplete(eof)
+      case eof @ Failure(EOF) =>
+        timeoutState.get() match {
+          case t: TimeoutException => p.tryFailure(t)
+          case c: Cancellable =>
+            c.cancel()
+            p.tryComplete(eof)
 
-        case null => p.tryComplete(eof)
-      }
+          case null => p.tryComplete(eof)
+        }
 
-      case v@ Failure(_) => p.complete(v)
+      case v @ Failure(_) => p.complete(v)
     }
 
     p.future
@@ -157,9 +163,8 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
     }; go()
   }
 
-  private def resetTimeout(): Unit = {
+  private def resetTimeout(): Unit =
     setAndCancel(exec.schedule(idleTimeoutKillswitch, idleTimeout))
-  }
 
   private def cancelTimeout(): Unit = setAndCancel(null)
 
@@ -169,12 +174,11 @@ final private[blaze] class ClientTimeoutStage(responseHeaderTimeout: Duration, i
       timeout.cancel()
   }
 
-  private def cancelResponseHeaderTimeout(): Unit = {
+  private def cancelResponseHeaderTimeout(): Unit =
     activeResponseHeaderTimeout.getAndSet(Closed) match {
       case null => // no-op
       case timeout => timeout.cancel()
     }
-  }
 }
 
 private[blaze] object ClientTimeoutStage {

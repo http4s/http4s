@@ -19,7 +19,7 @@
 package org.http4s
 
 import scala.Product
-import org.http4s.util.{CaseInsensitiveString, Writer, Renderable}
+import org.http4s.util.{CaseInsensitiveString, Renderable, Writer}
 import scala.concurrent.duration.Duration
 import org.http4s.syntax.string._
 
@@ -31,9 +31,9 @@ sealed trait CacheDirective extends Product with Renderable {
 }
 
 /**
- * A registry of cache-directives, as listed in
- * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
- */
+  * A registry of cache-directives, as listed in
+  * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
+  */
 object CacheDirective {
   final case class `max-age`(deltaSeconds: Duration) extends CacheDirective {
     override def value: String = name + "=" + deltaSeconds.toSeconds
@@ -49,8 +49,10 @@ object CacheDirective {
 
   case object `must-revalidate` extends CacheDirective
 
-  final case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty) extends CacheDirective {
-    override def value: String = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
+  final case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty)
+      extends CacheDirective {
+    override def value: String =
+      name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
   case object `no-store` extends CacheDirective
@@ -60,7 +62,8 @@ object CacheDirective {
   case object `only-if-cached` extends CacheDirective
 
   final case class `private`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends CacheDirective {
-    override def value: String = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
+    override def value: String =
+      name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
   case object `proxy-revalidate` extends CacheDirective
@@ -87,9 +90,10 @@ object CacheDirective {
 
   def apply(name: String): CacheDirective = apply(name, None)
 
-  private final case class CustomCacheDirective(override val name: CaseInsensitiveString, argument: Option[String] = None)
-    extends CacheDirective
-  {
+  private final case class CustomCacheDirective(
+      override val name: CaseInsensitiveString,
+      argument: Option[String] = None)
+      extends CacheDirective {
     override def value: String = name + argument.fold("")("=\"" + _ + '"')
   }
 }

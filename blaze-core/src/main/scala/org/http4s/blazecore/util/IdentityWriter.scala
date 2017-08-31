@@ -14,8 +14,9 @@ import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 
-private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])
-                          (implicit protected val F: Effect[F], protected val ec: ExecutionContext)
+private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(
+    implicit protected val F: Effect[F],
+    protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 
   private[this] val logger = getLogger(classOf[IdentityWriter[F]])
@@ -35,7 +36,8 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (willOverflow(chunk.size.toLong)) {
       // never write past what we have promised using the Content-Length header
-      val msg = s"Will not write more bytes than what was indicated by the Content-Length header ($size)"
+      val msg =
+        s"Will not write more bytes than what was indicated by the Content-Length header ($size)"
 
       logger.warn(msg)
 
@@ -49,22 +51,21 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
       if (headers != null) {
         val h = headers
         headers = null
-        out.channelWrite(h::b::Nil)
-      }
-      else out.channelWrite(b)
+        out.channelWrite(h :: b :: Nil)
+      } else out.channelWrite(b)
     }
 
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val total = bodyBytesWritten + chunk.size
 
-    if (size < 0 || total >= size) writeBodyChunk(chunk, flush = true).
-      map(Function.const(size < 0)) // require close if infinite
+    if (size < 0 || total >= size)
+      writeBodyChunk(chunk, flush = true).map(Function.const(size < 0)) // require close if infinite
     else {
       val msg = s"Expected `Content-Length: $size` bytes, but only $total were written."
 
       logger.warn(msg)
 
-      writeBodyChunk(chunk, flush = true) flatMap {_ =>
+      writeBodyChunk(chunk, flush = true).flatMap { _ =>
         Future.failed(new IllegalStateException(msg))
       }
     }

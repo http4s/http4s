@@ -28,7 +28,7 @@ object AttributeKey {
 /** An immutable map where an [[AttributeKey]]  for a fixed type `T` can only be associated with values of type `T`.
   * Because the equality of keys is based on reference, it is therefore possible for this map to contain mappings
   * for keys with the same label and same types. */
-final class AttributeMap private(private val backing: Map[AttributeKey[_], Any]) {
+final class AttributeMap private (private val backing: Map[AttributeKey[_], Any]) {
 
   /** Gets the value of type `T` associated with the key `k`. */
   def apply[T](k: AttributeKey[T]): T = backing(k).asInstanceOf[T]
@@ -43,14 +43,17 @@ final class AttributeMap private(private val backing: Map[AttributeKey[_], Any])
   def contains[T](k: AttributeKey[T]): Boolean = backing.contains(k)
 
   /** Adds the mapping `k -> value` to this map, replacing any existing mapping for `k`. */
-  def put[T](k: AttributeKey[T], value: T): AttributeMap = new AttributeMap(backing.updated(k, value))
+  def put[T](k: AttributeKey[T], value: T): AttributeMap =
+    new AttributeMap(backing.updated(k, value))
 
   /** All keys with defined mappings. */
   def keys: Iterable[AttributeKey[_]] = backing.keys
 
   /** Adds the mappings in `o` to this map, with mappings in `o` taking precedence over existing mappings.*/
   def ++(o: Iterable[AttributeEntry[_]]): AttributeMap =
-    new AttributeMap(backing ++ o.iterator.map { e => (e.key, e.value) })
+    new AttributeMap(backing ++ o.iterator.map { e =>
+      (e.key, e.value)
+    })
 
   /** Combines the mappings in `o` with the mappings in this map, with mappings in `o` taking precedence over existing mappings.*/
   def ++(o: AttributeMap): AttributeMap = new AttributeMap(backing ++ o.backing)
@@ -60,14 +63,14 @@ final class AttributeMap private(private val backing: Map[AttributeKey[_], Any])
 
   /** All mappings in this map.  The [[AttributeEntry]] type preserves the typesafety of mappings, although the specific types are unknown.*/
   def entries: Iterable[AttributeEntry[_]] =
-    for( (k: AttributeKey[kt], v) <- backing) yield AttributeEntry(k, v.asInstanceOf[kt])
+    for ((k: AttributeKey[kt], v) <- backing) yield AttributeEntry(k, v.asInstanceOf[kt])
 
   /** `true` if there are no mappings in this map, `false` if there are. */
   def isEmpty: Boolean = backing.isEmpty
 }
 
-object AttributeMap
-{
+object AttributeMap {
+
   /** An [[AttributeMap]] without any mappings. */
   val empty: AttributeMap = new AttributeMap(Map.empty)
 
@@ -83,4 +86,3 @@ object AttributeMap
 final case class AttributeEntry[T](key: AttributeKey[T], value: T) {
   override def toString: String = s"$key: $value"
 }
-

@@ -25,10 +25,12 @@ class StaticFileSpec extends Http4sSpec {
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(f.length())
       }
 
-      val tests = Seq("/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.`image/png`),
-                      "/test.fiddlefaddle" -> None)
-      forall(tests) { case (p, om) =>
-        check(new File(getClass.getResource(p).toURI), om)
+      val tests = Seq(
+        "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.`image/png`),
+        "/test.fiddlefaddle" -> None)
+      forall(tests) {
+        case (p, om) =>
+          check(new File(getClass.getResource(p).toURI), om)
       }
     }
 
@@ -50,7 +52,8 @@ class StaticFileSpec extends Http4sSpec {
     "Send partial file" in {
       def check(path: String): MatchResult[Any] = {
         val f = new File(path)
-        val r = StaticFile.fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None).value.unsafeRunSync
+        val r =
+          StaticFile.fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None).value.unsafeRunSync
 
         r must beSome[Response[IO]]
         // Length is only 1 byte
@@ -59,9 +62,10 @@ class StaticFileSpec extends Http4sSpec {
         r.map(_.body.runLog.unsafeRunSync.length) must beSome(1)
       }
 
-      val tests = List("./testing/src/test/resources/logback-test.xml",
-                      "./server/src/test/resources/testresource.txt",
-                      ".travis.yml")
+      val tests = List(
+        "./testing/src/test/resources/logback-test.xml",
+        "./server/src/test/resources/testresource.txt",
+        ".travis.yml")
 
       forall(tests)(check)
     }
@@ -90,7 +94,11 @@ class StaticFileSpec extends Http4sSpec {
         val body = r.map(_.body.runLog.unsafeRunSync)
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
-        body.map(bytes => java.util.Arrays.equals(bytes.toArray, java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
+        body.map(
+          bytes =>
+            java.util.Arrays.equals(
+              bytes.toArray,
+              java.util.Arrays.copyOfRange(gibberish, 0, fileSize - 1))) must beSome(true)
       }
 
       check(emptyFile)
@@ -99,7 +107,8 @@ class StaticFileSpec extends Http4sSpec {
     "Read from a URL" in {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val expected = scala.io.Source.fromURL(url, "utf-8").mkString
-      val s = StaticFile.fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
+      val s = StaticFile
+        .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
         .value
         .unsafeRunSync
         .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
@@ -113,7 +122,8 @@ class StaticFileSpec extends Http4sSpec {
     "Set content-length header from a URL" in {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val len =
-        StaticFile.fromURL[IO](url)
+        StaticFile
+          .fromURL[IO](url)
           .value
           .map(_.flatMap(_.contentLength))
       len must returnValue(beSome(24005L))

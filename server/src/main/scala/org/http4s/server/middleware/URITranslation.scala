@@ -7,9 +7,9 @@ import cats.Functor
 object URITranslation {
   def translateRoot[F[_]: Functor](prefix: String)(service: HttpService[F]): HttpService[F] = {
     val newCaret = prefix match {
-      case "/"                    => 0
+      case "/" => 0
       case x if x.startsWith("/") => x.length
-      case x                      => x.length + 1
+      case x => x.length + 1
     }
 
     service.local { req: Request[F] =>

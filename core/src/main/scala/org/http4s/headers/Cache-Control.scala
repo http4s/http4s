@@ -9,8 +9,8 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
     HttpHeaderParser.CACHE_CONTROL(s)
 }
 
-final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends Header.RecurringRenderable {
+final case class `Cache-Control`(values: NonEmptyList[CacheDirective])
+    extends Header.RecurringRenderable {
   override def key: `Cache-Control`.type = `Cache-Control`
   type Value = CacheDirective
 }
-

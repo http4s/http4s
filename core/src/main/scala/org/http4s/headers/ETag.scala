@@ -6,10 +6,9 @@ import org.http4s.util.Writer
 
 object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
   final case class EntityTag(tag: String, weak: Boolean = false) {
-    override def toString() = {
+    override def toString() =
       if (weak) "W/\"" + tag + '"'
       else "\"" + tag + '"'
-    }
   }
 
   def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
@@ -23,5 +22,3 @@ final case class ETag(tag: ETag.EntityTag) extends Header.Parsed {
   override def value: String = tag.toString()
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }
-
-

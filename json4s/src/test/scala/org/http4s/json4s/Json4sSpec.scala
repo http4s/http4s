@@ -20,7 +20,8 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     val json: JValue = JObject(JField("test", JString("json4s")))
 
     "have json content type" in {
-      jsonEncoder[IO, JValue].headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.`application/json`))
+      jsonEncoder[IO, JValue].headers.get(`Content-Type`) must beSome(
+        `Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
@@ -30,7 +31,8 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.`application/json`))
+      jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must beSome(
+        `Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON with a json4s writer" in {
@@ -40,12 +42,14 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 
   "jsonOf" should {
     "decode JSON from an json4s reader" in {
-      val result = jsonOf[IO, Int].decode(Request[IO]().withBody("42").unsafeRunSync, strict = false)
+      val result =
+        jsonOf[IO, Int].decode(Request[IO]().withBody("42").unsafeRunSync, strict = false)
       result.value.unsafeRunSync must beRight(42)
     }
 
     "handle reader failures" in {
-      val result = jsonOf[IO, Int].decode(Request[IO]().withBody(""""oops"""").unsafeRunSync, strict = false)
+      val result =
+        jsonOf[IO, Int].decode(Request[IO]().withBody(""""oops"""").unsafeRunSync, strict = false)
       result.value.unsafeRunSync must beLeft.like {
         case InvalidMessageBodyFailure("Could not map JSON", _) => ok
       }
@@ -56,12 +60,14 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     implicit val formats = org.json4s.DefaultFormats
 
     "extract JSON from formats" in {
-      val result = jsonExtract[IO, Foo].decode(Request[IO]().withBody(JObject("bar" -> JInt(42))).unsafeRunSync, strict = false)
+      val result = jsonExtract[IO, Foo]
+        .decode(Request[IO]().withBody(JObject("bar" -> JInt(42))).unsafeRunSync, strict = false)
       result.value.unsafeRunSync must beRight(Foo(42))
     }
 
     "handle extract failures" in {
-      val result = jsonExtract[IO, Foo].decode(Request[IO]().withBody(""""oops"""").unsafeRunSync, strict = false)
+      val result = jsonExtract[IO, Foo]
+        .decode(Request[IO]().withBody(""""oops"""").unsafeRunSync, strict = false)
       result.value.unsafeRunSync must beLeft.like {
         case InvalidMessageBodyFailure("Could not extract JSON", _) => ok
       }

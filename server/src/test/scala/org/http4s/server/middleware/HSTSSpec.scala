@@ -11,9 +11,9 @@ import scala.concurrent.duration._
 class HSTSSpec extends Http4sSpec {
 
   val innerService = HttpService[IO] {
-      case GET -> Root =>
-        Ok("pong")
-    }
+    case GET -> Root =>
+      Ok("pong")
+  }
 
   val req = Request[IO](Method.GET, Uri.uri("/"))
 

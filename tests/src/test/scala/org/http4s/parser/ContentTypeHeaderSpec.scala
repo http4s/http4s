@@ -12,12 +12,16 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
   def simple = `Content-Type`(`text/html`)
   def charset = `Content-Type`(`text/html`, Charset.`UTF-8`)
   def extensions = `Content-Type`(`text/html`.withExtensions(Map("foo" -> "bar")))
-  def extensionsandset = `Content-Type`(`text/html`.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
-  def multipart = `Content-Type`(`multipart/form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")), Charset.`UTF-8`)
+  def extensionsandset =
+    `Content-Type`(`text/html`.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
+  def multipart =
+    `Content-Type`(
+      `multipart/form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
+      Charset.`UTF-8`)
 
   "ContentType Header" should {
     "Generate the correct values" in {
-      simple.value must be_==("text/html")      
+      simple.value must be_==("text/html")
       charset.value must be_==("""text/html; charset=UTF-8""")
       extensions.value must be_==("""text/html; foo="bar"""")
       extensionsandset.value must be_==("""text/html; foo="bar"; charset=UTF-8""")
@@ -32,7 +36,5 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
       parse(multipart.value) must be_==(multipart)
     }
   }
-
-
 
 }

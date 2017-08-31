@@ -3,12 +3,12 @@ package org.http4s
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.{BitSet, IndexedSeq}
 import scala.collection.mutable.ListBuffer
-import scala.collection.{ IndexedSeqOptimized, mutable }
+import scala.collection.{IndexedSeqOptimized, mutable}
 
 import cats.implicits._
 import org.http4s.Query._
 import org.http4s.parser.QueryParser
-import org.http4s.util.{UrlCodingUtils, Writer, Renderable}
+import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
 import org.http4s.internal.parboiled2.CharPredicate
 
 /** Collection representation of a query string
@@ -19,27 +19,26 @@ import org.http4s.internal.parboiled2.CharPredicate
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private(pairs: Vector[KeyValue])
-  extends IndexedSeq[KeyValue]
-  with IndexedSeqOptimized[KeyValue, Query]
-  with QueryOps
-  with Renderable
-{
+final class Query private (pairs: Vector[KeyValue])
+    extends IndexedSeq[KeyValue]
+    with IndexedSeqOptimized[KeyValue, Query]
+    with QueryOps
+    with Renderable {
   override def apply(idx: Int): KeyValue = pairs(idx)
 
   override def length: Int = pairs.length
 
   override def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
 
-  override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) new Query((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+  override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That =
+    if (bf eq Query.cbf)
+      new Query((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.+:(elem)
-  }
 
-  override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) new Query((pairs :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+  override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That =
+    if (bf eq Query.cbf)
+      new Query((pairs :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.:+(elem)
-  }
 
   override def toVector: Vector[(String, Option[String])] = pairs
 
@@ -60,7 +59,8 @@ final class Query private(pairs: Vector[KeyValue])
       case (n, Some(v)) =>
         if (!first) writer.append('&')
         else first = false
-        writer.append(encode(n))
+        writer
+          .append(encode(n))
           .append("=")
           .append(encode(v))
     }
@@ -122,7 +122,7 @@ object Query {
 
   def fromPairs(xs: (String, String)*): Query = {
     val b = newBuilder
-    xs.foreach{ case (k, v) => b += ((k, Some(v))) }
+    xs.foreach { case (k, v) => b += ((k, Some(v))) }
     b.result()
   }
 
@@ -130,17 +130,16 @@ object Query {
     *
     * If parsing fails, the empty [[Query]] is returned
     */
-  def fromString(query: String): Query = {
+  def fromString(query: String): Query =
     if (query.isEmpty) new Query(Vector("" -> None))
     else QueryParser.parseQueryString(query).getOrElse(Query.empty)
-  }
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: Map[String, Seq[String]]): Query = {
     val b = newBuilder
     map.foreach {
-      case (k, Seq()) => b +=  ((k, None))
-      case (k, vs)    => vs.foreach(v => b += ((k, Some(v))))
+      case (k, Seq()) => b += ((k, None))
+      case (k, vs) => vs.foreach(v => b += ((k, Some(v))))
     }
     b.result()
   }
@@ -148,10 +147,11 @@ object Query {
   def newBuilder: mutable.Builder[KeyValue, Query] =
     Vector.newBuilder[KeyValue].mapResult(v => new Query(v))
 
-  implicit val cbf: CanBuildFrom[Query, KeyValue, Query] = new CanBuildFrom[Query, KeyValue, Query] {
-    override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
-    override def apply(): mutable.Builder[KeyValue, Query] = newBuilder
-  }
+  implicit val cbf: CanBuildFrom[Query, KeyValue, Query] =
+    new CanBuildFrom[Query, KeyValue, Query] {
+      override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
+      override def apply(): mutable.Builder[KeyValue, Query] = newBuilder
+    }
 
   ///////////////////////////////////////////////////////////////////////
   // Wrap the multiParams to get a Map[String, String] view

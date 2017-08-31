@@ -12,7 +12,8 @@ object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with Head
     HttpHeaderParser.X_FORWARDED_FOR(s)
 }
 
-final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Header.Recurring {
+final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]])
+    extends Header.Recurring {
   override def key: `X-Forwarded-For`.type = `X-Forwarded-For`
   type Value = Option[InetAddress]
   override lazy val value = super.value

@@ -20,7 +20,6 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
 //                       httpOnly: Boolean = false,
 //                       extension: Option[String] = None
 
-
     val cookiestr = "myname=\"foo\"; Domain=value; Max-Age=1; Path=value; Secure;HttpOnly"
 
     "parse a set cookie" in {
@@ -45,7 +44,7 @@ class CookieHeaderSpec extends Specification with HeaderParserHelper[headers.Coo
 
   "Cookie parser" should {
     "parse a cookie" in {
-      parse(cookiestr).values.toList must be_== (cookies)
+      parse(cookiestr).values.toList must be_==(cookies)
     }
   }
 }

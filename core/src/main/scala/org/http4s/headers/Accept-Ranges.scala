@@ -13,14 +13,14 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
     HttpHeaderParser.ACCEPT_RANGES(s)
 }
 
-final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Header.Parsed {
+final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit])
+    extends Header.Parsed {
   def key: `Accept-Ranges`.type = `Accept-Ranges`
-  def renderValue(writer: Writer): writer.type = {
+  def renderValue(writer: Writer): writer.type =
     if (rangeUnits.isEmpty) writer.append("none")
     else {
       writer.append(rangeUnits.head)
       rangeUnits.tail.foreach(r => writer.append(", ").append(r))
       writer
     }
-  }
 }

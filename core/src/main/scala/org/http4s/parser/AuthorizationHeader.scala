@@ -19,7 +19,7 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import org.http4s.internal.parboiled2.{Rule0, Rule1, ParserInput}
+import org.http4s.internal.parboiled2.{ParserInput, Rule0, Rule1}
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 
@@ -28,42 +28,49 @@ private[parser] trait AuthorizationHeader {
     new AuthorizationParser(value).parse
 
   // scalastyle:off public.methods.have.type
-  private class AuthorizationParser(input: ParserInput) extends Http4sHeaderParser[Authorization](input) {
+  private class AuthorizationParser(input: ParserInput)
+      extends Http4sHeaderParser[Authorization](input) {
     def entry: Rule1[Authorization] = rule {
-      CredentialDef ~ EOI ~> { creds: Credentials => Authorization(creds) }
+      CredentialDef ~ EOI ~> { creds: Credentials =>
+        Authorization(creds)
+      }
     }
 
     def CredentialDef = rule {
       AuthParamsCredentialsDef |
-      TokenCredentialsDef
+        TokenCredentialsDef
     }
 
     def TokenCredentialsDef = rule {
-      Token ~ LWS ~ token68 ~> {(scheme: String, value: String) =>
+      Token ~ LWS ~ token68 ~> { (scheme: String, value: String) =>
         Credentials.Token(scheme.ci, value)
       }
     }
 
     def AuthParamsCredentialsDef = rule {
-      Token ~ OptWS ~ CredentialParams ~> { (scheme: String, params: NonEmptyList[(String, String)]) =>
-        Credentials.AuthParams(scheme.ci, params) }
+      Token ~ OptWS ~ CredentialParams ~> {
+        (scheme: String, params: NonEmptyList[(String, String)]) =>
+          Credentials.AuthParams(scheme.ci, params)
+      }
     }
 
     def CredentialParams: Rule1[NonEmptyList[(String, String)]] = rule {
-      oneOrMore(AuthParam).separatedBy(ListSep) ~> {
-        params: Seq[(String, String)] => NonEmptyList(params.head, params.tail.toList)
+      oneOrMore(AuthParam).separatedBy(ListSep) ~> { params: Seq[(String, String)] =>
+        NonEmptyList(params.head, params.tail.toList)
       }
     }
 
     def AuthParam: Rule1[(String, String)] = rule {
-      Token ~ "=" ~ (Token | QuotedString) ~> { (s1: String, s2: String) => (s1, s2) }
+      Token ~ "=" ~ (Token | QuotedString) ~> { (s1: String, s2: String) =>
+        (s1, s2)
+      }
     }
 
     def Base64Char: Rule0 = rule { Alpha | Digit | '+' | '/' | '=' }
 
     // https://tools.ietf.org/html/rfc6750#page-5
     def b64token: Rule1[String] = rule {
-      capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('=') )
+      capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('='))
     }
 
     def token68: Rule1[String] = b64token

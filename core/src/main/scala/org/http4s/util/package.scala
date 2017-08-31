@@ -22,8 +22,8 @@ package object util {
           decoder.decode(ByteBuffer.allocate(0), charBuffer, true)
           decoder.flush(charBuffer)
           val outputString = charBuffer.flip().toString
-          if (outputString.isEmpty) Pull.done as None
-          else Pull.output1(outputString) as None
+          if (outputString.isEmpty) Pull.done.as(None)
+          else Pull.output1(outputString).as(None)
         case Some((segment, stream)) =>
           val byteVector = ByteVector(segment.toVector)
           val byteBuffer = byteVector.toByteBuffer
@@ -31,14 +31,15 @@ package object util {
           decoder.decode(byteBuffer, charBuffer, false)
           val nextByteVector = ByteVector.view(byteBuffer.slice)
           val nextStream = stream.consChunk(ByteVectorChunk(nextByteVector))
-          Pull.output1(charBuffer.flip().toString) as Some(nextStream)
+          Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
       }
     }
   }
 
   /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */
   def bug(message: String): AssertionError =
-    new AssertionError(s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+    new AssertionError(
+      s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
 
   private[http4s] def tryCatchNonFatal[A](f: => A): Either[Throwable, A] =
     try Right(f)

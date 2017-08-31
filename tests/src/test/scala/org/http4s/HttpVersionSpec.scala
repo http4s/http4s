@@ -10,7 +10,9 @@ class HttpVersionSpec extends Http4sSpec {
   checkAll("HttpVersion", OrderLaws[HttpVersion].order)
 
   "sort by descending major version" in {
-    prop { (x: HttpVersion, y: HttpVersion) => x.major > y.major ==> (x > y) }
+    prop { (x: HttpVersion, y: HttpVersion) =>
+      x.major > y.major ==> (x > y)
+    }
   }
 
   "sort by descending minor version if major versions equal" in {
@@ -22,7 +24,9 @@ class HttpVersionSpec extends Http4sSpec {
   }
 
   "fromString is consistent with toString" in {
-    prop { v: HttpVersion => fromString(v.toString) must beRight(v) }
+    prop { v: HttpVersion =>
+      fromString(v.toString) must beRight(v)
+    }
   }
 
   "protocol is case sensitive" in {

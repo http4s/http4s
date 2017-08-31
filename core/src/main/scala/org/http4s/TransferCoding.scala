@@ -32,9 +32,9 @@ object TransferCoding extends Registry {
   implicit def fromKey(k: CaseInsensitiveString): TransferCoding = new TransferCoding(k)
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-2
-  val chunked        = registerKey("chunked".ci)
-  val compress       = registerKey("compress".ci)
-  val deflate        = registerKey("deflate".ci)
-  val gzip           = registerKey("gzip".ci)
-  val identity       = registerKey("identity".ci)
+  val chunked = registerKey("chunked".ci)
+  val compress = registerKey("compress".ci)
+  val deflate = registerKey("deflate".ci)
+  val gzip = registerKey("gzip".ci)
+  val identity = registerKey("identity".ci)
 }

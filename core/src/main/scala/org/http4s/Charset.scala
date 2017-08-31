@@ -25,7 +25,7 @@ import scala.collection.JavaConverters._
 import org.http4s.util._
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
-  def satisfies(charsetRange: CharsetRange): Boolean = charsetRange isSatisfiedBy this
+  def satisfies(charsetRange: CharsetRange): Boolean = charsetRange.isSatisfiedBy(this)
 
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)
@@ -34,12 +34,12 @@ final case class Charset private (nioCharset: NioCharset) extends Renderable {
 }
 
 object Charset {
-  val `US-ASCII`     = Charset(StandardCharsets.US_ASCII)
-  val `ISO-8859-1`   = Charset(StandardCharsets.ISO_8859_1)
-  val `UTF-8`        = Charset(StandardCharsets.UTF_8)
-  val `UTF-16`       = Charset(StandardCharsets.UTF_16)
-  val `UTF-16BE`     = Charset(StandardCharsets.UTF_16BE)
-  val `UTF-16LE`     = Charset(StandardCharsets.UTF_16LE)
+  val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
+  val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
+  val `UTF-8` = Charset(StandardCharsets.UTF_8)
+  val `UTF-16` = Charset(StandardCharsets.UTF_16)
+  val `UTF-16BE` = Charset(StandardCharsets.UTF_16BE)
+  val `UTF-16LE` = Charset(StandardCharsets.UTF_16LE)
 
   // Charset.forName caches a whopping two values and then
   // synchronizes.  We can prevent this by pre-caching all the lookups

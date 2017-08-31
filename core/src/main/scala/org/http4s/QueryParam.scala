@@ -10,14 +10,15 @@ final case class QueryParameterKey(value: String) extends AnyVal
 final case class QueryParameterValue(value: String) extends AnyVal
 
 /**
- * type class defining the key of a query parameter
- * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
- */
+  * type class defining the key of a query parameter
+  * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
+  */
 trait QueryParam[T] {
   def key: QueryParameterKey
 }
 
 object QueryParam {
+
   /** summon an implicit [[QueryParam]] */
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
 
@@ -39,9 +40,9 @@ object QueryParamKeyLike {
 }
 
 /**
- * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
- * @see QueryParamCodecLaws
- */
+  * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
+  * @see QueryParamCodecLaws
+  */
 trait QueryParamEncoder[T] { outer =>
   def encode(value: T): QueryParameterValue
 
@@ -68,7 +69,7 @@ object QueryParamEncoder {
 
   @deprecated("Use QueryParamEncoder[U].contramap(f)", "0.16")
   def encodeBy[T, U](f: T => U)(
-    implicit qpe: QueryParamEncoder[U]
+      implicit qpe: QueryParamEncoder[U]
   ): QueryParamEncoder[T] =
     qpe.contramap(f)
 
@@ -77,18 +78,18 @@ object QueryParamEncoder {
     stringQueryParamEncoder.contramap(f)
 
   def fromShow[T](
-    implicit sh: Show[T]
+      implicit sh: Show[T]
   ): QueryParamEncoder[T] =
     stringQueryParamEncoder.contramap(sh.show)
 
   implicit lazy val booleanQueryParamEncoder: QueryParamEncoder[Boolean] = fromShow[Boolean]
-  implicit lazy val doubleQueryParamEncoder : QueryParamEncoder[Double]  = fromShow[Double]
-  implicit lazy val floatQueryParamEncoder  : QueryParamEncoder[Float]   = fromShow[Float]
-  implicit lazy val shortQueryParamEncoder  : QueryParamEncoder[Short]   = fromShow[Short]
-  implicit lazy val intQueryParamEncoder    : QueryParamEncoder[Int]     = fromShow[Int]
-  implicit lazy val longQueryParamEncoder   : QueryParamEncoder[Long]    = fromShow[Long]
+  implicit lazy val doubleQueryParamEncoder: QueryParamEncoder[Double] = fromShow[Double]
+  implicit lazy val floatQueryParamEncoder: QueryParamEncoder[Float] = fromShow[Float]
+  implicit lazy val shortQueryParamEncoder: QueryParamEncoder[Short] = fromShow[Short]
+  implicit lazy val intQueryParamEncoder: QueryParamEncoder[Int] = fromShow[Int]
+  implicit lazy val longQueryParamEncoder: QueryParamEncoder[Long] = fromShow[Long]
 
-  implicit lazy val stringQueryParamEncoder : QueryParamEncoder[String]  =
+  implicit lazy val stringQueryParamEncoder: QueryParamEncoder[String] =
     new QueryParamEncoder[String] {
       override def encode(value: String) =
         QueryParameterValue(value)
@@ -96,11 +97,10 @@ object QueryParamEncoder {
 
 }
 
-
 /**
- * Type class defining how to decode a [[QueryParameterValue]] into a `T`
- * @see QueryParamCodecLaws
- */
+  * Type class defining how to decode a [[QueryParameterValue]] into a `T`
+  * @see QueryParamCodecLaws
+  */
 trait QueryParamDecoder[T] { outer =>
   def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, T]
 
@@ -115,21 +115,24 @@ trait QueryParamDecoder[T] { outer =>
   def orElse[U >: T](qpd: QueryParamDecoder[U]): QueryParamDecoder[U] =
     new QueryParamDecoder[U] {
       override def decode(value: QueryParameterValue) =
-        outer.decode(value) orElse qpd.decode(value)
+        outer.decode(value).orElse(qpd.decode(value))
     }
 
 }
 
 object QueryParamDecoder {
+
   /** summon an implicit [[QueryParamDecoder]] */
   def apply[T](implicit ev: QueryParamDecoder[T]): QueryParamDecoder[T] = ev
 
-  def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] = new QueryParamDecoder[T]{
-    def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, T] =
-      Validated.catchNonFatal(cast(value)).leftMap(t =>
-        ParseFailure(s"Query decoding $typeName failed", t.getMessage)
-      ).toValidatedNel
-  }
+  def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] =
+    new QueryParamDecoder[T] {
+      def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, T] =
+        Validated
+          .catchNonFatal(cast(value))
+          .leftMap(t => ParseFailure(s"Query decoding $typeName failed", t.getMessage))
+          .toValidatedNel
+    }
 
   /** QueryParamDecoder is a covariant functor. */
   implicit val FunctorQueryParamDecoder: Functor[QueryParamDecoder] =
@@ -149,7 +152,7 @@ object QueryParamDecoder {
 
   @deprecated("Use QueryParamDecoder[T].map(f)", "0.16")
   def decodeBy[U, T](f: T => U)(
-    implicit qpd: QueryParamDecoder[T]
+      implicit qpd: QueryParamDecoder[T]
   ): QueryParamDecoder[U] =
     qpd.map(f)
 
@@ -179,15 +182,18 @@ object QueryParamDecoder {
   implicit lazy val longQueryParamDecoder: QueryParamDecoder[Long] =
     fromUnsafeCast[Long](_.value.toLong)("Long")
 
-  implicit lazy val charQueryParamDecoder: QueryParamDecoder[Char] = new QueryParamDecoder[Char]{
+  implicit lazy val charQueryParamDecoder: QueryParamDecoder[Char] = new QueryParamDecoder[Char] {
     def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Char] =
-      if(value.value.size == 1) value.value.head.validNel
-      else ParseFailure("Failed to parse Char query parameter",
-                       s"Could not parse ${value.value} as a Char").invalidNel
+      if (value.value.size == 1) value.value.head.validNel
+      else
+        ParseFailure(
+          "Failed to parse Char query parameter",
+          s"Could not parse ${value.value} as a Char").invalidNel
   }
 
-  implicit lazy val stringQueryParamDecoder: QueryParamDecoder[String] = new QueryParamDecoder[String]{
-    def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, String] =
-      value.value.validNel
-  }
+  implicit lazy val stringQueryParamDecoder: QueryParamDecoder[String] =
+    new QueryParamDecoder[String] {
+      def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, String] =
+        value.value.validNel
+    }
 }

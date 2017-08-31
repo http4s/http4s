@@ -12,7 +12,8 @@ object GetRoutes {
   val getPaths: Map[String, Response[IO]] = {
     Map(
       SimplePath -> Response[IO](Ok).withBody("simple path"),
-      ChunkedPath -> Response[IO](Ok).withBody(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
+      ChunkedPath -> Response[IO](Ok).withBody(
+        Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
     ).mapValues(_.unsafeRunSync())
   }
 }

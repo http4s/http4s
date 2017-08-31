@@ -19,5 +19,6 @@ final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends
   type Value = CaseInsensitiveString
   def hasClose: Boolean = values.contains("close".ci)
   def hasKeepAlive: Boolean = values.contains("keep-alive".ci)
-  override def renderValue(writer: Writer): writer.type = writer.addStringNel(values.map(_.toString), ", ")
+  override def renderValue(writer: Writer): writer.type =
+    writer.addStringNel(values.map(_.toString), ", ")
 }

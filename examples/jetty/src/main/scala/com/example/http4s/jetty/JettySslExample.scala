@@ -8,4 +8,3 @@ import org.http4s.server.jetty.JettyBuilder
 object JettySslExample extends SslExample {
   def builder = JettyBuilder[IO]
 }
-

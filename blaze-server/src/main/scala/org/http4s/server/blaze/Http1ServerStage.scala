@@ -24,26 +24,41 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 
 private object Http1ServerStage {
 
-  def apply[F[_]: Effect](service: HttpService[F],
-            attributes: AttributeMap,
-            executionContext: ExecutionContext,
-            enableWebSockets: Boolean,
-            maxRequestLineLen: Int,
-            maxHeadersLen: Int,
-            serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen, serviceErrorHandler) with WebSocketSupport[F]
-    else                  new Http1ServerStage(service, attributes, executionContext, maxRequestLineLen, maxHeadersLen, serviceErrorHandler)
-  }
+  def apply[F[_]: Effect](
+      service: HttpService[F],
+      attributes: AttributeMap,
+      executionContext: ExecutionContext,
+      enableWebSockets: Boolean,
+      maxRequestLineLen: Int,
+      maxHeadersLen: Int,
+      serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] =
+    if (enableWebSockets)
+      new Http1ServerStage(
+        service,
+        attributes,
+        executionContext,
+        maxRequestLineLen,
+        maxHeadersLen,
+        serviceErrorHandler) with WebSocketSupport[F]
+    else
+      new Http1ServerStage(
+        service,
+        attributes,
+        executionContext,
+        maxRequestLineLen,
+        maxHeadersLen,
+        serviceErrorHandler)
 }
 
-private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
-                                            requestAttrs: AttributeMap,
-                                            implicit protected val executionContext: ExecutionContext,
-                                            maxRequestLineLen: Int,
-                                            maxHeadersLen: Int,
-                                            serviceErrorHandler: ServiceErrorHandler[F])
-                                           (implicit protected val F: Effect[F])
-  extends Http1Stage[F] with TailStage[ByteBuffer] {
+private[blaze] class Http1ServerStage[F[_]](
+    service: HttpService[F],
+    requestAttrs: AttributeMap,
+    implicit protected val executionContext: ExecutionContext,
+    maxRequestLineLen: Int,
+    maxHeadersLen: Int,
+    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: Effect[F])
+    extends Http1Stage[F]
+    with TailStage[ByteBuffer] {
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
@@ -71,7 +86,7 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
       logger.trace {
         buff.mark()
         val sb = new StringBuilder
-        while(buff.hasRemaining) sb.append(buff.get().toChar)
+        while (buff.hasRemaining) sb.append(buff.get().toChar)
 
         buff.reset()
         s"Received request\n${sb.result}"
@@ -88,23 +103,31 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
         }
         // we have enough to start the request
         runRequest(buff)
-      }
-      catch {
-        case t: BadRequest => badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
-        case t: Throwable  => internalServerError("error in requestLoop()", t, Request[F](), () => Future.successful(emptyBuffer))
+      } catch {
+        case t: BadRequest =>
+          badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
+        case t: Throwable =>
+          internalServerError(
+            "error in requestLoop()",
+            t,
+            Request[F](),
+            () => Future.successful(emptyBuffer))
       }
 
     case Failure(Cmd.EOF) => stageShutdown()
-    case Failure(t)       => fatalError(t, "Error in requestLoop()")
+    case Failure(t) => fatalError(t, "Error in requestLoop()")
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
-    val (body, cleanup) = collectBodyFromParser(buffer, () => Either.left(InvalidBodyException("Received premature EOF.")))
+    val (body, cleanup) = collectBodyFromParser(
+      buffer,
+      () => Either.left(InvalidBodyException("Received premature EOF.")))
 
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
         async.unsafeRunAsync {
-          try serviceFn(req).handleErrorWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+          try serviceFn(req).handleErrorWith(
+            serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
           catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
         } {
           case Right(resp) =>
@@ -112,11 +135,15 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
           case Left(t) =>
             IO(internalServerError(s"Error running route: $req", t, req, cleanup))
         }
-      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request[F]().withHttpVersion(protocol))
+      case Left((e, protocol)) =>
+        badMessage(e.details, new BadRequest(e.sanitized), Request[F]().withHttpVersion(protocol))
     }
   }
 
-  protected def renderResponse(req: Request[F], maybeResponse: MaybeResponse[F], bodyCleanup: () => Future[ByteBuffer]): Unit = {
+  protected def renderResponse(
+      req: Request[F],
+      maybeResponse: MaybeResponse[F],
+      bodyCleanup: () => Future[ByteBuffer]): Unit = {
     val resp = maybeResponse.orNotFound
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
@@ -128,9 +155,12 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
     val respConn = Connection.from(resp.headers)
 
     // Need to decide which encoder and if to close on finish
-    val closeOnFinish = respConn.map(_.hasClose).orElse {
-                          Connection.from(req.headers).map(checkCloseConnection(_, rr))
-                        }.getOrElse(parser.minorVersion == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
+    val closeOnFinish = respConn
+      .map(_.hasClose)
+      .orElse {
+        Connection.from(req.headers).map(checkCloseConnection(_, rr))
+      }
+      .getOrElse(parser.minorVersion == 0) // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
     val bodyEncoder: Http1Writer[F] = {
@@ -139,24 +169,35 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
 
         if (!resp.status.isEntityAllowed &&
           (lengthHeader.isDefined || respTransferCoding.isDefined)) {
-          logger.warn(s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping.")
+          logger.warn(
+            s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping.")
         }
 
         if (req.method == Method.HEAD) {
           // write message body header for HEAD response
           (parser.minorVersion, respTransferCoding, lengthHeader) match {
-            case (minor, Some(enc), _) if minor > 0 && enc.hasChunked => rr << "Transfer-Encoding: chunked\r\n"
+            case (minor, Some(enc), _) if minor > 0 && enc.hasChunked =>
+              rr << "Transfer-Encoding: chunked\r\n"
             case (_, _, Some(len)) => rr << len << "\r\n"
             case _ => // nop
           }
         }
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
-        rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
+        rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty)
+                 "Connection: keep-alive\r\n\r\n"
+               else "\r\n")
 
         new BodylessWriter[F](this, closeOnFinish)
-      }
-      else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)
+      } else
+        getEncoder(
+          respConn,
+          respTransferCoding,
+          lengthHeader,
+          resp.trailerHeaders,
+          rr,
+          parser.minorVersion,
+          closeOnFinish)
     }
 
     async.unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
@@ -164,17 +205,18 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
         if (closeOnFinish || requireClose) {
           logger.trace("Request/route requested closing connection.")
           IO(closeConnection())
-        } else IO {
-          bodyCleanup().onComplete {
-            case s @ Success(_) => // Serve another request
-              parser.reset()
-              reqLoopCallback(s)
+        } else
+          IO {
+            bodyCleanup().onComplete {
+              case s @ Success(_) => // Serve another request
+                parser.reset()
+                reqLoopCallback(s)
 
-            case Failure(EOF) => closeConnection()
+              case Failure(EOF) => closeConnection()
 
-            case Failure(t) => fatalError(t, "Failure in body cleanup")
-          }(directec)
-        }
+              case Failure(t) => fatalError(t, "Failure in body cleanup")
+            }(directec)
+          }
 
       case Left(EOF) =>
         IO(closeConnection())
@@ -199,16 +241,25 @@ private[blaze] class Http1ServerStage[F[_]](service: HttpService[F],
 
   /////////////////// Error handling /////////////////////////////////////////
 
-  final protected def badMessage(debugMessage: String, t: ParserException, req: Request[F]): Unit = {
+  final protected def badMessage(
+      debugMessage: String,
+      t: ParserException,
+      req: Request[F]): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
-    val resp = Response[F](Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
+    val resp = Response[F](Status.BadRequest)
+      .replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
     renderResponse(req, resp, () => Future.successful(emptyBuffer))
   }
 
   // The error handler of last resort
-  final protected def internalServerError(errorMsg: String, t: Throwable, req: Request[F], bodyCleanup: () => Future[ByteBuffer]): Unit = {
+  final protected def internalServerError(
+      errorMsg: String,
+      t: Throwable,
+      req: Request[F],
+      bodyCleanup: () => Future[ByteBuffer]): Unit = {
     logger.error(t)(errorMsg)
-    val resp = Response[F](Status.InternalServerError).replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
-    renderResponse(req, resp, bodyCleanup)  // will terminate the connection due to connection: close header
+    val resp = Response[F](Status.InternalServerError)
+      .replaceAllHeaders(Connection("close".ci), `Content-Length`.zero)
+    renderResponse(req, resp, bodyCleanup) // will terminate the connection due to connection: close header
   }
 }

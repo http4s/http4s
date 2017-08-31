@@ -17,9 +17,13 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private implicit val executionContext: ExecutionContext = TrampolineExecutionContext
 
   /** Adds a shutdown hook that interrupts the stream and waits for it to finish */
-  private def addShutdownHook(requestShutdown: Signal[F, Boolean], halted: Signal[IO, Boolean]): F[Unit] =
+  private def addShutdownHook(
+      requestShutdown: Signal[F, Boolean],
+      halted: Signal[IO, Boolean]): F[Unit] =
     F.delay(sys.addShutdownHook {
-      val hook = requestShutdown.set(true).runAsync(_ => IO.unit) >> halted.discrete.takeWhile(_ == false).run
+      val hook = requestShutdown.set(true).runAsync(_ => IO.unit) >> halted.discrete
+        .takeWhile(_ == false)
+        .run
       hook.unsafeRunSync()
     })
 
@@ -27,20 +31,23 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[util] def doMain(args: List[String]): IO[Int] =
     async.ref[IO, Int].flatMap { exitCode =>
       async.signalOf[IO, Boolean](false).flatMap { halted =>
-        async.signalOf[F, Boolean](false).flatMap { requestShutdown =>
-          addShutdownHook(requestShutdown, halted) >>
-            stream(args, requestShutdown.set(true))
-              .interruptWhen(requestShutdown)
-              .run
-        }.runAsync {
-          case Left(t) =>
-            IO(logger.error(t)("Error running stream")) >>
+        async
+          .signalOf[F, Boolean](false)
+          .flatMap { requestShutdown =>
+            addShutdownHook(requestShutdown, halted) >>
+              stream(args, requestShutdown.set(true))
+                .interruptWhen(requestShutdown)
+                .run
+          }
+          .runAsync {
+            case Left(t) =>
+              IO(logger.error(t)("Error running stream")) >>
+                halted.set(true) >>
+                exitCode.setSyncPure(-1)
+            case Right(_) =>
               halted.set(true) >>
-              exitCode.setSyncPure(-1)
-          case Right(_) =>
-            halted.set(true) >>
-              exitCode.setSyncPure(0)
-        } >>
+                exitCode.setSyncPure(0)
+          } >>
           exitCode.get
       }
     }

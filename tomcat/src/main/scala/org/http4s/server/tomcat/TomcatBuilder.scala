@@ -19,36 +19,50 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 sealed class TomcatBuilder[F[_]: Effect] private (
-  socketAddress: InetSocketAddress,
-  private val executionContext: ExecutionContext,
-  private val idleTimeout: Duration,
-  private val asyncTimeout: Duration,
-  private val servletIo: ServletIo[F],
-  sslBits: Option[KeyStoreBits],
-  mounts: Vector[Mount[F]],
-  private val serviceErrorHandler: ServiceErrorHandler[F]
+    socketAddress: InetSocketAddress,
+    private val executionContext: ExecutionContext,
+    private val idleTimeout: Duration,
+    private val asyncTimeout: Duration,
+    private val servletIo: ServletIo[F],
+    sslBits: Option[KeyStoreBits],
+    mounts: Vector[Mount[F]],
+    private val serviceErrorHandler: ServiceErrorHandler[F]
 ) extends ServletContainer[F]
-  with ServerBuilder[F]
-  with IdleTimeoutSupport[F]
-  with SSLKeyStoreSupport[F] {
+    with ServerBuilder[F]
+    with IdleTimeoutSupport[F]
+    with SSLKeyStoreSupport[F] {
 
   private val F = Effect[F]
   type Self = TomcatBuilder[F]
 
   private def copy(
-    socketAddress: InetSocketAddress = socketAddress,
-    executionContext: ExecutionContext = executionContext,
-    idleTimeout: Duration = idleTimeout,
-    asyncTimeout: Duration = asyncTimeout,
-    servletIo: ServletIo[F] = servletIo,
-    sslBits: Option[KeyStoreBits] = sslBits,
-    mounts: Vector[Mount[F]] = mounts,
-    serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
+      socketAddress: InetSocketAddress = socketAddress,
+      executionContext: ExecutionContext = executionContext,
+      idleTimeout: Duration = idleTimeout,
+      asyncTimeout: Duration = asyncTimeout,
+      servletIo: ServletIo[F] = servletIo,
+      sslBits: Option[KeyStoreBits] = sslBits,
+      mounts: Vector[Mount[F]] = mounts,
+      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
   ): Self =
-    new TomcatBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
+    new TomcatBuilder(
+      socketAddress,
+      executionContext,
+      idleTimeout,
+      asyncTimeout,
+      servletIo,
+      sslBits,
+      mounts,
+      serviceErrorHandler)
 
-  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self =
-    copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+  override def withSSL(
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String,
+      trustStore: Option[StoreInfo],
+      clientAuth: Boolean): Self =
+    copy(
+      sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -56,7 +70,10 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   override def withExecutionContext(executionContext: ExecutionContext): Self =
     copy(executionContext = executionContext)
 
-  override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): Self =
+  override def mountServlet(
+      servlet: HttpServlet,
+      urlMapping: String,
+      name: Option[String] = None): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       val wrapper = Tomcat.addServlet(ctx, servletName, servlet)
@@ -64,10 +81,11 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       wrapper.setAsyncSupported(true)
     })
 
-  override def mountFilter(filter: Filter,
-                           urlMapping: String,
-                           name: Option[String],
-                           dispatches: util.EnumSet[DispatcherType]): Self =
+  override def mountFilter(
+      filter: Filter,
+      urlMapping: String,
+      name: Option[String],
+      dispatches: util.EnumSet[DispatcherType]): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, _) =>
       val filterName = name.getOrElse(s"filter-$index")
 
@@ -146,7 +164,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
     conn.setAttribute("address", socketAddress.getHostString)
     conn.setPort(socketAddress.getPort)
-    conn.setAttribute("connection_pool_timeout",
+    conn.setAttribute(
+      "connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
     val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
@@ -164,10 +183,9 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
       override def onShutdown(f: => Unit): this.type = {
         tomcat.getServer.addLifecycleListener(new LifecycleListener {
-          override def lifecycleEvent(event: LifecycleEvent): Unit = {
+          override def lifecycleEvent(event: LifecycleEvent): Unit =
             if (Lifecycle.AFTER_STOP_EVENT.equals(event.getLifecycle))
               f
-          }
         })
         this
       }
@@ -176,7 +194,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
         val host = socketAddress.getHostString
         val port = tomcat.getConnector.getLocalPort
         new InetSocketAddress(host, port)
-      }      
+      }
     }
   }
 }

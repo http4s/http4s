@@ -17,28 +17,33 @@ object RequestLogger {
   private[this] val logger = getLogger
 
   def apply[F[_]: Effect](
-             logHeaders: Boolean,
-             logBody: Boolean,
-             redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-           )(service: HttpService[F])
-           (implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
-
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+  )(service: HttpService[F])(
+      implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
     Service.lift { req =>
-      if (!logBody) Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) >> service(req)
-      else async.unboundedQueue[F, Byte].flatMap { queue =>
-        val newBody =
-          Stream.eval(queue.size.get)
-            .flatMap(size => queue.dequeue.take(size.toLong))
+      if (!logBody)
+        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) >> service(req)
+      else
+        async.unboundedQueue[F, Byte].flatMap { queue =>
+          val newBody =
+            Stream
+              .eval(queue.size.get)
+              .flatMap(size => queue.dequeue.take(size.toLong))
 
-        val changedRequest = req.withBodyStream(
-          req.body
-            .observe(queue.enqueue)
-            .onFinalize(
-              Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(logHeaders, logBody, redactHeadersWhen)(logger)
-            )
-        )
+          val changedRequest = req.withBodyStream(
+            req.body
+              .observe(queue.enqueue)
+              .onFinalize(
+                Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                  logHeaders,
+                  logBody,
+                  redactHeadersWhen)(logger)
+              )
+          )
 
-        service(changedRequest)
-      }
+          service(changedRequest)
+        }
     }
 }

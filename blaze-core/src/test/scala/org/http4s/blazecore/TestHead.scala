@@ -7,8 +7,8 @@ import org.http4s.blaze.util.TickWheelExecutor
 import java.nio.ByteBuffer
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ Promise, Future }
-import scala.util.{Success, Failure, Try}
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success, Try}
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   private var acc = Vector[Array[Byte]]()
@@ -38,10 +38,10 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   }
 
   override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
-    case Connect    => stageStartup()
+    case Connect => stageStartup()
     case Disconnect => stageShutdown()
-    case Error(e)   => logger.error(e)(s"$name received unhandled error command")
-    case _          => // hushes ClientStageTimeout commands that we can't see here
+    case Error(e) => logger.error(e)(s"$name received unhandled error command")
+    case _ => // hushes ClientStageTimeout commands that we can't see here
   }
 }
 
@@ -58,7 +58,8 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   }
 }
 
-final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: TickWheelExecutor) extends TestHead("Slow TestHead") { self =>
+final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: TickWheelExecutor)
+    extends TestHead("Slow TestHead") { self =>
 
   private val bodyIt = body.iterator
   private var currentRequest: Option[Promise[ByteBuffer]] = None
@@ -69,7 +70,7 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
   }
 
   private def clear(): Unit = synchronized {
-    while(bodyIt.hasNext) bodyIt.next()
+    while (bodyIt.hasNext) bodyIt.next()
     resolvePending(Failure(EOF))
   }
 
@@ -81,14 +82,15 @@ final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration, scheduler: Tick
   override def outboundCommand(cmd: OutboundCommand): Unit = self.synchronized {
     cmd match {
       case Disconnect => clear()
-      case _          => 
+      case _ =>
     }
     super.outboundCommand(cmd)
   }
 
   override def readRequest(size: Int): Future[ByteBuffer] = self.synchronized {
     currentRequest match {
-      case Some(_) => Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
+      case Some(_) =>
+        Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
       case None =>
         val p = Promise[ByteBuffer]
         currentRequest = Some(p)

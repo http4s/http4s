@@ -10,10 +10,10 @@ import org.http4s.util.{Renderable, Writer}
 import scala.util.Try
 
 case class ServerSentEvent(
-  data: String,
-  eventType: Option[String] = None,
-  id: Option[EventId] = None,
-  retry: Option[Long] = None
+    data: String,
+    eventType: Option[String] = None,
+    id: Option[EventId] = None,
+    retry: Option[Long] = None
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
     writer << "data: " << data << "\n"
@@ -45,12 +45,12 @@ object ServerSentEvent {
     Pattern.compile(""": ?""")
 
   def decoder[F[_]]: Pipe[F, Byte, ServerSentEvent] = {
-    def go(dataBuffer: StringBuilder,
-           eventType: Option[String],
-           id: Option[EventId],
-           retry: Option[Long],
-           stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
-
+    def go(
+        dataBuffer: StringBuilder,
+        eventType: Option[String],
+        id: Option[EventId],
+        retry: Option[Long],
+        stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] = {
 
       //      def dispatch(h: Handle[F, String]): Pull[F, ServerSentEvent, Nothing] =
       def dispatch(stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
@@ -64,7 +64,10 @@ object ServerSentEvent {
             Pull.output1(sse) >> go(new StringBuilder, None, None, None, stream)
         }
 
-      def handleLine(field: String, value: String, stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
+      def handleLine(
+          field: String,
+          value: String,
+          stream: Stream[F, String]): Pull[F, ServerSentEvent, Unit] =
         field match {
           case "event" =>
             go(dataBuffer, Some(value), id, retry, stream)
@@ -98,8 +101,7 @@ object ServerSentEvent {
     }
 
     stream =>
-      go(new StringBuilder, None, None, None,
-        stream.through(utf8Decode andThen text.lines)).stream
+      go(new StringBuilder, None, None, None, stream.through(utf8Decode.andThen(text.lines))).stream
   }
 
   def encoder[F[_]]: Pipe[F, ServerSentEvent, Byte] =

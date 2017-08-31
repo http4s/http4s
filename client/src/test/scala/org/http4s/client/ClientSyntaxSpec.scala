@@ -12,13 +12,13 @@ import org.specs2.matcher.MustThrownMatchers
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   val route = HttpService[IO] {
-    case r if r.method == GET && r.pathInfo == "/"            =>
+    case r if r.method == GET && r.pathInfo == "/" =>
       Response[IO](Ok).withBody("hello")
-    case r if r.method == PUT && r.pathInfo == "/put"         =>
+    case r if r.method == PUT && r.pathInfo == "/put" =>
       Response[IO](Created).withBody(r.body)
     case r if r.method == GET && r.pathInfo == "/echoheaders" =>
       r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
-         Response[IO](Ok).withBody(m.toString)
+        Response[IO](Ok).withBody(m.toString)
       }
     case r if r.pathInfo == "/status/500" =>
       Response(InternalServerError).withBody("Oops")
@@ -72,43 +72,64 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "get disposes of the response on success" in {
-      assertDisposes(_.get(req.uri) { _ => IO.unit })
+      assertDisposes(_.get(req.uri) { _ =>
+        IO.unit
+      })
     }
 
     "get disposes of the response on failure" in {
-      assertDisposes(_.get(req.uri) { _ => IO.raiseError(SadTrombone) })
+      assertDisposes(_.get(req.uri) { _ =>
+        IO.raiseError(SadTrombone)
+      })
     }
 
     "get disposes of the response on uncaught exception" in {
-      assertDisposes(_.get(req.uri) { _ => sys.error("Don't do this at home, kids") })
+      assertDisposes(_.get(req.uri) { _ =>
+        sys.error("Don't do this at home, kids")
+      })
     }
 
     "fetch disposes of the response on success" in {
-      assertDisposes(_.fetch(req) { _ => IO.unit })
+      assertDisposes(_.fetch(req) { _ =>
+        IO.unit
+      })
     }
 
     "fetch disposes of the response on failure" in {
-      assertDisposes(_.fetch(req) { _ => IO.raiseError(SadTrombone) })
+      assertDisposes(_.fetch(req) { _ =>
+        IO.raiseError(SadTrombone)
+      })
     }
 
     "fetch disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(req) { _ => sys.error("Don't do this at home, kids") })
+      assertDisposes(_.fetch(req) { _ =>
+        sys.error("Don't do this at home, kids")
+      })
     }
 
     "fetch on task disposes of the response on success" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ => IO.unit })
+      assertDisposes(_.fetch(IO.pure(req)) { _ =>
+        IO.unit
+      })
     }
 
     "fetch on task disposes of the response on failure" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ => IO.raiseError(SadTrombone) })
+      assertDisposes(_.fetch(IO.pure(req)) { _ =>
+        IO.raiseError(SadTrombone)
+      })
     }
 
     "fetch on task disposes of the response on uncaught exception" in {
-      assertDisposes(_.fetch(IO.pure(req)) { _ => sys.error("Don't do this at home, kids") })
+      assertDisposes(_.fetch(IO.pure(req)) { _ =>
+        sys.error("Don't do this at home, kids")
+      })
     }
 
     "fetch on task that does not match results in failed task" in {
-      client.fetch(IO.pure(req))(PartialFunction.empty).attempt.unsafeRunSync() must beLeft { e: Throwable => e must beAnInstanceOf[MatchError] }
+      client.fetch(IO.pure(req))(PartialFunction.empty).attempt.unsafeRunSync() must beLeft {
+        e: Throwable =>
+          e must beAnInstanceOf[MatchError]
+      }
     }
 
     "fetch Uris with expect" in {
@@ -156,58 +177,73 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "return an unexpected status when expect returns unsuccessful status" in {
-      client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(Left(UnexpectedStatus(Status.InternalServerError)))
+      client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(
+        Left(UnexpectedStatus(Status.InternalServerError)))
     }
 
     "add Accept header on expect" in {
-      client.expect[String](uri("http://www.foo.com/echoheaders")) must returnValue("Accept: text/*")
+      client.expect[String](uri("http://www.foo.com/echoheaders")) must returnValue(
+        "Accept: text/*")
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
+      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
+        "Accept: text/*")
     }
 
     "add Accept header on expect for requests" in {
-      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
+      client.expect[String](Request[IO](GET, uri("http://www.foo.com/echoheaders"))) must returnValue(
+        "Accept: text/*")
     }
 
-     "combine entity decoder media types correctly" in {
-       // This is more of an EntityDecoder spec
-       val edec = EntityDecoder.decodeBy[IO, String](MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
-       client.expect(Request[IO](GET, uri("http://www.foo.com/echoheaders")))(EntityDecoder.text[IO] orElse edec) must returnValue("Accept: text/*, image/jpeg")
-     }
+    "combine entity decoder media types correctly" in {
+      // This is more of an EntityDecoder spec
+      val edec = EntityDecoder.decodeBy[IO, String](MediaType.`image/jpeg`)(_ =>
+        DecodeResult.success("foo!"))
+      client.expect(Request[IO](GET, uri("http://www.foo.com/echoheaders")))(
+        EntityDecoder.text[IO].orElse(edec)) must returnValue("Accept: text/*, image/jpeg")
+    }
 
-     "streaming returns a stream" in {
-       client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRunSync() must_== Vector("hello")
-     }
+    "streaming returns a stream" in {
+      client
+        .streaming(req)(_.body.through(fs2.text.utf8Decode))
+        .runLog
+        .unsafeRunSync() must_== Vector("hello")
+    }
 
     "streaming returns a stream from a request task" in {
-      client.streaming(req)(_.body.through(fs2.text.utf8Decode)).runLog.unsafeRunSync() must_== Vector("hello")
+      client
+        .streaming(req)(_.body.through(fs2.text.utf8Decode))
+        .runLog
+        .unsafeRunSync() must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {
       assertDisposes(_.streaming(req)(_.body).run)
     }
 
-     "streaming disposes of the response on failure" in {
-       assertDisposes(_.streaming(req)(_ => Stream.fail(SadTrombone)).run)
-     }
+    "streaming disposes of the response on failure" in {
+      assertDisposes(_.streaming(req)(_ => Stream.fail(SadTrombone)).run)
+    }
 
-     "toService disposes of the response on success" in {
-       assertDisposes(_.toService(_ => IO.pure(())).run(req))
-     }
+    "toService disposes of the response on success" in {
+      assertDisposes(_.toService(_ => IO.pure(())).run(req))
+    }
 
-     "toService disposes of the response on failure" in {
-       assertDisposes(_.toService(_ => IO.raiseError(SadTrombone)).run(req))
-     }
+    "toService disposes of the response on failure" in {
+      assertDisposes(_.toService(_ => IO.raiseError(SadTrombone)).run(req))
+    }
 
-     "toHttpService disposes the response if the body is run" in {
-       assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.run).run(req))
-     }
+    "toHttpService disposes the response if the body is run" in {
+      assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.run).run(req))
+    }
 
-     "toHttpService disposes of the response if the body is run, even if it fails" in {
-       assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.flatMap(_ => Stream.fail(SadTrombone)).run).run(req))
-     }
+    "toHttpService disposes of the response if the body is run, even if it fails" in {
+      assertDisposes(
+        _.toHttpService
+          .flatMapF(_.orNotFound.body.flatMap(_ => Stream.fail(SadTrombone)).run)
+          .run(req))
+    }
 
     "toHttpService allows the response to be read" in {
       client.toHttpService.orNotFound(req).as[String] must returnValue("hello")

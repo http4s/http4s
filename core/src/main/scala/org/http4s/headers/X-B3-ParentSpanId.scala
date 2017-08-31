@@ -5,7 +5,9 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 import java.lang.{Long => JLong}
 
-object `X-B3-ParentSpanId` extends HeaderKey.Internal[`X-B3-ParentSpanId`] with HeaderKey.Singleton {
+object `X-B3-ParentSpanId`
+    extends HeaderKey.Internal[`X-B3-ParentSpanId`]
+    with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-ParentSpanId`] =
     HttpHeaderParser.X_B3_PARENTSPANID(s)
 

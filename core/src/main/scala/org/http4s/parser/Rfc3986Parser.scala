@@ -5,14 +5,12 @@ import java.nio.charset.Charset
 import java.net.URLDecoder
 
 import cats.implicits._
-import org.http4s.{ Query => Q }
+import org.http4s.{Query => Q}
 import org.http4s.syntax.string._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.HNil
 
-private[parser] trait Rfc3986Parser
-    extends IpParser
-    with StringBuilding {
+private[parser] trait Rfc3986Parser extends IpParser with StringBuilding {
   this: Parser =>
 
   // scalastyle:off public.methods.have.type
@@ -23,54 +21,85 @@ private[parser] trait Rfc3986Parser
   def Uri: Rule1[org.http4s.Uri] = rule { (AbsoluteUri | RelativeRef) ~ EOI }
 
   def AbsoluteUri = rule {
-    Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (scheme, auth, path, query, fragment) =>
-      org.http4s.Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+    Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
+      (scheme, auth, path, query, fragment) =>
+        org.http4s
+          .Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
     }
   }
 
   def RelativeRef = rule {
-    RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (auth, path, query, fragment) =>
-    org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+    RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
+      (auth, path, query, fragment) =>
+        org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
     }
   }
 
   def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
+    "//" ~ Authority ~ PathAbempty ~> {
+      (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
+        auth.some :: path :: HNil
+    } |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathRootless ~> (None :: _ :: HNil) |
-      PathEmpty ~> {(e: String) => None :: e :: HNil}
+      PathEmpty ~> { (e: String) =>
+        None :: e :: HNil
+      }
   }
 
   def RelativePart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
+    "//" ~ Authority ~ PathAbempty ~> {
+      (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
+        auth.some :: path :: HNil
+    } |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathNoscheme ~> (None :: _ :: HNil) |
-      PathEmpty ~> {(e: String) => None :: e :: HNil}
+      PathEmpty ~> { (e: String) =>
+        None :: e :: HNil
+      }
   }
 
   def Scheme = rule {
     capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
-  def Authority: Rule1[org.http4s.Uri.Authority] = rule { optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _) }
-
-  def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
-
-  def Host: Rule1[org.http4s.Uri.Host] = rule {
-    capture(IpV4Address) ~> { s: String => org.http4s.Uri.IPv4(s.ci) } |
-      (IpLiteral | capture(IpV6Address)) ~> { s: String => org.http4s.Uri.IPv6(s.ci) } |
-      capture(RegName) ~> { s: String => org.http4s.Uri.RegName(decode(s).ci) }
+  def Authority: Rule1[org.http4s.Uri.Authority] = rule {
+    optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _)
   }
 
-  def Port = rule { ":" ~ (capture(oneOrMore(Digit)) ~> {s: String => (Some(s.toInt))} |  push(None)) |  push(None) }
+  def UserInfo = rule {
+    capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _)
+  }
+
+  def Host: Rule1[org.http4s.Uri.Host] = rule {
+    capture(IpV4Address) ~> { s: String =>
+      org.http4s.Uri.IPv4(s.ci)
+    } |
+      (IpLiteral | capture(IpV6Address)) ~> { s: String =>
+        org.http4s.Uri.IPv6(s.ci)
+      } |
+      capture(RegName) ~> { s: String =>
+        org.http4s.Uri.RegName(decode(s).ci)
+      }
+  }
+
+  def Port = rule {
+    ":" ~ (capture(oneOrMore(Digit)) ~> { s: String =>
+      (Some(s.toInt))
+    } | push(None)) | push(None)
+  }
 
   def IpLiteral = rule { "[" ~ capture(IpV6Address | IpVFuture) ~ "]" }
 
-  def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
+  def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":") }
 
   def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
 
-  def Path: Rule1[String] = rule { (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String => decode(s)} }
+  def Path: Rule1[String] = rule {
+    (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String =>
+      decode(s)
+    }
+  }
 
   def PathAbempty: Rule1[String] = rule { capture(zeroOrMore("/" ~ Segment)) }
 
@@ -93,7 +122,9 @@ private[parser] trait Rfc3986Parser
   // NOTE: The Query is NOT url decoded.
   def Query = rule {
     clearSB() ~ zeroOrMore(
-      capture(Pchar) ~> { s: String => appendSB(s) } |
+      capture(Pchar) ~> { s: String =>
+        appendSB(s)
+      } |
         "/" ~ appendSB() |
         "?" ~ appendSB() |
         // These are illegal, but common in the wild.  We will be "conservative

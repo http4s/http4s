@@ -7,7 +7,8 @@ import scalaz.Validation
 import Http4s._
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
-  def hparse(value: String): ParseResult[`Accept-Encoding`] = HttpHeaderParser.ACCEPT_ENCODING(value)
+  def hparse(value: String): ParseResult[`Accept-Encoding`] =
+    HttpHeaderParser.ACCEPT_ENCODING(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
   val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.5)))
@@ -19,8 +20,9 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
   "Accept-Encoding parser" should {
 
     "parse all encodings" in {
-      foreach(ContentCoding.snapshot) { case (name, coding) =>
-        parse(coding.renderString).values.head should be_==(coding)
+      foreach(ContentCoding.snapshot) {
+        case (name, coding) =>
+          parse(coding.renderString).values.head should be_==(coding)
       }
     }
   }
@@ -39,13 +41,15 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
     parse(gzip5.value) must be_==(gzip5)
     parse(gzip555.value) must be_==(gzip555)
 
-    parse("gzip; q=1.0, compress") must be_==(`Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
+    parse("gzip; q=1.0, compress") must be_==(
+      `Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
 
     parse(gzip1.value) must be_==(gzip)
   }
 
   "Offer preferred" in {
-    val unordered = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.5)),
+    val unordered = `Accept-Encoding`(
+      ContentCoding.gzip.withQValue(q(0.5)),
       ContentCoding.compress.withQValue(q(0.1)),
       ContentCoding.deflate)
 
@@ -53,9 +57,10 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
   }
 
   "Be satisfied correctly" in {
-    `Accept-Encoding`(ContentCoding.`*`) satisfiedBy ContentCoding.gzip should beTrue
-    `Accept-Encoding`(ContentCoding.`*` withQValue QValue.Zero) satisfiedBy ContentCoding.gzip should beFalse
-    gzip satisfiedBy ContentCoding.gzip should beTrue
-    gzip satisfiedBy ContentCoding.deflate should beFalse
+    `Accept-Encoding`(ContentCoding.`*`).satisfiedBy(ContentCoding.gzip) should beTrue
+    `Accept-Encoding`(ContentCoding.`*`.withQValue(QValue.Zero))
+      .satisfiedBy(ContentCoding.gzip) should beFalse
+    gzip.satisfiedBy(ContentCoding.gzip) should beTrue
+    gzip.satisfiedBy(ContentCoding.deflate) should beFalse
   }
 }

@@ -22,16 +22,15 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]: Effect] private (
-  socketAddress: InetSocketAddress,
-  private val executionContext: ExecutionContext,
-  private val idleTimeout: Duration,
-  private val asyncTimeout: Duration,
-  private val servletIo: ServletIo[F],
-  sslBits: Option[SSLConfig],
-  mounts: Vector[Mount[F]],
-  private val serviceErrorHandler: ServiceErrorHandler[F]
-)
-  extends ServletContainer[F]
+    socketAddress: InetSocketAddress,
+    private val executionContext: ExecutionContext,
+    private val idleTimeout: Duration,
+    private val asyncTimeout: Duration,
+    private val servletIo: ServletIo[F],
+    sslBits: Option[SSLConfig],
+    mounts: Vector[Mount[F]],
+    private val serviceErrorHandler: ServiceErrorHandler[F]
+) extends ServletContainer[F]
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -41,30 +40,37 @@ sealed class JettyBuilder[F[_]: Effect] private (
   type Self = JettyBuilder[F]
 
   private def copy(
-    socketAddress: InetSocketAddress = socketAddress,
-    executionContext: ExecutionContext = executionContext,
-    idleTimeout: Duration = idleTimeout,
-    asyncTimeout: Duration = asyncTimeout,
-    servletIo: ServletIo[F] = servletIo,
-    sslBits: Option[SSLConfig] = sslBits,
-    mounts: Vector[Mount[F]] = mounts,
-    serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
+      socketAddress: InetSocketAddress = socketAddress,
+      executionContext: ExecutionContext = executionContext,
+      idleTimeout: Duration = idleTimeout,
+      asyncTimeout: Duration = asyncTimeout,
+      servletIo: ServletIo[F] = servletIo,
+      sslBits: Option[SSLConfig] = sslBits,
+      mounts: Vector[Mount[F]] = mounts,
+      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
   ): Self =
-    new JettyBuilder(socketAddress, executionContext, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, serviceErrorHandler)
+    new JettyBuilder(
+      socketAddress,
+      executionContext,
+      idleTimeout,
+      asyncTimeout,
+      servletIo,
+      sslBits,
+      mounts,
+      serviceErrorHandler)
 
   override def withSSL(
-    keyStore: StoreInfo,
-    keyManagerPassword: String,
-    protocol: String,
-    trustStore: Option[StoreInfo],
-    clientAuth: Boolean
-  ): Self = {
-    copy(sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
-  }
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String,
+      trustStore: Option[StoreInfo],
+      clientAuth: Boolean
+  ): Self =
+    copy(
+      sslBits = Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self = {
+  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
-  }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -72,17 +78,20 @@ sealed class JettyBuilder[F[_]: Effect] private (
   override def withExecutionContext(executionContext: ExecutionContext): Self =
     copy(executionContext = executionContext)
 
-  override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): Self =
+  override def mountServlet(
+      servlet: HttpServlet,
+      urlMapping: String,
+      name: Option[String] = None): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
 
   override def mountFilter(
-    filter: Filter,
-    urlMapping: String,
-    name: Option[String],
-    dispatches: util.EnumSet[DispatcherType]
+      filter: Filter,
+      urlMapping: String,
+      name: Option[String],
+      dispatches: util.EnumSet[DispatcherType]
   ): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, _) =>
       val filterName = name.getOrElse(s"filter-$index")
@@ -127,11 +136,12 @@ sealed class JettyBuilder[F[_]: Effect] private (
       https_config.addCustomizer(new SecureRequestCustomizer())
 
       val connectionFactory = new HttpConnectionFactory(https_config)
-      new ServerConnector(jetty, new SslConnectionFactory(sslContextFactory,
-        org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()
-      ),
-        connectionFactory
-      )
+      new ServerConnector(
+        jetty,
+        new SslConnectionFactory(
+          sslContextFactory,
+          org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
+        connectionFactory)
     }
 
     sslBits match {

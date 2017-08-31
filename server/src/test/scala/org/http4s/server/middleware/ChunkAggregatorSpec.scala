@@ -16,11 +16,17 @@ import org.specs2.matcher.MatchResult
 class ChunkAggregatorSpec extends Http4sSpec {
 
   val transferCodingGen: Gen[Seq[TransferCoding]] =
-    Gen.someOf(Seq(TransferCoding.compress, TransferCoding.deflate, TransferCoding.gzip, TransferCoding.identity))
+    Gen.someOf(
+      Seq(
+        TransferCoding.compress,
+        TransferCoding.deflate,
+        TransferCoding.gzip,
+        TransferCoding.identity))
   implicit val transferCodingArbitrary = Arbitrary(transferCodingGen.map(_.toList))
 
   "ChunkAggregator" should {
-    def checkResponse(body: EntityBody[IO], transferCodings: List[TransferCoding])(responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] = {
+    def checkResponse(body: EntityBody[IO], transferCodings: List[TransferCoding])(
+        responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] = {
       val service: HttpService[IO] = HttpService.lift[IO] { _ =>
         Ok()
           .putHeaders(`Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
@@ -28,9 +34,9 @@ class ChunkAggregatorSpec extends Http4sSpec {
           .withBody(body)
       }
       ChunkAggregator(service).run(Request()) must returnValue { maybeResponse: MaybeResponse[IO] =>
-          val response = maybeResponse.orNotFound
-          response.status must_== Ok
-          responseCheck(response)
+        val response = maybeResponse.orNotFound
+        response.status must_== Ok
+        responseCheck(response)
       }
     }
 
@@ -49,12 +55,14 @@ class ChunkAggregatorSpec extends Http4sSpec {
     "handle chunks" in {
       prop { (chunks: NonEmptyList[Chunk[Byte]], transferCodings: List[TransferCoding]) =>
         val totalChunksSize = chunks.foldMap(_.size)
-        checkResponse(chunks.map(Stream.chunk[Byte]).reduceLeft(_ ++ _), transferCodings) { response =>
-          if (totalChunksSize > 0) {
-            response.contentLength must beSome(totalChunksSize.toLong)
-            response.headers.get(`Transfer-Encoding`).map(_.values) must_=== NonEmptyList.fromList(transferCodings)
-          }
-          response.body.runLog.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
+        checkResponse(chunks.map(Stream.chunk[Byte]).reduceLeft(_ ++ _), transferCodings) {
+          response =>
+            if (totalChunksSize > 0) {
+              response.contentLength must beSome(totalChunksSize.toLong)
+              response.headers.get(`Transfer-Encoding`).map(_.values) must_=== NonEmptyList
+                .fromList(transferCodings)
+            }
+            response.body.runLog.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
         }
       }
     }

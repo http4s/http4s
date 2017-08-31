@@ -21,18 +21,20 @@ package org.http4s
 import org.http4s.util._
 import org.http4s.syntax.string._
 
-final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with Renderable {
+final case class ContentCoding(coding: CaseInsensitiveString, qValue: QValue = QValue.One)
+    extends HasQValue
+    with Renderable {
   def withQValue(q: QValue): ContentCoding = copy(coding, q)
   def satisfies(encoding: ContentCoding): Boolean = encoding.satisfiedBy(this)
-  def satisfiedBy(encoding: ContentCoding): Boolean = {
+  def satisfiedBy(encoding: ContentCoding): Boolean =
     (this.coding.toString == "*" || this.coding == encoding.coding) &&
-    qValue.isAcceptable && encoding.qValue.isAcceptable
-  }
+      qValue.isAcceptable && encoding.qValue.isAcceptable
 
   override def render(writer: Writer): writer.type = writer << coding << qValue
 
   // We want the normal case class generated methods except copy
-  private def copy(coding: CaseInsensitiveString = this.coding, q: QValue = this.qValue) = ContentCoding(coding, q)
+  private def copy(coding: CaseInsensitiveString = this.coding, q: QValue = this.qValue) =
+    ContentCoding(coding, q)
 }
 
 object ContentCoding extends Registry {
@@ -43,17 +45,17 @@ object ContentCoding extends Registry {
 
   implicit def fromValue(v: ContentCoding): CaseInsensitiveString = v.coding
 
-  val `*`: ContentCoding = registerKey("*".ci)
+  val `*` : ContentCoding = registerKey("*".ci)
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
-  val compress       = registerKey("compress".ci)
-  val deflate        = registerKey("deflate".ci)
-  val exi            = registerKey("exi".ci)
-  val gzip           = registerKey("gzip".ci)
-  val identity       = registerKey("identity".ci)
+  val compress = registerKey("compress".ci)
+  val deflate = registerKey("deflate".ci)
+  val exi = registerKey("exi".ci)
+  val gzip = registerKey("gzip".ci)
+  val identity = registerKey("identity".ci)
   val `pack200-gzip` = registerKey("pack200-gzip".ci)
 
   // Legacy encodings defined by RFC2616 3.5.
-  val `x-compress`   = register("x-compress".ci, compress)
-  val `x-gzip`       = register("x-gzip".ci, gzip)
+  val `x-compress` = register("x-compress".ci, compress)
+  val `x-gzip` = register("x-gzip".ci, gzip)
 }

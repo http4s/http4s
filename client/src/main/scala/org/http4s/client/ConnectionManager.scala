@@ -22,7 +22,7 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
   def shutdown(): F[Unit]
 
   /** Get a connection for the provided request key. */
-   def borrow(requestKey: RequestKey): F[NextConnection]
+  def borrow(requestKey: RequestKey): F[NextConnection]
 
   /**
     * Release a connection.  The connection manager may choose to keep the connection for
@@ -38,11 +38,13 @@ trait ConnectionManager[F[_], A <: Connection[F]] {
 }
 
 object ConnectionManager {
+
   /** Create a [[ConnectionManager]] that creates new connections on each request
     *
     * @param builder generator of new connections
     * */
-  def basic[F[_]: Sync, A <: Connection[F]](builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
+  def basic[F[_]: Sync, A <: Connection[F]](
+      builder: ConnectionBuilder[F, A]): ConnectionManager[F, A] =
     new BasicManager[F, A](builder)
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
@@ -51,6 +53,9 @@ object ConnectionManager {
     * @param maxTotal max total connections
     * @param executionContext `ExecutionContext` where async operations will execute
     */
-  def pool[F[_]: Effect, A <: Connection[F]](builder: ConnectionBuilder[F, A], maxTotal: Int, executionContext: ExecutionContext): ConnectionManager[F, A] =
+  def pool[F[_]: Effect, A <: Connection[F]](
+      builder: ConnectionBuilder[F, A],
+      maxTotal: Int,
+      executionContext: ExecutionContext): ConnectionManager[F, A] =
     new PoolManager[F, A](builder, maxTotal, executionContext)
 }

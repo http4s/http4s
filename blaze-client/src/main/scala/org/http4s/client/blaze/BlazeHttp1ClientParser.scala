@@ -10,18 +10,25 @@ import scala.collection.mutable.ListBuffer
 
 /** http/1.x parser for the blaze client */
 private object BlazeHttp1ClientParser {
-  def apply(maxRequestLineSize: Int,
-            maxHeaderLength: Int,
-            maxChunkSize: Int,
-            isLenient: Boolean): BlazeHttp1ClientParser =
+  def apply(
+      maxRequestLineSize: Int,
+      maxHeaderLength: Int,
+      maxChunkSize: Int,
+      isLenient: Boolean): BlazeHttp1ClientParser =
     new BlazeHttp1ClientParser(maxRequestLineSize, maxHeaderLength, maxChunkSize, isLenient)
 }
 
-private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
-                                                  maxHeaderLength: Int,
-                                                  maxChunkSize: Int,
-                                                  isLenient: Boolean)
-  extends Http1ClientParser(maxResponseLineSize, maxHeaderLength, 2*1024, maxChunkSize, isLenient) {
+private[blaze] final class BlazeHttp1ClientParser(
+    maxResponseLineSize: Int,
+    maxHeaderLength: Int,
+    maxChunkSize: Int,
+    isLenient: Boolean)
+    extends Http1ClientParser(
+      maxResponseLineSize,
+      maxHeaderLength,
+      2 * 1024,
+      maxChunkSize,
+      isLenient) {
   private val headers = new ListBuffer[Header]
   private var status: Status = _
   private var httpVersion: HttpVersion = _
@@ -34,7 +41,7 @@ private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
   }
 
   def getHttpVersion(): HttpVersion =
-    if (httpVersion == null) HttpVersion.`HTTP/1.0`  // TODO Questionable default
+    if (httpVersion == null) HttpVersion.`HTTP/1.0` // TODO Questionable default
     else httpVersion
 
   def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
@@ -57,15 +64,16 @@ private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
   def finishedHeaders(buffer: ByteBuffer): Boolean =
     headersComplete() || parseHeaders(buffer)
 
-  override protected def submitResponseLine(code: Int,
-                                            reason: String,
-                                            scheme: String,
-                                            majorversion: Int,
-                                            minorversion: Int): Unit = {
+  override protected def submitResponseLine(
+      code: Int,
+      reason: String,
+      scheme: String,
+      majorversion: Int,
+      minorversion: Int): Unit = {
     status = Status.fromIntAndReason(code, reason).valueOr(throw _)
     httpVersion = {
-      if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
-      else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`
+      if (majorversion == 1 && minorversion == 1) HttpVersion.`HTTP/1.1`
+      else if (majorversion == 1 && minorversion == 0) HttpVersion.`HTTP/1.0`
       else HttpVersion.fromVersion(majorversion, minorversion).getOrElse(HttpVersion.`HTTP/1.0`)
     }
   }

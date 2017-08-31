@@ -4,9 +4,9 @@ import java.util.Locale
 import cats.{Eq, Monoid, Order, Show}
 
 /**
- * A String wrapper such that two strings `x` and `y` are equal if
- * `x.value.equalsIgnoreCase(y.value)`
- */
+  * A String wrapper such that two strings `x` and `y` are equal if
+  * `x.value.equalsIgnoreCase(y.value)`
+  */
 sealed class CaseInsensitiveString private (val value: String)
     extends CharSequence
     with Ordered[CaseInsensitiveString] {
@@ -65,15 +65,17 @@ object CaseInsensitiveString extends CaseInsensitiveStringInstances {
 }
 
 private[http4s] sealed trait CaseInsensitiveStringInstances {
-  implicit val http4sInstancesForCaseInsensitiveString: Monoid[CaseInsensitiveString] with Order[CaseInsensitiveString] with Show[CaseInsensitiveString] =
-    new Monoid[CaseInsensitiveString] with Order[CaseInsensitiveString] with Show[CaseInsensitiveString] {
+  implicit val http4sInstancesForCaseInsensitiveString: Monoid[CaseInsensitiveString] with Order[
+    CaseInsensitiveString] with Show[CaseInsensitiveString] =
+    new Monoid[CaseInsensitiveString] with Order[CaseInsensitiveString]
+    with Show[CaseInsensitiveString] {
       def empty: CaseInsensitiveString =
         CaseInsensitiveString.empty
       def combine(f1: CaseInsensitiveString, f2: CaseInsensitiveString) =
         CaseInsensitiveString(f1.value + f2.value)
 
       def compare(x: CaseInsensitiveString, y: CaseInsensitiveString): Int =
-        x.value compare y.value
+        x.value.compare(y.value)
       override def eqv(x: CaseInsensitiveString, y: CaseInsensitiveString): Boolean =
         x == y
 

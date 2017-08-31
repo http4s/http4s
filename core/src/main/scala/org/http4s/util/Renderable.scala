@@ -13,8 +13,8 @@ import scala.collection.immutable.BitSet
 import scala.concurrent.duration.FiniteDuration
 
 /** A type class that describes how to efficiently render a type
- * @tparam T the type which will be rendered
- */
+  * @tparam T the type which will be rendered
+  */
 trait Renderer[T] {
 
   /** Renders the object to the writer
@@ -31,7 +31,8 @@ object Renderer {
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
 
     private val dateFormat =
-      DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
+      DateTimeFormatter
+        .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
         .withLocale(Locale.US)
         .withZone(ZoneId.of("GMT"))
 
@@ -52,10 +53,12 @@ object Renderer {
       writer << d.toString
   }
 
-  implicit def eitherRenderer[A, B](implicit ra: Renderer[A], rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {
+  implicit def eitherRenderer[A, B](
+      implicit ra: Renderer[A],
+      rb: Renderer[B]): Renderer[Either[A, B]] = new Renderer[Either[A, B]] {
     override def render(writer: Writer, e: Either[A, B]): writer.type =
       e match {
-        case Left(a)  => ra.render(writer, a)
+        case Left(a) => ra.render(writer, a)
         case Right(b) => rb.render(writer, b)
       }
   }
@@ -85,22 +88,25 @@ object Renderable {
 }
 
 object Writer {
-  val HeaderValueDQuote = BitSet("\\\"".map(_.toInt):_*)
+  val HeaderValueDQuote = BitSet("\\\"".map(_.toInt): _*)
 }
 
 /** Efficiently accumulate [[Renderable]] representations */
 trait Writer {
-  def append(s: String):                 this.type
+  def append(s: String): this.type
   def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
-  def append(char: Char):                this.type = append(char.toString)
-  def append(float: Float):              this.type = append(float.toString)
-  def append(double: Double):            this.type = append(double.toString)
-  def append(int: Int):                  this.type = append(int.toString)
-  def append(long: Long):                this.type = append(long.toString)
+  def append(char: Char): this.type = append(char.toString)
+  def append(float: Float): this.type = append(float.toString)
+  def append(double: Double): this.type = append(double.toString)
+  def append(int: Int): this.type = append(int.toString)
+  def append(long: Long): this.type = append(long.toString)
 
   def append[T](r: T)(implicit R: Renderer[T]): this.type = R.render(this, r)
 
-  def quote(s: String, escapedChars: BitSet = Writer.HeaderValueDQuote, escapeChar: Char = '\\'): this.type = {
+  def quote(
+      s: String,
+      escapedChars: BitSet = Writer.HeaderValueDQuote,
+      escapeChar: Char = '\\'): this.type = {
     this << '"'
 
     @tailrec
@@ -115,7 +121,11 @@ trait Writer {
     this << '"'
   }
 
-  def addStrings(s: Seq[String], sep: String = "", start: String = "", end: String = ""): this.type = {
+  def addStrings(
+      s: Seq[String],
+      sep: String = "",
+      start: String = "",
+      end: String = ""): this.type = {
     append(start)
     if (s.nonEmpty) {
       append(s.head)
@@ -124,14 +134,22 @@ trait Writer {
     append(end)
   }
 
-  def addStringNel(s: NonEmptyList[String], sep: String = "", start: String = "", end: String = ""): this.type = {
+  def addStringNel(
+      s: NonEmptyList[String],
+      sep: String = "",
+      start: String = "",
+      end: String = ""): this.type = {
     append(start)
     append(s.head)
     s.tail.foreach(s => append(sep).append(s))
     append(end)
   }
 
-  def addSeq[T: Renderer](s: Seq[T], sep: String = "", start: String = "", end: String = ""): this.type = {
+  def addSeq[T: Renderer](
+      s: Seq[T],
+      sep: String = "",
+      start: String = "",
+      end: String = ""): this.type = {
     append(start)
     if (s.nonEmpty) {
       append(s.head)
@@ -140,16 +158,15 @@ trait Writer {
     append(end)
   }
 
-  final def <<(s: String):                this.type = append(s)
-  final def <<#(s: String):               this.type = quote(s)
+  final def <<(s: String): this.type = append(s)
+  final def <<#(s: String): this.type = quote(s)
   final def <<(s: CaseInsensitiveString): this.type = append(s)
-  final def <<(char: Char):               this.type = append(char)
-  final def <<(float: Float):             this.type = append(float)
-  final def <<(double: Double):           this.type = append(double)
-  final def <<(int: Int):                 this.type = append(int)
-  final def <<(long: Long):               this.type = append(long)
-  final def <<[T: Renderer](r: T):        this.type = append(r)
-
+  final def <<(char: Char): this.type = append(char)
+  final def <<(float: Float): this.type = append(float)
+  final def <<(double: Double): this.type = append(double)
+  final def <<(int: Int): this.type = append(int)
+  final def <<(long: Long): this.type = append(long)
+  final def <<[T: Renderer](r: T): this.type = append(r)
 
 }
 
@@ -177,8 +194,8 @@ object StringWriter {
   * @param bv initial ByteVector`
   */
 final case class ChunkWriter(
-  var toChunk: Chunk[Byte] = Chunk.empty,
-  charset: Charset = StandardCharsets.UTF_8
+    var toChunk: Chunk[Byte] = Chunk.empty,
+    charset: Charset = StandardCharsets.UTF_8
 ) extends Writer {
 
   override def append(s: String): this.type = {
@@ -186,10 +203,9 @@ final case class ChunkWriter(
     this
   }
 
-  override def append(char: Char): this.type      = append(char.toString)
-  override def append(float: Float): this.type    = append(float.toString)
-  override def append(double: Double): this.type  = append(double.toString)
-  override def append(int: Int): this.type        = append(int.toString)
-  override def append(long: Long): this.type      = append(long.toString)
+  override def append(char: Char): this.type = append(char.toString)
+  override def append(float: Float): this.type = append(float.toString)
+  override def append(double: Double): this.type = append(double.toString)
+  override def append(int: Int): this.type = append(int.toString)
+  override def append(long: Long): this.type = append(long.toString)
 }
-

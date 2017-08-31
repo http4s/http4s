@@ -6,29 +6,29 @@ import org.http4s.{Http4s, Method}
 trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F] with Auth {
   import Http4sDsl._
 
-  type Path         = impl.Path
-  type Root         = impl.Root.type
-  type /            = impl./
+  type Path = impl.Path
+  type Root = impl.Root.type
+  type / = impl./
   type MethodConcat = impl.MethodConcat
 
   val Path: impl.Path.type = impl.Path
   val Root: impl.Root.type = impl.Root
-  val / : impl./.type      = impl./
-  val :? : impl.:?.type    = impl.:?
-  val ~ : impl.~.type      = impl.~
-  val -> : impl.->.type    = impl.->
-  val /: : impl./:.type    = impl./:
-  val +& : impl.+&.type    = impl.+&
+  val / : impl./.type = impl./
+  val :? : impl.:?.type = impl.:?
+  val ~ : impl.~.type = impl.~
+  val -> : impl.->.type = impl.->
+  val /: : impl./:.type = impl./:
+  val +& : impl.+&.type = impl.+&
 
-  val IntVar: impl.IntVar.type   = impl.IntVar
+  val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
 
-  type QueryParamDecoderMatcher[T]              = impl.QueryParamDecoderMatcher[T]
-  type QueryParamMatcher[T]                     = impl.QueryParamMatcher[T]
-  type OptionalQueryParamDecoderMatcher[T]      = impl.OptionalQueryParamDecoderMatcher[T]
+  type QueryParamDecoderMatcher[T] = impl.QueryParamDecoderMatcher[T]
+  type QueryParamMatcher[T] = impl.QueryParamMatcher[T]
+  type OptionalQueryParamDecoderMatcher[T] = impl.OptionalQueryParamDecoderMatcher[T]
   type OptionalMultiQueryParamDecoderMatcher[T] = impl.OptionalMultiQueryParamDecoderMatcher[T]
-  type OptionalQueryParamMatcher[T]             = impl.OptionalQueryParamMatcher[T]
-  type ValidatingQueryParamDecoderMatcher[T]    = impl.ValidatingQueryParamDecoderMatcher[T]
+  type OptionalQueryParamMatcher[T] = impl.OptionalQueryParamMatcher[T]
+  type ValidatingQueryParamDecoderMatcher[T] = impl.ValidatingQueryParamDecoderMatcher[T]
   type OptionalValidatingQueryParamDecoderMatcher[T] =
     impl.OptionalValidatingQueryParamDecoderMatcher[T]
 

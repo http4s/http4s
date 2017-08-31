@@ -11,12 +11,18 @@ trait DefaultFilter extends Filter {
 
   override def destroy(): Unit = {}
 
-  final override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit =
+  final override def doFilter(
+      request: ServletRequest,
+      response: ServletResponse,
+      chain: FilterChain): Unit =
     (request, response) match {
       case (httpReq: HttpServletRequest, httpRes: HttpServletResponse) =>
         doHttpFilter(httpReq, httpRes, chain)
       case _ =>
     }
 
-  def doHttpFilter(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain): Unit
+  def doHttpFilter(
+      request: HttpServletRequest,
+      response: HttpServletResponse,
+      chain: FilterChain): Unit
 }

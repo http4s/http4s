@@ -7,5 +7,4 @@ import cats.data._
 import fs2._
 import org.http4s.headers._
 
-object Authentication {
-}
+object Authentication {}

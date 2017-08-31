@@ -26,42 +26,59 @@ object VirtualHost {
     * (discounting case) and port, if the port is given. If the port is not
     * given, it is ignored.
     */
-  def exact[F[_]](service: HttpService[F], requestHost: String, port: Option[Int] = None): HostService[F] =
-    HostService(service, h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
+  def exact[F[_]](
+      service: HttpService[F],
+      requestHost: String,
+      port: Option[Int] = None): HostService[F] =
+    HostService(
+      service,
+      h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
 
   /** Create a [[HostService]] that will match based on the host string allowing
-    * for wildcard matching of the lowercase host string and port, if the port is 
+    * for wildcard matching of the lowercase host string and port, if the port is
     * given. If the port is not given, it is ignored.
     */
-  def wildcard[F[_]](service: HttpService[F], wildcardHost: String, port: Option[Int] = None): HostService[F] =
+  def wildcard[F[_]](
+      service: HttpService[F],
+      wildcardHost: String,
+      port: Option[Int] = None): HostService[F] =
     regex(service, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
   /** Create a [[HostService]] that uses a regular expression to match the host
     * string (which will be provided in lower case form) and port, if the port
     * is given. If the port is not given, it is ignored.
     */
-  def regex[F[_]](service: HttpService[F], hostRegex: String, port: Option[Int] = None): HostService[F] = {
+  def regex[F[_]](
+      service: HttpService[F],
+      hostRegex: String,
+      port: Option[Int] = None): HostService[F] = {
     val r = hostRegex.r
-    HostService(service, h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
+    HostService(
+      service,
+      h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
   }
 
-
-  def apply[F[_]](first: HostService[F], rest: HostService[F]*)
-                 (implicit F: Monad[F], W: EntityEncoder[F, String]): HttpService[F] = {
+  def apply[F[_]](first: HostService[F], rest: HostService[F]*)(
+      implicit F: Monad[F],
+      W: EntityEncoder[F, String]): HttpService[F] = {
 
     val all = (first +: rest).toVector
 
     Service.lift { req: Request[F] =>
-      req.headers.get(Host)
-        .fold(Response[F](BadRequest).withBody("Host header required.").widen[MaybeResponse[F]]) { h =>
-          // Fill in the host port if possible
-          val host: Host = h.port match {
-            case Some(_) => h
-            case None =>
-              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
-          }
-          all.collectFirst{ case HostService(s, p) if p(host) => s(req) }
-            .getOrElse(Response[F](NotFound).withBody(s"Host '$host' not found.").widen[MaybeResponse[F]] )
+      req.headers
+        .get(Host)
+        .fold(Response[F](BadRequest).withBody("Host header required.").widen[MaybeResponse[F]]) {
+          h =>
+            // Fill in the host port if possible
+            val host: Host = h.port match {
+              case Some(_) => h
+              case None =>
+                h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
+            }
+            all
+              .collectFirst { case HostService(s, p) if p(host) => s(req) }
+              .getOrElse(
+                Response[F](NotFound).withBody(s"Host '$host' not found.").widen[MaybeResponse[F]])
         }
     }
   }

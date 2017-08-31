@@ -28,22 +28,22 @@ class TimeoutSpec extends Http4sSpec {
 
   "Timeout Middleware" should {
     "have no effect if the response is not delayed" in {
-      timeoutService.orNotFound(fastReq) must returnStatus (Status.Ok)
+      timeoutService.orNotFound(fastReq) must returnStatus(Status.Ok)
     }
 
     "return a 500 error if the result takes too long" in {
-      timeoutService.orNotFound(slowReq) must returnStatus (Status.InternalServerError)
+      timeoutService.orNotFound(slowReq) must returnStatus(Status.InternalServerError)
     }
 
     "return the provided response if the result takes too long" in {
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
       val altTimeoutService = Timeout(1.nanosecond, IO.pure(customTimeout))(myService)
-      altTimeoutService.orNotFound(slowReq) must returnStatus (customTimeout.status)
+      altTimeoutService.orNotFound(slowReq) must returnStatus(customTimeout.status)
     }
 
     "handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myService)
-      service.orNotFound(slowReq) must returnStatus (Status.Ok)
+      service.orNotFound(slowReq) must returnStatus(Status.Ok)
     }
 
     "clean up resources of the loser" in {
@@ -52,11 +52,11 @@ class TimeoutSpec extends Http4sSpec {
         case _ =>
           for {
             resp <- delay(2.seconds, NoContent())
-            _    <- IO(clean.set(true))
+            _ <- IO(clean.set(true))
           } yield resp
       }
       val timeoutService = Timeout(1.millis)(service)
-      timeoutService.orNotFound(Request[IO]()) must returnStatus (InternalServerError)
+      timeoutService.orNotFound(Request[IO]()) must returnStatus(InternalServerError)
       // Give the losing response enough time to finish
       clean.get must beTrue.eventually
     }

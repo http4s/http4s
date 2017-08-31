@@ -6,7 +6,8 @@ import cats.data.Kleisli
 import cats.implicits._
 
 trait ServiceSyntax {
-  implicit def http4sServiceSyntax[F[_]: Functor, A](service: Service[F, A, MaybeResponse[F]]): ServiceOps[F, A] =
+  implicit def http4sServiceSyntax[F[_]: Functor, A](
+      service: Service[F, A, MaybeResponse[F]]): ServiceOps[F, A] =
     new ServiceOps[F, A](service)
 }
 

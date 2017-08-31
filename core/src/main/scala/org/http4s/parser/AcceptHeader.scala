@@ -25,15 +25,18 @@ private[parser] trait AcceptHeader {
 
   def ACCEPT(value: String): ParseResult[headers.Accept] = new AcceptParser(value).parse
 
-  private class AcceptParser(value: String) extends Http4sHeaderParser[Accept](value) with MediaParser {
+  private class AcceptParser(value: String)
+      extends Http4sHeaderParser[Accept](value)
+      with MediaParser {
 
     def entry: Rule1[headers.Accept] = rule {
       oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRangeAndQValue] =>
-        Accept(xs.head, xs.tail: _*)}
+        Accept(xs.head, xs.tail: _*)
+      }
     }
 
     def FullRange: Rule1[MediaRangeAndQValue] = rule {
-      (MediaRangeDef ~ optional( QAndExtensions )) ~> {
+      (MediaRangeDef ~ optional(QAndExtensions)) ~> {
         (mr: MediaRange, params: Option[(QValue, Seq[(String, String)])]) =>
           val (qValue, extensions) = params.getOrElse((org.http4s.QValue.One, Seq.empty))
           mr.withExtensions(extensions.toMap).withQValue(qValue)
@@ -41,11 +44,16 @@ private[parser] trait AcceptHeader {
     }
 
     def QAndExtensions: Rule1[(QValue, Seq[(String, String)])] = rule {
-      AcceptParams | (oneOrMore(MediaTypeExtension) ~> {s: Seq[(String, String)] => (org.http4s.QValue.One, s) })
+      AcceptParams | (oneOrMore(MediaTypeExtension) ~> { s: Seq[(String, String)] =>
+        (org.http4s.QValue.One, s)
+      })
     }
 
     def AcceptParams: Rule1[(QValue, Seq[(String, String)])] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:QValue,_:Seq[(String, String)]))
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> (
+        (
+          _: QValue,
+          _: Seq[(String, String)]))
     }
   }
 }

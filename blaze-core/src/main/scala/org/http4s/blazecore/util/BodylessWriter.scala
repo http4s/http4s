@@ -21,14 +21,13 @@ import scala.util._
   * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
   * @param ec an ExecutionContext which will be used to complete operations
   */
-private[http4s] class BodylessWriter[F[_]](
-                           pipe: TailStage[ByteBuffer],
-                           close: Boolean)
-                          (implicit protected val F: Effect[F],
-                           protected val ec: ExecutionContext) extends Http1Writer[F] {
+private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(
+    implicit protected val F: Effect[F],
+    protected val ec: ExecutionContext)
+    extends Http1Writer[F] {
 
   private lazy val doneFuture = Future.successful(())
-  
+
   private[this] var headers: ByteBuffer = null
 
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =

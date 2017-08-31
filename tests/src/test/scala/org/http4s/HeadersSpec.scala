@@ -17,14 +17,14 @@ class HeadersSpec extends Http4sSpec {
     }
 
     "Find an existing header and return its parsed form" in {
-      base.get(`Content-Length`) should beSome (clength)
-      base.get("raw-header".ci) should beSome (raw)
+      base.get(`Content-Length`) should beSome(clength)
+      base.get("raw-header".ci) should beSome(raw)
     }
 
     "Replaces headers" in {
       val newlen = `Content-Length`.zero
       base.put(newlen).get(newlen.key) should beSome(newlen)
-      base.put(newlen.toRaw).get(newlen.key) should beSome (newlen)
+      base.put(newlen.toRaw).get(newlen.key) should beSome(newlen)
     }
 
     "also find headers created raw" in {
@@ -32,16 +32,16 @@ class HeadersSpec extends Http4sSpec {
         org.http4s.headers.`Cookie`(org.http4s.Cookie("foo", "bar")),
         Header("Cookie", org.http4s.Cookie("baz", "quux").toString)
       )
-      headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome (2)
+      headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome(2)
     }
 
     "Find the headers with DefaultHeaderKey keys" in {
       val headers = Headers(
         `Set-Cookie`(org.http4s.Cookie("foo", "bar")),
-        Header("Accept-Patch",""),
-        Header("Access-Control-Allow-Credentials","")
+        Header("Accept-Patch", ""),
+        Header("Access-Control-Allow-Credentials", "")
       )
-      headers.get(`Accept-Patch`).map(_.value) must beSome ("")
+      headers.get(`Accept-Patch`).map(_.value) must beSome("")
     }
 
     "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {
@@ -62,7 +62,8 @@ class HeadersSpec extends Http4sSpec {
       val h1 = `Accept-Encoding`(ContentCoding("foo".ci)).toRaw
       val h2 = `Accept-Encoding`(ContentCoding("bar".ci)).toRaw
       val hs = Headers(clength.toRaw) ++ Headers(h1) ++ Headers(h2)
-      hs.get(`Accept-Encoding`) must_== Some(`Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci)))
+      hs.get(`Accept-Encoding`) must_== Some(
+        `Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci)))
       hs.exists(_ == clength) must_== true
     }
 

@@ -15,7 +15,8 @@ class MessageSpec extends Http4sSpec {
       val remote = InetSocketAddress.createUnresolved("www.remote.com", 45444)
 
       "get remote connection info when present" in {
-        val r = Request().withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request().withAttribute(
+          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.server must beSome(local)
         r.remote must beSome(remote)
       }
@@ -27,13 +28,15 @@ class MessageSpec extends Http4sSpec {
       }
 
       "be utilized to determine the address of server and remote" in {
-        val r = Request().withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request().withAttribute(
+          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverAddr must_== local.getHostString
         r.remoteAddr must beSome(remote.getHostString)
       }
 
       "be utilized to determine the port of server and remote" in {
-        val r = Request().withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request().withAttribute(
+          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverPort must_== local.getPort
         r.remotePort must beSome(remote.getPort)
       }
@@ -57,11 +60,19 @@ class MessageSpec extends Http4sSpec {
 
     "support cookies" should {
       "contain a Cookie header when an explicit cookie is added" in {
-        Request(Method.GET).addCookie(Cookie("token", "value")).headers.get("Cookie".ci).map(_.value) must beSome("token=value")
+        Request(Method.GET)
+          .addCookie(Cookie("token", "value"))
+          .headers
+          .get("Cookie".ci)
+          .map(_.value) must beSome("token=value")
       }
 
       "contain a Cookie header when a name/value pair is added" in {
-        Request(Method.GET).addCookie("token", "value").headers.get("Cookie".ci).map(_.value) must beSome("token=value")
+        Request(Method.GET)
+          .addCookie("token", "value")
+          .headers
+          .get("Cookie".ci)
+          .map(_.value) must beSome("token=value")
       }
     }
 
@@ -89,13 +100,15 @@ class MessageSpec extends Http4sSpec {
 
     "toString" should {
       "redact an Authorization header" in {
-        val request = Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
-        request.toString must_==("Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
+        val request =
+          Request[IO](Method.GET).putHeaders(Authorization(BasicCredentials("user", "pass")))
+        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Authorization: <REDACTED>))")
       }
 
       "redact Cookie Headers" in {
-        val request = Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
-        request.toString must_==("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
+        val request =
+          Request[IO](Method.GET).addCookie("token", "value").addCookie("token2", "value2")
+        request.toString must_== ("Request(method=GET, uri=/, headers=Headers(Cookie: <REDACTED>, Cookie: <REDACTED>))")
       }
     }
   }
@@ -121,7 +134,7 @@ class MessageSpec extends Http4sSpec {
     "toString" should {
       "redact a `Set-Cookie` header" in {
         val resp = Response().putHeaders(headers.`Set-Cookie`(Cookie("token", "value")))
-        resp.toString must_==("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
+        resp.toString must_== ("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
       }
     }
   }

@@ -13,12 +13,14 @@ class QueryParserSpec extends Http4sSpec {
   "The QueryParser" should {
     "correctly extract complete key value pairs" in {
       parseQueryString("key=value") must beRight(Query("key" -> Some("value")))
-      parseQueryString("key=value&key2=value2") must beRight(Query("key" -> Some("value"), "key2" -> Some("value2")))
+      parseQueryString("key=value&key2=value2") must beRight(
+        Query("key" -> Some("value"), "key2" -> Some("value2")))
     }
 
     "decode URL-encoded keys and values" in {
       parseQueryString("ke%25y=value") must beRight(Query("ke%y" -> Some("value")))
-      parseQueryString("key=value%26&key2=value2") must beRight(Query("key" -> Some("value&"), "key2" -> Some("value2")))
+      parseQueryString("key=value%26&key2=value2") must beRight(
+        Query("key" -> Some("value&"), "key2" -> Some("value2")))
     }
 
     "return an empty Map for an empty query string" in {
@@ -51,7 +53,8 @@ class QueryParserSpec extends Http4sSpec {
 
     "QueryParser using QChars doesn't allow PHP-style [] in keys" in {
       val queryString = "a[]=b&a[]=c"
-      new QueryParser(Codec.UTF8, true, QueryParser.QChars).decode(CharBuffer.wrap(queryString), true) must beLeft
+      new QueryParser(Codec.UTF8, true, QueryParser.QChars)
+        .decode(CharBuffer.wrap(queryString), true) must beLeft
     }
 
     "Reject a query with invalid char" in {

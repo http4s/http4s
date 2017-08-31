@@ -17,9 +17,10 @@ object GZip {
 
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor](service: HttpService[F],
-                           bufferSize: Int = 32 * 1024,
-                           level: Int = Deflater.DEFAULT_COMPRESSION): HttpService[F] =
+  def apply[F[_]: Functor](
+      service: HttpService[F],
+      bufferSize: Int = 32 * 1024,
+      level: Int = Deflater.DEFAULT_COMPRESSION): HttpService[F] =
     Service.lift { req: Request[F] =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
@@ -29,13 +30,17 @@ object GZip {
     }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
-    acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`)
+    acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
+      ContentCoding.`x-gzip`)
 
-  private def zipOrPass[F[_]: Functor](response: MaybeResponse[F], bufferSize: Int, level: Int): MaybeResponse[F] =
+  private def zipOrPass[F[_]: Functor](
+      response: MaybeResponse[F],
+      bufferSize: Int,
+      level: Int): MaybeResponse[F] =
     response match {
       case resp: Response[F] if isZippable(resp) => zipResponse(bufferSize, level, resp)
-      case resp: Response[F]                     => resp // Don't touch it, Content-Encoding already set
-      case Pass()                                => Pass()
+      case resp: Response[F] => resp // Don't touch it, Content-Encoding already set
+      case Pass() => Pass()
     }
 
   private def isZippable[F[_]](resp: Response[F]): Boolean = {
@@ -45,7 +50,10 @@ object GZip {
     (contentType.get.mediaType eq MediaType.`application/octet-stream`))
   }
 
-  private def zipResponse[F[_]: Functor](bufferSize: Int, level: Int, resp: Response[F]): Response[F] = {
+  private def zipResponse[F[_]: Functor](
+      bufferSize: Int,
+      level: Int,
+      resp: Response[F]): Response[F] = {
     logger.trace("GZip middleware encoding content")
     // Need to add the Gzip header and trailer
     val trailerGen = new TrailerGen()
@@ -66,19 +74,21 @@ object GZip {
   }
 
   private val GZIP_MAGIC_NUMBER = 0x8b1f
-  private val GZIP_LENGTH_MOD   = Math.pow(2, 32).toLong
+  private val GZIP_LENGTH_MOD = Math.pow(2, 32).toLong
 
-  private val header: Chunk[Byte] = Chunk.bytes(Array(
-    GZIP_MAGIC_NUMBER.toByte,           // Magic number (int16)
-    (GZIP_MAGIC_NUMBER >> 8).toByte,    // Magic number  c
-    Deflater.DEFLATED.toByte,           // Compression method
-    0.toByte,                           // Flags
-    0.toByte,                           // Modification time (int32)
-    0.toByte,                           // Modification time  c
-    0.toByte,                           // Modification time  c
-    0.toByte,                           // Modification time  c
-    0.toByte,                           // Extra flags
-    0.toByte)                           // Operating system
+  private val header: Chunk[Byte] = Chunk.bytes(
+    Array(
+      GZIP_MAGIC_NUMBER.toByte, // Magic number (int16)
+      (GZIP_MAGIC_NUMBER >> 8).toByte, // Magic number  c
+      Deflater.DEFLATED.toByte, // Compression method
+      0.toByte, // Flags
+      0.toByte, // Modification time (int32)
+      0.toByte, // Modification time  c
+      0.toByte, // Modification time  c
+      0.toByte, // Modification time  c
+      0.toByte, // Extra flags
+      0.toByte
+    ) // Operating system
   )
 
   private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
@@ -86,7 +96,11 @@ object GZip {
   private def trailer[F[_]](gen: TrailerGen): Pipe[Pure, Byte, Byte] =
     _.pull.uncons.flatMap(trailerStep(gen)).stream
 
-  private def trailerStep(gen: TrailerGen): (Option[(Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
+  private def trailerStep(
+      gen: TrailerGen): (Option[(Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[
+    Pure,
+    Byte,
+    Option[Stream[Pure, Byte]]] = {
     case None => Pull.pure(None)
     case Some((segment, stream)) =>
       val chunkArray = segment.toChunk.toArray
@@ -97,6 +111,6 @@ object GZip {
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
     Chunk.bytes(
-        DatatypeConverter.parseHexBinary("%08x".format(gen.crc.getValue)).reverse ++
+      DatatypeConverter.parseHexBinary("%08x".format(gen.crc.getValue)).reverse ++
         DatatypeConverter.parseHexBinary("%08x".format(gen.inputLength % GZIP_LENGTH_MOD)).reverse)
 }

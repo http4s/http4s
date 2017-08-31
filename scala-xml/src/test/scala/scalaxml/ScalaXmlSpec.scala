@@ -17,7 +17,9 @@ class ScalaXmlSpec extends Http4sSpec {
 
   "xml" should {
     val server: Request[IO] => IO[Response[IO]] = { req =>
-      req.decode { elem: Elem => Response[IO](Ok).withBody(elem.label) }
+      req.decode { elem: Elem =>
+        Response[IO](Ok).withBody(elem.label)
+      }
     }
 
     "parse the XML" in {
@@ -28,7 +30,11 @@ class ScalaXmlSpec extends Http4sSpec {
 
     "parse XML in parallel" in {
       // https://github.com/http4s/http4s/issues/1209
-      val resp = fs2.async.parallelTraverse((0 to 5).toList)(_ => server(Request(body = strBody("""<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>""")))).unsafeRunSync
+      val resp = fs2.async
+        .parallelTraverse((0 to 5).toList)(_ =>
+          server(Request(body = strBody(
+            """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>"""))))
+        .unsafeRunSync
       resp.forall(_.status must_== Ok)
       resp.forall(x => getBody(x.body) must_== "html".getBytes)
     }

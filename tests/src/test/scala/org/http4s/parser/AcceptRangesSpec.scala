@@ -10,13 +10,14 @@ class AcceptRangesSpec extends Specification with HeaderParserHelper[`Accept-Ran
 
   "Accept-Ranges header" should {
 
-    val ranges = List(`Accept-Ranges`.bytes,
-                      `Accept-Ranges`.none,
-                      `Accept-Ranges`(RangeUnit("foo")),
-                      `Accept-Ranges`(RangeUnit.Bytes, RangeUnit("bar")))
+    val ranges = List(
+      `Accept-Ranges`.bytes,
+      `Accept-Ranges`.none,
+      `Accept-Ranges`(RangeUnit("foo")),
+      `Accept-Ranges`(RangeUnit.Bytes, RangeUnit("bar")))
 
     "Give correct header value" in {
-      ranges.map(_.value) must be_== (List("bytes", "none", "foo", "bytes, bar"))
+      ranges.map(_.value) must be_==(List("bytes", "none", "foo", "bytes, bar"))
     }
 
 //    "Do whitespace right" in {

@@ -1,9 +1,9 @@
 package org.http4s.client
 
-import java.net.{ServerSocket, InetSocketAddress, InetAddress}
+import java.net.{InetAddress, InetSocketAddress, ServerSocket}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
+import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.core.Fragments
 
@@ -13,9 +13,8 @@ trait JettyScaffold extends SpecificationLike {
 
   def testServlet: HttpServlet
 
-  override def map(fs: => Fragments) = {
+  override def map(fs: => Fragments) =
     step(startServer()) ^ fs ^ step(server.stop())
-  }
 
   private def startServer(): InetSocketAddress = {
     address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
@@ -47,4 +46,3 @@ object JettyScaffold {
     port
   }
 }
-

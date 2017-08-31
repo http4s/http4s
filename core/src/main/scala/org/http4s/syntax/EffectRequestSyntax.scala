@@ -9,14 +9,13 @@ trait EffectRequestSyntax extends Any {
     new EffectRequestOps[F](req)
 }
 
-final class EffectRequestOps[F[+_]](val self: F[Request[F]])
+final class EffectRequestOps[F[+ _]](val self: F[Request[F]])
     extends AnyVal
     with EffectMessageSyntax[F, Request[F]]
     with RequestOps[F] {
 
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)
-                   (f: A => F[Response[F]])
-                   (implicit F: Monad[F]): F[Response[F]] =
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
+      implicit F: Monad[F]): F[Response[F]] =
     self.flatMap(_.decodeWith(decoder, strict)(f))
 
   def withPathInfo(pi: String)(implicit F: Functor[F]): F[Request[F]] =

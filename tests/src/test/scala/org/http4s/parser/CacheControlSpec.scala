@@ -16,19 +16,29 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
   def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)
 
   // Default values
-  val valueless = List(`no-store`, `no-transform`, `only-if-cached`,
-                       `public`, `must-revalidate`, `proxy-revalidate`)
+  val valueless = List(
+    `no-store`,
+    `no-transform`,
+    `only-if-cached`,
+    `public`,
+    `must-revalidate`,
+    `proxy-revalidate`)
 
-  val numberdirectives = List(`max-age`(0.seconds), `min-fresh`(1.second), `s-maxage`(2.seconds),
-                              `stale-if-error`(3.seconds), `stale-while-revalidate`(4.seconds))
+  val numberdirectives = List(
+    `max-age`(0.seconds),
+    `min-fresh`(1.second),
+    `s-maxage`(2.seconds),
+    `stale-if-error`(3.seconds),
+    `stale-while-revalidate`(4.seconds))
 
-  val strdirectives = List(`private`("Foo".ci::Nil), `private`(Nil), `no-cache`("Foo".ci::Nil), `no-cache`())
+  val strdirectives =
+    List(`private`("Foo".ci :: Nil), `private`(Nil), `no-cache`("Foo".ci :: Nil), `no-cache`())
 
-  val others = List(`max-stale`(None),
-                    `max-stale`(Some(2.seconds)),
-                    CacheDirective("Foo", None),
-                    CacheDirective("Foo", Some("Bar")))
-
+  val others = List(
+    `max-stale`(None),
+    `max-stale`(Some(2.seconds)),
+    CacheDirective("Foo", None),
+    CacheDirective("Foo", Some("Bar")))
 
   "CacheControl parser" should {
 
@@ -37,8 +47,9 @@ class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Cont
         v.value must be_==(v.name.toString)
       }
 
-      numberdirectives.zipWithIndex.foreach{ case (v, i) =>
-        v.value must be_==(s"${v.name}=$i")
+      numberdirectives.zipWithIndex.foreach {
+        case (v, i) =>
+          v.value must be_==(s"${v.name}=$i")
       }
 
       `max-stale`(None).value must be_==("max-stale")

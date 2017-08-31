@@ -6,14 +6,16 @@
 package org.http4s.util
 
 import java.util.{List => JList, Collections, ArrayDeque, Deque}
-import java.util.concurrent.{TimeUnit, AbstractExecutorService}
+import java.util.concurrent.{AbstractExecutorService, TimeUnit}
 
 import scala.concurrent.ExecutionContextExecutorService
 
-object TrampolineExecutionContext extends AbstractExecutorService with ExecutionContextExecutorService {
+object TrampolineExecutionContext
+    extends AbstractExecutorService
+    with ExecutionContextExecutorService {
   private[this] val local = new ThreadLocal[Deque[Runnable]]
 
-  def execute(runnable: Runnable): Unit = {
+  def execute(runnable: Runnable): Unit =
     local.get match {
       case null =>
         // Since there is no local queue, we need to install one and
@@ -37,7 +39,6 @@ object TrampolineExecutionContext extends AbstractExecutorService with Execution
         // `execute` that installed the queue.
         existingQueue.addLast(runnable)
     }
-  }
 
   def reportFailure(t: Throwable): Unit = t.printStackTrace()
 

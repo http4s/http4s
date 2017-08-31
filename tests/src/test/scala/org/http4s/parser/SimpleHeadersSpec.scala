@@ -39,7 +39,7 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpHeaderParser.parseHeader(bad) must beLeft
     }
 
-    "parse Date" in {       // mills are lost, get rid of them
+    "parse Date" in { // mills are lost, get rid of them
       val header = Date(HttpDate.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
@@ -78,21 +78,22 @@ class SimpleHeadersSpec extends Http4sSpec {
       ETag.EntityTag("hash", weak = true).toString() must_== "W/\"hash\""
       ETag.EntityTag("hash", weak = false).toString() must_== "\"hash\""
 
-      val headers = Seq(ETag("hash"),
-                        ETag("hash", true))
+      val headers = Seq(ETag("hash"), ETag("hash", true))
 
-      foreach(headers){ header =>
+      foreach(headers) { header =>
         HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
       }
     }
 
     "parse If-None-Match" in {
-      val headers = Seq(`If-None-Match`(EntityTag("hash")),
-                        `If-None-Match`(EntityTag("123-999")),
-                        `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
-                        `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
-                        `If-None-Match`.`*`)
-      foreach(headers){ header =>
+      val headers = Seq(
+        `If-None-Match`(EntityTag("hash")),
+        `If-None-Match`(EntityTag("123-999")),
+        `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
+        `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
+        `If-None-Match`.`*`
+      )
+      foreach(headers) { header =>
         HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
       }
     }
@@ -111,13 +112,17 @@ class SimpleHeadersSpec extends Http4sSpec {
 
       HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
 
-      val header2 = `User-Agent`(AgentProduct("foo"), Seq(AgentProduct("bar", Some("biz")), AgentComment("blah")))
+      val header2 = `User-Agent`(
+        AgentProduct("foo"),
+        Seq(AgentProduct("bar", Some("biz")), AgentComment("blah")))
       header2.value must_== "foo bar/biz (blah)"
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
       val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
       HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must beRight(
-        `User-Agent`(AgentProduct("Mozilla", Some("5.0")), Seq(
+        `User-Agent`(
+          AgentProduct("Mozilla", Some("5.0")),
+          Seq(
             AgentComment("Android; Mobile; rv:30.0"),
             AgentProduct("Gecko", Some("30.0")),
             AgentProduct("Firefox", Some("30.0"))
@@ -128,15 +133,15 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse X-Forwarded-For" in {
       // ipv4
-      val header2 = `X-Forwarded-For`(NonEmptyList.of(
-        Some(InetAddress.getLocalHost),
-        Some(InetAddress.getLoopbackAddress)))
+      val header2 = `X-Forwarded-For`(
+        NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress)))
       HttpHeaderParser.parseHeader(header2.toRaw) must beRight(header2)
 
       // ipv6
-      val header3 = `X-Forwarded-For`(NonEmptyList.of(
-        Some(InetAddress.getByName("::1")),
-        Some(InetAddress.getByName("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))))
+      val header3 = `X-Forwarded-For`(
+        NonEmptyList.of(
+          Some(InetAddress.getByName("::1")),
+          Some(InetAddress.getByName("2001:0db8:85a3:0000:0000:8a2e:0370:7334"))))
       HttpHeaderParser.parseHeader(header3.toRaw) must beRight(header3)
 
       // "unknown"

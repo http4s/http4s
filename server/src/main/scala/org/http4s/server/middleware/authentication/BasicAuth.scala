@@ -9,9 +9,10 @@ import cats.implicits._
 import org.http4s.headers.Authorization
 
 /**
- * Provides Basic Authentication from RFC 2617.
- */
+  * Provides Basic Authentication from RFC 2617.
+  */
 object BasicAuth {
+
   /**
     * Validates a plaintext password (presumably by comparing it to a
     * hashed value).  A Some value indicates success; None indicates
@@ -26,10 +27,13 @@ object BasicAuth {
     * @param validate Function that validates a plaintext password
     * @return
     */
-  def apply[F[_]: Sync, A](realm: String, validate: BasicAuthenticator[F, A]): AuthMiddleware[F, A] =
+  def apply[F[_]: Sync, A](
+      realm: String,
+      validate: BasicAuthenticator[F, A]): AuthMiddleware[F, A] =
     challenged(challenge(realm, validate))
 
-  def challenge[F[_]: Applicative, A](realm: String, validate: BasicAuthenticator[F, A]): Service[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+  def challenge[F[_]: Applicative, A](realm: String, validate: BasicAuthenticator[F, A])
+    : Service[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
     Service.lift { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>
@@ -39,13 +43,12 @@ object BasicAuth {
       }
     }
 
-  private def validatePassword[F[_], A](validate: BasicAuthenticator[F, A], req: Request[F])
-                                       (implicit F: Applicative[F]): F[Option[A]] = {
+  private def validatePassword[F[_], A](validate: BasicAuthenticator[F, A], req: Request[F])(
+      implicit F: Applicative[F]): F[Option[A]] =
     req.headers.get(Authorization) match {
       case Some(Authorization(BasicCredentials(creds))) =>
         validate(creds)
       case _ =>
         F.pure(None)
     }
-  }
 }

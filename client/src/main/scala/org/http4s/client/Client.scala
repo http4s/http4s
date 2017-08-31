@@ -21,12 +21,14 @@ import scala.util.control.NoStackTrace
   * @param dispose
   */
 final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit]) {
+
   /**
     * Returns a task to handle the response, safely disposing of the underlying
     * HTTP connection when the task finishes.
     */
-  def apply[A](f: Response[F] => F[A])(implicit F: MonadError[F, Throwable]) : F[A] = {
-    val task = try f(response) catch { case e: Throwable => F.raiseError[A](e) }
+  def apply[A](f: Response[F] => F[A])(implicit F: MonadError[F, Throwable]): F[A] = {
+    val task = try f(response)
+    catch { case e: Throwable => F.raiseError[A](e) }
     for {
       result <- task.attempt
       _ <- dispose
@@ -45,9 +47,11 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
   * @param shutdown a Task to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
   */
-final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]], shutdown: F[Unit])
-                             (implicit F: MonadError[F, Throwable]) {
-   /** Submits a request, and provides a callback to process the response.
+final case class Client[F[_]](
+    open: Service[F, Request[F], DisposableResponse[F]],
+    shutdown: F[Unit])(implicit F: MonadError[F, Throwable]) {
+
+  /** Submits a request, and provides a callback to process the response.
     *
     * @param req The request to submit
     * @param f   A callback for the response to req.  The underlying HTTP connection
@@ -59,13 +63,13 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     open.run(req).flatMap(_.apply(f))
 
   /** Submits a request, and provides a callback to process the response.
-   *
-   * @param req A Task of the request to submit
-   * @param f A callback for the response to req.  The underlying HTTP connection
-   *          is disposed when the returned task completes.  Attempts to read the
-   *          response body afterward will result in an error.
-   * @return The result of applying f to the response to req
-   */
+    *
+    * @param req A Task of the request to submit
+    * @param f A callback for the response to req.  The underlying HTTP connection
+    *          is disposed when the returned task completes.  Attempts to read the
+    *          response body afterward will result in an error.
+    * @return The result of applying f to the response to req
+    */
   def fetch[A](req: F[Request[F]])(f: Response[F] => F[A]): F[A] =
     req.flatMap(fetch(_)(f))
 
@@ -96,11 +100,12 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     }
 
   def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
-    Stream.eval(open(req))
+    Stream
+      .eval(open(req))
       .flatMap {
         case DisposableResponse(response, dispose) =>
           f(response)
-          .onFinalize(dispose)
+            .onFinalize(dispose)
       }
 
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
@@ -114,7 +119,7 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)):_*))
+      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
     fetch(r) {
       case Successful(resp) =>
@@ -128,18 +133,18 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     req.flatMap(expect(_)(d))
 
   /**
-   * Submits a GET request to the specified URI and decodes the response on
-   * success.  On failure, the status code is returned.  The underlying HTTP
-   * connection is closed at the completion of the decoding.
-   */
+    * Submits a GET request to the specified URI and decodes the response on
+    * success.  On failure, the status code is returned.  The underlying HTTP
+    * connection is closed at the completion of the decoding.
+    */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
     expect(Request[F](Method.GET, uri))(d)
 
   /**
-   * Submits a GET request to the URI specified by the String and decodes the
-   * response on success.  On failure, the status code is returned.  The
-   * underlying HTTP connection is closed at the completion of the decoding.
-   */
+    * Submits a GET request to the URI specified by the String and decodes the
+    * response on success.  On failure, the status code is returned.  The
+    * underlying HTTP connection is closed at the completion of the decoding.
+    */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
 
@@ -151,7 +156,7 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)):_*))
+      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
     } else req
     fetch(r) { resp =>
       d.decode(resp, strict = false).fold(throw _, identity)
@@ -159,10 +164,10 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   }
 
   /**
-   * Submits a request and decodes the response, regardless of the status code.
-   * The underlying HTTP connection is closed at the completion of the
-   * decoding.
-   */
+    * Submits a request and decodes the response, regardless of the status code.
+    * The underlying HTTP connection is closed at the completion of the
+    * decoding.
+    */
   def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
     req.flatMap(fetchAs(_)(d))
 
@@ -180,7 +185,7 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
     status(req).map(_.isSuccess)
 
   /** Submits a request and returns true if and only if the response status is
-   * successful */
+    * successful */
   def successful(req: F[Request[F]]): F[Boolean] =
     req.flatMap(successful)
 
@@ -227,14 +232,16 @@ final case class Client[F[_]](open: Service[F, Request[F], DisposableResponse[F]
   def shutdownNow()(implicit F: Effect[F]): Unit = {
     val wait = new SyncVar[Unit]
     F.runAsync(shutdown) { _ =>
-      wait.put(())
-      IO.unit
-    }.unsafeRunSync()
+        wait.put(())
+        IO.unit
+      }
+      .unsafeRunSync()
     wait.get
   }
 }
 
 object Client {
+
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
     *
@@ -243,7 +250,7 @@ object Client {
   def fromHttpService[F[_]](service: HttpService[F])(implicit F: Sync[F]): Client[F] = {
     val isShutdown = new AtomicBoolean(false)
 
-    def interruptible(body: EntityBody[F], disposed: AtomicBoolean): Stream[F, Byte]  = {
+    def interruptible(body: EntityBody[F], disposed: AtomicBoolean): Stream[F, Byte] = {
       def killable(reason: String, killed: AtomicBoolean): Pipe[F, Byte, Byte] = {
         def go(killed: AtomicBoolean, stream: Stream[F, Byte]): Pull[F, Byte, Unit] =
           stream.pull.uncons.flatMap {
@@ -256,7 +263,8 @@ object Client {
             case None => Pull.done
           }
 
-        stream => go(killed, stream).stream
+        stream =>
+          go(killed, stream).stream
       }
       body
         .through(killable("response was disposed", disposed))
@@ -267,7 +275,7 @@ object Client {
       Service.lift { req: Request[F] =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.withBodyStream(interruptible(req.body, disposed))
-        service(req0) map { maybeResp =>
+        service(req0).map { maybeResp =>
           val resp = maybeResp.orNotFound
           DisposableResponse(
             resp.copy(body = interruptible(resp.body, disposed)),
@@ -276,8 +284,7 @@ object Client {
         }
       }
 
-    Client(disposableService(service),
-      F.delay(isShutdown.set(true)))
+    Client(disposableService(service), F.delay(isShutdown.set(true)))
   }
 }
 

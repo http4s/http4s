@@ -83,10 +83,12 @@ object UriTemplateSpec extends Http4sSpec {
         equalTo("/orders{id,item}")
     }
     "render /some/test{rel}" in {
-      UriTemplate(path = List(PathElm("some"), PathElm("test"), VarExp("rel"))).toString must equalTo("/some/test{rel}")
+      UriTemplate(path = List(PathElm("some"), PathElm("test"), VarExp("rel"))).toString must equalTo(
+        "/some/test{rel}")
     }
     "render /some{rel}/test" in {
-      UriTemplate(path = List(PathElm("some"), VarExp("rel"), PathElm("test"))).toString must equalTo("/some{rel}/test")
+      UriTemplate(path = List(PathElm("some"), VarExp("rel"), PathElm("test"))).toString must equalTo(
+        "/some{rel}/test")
     }
     "render /some{rel}/test{?id}" in {
       val path = List(PathElm("some"), VarExp("rel"), PathElm("test"))
@@ -136,12 +138,14 @@ object UriTemplateSpec extends Http4sSpec {
     "render /orders?item=2&item=4{&start,limit}" in {
       val path = List(PathElm("orders"))
       val query = List(ParamExp("start", "limit"), ParamElm("item", List("2", "4")))
-      UriTemplate(path = path, query = query).toString must equalTo("/orders?item=2&item=4{&start,limit}")
+      UriTemplate(path = path, query = query).toString must equalTo(
+        "/orders?item=2&item=4{&start,limit}")
     }
     "render /orders?item=2&item=4{&start}{&limit}" in {
       val path = List(PathElm("orders"))
       val query = List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit"))
-      UriTemplate(path = path, query = query).toString must equalTo("/orders?item=2&item=4{&start}{&limit}")
+      UriTemplate(path = path, query = query).toString must equalTo(
+        "/orders?item=2&item=4{&start}{&limit}")
     }
     "render /search?option{&term}" in {
       val path = List(PathElm("search"))
@@ -169,13 +173,15 @@ object UriTemplateSpec extends Http4sSpec {
       val path = List(VarExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
       val fragment = List(SimpleFragmentExp("section"))
-      UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo("{path}/search{?term}{#section}")
+      UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo(
+        "{path}/search{?term}{#section}")
     }
     "render {+path}/search{?term}{#section}" in {
       val path = List(ReservedExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
       val fragment = List(SimpleFragmentExp("section"))
-      UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo("{+path}/search{?term}{#section}")
+      UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo(
+        "{+path}/search{?term}{#section}")
     }
     "render {+var}" in {
       val path = List(ReservedExp("var"))
@@ -272,7 +278,9 @@ object UriTemplateSpec extends Http4sSpec {
         equalTo("http://[2001:db8::7]/c?GB=object&Class=one")
     }
     "render http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]" in {
-      UriTemplate(Some("http".ci), Some(Authority(host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)))).toString must
+      UriTemplate(
+        Some("http".ci),
+        Some(Authority(host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)))).toString must
         equalTo("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]")
     }
     "render email address (not supported at the moment)" in {
@@ -306,7 +314,8 @@ object UriTemplateSpec extends Http4sSpec {
       UriTemplate(path = Nil).toUriIfPossible.get must equalTo(Uri(path = ""))
     }
     "convert /test to Uri" in {
-      UriTemplate(path = List(PathElm("test"))).toUriIfPossible.get must equalTo(Uri(path = "/test"))
+      UriTemplate(path = List(PathElm("test"))).toUriIfPossible.get must equalTo(
+        Uri(path = "/test"))
     }
     "convert {path} to UriTemplate" in {
       val tpl = UriTemplate(path = List(VarExp("path")))
@@ -484,8 +493,10 @@ object UriTemplateSpec extends Http4sSpec {
       val host = IPv4("192.168.1.1".ci)
       val authority = Some(Authority(host = host, port = Some(8080)))
       val query = List(ParamElm("", Nil))
-      UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(Uri(scheme, authority, "", Query.fromString("")))
-      UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get must equalTo(Uri(scheme, authority, "", Query.empty))
+      UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(
+        Uri(scheme, authority, "", Query.fromString("")))
+      UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get must equalTo(
+        Uri(scheme, authority, "", Query.empty))
     }
     "convert http://192.168.1.1:80/c?GB=object&Class=one to Uri" in {
       val scheme = Some("http".ci)
@@ -533,7 +544,8 @@ object UriTemplateSpec extends Http4sSpec {
       val path = List(PathElm("some"), PathElm("path"))
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value")))
+        equalTo(
+          Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value")))
     }
     "convert http://username:password@some.example.com/some/path?param1=5&param-without-value#sec-1.2 to Uri" in {
       val scheme = Some("http".ci)
@@ -543,7 +555,13 @@ object UriTemplateSpec extends Http4sSpec {
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       val fragment = List(FragmentElm("sec-1.2"))
       UriTemplate(scheme, authority, path, query, fragment).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value"), Some("sec-1.2")))
+        equalTo(
+          Uri(
+            scheme,
+            authority,
+            "/some/path",
+            Query.fromString("param1=5&param-without-value"),
+            Some("sec-1.2")))
     }
   }
 
@@ -576,7 +594,8 @@ object UriTemplateSpec extends Http4sSpec {
     "expand /?ref={+file,folder} to /?ref=123&ref={+folder}" in {
       val query = List(ParamReservedExp("ref", List("file", "folder")))
       UriTemplate(query = query).expandAny("file", "123") must
-        equalTo(UriTemplate(query = List(ParamElm("ref", "123"), ParamReservedExp("ref", "folder"))))
+        equalTo(
+          UriTemplate(query = List(ParamElm("ref", "123"), ParamReservedExp("ref", "folder"))))
     }
     "expand {/id} to /123" in {
       val path = List(PathExp("id"))

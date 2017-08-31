@@ -12,7 +12,7 @@ class OAuthTest extends Specification {
 
   val Right(uri) = Uri.fromString("http://photos.example.net/photos")
   val consumer = oauth1.Consumer("dpf43f3p2l4k3l03", "kd94hf93k423kf44")
-  val token    = oauth1.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")
+  val token = oauth1.Token("nnch734d00sl2jdk", "pfkkdhi9sl3r4s00")
 
   val userParams = Seq(
     "file" -> "vacation.jpg",
@@ -57,31 +57,32 @@ class OAuthTest extends Specification {
     }
 
     "generate a Authorization header" in {
-      val auth = oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
+      val auth =
+        oauth1.genAuthHeader(Method.GET, uri, userParams, consumer, None, None, Some(token))
       val creds = auth.credentials
       creds.authScheme must_== CaseInsensitiveString("OAuth")
     }
   }
 
-   "RFC 5849 example" should {
+  "RFC 5849 example" should {
 
-     implicit def urlFormEncoder : EntityEncoder[IO, UrlForm] =
-       UrlForm.entityEncoder(implicitly, Charset.`US-ASCII`)
+    implicit def urlFormEncoder: EntityEncoder[IO, UrlForm] =
+      UrlForm.entityEncoder(implicitly, Charset.`US-ASCII`)
 
-     val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
-     val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
+    val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
+    val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
 
-     val req = Request[IO](method = Method.POST, uri = uri).withBody(body).unsafeRunSync()
+    val req = Request[IO](method = Method.POST, uri = uri).withBody(body).unsafeRunSync()
 
-     "Collect proper params, pg 22" in {
-       oauth1.getUserParams(req).unsafeRunSync()._2.sorted must_== Seq(
-         "b5" -> "=%3D",
-         "a3" -> "a",
-         "c@" -> "",
-         "a2" -> "r b",
-         "c2" -> "",
-         "a3" -> "2 q"
-       ).sorted
-     }
-   }
+    "Collect proper params, pg 22" in {
+      oauth1.getUserParams(req).unsafeRunSync()._2.sorted must_== Seq(
+        "b5" -> "=%3D",
+        "a3" -> "a",
+        "c@" -> "",
+        "a2" -> "r b",
+        "c2" -> "",
+        "a3" -> "2 q"
+      ).sorted
+    }
+  }
 }
