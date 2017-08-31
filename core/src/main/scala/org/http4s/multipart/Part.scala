@@ -1,4 +1,5 @@
-package org.http4s.multipart
+package org.http4s
+package multipart
 
 import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
@@ -8,7 +9,6 @@ import cats.implicits._
 import fs2.{Stream, Task}
 import fs2.io.readInputStream
 import fs2.text.utf8Encode
-import org.http4s.{EmptyBody, Header, Headers}
 import org.http4s.headers.`Content-Disposition`
 import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
@@ -33,11 +33,16 @@ object Part {
   def fileData(name: String, resource: URL, headers: Header*): Part =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers:_*)
 
-  private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part = {
+  def fileData(name: String, filename: String, entityBody: EntityBody, headers: Header*): Part =
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
       Header("Content-Transfer-Encoding", "binary") +:
       headers,
-      readInputStream(Task.delay(in), ChunkSize))
-  }
+      entityBody)
 
+  // The InputStream is passed by name, and we open it in the by-name
+  // argument in callers, so we can avoid lifting into a Task.  Exposing
+  // this API publicly would invite unsafe use, and the `EntityBody` version
+  // should be safe.
+  private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part =
+    fileData(name, filename, readInputStream(Task.delay(in), ChunkSize), headers: _*)
 }

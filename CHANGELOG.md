@@ -20,6 +20,7 @@
   strategy.  A `RetryPolicy` is a function of the request, the
   response, and the number of attempts.  Wrap the previous `backoff`
   in `RetryPolicy {}` for compatible behavior.
+* Expose a `Part.fileData` constructor that accepts an `EntityBody`.
 
 # v0.17.0-RC3 (2017-08-29)
 * In blaze-server, when doing chunked transfer encoding, flush the
