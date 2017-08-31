@@ -34,13 +34,18 @@ object Logger {
                               (implicit strategy: Strategy): Task[Unit] = {
 
     val charset = message.charset
-    val binary = message.contentType.exists(_.mediaType.binary)
+    val isBinary = message.contentType.exists(_.mediaType.binary)
+    val isJson = message.contentType.exists(mT =>
+      mT.mediaType == MediaType.`application/json` || mT.mediaType == MediaType.`application/hal+json`
+    )
+
+    val isText = !isBinary || isJson
 
     val headers = if (logHeaders) {
       message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
     } else ""
 
-    val bodyStream = if (logBody && !binary) {
+    val bodyStream = if (logBody && isText) {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
       message.body.map(ByteVector.fromByte).map(_.toHex)
