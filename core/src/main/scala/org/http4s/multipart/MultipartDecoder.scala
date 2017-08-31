@@ -2,8 +2,9 @@ package org.http4s
 package multipart
 
 import fs2._
+import org.http4s.util.ByteVectorChunk
 import org.log4s.getLogger
-
+import scodec.bits.ByteVector
 
 private[http4s] object MultipartDecoder {
 
@@ -31,8 +32,8 @@ private[http4s] object MultipartDecoder {
     }
 
 
-  def gatherParts(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
-    def go(part: Part, lastWasLeft: Boolean)(h: Handle[Task, Either[Headers, Byte]]): Pull[Task, Part, Either[Headers, Byte]] = {
+  def gatherParts(h: Handle[Task, Either[Headers, ByteVector]]): Pull[Task, Part, Either[Headers, ByteVector]] = {
+    def go(part: Part, lastWasLeft: Boolean)(h: Handle[Task, Either[Headers, ByteVector]]): Pull[Task, Part, Either[Headers, ByteVector]] = {
       h.receive1Option {
         case Some((Left(headers), h1)) =>
           if (lastWasLeft){
@@ -40,8 +41,8 @@ private[http4s] object MultipartDecoder {
           } else {
            Pull.output1(part) >> go(Part(headers, EmptyBody), true)(h1)
           }
-        case Some((Right(byte), h1)) =>
-          go(part.copy(body = part.body.append(Stream.emit[Task, Byte](byte))), false)(h1)
+        case Some((Right(bv), h1)) =>
+          go(part.copy(body = part.body.append(Stream.chunk(ByteVectorChunk(bv)))), false)(h1)
         case None => Pull.output1(part) >> Pull.done
       }
     }

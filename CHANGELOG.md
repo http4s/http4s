@@ -10,6 +10,10 @@
   `RetryPolicy.recklesslyRetriable`.
 * Fix `Logger` middleware to render JSON bodies as text, not as a hex
   dump.
+* `MultipartParser.parse` returns a stream of `ByteVector` instead of
+  a stream of `Byte`. This perserves chunking when parsing into the
+  high-level `EntityDecoder[Multipart]`, and substantially improves
+  performance on large files.  The high-level API is not affected.
 
 # v0.16.0-SNAPSHOT
 * `Retry` middleware takes a `RetryPolicy` instead of a backoff

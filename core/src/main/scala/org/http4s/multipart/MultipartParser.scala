@@ -9,6 +9,7 @@ import fs2.util.syntax._
 import fs2.Chunk
 
 import scala.annotation.tailrec
+import org.http4s.util.ByteVectorChunk
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -24,14 +25,13 @@ object MultipartParser {
 
   final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse(boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[Task, Byte, Either[Headers, Byte]] = s => {
+  def parse(boundary: Boundary, headerLimit: Long = 40 * 1024): Pipe[Task, Byte, Either[Headers, ByteVector]] = s => {
     val bufferedMultipartT = s.runLog.map(vec => ByteVector(vec))
     val parts = bufferedMultipartT.flatMap(parseToParts(_)(boundary))
     val listT = parts.map(splitParts(_)(boundary)(List.empty[Either[Headers, ByteVector]]))
 
     Stream.eval(listT)
       .flatMap(Stream.emits)
-      .through(transformBV)
   }
 
 
@@ -45,15 +45,6 @@ object MultipartParser {
     * generateHeaders - Generate Headers from ByteVector
     * splitHeader - Splits a Header into the Name and Value
     */
-
-
-  def transformBV: Pipe[Task, Either[Headers, ByteVector], Either[Headers, Byte]] = s => {
-    s.flatMap{
-      case Left(headers) =>
-        Stream.emit(Either.left(headers))
-      case Right(bv) => Stream.emits(bv.toSeq).map(Either.right(_))
-    }
-  }
 
   def parseToParts(byteVector: ByteVector)(boundary: Boundary): Task[ByteVector] = {
     val startLine = startLineBytes(boundary)
