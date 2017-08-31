@@ -1,3 +1,9 @@
+# v0.17.0-SNAPSHOT
+* `MultipartParser.parse` returns a stream of `ByteVector` instead of
+  a stream of `Byte`. This perserves chunking when parsing into the
+  high-level `EntityDecoder[Multipart]`, and substantially improves
+  performance on large files.  The high-level API is not affected.
+
 # v0.17.0-RC3 (2017-08-29)
 * In blaze-server, when doing chunked transfer encoding, flush the
   header as soon as it is available.  It previously buffered until the
