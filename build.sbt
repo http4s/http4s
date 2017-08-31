@@ -230,6 +230,29 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
+lazy val zipkinCore = libraryProject("zipkin-core")
+  .settings(
+    description := "Base library for Zipkin instrumentation for http4s servers and clients"
+  )
+  .dependsOn(
+    argonaut,
+    core,
+    server,
+    client
+  )
+
+lazy val zipkinServer = libraryProject("zipkin-server")
+  .settings(
+    description := "Zipkin instrumentation for http4s servers"
+  )
+  .dependsOn(zipkinCore % "compile;test->test", server % "compile;test->test")
+
+lazy val zipkinClient = libraryProject("zipkin-client")
+  .settings(
+    description := "Zipkin instrumentation for http4s clients"
+  )
+  .dependsOn(zipkinCore % "compile;test->test", client % "compile;test->test")
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .enablePlugins(DisablePublishingPlugin)
@@ -451,6 +474,24 @@ lazy val examplesWar = exampleProject("examples-war")
     )
   )
   .dependsOn(servlet)
+
+lazy val examplesZipkin = exampleProject("examples-zipkin")
+  .settings(Revolver.settings)
+  .settings(
+    description := "Examples of http4s server and client with Zipkin instrumentation",
+    fork := false,
+    libraryDependencies ++= Seq(alpnBoot, metricsJson)
+  )
+  .dependsOn(
+    blazeClient,
+    blazeServer,
+    client,
+    server,
+    theDsl,
+    zipkinClient,
+    zipkinCore,
+    zipkinServer
+  )
 
 def http4sProject(name: String) = Project(name, file(name))
   .settings(commonSettings)
