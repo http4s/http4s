@@ -202,7 +202,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e10544383756dc53d48d5d2cddb29f2c2d526fa5/client/src/main/scala/org/http4s/client/middleware/Retry.scala" target="_blank">Retry.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4e726f2736e4ad6cbb28e2f579f38ae782114b35/client/src/main/scala/org/http4s/client/middleware/Retry.scala" target="_blank">Retry.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -308,9 +308,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.middleware.Retry#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](backoff:Int=&gt;Option[scala.concurrent.duration.FiniteDuration])(client:org.http4s.client.Client[F])(implicitF:cats.effect.Async[F],implicitscheduler:fs2.Scheduler,implicitexecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.Client[F]"></a><a id="apply[F[_]]((Int)⇒Option[FiniteDuration])(Client[F])(Async[F],Scheduler,ExecutionContext):Client[F]"></a>
+      <a id="apply[F[_]](policy:org.http4s.client.middleware.RetryPolicy[F])(client:org.http4s.client.Client[F])(implicitF:cats.effect.Async[F],implicitscheduler:fs2.Scheduler,implicitexecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.Client[F]"></a><a id="apply[F[_]](RetryPolicy[F])(Client[F])(Async[F],Scheduler,ExecutionContext):Client[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/middleware/Retry$.html#apply[F[_]](backoff:Int=&gt;Option[scala.concurrent.duration.FiniteDuration])(client:org.http4s.client.Client[F])(implicitF:cats.effect.Async[F],implicitscheduler:fs2.Scheduler,implicitexecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../../org/http4s/client/middleware/Retry$.html#apply[F[_]](policy:org.http4s.client.middleware.RetryPolicy[F])(client:org.http4s.client.Client[F])(implicitF:cats.effect.Async[F],implicitscheduler:fs2.Scheduler,implicitexecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -319,7 +319,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="backoff">backoff: (<span class="extype" name="scala.Int">Int</span>) ⇒ <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</span>]</span>)</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>, <span name="scheduler">scheduler: <span class="extype" name="fs2.Scheduler">Scheduler</span></span>, <span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="policy">policy: <a href="index.html#RetryPolicy[F[_]]=(org.http4s.Request[F],Either[Throwable,org.http4s.Response[F]],Int)=&gt;Option[scala.concurrent.duration.FiniteDuration]" class="extmbr" name="org.http4s.client.middleware.RetryPolicy">RetryPolicy</a>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>)</span><span class="params">(<span name="client">client: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>, <span name="scheduler">scheduler: <span class="extype" name="fs2.Scheduler">Scheduler</span></span>, <span name="executionContext">executionContext: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.middleware.Retry.apply.F">F</span>]</span>
       </span>
       
       
