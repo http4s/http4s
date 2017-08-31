@@ -21,24 +21,25 @@ class RetrySpec extends Http4sSpec with Tables {
   }
 
   val defaultClient = Client.fromHttpService(route)
+  val failClient = Client(Service.const(Task.fail(new Exception("boom"))), Task.now(()))
 
-  "Retry Client" should {
-    def countRetries(client: Client, method: Method, status: Status, body: EntityBody): Int = {
-      val max = 2
-      var attemptsCounter = 1
-      val policy = (attempts: Int) => {
-        if (attempts >= max) None
-        else {
-          attemptsCounter = attemptsCounter + 1
-          Some(10.milliseconds)
-        }
+  def countRetries(client: Client, method: Method, status: Status, body: EntityBody): Int = {
+    val max = 2
+    var attemptsCounter = 1
+    val policy = RetryPolicy { attempts: Int =>
+      if (attempts >= max) None
+      else {
+        attemptsCounter = attemptsCounter + 1
+        Some(1.nanosecond)
       }
-      val retryClient = Retry(policy)(client)
-      val req = Request(method, uri("http://localhost/") / status.code.toString).withBody(body)
-      val resp = retryClient.fetch(req){ _ => Task.now(()) }.unsafeAttemptRun()
-      attemptsCounter
     }
+    val retryClient = Retry(policy)(client)
+    val req = Request(method, uri("http://localhost/") / status.code.toString).withBody(body)
+    val resp = retryClient.fetch(req){ _ => Task.now(()) }.unsafeAttemptRun()
+    attemptsCounter
+  }
 
+  "defaultRetriable" should {
     "retry GET based on status code" in {
       "status"                | "retries" |>
       Ok                      ! 1         |
@@ -53,18 +54,17 @@ class RetrySpec extends Http4sSpec with Tables {
       GatewayTimeout          ! 2         |
       HttpVersionNotSupported ! 1         |
       { countRetries(defaultClient, GET, _, EmptyBody) must_== _ }
-    }.pendingUntilFixed
+    }
 
-    "not retry POSTs" in prop { s: Status =>
+    "not retry non-idempotent methods" in prop { s: Status =>
       countRetries(defaultClient, POST, s, EmptyBody) must_== 1
-    }.pendingUntilFixed
+    }
 
     "not retry effectful bodies" in prop { s: Status =>
       countRetries(defaultClient, PUT, s, Stream.eval_(Task.now(()))) must_== 1
-    }.pendingUntilFixed
+    }
 
     "retry exceptions" in {
-      val failClient = Client(Service.const(Task.fail(new Exception("boom"))), Task.now(()))
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
   }

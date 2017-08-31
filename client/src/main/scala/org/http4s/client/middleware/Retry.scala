@@ -2,22 +2,87 @@ package org.http4s
 package client
 package middleware
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+
+import cats._
+import cats.implicits._
+import fs2._
+import org.http4s.Status._
+import org.http4s.headers.`Retry-After`
+import org.log4s.getLogger
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import scala.math.{pow, min, random}
-import org.http4s.Status._
-import org.log4s.getLogger
-import fs2.{Scheduler, Strategy, Task}
-
-import scala.Either
-import scala.Right
-import scala.Left
+import scala.math.{min, pow, random}
 
 object Retry {
 
   private[this] val logger = getLogger
 
-  private[this] val RetriableStatuses = Set(
+  def apply(policy: RetryPolicy)(client: Client)(implicit ec: ExecutionContext, scheduler: Scheduler): Client = {
+    implicit val s: Strategy = Strategy.fromExecutionContext(ec)
+
+    def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
+      client.open(req).attempt flatMap {
+        // TODO fs2 port - Reimplement request isIdempotent in some form
+        case right @ Right(dr @ DisposableResponse(response, _)) =>
+          policy(req, Right(dr.response), attempts) match {
+            case Some(duration) =>
+              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+              dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
+            case None =>
+              Task.now(dr)
+          }
+        case Left(e) =>
+          policy(req, Left(e), attempts) match {
+            case Some(duration) =>
+              logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
+              nextAttempt(req, attempts, duration, None)
+            case None =>
+              Task.fail(e)
+          }
+      }
+    }
+
+    def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration, retryHeader: Option[`Retry-After`]): Task[DisposableResponse] = {
+      val headerDuration = retryHeader.map { h =>
+        h.retry match {
+          case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
+          case Right(secs) => secs
+        }
+      }.getOrElse(0L)
+      val sleepDuration = Math.max(headerDuration, duration.length).seconds
+      prepareLoop(req.withEmptyBody, attempts + 1).schedule(sleepDuration)
+    }
+
+    client.copy(open = Service.lift(prepareLoop(_, 1)))
+  }
+}
+
+object RetryPolicy {
+  /** Decomposes a retry policy into components that are typically configured
+    * individually.
+    * 
+    * @param backoff a function of attempts to an optional
+    * FiniteDuration.  Return None to stop retrying, or some
+    * duration after which the request will be retried.  See
+    * `exponentialBackoff` for a useful implementation.
+    * 
+    * @param retriable determines whether the request is retriable
+    * from the request and either the throwable or response that was
+    * returned.  Defaults to `defaultRetriable`.
+    */
+  def apply(
+    backoff: Int => Option[FiniteDuration],
+    retriable: (Request, Either[Throwable, Response]) => Boolean = defaultRetriable
+  ): RetryPolicy = { (req, result, retries) =>
+    if (retriable(req, result)) backoff(retries)
+    else None
+  }
+
+  /** Statuses that are retriable, per HTTP spec */
+  val RetriableStatuses = Set(
     RequestTimeout,
     // TODO Leaving PayloadTooLarge out until we model Retry-After
     InternalServerError,
@@ -26,47 +91,52 @@ object Retry {
     GatewayTimeout
   )
 
-  def apply(backoff: Int => Option[FiniteDuration])(client: Client)(implicit ec: ExecutionContext, scheduler: Scheduler): Client = {
-    implicit val s: Strategy = Strategy.fromExecutionContext(ec)
-
-    def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
-      client.open(req).attempt flatMap {
-        // TODO fs2 port - Reimplement request isIdempotent in some form
-        case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if RetriableStatuses(status) =>
-          backoff(attempts) match {
-            case Some(duration) =>
-              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Retrying after ${duration}.")
-              dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
-            case None =>
-              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Giving up.")
-              Task.now(dr)
-          }
-        case Right(dr) =>
-          Task.now(dr)
-        case Left(e) =>
-          backoff(attempts) match {
-            case Some(duration) =>
-              logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
-              nextAttempt(req, attempts, duration)
-            case None =>
-              // info instead of error(e), because e is not discarded
-              logger.info(s"Request ${req} threw an exception on attempt #${attempts} attempts. Giving up.")
-              Task.fail(e)
-          }
-      }
-    }
-
-    def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] = {
-      // TODO honor Retry-After header
-      prepareLoop(req.withEmptyBody, attempts + 1).schedule(duration)
-    }
-
-    client.copy(open = Service.lift(prepareLoop(_, 1)))
+  /** Default logic for whether a request is retriable.  Returns true if
+    * the request method does not permit a body and the result is
+    * either a throwable or has one of the `RetriableStatuses`.
+    * 
+    * Caution: more restrictive than 0.16.  That would inspect the
+    * body for effects, and resumbmit only if the body was pure (i.e.,
+    * only emits and halts).  The fs2 algebra does not let us inspect
+    * the stream for effects, so we can't safely resubmit.  For the
+    * old behavior, use [[unsafeRetriable]].  To ignore the response
+    * codes, see [[recklesslyRetriable]].
+    */
+  def defaultRetriable(req: Request, result: Either[Throwable, Response]): Boolean = {
+    if (req.method.isInstanceOf[Method.NoBody]) isErrorOrRetriableStatus(result)
+    else false
   }
-}
 
+  /** Returns true if the request method is idempotent and the result is
+    * either a throwable or has one of the `RetriableStatuses`.  This is
+    * the `defaultRetriable` behavior from 0.16.
+    * 
+    * Caution: if the request body is effectful, the effects will be
+    * run twice.  The most common symptom of this will be resubmitting
+    * an empty request body.
+    */
+  def unsafeRetriable(req: Request, result: Either[Throwable, Response]): Boolean = {
+    if (req.method.isIdempotent) isErrorOrRetriableStatus(result)
+    else false
+  }
 
-object RetryPolicy {
+  /** Like [[unsafeRetriable]], but returns true even if the request method
+    * is not idempotent.  This is useful if failed requests are assumed to
+    * have not reached their destination, which is a dangerous assumption.
+    * Use at your own risk.
+    * 
+    * Caution: if the request body is effectful, the effects will be
+    * run twice.  The most common symptom of this will be resubmitting
+    * an empty request body.
+    */
+  def recklesslyRetriable(req: Request, result: Either[Throwable, Response]): Boolean =
+    isErrorOrRetriableStatus(result)
+
+  private def isErrorOrRetriableStatus(result: Either[Throwable, Response]): Boolean = 
+    result match {
+      case Left(_) => true
+      case Right(resp) => RetriableStatuses(resp.status)
+    }
 
   def exponentialBackoff(maxWait: Duration, maxRetry: Int): Int => Option[FiniteDuration] = {
     val maxInMillis = maxWait.toMillis

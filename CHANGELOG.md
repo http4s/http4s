@@ -1,8 +1,25 @@
 # v0.17.0-SNAPSHOT
+* Honor `Retry-After` header in `Retry` middleware.  The response will
+  not be retried until the maximum of the backoff strategy and any
+  time specified by the `Retry-After` header of the response.
+* The `RetryPolicy.defaultRetriable` only works for methods guaranteed
+  to not have a body.  In fs2, we can't introspect the stream to
+  guarantee that it can be rerun.  To retry requests for idempotent
+  request methods, use `RetryPolicy.unsafeRetriable`.  To retry
+  requests regardless of method, use
+  `RetryPolicy.recklesslyRetriable`.
+* Fix `Logger` middleware to render JSON bodies as text, not as a hex
+  dump.
 * `MultipartParser.parse` returns a stream of `ByteVector` instead of
   a stream of `Byte`. This perserves chunking when parsing into the
   high-level `EntityDecoder[Multipart]`, and substantially improves
   performance on large files.  The high-level API is not affected.
+
+# v0.16.0-SNAPSHOT
+* `Retry` middleware takes a `RetryPolicy` instead of a backoff
+  strategy.  A `RetryPolicy` is a function of the request, the
+  response, and the number of attempts.  Wrap the previous `backoff`
+  in `RetryPolicy {}` for compatible behavior.
 
 # v0.17.0-RC3 (2017-08-29)
 * In blaze-server, when doing chunked transfer encoding, flush the
