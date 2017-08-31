@@ -8,6 +8,8 @@
   request methods, use `RetryPolicy.unsafeRetriable`.  To retry
   requests regardless of method, use
   `RetryPolicy.recklesslyRetriable`.
+* Fix `Logger` middleware to render JSON bodies as text, not as a hex
+  dump.
 
 # v0.16.0-SNAPSHOT
 * `Retry` middleware takes a `RetryPolicy` instead of a backoff
