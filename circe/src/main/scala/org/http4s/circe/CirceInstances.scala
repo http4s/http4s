@@ -14,6 +14,15 @@ import org.http4s.headers.`Content-Type`
 import scodec.bits.ByteVector
 
 trait CirceInstances {
+
+  implicit def http4sCirceJsonDecoder[F[_]: Sync, A](implicit decoder: Decoder[A]) =
+    new JsonDecoder[F, A] {
+      override def decodeJson(message: Message[F]): F[A] =
+        jsonOf[F, A]
+          .decode(message, strict = false)
+          .fold(throw _, identity)
+    }
+
   def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
     jawn.jawnDecoder[F, Json]
 
