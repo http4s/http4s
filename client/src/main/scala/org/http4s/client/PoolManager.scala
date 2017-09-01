@@ -22,7 +22,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private var isClosed = false
   private var curTotal = 0
-  private var allocated = Map.empty[RequestKey, Int]
+  private var allocated = mutable.Map.empty[RequestKey, Int]
   private val idleQueue = mutable.Map.empty[RequestKey, mutable.Queue[A]]
   private val waitQueue = mutable.Queue.empty[Waiting]
 
@@ -42,6 +42,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
         None
     }
 
+  @inline
+  private def incrConnection(key: RequestKey): Unit =
+    allocated.update(key, allocated.getOrElse(key, 0) + 1)
+
+  @inline
+  private def decrConnection(key: RequestKey): Unit =
+    allocated.update(key, allocated.getOrElse(key, 0) - 1)
+
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
     * then builds the connection with the given callback and completes the callback.
@@ -57,7 +65,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (curTotal < maxTotal && allocated.getOrElse(key, 0) < getMaxConnections(key)) {
       curTotal += 1
-      allocated = allocated + (key -> (allocated.getOrElse(key, 0) + 1))
+      incrConnection(key)
       async.unsafeRunAsync(builder(key)) {
         case Right(conn) =>
           IO(callback(Right(NextConnection(conn, fresh = true))))
@@ -109,7 +117,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case Some(closedConn) =>
                 logger.debug(s"Evicting closed connection: $stats")
                 curTotal -= 1
-                allocated = allocated + (key -> (allocated(key) - 1))
+                decrConnection(key)
                 go()
 
               case None
@@ -121,7 +129,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
                 curTotal -= 1
-                allocated = allocated + (key -> (allocated(key) - 1))
+                decrConnection(key)
                 getConnectionFromQueue(key).get.shutdown()
                 createConnection(key, callback)
 
@@ -177,13 +185,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
             case None =>
               connection.shutdown()
               curTotal -= 1
-              allocated = allocated + (key -> (allocated(key) - 1))
+              decrConnection(key)
               val Waiting(k, callback) = waitQueue.dequeue()
               createConnection(k, callback)
           }
         } else {
           curTotal -= 1
-          allocated = allocated + (key -> (allocated(key) - 1))
+          decrConnection(key)
 
           if (!connection.isClosed) {
             logger.debug(s"Connection returned was busy.  Shutting down: $stats")
@@ -204,7 +212,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         val key = connection.requestKey
         connection.shutdown()
         curTotal -= 1
-        allocated = allocated + (key -> (allocated(key) - 1))
+        decrConnection(key)
       }
     }
   }
@@ -231,7 +239,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     logger.debug(s"Disposing of connection: $stats")
     synchronized {
       curTotal -= 1
-      allocated = allocated + (key -> (allocated(key) - 1))
+      decrConnection(key)
       connection.foreach { s =>
         if (!s.isClosed) s.shutdown()
       }
@@ -252,7 +260,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       if (!isClosed) {
         isClosed = true
         idleQueue.foreach(_._2.foreach(_.shutdown()))
-        allocated = Map.empty
+        allocated = mutable.Map.empty
         curTotal = 0
       }
     }
