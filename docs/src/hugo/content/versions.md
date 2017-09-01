@@ -23,8 +23,8 @@ title: Versions
 After deliberations both internally and with <a href="https://github.com/http4s/fp-ecosystem">other projects in the Scala ecosystem</a>, we are bringing this transition to its conclusion:
 
 <ul>
-  <li><code>http4s-0.16</code> will be the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will continue to support this branch with bugfixes over the next several months, but not new development.</li>
-  <li><code>http4s-0.17</code> will be the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  Users of <code>0.16.0-cats-SNAPSHOT</code> should transition to <code>0.17.0-SNAPSHOT</code>.  Interop for Scalaz-based apps will be provided through <a href="https://github.com/djspiewak/shims">Shims</a> or <a href="https://github.com/shawjef3/Harmony">Harmony</a>.</li>
+  <li><code>http4s-0.16</code> is the final release series based on <a href="https://github.com/scalaz/scalaz-stream">scalaz-stream</a>.  We will support this branch with bugfixes, but not new development.</li>
+  <li><code>http4s-0.17</code> is the first official release on <a href="http://typelevel.org/cats/">Cats</a> and <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a>.  Interop for Scalaz-based apps will be provided through <a href="https://github.com/djspiewak/shims">Shims</a> or <a href="https://github.com/shawjef3/Harmony">Harmony</a>.</li>
   <li>We intend to publish <code>http4s-1.0</code> on top of the eventual <code>cats-1.0</code> and <code>fs2-1.0</code></li>
 </ul>
 
@@ -75,8 +75,8 @@ After deliberations both internally and with <a href="https://github.com/http4s/
         <td>1.8+</td>
       </tr>
 	  <tr>
-	    <td>0.16.0a-RC3</td>
-	    <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
+	    <td>0.16.0</td>
+	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -85,8 +85,8 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.0-RC3</td>
-	    <td class="text-center"><span class="label label-warning">Release Candidate</span></td>
+	    <td>0.16.0</td>
+	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -96,7 +96,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	  </tr>
 	  <tr>
 	    <td>0.15.16a</td>
-	    <td class="text-center"><span class="label label-primary">Stable</span></td>
+	    <td class="text-center"><span class="label label-primary">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -106,7 +106,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	  </tr>
 	  <tr>
 	    <td>0.15.16</td>
-	    <td class="text-center"><span class="label label-primary">Stable</span></td>
+	    <td class="text-center"><span class="label label-primary">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>

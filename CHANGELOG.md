@@ -1,4 +1,4 @@
-# v0.16.0-SNAPSHOT
+# v0.16.0 (2017-09-01)
 * `Retry` middleware takes a `RetryPolicy` instead of a backoff
   strategy.  A `RetryPolicy` is a function of the request, the
   response, and the number of attempts.  Wrap the previous `backoff`
