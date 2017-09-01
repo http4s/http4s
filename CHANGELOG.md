@@ -1,4 +1,4 @@
-# v0.17.0-SNAPSHOT
+# v0.17.0 (2017-09-01)
 * Honor `Retry-After` header in `Retry` middleware.  The response will
   not be retried until the maximum of the backoff strategy and any
   time specified by the `Retry-After` header of the response.
@@ -15,7 +15,7 @@
   high-level `EntityDecoder[Multipart]`, and substantially improves
   performance on large files.  The high-level API is not affected.
 
-# v0.16.0-SNAPSHOT
+# v0.16.0 (2017-09-01)
 * `Retry` middleware takes a `RetryPolicy` instead of a backoff
   strategy.  A `RetryPolicy` is a function of the request, the
   response, and the number of attempts.  Wrap the previous `backoff`
