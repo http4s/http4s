@@ -1,6 +1,5 @@
 package org.http4s.server.staticcontent
 
-
 import cats.effect._
 import org.http4s.Method.{GET, POST}
 import org.http4s._
@@ -10,8 +9,7 @@ object WebjarServiceFilterSpec extends Http4sSpec with StaticContentShared {
 
   def s: HttpService[IO] = webjarService(
     Config(filter = (webjar) =>
-      webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt"
-    )
+      webjar.library == "test-lib" && webjar.version == "1.0.0" && webjar.asset == "testresource.txt")
   )
 
   "The WebjarService" should {

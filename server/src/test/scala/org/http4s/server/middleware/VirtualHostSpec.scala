@@ -5,7 +5,7 @@ package middleware
 import cats.effect._
 import org.http4s.Method._
 import org.http4s.headers.Host
-import org.http4s.Status.{Ok,BadRequest,NotFound}
+import org.http4s.Status.{BadRequest, NotFound, Ok}
 
 class VirtualHostSpec extends Http4sSpec {
 
@@ -90,9 +90,10 @@ class VirtualHostSpec extends Http4sSpec {
 
       "match a route with a wildcard route" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-        val reqs = Seq(req.replaceAllHeaders(Host("a.service", Some(80))),
-                       req.replaceAllHeaders(Host("A.service", Some(80))),
-                       req.replaceAllHeaders(Host("b.service", Some(80))))
+        val reqs = Seq(
+          req.replaceAllHeaders(Host("a.service", Some(80))),
+          req.replaceAllHeaders(Host("A.service", Some(80))),
+          req.replaceAllHeaders(Host("b.service", Some(80))))
 
         forall(reqs) { req =>
           virtualServices.orNotFound(req) must returnBody("serviceb")
@@ -101,8 +102,9 @@ class VirtualHostSpec extends Http4sSpec {
 
       "not match a route with an abscent wildcard" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-        val reqs = Seq(req.replaceAllHeaders(Host(".service", Some(80))),
-                       req.replaceAllHeaders(Host("service", Some(80))))
+        val reqs = Seq(
+          req.replaceAllHeaders(Host(".service", Some(80))),
+          req.replaceAllHeaders(Host("service", Some(80))))
 
         forall(reqs) { req =>
           virtualServices.orNotFound(req) must returnStatus(NotFound)

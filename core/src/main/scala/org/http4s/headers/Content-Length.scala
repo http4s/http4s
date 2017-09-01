@@ -15,7 +15,8 @@ import org.http4s.util.Writer
 sealed abstract case class `Content-Length`(length: Long) extends Header.Parsed {
   override def key: `Content-Length`.type = `Content-Length`
   override def renderValue(writer: Writer): writer.type = writer.append(length)
-  def modify(f: Long => Long): Option[`Content-Length`] = `Content-Length`.fromLong(f(length)).right.toOption
+  def modify(f: Long => Long): Option[`Content-Length`] =
+    `Content-Length`.fromLong(f(length)).right.toOption
 }
 
 object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton {
@@ -33,4 +34,3 @@ object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with Header
   def parse(s: String): ParseResult[`Content-Length`] =
     HttpHeaderParser.CONTENT_LENGTH(s)
 }
-

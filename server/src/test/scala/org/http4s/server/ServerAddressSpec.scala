@@ -17,7 +17,7 @@ trait ServerAddressSpec extends Http4sSpec {
 
   "A server configured with port 0" should {
     "know its local port after start" in new ServerContext {
-      server.address.getPort must be_> (0)
+      server.address.getPort must be_>(0)
     }
   }
 }

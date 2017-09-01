@@ -24,43 +24,43 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class BlazeBuilder[F[_]](
-  socketAddress: InetSocketAddress,
-  executionContext: ExecutionContext,
-  idleTimeout: Duration,
-  isNio2: Boolean,
-  connectorPoolSize: Int,
-  bufferSize: Int,
-  enableWebSockets: Boolean,
-  sslBits: Option[SSLConfig],
-  isHttp2Enabled: Boolean,
-  maxRequestLineLen: Int,
-  maxHeadersLen: Int,
-  serviceMounts: Vector[ServiceMount[F]],
-  serviceErrorHandler: ServiceErrorHandler[F]
-)(implicit F: Effect[F],
-  S: Semigroup[F[MaybeResponse[F]]])
-  extends ServerBuilder[F]
-  with IdleTimeoutSupport[F]
-  with SSLKeyStoreSupport[F]
-  with SSLContextSupport[F]
-  with server.WebSocketSupport[F] {
+    socketAddress: InetSocketAddress,
+    executionContext: ExecutionContext,
+    idleTimeout: Duration,
+    isNio2: Boolean,
+    connectorPoolSize: Int,
+    bufferSize: Int,
+    enableWebSockets: Boolean,
+    sslBits: Option[SSLConfig],
+    isHttp2Enabled: Boolean,
+    maxRequestLineLen: Int,
+    maxHeadersLen: Int,
+    serviceMounts: Vector[ServiceMount[F]],
+    serviceErrorHandler: ServiceErrorHandler[F]
+)(implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]])
+    extends ServerBuilder[F]
+    with IdleTimeoutSupport[F]
+    with SSLKeyStoreSupport[F]
+    with SSLContextSupport[F]
+    with server.WebSocketSupport[F] {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger(classOf[BlazeBuilder[F]])
 
-  private def copy(socketAddress: InetSocketAddress = socketAddress,
-                executionContext: ExecutionContext = executionContext,
-                     idleTimeout: Duration = idleTimeout,
-                          isNio2: Boolean = isNio2,
-               connectorPoolSize: Int = connectorPoolSize,
-                      bufferSize: Int = bufferSize,
-                enableWebSockets: Boolean = enableWebSockets,
-                         sslBits: Option[SSLConfig] = sslBits,
-                    http2Support: Boolean = isHttp2Enabled,
-               maxRequestLineLen: Int = maxRequestLineLen,
-                   maxHeadersLen: Int = maxHeadersLen,
-                   serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
-             serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler): Self =
+  private def copy(
+      socketAddress: InetSocketAddress = socketAddress,
+      executionContext: ExecutionContext = executionContext,
+      idleTimeout: Duration = idleTimeout,
+      isNio2: Boolean = isNio2,
+      connectorPoolSize: Int = connectorPoolSize,
+      bufferSize: Int = bufferSize,
+      enableWebSockets: Boolean = enableWebSockets,
+      sslBits: Option[SSLConfig] = sslBits,
+      http2Support: Boolean = isHttp2Enabled,
+      maxRequestLineLen: Int = maxRequestLineLen,
+      maxHeadersLen: Int = maxHeadersLen,
+      serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
+      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler): Self =
     new BlazeBuilder(
       socketAddress,
       executionContext,
@@ -85,23 +85,23 @@ class BlazeBuilder[F[_]](
     * @param maxRequestLineLen maximum request line to parse
     * @param maxHeadersLen maximum data that compose headers
     */
-  def withLengthLimits(maxRequestLineLen: Int = maxRequestLineLen,
-                       maxHeadersLen: Int = maxHeadersLen): Self =
-    copy(maxRequestLineLen = maxRequestLineLen,
-         maxHeadersLen = maxHeadersLen)
+  def withLengthLimits(
+      maxRequestLineLen: Int = maxRequestLineLen,
+      maxHeadersLen: Int = maxHeadersLen): Self =
+    copy(maxRequestLineLen = maxRequestLineLen, maxHeadersLen = maxHeadersLen)
 
-  override def withSSL(keyStore: StoreInfo,
-                       keyManagerPassword: String,
-                       protocol: String,
-                       trustStore: Option[StoreInfo],
-                       clientAuth: Boolean): Self = {
+  override def withSSL(
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String,
+      trustStore: Option[StoreInfo],
+      clientAuth: Boolean): Self = {
     val bits = KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
     copy(sslBits = Some(bits))
   }
 
-  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self = {
+  override def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): Self =
     copy(sslBits = Some(SSLContextBits(sslContext, clientAuth)))
-  }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
@@ -117,7 +117,8 @@ class BlazeBuilder[F[_]](
 
   def withNio2(isNio2: Boolean): Self = copy(isNio2 = isNio2)
 
-  override def withWebSockets(enableWebsockets: Boolean): Self = copy(enableWebSockets = enableWebsockets)
+  override def withWebSockets(enableWebsockets: Boolean): Self =
+    copy(enableWebSockets = enableWebsockets)
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
@@ -126,9 +127,9 @@ class BlazeBuilder[F[_]](
       if (prefix.isEmpty || prefix == "/") service
       else {
         val newCaret = prefix match {
-          case "/"                    => 0
+          case "/" => 0
           case x if x.startsWith("/") => x.length
-          case x                      => x.length + 1
+          case x => x.length + 1
         }
 
         service.local { req: Request[F] =>
@@ -141,24 +142,27 @@ class BlazeBuilder[F[_]](
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
 
-
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service }: _*)
+    val aggregateService = Router(serviceMounts.map { mount =>
+      mount.prefix -> mount.service
+    }: _*)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
       else address
 
-
     val pipelineFactory = { conn: SocketConnection =>
       def requestAttributes(secure: Boolean) =
         (conn.local, conn.remote) match {
           case (local: InetSocketAddress, remote: InetSocketAddress) =>
-            AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, Request.Connection(
-              local = local,
-              remote = remote,
-              secure = secure
-            )))
+            AttributeMap(
+              AttributeEntry(
+                Request.Keys.ConnectionInfo,
+                Request.Connection(
+                  local = local,
+                  remote = remote,
+                  secure = secure
+                )))
           case _ =>
             AttributeMap.empty
         }
@@ -185,10 +189,9 @@ class BlazeBuilder[F[_]](
           serviceErrorHandler
         )
 
-      def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) = {
+      def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
         if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
         else lb
-      }
 
       getContext() match {
         case Some((ctx, clientAuth)) =>
@@ -262,8 +265,8 @@ class BlazeBuilder[F[_]](
       }
 
       val kmf = KeyManagerFactory.getInstance(
-                    Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
-                      .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+        Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+          .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
 
       kmf.init(ks, keyManagerPassword.toCharArray)
 

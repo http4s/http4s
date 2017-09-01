@@ -28,9 +28,9 @@ import org.http4s.syntax.string._
 import org.http4s.util._
 
 /**
- * Abstract representation o the HTTP header
- * @see org.http4s.HeaderKey
- */
+  * Abstract representation o the HTTP header
+  * @see org.http4s.HeaderKey
+  */
 sealed trait Header extends Renderable with Product {
   import Header.Raw
 
@@ -58,31 +58,33 @@ sealed trait Header extends Renderable with Product {
     renderValue(writer)
   }
 
-  final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
+  final override def hashCode(): Int =
+    MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
   final override def equals(that: Any): Boolean = that match {
     case h: AnyRef if this eq h => true
     case h: Header =>
       (name == h.name) &&
-      (parsed.productArity == h.parsed.productArity) &&
-      (parsed.productIterator sameElements h.parsed.productIterator)
+        (parsed.productArity == h.parsed.productArity) &&
+        (parsed.productIterator.sameElements(h.parsed.productIterator))
     case _ => false
   }
 }
 
 object Header {
-  def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
+  def unapply(header: Header): Option[(CaseInsensitiveString, String)] =
+    Some((header.name, header.value))
 
   def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
   /**
-   * Raw representation of the Header
-   *
-   * This can be considered the simplest representation where the header is specified as the product of
-   * a key and a value
-   * @param name case-insensitive string used to identify the header
-   * @param value String representation of the header value
-   */
+    * Raw representation of the Header
+    *
+    * This can be considered the simplest representation where the header is specified as the product of
+    * a key and a value
+    * @param name case-insensitive string used to identify the header
+    * @param value String representation of the header value
+    */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
     private[this] var _parsed: Header = null
     final override def parsed: Header = {
@@ -102,13 +104,13 @@ object Header {
   }
 
   /**
-   * A recurring header that satisfies this clause of the Spec:
-   *
-   * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
-   * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
-   * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
-   * of the message, by appending each subsequent field-value to the first, each separated by a comma.
-   */
+    * A recurring header that satisfies this clause of the Spec:
+    *
+    * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
+    * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
+    * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
+    * of the message, by appending each subsequent field-value to the first, each separated by a comma.
+    */
   trait Recurring extends Parsed {
     type Value
     def values: NonEmptyList[Value]
@@ -119,16 +121,16 @@ object Header {
     type Value <: Renderable
     override def renderValue(writer: Writer): writer.type = {
       values.head.render(writer)
-      values.tail.foreach( writer << ", " << _ )
+      values.tail.foreach(writer << ", " << _)
       writer
     }
   }
 
-  implicit val HeaderShow : Show[Header] = Show.show[Header] {
+  implicit val HeaderShow: Show[Header] = Show.show[Header] {
     _.toString
   }
 
-  implicit val HeaderEq : Eq[Header] = Eq.instance[Header]{(a, b) =>
+  implicit val HeaderEq: Eq[Header] = Eq.instance[Header] { (a, b) =>
     a.name === b.name && a.value === b.value
   }
 

@@ -21,14 +21,18 @@ class DateSpec extends HeaderLaws {
 
   "fromDate" should {
     "accept format RFC 1123" in {
-      Date.parse("Sun, 06 Nov 1994 08:49:37 GMT").map(_.date) must beRight(HttpDate.unsafeFromZonedDateTime(gmtDate))
+      Date.parse("Sun, 06 Nov 1994 08:49:37 GMT").map(_.date) must beRight(
+        HttpDate.unsafeFromZonedDateTime(gmtDate))
     }
     "accept format RFC 1036" in {
-      Date.parse("Sunday, 06-Nov-94 08:49:37 GMT").map(_.date) must beRight(HttpDate.unsafeFromZonedDateTime(gmtDate))
+      Date.parse("Sunday, 06-Nov-94 08:49:37 GMT").map(_.date) must beRight(
+        HttpDate.unsafeFromZonedDateTime(gmtDate))
     }
     "accept format ANSI date" in {
-      Date.parse("Sun Nov  6 08:49:37 1994").map(_.date) must beRight(HttpDate.unsafeFromZonedDateTime(gmtDate))
-      Date.parse("Sun Nov 16 08:49:37 1994").map(_.date) must beRight(HttpDate.unsafeFromZonedDateTime(gmtDate.plusDays(10)))
+      Date.parse("Sun Nov  6 08:49:37 1994").map(_.date) must beRight(
+        HttpDate.unsafeFromZonedDateTime(gmtDate))
+      Date.parse("Sun Nov 16 08:49:37 1994").map(_.date) must beRight(
+        HttpDate.unsafeFromZonedDateTime(gmtDate.plusDays(10)))
     }
   }
 }

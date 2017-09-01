@@ -24,21 +24,24 @@ private[util] object ChunkWriter {
   def ChunkEndBuffer = chunkEndBuffer.duplicate()
 
   val TransferEncodingChunkedString = "Transfer-Encoding: chunked\r\n\r\n"
-  private[this] val TransferEncodingChunkedBytes = "Transfer-Encoding: chunked\r\n\r\n".getBytes(ISO_8859_1)
-  private[this] val transferEncodingChunkedBuffer = ByteBuffer.wrap(TransferEncodingChunkedBytes).asReadOnlyBuffer
+  private[this] val TransferEncodingChunkedBytes =
+    "Transfer-Encoding: chunked\r\n\r\n".getBytes(ISO_8859_1)
+  private[this] val transferEncodingChunkedBuffer =
+    ByteBuffer.wrap(TransferEncodingChunkedBytes).asReadOnlyBuffer
   def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
 
-  def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(implicit F: Effect[F], ec: ExecutionContext) = {
+  def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
+      implicit F: Effect[F],
+      ec: ExecutionContext) = {
     val promise = Promise[Boolean]
     val f = trailer.map { trailerHeaders =>
       if (trailerHeaders.nonEmpty) {
         val rr = new StringWriter(256)
         rr << "0\r\n" // Last chunk
-        trailerHeaders.foreach( h =>  rr << h.name.toString << ": " << h << "\r\n") // trailers
+        trailerHeaders.foreach(h => rr << h.name.toString << ": " << h << "\r\n") // trailers
         rr << "\r\n" // end of chunks
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
-      }
-      else ChunkEndBuffer
+      } else ChunkEndBuffer
     }
     async.unsafeRunAsync(f) {
       case Right(buffer) =>

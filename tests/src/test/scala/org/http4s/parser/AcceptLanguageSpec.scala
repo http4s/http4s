@@ -4,11 +4,15 @@ package parser
 import org.http4s.headers.`Accept-Language`
 import org.specs2.mutable.Specification
 import scalaz.Validation
-import org.http4s.{QValue, LanguageTag}
+import org.http4s.{LanguageTag, QValue}
 
-class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-Language`] with Http4s {
+class AcceptLanguageSpec
+    extends Specification
+    with HeaderParserHelper[`Accept-Language`]
+    with Http4s {
 
-  def hparse(value: String): ParseResult[`Accept-Language`] = HttpHeaderParser.ACCEPT_LANGUAGE(value)
+  def hparse(value: String): ParseResult[`Accept-Language`] =
+    HttpHeaderParser.ACCEPT_LANGUAGE(value)
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))
@@ -31,20 +35,21 @@ class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-L
     }
 
     "Offer preferred" in {
-      val unordered = `Accept-Language`(en.values.head.withQuality(q(0.2)),
-                                        fr.values.head.withQuality(q(0.1)),
-                                        en_cool.values.head)
+      val unordered = `Accept-Language`(
+        en.values.head.withQuality(q(0.2)),
+        fr.values.head.withQuality(q(0.1)),
+        en_cool.values.head)
       unordered.preferred must be_==(en_cool.values.head)
     }
 
     "Be satisfied correctly" in {
-      all satisfiedBy en.values.head must be_== (true)
-      ninguno satisfiedBy en.values.head must be_== (false)
+      all.satisfiedBy(en.values.head) must be_==(true)
+      ninguno.satisfiedBy(en.values.head) must be_==(false)
 
-      en satisfiedBy en_cool.values.head must be_== (true)
-      en_cool satisfiedBy en.values.head must be_== (false)
+      en.satisfiedBy(en_cool.values.head) must be_==(true)
+      en_cool.satisfiedBy(en.values.head) must be_==(false)
 
-      en satisfiedBy fr.values.head must be_== (false)
+      en.satisfiedBy(fr.values.head) must be_==(false)
     }
   }
 }

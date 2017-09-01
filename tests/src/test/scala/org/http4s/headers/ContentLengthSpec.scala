@@ -4,37 +4,61 @@ class ContentLengthSpec extends HeaderLaws {
   checkAll("Content-Length", headerLaws(`Content-Length`))
 
   "fromLong" should {
-    "reject negative lengths" in prop { length: Long => length < 0 ==> {
-      `Content-Length`.fromLong(length) must beLeft
-    }}
-    "accept non-negative lengths" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.fromLong(length).right.map(_.length) must beRight(length)
-    }}
+    "reject negative lengths" in prop { length: Long =>
+      length < 0 ==> {
+        `Content-Length`.fromLong(length) must beLeft
+      }
+    }
+    "accept non-negative lengths" in prop { length: Long =>
+      length >= 0 ==> {
+        `Content-Length`.fromLong(length).right.map(_.length) must beRight(length)
+      }
+    }
   }
 
   "fromString" should {
-    "reject negative lengths" in prop { length: Long => length < 0 ==> {
-      `Content-Length`.parse(length.toString) must beLeft
-    }}
+    "reject negative lengths" in prop { length: Long =>
+      length < 0 ==> {
+        `Content-Length`.parse(length.toString) must beLeft
+      }
+    }
 
-    "reject non-numeric strings" in prop { s: String => !s.matches("[0-9]+") ==> {
-      `Content-Length`.parse(s) must beLeft
-    }}
+    "reject non-numeric strings" in prop { s: String =>
+      !s.matches("[0-9]+") ==> {
+        `Content-Length`.parse(s) must beLeft
+      }
+    }
 
-    "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.parse(length.toString) must_== `Content-Length`.fromLong(length)
-    }}
-    "roundtrip" in prop { l: Long => (l >= 0) ==> {
-      `Content-Length`.fromLong(l).right.map(_.value).right.flatMap(`Content-Length`.parse) must_== `Content-Length`.fromLong(l)
-    }}
+    "be consistent with apply" in prop { length: Long =>
+      length >= 0 ==> {
+        `Content-Length`.parse(length.toString) must_== `Content-Length`.fromLong(length)
+      }
+    }
+    "roundtrip" in prop { l: Long =>
+      (l >= 0) ==> {
+        `Content-Length`
+          .fromLong(l)
+          .right
+          .map(_.value)
+          .right
+          .flatMap(`Content-Length`.parse) must_== `Content-Length`.fromLong(l)
+      }
+    }
   }
 
   "modify" should {
-    "update the length if positive" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.zero.modify(_ + length) must_== `Content-Length`.fromLong(length).right.toOption
-    }}
-    "fail to update if the result is negative" in prop { length: Long => length > 0 ==> {
-      `Content-Length`.zero.modify(_ - length) must beNone
-    }}
+    "update the length if positive" in prop { length: Long =>
+      length >= 0 ==> {
+        `Content-Length`.zero.modify(_ + length) must_== `Content-Length`
+          .fromLong(length)
+          .right
+          .toOption
+      }
+    }
+    "fail to update if the result is negative" in prop { length: Long =>
+      length > 0 ==> {
+        `Content-Length`.zero.modify(_ - length) must beNone
+      }
+    }
   }
 }

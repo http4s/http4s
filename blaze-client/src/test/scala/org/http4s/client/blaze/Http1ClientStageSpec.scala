@@ -33,12 +33,14 @@ class Http1ClientStageSpec extends Http4sSpec {
 
   private def mkConnection(key: RequestKey) = new Http1Connection[IO](key, defaultConfig)
 
-  private def mkBuffer(s: String): ByteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
+  private def mkBuffer(s: String): ByteBuffer =
+    ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  private def bracketResponse[T](req: Request[IO], resp: String)(f: Response[IO] => IO[T]): IO[T] = {
+  private def bracketResponse[T](req: Request[IO], resp: String)(
+      f: Response[IO] => IO[T]): IO[T] = {
     val stage = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None))
     IO.suspend {
-      val h = new SeqTestHead(resp.toSeq.map{ chr =>
+      val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
         b.put(chr.toByte).flip()
         b
@@ -47,27 +49,32 @@ class Http1ClientStageSpec extends Http4sSpec {
 
       for {
         resp <- stage.runRequest(req)
-        t    <- f(resp)
-        _    <- IO(stage.shutdown())
+        t <- f(resp)
+        _ <- IO(stage.shutdown())
       } yield t
     }
 
   }
 
-  private def getSubmission(req: Request[IO], resp: String, stage: Http1Connection[IO]): (String, String) = {
-    val h = new SeqTestHead(resp.toSeq.map{ chr =>
+  private def getSubmission(
+      req: Request[IO],
+      resp: String,
+      stage: Http1Connection[IO]): (String, String) = {
+    val h = new SeqTestHead(resp.toSeq.map { chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
       b
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(stage.runRequest(req)
-      .unsafeRunSync()
-      .body
-      .runLog
-      .unsafeRunSync()
-      .toArray)
+    val result = new String(
+      stage
+        .runRequest(req)
+        .unsafeRunSync()
+        .body
+        .runLog
+        .unsafeRunSync()
+        .toArray)
 
     h.stageShutdown()
     val buff = Await.result(h.result, 10.seconds)
@@ -106,15 +113,16 @@ class Http1ClientStageSpec extends Http4sSpec {
 
     "Fail when attempting to get a second request with one in progress" in {
       val tail = mkConnection(FooRequestKey)
-      val (frag1,frag2) = resp.splitAt(resp.length-1)
+      val (frag1, frag2) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(List(mkBuffer(frag1), mkBuffer(frag2), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest).unsafeRunAsync{ case Right(_) => () ; case Left(_) => ()}  // we remain in the body
-        tail.runRequest(FooRequest).unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
-      }
-      finally {
+        tail.runRequest(FooRequest).unsafeRunAsync { case Right(_) => (); case Left(_) => () } // we remain in the body
+        tail
+          .runRequest(FooRequest)
+          .unsafeRunSync() must throwA[Http1Connection.InProgressException.type]
+      } finally {
         tail.shutdown()
       }
     }
@@ -132,8 +140,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         tail.shutdown()
 
         result.headers.size must_== 1
-      }
-      finally {
+      } finally {
         tail.shutdown()
       }
     }
@@ -149,8 +156,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         val result = tail.runRequest(FooRequest).unsafeRunSync()
 
         result.body.run.unsafeRunSync() must throwA[InvalidBodyException]
-      }
-      finally {
+      } finally {
         tail.shutdown()
       }
     }
@@ -212,8 +218,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
         requestLines.find(_.startsWith("User-Agent")) must beNone
         response must_== "done"
-      }
-      finally {
+      } finally {
         tail.shutdown()
       }
     }
@@ -275,7 +280,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       val req = Request[IO](uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
 
       "Support trailer headers" in {
-        val hs: IO[Headers] = bracketResponse(req, resp){ response: Response[IO] =>
+        val hs: IO[Headers] = bracketResponse(req, resp) { response: Response[IO] =>
           for {
             _ <- response.as[String]
             hs <- response.trailerHeaders
@@ -286,7 +291,7 @@ class Http1ClientStageSpec extends Http4sSpec {
       }
 
       "Fail to get trailers before they are complete" in {
-        val hs: IO[Headers] = bracketResponse(req, resp){ response: Response[IO] =>
+        val hs: IO[Headers] = bracketResponse(req, resp) { response: Response[IO] =>
           for {
             //body  <- response.as[String]
             hs <- response.trailerHeaders
@@ -298,4 +303,3 @@ class Http1ClientStageSpec extends Http4sSpec {
     }
   }
 }
-

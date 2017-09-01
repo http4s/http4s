@@ -21,17 +21,17 @@ object Timeout {
     * @param timeoutResponse Task[Response] to race against the result of the service. This will be run for each [[Request]]
     * @param service [[org.http4s.HttpService]] to transform
     */
-  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])
-                                (service: HttpService[F])
-                                (implicit executionContext: ExecutionContext): HttpService[F] =
+  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(
+      implicit executionContext: ExecutionContext): HttpService[F] =
     service.mapF { resp =>
       async.race(resp, timeoutResponse).map(_.merge)
     }
 
   /** Creates an `F` that is scheduled to return `response` after `timeout`.
     */
-  private def delay[F[_]: Effect](duration: FiniteDuration, response: F[Response[F]])
-                                 (implicit executionContext: ExecutionContext, scheduler: Scheduler): F[Response[F]] =
+  private def delay[F[_]: Effect](duration: FiniteDuration, response: F[Response[F]])(
+      implicit executionContext: ExecutionContext,
+      scheduler: Scheduler): F[Response[F]] =
     scheduler.sleep_[F](duration).run.followedBy(response)
 
   /** Transform the service to return a timeout response [[Status]]
@@ -44,16 +44,17 @@ object Timeout {
     * RequestTimeOut
     * @param service [[HttpService]] to transform
     */
-  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])
-                         (service: HttpService[F])
-                         (implicit executionContext: ExecutionContext, scheduler: Scheduler): HttpService[F] =
+  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(service: HttpService[F])(
+      implicit executionContext: ExecutionContext,
+      scheduler: Scheduler): HttpService[F] =
     timeout match {
       case fd: FiniteDuration => race(delay(fd, response))(service)
-      case _                  => service
+      case _ => service
     }
 
-  def apply[F[_]: Effect](timeout: Duration)
-                         (service: HttpService[F])
-                         (implicit executionContext: ExecutionContext, scheduler: Scheduler): HttpService[F] =
-    apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(service)
+  def apply[F[_]: Effect](timeout: Duration)(service: HttpService[F])(
+      implicit executionContext: ExecutionContext,
+      scheduler: Scheduler): HttpService[F] =
+    apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(
+      service)
 }

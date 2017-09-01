@@ -5,10 +5,9 @@ import org.scalacheck.Arbitrary
 import org.typelevel.discipline.Laws
 
 trait HeaderLaws extends Http4sSpec with Laws {
-  def headerLaws(key: HeaderKey)(implicit arbHeader: Arbitrary[key.HeaderT]): RuleSet = {
+  def headerLaws(key: HeaderKey)(implicit arbHeader: Arbitrary[key.HeaderT]): RuleSet =
     new SimpleRuleSet(
       "header",
-
       """parse(a.value) == right(a)"""" -> prop { a: key.HeaderT =>
         key.parse(a.value) must beRight(a)
       },
@@ -25,6 +24,4 @@ trait HeaderLaws extends Http4sSpec with Laws {
         key.name != header.name ==> { key.matchHeader(header) must beNone }
       }
     )
-  }
 }
-

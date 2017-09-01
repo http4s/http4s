@@ -18,7 +18,7 @@ import org.http4s.util.chunk._
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
     F.fromFuture(writeHeaders(headerWriter)).attempt.flatMap {
-      case Left(t)  => body.drain.run.map(_ => true)
+      case Left(t) => body.drain.run.map(_ => true)
       case Right(_) => writeEntityBody(body)
     }
 

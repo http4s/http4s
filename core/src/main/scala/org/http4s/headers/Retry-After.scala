@@ -16,7 +16,10 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
 
   def fromLong(retry: Long): ParseResult[`Retry-After`] =
     if (retry >= 0) ParseResult.success(new RetryAfterImpl(Right(retry)))
-    else ParseResult.fail("Invalid retry value", s"Retry param $retry must be more or equal than 0 seconds")
+    else
+      ParseResult.fail(
+        "Invalid retry value",
+        s"Retry param $retry must be more or equal than 0 seconds")
 
   def unsafeFromLong(retry: Long): `Retry-After` =
     fromLong(retry).fold(throw _, identity)
@@ -42,4 +45,3 @@ sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends 
   override val value = Renderer.renderString(retry)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }
-

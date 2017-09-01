@@ -36,10 +36,12 @@ trait ArbitraryInstances {
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
   implicit def arbitraryNonEmptyList[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
-    Arbitrary { for {
-      a <- arbitrary[A]
-      list <- arbitrary[List[A]]
-    } yield NonEmptyList(a, list) }
+    Arbitrary {
+      for {
+        a <- arbitrary[A]
+        list <- arbitrary[List[A]]
+      } yield NonEmptyList(a, list)
+    }
 
   val genTchar: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
@@ -75,10 +77,11 @@ trait ArbitraryInstances {
   val genStandardMethod: Gen[Method] =
     oneOf(Method.registered.toSeq)
 
-  implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
-    10 -> genStandardMethod,
-    1 -> genToken.map(Method.fromString(_).yolo)
-  ))
+  implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(
+    frequency(
+      10 -> genStandardMethod,
+      1 -> genToken.map(Method.fromString(_).yolo)
+    ))
   implicit val cogenMethod: Cogen[Method] =
     Cogen[Int].contramap(_.##)
 
@@ -93,34 +96,42 @@ trait ArbitraryInstances {
     reason <- arbitrary[String]
   } yield Status.fromIntAndReason(code, reason).yolo
 
-  implicit val arbitraryStatus: Arbitrary[Status] = Arbitrary(frequency(
-    10 -> genStandardStatus,
-    1 -> genCustomStatus
-  ))
+  implicit val arbitraryStatus: Arbitrary[Status] = Arbitrary(
+    frequency(
+      10 -> genStandardStatus,
+      1 -> genCustomStatus
+    ))
   implicit val cogenStatus: Cogen[Status] =
     Cogen[Int].contramap(_.code)
 
   implicit val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
-    Arbitrary { frequency(
-      5 -> { for {
-                k <- arbitrary[String]
-                v <- arbitrary[Option[String]]
-              } yield (k, v)
-           },
-      2 -> const(("foo" -> Some("bar")))  // Want some repeats
-    ) }
+    Arbitrary {
+      frequency(
+        5 -> {
+          for {
+            k <- arbitrary[String]
+            v <- arbitrary[Option[String]]
+          } yield (k, v)
+        },
+        2 -> const(("foo" -> Some("bar"))) // Want some repeats
+      )
+    }
 
   implicit val arbitraryQuery: Arbitrary[Query] =
-    Arbitrary { for {
-      n <- size
-      vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
-    } yield Query(vs:_*) }
+    Arbitrary {
+      for {
+        n <- size
+        vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
+      } yield Query(vs: _*)
+    }
 
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
-    Arbitrary { for {
-      major <- choose(0, 9)
-      minor <- choose(0, 9)
-    } yield HttpVersion.fromVersion(major, minor).yolo }
+    Arbitrary {
+      for {
+        major <- choose(0, 9)
+        minor <- choose(0, 9)
+      } yield HttpVersion.fromVersion(major, minor).yolo
+    }
 
   implicit val cogenHttpVersion: Cogen[HttpVersion] =
     Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
@@ -138,17 +149,20 @@ trait ArbitraryInstances {
     Cogen[NioCharset].contramap(_.nioCharset)
 
   implicit val arbitraryQValue: Arbitrary[QValue] =
-    Arbitrary { oneOf(const(0), const(1000), choose(0, 1000))
-      .map(QValue.fromThousandths(_).yolo)
+    Arbitrary {
+      oneOf(const(0), const(1000), choose(0, 1000))
+        .map(QValue.fromThousandths(_).yolo)
     }
   implicit val cogenQValue: Cogen[QValue] =
     Cogen[Int].contramap(_.thousandths)
 
   implicit val arbitraryCharsetRange: Arbitrary[CharsetRange] =
-    Arbitrary { for {
-      charsetRange <- genCharsetRangeNoQuality
-      q <- arbitrary[QValue]
-    } yield charsetRange.withQValue(q) }
+    Arbitrary {
+      for {
+        charsetRange <- genCharsetRangeNoQuality
+        q <- arbitrary[QValue]
+      } yield charsetRange.withQValue(q)
+    }
 
   implicit val cogenCharsetRange: Cogen[CharsetRange] =
     Cogen[Either[(Charset, QValue), QValue]].contramap {
@@ -159,10 +173,12 @@ trait ArbitraryInstances {
     }
 
   implicit val arbitraryCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
-    Arbitrary { for {
-      charset <- arbitrary[Charset]
-      q <- arbitrary[QValue]
-    } yield charset.withQuality(q) }
+    Arbitrary {
+      for {
+        charset <- arbitrary[Charset]
+        q <- arbitrary[QValue]
+      } yield charset.withQuality(q)
+    }
 
   implicit val arbitraryCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
     Arbitrary { arbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
@@ -178,73 +194,106 @@ trait ArbitraryInstances {
     genCharsetRangeNoQuality
 
   implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
-    Arbitrary { for {
-      // make a set first so we don't have contradictory q-values
-      charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](genCharsetRangeNoQuality).map(_.toVector)
-      qValues <- containerOfN[Vector, QValue](charsetRanges.size, arbitraryQValue.arbitrary)
-      charsetRangesWithQ = charsetRanges.zip(qValues).map { case (range, q) => range.withQValue(q) }
-    } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail:_*) }
+    Arbitrary {
+      for {
+        // make a set first so we don't have contradictory q-values
+        charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](genCharsetRangeNoQuality)
+          .map(_.toVector)
+        qValues <- containerOfN[Vector, QValue](charsetRanges.size, arbitraryQValue.arbitrary)
+        charsetRangesWithQ = charsetRanges.zip(qValues).map {
+          case (range, q) => range.withQValue(q)
+        }
+      } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail: _*)
+    }
 
   implicit val arbitraryUrlForm: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
     // Ain't nobody got time for that.
-    arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
+    arbitrary[Map[String, Seq[String]]]
+      .map(UrlForm.apply)
       .suchThat(!_.toString.contains('\ufffe'))
   }
 
   implicit val arbitraryAllow: Arbitrary[Allow] =
-    Arbitrary { for {
-      methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
-    } yield Allow(methods.head, methods.tail:_*) }
+    Arbitrary {
+      for {
+        methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
+      } yield Allow(methods.head, methods.tail: _*)
+    }
 
   implicit val arbitraryContentLength: Arbitrary[`Content-Length`] =
-    Arbitrary { for {
-      long <- arbitrary[Long] if long > 0L
-    } yield `Content-Length`.unsafeFromLong(long) }
+    Arbitrary {
+      for {
+        long <- arbitrary[Long] if long > 0L
+      } yield `Content-Length`.unsafeFromLong(long)
+    }
 
   implicit val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
-    Arbitrary { for {
-      long <- arbitrary[Long]
-    } yield `X-B3-TraceId`(long) }
+    Arbitrary {
+      for {
+        long <- arbitrary[Long]
+      } yield `X-B3-TraceId`(long)
+    }
 
   implicit val arbitraryXB3SpanId: Arbitrary[`X-B3-SpanId`] =
-    Arbitrary { for {
-      long <- arbitrary[Long]
-    } yield `X-B3-SpanId`(long) }
+    Arbitrary {
+      for {
+        long <- arbitrary[Long]
+      } yield `X-B3-SpanId`(long)
+    }
 
   implicit val arbitraryXB3ParentSpanId: Arbitrary[`X-B3-ParentSpanId`] =
-    Arbitrary { for {
-      long <- arbitrary[Long]
-    } yield `X-B3-ParentSpanId`(long) }
+    Arbitrary {
+      for {
+        long <- arbitrary[Long]
+      } yield `X-B3-ParentSpanId`(long)
+    }
 
   implicit val arbitraryXB3Flags: Arbitrary[`X-B3-Flags`] =
-    Arbitrary { for {
-      flags <- Gen.listOfN(3, Gen.oneOf(
-        `X-B3-Flags`.Flag.Debug,
-        `X-B3-Flags`.Flag.Sampled,
-        `X-B3-Flags`.Flag.SamplingSet))
-    } yield `X-B3-Flags`(flags.toSet) }
+    Arbitrary {
+      for {
+        flags <- Gen.listOfN(
+          3,
+          Gen.oneOf(
+            `X-B3-Flags`.Flag.Debug,
+            `X-B3-Flags`.Flag.Sampled,
+            `X-B3-Flags`.Flag.SamplingSet))
+      } yield `X-B3-Flags`(flags.toSet)
+    }
 
   implicit val arbitraryXB3Sampled: Arbitrary[`X-B3-Sampled`] =
-    Arbitrary { for {
-      boolean <- arbitrary[Boolean]
-    } yield `X-B3-Sampled`(boolean) }
+    Arbitrary {
+      for {
+        boolean <- arbitrary[Boolean]
+      } yield `X-B3-Sampled`(boolean)
+    }
 
   val genHttpDate: Gen[HttpDate] = {
-    val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
-    val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    val min = ZonedDateTime
+      .of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC"))
+      .toInstant
+      .toEpochMilli / 1000
+    val max = ZonedDateTime
+      .of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC"))
+      .toInstant
+      .toEpochMilli / 1000
     choose[Long](min, max).map(HttpDate.unsafeFromEpochSecond)
   }
 
   implicit val arbitraryDateHeader: Arbitrary[headers.Date] =
-    Arbitrary { for {
-      httpDate <- genHttpDate
-    } yield headers.Date(httpDate) }
+    Arbitrary {
+      for {
+        httpDate <- genHttpDate
+      } yield headers.Date(httpDate)
+    }
 
   val genHttpExpireDate: Gen[HttpDate] = {
     // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
     val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
-    val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli / 1000
+    val max = ZonedDateTime
+      .of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC"))
+      .toInstant
+      .toEpochMilli / 1000
     choose[Long](min, max).map(HttpDate.unsafeFromEpochSecond)
   }
 
@@ -253,31 +302,41 @@ trait ArbitraryInstances {
     Gen.posNum[Long].map(_.seconds)
 
   implicit val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
-    Arbitrary { for {
-      date <- genHttpExpireDate
-    } yield headers.Expires(date) }
+    Arbitrary {
+      for {
+        date <- genHttpExpireDate
+      } yield headers.Expires(date)
+    }
 
   implicit val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
-    Arbitrary { for {
-      retry <- Gen.oneOf(genHttpExpireDate.map(Left(_)), Gen.posNum[Long].map(Right(_)))
-    } yield retry.fold(
-      headers.`Retry-After`.apply,
-      headers.`Retry-After`.unsafeFromLong
-    ) }
+    Arbitrary {
+      for {
+        retry <- Gen.oneOf(genHttpExpireDate.map(Left(_)), Gen.posNum[Long].map(Right(_)))
+      } yield
+        retry.fold(
+          headers.`Retry-After`.apply,
+          headers.`Retry-After`.unsafeFromLong
+        )
+    }
 
   implicit val arbitraryAgeHeader: Arbitrary[headers.Age] =
-    Arbitrary { for {
-      // age is always positive
-      age <- genFiniteDuration
-    } yield headers.Age.unsafeFromDuration(age) }
+    Arbitrary {
+      for {
+        // age is always positive
+        age <- genFiniteDuration
+      } yield headers.Age.unsafeFromDuration(age)
+    }
 
   implicit val arbitrarySTS: Arbitrary[headers.`Strict-Transport-Security`] =
-    Arbitrary { for {
-      // age is always positive
-      age               <- genFiniteDuration
-      includeSubDomains <- Gen.oneOf(true, false)
-      preload           <- Gen.oneOf(true, false)
-    } yield headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload) }
+    Arbitrary {
+      for {
+        // age is always positive
+        age <- genFiniteDuration
+        includeSubDomains <- Gen.oneOf(true, false)
+        preload <- Gen.oneOf(true, false)
+      } yield
+        headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload)
+    }
 
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
@@ -301,7 +360,9 @@ trait ArbitraryInstances {
   implicit val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
     def singleLineString: Gen[String] =
-      arbitrary[String] suchThat { s => !s.contains("\r") && !s.contains("\n") }
+      arbitrary[String].suchThat { s =>
+        !s.contains("\r") && !s.contains("\n")
+      }
     Arbitrary(for {
       data <- singleLineString
       event <- frequency(
@@ -311,7 +372,7 @@ trait ArbitraryInstances {
       id <- frequency(
         8 -> None,
         1 -> Some(EventId.reset),
-        1 -> (singleLineString suchThat (_.nonEmpty)).map(id => Some(EventId(id)))
+        1 -> singleLineString.suchThat(_.nonEmpty).map(id => Some(EventId(id)))
       )
       retry <- frequency(
         4 -> None,
@@ -321,10 +382,11 @@ trait ArbitraryInstances {
   }
 
   // https://tools.ietf.org/html/rfc2234#section-6
-  val genHexDigit: Gen[Char] = oneOf(Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
+  val genHexDigit: Gen[Char] = oneOf(
+    Seq('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'))
 
   private implicit def semigroupGen[T: Semigroup]: Semigroup[Gen[T]] = new Semigroup[Gen[T]] {
-    def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for {t1 <- g1; t2 <- g2} yield t1 |+| t2
+    def combine(g1: Gen[T], g2: Gen[T]): Gen[T] = for { t1 <- g1; t2 <- g2 } yield t1 |+| t2
   }
 
   private def timesBetween[T: Monoid](min: Int, max: Int, g: Gen[T]): Gen[T] =
@@ -352,11 +414,11 @@ trait ArbitraryInstances {
     val genDecOctet = oneOf(
       num,
       range(49, 57) |+| num,
-      const("1")    |+| num           |+| num,
-      const("2")    |+| range(48, 52) |+| num,
-      const("25")   |+| range(48, 51)
+      const("1") |+| num |+| num,
+      const("2") |+| range(48, 52) |+| num,
+      const("25") |+| range(48, 51)
     )
-    listOfN(4, genDecOctet).map(_.mkString(".")) map Uri.IPv4.apply
+    listOfN(4, genDecOctet).map(_.mkString(".")).map(Uri.IPv4.apply)
   }
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
@@ -367,21 +429,21 @@ trait ArbitraryInstances {
     val :: = const("::")
 
     oneOf(
-                                                  times(6, h16colon) |+| ls32,
-                                           :: |+| times(5, h16colon) |+| ls32,
-      opt(                        h16) |+| :: |+| times(4, h16colon) |+| ls32,
+      times(6, h16colon) |+| ls32,
+      :: |+| times(5, h16colon) |+| ls32,
+      opt(h16) |+| :: |+| times(4, h16colon) |+| ls32,
       opt(atMost(1, h16colon) |+| h16) |+| :: |+| times(3, h16colon) |+| ls32,
       opt(atMost(2, h16colon) |+| h16) |+| :: |+| times(2, h16colon) |+| ls32,
-      opt(atMost(3, h16colon) |+| h16) |+| :: |+|   opt(   h16colon) |+| ls32,
-      opt(atMost(4, h16colon) |+| h16) |+| ::                        |+| ls32,
-      opt(atMost(5, h16colon) |+| h16) |+| ::                        |+| h16,
+      opt(atMost(3, h16colon) |+| h16) |+| :: |+| opt(h16colon) |+| ls32,
+      opt(atMost(4, h16colon) |+| h16) |+| :: |+| ls32,
+      opt(atMost(5, h16colon) |+| h16) |+| :: |+| h16,
       opt(atMost(6, h16colon) |+| h16) |+| ::
-
-    ) map Uri.IPv6.apply
+    ).map(Uri.IPv6.apply)
   }
 
   implicit val arbitraryUriHost: Arbitrary[Uri.Host] = Arbitrary {
-    val genRegName = listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
+    val genRegName =
+      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
     oneOf(arbitraryIPv4.arbitrary, arbitraryIPv6.arbitrary, genRegName)
   }
 
@@ -394,24 +456,29 @@ trait ArbitraryInstances {
     } yield Uri.Authority(maybeUserInfo, host, maybePort)
   }
 
-  val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(_.toString)
-  val genUnreserved: Gen[Char] = oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
+  val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(
+    _.toString)
+  val genUnreserved: Gen[Char] =
+    oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
   val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {
-    val genSegmentNzNc = nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))) map (_.mkString)
+    val genSegmentNzNc =
+      nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))).map(_.mkString)
     val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
-    val genSegmentNz = nonEmptyListOf(genPChar) map (_.mkString)
-    val genSegment = listOf(genPChar) map (_.mkString)
+    val genSegmentNz = nonEmptyListOf(genPChar).map(_.mkString)
+    val genSegment = listOf(genPChar).map(_.mkString)
     val genPathEmpty = const("")
-    val genPathAbEmpty = listOf(const("/") |+| genSegment) map (_.mkString)
+    val genPathAbEmpty = listOf(const("/") |+| genSegment).map(_.mkString)
     val genPathRootless = genSegmentNz |+| genPathAbEmpty
     val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
-    val genScheme = oneOf("http", "https") map CaseInsensitiveString.apply
-    val genPath = oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
-    val genFragment: Gen[Uri.Fragment] = listOf(oneOf(genPChar, const("/"), const("?"))) map (_.mkString)
+    val genScheme = oneOf("http", "https").map(CaseInsensitiveString.apply)
+    val genPath =
+      oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
+    val genFragment: Gen[Uri.Fragment] =
+      listOf(oneOf(genPChar, const("/"), const("?"))).map(_.mkString)
 
     for {
       scheme <- Gen.option(genScheme)

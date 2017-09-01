@@ -13,11 +13,11 @@ import org.http4s.util.nonEmptyList._
 import org.log4s.getLogger
 
 /**
- * Represents a HTTP Message. The interesting subclasses are Request and
- * Response while most of the functionality is found in [[MessageSyntax]] and
- * [[ResponseOps]]
- * @see [[MessageSyntax]], [[ResponseOps]]
- */
+  * Represents a HTTP Message. The interesting subclasses are Request and
+  * Response while most of the functionality is found in [[MessageSyntax]] and
+  * [[ResponseOps]]
+  * @see [[MessageSyntax]], [[ResponseOps]]
+  */
 sealed trait Message[F[_]] extends MessageOps[F] { self =>
   type Self <: Message[F] { type Self = self.Self }
 
@@ -27,15 +27,14 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
 
   def body: EntityBody[F]
 
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] = {
-    (charset getOrElse defaultCharset) match {
+  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
+    charset.getOrElse(defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
         body.through(utf8Decode)
       case cs =>
         body.through(util.decode(cs))
     }
-  }
 
   /** True if and only if the body is composed solely of Emits and Halt. This
     * indicates that the body can be re-run without side-effects. */
@@ -47,9 +46,10 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
 
   def attributes: AttributeMap
 
-  protected def change(body: EntityBody[F] = body,
-    headers: Headers = headers,
-    attributes: AttributeMap = attributes): Self
+  protected def change(
+      body: EntityBody[F] = body,
+      headers: Headers = headers,
+      attributes: AttributeMap = attributes): Self
 
   override def transformHeaders(f: Headers => Headers)(implicit F: Functor[F]): Self =
     change(headers = f(headers))
@@ -67,13 +67,17 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): F[Self] =
     w.toEntity(b).flatMap { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`.fromLong(l).fold(_ =>
-          F.pure {
-            Message.logger.warn(s"Attempt to provide a negative content length of $l")
-            w.headers.toList
-          },
-          cl => F.pure(cl :: w.headers.toList))
-        case None    => F.pure(w.headers)
+        case Some(l) =>
+          `Content-Length`
+            .fromLong(l)
+            .fold(
+              _ =>
+                F.pure {
+                  Message.logger.warn(s"Attempt to provide a negative content length of $l")
+                  w.headers.toList
+              },
+              cl => F.pure(cl :: w.headers.toList))
+        case None => F.pure(w.headers)
       }
       hs.map(newHeaders => change(body = entity.body, headers = headers ++ newHeaders))
     }
@@ -100,13 +104,15 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     */
   def charset: Option[Charset] = contentType.flatMap(_.charset)
 
-  def isChunked: Boolean = headers.get(`Transfer-Encoding`).exists(_.values.contains(TransferCoding.chunked))
+  def isChunked: Boolean =
+    headers.get(`Transfer-Encoding`).exists(_.values.contains(TransferCoding.chunked))
 
   /**
-   * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
-   * task might not complete unless the entire body has been consumed.
-   */
-  def trailerHeaders(implicit F: Applicative[F]): F[Headers] = attributes.get(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
+    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
+    * task might not complete unless the entire body has been consumed.
+    */
+  def trailerHeaders(implicit F: Applicative[F]): F[Headers] =
+    attributes.get(Message.Keys.TrailerHeaders[F]).getOrElse(F.pure(Headers.empty))
 
   /** Decode the [[Message]] to the specified type
     *
@@ -114,7 +120,9 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the result
     * @return the `Task` which will generate the `DecodeResult[T]`
     */
-  override def attemptAs[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+  override def attemptAs[T](
+      implicit F: FlatMap[F],
+      decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
     decoder.decode(this, strict = false)
 }
 
@@ -122,7 +130,8 @@ object Message {
   private[http4s] val logger = getLogger
   object Keys {
     private[this] val trailerHeaders: AttributeKey[Any] = AttributeKey[Any]
-    def TrailerHeaders[F[_]]: AttributeKey[F[Headers]] = trailerHeaders.asInstanceOf[AttributeKey[F[Headers]]]
+    def TrailerHeaders[F[_]]: AttributeKey[F[Headers]] =
+      trailerHeaders.asInstanceOf[AttributeKey[F[Headers]]]
   }
 }
 
@@ -139,13 +148,14 @@ object Message {
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 sealed abstract case class Request[F[_]](
-  method: Method = Method.GET,
-  uri: Uri = Uri(path = "/"),
-  httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-  headers: Headers = Headers.empty,
-  body: EntityBody[F] = EmptyBody,
-  attributes: AttributeMap = AttributeMap.empty
-) extends Message[F] with RequestOps[F] {
+    method: Method = Method.GET,
+    uri: Uri = Uri(path = "/"),
+    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    headers: Headers = Headers.empty,
+    body: EntityBody[F] = EmptyBody,
+    attributes: AttributeMap = AttributeMap.empty
+) extends Message[F]
+    with RequestOps[F] {
   import Request._
 
   type Self = Request[F]
@@ -157,7 +167,7 @@ sealed abstract case class Request[F[_]](
       headers: Headers = this.headers,
       body: EntityBody[F] = this.body,
       attributes: AttributeMap = this.attributes
-    ): Request[F] =
+  ): Request[F] =
     Request(
       method = method,
       uri = uri,
@@ -167,14 +177,16 @@ sealed abstract case class Request[F[_]](
       attributes = attributes
     )
 
-  @deprecated(message = "Copy method is unsafe for setting path info. Use with... methods instead", "0.17.0-M3")
+  @deprecated(
+    message = "Copy method is unsafe for setting path info. Use with... methods instead",
+    "0.17.0-M3")
   def copy(
-    method: Method = this.method,
-    uri: Uri = this.uri,
-    httpVersion: HttpVersion = this.httpVersion,
-    headers: Headers = this.headers,
-    body: EntityBody[F] = this.body,
-    attributes: AttributeMap = this.attributes
+      method: Method = this.method,
+      uri: Uri = this.uri,
+      httpVersion: HttpVersion = this.httpVersion,
+      headers: Headers = this.headers,
+      body: EntityBody[F] = this.body,
+      attributes: AttributeMap = this.attributes
   ): Request[F] =
     requestCopy(
       method = method,
@@ -186,7 +198,8 @@ sealed abstract case class Request[F[_]](
     )
 
   def withMethod(method: Method) = requestCopy(method = method)
-  def withUri(uri: Uri) = requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
+  def withUri(uri: Uri) =
+    requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
   def withHttpVersion(httpVersion: HttpVersion) = requestCopy(httpVersion = httpVersion)
   def withHeaders(headers: Headers) = requestCopy(headers = headers)
   def withAttributes(attributes: AttributeMap) = requestCopy(attributes = attributes)
@@ -194,7 +207,10 @@ sealed abstract case class Request[F[_]](
   def withBodyStream(body: EntityBody[F]): Request[F] =
     requestCopy(body = body)
 
-  override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =
+  override protected def change(
+      body: EntityBody[F],
+      headers: Headers,
+      attributes: AttributeMap): Self =
     requestCopy(body = body, headers = headers, attributes = attributes)
 
   lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
@@ -246,19 +262,21 @@ sealed abstract case class Request[F[_]](
   lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
   lazy val remoteHost: Option[String] = remote.map(_.getHostName)
-  lazy val remotePort: Option[Int]    = remote.map(_.getPort)
+  lazy val remotePort: Option[Int] = remote.map(_.getPort)
 
   lazy val remoteUser: Option[String] = None
 
   lazy val server: Option[InetSocketAddress] = connectionInfo.map(_.local)
   lazy val serverAddr: String =
-    server.map(_.getHostString)
+    server
+      .map(_.getHostString)
       .orElse(uri.host.map(_.value))
       .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
 
   lazy val serverPort: Int =
-    server.map(_.getPort)
+    server
+      .map(_.getPort)
       .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
       .getOrElse(80) // scalastyle:ignore
@@ -266,11 +284,11 @@ sealed abstract case class Request[F[_]](
   /** Whether the Request was received over a secure medium */
   lazy val isSecure: Option[Boolean] = connectionInfo.map(_.secure)
 
-  def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+  def serverSoftware: ServerSoftware =
+    attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)
-                   (f: A => F[Response[F]])
-                   (implicit F: Monad[F]): F[Response[F]] =
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
+      implicit F: Monad[F]): F[Response[F]] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
   override def toString: String =
@@ -282,18 +300,18 @@ sealed abstract case class Request[F[_]](
   /*
   def isIdempotent: Boolean =
     method.isIdempotent && isBodyPure
-   */
+ */
 }
 
 object Request {
 
   def apply[F[_]](
-    method: Method = Method.GET,
-    uri: Uri = Uri(path = "/"),
-    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-    headers: Headers = Headers.empty,
-    body: EntityBody[F] = EmptyBody,
-    attributes: AttributeMap = AttributeMap.empty
+      method: Method = Method.GET,
+      uri: Uri = Uri(path = "/"),
+      httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+      headers: Headers = Headers.empty,
+      body: EntityBody[F] = EmptyBody,
+      attributes: AttributeMap = AttributeMap.empty
   ): Request[F] =
     new Request[F](
       method = method,
@@ -343,7 +361,7 @@ object MaybeResponse {
       def empty =
         Pass()
       def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
-        a orElse b
+        a.orElse(b)
     }
 
 //  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
@@ -362,20 +380,22 @@ object Pass {
 }
 
 /** Representation of the HTTP response to send back to the client
- *
- * @param status [[Status]] code and message
- * @param headers [[Headers]] containing all response headers
- * @param body EntityBody[F] representing the possible body of the response
- * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
- *                   backend for additional processing such as java.io.File object
- */
+  *
+  * @param status [[Status]] code and message
+  * @param headers [[Headers]] containing all response headers
+  * @param body EntityBody[F] representing the possible body of the response
+  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
+  *                   backend for additional processing such as java.io.File object
+  */
 final case class Response[F[_]](
-  status: Status = Status.Ok,
-  httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
-  headers: Headers = Headers.empty,
-  body: EntityBody[F] = EmptyBody,
-  attributes: AttributeMap = AttributeMap.empty)
-    extends Message[F] with MaybeResponse[F] with ResponseOps[F] {
+    status: Status = Status.Ok,
+    httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
+    headers: Headers = Headers.empty,
+    body: EntityBody[F] = EmptyBody,
+    attributes: AttributeMap = AttributeMap.empty)
+    extends Message[F]
+    with MaybeResponse[F]
+    with ResponseOps[F] {
   type Self = Response[F]
 
   override def withStatus(status: Status)(implicit F: Functor[F]): Self =
@@ -384,7 +404,10 @@ final case class Response[F[_]](
   def withBodyStream(body: EntityBody[F]): Self =
     copy(body = body)
 
-  override protected def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): Self =
+  override protected def change(
+      body: EntityBody[F],
+      headers: Headers,
+      attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 
   override def toString: String = {
@@ -402,7 +425,8 @@ final case class Response[F[_]](
 }
 
 object Response {
-  def notFound[F[_]](request: Request[F])(implicit F: Monad[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
+  def notFound[F[_]](
+      request: Request[F])(implicit F: Monad[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
     val body = s"${request.pathInfo} not found"
     Response[F](Status.NotFound).withBody(body)
   }

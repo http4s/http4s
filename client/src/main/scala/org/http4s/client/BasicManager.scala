@@ -4,8 +4,9 @@ package client
 import cats.effect._
 import cats.implicits._
 
-private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])
-                                                       (implicit F: Sync[F]) extends ConnectionManager[F, A] {
+private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBuilder[F, A])(
+    implicit F: Sync[F])
+    extends ConnectionManager[F, A] {
   def borrow(requestKey: RequestKey): F[NextConnection] =
     builder(requestKey).map(NextConnection(_, fresh = true))
 

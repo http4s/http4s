@@ -18,20 +18,22 @@
  */
 package org.http4s
 
-import org.http4s.util.{Writer, Renderable}
+import org.http4s.util.{Renderable, Writer}
 import scala.annotation.tailrec
 
 object LanguageTag {
 
   val `*` = LanguageTag("*", QValue.One)
 
-  def apply(primaryTag: String, subTags: String*): LanguageTag = LanguageTag(primaryTag, QValue.One, subTags)
+  def apply(primaryTag: String, subTags: String*): LanguageTag =
+    LanguageTag(primaryTag, QValue.One, subTags)
 
 //  def apply(primaryTag: String): LanguageTag = LanguageTag(primaryTag, Q.Unity)
 //  def apply(primaryTag: String, subTags: String*): LanguageTag = LanguageTag(primaryTag, Q.Unity, subTags)
 }
 
-final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil) extends Renderable {
+final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil)
+    extends Renderable {
   def withQuality(q: QValue): LanguageTag = LanguageTag(primaryTag, q, subTags)
 
   def render(writer: Writer): writer.type = {
@@ -42,18 +44,15 @@ final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags
   }
 
   @tailrec
-  private def checkLists(tags1: Seq[String], tags2: Seq[String]): Boolean = {
+  private def checkLists(tags1: Seq[String], tags2: Seq[String]): Boolean =
     if (tags1.isEmpty) true
     else if (tags2.isEmpty || tags1.head != tags2.head) false
     else checkLists(tags1.tail, tags2.tail)
-  }
 
   def satisfies(encoding: LanguageTag): Boolean = encoding.satisfiedBy(this)
-  def satisfiedBy(encoding: LanguageTag): Boolean = {
+  def satisfiedBy(encoding: LanguageTag): Boolean =
     (this.primaryTag == "*" || this.primaryTag == encoding.primaryTag) &&
       q.isAcceptable && encoding.q.isAcceptable &&
       q <= encoding.q &&
       checkLists(subTags, encoding.subTags)
-  }
 }
-

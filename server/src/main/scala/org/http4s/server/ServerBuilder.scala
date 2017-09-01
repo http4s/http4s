@@ -46,9 +46,9 @@ trait ServerBuilder[F[_]] {
   def start: F[Server[F]]
 
   /**
-   * Runs the server as a process that never emits.  Useful for a server
-   * that runs for the rest of the JVM's life.
-   */
+    * Runs the server as a process that never emits.  Useful for a server
+    * that runs for the rest of the JVM's life.
+    */
   final def serve(implicit F: Async[F]): Stream[F, Nothing] =
     Stream.bracket(start)((_: Server[F]) => Stream.eval_(F.async[Unit](_ => ())), _.shutdown)
 }
@@ -77,20 +77,23 @@ object AsyncTimeoutSupport {
 
 sealed trait SSLConfig
 
-final case class KeyStoreBits(keyStore: StoreInfo,
-  keyManagerPassword: String,
-  protocol: String,
-  trustStore: Option[StoreInfo],
-  clientAuth: Boolean) extends SSLConfig
+final case class KeyStoreBits(
+    keyStore: StoreInfo,
+    keyManagerPassword: String,
+    protocol: String,
+    trustStore: Option[StoreInfo],
+    clientAuth: Boolean)
+    extends SSLConfig
 
 final case class SSLContextBits(sslContext: SSLContext, clientAuth: Boolean) extends SSLConfig
 
 trait SSLKeyStoreSupport[F[_]] { this: ServerBuilder[F] =>
-  def withSSL(keyStore: StoreInfo,
-    keyManagerPassword: String,
-              protocol: String = "TLS",
-            trustStore: Option[StoreInfo] = None,
-            clientAuth: Boolean = false): Self
+  def withSSL(
+      keyStore: StoreInfo,
+      keyManagerPassword: String,
+      protocol: String = "TLS",
+      trustStore: Option[StoreInfo] = None,
+      clientAuth: Boolean = false): Self
 }
 object SSLKeyStoreSupport {
   final case class StoreInfo(path: String, password: String)
@@ -103,8 +106,8 @@ trait SSLContextSupport[F[_]] { this: ServerBuilder[F] =>
 /*
 trait MetricsSupport { this: ServerBuilder =>
   /**
-   * Triggers collection of backend-specific Metrics into the specified `MetricRegistry`.
-   */
+ * Triggers collection of backend-specific Metrics into the specified `MetricRegistry`.
+ */
   def withMetricRegistry(metricRegistry: MetricRegistry): Self
 
   /** Sets the prefix for metrics gathered by the server.*/

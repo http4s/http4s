@@ -26,17 +26,13 @@ class StreamAppSpec extends Http4sSpec {
     }
 
     "Terminate Server on a Stream Failure" in {
-      val testApp = new TestStreamApp(_ =>
-        fail(new Throwable("Bad Initial Process"))
-      )
+      val testApp = new TestStreamApp(_ => fail(new Throwable("Bad Initial Process")))
       testApp.doMain(List.empty) should returnValue(-1)
       testApp.cleanedUp.get.unsafeRunSync should beTrue
     }
 
     "Terminate Server on a Valid Process" in {
-      val testApp = new TestStreamApp(_ =>
-        emit("Valid Process").drain
-      )
+      val testApp = new TestStreamApp(_ => emit("Valid Process").drain)
       testApp.doMain(List.empty) should returnValue(0)
       testApp.cleanedUp.get.unsafeRunSync should beTrue
     }
@@ -44,19 +40,20 @@ class StreamAppSpec extends Http4sSpec {
     "requestShutdown Shuts Down a Server From A Separate Thread" in {
       val requestShutdown = async.signalOf[IO, IO[Unit]](IO.unit).unsafeRunSync
 
-      val testApp = new TestStreamApp( shutdown =>
-        eval(requestShutdown.set(shutdown)) >>
-        // run forever, emit nothing
-        eval_(IO.async[Nothing]{ _ => })
-      )
+      val testApp = new TestStreamApp(
+        shutdown =>
+          eval(requestShutdown.set(shutdown)) >>
+            // run forever, emit nothing
+            eval_(IO.async[Nothing] { _ =>
+              }))
 
       (for {
-        runApp    <- async.start(testApp.doMain(List.empty))
+        runApp <- async.start(testApp.doMain(List.empty))
         // Wait for app to start
-        _         <- requestShutdown.discrete.takeWhile(_ == IO.unit).run
+        _ <- requestShutdown.discrete.takeWhile(_ == IO.unit).run
         // Run shutdown task
-        _         <- requestShutdown.get.flatten
-        result    <- runApp
+        _ <- requestShutdown.get.flatten
+        result <- runApp
         cleanedUp <- testApp.cleanedUp.get
       } yield (result, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((0, true))
     }

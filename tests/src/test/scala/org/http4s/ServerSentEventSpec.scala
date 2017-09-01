@@ -75,7 +75,8 @@ class ServerSentEventSpec extends Http4sSpec {
 
   "encode" should {
     "be consistent with decode" in prop { sses: Vector[ServerSentEvent] =>
-      val roundTrip = Stream.emits(sses)
+      val roundTrip = Stream
+        .emits(sses)
         .covary[IO]
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
@@ -86,8 +87,9 @@ class ServerSentEventSpec extends Http4sSpec {
 
     "handle leading spaces" in {
       // This is a pathological case uncovered by scalacheck
-      val sse = ServerSentEvent(" a",Some(" b"),Some(EventId(" c")),Some(1L))
-      Stream.emit(sse)
+      val sse = ServerSentEvent(" a", Some(" b"), Some(EventId(" c")), Some(1L))
+      Stream
+        .emit(sse)
         .covary[IO]
         .through(ServerSentEvent.encoder)
         .through(ServerSentEvent.decoder)
@@ -97,14 +99,19 @@ class ServerSentEventSpec extends Http4sSpec {
   }
 
   "EntityEncoder[ServerSentEvent]" should {
-    val eventStream: Stream[IO, ServerSentEvent] = Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString))
+    val eventStream: Stream[IO, ServerSentEvent] =
+      Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString))
     "set Content-Type to text/event-stream" in {
-      Response[IO]().withBody(eventStream).unsafeRunSync.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
+      Response[IO]().withBody(eventStream).unsafeRunSync.contentType must beSome(
+        `Content-Type`(MediaType.`text/event-stream`))
     }
 
     "decode to original event stream" in {
       val resp = Response[IO]().withBody(eventStream).unsafeRunSync
-      resp.body.through(ServerSentEvent.decoder).runLog.unsafeRunSync must_== eventStream.runLog.unsafeRunSync
+      resp.body
+        .through(ServerSentEvent.decoder)
+        .runLog
+        .unsafeRunSync must_== eventStream.runLog.unsafeRunSync
     }
   }
 }

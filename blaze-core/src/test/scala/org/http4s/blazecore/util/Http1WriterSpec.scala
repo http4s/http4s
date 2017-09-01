@@ -20,7 +20,8 @@ import scala.concurrent.{Await, Future}
 class Http1WriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException
 
-  final def writeEntityBody(p: EntityBody[IO])(builder: TailStage[ByteBuffer] => Http1Writer[IO]): String = {
+  final def writeEntityBody(p: EntityBody[IO])(
+      builder: TailStage[ByteBuffer] => Http1Writer[IO]): String = {
     val tail = new TailStage[ByteBuffer] {
       override def name: String = "TestTail"
     }
@@ -88,7 +89,8 @@ class Http1WriterSpec extends Http4sSpec {
           else None
         }
       }
-      val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
+      val p = repeatEval(t).unNoneTerminate.flatMap(chunk(_).covary[IO]) ++ chunk(
+        Chunk.bytes("bar".getBytes(StandardCharsets.ISO_8859_1)))
       writeEntityBody(p)(builder) must_== "Content-Type: text/plain\r\nContent-Length: 9\r\n\r\n" + "foofoobar"
     }
   }
@@ -220,8 +222,8 @@ class Http1WriterSpec extends Http4sSpec {
     // Some tests for the raw unwinding body without HTTP encoding.
     "write a deflated stream" in {
       val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
-      val p = s through deflate()
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(s through deflate()))
+      val p = s.through(deflate())
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(s.through(deflate())))
     }
 
     val resource: Stream[IO, Byte] =
@@ -239,8 +241,8 @@ class Http1WriterSpec extends Http4sSpec {
     }
 
     "write a deflated resource" in {
-      val p = resource through deflate()
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(resource through deflate()))
+      val p = resource.through(deflate())
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(resource.through(deflate())))
     }
 
     "must be stack safe" in {

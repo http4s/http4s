@@ -13,7 +13,7 @@ object ClientExample {
     val page: IO[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.map(_.take(72)).unsafeRunSync())   // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).unsafeRunSync()) // each execution of the Task will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
@@ -30,8 +30,8 @@ object ClientExample {
     // Match on response code!
     val page2 = client.get(uri("http://http4s.org/resources/foo.json")) {
       case Successful(resp) => resp.as[Foo].map("Received response: " + _)
-      case NotFound(resp)   => IO.pure("Not Found!!!")
-      case resp             => IO.pure("Failed: " + resp.status)
+      case NotFound(resp) => IO.pure("Not Found!!!")
+      case resp => IO.pure("Failed: " + resp.status)
     }
 
     println(page2.unsafeRunSync())

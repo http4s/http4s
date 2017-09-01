@@ -8,10 +8,7 @@ import javax.servlet.{DispatcherType, Filter}
 import cats.effect._
 import org.http4s.server.{AsyncTimeoutSupport, ServerBuilder}
 
-abstract class ServletContainer[F[_]: Effect]
-  extends ServerBuilder[F]
-  with AsyncTimeoutSupport[F]
-{
+abstract class ServletContainer[F[_]: Effect] extends ServerBuilder[F] with AsyncTimeoutSupport[F] {
   type Self <: ServletContainer[F]
 
   /**
@@ -31,17 +28,22 @@ abstract class ServletContainer[F[_]: Effect]
     * or for reusing parts of the servlet ecosystem for an app that is committed to running on
     * a servlet container.
     */
-  def mountFilter(filter: Filter,
-                  urlMapping: String,
-                  name: Option[String] = None,
-                  dispatches: util.EnumSet[DispatcherType] = util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ASYNC)): Self
+  def mountFilter(
+      filter: Filter,
+      urlMapping: String,
+      name: Option[String] = None,
+      dispatches: util.EnumSet[DispatcherType] = util.EnumSet.of(
+        DispatcherType.REQUEST,
+        DispatcherType.FORWARD,
+        DispatcherType.INCLUDE,
+        DispatcherType.ASYNC)): Self
 
   /**
-   * Sets the servlet I/O mode for reads and writes within the servlet.
-   * Not to be confused with the server connectors.
-   *
-   * @see [[org.http4s.servlet.ServletIo]]
-   */
+    * Sets the servlet I/O mode for reads and writes within the servlet.
+    * Not to be confused with the server connectors.
+    *
+    * @see [[org.http4s.servlet.ServletIo]]
+    */
   def withServletIo(servletIo: ServletIo[F]): Self
 }
 
@@ -49,9 +51,8 @@ object ServletContainer {
   def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
   /**
-   * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
-   * mountService into a standard servlet prefix mapping.
-   */
+    * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
+    * mountService into a standard servlet prefix mapping.
+    */
   def prefixMapping(prefix: String): String = prefix.replaceAll("/?$", "") + "/*"
 }
-

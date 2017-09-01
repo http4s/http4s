@@ -19,4 +19,3 @@ final case class Host(host: String, port: Option[Int] = None) extends Header.Par
     writer
   }
 }
-

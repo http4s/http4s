@@ -29,8 +29,7 @@ sealed abstract class Credentials extends Renderable {
 }
 
 object Credentials {
-  final case class Token(authScheme: AuthScheme, token: String)
-      extends Credentials {
+  final case class Token(authScheme: AuthScheme, token: String) extends Credentials {
     def render(writer: Writer): writer.type =
       writer << authScheme << ' ' << token
   }
@@ -47,16 +46,20 @@ object Credentials {
         ()
       }
       renderParam(params.head._1, params.head._2)
-      params.tail.foreach { case (k, v) =>
-        writer.append(',')
-        renderParam(k, v)
+      params.tail.foreach {
+        case (k, v) =>
+          writer.append(',')
+          renderParam(k, v)
       }
       writer
     }
   }
 
   object AuthParams {
-    def apply(authScheme: AuthScheme, param: (String, String), params: (String, String)*): AuthParams =
+    def apply(
+        authScheme: AuthScheme,
+        param: (String, String),
+        params: (String, String)*): AuthParams =
       apply(authScheme, NonEmptyList(param, params.toList))
   }
 }
@@ -87,6 +90,3 @@ object BasicCredentials {
         None
     }
 }
-
-
-

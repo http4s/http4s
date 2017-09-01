@@ -16,9 +16,8 @@ import org.http4s.{websocket => ws4s}
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])
-                         (implicit F: Effect[F], val ec: ExecutionContext)
-  extends TailStage[WebSocketFrame] {
+class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: ExecutionContext)
+    extends TailStage[WebSocketFrame] {
 
   def name: String = "Http4s WebSocket Stage"
 
@@ -29,38 +28,41 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])
   def snk: Sink[F, WebSocketFrame] = _.evalMap { frame =>
     F.async[Unit] { cb =>
       channelWrite(frame).onComplete {
-        case Success(res)             => cb(Right(res))
+        case Success(res) => cb(Right(res))
         case Failure(t @ Command.EOF) => cb(Left(t))
-        case Failure(t)               => cb(Left(t))
+        case Failure(t) => cb(Left(t))
       }(directec)
     }
   }
 
   def inputstream: Stream[F, WebSocketFrame] = {
     val t = F.async[WebSocketFrame] { cb =>
-      def go(): Unit = channelRead().onComplete {
-        case Success(ws)         => ws match {
-            case Close(_)    =>
-              for {
-                t <- deadSignal.map(_.set(true))
-              } yield {
-                t.runAsync(_ => IO.unit).unsafeRunSync()
-                cb(Left(Command.EOF))
-              }
+      def go(): Unit =
+        channelRead().onComplete {
+          case Success(ws) =>
+            ws match {
+              case Close(_) =>
+                for {
+                  t <- deadSignal.map(_.set(true))
+                } yield {
+                  t.runAsync(_ => IO.unit).unsafeRunSync()
+                  cb(Left(Command.EOF))
+                }
 
-            case Ping(d)     =>  channelWrite(Pong(d)).onComplete {
-              case Success(_)           => go()
-              case Failure(Command.EOF) => cb(Left(Command.EOF))
-              case Failure(t)           => cb(Left(t))
-            }(trampoline)
+              case Ping(d) =>
+                channelWrite(Pong(d)).onComplete {
+                  case Success(_) => go()
+                  case Failure(Command.EOF) => cb(Left(Command.EOF))
+                  case Failure(t) => cb(Left(t))
+                }(trampoline)
 
-            case Pong(_)     => go()
-            case f           => cb(Right(f))
-          }
+              case Pong(_) => go()
+              case f => cb(Right(f))
+            }
 
-        case Failure(Command.EOF) => cb(Left(Command.EOF))
-        case Failure(e)           => cb(Left(e))
-      }(trampoline)
+          case Failure(Command.EOF) => cb(Left(Command.EOF))
+          case Failure(e) => cb(Left(e))
+        }(trampoline)
 
       go()
     }
@@ -79,17 +81,17 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])
     val onStreamFinalize: F[Unit] =
       for {
         dec <- F.delay(count.decrementAndGet())
-        _   <- deadSignal.map(signal => if (dec == 0) signal.set(true))
+        _ <- deadSignal.map(signal => if (dec == 0) signal.set(true))
       } yield ()
 
     // Task to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(sendOutboundCommand(Command.Disconnect))
 
     val wsStream = for {
-      dead   <- deadSignal
-      in     = inputstream.to(ws.write).onFinalize(onStreamFinalize)
-      out    = ws.read.onFinalize(onStreamFinalize).to(snk).drain
-      merged <- (in mergeHaltR out).interruptWhen(dead).onFinalize(sendClose).run
+      dead <- deadSignal
+      in = inputstream.to(ws.write).onFinalize(onStreamFinalize)
+      out = ws.read.onFinalize(onStreamFinalize).to(snk).drain
+      merged <- in.mergeHaltR(out).interruptWhen(dead).onFinalize(sendClose).run
     } yield merged
 
     async.unsafeRunAsync {

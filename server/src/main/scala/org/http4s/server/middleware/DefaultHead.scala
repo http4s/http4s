@@ -6,22 +6,23 @@ import cats._
 import cats.implicits._
 
 /** Handles HEAD requests as a GET without a body.
-  * 
+  *
   * If the service returns the fallthrough response, the request is resubmitted
   * as a GET.  The resulting response's body is killed, but all headers are
   * preserved.  This is a naive, but correct, implementation of HEAD.  Routes
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor](service: HttpService[F])(implicit M: Semigroup[F[MaybeResponse[F]]]): HttpService[F] =
+  def apply[F[_]: Functor](service: HttpService[F])(
+      implicit M: Semigroup[F[MaybeResponse[F]]]): HttpService[F] =
     HttpService.lift { req =>
       req.method match {
         case Method.HEAD =>
           (service |+| headAsTruncatedGet(service))(req)
         case _ =>
           service(req)
+      }
     }
-  }
 
   private def headAsTruncatedGet[F[_]: Functor](service: HttpService[F]): HttpService[F] =
     HttpService.lift { req =>

@@ -43,16 +43,22 @@ trait Http4sClientDsl[F[_]] {
   implicit def http4sNoBodyOps(method: Method with NoBody): NoBodyOps[F] =
     new NoBodyOps[F](method)
 
-  implicit def http4sHeadersDecoder[T](implicit F: Applicative[F],
-                                       decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
+  implicit def http4sHeadersDecoder[T](
+      implicit F: Applicative[F],
+      decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
     val s = decoder.consumes.toList
-    EntityDecoder.decodeBy(s.head, s.tail: _*)(resp => decoder.decode(resp, strict = true).map(t => (resp.headers, t)))
+    EntityDecoder.decodeBy(s.head, s.tail: _*)(resp =>
+      decoder.decode(resp, strict = true).map(t => (resp.headers, t)))
   }
 }
 
 object Http4sClientDsl {
 
   /** Syntax classes to generate a request directly from a [[Method]] */
-  implicit class WithBodyOps[F[_]](val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator[F]
-  implicit class NoBodyOps[F[_]](val method: Method with NoBody)        extends AnyVal with EmptyRequestGenerator[F]
+  implicit class WithBodyOps[F[_]](val method: Method with PermitsBody)
+      extends AnyVal
+      with EntityRequestGenerator[F]
+  implicit class NoBodyOps[F[_]](val method: Method with NoBody)
+      extends AnyVal
+      with EmptyRequestGenerator[F]
 }

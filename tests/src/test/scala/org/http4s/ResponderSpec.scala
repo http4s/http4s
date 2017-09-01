@@ -22,22 +22,23 @@ class ResponderSpec extends Specification {
     }
 
     "Replace content type" in {
-      resp.contentType should be (None)
-      val c1 = resp.putHeaders(`Content-Length`.unsafeFromLong(4))
+      resp.contentType should be(None)
+      val c1 = resp
+        .putHeaders(`Content-Length`.unsafeFromLong(4))
         .withContentType(Some(`Content-Type`(MediaType.`text/plain`)))
         .putHeaders(Host("foo"))
 
-      c1.headers.count(_ is `Content-Type`) must_== (1)
-      c1.headers.count(_ is `Content-Length`) must_== (1)
-      c1.headers must have length (3)
+      c1.headers.count(_.is(`Content-Type`)) must_== (1)
+      c1.headers.count(_.is(`Content-Length`)) must_== (1)
+      (c1.headers must have).length(3)
       c1.contentType must beSome(`Content-Type`(MediaType.`text/plain`))
 
       val c2 = c1.withContentType(Some(`Content-Type`(MediaType.`application/json`, `UTF-8`)))
 
       c2.contentType must beSome(`Content-Type`(MediaType.`application/json`, `UTF-8`))
-      c2.headers.count(_ is `Content-Type`) must_== (1)
-      c2.headers.count(_ is `Content-Length`) must_== (1)
-      c2.headers.count(_ is Host) must_== (1)
+      c2.headers.count(_.is(`Content-Type`)) must_== (1)
+      c2.headers.count(_.is(`Content-Length`)) must_== (1)
+      c2.headers.count(_.is(Host)) must_== (1)
     }
 
     "Remove headers" in {
@@ -49,29 +50,32 @@ class ResponderSpec extends Specification {
     }
 
     "Replace all headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
-      wHeader.headers.toList must have length 3
+      val wHeader =
+        resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
+      (wHeader.headers.toList must have).length(3)
 
       val newHeaders = wHeader.replaceAllHeaders(Date(HttpDate.now))
-      newHeaders.headers.toList must have length 1
+      (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }
 
     "Replace all headers II" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
-      wHeader.headers.toList must have length 3
+      val wHeader =
+        resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
+      (wHeader.headers.toList must have).length(3)
 
       val newHeaders = wHeader.replaceAllHeaders(Headers(Date(HttpDate.now)))
-      newHeaders.headers.toList must have length 1
+      (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }
 
     "Filter headers" in {
-      val wHeader = resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
-      wHeader.headers.toList must have length 3
+      val wHeader =
+        resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
+      (wHeader.headers.toList must have).length(3)
 
       val newHeaders = wHeader.filterHeaders(_.name != "Connection".ci)
-      newHeaders.headers.toList must have length 2
+      (newHeaders.headers.toList must have).length(2)
       newHeaders.headers.get(Connection) must beNone
     }
 
@@ -84,7 +88,9 @@ class ResponderSpec extends Specification {
     }
 
     "Set multiple cookies" in {
-      resp.addCookie(Cookie("foo", "bar")).addCookie(Cookie("baz", "quux")).cookies must_== List(org.http4s.Cookie("foo", "bar"), org.http4s.Cookie("baz", "quux"))
+      resp.addCookie(Cookie("foo", "bar")).addCookie(Cookie("baz", "quux")).cookies must_== List(
+        org.http4s.Cookie("foo", "bar"),
+        org.http4s.Cookie("baz", "quux"))
     }
 
     "Remove cookie" in {

@@ -10,8 +10,8 @@ import org.specs2.matcher._
 import scala.concurrent.duration.FiniteDuration
 
 /**
- * Matchers for cats.effect.IO
- */
+  * Matchers for cats.effect.IO
+  */
 trait IOMatchers {
   // This comes from a private trait in real IOMatchers
   implicit class NotNullSyntax(s: String) {
@@ -29,19 +29,18 @@ trait IOMatchers {
     attemptRun(ValueCheck.alwaysOk, Some(duration))
 
   private def attemptRun[T](check: ValueCheck[T], duration: Option[FiniteDuration]): IOMatcher[T] =
-   IOMatcher(check, duration)
+    IOMatcher(check, duration)
 
-  case class IOMatcher[T](check: ValueCheck[T], duration: Option[FiniteDuration]) extends Matcher[IO[T]] {
-    def apply[S <: IO[T]](e: Expectable[S]): MatchResult[S] = {
+  case class IOMatcher[T](check: ValueCheck[T], duration: Option[FiniteDuration])
+      extends Matcher[IO[T]] {
+    def apply[S <: IO[T]](e: Expectable[S]): MatchResult[S] =
       duration match {
         case Some(d) =>
-          e.value
-            .attempt
+          e.value.attempt
             .unsafeRunTimed(d)
             .fold(failedAttemptWithTimeout(e, d))(_.fold(failedAttempt(e), checkResult(e)))
         case None => e.value.attempt.unsafeRunSync.fold(failedAttempt(e), checkResult(e))
       }
-    }
 
     def before(d: FiniteDuration): IOMatcher[T] =
       copy(duration = Some(d))
@@ -52,7 +51,9 @@ trait IOMatchers {
     def withValue(t: T): IOMatcher[T] =
       withValue(valueIsTypedValueCheck(t))
 
-    private def failedAttemptWithTimeout[S <: IO[T]](e: Expectable[S], d: FiniteDuration): MatchResult[S] = {
+    private def failedAttemptWithTimeout[S <: IO[T]](
+        e: Expectable[S],
+        d: FiniteDuration): MatchResult[S] = {
       val message = s"Timeout after ${d.toMillis} milliseconds"
       result(false, message, message, e)
     }

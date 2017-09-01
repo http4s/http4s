@@ -6,7 +6,6 @@ import cats._
 import cats.effect._
 import cats.implicits._
 
-
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
   * request query params.
   *
@@ -18,11 +17,10 @@ object UrlFormLifter {
 
   def apply[F[_]: Sync](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
     Service.lift { req: Request[F] =>
-
       def addUrlForm(form: UrlForm): F[MaybeResponse[F]] = {
-        val flatForm = form.values.toVector.flatMap{ case (k, vs) => vs.map(v => (k,Some(v))) }
+        val flatForm = form.values.toVector.flatMap { case (k, vs) => vs.map(v => (k, Some(v))) }
         val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
-        val newQuery = Query(params :_*)
+        val newQuery = Query(params: _*)
 
         val newRequest: Request[F] = req
           .withUri(req.uri.copy(query = newQuery))
@@ -31,11 +29,14 @@ object UrlFormLifter {
       }
 
       req.headers.get(headers.`Content-Type`) match {
-        case Some(headers.`Content-Type`(MediaType.`application/x-www-form-urlencoded`,_)) if checkRequest(req) =>
-          UrlForm.entityDecoder[F]
+        case Some(headers.`Content-Type`(MediaType.`application/x-www-form-urlencoded`, _))
+            if checkRequest(req) =>
+          UrlForm
+            .entityDecoder[F]
             .decode(req, strictDecode)
             .value
-            .flatMap(_.fold(_.toHttpResponse[F](req.httpVersion).widen[MaybeResponse[F]], addUrlForm))
+            .flatMap(
+              _.fold(_.toHttpResponse[F](req.httpVersion).widen[MaybeResponse[F]], addUrlForm))
 
         case _ => service(req)
       }

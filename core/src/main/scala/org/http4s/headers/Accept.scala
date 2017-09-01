@@ -10,9 +10,8 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
     HttpHeaderParser.ACCEPT(s)
 }
 
-
 final case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QValue.One)
-  extends Renderable {
+    extends Renderable {
   def render(writer: Writer): writer.type = {
     writer << mediaRange.withExtensions(Map.empty) << qValue
     mediaRange.renderExtensions(writer)
@@ -25,8 +24,8 @@ object MediaRangeAndQValue {
     MediaRangeAndQValue(mediaRange, QValue.One)
 }
 
-final case class Accept(values: NonEmptyList[MediaRangeAndQValue]) extends Header.RecurringRenderable {
+final case class Accept(values: NonEmptyList[MediaRangeAndQValue])
+    extends Header.RecurringRenderable {
   def key: Accept.type = Accept
   type Value = MediaRangeAndQValue
 }
-

@@ -11,46 +11,46 @@ import org.specs2.matcher._
 trait Http4sMatchers extends Matchers with IOMatchers {
   def haveStatus(expected: Status): Matcher[Response[IO]] =
     be_===(expected) ^^ { r: Response[IO] =>
-      r.status aka "the response status"
+      r.status.aka("the response status")
     }
 
   def returnStatus(s: Status): Matcher[IO[Response[IO]]] =
     haveStatus(s) ^^ { r: IO[Response[IO]] =>
-      r.unsafeRunSync aka "the returned"
+      r.unsafeRunSync.aka("the returned")
     }
 
   def haveBody[A: EntityDecoder[IO, ?]](a: ValueCheck[A]): Matcher[Message[IO]] =
     returnValue(a) ^^ { m: Message[IO] =>
-      m.as[A] aka "the message body"
+      m.as[A].aka("the message body")
     }
 
   def returnBody[A: EntityDecoder[IO, ?]](a: ValueCheck[A]): Matcher[IO[Message[IO]]] =
     returnValue(a) ^^ { m: IO[Message[IO]] =>
-      m.flatMap(_.as[A]) aka "the returned message body"
+      m.flatMap(_.as[A]).aka("the returned message body")
     }
 
   def haveHeaders(a: Headers): Matcher[Message[IO]] =
     be(a) ^^ { m: Message[IO] =>
-      m.headers aka "the headers"
+      m.headers.aka("the headers")
     }
 
   def haveMediaType(mt: MediaType): Matcher[Message[IO]] =
     beSome(mt) ^^ { m: Message[IO] =>
-      m.headers.get(`Content-Type`).map(_.mediaType) aka "the media type header"
+      m.headers.get(`Content-Type`).map(_.mediaType).aka("the media type header")
     }
 
   def haveContentCoding(c: ContentCoding): Matcher[Message[IO]] =
     beSome(c) ^^ { m: Message[IO] =>
-      m.headers.get(`Content-Encoding`).map(_.contentCoding) aka "the content encoding header"
+      m.headers.get(`Content-Encoding`).map(_.contentCoding).aka("the content encoding header")
     }
 
   def returnRight[A, B](m: ValueCheck[B]): Matcher[EitherT[IO, A, B]] =
     beRight(m) ^^ { et: EitherT[IO, A, B] =>
-      et.value.unsafeRunSync aka "the either task"
+      et.value.unsafeRunSync.aka("the either task")
     }
 
   def returnLeft[A, B](m: ValueCheck[A]): Matcher[EitherT[IO, A, B]] =
     beLeft(m) ^^ { et: EitherT[IO, A, B] =>
-      et.value.unsafeRunSync aka "the either task"
+      et.value.unsafeRunSync.aka("the either task")
     }
 }

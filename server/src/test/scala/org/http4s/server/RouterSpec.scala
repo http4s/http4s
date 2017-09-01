@@ -5,7 +5,7 @@ import cats.effect._
 import org.http4s.dsl.io._
 
 class RouterSpec extends Http4sSpec {
-  val numbers  = HttpService[IO] {
+  val numbers = HttpService[IO] {
     case GET -> Root / "1" =>
       Ok("one")
   }
@@ -60,11 +60,13 @@ class RouterSpec extends Http4sSpec {
     }
 
     "Allow passing through of routes with identical prefixes" in {
-      Router[IO]("" -> letters, "" -> numbers).orNotFound(Request[IO](GET, uri("/1"))) must returnBody("one")
+      Router[IO]("" -> letters, "" -> numbers)
+        .orNotFound(Request[IO](GET, uri("/1"))) must returnBody("one")
     }
 
     "Serve custom NotFound responses" in {
-      Router[IO]("/foo" -> notFound).orNotFound(Request[IO](uri = uri("/foo/bar"))) must returnBody("Custom NotFound")
+      Router[IO]("/foo" -> notFound).orNotFound(Request[IO](uri = uri("/foo/bar"))) must returnBody(
+        "Custom NotFound")
     }
 
     "Return the fallthrough response if no route is found" in {

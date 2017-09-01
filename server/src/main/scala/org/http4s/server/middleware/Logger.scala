@@ -15,34 +15,34 @@ import scala.concurrent.ExecutionContext
   */
 object Logger {
   def apply[F[_]: Effect](
-                           logHeaders: Boolean,
-                           logBody: Boolean,
-                           redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-                         )
-                         (httpService: HttpService[F]): HttpService[F] =
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+  )(httpService: HttpService[F]): HttpService[F] =
     ResponseLogger(logHeaders, logBody)(
       RequestLogger(logHeaders, logBody)(
         httpService
       )
     )
 
-  def logMessage[F[_], A <: Message[F]](message: A)
-                                       (logHeaders: Boolean,
-                                        logBody: Boolean,
-                                        redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)
-                                       (logger: SLogger)
-                                       (implicit F: Sync[F], executionContext: ExecutionContext = ExecutionContext.global): F[Unit] = {
+  def logMessage[F[_], A <: Message[F]](message: A)(
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      logger: SLogger)(
+      implicit F: Sync[F],
+      executionContext: ExecutionContext = ExecutionContext.global): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>
-      mT.mediaType == MediaType.`application/json` || mT.mediaType == MediaType.`application/hal+json`
-    )
+      mT.mediaType == MediaType.`application/json` || mT.mediaType == MediaType.`application/hal+json`)
 
     val isText = !isBinary || isJson
 
     val headers =
-      if (logHeaders) message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
+      if (logHeaders)
+        message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
       else ""
 
     val bodyStream = if (logBody && isText) {

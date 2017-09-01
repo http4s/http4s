@@ -32,24 +32,32 @@ trait SslExampleWithRedirect extends StreamApp[IO] {
     case request =>
       request.headers.get(Host) match {
         case Some(Host(host, _)) =>
-          val baseUri = request.uri.copy(scheme = "https".ci.some, authority = Some(Authority(request.uri.authority.flatMap(_.userInfo), RegName(host), port = securePort.some)))
+          val baseUri = request.uri.copy(
+            scheme = "https".ci.some,
+            authority = Some(
+              Authority(
+                request.uri.authority.flatMap(_.userInfo),
+                RegName(host),
+                port = securePort.some)))
           MovedPermanently(baseUri.withPath(request.uri.path))
         case _ =>
           BadRequest()
       }
   }
 
-  def sslStream = builder
-    .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
-    .mountService(ExampleService.service, "/http4s")
-    .bindHttp(8443)
-    .serve
+  def sslStream =
+    builder
+      .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
+      .mountService(ExampleService.service, "/http4s")
+      .bindHttp(8443)
+      .serve
 
-  def redirectStream = builder
-    .mountService(redirectService, "/http4s")
-    .bindHttp(8080)
-    .serve
+  def redirectStream =
+    builder
+      .mountService(redirectService, "/http4s")
+      .bindHttp(8080)
+      .serve
 
   def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
-    sslStream mergeHaltBoth redirectStream
+    sslStream.mergeHaltBoth(redirectStream)
 }

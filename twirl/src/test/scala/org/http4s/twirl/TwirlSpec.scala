@@ -27,19 +27,23 @@ class TwirlSpec extends Http4sSpec {
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response[IO](Ok).withBody(html.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight("<h1>test html</h1>")
+      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
+        "<h1>test html</h1>")
     }
   }
 
   "JS encoder" should {
-    "return Content-Type application/javascript with proper charset" in prop { implicit cs: Charset =>
-      val headers = EntityEncoder[IO, JavaScript].headers
-      headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/javascript`, Some(cs)))
+    "return Content-Type application/javascript with proper charset" in prop {
+      implicit cs: Charset =>
+        val headers = EntityEncoder[IO, JavaScript].headers
+        headers.get(`Content-Type`) must_== Some(
+          `Content-Type`(MediaType.`application/javascript`, Some(cs)))
     }
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response[IO](Ok).withBody(js.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(""""test js"""")
+      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
+        """"test js"""")
     }
   }
 
@@ -51,19 +55,22 @@ class TwirlSpec extends Http4sSpec {
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response[IO](Ok).withBody(txt.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight("""test text""")
+      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
+        """test text""")
     }
   }
 
   "XML encoder" should {
     "return Content-Type application/xml with proper charset" in prop { implicit cs: Charset =>
       val headers = EntityEncoder[IO, Xml].headers
-      headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/xml`, Some(cs)))
+      headers.get(`Content-Type`) must_== Some(
+        `Content-Type`(MediaType.`application/xml`, Some(cs)))
     }
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response[IO](Ok).withBody(_root_.xml.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight("<test>test xml</test>")
+      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
+        "<test>test xml</test>")
     }
   }
 }

@@ -14,4 +14,3 @@ final case class Location(uri: Uri) extends Header.Parsed {
   override def value: String = uri.toString
   def renderValue(writer: Writer): writer.type = writer << uri.toString
 }
-

@@ -14,7 +14,9 @@ sealed trait AgentToken extends Renderable
 final case class AgentProduct(name: String, version: Option[String] = None) extends AgentToken {
   override def render(writer: Writer): writer.type = {
     writer << name
-    version.foreach { v => writer << '/' << v }
+    version.foreach { v =>
+      writer << '/' << v
+    }
     writer
   }
 }
@@ -23,7 +25,8 @@ final case class AgentComment(comment: String) extends AgentToken {
   override def render(writer: Writer): writer.type = writer << comment
 }
 
-final case class `User-Agent`(product: AgentProduct, other: Seq[AgentToken] = Seq.empty) extends Header.Parsed {
+final case class `User-Agent`(product: AgentProduct, other: Seq[AgentToken] = Seq.empty)
+    extends Header.Parsed {
   def key: `User-Agent`.type = `User-Agent`
 
   override def renderValue(writer: Writer): writer.type = {

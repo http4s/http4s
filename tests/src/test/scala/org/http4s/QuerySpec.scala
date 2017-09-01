@@ -10,7 +10,7 @@ class QuerySpec extends Http4sSpec {
     (query.nonEmpty) ==> (Query.fromString(query.toString) == query)
   }
 
-  "Query Builder" can {
+  "Query Builder".can {
     "build a query from a Query" >> forAll { query: Query =>
       val b = Query.newBuilder
       query.foreach(b.+=)
@@ -24,7 +24,7 @@ class QuerySpec extends Http4sSpec {
     }
   }
 
-  "Query" can {
+  "Query".can {
     val elem = ("k", Some("v"))
 
     "append a query param" >> forAll { (p: KeyValue, q: Query) =>
@@ -41,7 +41,7 @@ class QuerySpec extends Http4sSpec {
       q2.isInstanceOf[Query] must_== false
       q2.length must_== q.length + 1
       q2.last must_== s
-      q2.toList must_==(q.toList :+ s)
+      q2.toList must_== (q.toList :+ s)
     }
 
     "prepend a single Pair element" >> forAll { (q: Query, elem: KeyValue) =>
@@ -49,7 +49,7 @@ class QuerySpec extends Http4sSpec {
       q2.length must_== q.length + 1
       q2 must beAnInstanceOf[Query]
       q2.head must_== elem
-      q2.toList must_==(elem::q.toList)
+      q2.toList must_== (elem :: q.toList)
 
     }
 
@@ -58,7 +58,7 @@ class QuerySpec extends Http4sSpec {
       q2.length must_== q.length + 1
       q2.head must_== elem
       q2.isInstanceOf[Query] must_== false
-      q2.toList must_==(elem::q.toList)
+      q2.toList must_== (elem :: q.toList)
     }
 
     "append many KeyValue elements" >> forAll { (q: Query, elems: Seq[KeyValue]) =>

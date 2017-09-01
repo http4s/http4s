@@ -10,17 +10,27 @@ sealed trait RequestGenerator extends Any {
 }
 
 trait EmptyRequestGenerator[F[_]] extends Any with RequestGenerator {
+
   /** Make a [[org.http4s.Request]] using this [[Method]] */
-  final def apply(uri: Uri)(implicit F: Applicative[F]): F[Request[F]] = F.pure(Request(method, uri))
+  final def apply(uri: Uri)(implicit F: Applicative[F]): F[Request[F]] =
+    F.pure(Request(method, uri))
 }
 
 trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
+
   /** Make a [[org.http4s.Request]] using this Method */
-  final def apply[A](uri: Uri, body: A)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Request[F]] = {
+  final def apply[A](uri: Uri, body: A)(
+      implicit F: Monad[F],
+      w: EntityEncoder[F, A]): F[Request[F]] = {
     var h = w.headers
-    w.toEntity(body).flatMap { case Entity(proc, len) =>
-      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
-      F.pure(Request(method = method, uri = uri, headers = headers, body = proc))
+    w.toEntity(body).flatMap {
+      case Entity(proc, len) =>
+        val headers = len
+          .map { l =>
+            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+          }
+          .getOrElse(h)
+        F.pure(Request(method = method, uri = uri, headers = headers, body = proc))
     }
   }
 }

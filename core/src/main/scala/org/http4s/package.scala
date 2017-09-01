@@ -24,10 +24,10 @@ package object http4s { // scalastyle:ignore
   val DefaultCharset = Charset.`UTF-8`
 
   /**
-   * A Service wraps a function of request type `A` to a Task that runs
-   * to response type `B`.  By wrapping the [[Service]], we can compose them
-   * using Kleisli operations.
-   */
+    * A Service wraps a function of request type `A` to a Task that runs
+    * to response type `B`.  By wrapping the [[Service]], we can compose them
+    * using Kleisli operations.
+    */
   type Service[F[_], A, B] = Kleisli[F, A, B]
 
   /**
@@ -41,6 +41,7 @@ package object http4s { // scalastyle:ignore
 
   /* Lives here to work around https://issues.scala-lang.org/browse/SI-7139 */
   object HttpService extends Serializable {
+
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
@@ -52,29 +53,39 @@ package object http4s { // scalastyle:ignore
       * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
       * where `pf` is not defined.
       */
-    def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(implicit F: Applicative[F]): HttpService[F] =
+    def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(
+        implicit F: Applicative[F]): HttpService[F] =
       // I don't feel good about myself
-      lift(req => pf.asInstanceOf[PartialFunction[Request[F], F[MaybeResponse[F]]]].applyOrElse(req, Function.const(F.pure(Pass[F]))))
+      lift(
+        req =>
+          pf.asInstanceOf[PartialFunction[Request[F], F[MaybeResponse[F]]]]
+            .applyOrElse(req, Function.const(F.pure(Pass[F]))))
 
     def empty[F[_]: Sync]: HttpService[F] =
       Service.constVal(Pass[F])
   }
 
   object AuthedService {
+
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
       * handle all requests it is given.  If `f` is a `PartialFunction`, use
       * `apply` instead.
       */
-    def lift[F[_], T](f: AuthedRequest[F, T] => F[MaybeResponse[F]]): AuthedService[F, T] = Service.lift(f)
+    def lift[F[_], T](f: AuthedRequest[F, T] => F[MaybeResponse[F]]): AuthedService[F, T] =
+      Service.lift(f)
 
     /** Lifts a partial function to an `AuthedService`.  Responds with
       * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
       * where `pf` is not defined.
       */
-    def apply[F[_], T](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(implicit F: Applicative[F]): AuthedService[F, T] =
+    def apply[F[_], T](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
+        implicit F: Applicative[F]): AuthedService[F, T] =
       // This one also makes me sick
-      lift(req => pf.asInstanceOf[PartialFunction[AuthedRequest[F, T], F[MaybeResponse[F]]]].applyOrElse(req, Function.const(F.pure(Pass[F]))))
+      lift(
+        req =>
+          pf.asInstanceOf[PartialFunction[AuthedRequest[F, T], F[MaybeResponse[F]]]]
+            .applyOrElse(req, Function.const(F.pure(Pass[F]))))
 
     /**
       * The empty service (all requests fallthrough).

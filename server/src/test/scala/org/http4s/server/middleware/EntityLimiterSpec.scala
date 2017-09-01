@@ -23,12 +23,14 @@ class EntityLimiterSpec extends Http4sSpec {
   "EntityLimiter" should {
 
     "Allow reasonable entities" in {
-      EntityLimiter(s, 100).apply(Request[IO](POST, uri("/echo"), body = b))
+      EntityLimiter(s, 100)
+        .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1) must returnValue(-1)
     }
 
     "Limit the maximum size of an EntityBody" in {
-      EntityLimiter(s, 3).apply(Request[IO](POST, uri("/echo"), body = b))
+      EntityLimiter(s, 3)
+        .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
         .handleError { case EntityTooLarge(i) => i } must returnValue(3)
     }
@@ -39,10 +41,12 @@ class EntityLimiterSpec extends Http4sSpec {
       }
 
       val st = EntityLimiter(s, 3)
-      (st.apply(Request[IO](POST, uri("/echo2"), body = b))
+      (st
+        .apply(Request[IO](POST, uri("/echo2"), body = b))
         .map(_ => -1)
         must returnValue(-1))
-      (st.apply(Request[IO](POST, uri("/echo"), body = b))
+      (st
+        .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
         .handleError { case EntityTooLarge(i) => i }
         must returnValue(3L))

@@ -9,13 +9,16 @@ import org.http4s.headers.{Accept, `Content-Length`, `Content-Type`}
 class ResponseGeneratorSpec extends Http4sSpec {
 
   "Add the EntityEncoder headers along with a content-length header" in {
-    val body          = "foo"
+    val body = "foo"
     val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
     EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
-      old and (resultheaders.exists(_ == h) must_=== true)
+      old.and(resultheaders.exists(_ == h) must_=== true)
     }
 
-    resultheaders.get(`Content-Length`) must_=== `Content-Length`.fromLong(body.getBytes.length.toLong).right.toOption
+    resultheaders.get(`Content-Length`) must_=== `Content-Length`
+      .fromLong(body.getBytes.length.toLong)
+      .right
+      .toOption
   }
 
   "Not duplicate headers when not provided" in {
@@ -81,15 +84,16 @@ class ResponseGeneratorSpec extends Http4sSpec {
   }
 
   "EntityResponseGenerator() generates Content-Length: 0" in {
+
     /**
-     * Aside from the cases defined above, in the absence of Transfer-Encoding,
-     * an origin server SHOULD send a Content-Length header field when the
-     * payload body size is known prior to sending the complete header section.
-     * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
-     *
-     * Until someone sets a body, we have an empty body and we'll set the
-     * Content-Length.
-     */
+      * Aside from the cases defined above, in the absence of Transfer-Encoding,
+      * an origin server SHOULD send a Content-Length header field when the
+      * payload body size is known prior to sending the complete header section.
+      * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
+      *
+      * Until someone sets a body, we have an empty body and we'll set the
+      * Content-Length.
+      */
     val resp = Ok()
     resp.map(_.contentLength) must returnValue(Some(0))
   }

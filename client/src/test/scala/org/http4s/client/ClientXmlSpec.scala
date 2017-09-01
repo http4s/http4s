@@ -26,7 +26,8 @@ class ClientXmlSpec extends Http4sSpec {
     }
     "read xml body in parallel" in {
       // https://github.com/http4s/http4s/issues/1209
-      val resp = parallelTraverse((0 to 5).toList)(_ => client.expect[Elem](Request[IO](GET))).unsafeRunSync()
+      val resp = parallelTraverse((0 to 5).toList)(_ => client.expect[Elem](Request[IO](GET)))
+        .unsafeRunSync()
       resp.map(_ must_== body)
     }
   }

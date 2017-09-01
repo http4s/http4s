@@ -14,13 +14,13 @@ class QValueSpec extends Http4sSpec {
   }
 
   "fromDouble should be consistent with fromThousandths" in {
-    forall (0 to 1000) { i =>
+    forall(0 to 1000) { i =>
       fromDouble(i / 1000.0) must_== fromThousandths(i)
     }
   }
 
   "fromString should be consistent with fromThousandths" in {
-    forall (0 to 1000) { i =>
+    forall(0 to 1000) { i =>
       fromString((i / 1000.0).toString) must_== fromThousandths(i)
     }
   }

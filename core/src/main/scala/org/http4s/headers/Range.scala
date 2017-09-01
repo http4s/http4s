@@ -10,9 +10,9 @@ import org.http4s.util.{Renderable, Writer}
 object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
 
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
-    Range(unit, NonEmptyList.of(r1, rs:_*))
+    Range(unit, NonEmptyList.of(r1, rs: _*))
 
-  def apply(r1: SubRange, rs: SubRange*): Range = apply(RangeUnit.Bytes, r1, rs:_*)
+  def apply(r1: SubRange, rs: SubRange*): Range = apply(RangeUnit.Bytes, r1, rs: _*)
 
   def apply(begin: Long, end: Long): Range = apply(SubRange(begin, Some(end)))
 
@@ -24,10 +24,11 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
   }
 
   final case class SubRange(first: Long, second: Option[Long]) extends Renderable {
+
     /** Base method for rendering this object efficiently */
     override def render(writer: Writer): writer.type = {
       writer << first
-      second.foreach( writer << '-' << _ )
+      second.foreach(writer << '-' << _)
       writer
     }
   }
@@ -36,12 +37,12 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     HttpHeaderParser.RANGE(s)
 }
 
-final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {
+final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange])
+    extends Header.Parsed {
   override def key: Range.type = Range
   override def renderValue(writer: Writer): writer.type = {
     writer << unit << '=' << ranges.head
-    ranges.tail.foreach( writer << ',' << _)
+    ranges.tail.foreach(writer << ',' << _)
     writer
   }
 }
-

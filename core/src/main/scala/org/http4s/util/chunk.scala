@@ -6,6 +6,7 @@ import cats._
 import fs2._
 
 trait ChunkInstances extends ChunkInstances0 {
+
   /** Specialization for byte chunks, which is mostly what we want. */
   implicit val ByteChunkMonoid: Monoid[Chunk[Byte]] =
     new Monoid[Chunk[Byte]] {
@@ -38,6 +39,4 @@ trait ByteChunkSyntax {
     new ByteChunkOps(self)
 }
 
-object chunk extends AnyRef
-    with ChunkInstances
-    with ByteChunkSyntax
+object chunk extends AnyRef with ChunkInstances with ByteChunkSyntax

@@ -19,22 +19,26 @@ object ChunkAggregator {
       case response: Response[F] =>
         response.body.runFold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap { fullBody =>
           if (fullBody.nonEmpty)
-            response.withBody(ByteVectorChunk(fullBody): Chunk[Byte]).map(removeChunkedTransferEncoding)
+            response
+              .withBody(ByteVectorChunk(fullBody): Chunk[Byte])
+              .map(removeChunkedTransferEncoding)
           else
             F.pure(response)
         }
     }
 
-  private def removeChunkedTransferEncoding[F[_]: Functor]: Response[F] => Response[F] = {
+  private def removeChunkedTransferEncoding[F[_]: Functor]: Response[F] => Response[F] =
     _.transformHeaders { headers =>
       headers.flatMap {
         // Remove the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
         // leaving the remaining values unchanged
         case e: `Transfer-Encoding` =>
-          NonEmptyList.fromList(e.values.filterNot(_ == TransferCoding.chunked)).map(`Transfer-Encoding`.apply).toList
+          NonEmptyList
+            .fromList(e.values.filterNot(_ == TransferCoding.chunked))
+            .map(`Transfer-Encoding`.apply)
+            .toList
         case header =>
           List(header)
       }
     }
-  }
 }

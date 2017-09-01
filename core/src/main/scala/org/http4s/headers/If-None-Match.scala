@@ -11,9 +11,8 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
   /** Match any existing entity */
   val `*` = `If-None-Match`(None)
 
-  def apply(first: ETag.EntityTag, rest: ETag.EntityTag*): `If-None-Match` = {
-    `If-None-Match`(Some(NonEmptyList.of(first, rest:_*)))
-  }
+  def apply(first: ETag.EntityTag, rest: ETag.EntityTag*): `If-None-Match` =
+    `If-None-Match`(Some(NonEmptyList.of(first, rest: _*)))
 
   override def parse(s: String): ParseResult[`If-None-Match`] =
     HttpHeaderParser.IF_NONE_MATCH(s)
@@ -22,9 +21,8 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
 final case class `If-None-Match`(tags: Option[NonEmptyList[ETag.EntityTag]]) extends Header.Parsed {
   override def key: `If-None-Match`.type = `If-None-Match`
   override def value: String = tags match {
-    case None       => "*"
+    case None => "*"
     case Some(tags) => tags.mkString(",")
   }
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }
-

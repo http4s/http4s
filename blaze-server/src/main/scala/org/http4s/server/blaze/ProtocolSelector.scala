@@ -14,18 +14,26 @@ import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private object ProtocolSelector {
-  def apply[F[_]: Effect](engine: SSLEngine,
-                          service: HttpService[F],
-                          maxRequestLineLen: Int,
-                          maxHeadersLen: Int,
-                          requestAttributes: AttributeMap,
-                          executionContext: ExecutionContext,
-                          serviceErrorHandler: ServiceErrorHandler[F]): ALPNSelector = {
+  def apply[F[_]: Effect](
+      engine: SSLEngine,
+      service: HttpService[F],
+      maxRequestLineLen: Int,
+      maxHeadersLen: Int,
+      requestAttributes: AttributeMap,
+      executionContext: ExecutionContext,
+      serviceErrorHandler: ServiceErrorHandler[F]): ALPNSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
 
       val newNode = { streamId: Int =>
-        LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, executionContext, requestAttributes, service, serviceErrorHandler))
+        LeafBuilder(
+          new Http2NodeStage(
+            streamId,
+            Duration.Inf,
+            executionContext,
+            requestAttributes,
+            service,
+            serviceErrorHandler))
       }
 
       Http2Stage(
@@ -49,17 +57,19 @@ private object ProtocolSelector {
         serviceErrorHandler
       )
 
-    def preference(protos: Seq[String]): String = {
-      protos.find {
-        case "h2" | "h2-14" | "h2-15" => true
-        case _                        => false
-      }.getOrElse("http1.1")
-    }
+    def preference(protos: Seq[String]): String =
+      protos
+        .find {
+          case "h2" | "h2-14" | "h2-15" => true
+          case _ => false
+        }
+        .getOrElse("http1.1")
 
-    def select(s: String): LeafBuilder[ByteBuffer] = LeafBuilder(s match {
-      case "h2" | "h2-14" | "h2-15" => http2Stage()
-      case _                        => http1Stage()
-    })
+    def select(s: String): LeafBuilder[ByteBuffer] =
+      LeafBuilder(s match {
+        case "h2" | "h2-14" | "h2-15" => http2Stage()
+        case _ => http1Stage()
+      })
 
     new ALPNSelector(engine, preference, select)
   }

@@ -3,7 +3,7 @@ package headers
 
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
-import org.http4s.{ Header, HeaderKey, ParseResult }
+import org.http4s.{Header, HeaderKey, ParseResult}
 
 object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-Flags`] =
@@ -48,7 +48,6 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
 final case class `X-B3-Flags`(flags: Set[`X-B3-Flags`.Flag]) extends Header.Parsed {
   override def key: `X-B3-Flags`.type = `X-B3-Flags`
 
-  override def renderValue(writer: Writer): writer.type = {
+  override def renderValue(writer: Writer): writer.type =
     writer.append(flags.foldLeft(0L)((sum, next) => sum + next.longValue).toString)
-  }
 }

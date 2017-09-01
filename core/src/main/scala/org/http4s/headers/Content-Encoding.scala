@@ -13,4 +13,3 @@ final case class `Content-Encoding`(contentCoding: ContentCoding) extends Header
   override def key: `Content-Encoding`.type = `Content-Encoding`
   override def renderValue(writer: Writer): writer.type = contentCoding.render(writer)
 }
-

@@ -10,14 +10,15 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
     HttpHeaderParser.ACCEPT_CHARSET(s)
 }
 
-final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends Header.RecurringRenderable {
+final case class `Accept-Charset`(values: NonEmptyList[CharsetRange])
+    extends Header.RecurringRenderable {
   def key: `Accept-Charset`.type = `Accept-Charset`
   type Value = CharsetRange
 
   def qValue(charset: Charset): QValue = {
     def specific = values.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
     def splatted = values.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
-    specific orElse splatted getOrElse QValue.Zero
+    specific.orElse(splatted).getOrElse(QValue.Zero)
   }
 
   def isSatisfiedBy(charset: Charset): Boolean = qValue(charset) > QValue.Zero

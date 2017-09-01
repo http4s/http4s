@@ -10,11 +10,11 @@ import org.log4s.Logger
 import scala.collection.mutable.ListBuffer
 import scala.util.Either
 
-private[blaze] final class Http1ServerParser[F[_]](logger: Logger,
-                                            maxRequestLine: Int,
-                                            maxHeadersLen: Int)
-                                           (implicit F: Effect[F])
-  extends blaze.http.http_parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2*1024) {
+private[blaze] final class Http1ServerParser[F[_]](
+    logger: Logger,
+    maxRequestLine: Int,
+    maxHeadersLen: Int)(implicit F: Effect[F])
+    extends blaze.http.http_parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2 * 1024) {
 
   private var uri: String = _
   private var method: String = _
@@ -30,29 +30,43 @@ private[blaze] final class Http1ServerParser[F[_]](logger: Logger,
 
   def doParseContent(buff: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buff))
 
-  def collectMessage(body: EntityBody[F], attrs: AttributeMap): Either[(ParseFailure, HttpVersion), Request[F]] = {
+  def collectMessage(
+      body: EntityBody[F],
+      attrs: AttributeMap): Either[(ParseFailure, HttpVersion), Request[F]] = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
 
     val attrsWithTrailers =
       if (minorVersion() == 1 && isChunked) {
-        attrs.put(Message.Keys.TrailerHeaders[F], F.suspend[Headers] {
-          if (!contentComplete()) {
-            F.raiseError(new IllegalStateException("Attempted to collect trailers before the body was complete."))
+        attrs.put(
+          Message.Keys.TrailerHeaders[F],
+          F.suspend[Headers] {
+            if (!contentComplete()) {
+              F.raiseError(
+                new IllegalStateException(
+                  "Attempted to collect trailers before the body was complete."))
+            } else F.pure(Headers(headers.result()))
           }
-          else F.pure(Headers(headers.result()))
-        })
+        )
       } else attrs // Won't have trailers without a chunked body
 
-    Method.fromString(this.method) flatMap { method =>
-      Uri.requestTarget(this.uri) map { uri =>
-        Request(method, uri, protocol, h, body, attrsWithTrailers)
+    Method
+      .fromString(this.method)
+      .flatMap { method =>
+        Uri.requestTarget(this.uri).map { uri =>
+          Request(method, uri, protocol, h, body, attrsWithTrailers)
+        }
       }
-    } leftMap (_ -> protocol)
+      .leftMap(_ -> protocol)
   }
 
-  override def submitRequestLine(methodString: String, uri: String, scheme: String, majorversion: Int, minorversion: Int): Boolean = {
+  override def submitRequestLine(
+      methodString: String,
+      uri: String,
+      scheme: String,
+      majorversion: Int,
+      minorversion: Int): Boolean = {
     logger.trace(s"Received request($methodString $uri $scheme/$majorversion.$minorversion)")
     this.uri = uri
     this.method = methodString

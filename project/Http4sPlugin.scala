@@ -3,6 +3,7 @@ package org.http4s.build
 import sbt._, Keys._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin, ScalafmtCorePlugin.autoImport._
 import sbtrelease._
 import sbtrelease.ReleasePlugin.autoImport._
 import scala.util.Properties.envOrNone
@@ -16,7 +17,7 @@ object Http4sPlugin extends AutoPlugin {
 
   override def trigger = allRequirements
 
-  override def requires = RigPlugin && MimaPlugin
+  override def requires = RigPlugin && MimaPlugin && ScalafmtCorePlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     // Override rig's default of the Travis build number being the bugfix number
@@ -49,7 +50,10 @@ object Http4sPlugin extends AutoPlugin {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
 
-    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.3" cross CrossVersion.binary)
+    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.3" cross CrossVersion.binary),
+
+    scalafmtVersion := "1.2.0",
+    scalafmtOnCompile := sys.env.get("TRAVIS").isEmpty
   )
 
   def extractApiVersion(version: String) = {

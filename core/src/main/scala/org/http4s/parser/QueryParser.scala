@@ -17,21 +17,27 @@ import org.http4s.util.UrlCodingUtils
   * If "" should be interpreted as no query that __MUST__ be
   * checked beforehand.
   */
-private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars: BitSet = QueryParser.ExtendedQChars) {
+private[http4s] class QueryParser(
+    codec: Codec,
+    colonSeparators: Boolean,
+    qChars: BitSet = QueryParser.ExtendedQChars) {
   import QueryParser._
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
     val acc = Query.newBuilder
-    decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
+    decodeBuffer(input, (k, v) => acc += ((k, v)), flush) match {
       case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
-      case None    => ParseResult.success(acc.result)
+      case None => ParseResult.success(acc.result)
     }
   }
 
   // Some[String] represents an error message, None = success
-  def decodeBuffer(input: CharBuffer, acc: (String, Option[String]) => Query.Builder, flush: Boolean): Option[String] = {
+  def decodeBuffer(
+      input: CharBuffer,
+      acc: (String, Option[String]) => Query.Builder,
+      flush: Boolean): Option[String] = {
     val valAcc = new StringBuilder(InitialBufferCapactiy)
 
     var error: String = null
@@ -44,8 +50,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
         val k = decodeParam(s)
         valAcc.clear()
         acc(k, None)
-      }
-      else {
+      } else {
         val k = decodeParam(key)
         key = null
         val s = valAcc.result()
@@ -65,7 +70,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
     if (!flush) input.mark()
 
     // begin iterating through the chars
-    while(error == null && input.hasRemaining) {
+    while (error == null && input.hasRemaining) {
       val c = input.get()
       (c: @switch) match {
         case '&' => endPair()
@@ -88,7 +93,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
     if (error != null) Some(error)
     else {
       if (flush) appendValue()
-      else input.reset()    // rewind to the last mark position
+      else input.reset() // rewind to the last mark position
       None
     }
   }
@@ -96,7 +101,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
   private def decodeParam(str: String): String =
     try UrlCodingUtils.urlDecode(str, codec.charSet, plusIsSpace = true)
     catch {
-      case e: IllegalArgumentException     => ""
+      case e: IllegalArgumentException => ""
       case e: UnsupportedEncodingException => ""
     }
 }
@@ -104,10 +109,9 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
 private[http4s] object QueryParser {
   private val InitialBufferCapactiy = 32
 
-  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] = {
+  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] =
     if (queryString.isEmpty) Either.right(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
-  }
 
   private sealed trait State
   private case object KEY extends State
@@ -115,13 +119,14 @@ private[http4s] object QueryParser {
 
   /** Defines the characters that are allowed unquoted within a query string as
     * defined in RFC 3986*/
-  val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq:_*)
+  val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq: _*)
+
   /** PHP also includes square brackets ([ and ]) with query strings. This goes
     * against the spec but due to PHP's widespread adoption it is necessary to
     * support this extension. */
   val ExtendedQChars = QChars ++ ("[]".map(_.toInt).toSet)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
-  private def Unreserved =  "-._~".toSet ++ AlphaNum
-  private def SubDelims  = "!$&'()*+,;=".toSet
-  private def AlphaNum   = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toSet
+  private def Unreserved = "-._~".toSet ++ AlphaNum
+  private def SubDelims = "!$&'()*+,;=".toSet
+  private def AlphaNum = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toSet
 }

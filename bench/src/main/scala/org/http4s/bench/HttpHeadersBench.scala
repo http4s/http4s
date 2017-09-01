@@ -36,11 +36,10 @@ class HeadersInput {
 
   @Setup
   def setup(): Unit = {
-    headerSeq = (0 until size) map { i =>
+    headerSeq = (0 until size).map { i =>
       Header(s"X-Headers-Benchmark-$i", i.toString)
     }
-    headers = Headers(headerSeq:_*)
+    headers = Headers(headerSeq: _*)
     replacement = Header(s"X-Headers-Benchmark-${headers.size / 2}", "replacement")
   }
 }
-

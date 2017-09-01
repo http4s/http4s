@@ -17,26 +17,28 @@ object ResourceService {
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     * @param preferGzipped whether to serve pre-gzipped files (with extension ".gz") if they exist
     */
-  final case class Config[F[_]](basePath: String,
-                                pathPrefix: String = "",
-                                bufferSize: Int = 50*1024,
-                                executionContext: ExecutionContext = ExecutionContext.global,
-                                cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
-                                preferGzipped: Boolean = false)
+  final case class Config[F[_]](
+      basePath: String,
+      pathPrefix: String = "",
+      bufferSize: Int = 50 * 1024,
+      executionContext: ExecutionContext = ExecutionContext.global,
+      cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
+      preferGzipped: Boolean = false)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply[F[_]: Sync](config: Config[F]): HttpService[F] = Service.lift { req =>
-    val uriPath = req.pathInfo
-    if (!uriPath.startsWith(config.pathPrefix))
-      Pass.pure
-    else
-      StaticFile
-        .fromResource(
-          sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)),
-          req = Some(req),
-          preferGzipped = config.preferGzipped
-        )
-        .fold(Pass.pure[F])(config.cacheStrategy.cache(uriPath, _).widen[MaybeResponse[F]])
-        .flatten
+  private[staticcontent] def apply[F[_]: Sync](config: Config[F]): HttpService[F] = Service.lift {
+    req =>
+      val uriPath = req.pathInfo
+      if (!uriPath.startsWith(config.pathPrefix))
+        Pass.pure
+      else
+        StaticFile
+          .fromResource(
+            sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)),
+            req = Some(req),
+            preferGzipped = config.preferGzipped
+          )
+          .fold(Pass.pure[F])(config.cacheStrategy.cache(uriPath, _).widen[MaybeResponse[F]])
+          .flatten
   }
 }

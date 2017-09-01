@@ -21,7 +21,8 @@ class DefaultHeadSpec extends Http4sSpec {
   "DefaultHead" should {
     "honor HEAD routes" in {
       val req = Request[IO](Method.HEAD, uri = uri("/special"))
-      service.orNotFound(req).map(_.headers.get("X-Handled-By".ci).map(_.value)) must returnValue(Some("HEAD"))
+      service.orNotFound(req).map(_.headers.get("X-Handled-By".ci).map(_.value)) must returnValue(
+        Some("HEAD"))
     }
 
     "return truncated body of corresponding GET on fallthrough" in {
@@ -32,7 +33,10 @@ class DefaultHeadSpec extends Http4sSpec {
     "retain all headers of corresponding GET on fallthrough" in {
       val get = Request[IO](Method.GET, uri = uri("/hello"))
       val head = get.withMethod(Method.HEAD)
-      service.orNotFound(get).map(_.headers).unsafeRunSync() must_== service.orNotFound(head).map(_.headers).unsafeRunSync()
+      service.orNotFound(get).map(_.headers).unsafeRunSync() must_== service
+        .orNotFound(head)
+        .map(_.headers)
+        .unsafeRunSync()
     }
 
     "allow GET body to clean up on fallthrough" in {

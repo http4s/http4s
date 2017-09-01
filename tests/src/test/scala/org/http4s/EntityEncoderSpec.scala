@@ -48,23 +48,27 @@ class EntityEncoderSpec extends Http4sSpec {
     "render streams with chunked transfer encoding without wiping out other encodings" in {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
-        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => IO.pure(Entity.empty))
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ =>
+          IO.pure(Entity.empty))
       implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
-        case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
+        case Some(coding) =>
+          coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
       }
     }
 
     "render streams with chunked transfer encoding without duplicating chunked transfer encoding" in {
       trait Foo
       implicit val FooEncoder =
-        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ => IO.pure(Entity.empty))
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
+          IO.pure(Entity.empty))
       EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
     }
 
     "render entity bodies with chunked transfer encoding" in {
-      EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) must beSome(`Transfer-Encoding`(TransferCoding.chunked))
+      EntityEncoder[IO, EntityBody[IO]].headers.get(`Transfer-Encoding`) must beSome(
+        `Transfer-Encoding`(TransferCoding.chunked))
     }
 
     "render files" in {
@@ -74,8 +78,7 @@ class EntityEncoderSpec extends Http4sSpec {
         try w.write("render files test")
         finally w.close()
         writeToString(tmpFile) must_== "render files test"
-      }
-      finally {
+      } finally {
         tmpFile.delete()
         ()
       }
@@ -107,20 +110,23 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "give the content type" in {
-      EntityEncoder[IO, String].contentType must beSome(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
-      EntityEncoder[IO, Array[Byte]].contentType must beSome(`Content-Type`(MediaType.`application/octet-stream`))
+      EntityEncoder[IO, String].contentType must beSome(
+        `Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
+      EntityEncoder[IO, Array[Byte]].contentType must beSome(
+        `Content-Type`(MediaType.`application/octet-stream`))
     }
 
     "work with local defined EntityEncoders" in {
       sealed case class ModelA(name: String, color: Int)
       sealed case class ModelB(name: String, id: Long)
 
-      implicit val w1: EntityEncoder[IO, ModelA] = EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
-      implicit val w2: EntityEncoder[IO, ModelB] = EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
+      implicit val w1: EntityEncoder[IO, ModelA] =
+        EntityEncoder.simple[IO, ModelA]()(_ => Chunk.bytes("A".getBytes))
+      implicit val w2: EntityEncoder[IO, ModelB] =
+        EntityEncoder.simple[IO, ModelB]()(_ => Chunk.bytes("B".getBytes))
 
       EntityEncoder[IO, ModelA] must_== w1
       EntityEncoder[IO, ModelB] must_== w2
     }
   }
 }
-

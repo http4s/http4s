@@ -29,7 +29,7 @@ private[http4s] trait Registry {
   protected val registry: concurrent.TrieMap[Key, Value] = TrieMap.empty
 
   // TODO: For testing purposes
-  private[http4s] def snapshot: TrieMap[Key,Value] = registry.snapshot()
+  private[http4s] def snapshot: TrieMap[Key, Value] = registry.snapshot()
 
   def get(key: Key): Option[Value] = registry.get(key)
 
@@ -37,7 +37,8 @@ private[http4s] trait Registry {
 
   def getOrElseCreate(key: Key)(implicit ev: Key => Value): Value = getOrElse(key, ev(key))
 
-  protected def getOrElseUpdate(key: Key, default: => Value): Value = registry.getOrElseUpdate(key, default)
+  protected def getOrElseUpdate(key: Key, default: => Value): Value =
+    registry.getOrElseUpdate(key, default)
 
   protected def register(key: Key, value: Value): value.type = {
     registry.update(key, value)

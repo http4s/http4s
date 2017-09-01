@@ -27,26 +27,33 @@ object StaticFile {
   def fromString[F[_]: Sync](url: String, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), req)
 
-  def fromResource[F[_]: Sync](name: String, req: Option[Request[F]] = None, preferGzipped: Boolean = false): OptionT[F, Response[F]] = {
-    val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists { acceptEncoding =>
-      acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`)
+  def fromResource[F[_]: Sync](
+      name: String,
+      req: Option[Request[F]] = None,
+      preferGzipped: Boolean = false): OptionT[F, Response[F]] = {
+    val tryGzipped = preferGzipped && req.flatMap(_.headers.get(`Accept-Encoding`)).exists {
+      acceptEncoding =>
+        acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
+          ContentCoding.`x-gzip`)
     }
 
     val gzUrl: OptionT[F, URL] =
       if (tryGzipped) OptionT.fromOption(Option(getClass.getResource(name + ".gz")))
       else OptionT.none
 
-    gzUrl.flatMap { url =>
-      // Guess content type from the name without ".gz"
-      val contentType = nameToContentType(name)
-      val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
+    gzUrl
+      .flatMap { url =>
+        // Guess content type from the name without ".gz"
+        val contentType = nameToContentType(name)
+        val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-      fromURL(url, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
-    } orElse OptionT.fromOption[F](Option(getClass.getResource(name))).flatMap(fromURL(_, req))
+        fromURL(url, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
+      }
+      .orElse(OptionT.fromOption[F](Option(getClass.getResource(name))).flatMap(fromURL(_, req)))
   }
 
-  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)
-                   (implicit F: Sync[F]): OptionT[F, Response[F]] =
+  def fromURL[F[_]](url: URL, req: Option[Request[F]] = None)(
+      implicit F: Sync[F]): OptionT[F, Response[F]] =
     OptionT.liftF(F.delay {
       val urlConn = url.openConnection
       val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
@@ -64,10 +71,10 @@ object StaticFile {
 
         Response(
           headers = headers,
-          body    = readInputStream[F](F.delay(url.openStream), DefaultBufferSize)
-            // These chunks wrap a mutable array, and we might be buffering
-            // or processing them concurrently later.  Convert to something
-            // immutable here for safety.
+          body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize)
+          // These chunks wrap a mutable array, and we might be buffering
+          // or processing them concurrently later.  Convert to something
+          // immutable here for safety.
             .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)))
         )
       } else {
@@ -79,33 +86,34 @@ object StaticFile {
   def fromFile[F[_]: Sync](f: File, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req)
 
-  def fromFile[F[_]: Sync](f: File, buffsize: Int, req: Option[Request[F]]): OptionT[F, Response[F]] =
+  def fromFile[F[_]: Sync](
+      f: File,
+      buffsize: Int,
+      req: Option[Request[F]]): OptionT[F, Response[F]] =
     fromFile(f, 0, f.length(), buffsize, req)
 
-  def fromFile[F[_]](f: File,
-                     start: Long,
-                     end: Long,
-                     buffsize: Int,
-                     req: Option[Request[F]])
-                    (implicit F: Sync[F]): OptionT[F, Response[F]] =
+  def fromFile[F[_]](f: File, start: Long, end: Long, buffsize: Int, req: Option[Request[F]])(
+      implicit F: Sync[F]): OptionT[F, Response[F]] =
     OptionT(F.delay {
       if (f.isFile) {
-        require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
+        require(
+          start >= 0 && end >= start && buffsize > 0,
+          s"start: $start, end: $end, buffsize: $buffsize")
 
         val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
         // See if we need to actually resend the file
         val notModified: Option[Response[F]] =
           for {
-            r   <- req
-            h   <- r.headers.get(`If-Modified-Since`)
-            lm  <- lastModified
-            exp  = h.date.compareTo(lm) < 0
-            _    = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
-            nm   = Response[F](NotModified) if !exp
+            r <- req
+            h <- r.headers.get(`If-Modified-Since`)
+            lm <- lastModified
+            exp = h.date.compareTo(lm) < 0
+            _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
+            nm = Response[F](NotModified) if !exp
           } yield nm
 
-        notModified orElse {
+        notModified.orElse {
           val (body, contentLength) =
             if (f.length() < end) (empty.covary[F], 0L)
             else (fileToBody[F](f, start, end, buffsize), end - start)
@@ -129,16 +137,24 @@ object StaticFile {
       }
     })
 
-  private def fileToBody[F[_]: Sync](f: File, start: Long, end: Long, buffsize: Int): EntityBody[F] = {
+  private def fileToBody[F[_]: Sync](
+      f: File,
+      start: Long,
+      end: Long,
+      buffsize: Int): EntityBody[F] = {
     // Based on fs2 handling of files
-    def readAllFromFileHandle(chunkSize: Int, start: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
+    def readAllFromFileHandle(chunkSize: Int, start: Long, end: Long)(
+        h: FileHandle[F]): Pull[F, Byte, Unit] =
       _readAllFromFileHandle0(chunkSize, start, end)(h)
 
-    def _readAllFromFileHandle0(chunkSize: Int, offset: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
+    def _readAllFromFileHandle0(chunkSize: Int, offset: Long, end: Long)(
+        h: FileHandle[F]): Pull[F, Byte, Unit] =
       for {
-        res  <- Pull.eval(h.read(math.min(chunkSize, (end - offset).toInt), offset))
-        next <- res.filter(_.nonEmpty)
-          .fold[Pull[F, Byte, Unit]](Pull.done)(o => Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
+        res <- Pull.eval(h.read(math.min(chunkSize, (end - offset).toInt), offset))
+        next <- res
+          .filter(_.nonEmpty)
+          .fold[Pull[F, Byte, Unit]](Pull.done)(o =>
+            Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
       } yield next
 
     def readAll(path: Path, chunkSize: Int): Stream[F, Byte] =

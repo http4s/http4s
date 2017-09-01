@@ -5,18 +5,20 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
-  def apply(mediaType: MediaType, charset: Charset): `Content-Type` = apply(mediaType, Some(charset))
+  def apply(mediaType: MediaType, charset: Charset): `Content-Type` =
+    apply(mediaType, Some(charset))
   implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 
   override def parse(s: String): ParseResult[`Content-Type`] =
     HttpHeaderParser.CONTENT_TYPE(s)
 }
 
-final case class `Content-Type`(mediaType: MediaType, charset: Option[Charset]) extends Header.Parsed {
+final case class `Content-Type`(mediaType: MediaType, charset: Option[Charset])
+    extends Header.Parsed {
   override def key: `Content-Type`.type = `Content-Type`
   override def renderValue(writer: Writer): writer.type = charset match {
     case Some(cs) => writer << mediaType << "; charset=" << cs
-    case _        => mediaType.render(writer)
+    case _ => mediaType.render(writer)
   }
 
   def withMediaType(mediaType: MediaType): `Content-Type` =
@@ -29,4 +31,3 @@ final case class `Content-Type`(mediaType: MediaType, charset: Option[Charset]) 
   def isCharsetDefined: Boolean = charset.isDefined
   def noCharsetDefined: Boolean = charset.isEmpty
 }
-

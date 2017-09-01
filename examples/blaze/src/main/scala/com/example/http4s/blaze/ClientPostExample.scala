@@ -11,4 +11,3 @@ object ClientPostExample extends App {
   val responseBody = client[IO].expect[String](req)
   println(responseBody.unsafeRunSync())
 }
-

@@ -17,7 +17,8 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
   lazy val testResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream("/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
-    val bytes = scala.io.Source.fromInputStream(s)
+    val bytes = scala.io.Source
+      .fromInputStream(s)
       .mkString
       .getBytes(StandardCharsets.UTF_8)
 
@@ -33,29 +34,33 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
   }
 
   lazy val testWebjarResource: ByteVector = {
-    val s = getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt")
+    val s =
+      getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
 
     ByteVector.view(
-      scala.io.Source.fromInputStream(s)
+      scala.io.Source
+        .fromInputStream(s)
         .mkString
         .getBytes(StandardCharsets.UTF_8))
   }
 
   lazy val testWebjarSubResource: ByteVector = {
-    val s = getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
+    val s = getClass.getResourceAsStream(
+      "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
 
     ByteVector.view(
-      scala.io.Source.fromInputStream(s)
+      scala.io.Source
+        .fromInputStream(s)
         .mkString
         .getBytes(StandardCharsets.UTF_8))
   }
 
   def runReq(req: Request[IO]): (ByteVector, Response[IO]) = {
     val resp = s.orNotFound(req).unsafeRunSync
-    val body = resp.body.chunks.runLog.unsafeRunSync.foldLeft(ByteVector.empty) {
-      (bv, chunk) => bv ++ ByteVector.view(chunk.toArray)
+    val body = resp.body.chunks.runLog.unsafeRunSync.foldLeft(ByteVector.empty) { (bv, chunk) =>
+      bv ++ ByteVector.view(chunk.toArray)
     }
     (body, resp)
   }

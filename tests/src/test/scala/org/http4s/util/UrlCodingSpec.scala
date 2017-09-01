@@ -11,7 +11,8 @@ import org.http4s.internal.parboiled2.CharPredicate
 class UrlCodingSpec extends Http4sSpec {
   "Encoding a URI" should {
     "not change any of the allowed chars" in {
-      val encoded = urlEncode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
+      val encoded = urlEncode(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
       encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
     }
     "not uppercase hex digits after percent chars that will be encoded" in {
@@ -27,7 +28,8 @@ class UrlCodingSpec extends Http4sSpec {
   }
   "Decoding a URI" should {
     "not change any of the allowed chars" in {
-      val decoded = urlDecode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~")
+      val decoded = urlDecode(
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~")
       decoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*,;=:/?#[]@-._~"
     }
     "leave Fußgängerübergänge as is" in {
@@ -48,12 +50,22 @@ class UrlCodingSpec extends Http4sSpec {
       urlDecode("%C3%A9") must_== "é"
     }
     "skip the chars in toSkip when decoding" in {
-      "skips '%2F' when decoding" in { urlDecode("%2F", toSkip = CharPredicate("/?#")) must_== "%2F" }
-      "skips '%23' when decoding" in { urlDecode("%23", toSkip = CharPredicate("/?#")) must_== "%23" }
-      "skips '%3F' when decoding" in { urlDecode("%3F", toSkip = CharPredicate("/?#")) must_== "%3F" }
+      "skips '%2F' when decoding" in {
+        urlDecode("%2F", toSkip = CharPredicate("/?#")) must_== "%2F"
+      }
+      "skips '%23' when decoding" in {
+        urlDecode("%23", toSkip = CharPredicate("/?#")) must_== "%23"
+      }
+      "skips '%3F' when decoding" in {
+        urlDecode("%3F", toSkip = CharPredicate("/?#")) must_== "%3F"
+      }
     }
-    "still encodes others" in { urlDecode("br%C3%BCcke", toSkip = CharPredicate("/?#")) must_== "brücke"}
-    "handles mixed" in { urlDecode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = CharPredicate("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"}
+    "still encodes others" in {
+      urlDecode("br%C3%BCcke", toSkip = CharPredicate("/?#")) must_== "brücke"
+    }
+    "handles mixed" in {
+      urlDecode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = CharPredicate("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"
+    }
   }
   "The plusIsSpace flag" should {
     "treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false" in {
@@ -78,6 +90,6 @@ class UrlCodingSpec extends Http4sSpec {
       // This is a silly thing to do, but as long as the API allows it, it would
       // be good to know if it breaks.
       urlDecode(urlEncode("%2f", toSkip = CharPredicate("%")), toSkip = CharPredicate("/")) must_== "%2f"
-    }    
+    }
   }
 }

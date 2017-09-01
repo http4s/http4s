@@ -11,15 +11,15 @@ trait ResponseGenerator extends Any {
 }
 
 /**
- *  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
- *
- * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
- * offer shortcut syntax to make intention clear and concise.
- *
- * @example {{{
- * val resp: F[Response] = Status.Continue()
- * }}}
- */
+  *  Helper for the generation of a [[org.http4s.Response]] which will not contain a body
+  *
+  * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
+  * offer shortcut syntax to make intention clear and concise.
+  *
+  * @example {{{
+  * val resp: F[Response] = Status.Continue()
+  * }}}
+  */
 trait EmptyResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply()(implicit F: Applicative[F]): F[Response[F]] = F.pure(Response(status))
 }
@@ -40,33 +40,44 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply[A](body: A)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] =
     apply(body, Headers.empty)(F, w)
 
-  def apply[A](body: A, headers: Headers)
-              (implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] = {
+  def apply[A](body: A, headers: Headers)(
+      implicit F: Monad[F],
+      w: EntityEncoder[F, A]): F[Response[F]] = {
     var h = w.headers ++ headers
-    w.toEntity(body).flatMap { case Entity(proc, len) =>
-      val headers = len.map { l => `Content-Length`.fromLong(l).fold(_ => h, c => h put c) }.getOrElse(h)
-      F.pure(Response(status = status, headers = headers, body = proc))
+    w.toEntity(body).flatMap {
+      case Entity(proc, len) =>
+        val headers = len
+          .map { l =>
+            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+          }
+          .getOrElse(h)
+        F.pure(Response(status = status, headers = headers, body = proc))
     }
   }
 }
 
 trait LocationResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply(location: Uri)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response[F](status = status, headers = Headers(`Content-Length`.zero, Location(location))))
+    F.pure(
+      Response[F](status = status, headers = Headers(`Content-Length`.zero, Location(location))))
 }
 
 trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
-  def apply(challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response[F](
-      status = status,
-      headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
-    ))
+  def apply(challenge: Challenge, challenges: Challenge*)(
+      implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(
+      Response[F](
+        status = status,
+        headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
+      ))
 }
 
 trait ProxyAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
-  def apply(challenge: Challenge, challenges: Challenge*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response[F](
-      status = status,
-      headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
-    ))
+  def apply(challenge: Challenge, challenges: Challenge*)(
+      implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(
+      Response[F](
+        status = status,
+        headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
+      ))
 }

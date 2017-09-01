@@ -24,18 +24,21 @@ object BlazeWebSocketExample extends StreamApp[IO] {
       Ok("Hello world.")
 
     case GET -> Root / "ws" =>
-      val toClient: Stream[IO, WebSocketFrame] = scheduler.awakeEvery[IO](1.seconds).map(d => Text(s"Ping! $d"))
-      val fromClient: Sink[IO, WebSocketFrame] = _.evalMap { (ws: WebSocketFrame) => ws match {
-        case Text(t, _) => IO(println(t))
-        case f          => IO(println(s"Unknown type: $f"))
-      }}
+      val toClient: Stream[IO, WebSocketFrame] =
+        scheduler.awakeEvery[IO](1.seconds).map(d => Text(s"Ping! $d"))
+      val fromClient: Sink[IO, WebSocketFrame] = _.evalMap { (ws: WebSocketFrame) =>
+        ws match {
+          case Text(t, _) => IO(println(t))
+          case f => IO(println(s"Unknown type: $f"))
+        }
+      }
       WS(toClient, fromClient)
 
     case GET -> Root / "wsecho" =>
       val queue = async.unboundedQueue[IO, WebSocketFrame]
       val echoReply: Pipe[IO, WebSocketFrame, WebSocketFrame] = _.collect {
         case Text(msg, _) => Text("You sent the server: " + msg)
-        case _ =>            Text("Something new")
+        case _ => Text("Something new")
       }
 
       queue.flatMap { q =>
@@ -52,4 +55,3 @@ object BlazeWebSocketExample extends StreamApp[IO] {
       .mountService(route, "/http4s")
       .serve
 }
-

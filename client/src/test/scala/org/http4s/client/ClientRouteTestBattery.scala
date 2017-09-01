@@ -17,19 +17,21 @@ import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String, client: Client[IO])
-  extends Http4sSpec with JettyScaffold {
+    extends Http4sSpec
+    with JettyScaffold {
   val timeout = 20.seconds
 
-  Fragments.foreach(GetRoutes.getPaths.toSeq) { case (path, expected) =>
-    s"Execute GET: $path" in {
-      val name = address.getHostName
-      val port = address.getPort
-      val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
-      client
-        .fetch(req)(resp => IO(checkResponse(resp, expected)))
-        .unsafeRunTimed(timeout)
-        .get
-    }
+  Fragments.foreach(GetRoutes.getPaths.toSeq) {
+    case (path, expected) =>
+      s"Execute GET: $path" in {
+        val name = address.getHostName
+        val port = address.getPort
+        val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
+        client
+          .fetch(req)(resp => IO(checkResponse(resp, expected)))
+          .unsafeRunTimed(timeout)
+          .get
+      }
   }
 
   name should {
@@ -46,9 +48,10 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
         Request(uri = uri)
       }
       val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
-      async.parallelTraverse((0 until 10).toVector)(_ =>
-        fetchBody.run(url).map(_.length)
-      ).unsafeRunTimed(timeout).forall(_ mustNotEqual 0)
+      async
+        .parallelTraverse((0 until 10).toVector)(_ => fetchBody.run(url).map(_.length))
+        .unsafeRunTimed(timeout)
+        .forall(_ mustNotEqual 0)
     }
 
     "POST an empty body" in {
@@ -77,12 +80,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     super.map(fs ^ step(client.shutdown.unsafeRunSync()))
 
   def testServlet = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
+    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
       GetRoutes.getPaths.get(req.getRequestURI) match {
         case Some(r) => renderResponse(srv, r)
-        case None    => srv.sendError(404)
+        case None => srv.sendError(404)
       }
-    }
 
     override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
       srv.setStatus(200)
@@ -99,16 +101,20 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
 
     collectBody(rec.body) must be_==(collectBody(expected.body))
 
-    expected.headers.foreach(h => h must beOneOf(hs:_*))
+    expected.headers.foreach(h => h must beOneOf(hs: _*))
 
     rec.httpVersion must be_==(expected.httpVersion)
   }
 
-  private def translateTests(address: InetSocketAddress, method: Method, paths: Map[String, Response[IO]]): Map[Request[IO], Response[IO]] = {
+  private def translateTests(
+      address: InetSocketAddress,
+      method: Method,
+      paths: Map[String, Response[IO]]): Map[Request[IO], Response[IO]] = {
     val port = address.getPort()
     val name = address.getHostName()
-    paths.map { case (s, r) =>
-      (Request[IO](method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
+    paths.map {
+      case (s, r) =>
+        (Request[IO](method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
     }
   }
 
@@ -118,12 +124,12 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
       srv.addHeader(h.name.toString, h.value)
     }
 
-    val os : ServletOutputStream = srv.getOutputStream
+    val os: ServletOutputStream = srv.getOutputStream
 
-    val writeBody : IO[Unit] = resp.body
-      .evalMap{ byte => IO(os.write(Array(byte))) }
-      .run
-    val flushOutputStream : IO[Unit] = IO(os.flush())
+    val writeBody: IO[Unit] = resp.body.evalMap { byte =>
+      IO(os.write(Array(byte)))
+    }.run
+    val flushOutputStream: IO[Unit] = IO(os.flush())
     (writeBody >> flushOutputStream).unsafeRunSync()
   }
 

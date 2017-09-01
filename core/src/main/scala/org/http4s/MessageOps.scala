@@ -45,7 +45,7 @@ trait MessageOps[F[_]] extends Any {
       case None => filterHeaders(_.is(`Content-Type`))
     }
 
-  final def removeHeader(key: HeaderKey)(implicit F: Functor[F]): Self = filterHeaders(_ isNot key)
+  final def removeHeader(key: HeaderKey)(implicit F: Functor[F]): Self = filterHeaders(_.isNot(key))
 
   /** Replaces the [[Header]]s of the incoming Request object
     *
@@ -95,7 +95,8 @@ trait RequestOps[F[_]] extends Any with MessageOps[F] {
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
-  final def decode[A](f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+  final def decode[A](
+      f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, strict = false)(f)
 
   /** Helper method for decoding [[Request]]s
@@ -104,27 +105,29 @@ trait RequestOps[F[_]] extends Any with MessageOps[F] {
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated. If the decoder does not support the
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
-  final def decodeStrict[A](f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+  final def decodeStrict[A](
+      f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, true)(f)
 
   /** Like [[decode]], but with an explicit decoder.
     * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
     *               [[MediaType]] is not supported by the provided decoder
     */
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(implicit F: Monad[F]): F[Response[F]]
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
+      implicit F: Monad[F]): F[Response[F]]
 
   /** Add a Cookie header for the provided [[Cookie]] */
   final def addCookie(cookie: Cookie)(implicit F: Functor[F]): Self =
     putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
 
   /** Add a Cookie header with the provided values */
-  final def addCookie(name: String,
-                      content: String,
-                      expires: Option[HttpDate] = None)(implicit F: Functor[F]): Self =
+  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
+      implicit F: Functor[F]): Self =
     addCookie(Cookie(name, content, expires))
 }
 
 trait ResponseOps[F[_]] extends Any with MessageOps[F] {
+
   /** Change the status of this response object
     *
     * @param status value to replace on the response object
@@ -137,9 +140,8 @@ trait ResponseOps[F[_]] extends Any with MessageOps[F] {
     putHeaders(`Set-Cookie`(cookie))
 
   /** Add a Set-Cookie header with the provided values */
-  final def addCookie(name: String,
-                      content: String,
-                      expires: Option[HttpDate] = None)(implicit F: Functor[F]): Self =
+  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
+      implicit F: Functor[F]): Self =
     addCookie(Cookie(name, content, expires))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */

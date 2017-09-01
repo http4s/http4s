@@ -10,13 +10,15 @@ import org.http4s.server.{AsyncTimeoutSupport, DefaultServiceErrorHandler}
 import scala.concurrent.ExecutionContext
 
 trait ServletContextSyntax {
-  implicit def ToServletContextOps(self: ServletContext): ServletContextOps = new ServletContextOps(self)
+  implicit def ToServletContextOps(self: ServletContext): ServletContextOps =
+    new ServletContextOps(self)
 }
 
-final class ServletContextOps private[syntax](val self: ServletContext) extends AnyVal {
+final class ServletContextOps private[syntax] (val self: ServletContext) extends AnyVal {
+
   /** Wraps an HttpService and mounts it as a servlet */
-  def mountService[F[_]: Effect](name: String, service: HttpService[F], mapping: String = "/*")
-                                (implicit ec: ExecutionContext = ExecutionContext.global): ServletRegistration.Dynamic = {
+  def mountService[F[_]: Effect](name: String, service: HttpService[F], mapping: String = "/*")(
+      implicit ec: ExecutionContext = ExecutionContext.global): ServletRegistration.Dynamic = {
     val servlet = new Http4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,

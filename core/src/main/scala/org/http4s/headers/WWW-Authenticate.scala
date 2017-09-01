@@ -9,8 +9,8 @@ object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with He
     HttpHeaderParser.WWW_AUTHENTICATE(s)
 }
 
-final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends Header.RecurringRenderable {
+final case class `WWW-Authenticate`(values: NonEmptyList[Challenge])
+    extends Header.RecurringRenderable {
   override def key: `WWW-Authenticate`.type = `WWW-Authenticate`
   type Value = Challenge
 }
-

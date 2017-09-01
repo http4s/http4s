@@ -8,15 +8,15 @@ import cats._
 class HttpServiceSpec extends Http4sSpec {
   implicit val asd = Semigroup[HttpService[IO]]
 
- val srvc1 = HttpService[IO] {
-   case req if req.pathInfo == "/match" =>
-    Response[IO](Status.Ok).withBody("match")
+  val srvc1 = HttpService[IO] {
+    case req if req.pathInfo == "/match" =>
+      Response[IO](Status.Ok).withBody("match")
 
-   case req if req.pathInfo == "/conflict" =>
-     Response[IO](Status.Ok).withBody("srvc1conflict")
+    case req if req.pathInfo == "/conflict" =>
+      Response[IO](Status.Ok).withBody("srvc1conflict")
 
-   case req if req.pathInfo == "/notfound" =>
-     Response[IO](Status.NotFound).withBody("notfound")
+    case req if req.pathInfo == "/notfound" =>
+      Response[IO](Status.NotFound).withBody("notfound")
   }
 
   val srvc2 = HttpService[IO] {
@@ -24,7 +24,7 @@ class HttpServiceSpec extends Http4sSpec {
       Response[IO](Status.Ok).withBody("srvc2")
 
     case req if req.pathInfo == "/conflict" =>
-     Response[IO](Status.Ok).withBody("srvc2conflict")
+      Response[IO](Status.Ok).withBody("srvc2conflict")
   }
 
   val aggregate1 = srvc1 |+| srvc2

@@ -16,8 +16,9 @@ object WebjarService {
     * @param filter To filter which assets from the webjars should be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
-  final case class Config[F[_]](filter: WebjarAssetFilter = _ => true,
-                                cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
+  final case class Config[F[_]](
+      filter: WebjarAssetFilter = _ => true,
+      cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
   /**
     * Contains the information about an asset inside a webjar
@@ -55,11 +56,11 @@ object WebjarService {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)
-          .map(sanitize)
-          .flatMap(toWebjarAsset)
-          .filter(config.filter)
-          .map(serveWebjarAsset(config, request))
-          .getOrElse(Pass.pure[F])
+        .map(sanitize)
+        .flatMap(toWebjarAsset)
+        .filter(config.filter)
+        .map(serveWebjarAsset(config, request))
+        .getOrElse(Pass.pure[F])
   }
 
   /**
@@ -69,7 +70,7 @@ object WebjarService {
     * @return The path, ending with a slash
     */
   private def ensureSlash(path: String): String =
-    if(path.nonEmpty && !path.endsWith("/"))
+    if (path.nonEmpty && !path.endsWith("/"))
       path + "/"
     else
       path
@@ -97,10 +98,10 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])
-                                  (webjarAsset: WebjarAsset): F[MaybeResponse[F]] =
-  StaticFile
-    .fromResource(webjarAsset.pathInJar, Some(request))
-    .fold(Pass.pure[F])(config.cacheStrategy.cache(request.pathInfo, _).widen[MaybeResponse[F]])
-    .flatten
+  private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])(
+      webjarAsset: WebjarAsset): F[MaybeResponse[F]] =
+    StaticFile
+      .fromResource(webjarAsset.pathInJar, Some(request))
+      .fold(Pass.pure[F])(config.cacheStrategy.cache(request.pathInfo, _).widen[MaybeResponse[F]])
+      .flatten
 }

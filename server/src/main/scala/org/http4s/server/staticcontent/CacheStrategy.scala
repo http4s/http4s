@@ -11,6 +11,7 @@ import cats.effect.Sync
   * the response has already been cached, needs caching, or to let it pass through.
   */
 trait CacheStrategy[F[_]] {
+
   /** Performs the caching operations */
   def cache(uriPath: String, resp: Response[F])(implicit F: Sync[F]): F[Response[F]]
 }

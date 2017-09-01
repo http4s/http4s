@@ -29,7 +29,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
     "have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoder.headers.get(`Content-Type`) must_== Some(
+        `Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
@@ -39,15 +40,13 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     "write JSON according to custom encoders" in {
       val custom = CirceInstances.withPrinter(Printer.spaces2)
       import custom._
-      writeToString(json) must_== (
-        """{
+      writeToString(json) must_== ("""{
           |  "test" : "CirceSupport"
           |}""".stripMargin)
     }
 
     "write JSON according to explicit printer" in {
-      writeToString(json)(jsonEncoderWithPrinter(Printer.spaces2)) must_== (
-        """{
+      writeToString(json)(jsonEncoderWithPrinter(Printer.spaces2)) must_== ("""{
           |  "test" : "CirceSupport"
           |}""".stripMargin)
     }
@@ -55,7 +54,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
   "jsonEncoderOf" should {
     "have json content type" in {
-      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
+        `Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
@@ -65,15 +65,13 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     "write JSON according to custom encoders" in {
       val custom = CirceInstances.withPrinter(Printer.spaces2)
       import custom._
-      writeToString(foo)(jsonEncoderOf) must_== (
-        """{
+      writeToString(foo)(jsonEncoderOf) must_== ("""{
           |  "bar" : 42
           |}""".stripMargin)
     }
 
     "write JSON according to explicit printer" in {
-      writeToString(foo)(jsonEncoderWithPrinterOf(Printer.spaces2)) must_== (
-        """{
+      writeToString(foo)(jsonEncoderWithPrinterOf(Printer.spaces2)) must_== ("""{
           |  "bar" : 42
           |}""".stripMargin)
     }
@@ -86,14 +84,21 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // https://github.com/http4s/http4s/issues/157
       def getBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync.toArray
       val req = Request[IO]().withBody(Json.fromDoubleOrNull(157)).unsafeRunSync
-      val body = req.decode { json: Json => Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)}.unsafeRunSync.body
+      val body = req
+        .decode { json: Json =>
+          Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
+        }
+        .unsafeRunSync
+        .body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }
 
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
-      val result = jsonOf[IO, Foo].decode(Request[IO]().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).unsafeRunSync, strict = true)
+      val result = jsonOf[IO, Foo].decode(
+        Request[IO]().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).unsafeRunSync,
+        strict = true)
       result.value.unsafeRunSync must_== Right(Foo(42))
     }
 
@@ -103,7 +108,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       implicit val umlautDecoder: Decoder[Umlaut] = Decoder.forProduct1("wort")(Umlaut.apply)
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
-        val result = jsonOf[IO, Umlaut].decode(Request[IO]().withBody(json).unsafeRunSync, strict = true)
+        val result =
+          jsonOf[IO, Umlaut].decode(Request[IO]().withBody(json).unsafeRunSync, strict = true)
         result.value.unsafeRunSync must_== Right(Umlaut(wort))
       }
     }

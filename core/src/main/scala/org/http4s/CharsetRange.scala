@@ -19,7 +19,8 @@ object CharsetRange extends CharsetRangeInstances {
 
   object `*` extends `*`(QValue.One)
 
-  final case class Atom protected[http4s] (charset: Charset, qValue: QValue = QValue.One) extends CharsetRange {
+  final case class Atom protected[http4s] (charset: Charset, qValue: QValue = QValue.One)
+      extends CharsetRange {
     override def withQValue(q: QValue): CharsetRange.Atom = copy(qValue = q)
     def isSatisfiedBy(charset: Charset): Boolean = qValue.isAcceptable && this.charset == charset
     def render(writer: Writer): writer.type = writer << charset << qValue

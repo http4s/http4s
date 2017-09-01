@@ -4,6 +4,10 @@ package blaze
 
 import org.http4s.util.threads.newDaemonPoolExecutionContext
 
-class BlazePooledHttp1ClientSpec extends ClientRouteTestBattery("Blaze PooledHttp1Client",
-  PooledHttp1Client(config = BlazeClientConfig.defaultConfig.copy(executionContext =
-    newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true))))
+class BlazePooledHttp1ClientSpec
+    extends ClientRouteTestBattery(
+      "Blaze PooledHttp1Client",
+      PooledHttp1Client(
+        config = BlazeClientConfig.defaultConfig.copy(executionContext =
+          newDaemonPoolExecutionContext("blaze-pooled-http1-client-spec", timeout = true)))
+    )
