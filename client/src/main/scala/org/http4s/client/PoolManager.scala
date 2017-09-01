@@ -12,8 +12,8 @@ import scala.concurrent.ExecutionContext
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
-    implicit private val executionContext: ExecutionContext,
-    config: Map[RequestKey, (Int, Int)] = Map.empty)(implicit F: Effect[F])
+    maxConnectionsPerRequestKey: Map[RequestKey, Int],
+    implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
@@ -23,15 +23,24 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private var isClosed = false
   private var curTotal = 0
   private var allocated = Map.empty[RequestKey, Int]
-  private val idleQueue = new mutable.Queue[A]
-  private val waitQueue = new mutable.Queue[Waiting]
+  private val idleQueue = mutable.Map.empty[RequestKey, mutable.Queue[A]]
+  private val waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
     s"allocated=$allocated idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
   @inline
   private def getMaxConnections(key: RequestKey): Int =
-    config.get(key).map(_._1).getOrElse(maxTotal)
+    maxConnectionsPerRequestKey.getOrElse(key, maxTotal)
+
+  @inline
+  private def getConnectionFromQueue(key: RequestKey): Option[A] =
+    try {
+      Some(idleQueue(key).dequeue())
+    } catch {
+      case _: NoSuchElementException =>
+        None
+    }
 
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
@@ -92,7 +101,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         if (!isClosed) {
           @tailrec
           def go(): Unit =
-            idleQueue.dequeueFirst(_.requestKey == key) match {
+            getConnectionFromQueue(key) match {
               case Some(conn) if !conn.isClosed =>
                 logger.debug(s"Recycling connection: $stats")
                 callback(Right(NextConnection(conn, fresh = false)))
@@ -108,12 +117,12 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"Active connection not found. Creating new one. $stats")
                 createConnection(key, callback)
 
-              case None if idleQueue.nonEmpty =>
+              case None if idleQueue.get(key).exists(_.nonEmpty) =>
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
                 curTotal -= 1
                 allocated = allocated + (key -> (allocated(key) - 1))
-                idleQueue.dequeue().shutdown()
+                getConnectionFromQueue(key).get.shutdown()
                 createConnection(key, callback)
 
               case None => // we're full up. Add to waiting queue.
@@ -160,7 +169,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: $stats")
-              idleQueue.enqueue(connection)
+              val q = idleQueue.getOrElse(key, mutable.Queue.empty[A])
+              q.enqueue(connection)
+              idleQueue.update(key, q)
 
             // returned connection didn't match any pending request: kill it and start a new one for a queued request
             case None =>
@@ -240,7 +251,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     synchronized {
       if (!isClosed) {
         isClosed = true
-        idleQueue.foreach(_.shutdown())
+        idleQueue.foreach(_._2.foreach(_.shutdown()))
         allocated = Map.empty
         curTotal = 0
       }
