@@ -47,8 +47,15 @@ private final class PoolManager[F[_], A <: Connection[F]](
     allocated.update(key, allocated.getOrElse(key, 0) + 1)
 
   @inline
-  private def decrConnection(key: RequestKey): Unit =
-    allocated.update(key, allocated.getOrElse(key, 0) - 1)
+  private def decrConnection(key: RequestKey): Unit = {
+    val numConnections = allocated.getOrElse(key, 0)
+    // If there are no more connections drop the key
+    if (numConnections == 1) {
+      allocated.remove(key)
+    } else {
+      allocated.update(key, numConnections - 1)
+    }
+  }
 
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
