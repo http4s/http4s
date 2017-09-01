@@ -221,7 +221,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/20ec9097d2f2877fd96d31da47689604c9e53fe9/servlet/src/main/scala/org/http4s/servlet/ServletContainer.scala" target="_blank">ServletContainer.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e058be7914455ddc3319b9aa5507812d4f5677cd/servlet/src/main/scala/org/http4s/servlet/ServletContainer.scala" target="_blank">ServletContainer.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -351,7 +351,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mountFilter</span><span class="params">(<span name="filter">filter: <span class="extype" name="javax.servlet.Filter">Filter</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="dispatches">dispatches: <span class="extype" name="java.util.EnumSet">EnumSet</span>[<span class="extype" name="javax.servlet.DispatcherType">DispatcherType</span>] = <span class="defval" name="util.EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ASYNC)">...</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer[F]" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+        <span class="name">mountFilter</span><span class="params">(<span name="filter">filter: <span class="extype" name="javax.servlet.Filter">Filter</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="dispatches">dispatches: <span class="extype" name="java.util.EnumSet">EnumSet</span>[<span class="extype" name="javax.servlet.DispatcherType">DispatcherType</span>] = <span class="defval" name="util.EnumSet.of(<br/>        DispatcherType.REQUEST,<br/>        DispatcherType.FORWARD,<br/>        DispatcherType.INCLUDE,<br/>        DispatcherType.ASYNC)">...</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer[F]" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Mounts a filter to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a filter to the server.</p><p>The http4s way is to create a middleware around an  <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on
