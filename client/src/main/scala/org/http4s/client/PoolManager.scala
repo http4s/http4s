@@ -35,19 +35,17 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   @inline
   private def getConnectionFromQueue(key: RequestKey): Option[A] =
-    try {
-      Some(idleQueue(key).dequeue())
-    } catch {
-      case _: NoSuchElementException =>
-        None
-    }
+    idleQueue.get(key).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None)
 
   @inline
-  private def incrConnection(key: RequestKey): Unit =
+  private def incrConnection(key: RequestKey): Unit = {
+    curTotal += 1
     allocated.update(key, allocated.getOrElse(key, 0) + 1)
+  }
 
   @inline
   private def decrConnection(key: RequestKey): Unit = {
+    curTotal -= 1
     val numConnections = allocated.getOrElse(key, 0)
     // If there are no more connections drop the key
     if (numConnections == 1) {
@@ -71,7 +69,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (curTotal < maxTotal && allocated.getOrElse(key, 0) < getMaxConnections(key)) {
-      curTotal += 1
       incrConnection(key)
       async.unsafeRunAsync(builder(key)) {
         case Right(conn) =>
@@ -123,7 +120,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
               case Some(closedConn) =>
                 logger.debug(s"Evicting closed connection: $stats")
-                curTotal -= 1
                 decrConnection(key)
                 go()
 
@@ -135,7 +131,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case None if idleQueue.get(key).exists(_.nonEmpty) =>
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
-                curTotal -= 1
                 decrConnection(key)
                 getConnectionFromQueue(key).get.shutdown()
                 createConnection(key, callback)
@@ -191,13 +186,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
             // returned connection didn't match any pending request: kill it and start a new one for a queued request
             case None =>
               connection.shutdown()
-              curTotal -= 1
               decrConnection(key)
               val Waiting(k, callback) = waitQueue.dequeue()
               createConnection(k, callback)
           }
         } else {
-          curTotal -= 1
           decrConnection(key)
 
           if (!connection.isClosed) {
@@ -218,7 +211,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
         logger.debug(s"Shutting down connection after pool closure: $stats")
         val key = connection.requestKey
         connection.shutdown()
-        curTotal -= 1
         decrConnection(key)
       }
     }
@@ -245,7 +237,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
     logger.debug(s"Disposing of connection: $stats")
     synchronized {
-      curTotal -= 1
       decrConnection(key)
       connection.foreach { s =>
         if (!s.isClosed) s.shutdown()
