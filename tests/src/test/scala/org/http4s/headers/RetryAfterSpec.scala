@@ -7,7 +7,6 @@ import java.time.{Instant, ZoneId, ZonedDateTime}
 import org.http4s.{ParseFailure, ParseResult}
 
 import scala.concurrent.duration._
-import scalaz.{-\/, \/-}
 
 class RetryAfterSpec extends HeaderLaws {
   checkAll("Retry-After", headerLaws(`Retry-After`))

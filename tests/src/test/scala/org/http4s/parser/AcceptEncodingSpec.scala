@@ -3,7 +3,6 @@ package parser
 
 import org.http4s.headers.`Accept-Encoding`
 import org.specs2.mutable.Specification
-import scalaz.Validation
 import Http4s._
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {

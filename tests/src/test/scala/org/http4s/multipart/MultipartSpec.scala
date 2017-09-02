@@ -16,7 +16,6 @@ import org.http4s.Status.Ok
 import org.http4s.EntityEncoder._
 import Entity._
 import org.specs2.Specification
-import org.specs2.matcher.DisjunctionMatchers
 
 import cats._
 import cats.implicits._
@@ -25,7 +24,7 @@ import fs2._
 import scodec.bits.BitVector
 import scodec.bits.ByteVector
 
-class MultipartSpec extends Specification with DisjunctionMatchers {
+class MultipartSpec extends Specification {
   sequential
 
   def is = s2"""
