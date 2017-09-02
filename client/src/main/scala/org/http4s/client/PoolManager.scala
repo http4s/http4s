@@ -135,7 +135,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 if (waitQueue.length <= maxWaitQueueLimit) {
                   waitQueue.enqueue(Waiting(key, callback))
                 } else {
-                  logger.error(s"Max wait length achieved, not scheduling.")
+                  logger.error(s"Max wait length reached, not scheduling.")
+                  callback(Left(new Exception("Wait queue is full")))
                 }
             }
           go()
