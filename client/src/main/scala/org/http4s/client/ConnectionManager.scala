@@ -57,7 +57,7 @@ object ConnectionManager {
   def pool[F[_]: Effect, A <: Connection[F]](
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,
-      maxConnectionsPerRequestKey: Map[RequestKey, Int],
+      maxConnectionsPerRequestKey: RequestKey => Int,
       executionContext: ExecutionContext): ConnectionManager[F, A] =
     new PoolManager[F, A](builder, maxTotal, maxConnectionsPerRequestKey, executionContext)
 }

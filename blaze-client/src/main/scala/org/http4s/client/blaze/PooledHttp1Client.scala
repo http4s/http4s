@@ -16,7 +16,7 @@ object PooledHttp1Client {
     */
   def apply[F[_]: Effect](
       maxTotalConnections: Int = DefaultMaxTotalConnections,
-      maxConnectionsPerRequestKey: Map[RequestKey, Int] = Map.empty,
+      maxConnectionsPerRequestKey: RequestKey => Int = _ => DefaultMaxTotalConnections,
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
 
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)

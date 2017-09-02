@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
-    maxConnectionsPerRequestKey: Map[RequestKey, Int],
+    maxConnectionsPerRequestKey: RequestKey => Int,
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
@@ -29,21 +29,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def stats =
     s"allocated=$allocated idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
-  @inline
-  private def getMaxConnections(key: RequestKey): Int =
-    maxConnectionsPerRequestKey.getOrElse(key, maxTotal)
-
-  @inline
   private def getConnectionFromQueue(key: RequestKey): Option[A] =
     idleQueue.get(key).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None)
 
-  @inline
   private def incrConnection(key: RequestKey): Unit = {
     curTotal += 1
     allocated.update(key, allocated.getOrElse(key, 0) + 1)
   }
 
-  @inline
   private def decrConnection(key: RequestKey): Unit = {
     curTotal -= 1
     val numConnections = allocated.getOrElse(key, 0)
@@ -68,7 +61,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param callback The callback to complete with the NextConnection.
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
-    if (curTotal < maxTotal && allocated.getOrElse(key, 0) < getMaxConnections(key)) {
+    if (curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)) {
       incrConnection(key)
       async.unsafeRunAsync(builder(key)) {
         case Right(conn) =>
@@ -124,7 +117,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 go()
 
               case None
-                  if curTotal < maxTotal && allocated.getOrElse(key, 0) < getMaxConnections(key) =>
+                  if curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(
+                    key) =>
                 logger.debug(s"Active connection not found. Creating new one. $stats")
                 createConnection(key, callback)
 
