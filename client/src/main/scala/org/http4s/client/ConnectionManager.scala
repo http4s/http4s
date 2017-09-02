@@ -51,13 +51,20 @@ object ConnectionManager {
     *
     * @param builder generator of new connections
     * @param maxTotal max total connections
+    * @param maxWaitQueueLimit maximum number requests waiting for a connection at any specific time
     * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
     * @param executionContext `ExecutionContext` where async operations will execute
     */
   def pool[F[_]: Effect, A <: Connection[F]](
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,
+      maxWaitQueueLimit: Int,
       maxConnectionsPerRequestKey: RequestKey => Int,
       executionContext: ExecutionContext): ConnectionManager[F, A] =
-    new PoolManager[F, A](builder, maxTotal, maxConnectionsPerRequestKey, executionContext)
+    new PoolManager[F, A](
+      builder,
+      maxTotal,
+      maxWaitQueueLimit,
+      maxConnectionsPerRequestKey,
+      executionContext)
 }

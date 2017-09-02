@@ -12,6 +12,7 @@ import scala.concurrent.ExecutionContext
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
+    maxWaitQueueLimit: Int,
     maxConnectionsPerRequestKey: RequestKey => Int,
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
@@ -131,7 +132,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
               case None => // we're full up. Add to waiting queue.
                 logger.debug(s"No connections available.  Waiting on new connection: $stats")
-                waitQueue.enqueue(Waiting(key, callback))
+                if (waitQueue.length <= maxWaitQueueLimit) {
+                  waitQueue.enqueue(Waiting(key, callback))
+                } else {
+                  logger.error(s"Max wait length achieved, not scheduling.")
+                }
             }
           go()
         } else {
