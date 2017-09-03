@@ -3,7 +3,6 @@ package parser
 
 import org.http4s.headers.`Accept-Language`
 import org.specs2.mutable.Specification
-import scalaz.Validation
 import org.http4s.{LanguageTag, QValue}
 
 class AcceptLanguageSpec
