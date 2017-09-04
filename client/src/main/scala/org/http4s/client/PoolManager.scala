@@ -23,15 +23,15 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private var isClosed = false
   private var curTotal = 0
-  private var allocated = mutable.Map.empty[RequestKey, Int]
-  private val idleQueue = mutable.Map.empty[RequestKey, mutable.Queue[A]]
+  private val allocated = mutable.Map.empty[RequestKey, Int]
+  private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[A]]
   private val waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
-    s"allocated=$allocated idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
+    s"allocated=$allocated idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
 
   private def getConnectionFromQueue(key: RequestKey): Option[A] =
-    idleQueue.get(key).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None)
+    idleQueues.get(key).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None)
 
   private def incrConnection(key: RequestKey): Unit = {
     curTotal += 1
@@ -44,10 +44,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
     // If there are no more connections drop the key
     if (numConnections == 1) {
       allocated.remove(key)
+      idleQueues.remove(key)
     } else {
       allocated.update(key, numConnections - 1)
     }
   }
+
+  private def numConnectionsCheckHolds(key: RequestKey): Boolean =
+    curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
 
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
@@ -62,7 +66,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param callback The callback to complete with the NextConnection.
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
-    if (curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)) {
+    if (numConnectionsCheckHolds(key)) {
       incrConnection(key)
       async.unsafeRunAsync(builder(key)) {
         case Right(conn) =>
@@ -74,7 +78,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       }
     } else {
       val message =
-        s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
+        s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: $stats"
       val error = new Exception(message)
       logger.error(error)(message)
       callback(Left(error))
@@ -86,14 +90,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * If the pool is closed The task failure is executed.
     *
-    * If the pool is not closed then we look for any connections in the idleQueue that match
+    * If the pool is not closed then we look for any connections in the idleQueues that match
     * the RequestKey requested.
     * If a matching connection exists and it is stil open the callback is executed with the connection.
-    * If a matching connection is closed we deallocate and repeat the check through the idleQueue.
+    * If a matching connection is closed we deallocate and repeat the check through the idleQueues.
     * If no matching connection is found, and the pool is not full we create a new Connection to perform
     * the request.
-    * If no matching connection is found and the pool is full, and we have connections in the idleQueue
-    * then a connection in the idleQueue is shutdown and a new connection is created to perform the request.
+    * If no matching connection is found and the pool is full, and we have connections in the idleQueues
+    * then a connection in the idleQueues is shutdown and a new connection is created to perform the request.
     * If no matching connection is found and the pool is full, and all connections are currently in use
     * then the Request is placed in a waitingQueue to be executed when a connection is released.
     *
@@ -117,13 +121,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 decrConnection(key)
                 go()
 
-              case None
-                  if curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(
-                    key) =>
+              case None if numConnectionsCheckHolds(key) =>
                 logger.debug(s"Active connection not found. Creating new one. $stats")
                 createConnection(key, callback)
 
-              case None if idleQueue.get(key).exists(_.nonEmpty) =>
+              case None if idleQueues.get(key).exists(_.nonEmpty) =>
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
                 decrConnection(key)
@@ -179,9 +181,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: $stats")
-              val q = idleQueue.getOrElse(key, mutable.Queue.empty[A])
+              val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
               q.enqueue(connection)
-              idleQueue.update(key, q)
+              idleQueues.update(key, q)
 
             // returned connection didn't match any pending request: kill it and start a new one for a queued request
             case None =>
@@ -257,8 +259,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
     synchronized {
       if (!isClosed) {
         isClosed = true
-        idleQueue.foreach(_._2.foreach(_.shutdown()))
-        allocated = mutable.Map.empty
+        idleQueues.foreach(_._2.foreach(_.shutdown()))
+        idleQueues.clear()
+        allocated.clear()
         curTotal = 0
       }
     }
