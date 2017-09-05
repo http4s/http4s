@@ -34,10 +34,10 @@ $ sbt console
 
 ## Your first service
 
-An `HttpService` is a simple alias for
-`Kleisli[Task, Request, Response]`.  If that's meaningful to you,
+An `HttpService[F]` is a simple alias for
+`Kleisli[F, Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
-around a `Request => Task[Response]`, and `Task` is an asynchronous
+around a `Request => F[Response]`, and `F` is an effectful
 operation.  We'll teach you what you need to know as we go, or you
 can, uh, fork a task to read these introductions first:
 
