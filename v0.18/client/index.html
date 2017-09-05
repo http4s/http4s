@@ -50,17 +50,22 @@
     <li><a href="/versions/">Versions</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17 (development)</li>
+    <li class="dropdown-header">v0.18 (development)</li>
+    <li><a href="/v0.18/">Tutorial</a></li>
+    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17</li>
     <li><a href="/v0.17/">Tutorial</a></li>
     <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16 (development)</li>
+    <li class="dropdown-header">v0.16</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15</li>
+    <li class="dropdown-header">v0.15 (eol)</li>
     <li><a href="/v0.15/">Tutorial</a></li>
     <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
   </ul>
@@ -121,10 +126,10 @@ val service = HttpService[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$2574/1290829383@4c918682)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$2574/1861444727@35eeccba)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$824977108
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$761682272
 
 val server = builder.unsafeRunSync
 // server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
@@ -140,7 +145,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client[IO]()
-// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$2606/266902336@2e9d7b41),IO$2070405774)
+// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$2606/1569552233@377a7c36),IO$1604218386)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -149,7 +154,7 @@ val httpClient = PooledHttp1Client[IO]()
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$1939506045
+// helloJames: cats.effect.IO[String] = IO$822211703
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -187,7 +192,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = fs2.async.parallelTraverse(people)(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1773442116
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1244542472
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -206,7 +211,7 @@ server.</li>
 </ul>
 
 <pre><code class="language-scala">val greetingsStringTask = greetingList.map(_.mkString(&quot;\n&quot;))
-// greetingsStringTask: cats.effect.IO[String] = IO$1872771282
+// greetingsStringTask: cats.effect.IO[String] = IO$180789442
 
 greetingsStringTask.unsafeRunSync
 // res0: String =

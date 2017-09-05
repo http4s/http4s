@@ -50,17 +50,22 @@
     <li><a href="/versions/">Versions</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17 (development)</li>
+    <li class="dropdown-header">v0.18 (development)</li>
+    <li><a href="/v0.18/">Tutorial</a></li>
+    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17</li>
     <li><a href="/v0.17/">Tutorial</a></li>
     <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16 (development)</li>
+    <li class="dropdown-header">v0.16</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15</li>
+    <li class="dropdown-header">v0.15 (eol)</li>
     <li><a href="/v0.15/">Tutorial</a></li>
     <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
   </ul>
@@ -121,7 +126,7 @@ val service = HttpService[IO] {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3350/663816333@579e2e6b)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3354/50158658@639656da)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>

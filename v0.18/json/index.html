@@ -50,17 +50,22 @@
     <li><a href="/versions/">Versions</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17 (development)</li>
+    <li class="dropdown-header">v0.18 (development)</li>
+    <li><a href="/v0.18/">Tutorial</a></li>
+    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17</li>
     <li><a href="/v0.17/">Tutorial</a></li>
     <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16 (development)</li>
+    <li class="dropdown-header">v0.16</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15</li>
+    <li class="dropdown-header">v0.15 (eol)</li>
     <li><a href="/v0.15/">Tutorial</a></li>
     <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
   </ul>
@@ -228,7 +233,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@5032d26a
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@ea74024
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -295,7 +300,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@309758d8
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@1a54de65
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[User].unsafeRunSync
 // res10: User = User(Alice)
@@ -366,7 +371,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$2134731967
+// helloAlice: cats.effect.IO[Hello] = IO$1582577186
 
 helloAlice.unsafeRunSync
 // res20: Hello = Hello(Alice)

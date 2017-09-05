@@ -50,17 +50,22 @@
     <li><a href="/versions/">Versions</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17 (development)</li>
+    <li class="dropdown-header">v0.18 (development)</li>
+    <li><a href="/v0.18/">Tutorial</a></li>
+    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17</li>
     <li><a href="/v0.17/">Tutorial</a></li>
     <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16 (development)</li>
+    <li class="dropdown-header">v0.16</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15</li>
+    <li class="dropdown-header">v0.15 (eol)</li>
     <li><a href="/v0.15/">Tutorial</a></li>
     <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
   </ul>
@@ -144,7 +149,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3945/1490225022@6824c762)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3949/811818342@3268203b)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -182,7 +187,7 @@ val tweetService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3945/1490225022@49056904)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3949/811818342@10e7a7e3)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -209,10 +214,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$3963/150017294@191bd6b)
+// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$3967/1224283738@38261b84)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$373453497
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$618569502
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
