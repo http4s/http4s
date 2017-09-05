@@ -117,10 +117,10 @@ from the top, you should be able to follow along in a REPL.</p>
 
 <h2 id="your-first-service">Your first service</h2>
 
-<p>An <code>HttpService</code> is a simple alias for
-<code>Kleisli[Task, Request, Response]</code>.  If that&rsquo;s meaningful to you,
+<p>An <code>HttpService[F]</code> is a simple alias for
+<code>Kleisli[F, Request, Response]</code>.  If that&rsquo;s meaningful to you,
 great.  If not, don&rsquo;t panic: <code>Kleisli</code> is just a convenient wrapper
-around a <code>Request =&gt; Task[Response]</code>, and <code>Task</code> is an asynchronous
+around a <code>Request =&gt; F[Response]</code>, and <code>F</code> is an effectful
 operation.  We&rsquo;ll teach you what you need to know as we go, or you
 can, uh, fork a task to read these introductions first:</p>
 
