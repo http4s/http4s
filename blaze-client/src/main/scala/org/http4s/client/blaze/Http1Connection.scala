@@ -235,7 +235,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
           val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
             collectBodyFromParser(buffer, terminationCondition _)
 
-          // to collect the trailers we need a cleanup helper and a Task in the attribute map
+          // to collect the trailers we need a cleanup helper and an effect in the attribute map
           val (trailerCleanup, attributes): (() => Unit, AttributeMap) = {
             if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
               val trailers = new AtomicReference(Headers.empty)

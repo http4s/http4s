@@ -98,7 +98,7 @@ object ExampleService {
             case None => BadRequest(s"Invalid data: " + data)
           }
         }
-        .handleErrorWith { // We can handle errors using Task methods
+        .handleErrorWith { // We can handle errors using effect methods
           case e: NumberFormatException => BadRequest("Not an int: " + e.getMessage)
         }
 
@@ -135,7 +135,7 @@ object ExampleService {
       Ok(html.formEncoded())
 
     case req @ POST -> Root / "form-encoded" =>
-      // EntityDecoders return a Task[A] which is easy to sequence
+      // EntityDecoders return an F[A] which is easy to sequence
       req.decode[UrlForm] { m =>
         val s = m.values.mkString("\n")
         Ok(s"Form Encoded Data\n$s")

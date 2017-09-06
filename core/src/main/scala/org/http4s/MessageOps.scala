@@ -72,7 +72,7 @@ trait MessageOps[F[_]] extends Any {
     *
     * @param decoder [[EntityDecoder]] used to decode the [[Message]]
     * @tparam T type of the result
-    * @return the `Task` which will generate the `DecodeResult[T]`
+    * @return the effect which will generate the `DecodeResult[T]`
     */
   def attemptAs[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T]
 
@@ -81,7 +81,7 @@ trait MessageOps[F[_]] extends Any {
     * If no valid [[Status]] has been described, allow Ok
     * @param decoder [[EntityDecoder]] used to decode the [[Message]]
     * @tparam T type of the result
-    * @return the `Task` which will generate the T
+    * @return the effect which will generate the T
     */
   final def as[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
     attemptAs.fold(throw _, identity)

@@ -13,7 +13,7 @@ object ClientExample {
     val page: IO[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.map(_.take(72)).unsafeRunSync()) // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).unsafeRunSync()) // each execution of the effect will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?

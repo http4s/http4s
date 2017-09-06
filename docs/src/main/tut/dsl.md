@@ -96,7 +96,7 @@ generating `F[Response]`s.
 
 ### Status codes
 
-http4s-dsl provides a shortcut to create a `Task[Response]` by
+http4s-dsl provides a shortcut to create an `F[Response]` by
 applying a status code:
 
 ```tut
@@ -206,7 +206,7 @@ NoContent("does not compile")
 
 #### Asynchronous responses
 
-While http4s prefers `Task`, you may be working with libraries that
+While http4s prefers `F[_]: Effect`, you may be working with libraries that
 use standard library [Future]s.  Some relevant imports:
 
 ```tut:book
@@ -230,7 +230,7 @@ of course prefer to operate in [F]s:
 
 ```tut
 val io = Ok(IO {
-  println("I run when the Task is run.")
+  println("I run when the IO is run.")
   "Mission accomplished!"
 })
 io.unsafeRunSync

@@ -2,7 +2,6 @@ package org.http4s
 package server
 package middleware
 
-import cats._
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -18,7 +17,7 @@ object Timeout {
     * interrupt a server side response safely, look at
     * `scalaz.stream.wye.interrupt`.
     *
-    * @param timeoutResponse Task[Response] to race against the result of the service. This will be run for each [[Request]]
+    * @param timeoutResponse F[Response] to race against the result of the service. This will be run for each [[Request]]
     * @param service [[org.http4s.HttpService]] to transform
     */
   private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(

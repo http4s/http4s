@@ -84,7 +84,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
         _ <- deadSignal.map(signal => if (dec == 0) signal.set(true))
       } yield ()
 
-    // Task to send a close to the other endpoint
+    // Effect to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(sendOutboundCommand(Command.Disconnect))
 
     val wsStream = for {

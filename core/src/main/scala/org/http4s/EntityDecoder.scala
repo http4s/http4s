@@ -16,7 +16,7 @@ import scala.util.control.NonFatal
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
-  * entire resulting A. If an error occurs it will result in a failed Task
+  * entire resulting A. If an error occurs it will result in a failed effect.
   * The default decoders provided here are not streaming, but one could implement
   * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder

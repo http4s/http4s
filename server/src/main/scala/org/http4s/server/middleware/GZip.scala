@@ -15,7 +15,7 @@ import org.log4s.getLogger
 object GZip {
   private[this] val logger = getLogger
 
-  // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
+  // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
   def apply[F[_]: Functor](
       service: HttpService[F],
