@@ -3,20 +3,15 @@ package server
 package middleware
 package authentication
 
-import java.util.concurrent.Executors
-
-import scala.concurrent.duration._
-import fs2._
-import cats._
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
+import fs2._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.util.CaseInsensitiveString
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
 
@@ -200,7 +195,6 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to many concurrent requests while cleaning up nonces" in {
       val n = 100
-      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
       val digestAuthMiddleware = DigestAuth(realm, authStore, 2.millis, 2.millis)
       val digestAuthService = digestAuthMiddleware(service)
       val results = (1 to n)
@@ -225,7 +219,6 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Avoid many concurrent replay attacks" in {
       val n = 100
-      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(4))
       val digestAuthService = digestAuthMiddleware(service)
       val challenge = doDigestAuth1(digestAuthService)
       val results = (1 to n)

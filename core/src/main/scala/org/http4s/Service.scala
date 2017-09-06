@@ -36,7 +36,7 @@ object Service {
   def constVal[F[_], A, B](b: => B)(implicit F: Sync[F]): Service[F, A, B] =
     lift(_ => F.delay(b))
 
-  /** Allows Service chainig through a Monoid instance. */
+  /** Allows Service chaining through a Monoid instance. */
   def withFallback[F[_], A, B](fallback: Service[F, A, B])(service: Service[F, A, B])(
       implicit M: Semigroup[F[B]]): Service[F, A, B] =
     service |+| fallback
