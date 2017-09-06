@@ -187,6 +187,11 @@ object EntityDecoder {
   def decodeString[F[_]: Sync](msg: Message[F])(
       implicit defaultCharset: Charset = DefaultCharset): F[String] =
     msg.bodyAsText.compile.foldMonoid
+}
+
+/** Implementations of the EntityDecoder instances */
+trait EntityDecoderInstances extends PlatformEntityDecoderInstances {
+  import org.http4s.EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
 

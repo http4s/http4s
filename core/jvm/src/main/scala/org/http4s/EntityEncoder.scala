@@ -1,5 +1,8 @@
 package org.http4s
 
+import java.io._
+import java.nio.CharBuffer
+
 import cats._
 import cats.effect.{ContextShift, Effect, Sync}
 import cats.implicits._
@@ -48,9 +51,7 @@ trait EntityEncoder[F[_], A] { self =>
   }
 }
 
-object EntityEncoder {
-
-  private val DefaultChunkSize = 4096
+object EntityEncoder extends EntityEncoderInstances {
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[F[_], A](implicit ev: EntityEncoder[F, A]): EntityEncoder[F, A] = ev
@@ -111,6 +112,12 @@ object EntityEncoder {
             W.headers.put(`Transfer-Encoding`(TransferCoding.chunked))
         }
     }
+}
+
+trait EntityEncoderInstances extends EntityEncoderInstances0 with PlatformEntityEncoderInstances {
+  import EntityEncoder._
+
+  private val DefaultChunkSize = 4096
 
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]
