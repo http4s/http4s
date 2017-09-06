@@ -185,7 +185,7 @@ object EntityDecoder extends EntityDecoderInstances {
 }
 
 /** Implementations of the EntityDecoder instances */
-trait EntityDecoderInstances {
+trait EntityDecoderInstances extends PlatformEntityDecoderInstances {
   import org.http4s.EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////

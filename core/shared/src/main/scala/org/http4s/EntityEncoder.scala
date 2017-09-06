@@ -1,14 +1,12 @@
 package org.http4s
 
+import java.io._
+import java.nio.CharBuffer
+
 import cats._
 import cats.effect.{Async, Sync}
 import cats.implicits._
 import fs2._
-import fs2.Stream._
-import fs2.io._
-import java.io._
-import java.nio.CharBuffer
-import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import org.http4s.syntax.async._
@@ -128,10 +126,8 @@ trait EntityEncoderInstances0 {
     }
 }
 
-trait EntityEncoderInstances extends EntityEncoderInstances0 {
+trait EntityEncoderInstances extends EntityEncoderInstances0 with PlatformEntityEncoderInstances {
   import EntityEncoder._
-
-  private val DefaultChunkSize = 4096
 
   implicit def unitEncoder[F[_]: Applicative]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]
@@ -173,22 +169,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     new EntityEncoder[F, F[A]] {
       override def toEntity(a: F[A]): F[Entity[F]] = a.flatMap(W.toEntity)
       override def headers: Headers = W.headers
-    }
-
-  // TODO parameterize chunk size
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
-    inputStreamEncoder[F, FileInputStream].contramap(file => F.delay(new FileInputStream(file)))
-
-  // TODO parameterize chunk size
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def filePathEncoder[F[_]: Sync]: EntityEncoder[F, Path] =
-    fileEncoder[F].contramap(_.toFile)
-
-  // TODO parameterize chunk size
-  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
-    entityBodyEncoder[F].contramap { in: F[IS] =>
-      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
     }
 
   // TODO parameterize chunk size
