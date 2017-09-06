@@ -5,4 +5,4 @@ title = "http4s"
 [[menu.tut]]
     name = "Scaladoc"
     weight = 10000
-    url = "/v0.17/api"
+    url = "/v0.18/api"
