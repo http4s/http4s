@@ -125,13 +125,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"Active connection not found. Creating new one. $stats")
                 createConnection(key, callback)
 
-              case None if idleQueues.get(key).exists(_.nonEmpty) =>
-                logger.debug(
-                  s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
-                decrConnection(key)
-                getConnectionFromQueue(key).get.shutdown()
-                createConnection(key, callback)
-
               case None => // we're full up. Add to waiting queue.
                 logger.debug(s"No connections available.  Waiting on new connection: $stats")
                 if (waitQueue.length <= maxWaitQueueLimit) {
