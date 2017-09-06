@@ -3,13 +3,13 @@ package multipart
 
 import cats.effect.{ContextShift, Sync}
 import fs2.Stream
-import fs2.io.readInputStream
-import fs2.io.file.readAll
 import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import scala.concurrent.ExecutionContext
+import org.http4s.util.CaseInsensitiveString
+import org.http4s.{EmptyBody, Header, Headers}
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
@@ -17,7 +17,7 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
     headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
 }
 
-object Part {
+object Part extends PlatformPart {
   private val ChunkSize = 8192
 
   @deprecated(
