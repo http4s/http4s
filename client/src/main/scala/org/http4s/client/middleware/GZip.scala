@@ -1,12 +1,11 @@
-package org
-package http4s
+package org.http4s
 package client
 package middleware
 
 import cats.implicits._
 import cats.effect.Async
-import org.http4s.Compression.unzipResponse
-import org.http4s.headers.`Content-Type`
+import org.http4s.util.Compression.unzipResponse
+import org.http4s.headers.`Content-Encoding`
 
 object GZip {
 
@@ -25,5 +24,5 @@ object GZip {
   }
 
   private def isZipped[F[_]](resp: Response[F]): Boolean =
-    resp.headers.get(`Content-Type`).exists(_.mediaType eq MediaType.`application/octet-stream`)
+    resp.headers.get(`Content-Encoding`).exists(_.contentCoding eq ContentCoding.gzip)
 }

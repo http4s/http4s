@@ -1,13 +1,14 @@
-package org.http4s
+package org.http4s.util
 
 import java.util.zip.{CRC32, Deflater}
 import javax.xml.bind.DatatypeConverter
 
 import cats.Functor
-import fs2.{Chunk, Pipe, Pull, Pure, Segment, Stream}
-import fs2.Stream.chunk
 import fs2.compress.{deflate, inflate}
+import fs2.{Chunk, Pipe, Pull, Pure, Segment, Stream}
+import fs2.Stream.{chunk => fs2chunk} // because of org.http4s.util.chunk
 import org.http4s.headers.{`Content-Encoding`, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.{ContentCoding, Response, TransferCoding}
 import org.log4s.getLogger
 
 object Compression {
@@ -18,7 +19,7 @@ object Compression {
     logger.trace("GZip middleware encoding content")
     // Need to add the Gzip header and trailer
     val trailerGen = new TrailerGen()
-    val b = chunk(header) ++
+    val b = fs2chunk(header) ++
       resp.body
         .through(trailer(trailerGen))
         .through(
@@ -27,7 +28,7 @@ object Compression {
             nowrap = true,
             bufferSize = bufferSize
           )) ++
-      chunk(trailerFinish(trailerGen))
+      fs2chunk(trailerFinish(trailerGen))
     resp
       .removeHeader(`Content-Length`)
       .putHeaders(`Content-Encoding`(ContentCoding.gzip))
@@ -36,7 +37,7 @@ object Compression {
 
   def unzipResponse[F[_]: Functor](bufferSize: Int, resp: Response[F]): Response[F] = {
     logger.trace("GZip middleware decoding content")
-    val b = chunk(header) ++
+    val b = fs2chunk(header) ++
       resp.body
         .through(
           inflate(
