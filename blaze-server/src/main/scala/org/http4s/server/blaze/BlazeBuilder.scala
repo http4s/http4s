@@ -6,10 +6,8 @@ import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 
-import cats._
 import cats.effect._
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
@@ -42,8 +40,7 @@ class BlazeBuilder[F[_]](
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F]
-    with server.WebSocketSupport[F]
-    with MaybeResponseInstances {
+    with server.WebSocketSupport[F] {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger(classOf[BlazeBuilder[F]])
@@ -144,9 +141,7 @@ class BlazeBuilder[F[_]](
     copy(serviceErrorHandler = serviceErrorHandler)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map { mount =>
-      mount.prefix -> mount.service
-    }: _*)
+    val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
