@@ -4,7 +4,6 @@ package middleware
 
 import cats._
 import cats.implicits._
-import fs2._
 
 /** Removes a trailing slash from [[Request]] path
   *
@@ -16,12 +15,13 @@ object AutoSlash {
   def apply[F[_]](service: HttpService[F])(implicit F: Monad[F]): HttpService[F] = Service.lift {
     req =>
       service(req).flatMap {
-        case _: Pass[F] =>
+        case Pass() =>
           val p = req.uri.path
           if (p.isEmpty || p.charAt(p.length - 1) != '/')
-            F.pure(Pass[F])
+            Pass.pure[F]
           else {
-            val withSlash = req.withUri(req.uri.copy(path = p.substring(0, p.length - 1)))
+            val caret = req.attributes(Request.Keys.PathInfoCaret)
+            val withSlash = req.withUri(req.uri.copy(path = p.substring(caret, p.length - 1)))
             service.apply(withSlash)
           }
         case resp =>
