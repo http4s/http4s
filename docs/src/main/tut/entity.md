@@ -11,8 +11,8 @@ will receive a request after the header has been parsed (ok, not 100%
 streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don't have to load the full body into memory to submit the
-request either. Taking a look at `Request` and `Response`, both have a body of
-type `EntityBody`, which is simply an alias to `Stream[Task, ByteVector]`. To
+request either. Taking a look at `Request[F]` and `Response[F]`, both have a body of
+type `EntityBody[F]`, which is simply an alias to `Stream[F, ByteVector]`. To
 understand `Stream`, take a look at the [streams-tutorial].
 
 The `EntityDecoder` and `EntityEncoder` help with the streaming nature of the
@@ -24,13 +24,13 @@ types. Not all decoders are streaming, depending on the implementation.
 `EntityDecoder`s for json expect `application/json`. To implement this
 functionality, the constructor `EntityDecoder.decodeBy` uses `MediaRange`s. You
 can pass multiple as needed. You can also append functionality to an existing
-one via `EntityDecoder[T].map` - however, you can't change the media
+one via `EntityDecoder[F, T].map` - however, you can't change the media
 type in that case.
 
  When you encode a body with the `EntityEncoder` for json, it appends the
 `Content-Type: application/json` header. You can construct new encoders via
 `EntityEncoder.encodeBy` or reuse an already existing one via
-`EntityEncoder[T].contramap` and `withContentType`.
+`EntityEncoder[F, T].contramap` and `withContentType`.
 
 See the [MediaRange] companion object for ranges, and [MediaType] for specific
 types. Because of the implicit conversions, you can also use `(String, String)`

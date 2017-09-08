@@ -105,8 +105,8 @@ the world" varies by context:
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
-val greetingsStringTask = greetingList.map(_.mkString("\n"))
-greetingsStringTask.unsafeRunSync
+val greetingsStringEffect = greetingList.map(_.mkString("\n"))
+greetingsStringEffect.unsafeRunSync
 ```
 
 ## Cleaning up

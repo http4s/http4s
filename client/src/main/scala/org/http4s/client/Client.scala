@@ -44,7 +44,7 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
   *             a [[Request]].  This is a low-level operation intended for client
   *             implementations and middleware.
   *
-  * @param shutdown a Task to shut down this Shutdown this client, closing any
+  * @param shutdown an effect to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
   */
 final case class Client[F[_]](
@@ -64,7 +64,7 @@ final case class Client[F[_]](
 
   /** Submits a request, and provides a callback to process the response.
     *
-    * @param req A Task of the request to submit
+    * @param req An effect of the request to submit
     * @param f A callback for the response to req.  The underlying HTTP connection
     *          is disposed when the returned task completes.  Attempts to read the
     *          response body afterward will result in an error.

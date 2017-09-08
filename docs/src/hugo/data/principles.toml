@@ -19,13 +19,10 @@ responses, shared by the client and the server.
 [[principles]]
 name = "Streaming"
 text = """
-http4s is built on [scalaz-streams]<span data-footnote="1"/>,
-which provides the foundation for processing and emitting large
-payloads in constant space and implementing websockets.
-  
-A port from scalaz-stream to [fs2] and [cats] is in progress.
+http4s is built on [fs2] and [cats], which provides
+the foundation for processing and emitting large payloads in
+constant space and implementing websockets.
 
 [fs2]: https://github.com/functional-streams-for-scala/fs2
-[scalaz-streams]: https://github.com/scalaz/scalaz-stream
 [cats]: http://typelevel.org/cats
 """

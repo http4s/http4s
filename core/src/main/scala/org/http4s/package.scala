@@ -24,14 +24,14 @@ package object http4s { // scalastyle:ignore
   val DefaultCharset = Charset.`UTF-8`
 
   /**
-    * A Service wraps a function of request type `A` to a Task that runs
+    * A Service wraps a function of request type `A` to an effect that runs
     * to response type `B`.  By wrapping the [[Service]], we can compose them
     * using Kleisli operations.
     */
   type Service[F[_], A, B] = Kleisli[F, A, B]
 
   /**
-    * A [[Service]] that produces a Task to compute a [[Response]] from a
+    * A [[Service]] that produces an effect to compute a [[Response]] from a
     * [[Request]].  An HttpService can be run on any supported http4s
     * server backend, such as Blaze, Jetty, or Tomcat.
     */

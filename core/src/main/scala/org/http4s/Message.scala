@@ -118,7 +118,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     *
     * @param decoder [[EntityDecoder]] used to decode the [[Message]]
     * @tparam T type of the result
-    * @return the `Task` which will generate the `DecodeResult[T]`
+    * @return the effect which will generate the `DecodeResult[T]`
     */
   override def attemptAs[T](
       implicit F: FlatMap[F],
@@ -144,7 +144,7 @@ object Message {
   * @param uri representation of the request URI
   * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
-  * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
+  * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 sealed abstract case class Request[F[_]](

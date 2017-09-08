@@ -91,7 +91,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
 
       if (in.isFinished) Stream.empty
       else {
-        // This Task sets the callback and waits for the first bytes to read
+        // This effect sets the callback and waits for the first bytes to read
         val registerRead =
           // Shift execution to a different EC
           F.shift(TrampolineExecutionContext) >>

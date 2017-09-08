@@ -45,7 +45,7 @@ object Part {
       entityBody)
 
   // The InputStream is passed by name, and we open it in the by-name
-  // argument in callers, so we can avoid lifting into a Task.  Exposing
+  // argument in callers, so we can avoid lifting into an effect.  Exposing
   // this API publicly would invite unsafe use, and the `EntityBody` version
   // should be safe.
   private def fileData[F[_]](name: String, filename: String, in: => InputStream, headers: Header*)(

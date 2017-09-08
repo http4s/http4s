@@ -222,7 +222,7 @@ class BlazeBuilder[F[_]](
 
     val address = resolveAddress(socketAddress)
 
-    // if we have a Failure, it will be caught by the Task
+    // if we have a Failure, it will be caught by the effect
     val serverChannel = factory.bind(address, pipelineFactory).get
 
     new Server[F] {

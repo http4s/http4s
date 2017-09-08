@@ -42,8 +42,8 @@ private[http4s] trait EntityBodyWriter[F[_]] {
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
   protected def exceptionFlush(): Future[Unit] = FutureUnit
 
-  /** Creates a Task that writes the contents of the EntityBody to the output.
-    * Cancelled exceptions fall through to the Task cb
+  /** Creates an effect that writes the contents of the EntityBody to the output.
+    * Cancelled exceptions fall through to the effect cb
     * The writeBodyEnd triggers if there are no exceptions, and the result will
     * be the result of the writeEnd call.
     *
