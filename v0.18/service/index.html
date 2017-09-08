@@ -149,7 +149,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3949/1262921223@3553ec0d)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3944/1319456604@1517222c)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -187,7 +187,7 @@ val tweetService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3949/1262921223@3b2159a5)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3944/1319456604@6980a3b1)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -214,10 +214,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$3967/2044164654@3a95ef0a)
+// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$3962/648505935@6aa3f4ae)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$48314867
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$366767010
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -245,13 +245,13 @@ down:</p>
 
 <h3 id="running-your-service-as-an-app">Running your service as an <code>App</code></h3>
 
-<p>Every <code>ServerBuilder</code> has a <code>.serve</code> method that returns a
-<code>Stream[Task, Nothing]</code>.  This stream runs forever without emitting
+<p>Every <code>ServerBuilder[F]</code> has a <code>.serve</code> method that returns a
+<code>Stream[F, Nothing]</code>.  This stream runs forever without emitting
 any output.  When this process is run with <code>.unsafeRun</code> on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.</p>
 
-<p>As a convenience, http4s provides an <code>org.http4s.util.StreamApp</code> trait
+<p>As a convenience, http4s provides an <code>org.http4s.util.StreamApp[F[_]]</code> trait
 with an abstract <code>main</code> method that returns a <code>Stream</code>.  A <code>StreamApp</code>
 runs the process and adds a JVM shutdown hook to interrupt the infinite
 process and gracefully shut down your server when a SIGTERM is received.</p>
@@ -266,13 +266,12 @@ import org.http4s.util.StreamApp
 // import org.http4s.util.StreamApp
 
 object Main extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]) = {
+  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
     BlazeBuilder[IO]
       .bindHttp(8080, &quot;localhost&quot;)
       .mountService(helloWorldService, &quot;/&quot;)
       .mountService(services, &quot;/api&quot;)
       .serve
-  }
 }
 // defined object Main
 </code></pre>

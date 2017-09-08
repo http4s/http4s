@@ -300,8 +300,8 @@ HTTP connection.">
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A <a href="" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
 </p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
-                open connections and freeing resources</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/63dafd2321f2a2281827a805d9919c43375d8e2f/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
+            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this Shutdown this client, closing any
+                open connections and freeing resources</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/da2afc873ebcc844d347976c3d36f064349db918/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -373,7 +373,7 @@ HTTP connection.">
       
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
+            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this Shutdown this client, closing any
                 open connections and freeing resources</p></dd></dl></div>
     </li></ol>
             </div>
@@ -701,7 +701,7 @@ completion of the decoding.
       </span>
       
       <p class="shortcomment cmt">Submits a request, and provides a callback to process the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request, and provides a callback to process the response.
-</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>A Task of the request to submit</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to req.  The underlying HTTP connection
+</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>An effect of the request to submit</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to req.  The underlying HTTP connection
          is disposed when the returned task completes.  Attempts to read the
          response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#fetch" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">

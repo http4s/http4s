@@ -601,7 +601,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 <span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
 <span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
 <span class="kw">val</span> req1 = r.unsafeRunSync
-<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/63dafd2321f2a2281827a805d9919c43375d8e2f/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/da2afc873ebcc844d347976c3d36f064349db918/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -673,7 +673,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
 </p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
+            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this Shutdown this client, closing any
                 open connections and freeing resources</p></dd></dl></div>
     </li><li name="org.http4s.client.Connection" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Connection[F[_]]extendsAnyRef"></a><a id="Connection[F[_]]:Connection[F]"></a>

@@ -1013,7 +1013,7 @@ conform string.">
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A type that can be used to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>
 EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
-entire resulting A. If an error occurs it will result in a failed Task
+entire resulting A. If an error occurs it will result in a failed effect.
 The default decoders provided here are not streaming, but one could implement
 a streaming decoder by having the value of A be some kind of streaming construct.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</dd><dt>Annotations</dt><dd>
                 <span class="name">@implicitNotFound</span><span class="args">(<span>
@@ -1021,7 +1021,7 @@ a streaming decoder by having the value of A be some kind of streaming construct
       <span class="defval" name="&quot;Cannot decode into a value of type ${T}, because no EntityDecoder[${F}, ${T}] instance could be found.&quot;">...</span>
     </span>)</span>
               
-        </dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/63dafd2321f2a2281827a805d9919c43375d8e2f/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
+        </dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/da2afc873ebcc844d347976c3d36f064349db918/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>

@@ -1025,7 +1025,7 @@ conform string.">
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/63dafd2321f2a2281827a805d9919c43375d8e2f/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/da2afc873ebcc844d347976c3d36f064349db918/core/src/main/scala/org/http4s/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1473,7 +1473,7 @@ entire resulting A." href="EntityDecoder.html">
 EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
 entire resulting A.</p><div class="fullcomment"><div class="comment cmt"><p>A type that can be used to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>
 EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
-entire resulting A. If an error occurs it will result in a failed Task
+entire resulting A. If an error occurs it will result in a failed effect.
 The default decoders provided here are not streaming, but one could implement
 a streaming decoder by having the value of A be some kind of streaming construct.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@implicitNotFound</span><span class="args">(<span>
@@ -1777,8 +1777,8 @@ equally, their values are equal.
         <span class="name">HttpService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <span class="extype" name="cats.data.Kleisli">Kleisli</span>[<span class="extype" name="org.http4s.HttpService.F">F</span>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>], <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">A <a href="#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces a Task to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
-<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces a Task to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
+      <p class="shortcomment cmt">A <a href="#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces an effect to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
+<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces an effect to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
 <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>.  An HttpService can be run on any supported http4s
 server backend, such as Blaze, Jetty, or Tomcat.
 </p></div></div>
@@ -2541,8 +2541,8 @@ status line, headers, and a possible request body.
         <span class="name">Service</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>, <span name="B">B</span>]</span><span class="result alias"> = <span class="extype" name="cats.data.Kleisli">Kleisli</span>[<span class="extype" name="org.http4s.Service.F">F</span>, <span class="extype" name="org.http4s.Service.A">A</span>, <span class="extype" name="org.http4s.Service.B">B</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">A Service wraps a function of request type <code>A</code> to a Task that runs
-to response type <code>B</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <code>A</code> to a Task that runs
+      <p class="shortcomment cmt">A Service wraps a function of request type <code>A</code> to an effect that runs
+to response type <code>B</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <code>A</code> to an effect that runs
 to response type <code>B</code>.  By wrapping the <a href="#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>, we can compose them
 using Kleisli operations.
 </p></div></div>

@@ -96,8 +96,8 @@ will receive a request after the header has been parsed (ok, not 100%
 streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don&rsquo;t have to load the full body into memory to submit the
-request either. Taking a look at <code>Request</code> and <code>Response</code>, both have a body of
-type <code>EntityBody</code>, which is simply an alias to <code>Stream[Task, ByteVector]</code>. To
+request either. Taking a look at <code>Request[F]</code> and <code>Response[F]</code>, both have a body of
+type <code>EntityBody[F]</code>, which is simply an alias to <code>Stream[F, ByteVector]</code>. To
 understand <code>Stream</code>, take a look at the <a href="https://gist.github.com/djspiewak/d93a9c4983f63721c41c">streams-tutorial</a>.</p>
 
 <p>The <code>EntityDecoder</code> and <code>EntityEncoder</code> help with the streaming nature of the
@@ -110,13 +110,13 @@ types. Not all decoders are streaming, depending on the implementation.</p>
 <code>EntityDecoder</code>s for json expect <code>application/json</code>. To implement this
 functionality, the constructor <code>EntityDecoder.decodeBy</code> uses <code>MediaRange</code>s. You
 can pass multiple as needed. You can also append functionality to an existing
-one via <code>EntityDecoder[T].map</code> - however, you can&rsquo;t change the media
+one via <code>EntityDecoder[F, T].map</code> - however, you can&rsquo;t change the media
 type in that case.</p>
 
 <p>When you encode a body with the <code>EntityEncoder</code> for json, it appends the
 <code>Content-Type: application/json</code> header. You can construct new encoders via
 <code>EntityEncoder.encodeBy</code> or reuse an already existing one via
-<code>EntityEncoder[T].contramap</code> and <code>withContentType</code>.</p>
+<code>EntityEncoder[F, T].contramap</code> and <code>withContentType</code>.</p>
 
 <p>See the <a href="../api/org/http4s/MediaRange$">MediaRange</a> companion object for ranges, and <a href="../api/org/http4s/MediaType$">MediaType</a> for specific
 types. Because of the implicit conversions, you can also use <code>(String, String)</code>
@@ -152,24 +152,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$21053730
+response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1510936935
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@1d10d6df
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@3e2f0b45
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@647f22af
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@5ecfeb97
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@3eb377a0
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@3c346dfd
 
 scala&gt; println(response.as[Resp].unsafeRunSync)
 Audio()
