@@ -4,6 +4,7 @@ package server
 import cats._
 import cats.effect._
 import cats.implicits._
+import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse
 
 object Router {
 
@@ -13,8 +14,7 @@ object Router {
     * Defines an HttpService based on list of mappings.
     * @see define
     */
-  def apply[F[_]: Sync](mappings: (String, HttpService[F])*)(
-      implicit F: Semigroup[F[MaybeResponse[F]]]): HttpService[F] =
+  def apply[F[_]: Sync](mappings: (String, HttpService[F])*): HttpService[F] =
     define(mappings: _*)(HttpService.empty[F])
 
   /**
@@ -23,8 +23,8 @@ object Router {
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */
-  def define[F[_]: Sync](mappings: (String, HttpService[F])*)(default: HttpService[F])(
-      implicit F: Semigroup[F[MaybeResponse[F]]]): HttpService[F] =
+  def define[F[_]: Sync](mappings: (String, HttpService[F])*)(
+      default: HttpService[F]): HttpService[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, service)) =>
         if (prefix.isEmpty || prefix == "/") service |+| acc

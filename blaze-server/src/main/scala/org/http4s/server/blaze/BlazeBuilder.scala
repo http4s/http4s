@@ -37,12 +37,13 @@ class BlazeBuilder[F[_]](
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F]
-)(implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]])
+)(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F]
-    with server.WebSocketSupport[F] {
+    with server.WebSocketSupport[F]
+    with MaybeResponseInstances {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger(classOf[BlazeBuilder[F]])
@@ -281,7 +282,7 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: Effect[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
