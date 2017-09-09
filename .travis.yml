@@ -7,7 +7,7 @@ dist: trusty
 jdk: oraclejdk8
 env:
   global:
-  - HUGO_VERSION=0.26.1
+  - HUGO_VERSION=0.26
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
   matrix:
