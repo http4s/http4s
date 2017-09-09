@@ -1,0 +1,25 @@
+#!/bin/bash
+
+shopt -s nullglob
+
+DIR=$(dirname "$0")
+VERSION=v0.15
+
+cd $DIR/../docs/target
+
+echo "Cloning http4s.org"
+git clone git@github.com:http4s/http4s.org.git http4s.org
+cd http4s.org
+git checkout gh-pages
+
+echo "Cleaning old $VERSION in http4s.org repo"
+rm -rf $VERSION
+
+echo "Moving old site into http4s.org repo"
+cp -a ../site/$VERSION .
+
+echo "Updating gh-pages branch"
+git add --all && git commit -m "Publishing to gh-pages"
+
+echo "Pushing to origin/gh-pages"
+echo git push origin gh-pages

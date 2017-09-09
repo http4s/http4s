@@ -1,6 +1,6 @@
 ---
 title: Quick Start
-menu: tut
+menu: main
 weight: 1
 ---
 

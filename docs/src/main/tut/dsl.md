@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 110
 title: The http4s DSL
 ---

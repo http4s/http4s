@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 350
 title: URI handling
 ---

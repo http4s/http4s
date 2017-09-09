@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 title: GZip Compression
 weight: 124
 ---

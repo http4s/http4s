@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 140
 title: Static Files
 ---

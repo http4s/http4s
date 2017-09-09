@@ -1,8 +1,9 @@
 baseurl = "http://http4s.org/"
+contentDir = "../../target/scala-2.12/tut"
 languageCode = "en-us"
 title = "http4s"
 
-[[menu.tut]]
+[[menu.main]]
     name = "Scaladoc"
     weight = 10000
     url = "/v0.15/api"
