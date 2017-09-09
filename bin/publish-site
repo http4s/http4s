@@ -35,7 +35,7 @@ echo "Moving old site into http4s.org repo"
 cp -a ../site/$VERSION .
 
 echo "Updating gh-pages branch"
-git add --all && git commit -m $(gh_pages_commit_message)
+git add --all && git commit -m "$(gh_pages_commit_message)"
 
 echo "Pushing to origin/gh-pages"
 echo git push origin gh-pages
