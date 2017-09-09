@@ -1,11 +1,27 @@
 #!/bin/bash
 
+set -e
 shopt -s nullglob
+
+# Build git commit message to be used when Travis updates the
+# gh-pages branch to publish a new version of the website.
+function gh_pages_commit_message() {
+    local SHORT_COMMIT=$(printf "%.8s" "$TRAVIS_COMMIT")
+    cat <<EOM
+updated site
+   Job: $TRAVIS_JOB_NUMBER
+Commit: $SHORT_COMMIT
+Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
+EOM
+}
 
 DIR=$(dirname "$0")
 VERSION=v0.15
 
 cd $DIR/../docs/target
+
+git config --global user.name "Travis CI";
+git config --global user.email "travis-ci@http4s.org";
 
 echo "Cloning http4s.org"
 git clone git@github.com:http4s/http4s.org.git http4s.org
@@ -19,7 +35,7 @@ echo "Moving old site into http4s.org repo"
 cp -a ../site/$VERSION .
 
 echo "Updating gh-pages branch"
-git add --all && git commit -m "Publishing to gh-pages"
+git add --all && git commit -m $(gh_pages_commit_message)
 
 echo "Pushing to origin/gh-pages"
 echo git push origin gh-pages
