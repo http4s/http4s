@@ -1,5 +1,4 @@
 import Http4sPlugin._
-import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
@@ -256,16 +255,11 @@ lazy val loadTest = http4sProject("load-test")
 
 lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incrementally on recently changed files")
 
-
-val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
-val siteStageDirectory    = SettingKey[File]("site-stage-directory")
-val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
 val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 lazy val docs = http4sProject("docs")
   .enablePlugins(DisablePublishingPlugin)
   .settings(noCoverageSettings)
   .settings(unidocSettings)
-  .settings(ghpages.settings)
   .settings(tutSettings)
   .enablePlugins(HugoPlugin)
   .settings(
@@ -309,33 +303,7 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    preStageSiteDirectory := sourceDirectory.value / "hugo",
-    siteStageDirectory := target.value / "site-stage",
-    sourceDirectory in Hugo := siteStageDirectory.value,
-    watchSources := {
-      // nasty hack to remove the target directory from watched sources
-      watchSources.value
-        .filterNot(_.getAbsolutePath.startsWith(
-          target.value.getAbsolutePath))
-    },
-    copySiteToStage := {
-      streams.value.log.debug(s"copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value}")
-
-      IO.copyDirectory(
-        source = preStageSiteDirectory.value,
-        target = siteStageDirectory.value,
-        overwrite = false,
-        preserveLastModified = true)
-      IO.copyDirectory(
-        source = tutTargetDirectory.value,
-        target = siteStageDirectory.value / "content" / "v0.16",
-        overwrite = false,
-        preserveLastModified = true)
-      IO.copyFile(
-        sourceFile = baseDirectory.value / ".." / "CHANGELOG.md",
-        targetFile = siteStageDirectory.value / "CHANGELOG.md",
-        preserveLastModified = true)
-    },
+    tutTargetDirectory := tutTargetDirectory.value / apiVersion.value.productIterator.mkString("v", ".", ""),
     exportMetadataForSite := {
       val dest = (sourceDirectory in Hugo).value / "data" / "build.toml"
       val (major, minor) = apiVersion.value
@@ -355,14 +323,11 @@ lazy val docs = http4sProject("docs")
       IO.write(dest, buildData)
       dest
     },
-    copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
-    makeSite := makeSite.dependsOn(copySiteToStage, exportMetadataForSite).value,
+    makeSite := makeSite.dependsOn(tutQuick, exportMetadataForSite).value,
     baseURL in Hugo := {
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
-    // all .md|markdown files go into `content` dir for hugo processing
-    ghpagesNoJekyll := true,
     includeFilter in Hugo := (
       "*.html" |
         "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
@@ -370,28 +335,13 @@ lazy val docs = http4sProject("docs")
         "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
         "CNAME" | "_config.yml"
     ),
-    siteMappings := {
-      if (Http4sGhPages.buildMainSite) siteMappings.value
-      else {
-        val (major, minor) = apiVersion.value
-        val prefix = s"/v${major}.${minor}/"
-        siteMappings.value.filter {
-          case (_, d) if d.startsWith(prefix) => true
-          case _ => false
-        }
-      }
-    },
     siteMappings ++= {
       val m = (mappings in (ScalaUnidoc, packageDoc)).value
       val (major, minor) = apiVersion.value
       for ((f, d) <- m) yield (f, s"v$major.$minor/api/$d")
-    },
-    cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
-    synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
+    }
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
-
 
 lazy val examples = http4sProject("examples")
   .enablePlugins(DisablePublishingPlugin)

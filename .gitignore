@@ -22,3 +22,6 @@ atlassian-ide-plugin.xml
 .ensime_cache
 .cache-main
 .cache-tests
+
+docs/src/hugo/data/build.toml
+
