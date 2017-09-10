@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 310
 title: JSON handling
 ---
