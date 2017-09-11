@@ -16,13 +16,11 @@ object AutoSlash {
     req =>
       service(req).flatMap {
         case Pass() =>
-          val p = req.uri.path
-          if (p.isEmpty || p.charAt(p.length - 1) != '/')
+          val pi = req.pathInfo
+          if (pi.isEmpty || pi.charAt(pi.length - 1) != '/')
             Pass.pure[F]
           else {
-            val caret = req.attributes(Request.Keys.PathInfoCaret)
-            val withSlash = req.withUri(req.uri.copy(path = p.substring(caret, p.length - 1)))
-            service.apply(withSlash)
+            service.apply(req.withPathInfo(pi.substring(0, pi.length - 1)))
           }
         case resp =>
           F.pure(resp)
