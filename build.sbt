@@ -29,7 +29,7 @@ lazy val parboiled2 = libraryProject("parboiled2")
     // https://issues.scala-lang.org/browse/SI-9490
     (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
     (scalacOptions in Compile) -= "-Ywarn-unused-import",
-    macroParadiseSetting,
+    macroParadiseSetting
   )
 
 lazy val core = libraryProject("core")
