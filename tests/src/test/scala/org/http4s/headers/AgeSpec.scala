@@ -1,10 +1,7 @@
 package org.http4s.headers
 
-import cats.implicits._
-
 import org.http4s.{ParseFailure, ParseResult}
 import org.scalacheck.Prop.forAll
-
 import scala.concurrent.duration._
 
 class AgeSpec extends HeaderLaws {

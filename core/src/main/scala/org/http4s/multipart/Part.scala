@@ -1,16 +1,13 @@
 package org.http4s
 package multipart
 
-import java.io.{File, FileInputStream, InputStream}
-import java.net.URL
-
 import cats.effect.Sync
 import fs2.Stream
 import fs2.io.readInputStream
 import fs2.text.utf8Encode
+import java.io.{File, FileInputStream, InputStream}
+import java.net.URL
 import org.http4s.headers.`Content-Disposition`
-import org.http4s.util.CaseInsensitiveString
-import org.http4s.{EmptyBody, Header, Headers}
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))

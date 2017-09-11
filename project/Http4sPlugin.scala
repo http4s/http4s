@@ -28,7 +28,8 @@ object Http4sPlugin extends AutoPlugin {
 
     scalacOptions in Compile ++= Seq(
       "-Yno-adapted-args", // Curiously missing from RigPlugin
-      "-Ypartial-unification" // Needed on 2.11 for Either, good idea in general
+      "-Ypartial-unification", // Needed on 2.11 for Either, good idea in general
+      "-Ywarn-unused-import"
     ) ++ {
       // https://issues.scala-lang.org/browse/SI-8340
       CrossVersion.partialVersion(scalaVersion.value) match {

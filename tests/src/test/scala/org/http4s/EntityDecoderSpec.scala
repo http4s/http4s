@@ -1,20 +1,16 @@
 package org.http4s
 
-import java.io.{File, FileInputStream, InputStreamReader}
-import java.nio.charset.StandardCharsets
-
 import cats._
 import cats.effect._
-import cats.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
+import java.io.{File, FileInputStream, InputStreamReader}
+import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.TrampolineExecutionContext
 import org.specs2.execute.PendingUntilFixed
-
 import scala.concurrent.ExecutionContext
-import scala.language.postfixOps
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = TrampolineExecutionContext

@@ -2,7 +2,6 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import scala.annotation.tailrec
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 

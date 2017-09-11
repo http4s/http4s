@@ -6,7 +6,6 @@ import cats.implicits._
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._
-
 import scala.io.Codec
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {

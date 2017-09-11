@@ -1,16 +1,16 @@
 package com.example.http4s
 
-import _root_.io.circe.Json
 import cats._
 import cats.effect._
 import cats.implicits._
-import fs2._
-import org.http4s.MediaType._
+import fs2.{Scheduler, Stream}
+import io.circe.Json
 import org.http4s._
-import org.http4s.server._
+import org.http4s.MediaType._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
+import org.http4s.server._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.syntax.EffectResponseOps

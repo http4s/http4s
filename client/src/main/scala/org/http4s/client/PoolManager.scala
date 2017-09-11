@@ -4,7 +4,6 @@ package client
 import cats.effect._
 import fs2.async
 import org.log4s.getLogger
-
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext

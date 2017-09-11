@@ -3,7 +3,7 @@ package twirl
 
 import cats._
 import org.http4s.headers.`Content-Type`
-import MediaType._
+import org.http4s.MediaType._
 import play.twirl.api._
 
 trait TwirlInstances {

@@ -9,7 +9,6 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.websocket._
 import org.http4s.util.StreamApp
 import org.http4s.websocket.WebsocketBits._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 

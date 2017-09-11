@@ -18,10 +18,9 @@
  */
 package org.http4s
 
-import scala.Product
+import org.http4s.syntax.string._
 import org.http4s.util.{CaseInsensitiveString, Renderable, Writer}
 import scala.concurrent.duration.Duration
-import org.http4s.syntax.string._
 
 sealed trait CacheDirective extends Product with Renderable {
   val name = productPrefix.replace("$minus", "-").ci

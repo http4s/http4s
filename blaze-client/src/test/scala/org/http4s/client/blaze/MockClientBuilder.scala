@@ -2,9 +2,8 @@ package org.http4s
 package client
 package blaze
 
-import java.nio.ByteBuffer
-
 import cats.effect.IO
+import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
 
 private object MockClientBuilder {

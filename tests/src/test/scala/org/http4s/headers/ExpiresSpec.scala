@@ -1,8 +1,7 @@
 package org.http4s
 package headers
 
-import cats.implicits._
-import java.time.{Instant, ZoneId, ZonedDateTime}
+import java.time.{ZoneId, ZonedDateTime}
 
 class ExpiresSpec extends HeaderLaws {
   checkAll("Expires", headerLaws(Expires))

@@ -1,9 +1,6 @@
 package org.http4s.headers
 
-import cats.implicits._
-import java.time.{Instant, ZoneId, ZonedDateTime}
-import org.http4s.{ParseFailure, ParseResult}
-
+import org.http4s.ParseFailure
 import scala.concurrent.duration._
 
 class StrictTransportSecuritySpec extends HeaderLaws {

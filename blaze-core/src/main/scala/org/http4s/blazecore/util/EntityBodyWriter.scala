@@ -2,13 +2,11 @@ package org.http4s
 package blazecore
 package util
 
-import cats._
 import cats.effect._
 import cats.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
 import org.http4s.syntax.async._
-
 import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {

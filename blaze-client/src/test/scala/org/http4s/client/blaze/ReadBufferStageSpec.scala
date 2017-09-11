@@ -1,13 +1,11 @@
 package org.http4s.client.blaze
 
 import java.util.concurrent.atomic.AtomicInteger
-
 import org.http4s.Http4sSpec
 import org.http4s.blaze.pipeline.{Command, HeadStage, LeafBuilder, TailStage}
 import org.http4s.blazecore.util.FutureUnit
-
-import scala.concurrent.duration._
 import scala.concurrent.{Await, Awaitable, Future, Promise}
+import scala.concurrent.duration._
 
 class ReadBufferStageSpec extends Http4sSpec {
   "ReadBufferStage" should {

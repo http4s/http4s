@@ -6,9 +6,8 @@ import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.{Logger => SLogger}
-import scodec.bits.ByteVector
-
 import scala.concurrent.ExecutionContext
+import scodec.bits.ByteVector
 
 /**
   * Simple Middleware for Logging All Requests and Responses

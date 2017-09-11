@@ -2,20 +2,17 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import cats.Eval.always
 import cats.effect._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
 import fs2.compress.deflate
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
-import org.http4s.syntax.async._
 import org.http4s.util.StringWriter
-
-import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 
 class Http1WriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException

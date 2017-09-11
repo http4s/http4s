@@ -2,8 +2,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
-import org.http4s.util.{Renderable, Writer}
 import org.http4s.parser.HttpHeaderParser
+import org.http4s.util.{Renderable, Writer}
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Accept] =

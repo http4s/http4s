@@ -7,7 +7,6 @@ import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
 import org.log4s.getLogger
-
 import scala.concurrent.duration._
 
 /**

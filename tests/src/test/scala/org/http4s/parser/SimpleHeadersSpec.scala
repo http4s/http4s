@@ -1,11 +1,8 @@
 package org.http4s
 package parser
 
-import java.net.InetAddress
-import java.time.Instant
-
 import cats.data.NonEmptyList
-import cats.implicits._
+import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 

@@ -8,7 +8,6 @@ import org.http4s.blaze.http.Headers
 import org.http4s.blaze.http.http20.NodeMsg._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.chunk._
-
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](

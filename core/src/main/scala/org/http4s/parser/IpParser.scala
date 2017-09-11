@@ -2,7 +2,7 @@ package org.http4s
 package parser
 
 import org.http4s.internal.parboiled2._
-import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
+import org.http4s.internal.parboiled2.CharPredicate.{Digit, HexDigit}
 
 private[http4s] trait IpParser { this: Parser =>
 

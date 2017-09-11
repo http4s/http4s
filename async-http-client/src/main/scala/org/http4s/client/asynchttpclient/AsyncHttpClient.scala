@@ -2,14 +2,14 @@ package org.http4s
 package client
 package asynchttpclient
 
-import java.nio.ByteBuffer
-
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
+import java.nio.ByteBuffer
+import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{
@@ -17,10 +17,8 @@ import org.asynchttpclient.request.body.generator.{
   ByteArrayBodyGenerator,
   ReactiveStreamsBodyGenerator
 }
-import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.util.threads._
 import org.reactivestreams.Publisher
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 

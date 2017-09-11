@@ -1,12 +1,9 @@
 package org.http4s
 package headers
 
-import java.time.Instant
-
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderer, Writer}
 import org.http4s.util.Renderable._
-import org.http4s.parser.HttpHeaderParser
-
 import scala.concurrent.duration.FiniteDuration
 
 object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Singleton {
@@ -39,7 +36,6 @@ object `Retry-After` extends HeaderKey.Internal[`Retry-After`] with HeaderKey.Si
   * @param retry Either the date of expiration or seconds until expiration
   */
 sealed abstract case class `Retry-After`(retry: Either[HttpDate, Long]) extends Header.Parsed {
-  import `Retry-After`._
 
   val key = `Retry-After`
   override val value = Renderer.renderString(retry)

@@ -19,12 +19,11 @@ package org.http4s
 package parser
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration._
-
-import org.http4s.internal.parboiled2.{ParserInput, Rule1}
 import org.http4s.headers.`Cache-Control`
+import org.http4s.internal.parboiled2.{ParserInput, Rule1}
 import org.http4s.CacheDirective._
 import org.http4s.syntax.string._
+import scala.concurrent.duration._
 
 private[parser] trait CacheControlHeader {
 

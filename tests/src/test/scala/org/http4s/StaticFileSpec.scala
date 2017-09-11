@@ -1,9 +1,8 @@
 package org.http4s
 
+import cats.effect.IO
 import java.io.File
 import java.nio.file.Files
-
-import cats.effect.IO
 import org.http4s.Status.NotModified
 import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
 import org.http4s.util.chunk._

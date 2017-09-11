@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.http4s.headers.{`Set-Cookie`}
+import org.http4s.headers.`Set-Cookie`
 import org.specs2.mutable.Specification
 
 class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Cookie`] {

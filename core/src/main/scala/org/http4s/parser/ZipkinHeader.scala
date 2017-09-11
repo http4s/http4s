@@ -1,10 +1,9 @@
 package org.http4s
 package parser
 
-import org.http4s.internal.parboiled2._
-import org.http4s.internal.parboiled2.CharPredicate.HexDigit
-import org.http4s.headers._
 import java.nio.ByteBuffer
+import org.http4s.headers._
+import org.http4s.internal.parboiled2.CharPredicate.HexDigit
 
 private[parser] trait ZipkinHeader {
   def idStringToLong(idString: String) = {

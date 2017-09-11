@@ -19,8 +19,8 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import org.http4s.internal.parboiled2.{ParserInput, Rule0, Rule1}
 import org.http4s.headers.Authorization
+import org.http4s.internal.parboiled2.{ParserInput, Rule0, Rule1}
 import org.http4s.syntax.string._
 
 private[parser] trait AuthorizationHeader {

@@ -5,7 +5,6 @@ package middleware
 import cats.effect._
 import org.http4s.dsl.io._
 import org.http4s.headers._
-
 import scala.concurrent.duration._
 
 class HSTSSpec extends Http4sSpec {

@@ -18,11 +18,9 @@
  */
 package org.http4s
 
-import scala.collection.{IterableLike, TraversableOnce, mutable}
-import collection.generic.CanBuildFrom
 import org.http4s.util.{Renderable, Writer}
-
-import java.time.Instant
+import scala.collection.{IterableLike, TraversableOnce, mutable}
+import scala.collection.generic.CanBuildFrom
 
 object RequestCookieJar {
   def empty: RequestCookieJar = new RequestCookieJar(Nil)

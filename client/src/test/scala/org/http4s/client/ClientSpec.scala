@@ -2,16 +2,9 @@ package org.http4s
 package client
 
 import cats.effect._
-import cats.implicits._
 import java.io.IOException
-import org.http4s.Http4sSpec
-import org.http4s.headers.Accept
-import org.http4s.Status.InternalServerError
-import fs2._
-import fs2.Stream._
-import org.http4s.Status.{BadRequest, Created, NotFound, Ok}
 import org.http4s.Method._
-import org.http4s.Uri.uri
+import org.http4s.Status.Ok
 
 class ClientSpec extends Http4sSpec {
   val service = HttpService[IO] {

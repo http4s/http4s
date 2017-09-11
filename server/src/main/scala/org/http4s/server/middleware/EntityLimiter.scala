@@ -3,7 +3,6 @@ package server
 package middleware
 
 import fs2._
-
 import scala.util.control.NoStackTrace
 
 object EntityLimiter {

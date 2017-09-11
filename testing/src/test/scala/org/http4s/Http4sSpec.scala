@@ -15,8 +15,8 @@ import fs2._
 import fs2.text._
 import org.http4s.testing._
 import org.http4s.util.threads.newDaemonPool
-import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.specs2.ScalaCheck
 import org.specs2.matcher._
@@ -26,7 +26,6 @@ import org.specs2.specification.core.Fragments
 import org.specs2.specification.create.{DefaultFragmentFactory => ff}
 import org.specs2.specification.dsl.FragmentsDsl
 import org.typelevel.discipline.specs2.mutable.Discipline
-
 import scala.concurrent.ExecutionContext
 
 /**

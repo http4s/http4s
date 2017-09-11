@@ -2,24 +2,21 @@ package org.http4s
 package client
 package blaze
 
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicReference
-
 import cats.ApplicativeError
 import cats.effect._
 import cats.implicits._
 import fs2._
-import org.http4s.Uri.{Authority, RegName}
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import org.http4s.{headers => H}
+import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
-import org.http4s.{headers => H}
-
 import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.util.{Failure, Success}

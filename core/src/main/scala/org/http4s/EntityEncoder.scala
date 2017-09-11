@@ -1,20 +1,18 @@
 package org.http4s
 
-import java.io._
-import java.nio.CharBuffer
-import java.nio.file.Path
-
 import cats._
 import cats.effect.{Async, Sync}
 import cats.functor._
 import cats.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
 import fs2.io._
+import java.io._
+import java.nio.CharBuffer
+import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import org.http4s.syntax.async._
-
 import scala.annotation.implicitNotFound
 import scala.concurrent.{ExecutionContext, Future}
 

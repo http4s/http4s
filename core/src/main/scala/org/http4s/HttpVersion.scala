@@ -1,11 +1,11 @@
 package org.http4s
 
 import cats._
-import cats.data.{Writer => _, _}
+import cats.data.{Writer => _}
 import cats.implicits._
+import org.http4s.internal.parboiled2._
 import org.http4s.parser._
 import org.http4s.util._
-import org.http4s.internal.parboiled2._
 
 /**
   * An HTTP version, as seen on the start line of an HTTP request or response.

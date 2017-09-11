@@ -3,7 +3,6 @@ package org.http4s.load
 import io.gatling.core.Predef._
 import io.gatling.core.scenario.Simulation
 import io.gatling.http.Predef._
-
 import scala.concurrent.duration._
 
 class DemoSimulation extends Simulation {

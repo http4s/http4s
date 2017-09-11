@@ -2,13 +2,12 @@ package org.http4s
 package server
 package middleware
 
+import cats._
+import fs2._
+import fs2.Stream._
+import fs2.compress._
 import java.util.zip.{CRC32, Deflater}
 import javax.xml.bind.DatatypeConverter
-
-import cats._
-import fs2.Stream._
-import fs2._
-import fs2.compress._
 import org.http4s.headers._
 import org.log4s.getLogger
 

@@ -18,13 +18,10 @@
 package org.http4s
 package parser
 
-import java.lang.reflect.InvocationTargetException
 import java.util
-
-import org.http4s.headers._
+import java.lang.reflect.InvocationTargetException
 import org.http4s.util.CaseInsensitiveString
-
-import Header.Parsed
+import org.http4s.Header.Parsed
 import org.http4s.syntax.string._
 
 object HttpHeaderParser

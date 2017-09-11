@@ -1,13 +1,12 @@
 package org.http4s
 package json4s
 
-import _root_.jawn.support.json4s.Parser
 import cats._
 import cats.effect._
+import _root_.jawn.support.json4s.Parser
 import org.http4s.headers.`Content-Type`
-import org.json4s.JsonAST.JValue
 import org.json4s._
-
+import org.json4s.JsonAST.JValue
 import scala.util.control.NonFatal
 
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)

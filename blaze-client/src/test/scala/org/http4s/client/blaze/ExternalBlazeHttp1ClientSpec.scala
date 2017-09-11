@@ -2,7 +2,6 @@ package org.http4s.client.blaze
 
 import cats.effect.IO
 import org.http4s._
-
 import scala.concurrent.duration._
 
 // TODO: this should have a more comprehensive test suite

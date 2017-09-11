@@ -2,12 +2,11 @@ package org.http4s
 package server
 package metrics
 
-import java.util.concurrent.TimeUnit
-
 import cats.effect._
 import cats.implicits._
-import fs2._
 import com.codahale.metrics.MetricRegistry
+import fs2._
+import java.util.concurrent.TimeUnit
 
 object Metrics {
 

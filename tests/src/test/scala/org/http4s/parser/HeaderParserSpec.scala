@@ -2,7 +2,6 @@ package org.http4s
 package parser
 
 import org.http4s.syntax.string._
-
 import org.specs2.mutable.Specification
 
 class HeaderParserSpec extends Specification {

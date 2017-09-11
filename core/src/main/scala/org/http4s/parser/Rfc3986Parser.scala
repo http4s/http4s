@@ -1,14 +1,13 @@
 package org.http4s
 package parser
 
-import java.nio.charset.Charset
-import java.net.URLDecoder
-
 import cats.implicits._
+import java.net.URLDecoder
+import java.nio.charset.Charset
 import org.http4s.{Query => Q}
-import org.http4s.syntax.string._
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.HNil
+import org.http4s.syntax.string._
 
 private[parser] trait Rfc3986Parser extends IpParser with StringBuilding {
   this: Parser =>

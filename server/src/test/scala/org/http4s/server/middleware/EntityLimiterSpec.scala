@@ -2,15 +2,14 @@ package org.http4s
 package server
 package middleware
 
-import java.nio.charset.StandardCharsets
-
 import cats.effect._
 import cats.implicits._
 import fs2._
 import fs2.Stream._
+import java.nio.charset.StandardCharsets
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
-import Method._
-import Status._
+import org.http4s.Method._
+import org.http4s.Status._
 
 class EntityLimiterSpec extends Http4sSpec {
 

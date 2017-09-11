@@ -5,8 +5,8 @@
 package org.http4s
 package util
 
-import org.http4s.util.UrlCodingUtils._
 import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.util.UrlCodingUtils._
 
 class UrlCodingSpec extends Http4sSpec {
   "Encoding a URI" should {

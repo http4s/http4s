@@ -1,9 +1,8 @@
 package com.example.http4s.blaze
 
 import cats.effect.IO
-import org.http4s.EntityEncoder._
-import org.http4s.Uri._
 import org.http4s._
+import org.http4s.Uri._
 import org.http4s.client._
 import org.http4s.client.blaze.{defaultClient => client}
 import org.http4s.dsl.io._

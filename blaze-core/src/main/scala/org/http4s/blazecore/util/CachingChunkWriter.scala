@@ -2,16 +2,13 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
-
 import cats.effect._
 import fs2._
-import org.http4s.Headers
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
-
+import org.http4s.util.chunk._
 import scala.concurrent._
 
 private[http4s] class CachingChunkWriter[F[_]](

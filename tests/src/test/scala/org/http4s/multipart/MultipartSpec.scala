@@ -1,28 +1,17 @@
 package org.http4s
 package multipart
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-
-import org.http4s._
+import cats._
 import cats.effect._
+import fs2._
+import java.io.File
 import org.http4s.MediaType._
 import org.http4s.headers._
-import org.http4s.Headers._
 import org.http4s.Uri._
 import org.http4s.util._
-import org.http4s.Status.Ok
 import org.http4s.EntityEncoder._
-import Entity._
 import org.specs2.Specification
-
-import cats._
-import cats.implicits._
-import fs2._
-
-import scodec.bits.BitVector
-import scodec.bits.ByteVector
+import scodec.bits.{BitVector, ByteVector}
 
 class MultipartSpec extends Specification {
   sequential

@@ -1,6 +1,5 @@
 package org.http4s
 
-import cats.data._
 import cats.implicits._
 import org.http4s.Uri._
 import org.scalacheck.Prop._

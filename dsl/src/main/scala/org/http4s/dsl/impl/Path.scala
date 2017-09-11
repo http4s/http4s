@@ -7,12 +7,11 @@
 
 package org.http4s.dsl.impl
 
-import cats.data.Validated._
 import cats.data._
+import cats.data.Validated._
 import cats.implicits._
 import org.http4s._
 import org.http4s.util.UrlCodingUtils
-
 import scala.util.Try
 
 /** Base class for path extractors. */

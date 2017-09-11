@@ -1,8 +1,8 @@
 package org.http4s.parser
 
+import org.http4s.RangeUnit
 import org.http4s.headers.`Accept-Ranges`
 import org.specs2.mutable.Specification
-import org.http4s.RangeUnit
 
 class AcceptRangesSpec extends Specification with HeaderParserHelper[`Accept-Ranges`] {
 

@@ -5,7 +5,6 @@ package middleware
 import cats.effect._
 import cats.implicits._
 import fs2._
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 

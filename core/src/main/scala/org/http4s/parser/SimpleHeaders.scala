@@ -18,18 +18,13 @@
 package org.http4s
 package parser
 
+import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
-import java.time.Instant
-
-import cats.data.NonEmptyList
-import cats.implicits._
-import org.http4s.syntax.string._
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
-import org.http4s.internal.parboiled2.{Parser, Rule1}
-
-import scala.concurrent.duration.{FiniteDuration, SECONDS}
+import org.http4s.internal.parboiled2.Rule1
+import org.http4s.syntax.string._
 
 /**
   * parser rules for all headers that can be parsed with one simple rule
@@ -41,7 +36,11 @@ private[parser] trait SimpleHeaders {
       def entry = rule {
         oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { ts: Seq[String] =>
           val ms = ts.map(
-            Method.fromString(_).getOrElse(sys.error("Impossible. Please file a bug report.")))
+            Method
+              .fromString(_)
+              .right
+              .toOption
+              .getOrElse(sys.error("Impossible. Please file a bug report.")))
           Allow(NonEmptyList.of(ms.head, ms.tail: _*))
         }
       }

@@ -1,9 +1,8 @@
 package org.http4s
 package server
 
-import java.net.InetSocketAddress
-
 import cats.effect.IO
+import java.net.InetSocketAddress
 import org.specs2.mutable.After
 
 trait ServerAddressSpec extends Http4sSpec {

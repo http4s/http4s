@@ -1,8 +1,8 @@
 package org.http4s
 package blazecore
 
-import scala.concurrent.Future
 import fs2._
+import scala.concurrent.Future
 
 package object util {
 

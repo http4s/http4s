@@ -2,11 +2,9 @@ package org.http4s
 package servlet
 package syntax
 
-import javax.servlet.{ServletContext, ServletRegistration}
-
 import cats.effect._
+import javax.servlet.{ServletContext, ServletRegistration}
 import org.http4s.server.{AsyncTimeoutSupport, DefaultServiceErrorHandler}
-
 import scala.concurrent.ExecutionContext
 
 trait ServletContextSyntax {

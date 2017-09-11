@@ -1,7 +1,6 @@
 package org.http4s.bench.input
 
 import org.openjdk.jmh.annotations.{Param, Scope, Setup, State}
-
 import scala.util.Random
 
 @State(Scope.Thread)

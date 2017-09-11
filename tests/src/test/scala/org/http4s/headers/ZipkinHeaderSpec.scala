@@ -1,8 +1,6 @@
 package org.http4s
 package headers
 
-import cats.implicits._
-
 class ZipkinHeaderSpec extends Http4sSpec with HeaderLaws {
   checkAll("X-B3-Sampled", headerLaws(`X-B3-Sampled`))
   checkAll("X-B3-Flags", headerLaws(`X-B3-Flags`))

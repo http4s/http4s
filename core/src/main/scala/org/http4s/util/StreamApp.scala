@@ -6,7 +6,6 @@ import cats.implicits._
 import fs2._
 import fs2.async.mutable.Signal
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 
 abstract class StreamApp[F[_]](implicit F: Effect[F]) {

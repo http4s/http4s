@@ -3,11 +3,9 @@ package org.http4s.client.blaze
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import javax.net.ssl.{SSLContext, X509TrustManager}
-
 import org.http4s.BuildInfo
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.headers.{AgentProduct, `User-Agent`}
-
 import scala.concurrent.duration._
 
 private[blaze] object bits {

@@ -1,7 +1,6 @@
 package org.http4s.servlet
 
 import javax.servlet.ServletContext
-
 import scala.math.Ordered.orderingToOrdered
 
 final case class ServletApiVersion(major: Int, minor: Int) extends Ordered[ServletApiVersion] {

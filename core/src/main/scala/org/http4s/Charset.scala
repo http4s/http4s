@@ -18,11 +18,10 @@
  */
 package org.http4s
 
-import java.nio.charset.{Charset => NioCharset, StandardCharsets}
+import java.nio.charset.{StandardCharsets, Charset => NioCharset}
 import java.util.{HashMap, Locale}
-import scala.collection.JavaConverters._
-
 import org.http4s.util._
+import scala.collection.JavaConverters._
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def satisfies(charsetRange: CharsetRange): Boolean = charsetRange.isSatisfiedBy(this)

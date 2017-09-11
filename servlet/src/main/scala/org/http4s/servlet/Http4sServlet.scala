@@ -1,17 +1,15 @@
 package org.http4s
 package servlet
 
-import java.net.InetSocketAddress
-import javax.servlet._
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
-
 import cats.effect._
 import cats.implicits._
 import fs2.async
+import java.net.InetSocketAddress
+import javax.servlet._
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server._
 import org.log4s.getLogger
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration

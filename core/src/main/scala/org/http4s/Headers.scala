@@ -2,11 +2,9 @@ package org.http4s
 
 import cats._
 import cats.implicits._
-import org.http4s.HeaderKey.StringKey
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`
 import org.http4s.syntax.string._
-
+import org.http4s.util.CaseInsensitiveString
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer

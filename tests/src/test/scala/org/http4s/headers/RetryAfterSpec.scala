@@ -1,11 +1,7 @@
 package org.http4s
 package headers
 
-import cats.implicits._
-
-import java.time.{Instant, ZoneId, ZonedDateTime}
-import org.http4s.{ParseFailure, ParseResult}
-
+import java.time.{ZoneId, ZonedDateTime}
 import scala.concurrent.duration._
 
 class RetryAfterSpec extends HeaderLaws {
