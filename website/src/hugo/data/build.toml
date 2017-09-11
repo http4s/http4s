@@ -1,0 +1,10 @@
+
+[versions]
+"http4s.api" = "0.15"
+"http4s.current" = "0.15.17-SNAPSHOT"
+"http4s.doc" = "0.15.16a"
+scalaz = "7.1.13"
+circe = "0.6.1"
+cryptobits = "1.1"
+"argonaut-shapeless_6.2" = "1.2.0-M5"
+         
