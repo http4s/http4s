@@ -1,5 +1,6 @@
 baseurl = "http://http4s.org/v0.15"
 contentDir = "../../target/scala-2.12/tut"
+dataDir = "../../target/hugo-data"
 languageCode = "en-us"
 title = "http4s"
 theme = "http4s.org"

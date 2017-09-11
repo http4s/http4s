@@ -283,7 +283,7 @@ lazy val docs = http4sProject("docs")
       }
     },
     exportMetadataForSite := {
-      val dest = (sourceDirectory in Hugo).value / "data" / "build.toml"
+      val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = apiVersion.value
       // Would be more elegant if `[versions.http4s]` was nested, but then
       // the index lookups in `shortcodes/version.html` get complicated.
@@ -303,7 +303,8 @@ lazy val docs = http4sProject("docs")
     },
     makeSite := makeSite.dependsOn(tutQuick, exportMetadataForSite).value,
     baseURL in Hugo := {
-      if (isTravisBuild.value) new URI(s"http://http4s.org/v0.15")
+      val (major, minor) = extractApiVersion(version.value)
+      if (isTravisBuild.value) new URI(s"http://http4s.org/v${major}.${minor}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
     includeFilter in Hugo := (
@@ -319,16 +320,12 @@ lazy val docs = http4sProject("docs")
       for ((f, d) <- m) yield (f, s"api/$d")
     },
     includeFilter in ghpagesCleanSite := {
-      new FileFilter{
+      new FileFilter {
+        val (major, minor) = extractApiVersion(version.value)
         def accept(f: File) =
-          f.getCanonicalPath.startsWith((ghpagesRepository.value / "v0.15").getCanonicalPath)
+          f.getCanonicalPath.startsWith((ghpagesRepository.value / s"v${major}.${minor}").getCanonicalPath)
       }
-    },
-    ghpagesPushSite ~= { old =>
-      if (sys.env.get("TRAVIS_BRANCH") == Some("master")) old
-      else ()
-    },
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
+    }
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
@@ -344,20 +341,16 @@ lazy val website = http4sProject("website")
     },
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    includeFilter in Hugo := (
-        "*.html" |
-        "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-        "*.js" | "*.swf" | "*.json" | "*.md" |
-        "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-        "CNAME" | "_config.yml"
-    ),
     excludeFilter in ghpagesCleanSite := {
       new FileFilter{
         def accept(f: File) =
           f.getCanonicalPath.startsWith((ghpagesRepository.value / "v0.*").getCanonicalPath)
       }
     },
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
+    ghpagesPushSite ~= { old =>
+      if (sys.env.get("TRAVIS_BRANCH") == Some("master")) old
+      else ()
+    }
   )
 
 lazy val examples = http4sProject("examples")
@@ -570,7 +563,14 @@ lazy val commonSettings = Seq(
       }).transform(node).head
   },
   coursierVerbosity := 0,
-  ivyLoggingLevel := UpdateLogging.Quiet // This doesn't seem to work? We see this in MiMa
+  ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
+  git.remoteRepo := "git@github.com:http4s/http4s.git",
+  includeFilter in Hugo := (
+    "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
+    "*.js" | "*.swf" | "*.json" | "*.md" |
+    "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
+    "CNAME" | "_config.yml"
+  )
 ) ++ xlint
 
 lazy val publishSettings = Seq(
