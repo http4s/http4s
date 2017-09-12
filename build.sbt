@@ -22,8 +22,8 @@ cancelable in Global := true
 
 // This defines macros that we use in core, so it needs to be split out
 lazy val parboiled2 = libraryProject("parboiled2")
-  .enablePlugins(DisablePublishingPlugin)
   .settings(
+    description := "Internal fork of parboiled2 to remove shapeless dependency",    
     libraryDependencies ++= Seq(
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
@@ -48,12 +48,7 @@ lazy val core = libraryProject("core")
       scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
-    macroParadiseSetting,
-    mappings in (Compile, packageBin) ++= (mappings in (parboiled2.project, Compile, packageBin)).value,
-    mappings in (Compile, packageSrc) ++= (mappings in (parboiled2.project, Compile, packageSrc)).value,
-    mappings in (Compile, packageDoc) ++= (mappings in (parboiled2.project, Compile, packageDoc)).value,
-    mappings in (Compile, packageBin) ~= (_.groupBy(_._2).toSeq.map(_._2.head)), // filter duplicate outputs
-    mappings in (Compile, packageDoc) ~= (_.groupBy(_._2).toSeq.map(_._2.head)) // filter duplicate outputs
+    macroParadiseSetting
   )
   .dependsOn(parboiled2)
 
@@ -508,8 +503,6 @@ lazy val commonSettings = Seq(
         override def transform(node: xml.Node): Seq[xml.Node] = node match {
           case e: xml.Elem
               if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
-          case e: xml.Elem
-              if e.label == "dependency" && e.child.exists(child => child.label == "artifactId" && child.text.contains("parboiled2")) => Nil
           case _ => Seq(node)
         }
       }).transform(node).head
