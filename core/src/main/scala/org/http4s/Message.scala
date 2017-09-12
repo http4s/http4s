@@ -4,11 +4,9 @@ import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 
 import cats._
-import cats.data.NonEmptyList
 import cats.implicits._
 import fs2._
 import fs2.text._
-import org.http4s
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import org.http4s.util.nonEmptyList._
@@ -268,7 +266,7 @@ sealed abstract case class Request[F[_]](
     all the X-Forwarded-For are needed then you will need to pull it from the headers.
     */
   lazy val forwardedFor: Option[InetAddress] = headers
-    .get(http4s.headers.`X-Forwarded-For`)
+    .get(`X-Forwarded-For`)
     .map(_.values)
     .flatMap(_.head)
 
@@ -277,7 +275,7 @@ sealed abstract case class Request[F[_]](
     */
   lazy val from: Option[InetAddress] =
     headers
-      .get(http4s.headers.`X-Forwarded-For`)
+      .get(`X-Forwarded-For`)
       .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
 
   lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
