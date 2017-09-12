@@ -126,10 +126,10 @@ val service = HttpService[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$2578/271149030@56b9eb6b)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$2578/1685640023@77b99e98)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$524082502
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$383473382
 
 val server = builder.unsafeRunSync
 // server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
@@ -145,7 +145,7 @@ speaks HTTP 1.x.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client[IO]()
-// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$2610/1364268463@184a1d62),IO$35587010)
+// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$2610/2074036339@650c1919),IO$1313292516)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -154,7 +154,7 @@ val httpClient = PooledHttp1Client[IO]()
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$348826374
+// helloJames: cats.effect.IO[String] = IO$938785534
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -192,7 +192,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = fs2.async.parallelTraverse(people)(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1659960825
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1068721956
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -211,7 +211,7 @@ server.</li>
 </ul>
 
 <pre><code class="language-scala">val greetingsStringEffect = greetingList.map(_.mkString(&quot;\n&quot;))
-// greetingsStringEffect: cats.effect.IO[String] = IO$692668868
+// greetingsStringEffect: cats.effect.IO[String] = IO$212019734
 
 greetingsStringEffect.unsafeRunSync
 // res0: String =
