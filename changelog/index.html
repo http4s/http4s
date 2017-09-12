@@ -2,7 +2,7 @@
 <html>
   <head>
   <meta charset="utf-8">
-  <title>http4s: Versions</title>
+  <title>http4s: </title>
 
   <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
@@ -77,212 +77,13 @@
   <body>
     <div class="container">
       <div class="content">
-	<div class="page-header">
-	  <h1>Versions</h1>
-	</div>
-	<div>
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1></h1>
+          </div>
+          
 
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
-    <li role="presentation" class="active"><a href="#compatibility" role="tab" data-toggle="tab">Compatibility</a></li>
-    <li role="presentation"><a href="#changelog" role="tab" data-toggle="tab">Changelog</a></li>
-  </ul>
-
-  <!-- Tab panes -->
-  <div class="tab-content">
-    <div role="tabpanel" class="tab-pane active" id="compatibility">
-      <ul>
-    <li><span class="label label-primary">Stable</span> releases
-    are recommended for production use and are maintained with
-    backward, binary compatible bugfixes from the http4s
-    team.</li>
-
-    <li><span class="label label-warning">Development</span>
-    releases are published as snapshots to Sonatype by Travis CI.
-    API breakage may occur at any time.</li>
-
-    <li><span class="label label-default">EOL</span> releases are
-    no longer actively maintained, but pull requests with a tale
-    of woe may be considered.</li>
-      </ul>
-
-      <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>http4s</th>
-        <th class="text-center">Status</th>
-        <th class="text-center">Scala 2.10</th>
-        <th class="text-center">Scala 2.11</th>
-        <th class="text-center">Scala 2.12</th>
-        <th>FP</th>
-        <th>Streaming</th>
-        <th>JDK</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>0.16.0-cats-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-warning">Development</span></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td>cats-0.9</td>
-        <td>fs2-0.9</td>
-        <td>1.8+</td>
-      </tr>
-      <tr>
-        <td>0.16.0a-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-warning">Development</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td>scalaz-7.2</td>
-        <td>scalaz-stream-0.8a</td>
-        <td>1.8+</td>
-      </tr>
-      <tr>
-        <td>0.16.0-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-warning">Development</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.8</td>
-        <td>1.8+</td>
-      </tr>
-      <tr>
-        <td>0.15.16a</td>
-        <td class="text-center"><span class="label label-primary">Stable</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td>scalaz-7.2</td>
-        <td>scalaz-stream-0.8a</td>
-        <td>1.8+</td>
-      </tr>
-      <tr>
-        <td>0.15.16</td>
-        <td class="text-center"><span class="label label-primary">Stable</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.8</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.14.11a</td>
-        <td class="text-center"><span class="label label-primary">Stable</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.8a</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.14.11</td>
-        <td class="text-center"><span class="label label-primary">Stable</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.2</td>
-        <td>scalaz-stream-0.8</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.13.3a</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.2</td>
-        <td>scalaz-stream-0.8a</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.13.3</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.8</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.12.6</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.8</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.11.3</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.8</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.10.1</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.7a</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.9.3</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.7a</td>
-        <td>1.8+</td>
-      </tr>
-    </tbody>
-    <tbody>
-      <tr>
-        <td>0.8.6</td>
-        <td class="text-center"><span class="label label-default">EOL</span></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td>scalaz-7.1</td>
-        <td>scalaz-stream-0.7a</td>
-        <td>1.7+</td>
-      </tr>
-    </tbody>
-      </table>
-    </div>
-    <div role="tabpanel" class="tab-pane" id="changelog">
-      <h1 id="v0-15-16-2017-07-20">v0.15.16 (2017-07-20)</h1>
+<h1 id="v0-15-16-2017-07-20">v0.15.16 (2017-07-20)</h1>
 
 <ul>
 <li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
@@ -1095,23 +896,28 @@ the future client.</li>
 <ul>
 <li>Initial public release.</li>
 </ul>
- 
-    </div>
-  </div>
-</div>
 
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li><a href="https://github.com/http4s/http4s/edit/master/website/src/hugo/content/CHANGELOG.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
-    <footer>
-      <div class="container">
-	<nav>
-	  <ul class="pager">
-	    <li><a href="https://github.com/http4s/http4s/edit/master/website/src/hugo/content/versions.md"><i class="fa fa-pencil"></i> Edit this page</a>
-</li>
-	  </ul>
-	</nav>
-      </div>
-    </footer>
     
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 

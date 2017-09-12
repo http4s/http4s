@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html>
   <head>
-	<meta name="generator" content="Hugo 0.24.1" />
   <meta charset="utf-8">
-  <title>http4s: http4s</title>
+  <title>http4s: Community</title>
 
   <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
@@ -36,10 +35,6 @@
 	  </li>
 	
 	  <li >
-	    <a href="/standards/">Coding Standard</a>
-	  </li>
-	
-	  <li >
 	    <a href="/adopters/">Adopters</a>
 	  </li>
 	
@@ -49,26 +44,24 @@
   </a>
   <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
     <li><a href="/versions/">Versions</a></li>
+
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.18 (development)</li>
-    <li><a href="/v0.18/">Tutorial</a></li>
-    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17</li>
-    <li><a href="/v0.17/">Tutorial</a></li>
-    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16</li>
+    <li class="dropdown-header">v0.16 (unreleased)</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15 (eol)</li>
+    <li class="dropdown-header">v0.16-cats (unreleased)</li>
+    <li><a href="/v0.16-cats/">Tutorial</a></li>
+    <li><a href="/v0.16-cats/api/org/http4s/">Scaladoc</a></li>
+
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
     <li><a href="/v0.15/">Tutorial</a></li>
-    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+    <li><a href="/v0.15/api/">Scaladoc</a></li>
   </ul>
 </li>
 
@@ -76,28 +69,27 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
         <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
       </ul>
     </div>
   </div>
 </nav>
 
     <div class="container">
-      <div class="content">
-	<div class="jumbotron">
-	  <h1>
-	    <img src="/images/http4s-logo.svg" alt="" />http4s
-	  </h1>
-	  <p>
-	    A typeful, purely functional, streaming library for HTTP
-	    clients and servers in Scala.
-	  </p>
-	  <p><a class="btn btn-primary btn-lg" href="/v0.17/" role="button">Get started</a></p>
-	</div>
+      <div class="jumbotron">
+  <h1>
+    <img src="/images/http4s-logo.svg" alt="" />http4s
+  </h1>
+  <p>
+    A typeful, purely functional, streaming library for HTTP
+    clients and servers in Scala.
+  </p>
+  <p><a class="btn btn-primary btn-lg" href="/v0.15/" role="button">Get started</a></p>
+</div>
 
-	<div class="row">
-	  
-	  <div class="col-md-4">
+<div class="row">
+  
+  <div class="col-md-4">
   <div class="panel panel-default">
     <div class="panel-heading">
       <h2 class="panel-title">Typeful</h2>
@@ -111,8 +103,8 @@ encode and decode bodies to several common formats.</p>
   </div>
 </div>
 
-	  
-	  <div class="col-md-4">
+  
+  <div class="col-md-4">
   <div class="panel panel-default">
     <div class="panel-heading">
       <h2 class="panel-title">Purely functional</h2>
@@ -126,23 +118,26 @@ responses, shared by the client and the server.</p>
   </div>
 </div>
 
-	  
-	  <div class="col-md-4">
+  
+  <div class="col-md-4">
   <div class="panel panel-default">
     <div class="panel-heading">
       <h2 class="panel-title">Streaming</h2>
     </div>
     <div class="panel-body">
-      <p>http4s is built on <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a> and <a href="http://typelevel.org/cats">cats</a>, which provides
-the foundation for processing and emitting large payloads in
-constant space and implementing websockets.</p>
+      <p>http4s is built on <a href="https://github.com/scalaz/scalaz-stream">scalaz-streams</a><span data-footnote="1"/>,
+which provides the foundation for processing and emitting large
+payloads in constant space and implementing websockets.</p>
+
+<p>A port from scalaz-stream to <a href="https://github.com/functional-streams-for-scala/fs2">fs2</a> and <a href="http://typelevel.org/cats">cats</a> is in progress.</p>
     </div>
   </div>
 </div>
 
-	  
-	</div>
-      </div>
+  
+</div>
+
+
     </div>
     
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
