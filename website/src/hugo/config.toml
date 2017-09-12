@@ -1,0 +1,4 @@
+baseurl = "http://http4s.org"
+languageCode = "en-us"
+title = "http4s"
+theme = "http4s.org"
