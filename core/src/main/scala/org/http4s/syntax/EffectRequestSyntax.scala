@@ -5,11 +5,11 @@ import cats._
 import cats.implicits._
 
 trait EffectRequestSyntax extends Any {
-  implicit def http4sEffectRequestSyntax[F[+ _]](req: F[Request[F]]): EffectRequestOps[F] =
+  implicit def http4sEffectRequestSyntax[F[_]](req: F[Request[F]]): EffectRequestOps[F] =
     new EffectRequestOps[F](req)
 }
 
-final class EffectRequestOps[F[+ _]](val self: F[Request[F]])
+final class EffectRequestOps[F[_]](val self: F[Request[F]])
     extends AnyVal
     with EffectMessageSyntax[F, Request[F]]
     with RequestOps[F] {
