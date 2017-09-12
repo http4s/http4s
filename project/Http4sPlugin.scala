@@ -37,6 +37,9 @@ object Http4sPlugin extends AutoPlugin {
         case _ => Seq.empty
       }
     },
+    scalacOptions in (Compile, console) ~= { xs: Seq[String] =>
+      xs.filterNot(Set("-Xfatal-warnings", "-Ywarn-unused-import"))
+    },
 
     http4sMimaVersion := {
       version.value match {
