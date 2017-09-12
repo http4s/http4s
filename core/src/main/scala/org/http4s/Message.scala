@@ -264,10 +264,10 @@ sealed abstract case class Request[F[_]](
   lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
   /**
-    Convenience method to grab the first X-Forward-For.  This is a convience method.  If
+    Convenience method to grab the first X-Forwarded-For.  This is a convenience method.  If
     all the X-Forwarded-For are needed then you will need to pull it from the headers.
     */
-  lazy val forwardFor: Option[InetAddress] = headers
+  lazy val forwardedFor: Option[InetAddress] = headers
     .get(http4s.headers.`X-Forwarded-For`)
     .map(_.values)
     .flatMap(_.head)
