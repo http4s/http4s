@@ -2,23 +2,25 @@ package com.example.http4s
 package ssl
 
 import java.nio.file.Paths
-
 import cats.effect._
+import fs2.{Scheduler, Stream}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.middleware.HSTS
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.util.StreamApp
 
-trait SslExample extends StreamApp[IO] {
+abstract class SslExample[F[_]: Effect] extends StreamApp[F] {
   // TODO: Reference server.jks from something other than one child down.
-  val keypath = Paths.get("../server.jks").toAbsolutePath().toString()
+  val keypath: String = Paths.get("../server.jks").toAbsolutePath.toString
 
-  def builder: ServerBuilder[IO] with SSLKeyStoreSupport[IO]
+  def builder: ServerBuilder[F] with SSLKeyStoreSupport[F]
 
-  def stream(args: List[String], requestShutdown: IO[Unit]) =
-    builder
-      .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
-      .mountService(HSTS(ExampleService.service), "/http4s")
-      .bindHttp(8443)
-      .serve
+  def stream(args: List[String], requestShutdown: IO[Unit]): Stream[F, Nothing] =
+    Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
+      builder
+        .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
+        .mountService(HSTS(new ExampleService[F].service), "/http4s")
+        .bindHttp(8443)
+        .serve
+    }
 }
