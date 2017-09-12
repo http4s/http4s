@@ -355,8 +355,10 @@ sealed trait MaybeResponse[F[_]] {
     cata(Some(_), None)
 }
 
-object MaybeResponse {
-  implicit def instance[F[_]]: Monoid[MaybeResponse[F]] =
+object MaybeResponse extends MaybeResponseInstances
+
+trait MaybeResponseInstances {
+  implicit def http4sMonoidForMaybeResponse[F[_]]: Monoid[MaybeResponse[F]] =
     new Monoid[MaybeResponse[F]] {
       def empty =
         Pass()
@@ -364,13 +366,15 @@ object MaybeResponse {
         a.orElse(b)
     }
 
-//  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
-//    new Monoid[F[MaybeResponse[F]]] {
-//      def empty =
-//        F.pure(Pass())
-//      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
-//        fa.flatMap(_.cata(F.pure, fb))
-//    }
+  implicit def http4sMonoidForFMaybeResponse[F[_]](
+      implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
+    new Monoid[F[MaybeResponse[F]]] {
+      override def empty =
+        Pass.pure[F]
+
+      override def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]) =
+        fa.flatMap(_.cata(F.pure, fb))
+    }
 }
 
 final case class Pass[F[_]]() extends MaybeResponse[F]

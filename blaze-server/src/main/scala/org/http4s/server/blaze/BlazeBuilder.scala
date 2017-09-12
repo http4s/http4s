@@ -6,10 +6,8 @@ import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 
-import cats._
 import cats.effect._
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
@@ -37,7 +35,7 @@ class BlazeBuilder[F[_]](
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F]
-)(implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]])
+)(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -143,9 +141,7 @@ class BlazeBuilder[F[_]](
     copy(serviceErrorHandler = serviceErrorHandler)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map { mount =>
-      mount.prefix -> mount.service
-    }: _*)
+    val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
@@ -281,7 +277,7 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: Effect[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,

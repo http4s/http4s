@@ -4,6 +4,7 @@ package middleware
 
 import cats._
 import cats.implicits._
+import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -13,8 +14,7 @@ import cats.implicits._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor](service: HttpService[F])(
-      implicit M: Semigroup[F[MaybeResponse[F]]]): HttpService[F] =
+  def apply[F[_]: Monad](service: HttpService[F]): HttpService[F] =
     HttpService.lift { req =>
       req.method match {
         case Method.HEAD =>

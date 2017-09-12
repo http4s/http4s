@@ -12,6 +12,7 @@ trait Http4sInstances
     with QValueInstances
     with MethodInstances
     with StatusInstances
+    with MaybeResponseInstances
 
 object Http4sInstances extends Http4sInstances
 
