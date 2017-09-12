@@ -1,11 +1,11 @@
 package org.http4s
 
-import java.net.InetSocketAddress
+import java.net.{InetAddress, InetSocketAddress}
 
+import cats.data.NonEmptyList
 import cats.effect.IO
 import fs2._
-import org.http4s.headers.`Content-Type`
-import org.http4s.headers.Authorization
+import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 
 class MessageSpec extends Http4sSpec {
 
@@ -40,6 +40,31 @@ class MessageSpec extends Http4sSpec {
         r.serverPort must_== local.getPort
         r.remotePort must beSome(remote.getPort)
       }
+
+      "be utilized to determine the first X-Forward-For forwardFor value" in {
+        val forwardValues =
+          NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
+        val r = Request()
+          .withHeaders(Headers(`X-Forwarded-For`(forwardValues)))
+          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        r.forwardFor must_== forwardValues.head
+      }
+
+      "be utilized to determine the from value (first X-Forward-For if present)" in {
+        val forwardValues =
+          NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
+        val r = Request()
+          .withHeaders(Headers(`X-Forwarded-For`(forwardValues)))
+          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        r.from must_== forwardValues.head
+      }
+
+      "be utilized to determine the from value (remote value if X-Forward-For is not present)" in {
+        val r = Request()
+          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        r.from must_== Option(remote.getAddress)
+      }
+
     }
 
     /* TODO fs2 spec bring back when unemit comes back
