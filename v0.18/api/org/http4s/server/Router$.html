@@ -371,7 +371,7 @@ for serious static content serving.
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/da2afc873ebcc844d347976c3d36f064349db918/server/src/main/scala/org/http4s/server/Router.scala" target="_blank">Router.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6c23191cfde7e17ebe4791057518f3e32bf397b5/server/src/main/scala/org/http4s/server/Router.scala" target="_blank">Router.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -477,9 +477,9 @@ for serious static content serving.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.Router#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](mappings:(String,org.http4s.HttpService[F])*)(implicitevidence$1:cats.effect.Sync[F],implicitF:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.HttpService[F]"></a><a id="apply[F[_]]((String,HttpService[F])*)(Sync[F],Semigroup[F[MaybeResponse[F]]]):HttpService[F]"></a>
+      <a id="apply[F[_]](mappings:(String,org.http4s.HttpService[F])*)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]]((String,HttpService[F])*)(Sync[F]):HttpService[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/Router$.html#apply[F[_]](mappings:(String,org.http4s.HttpService[F])*)(implicitevidence$1:cats.effect.Sync[F],implicitF:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../org/http4s/server/Router$.html#apply[F[_]](mappings:(String,org.http4s.HttpService[F])*)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.HttpService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -488,7 +488,7 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="mappings">mappings: (<span class="extype" name="scala.Predef.String">String</span>, <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>])*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>]</span>, <span name="F">F: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>[<a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>]]]</span>)</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="mappings">mappings: (<span class="extype" name="scala.Predef.String">String</span>, <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>])*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>]</span>)</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.apply.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Defines an HttpService based on list of mappings.</p><div class="fullcomment"><div class="comment cmt"><p>Defines an HttpService based on list of mappings.</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>define</p></span></dd></dl></div>
@@ -531,9 +531,9 @@ for serious static content serving.
               
         </dd></dl></div>
     </li><li name="org.http4s.server.Router#define" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="define[F[_]](mappings:(String,org.http4s.HttpService[F])*)(default:org.http4s.HttpService[F])(implicitevidence$2:cats.effect.Sync[F],implicitF:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.HttpService[F]"></a><a id="define[F[_]]((String,HttpService[F])*)(HttpService[F])(Sync[F],Semigroup[F[MaybeResponse[F]]]):HttpService[F]"></a>
+      <a id="define[F[_]](mappings:(String,org.http4s.HttpService[F])*)(default:org.http4s.HttpService[F])(implicitevidence$2:cats.effect.Sync[F]):org.http4s.HttpService[F]"></a><a id="define[F[_]]((String,HttpService[F])*)(HttpService[F])(Sync[F]):HttpService[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/Router$.html#define[F[_]](mappings:(String,org.http4s.HttpService[F])*)(default:org.http4s.HttpService[F])(implicitevidence$2:cats.effect.Sync[F],implicitF:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../org/http4s/server/Router$.html#define[F[_]](mappings:(String,org.http4s.HttpService[F])*)(default:org.http4s.HttpService[F])(implicitevidence$2:cats.effect.Sync[F]):org.http4s.HttpService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -542,7 +542,7 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">define</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="mappings">mappings: (<span class="extype" name="scala.Predef.String">String</span>, <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>])*</span>)</span><span class="params">(<span name="default">default: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]</span>, <span name="F">F: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>[<a href="../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]]]</span>)</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]</span>
+        <span class="name">define</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="mappings">mappings: (<span class="extype" name="scala.Predef.String">String</span>, <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>])*</span>)</span><span class="params">(<span name="default">default: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]</span>)</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.Router.define.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Defines an HttpService based on list of mappings and

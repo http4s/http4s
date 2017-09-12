@@ -307,7 +307,7 @@ request query params.">
 as a GET.  The resulting response's body is killed, but all headers are
 preserved.  This is a naive, but correct, implementation of HEAD.  Routes
 requiring more optimization should implement their own HEAD handler.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/da2afc873ebcc844d347976c3d36f064349db918/server/src/main/scala/org/http4s/server/middleware/DefaultHead.scala" target="_blank">DefaultHead.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6c23191cfde7e17ebe4791057518f3e32bf397b5/server/src/main/scala/org/http4s/server/middleware/DefaultHead.scala" target="_blank">DefaultHead.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -413,9 +413,9 @@ requiring more optimization should implement their own HEAD handler.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.DefaultHead#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](service:org.http4s.HttpService[F])(implicitevidence$1:cats.Functor[F],implicitM:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](HttpService[F])(Functor[F],Semigroup[F[MaybeResponse[F]]]):HttpService[F]"></a>
+      <a id="apply[F[_]](service:org.http4s.HttpService[F])(implicitevidence$1:cats.Monad[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](HttpService[F])(Monad[F]):HttpService[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/DefaultHead$.html#apply[F[_]](service:org.http4s.HttpService[F])(implicitevidence$1:cats.Functor[F],implicitM:cats.Semigroup[F[org.http4s.MaybeResponse[F]]]):org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/DefaultHead$.html#apply[F[_]](service:org.http4s.HttpService[F])(implicitevidence$1:cats.Monad[F]):org.http4s.HttpService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -424,7 +424,7 @@ requiring more optimization should implement their own HEAD handler.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]</span>, <span name="M">M: <span class="extype" name="cats.Semigroup">Semigroup</span>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>[<a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]]]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Monad">Monad</span>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.DefaultHead.apply.F">F</span>]</span>
       </span>
       
       
