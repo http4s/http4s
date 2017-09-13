@@ -6,7 +6,7 @@ title: Community
 
 <div class="jumbotron">
   <h1>
-    <img src="/images/http4s-logo.svg" alt="" />http4s
+    <img src="{{.Site.BaseURL}}/images/http4s-logo.svg" alt="" />http4s
   </h1>
   <p>
     A typeful, purely functional, streaming library for HTTP
