@@ -303,27 +303,24 @@ lazy val docs = http4sProject("docs")
     },
     makeSite := makeSite.dependsOn(tutQuick, exportMetadataForSite).value,
     baseURL in Hugo := {
-      val (major, minor) = extractApiVersion(version.value)
-      if (isTravisBuild.value) new URI(s"http://http4s.org/v${major}.${minor}")
+      val docsPrefix = extractDocsPrefix(version.value)
+      if (isTravisBuild.value) new URI(s"http://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
-    includeFilter in Hugo := (
-        "*.html" |
-        "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-        "*.js" | "*.swf" | "*.json" | "*.md" |
-        "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-        "CNAME" | "_config.yml"
-    ),
+    siteMappings := {
+      val docsPrefix = extractDocsPrefix(version.value)
+      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
+    },
     siteMappings ++= {
-      val m = (mappings in (ScalaUnidoc, packageDoc)).value
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- m) yield (f, s"api/$d")
+      val docsPrefix = extractDocsPrefix(version.value)
+      for ((f, d) <- (mappings in (ScalaUnidoc, packageDoc)).value)
+      yield (f, s"$docsPrefix/api/$d")
     },
     includeFilter in ghpagesCleanSite := {
       new FileFilter {
-        val (major, minor) = extractApiVersion(version.value)
+        val docsPrefix = extractDocsPrefix(version.value)
         def accept(f: File) =
-          f.getCanonicalPath.startsWith((ghpagesRepository.value / s"v${major}.${minor}").getCanonicalPath)
+          f.getCanonicalPath.startsWith((ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
     }
   )
@@ -341,12 +338,14 @@ lazy val website = http4sProject("website")
     },
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    excludeFilter in ghpagesCleanSite := {
-      new FileFilter{
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith((ghpagesRepository.value / "v0.*").getCanonicalPath)
-      }
-    },
+    excludeFilter in ghpagesCleanSite :=
+      new FileFilter {
+        val v = ghpagesRepository.value.getCanonicalPath + "/v"
+        def accept(f: File) = {
+          f.getCanonicalPath.startsWith(v) ||
+          f.getCanonicalPath.charAt(v.size).isDigit
+        }
+      },
     ghpagesPushSite ~= { old =>
       if (sys.env.get("TRAVIS_BRANCH") == Some("master")) old
       else ()
@@ -434,6 +433,7 @@ def exampleProject(name: String) = http4sProject(name)
   .dependsOn(examples)
 
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
+
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
 lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
 
