@@ -41,7 +41,7 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     http4sMimaVersion := {
-      val VRegex = """(\d+)\.(\d+)\.(\d+)-.*""".r
+      val VRegex = """(\d+)\.(\d+)\.(\d+)a-?.*""".r
       version.value match {
         // Oh, the bitter irony.  VersionNumber fails to parse our own version.
         case VRegex(major, minor, patch) if patch.toInt > 0 =>
