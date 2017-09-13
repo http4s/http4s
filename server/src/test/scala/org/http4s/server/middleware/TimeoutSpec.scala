@@ -18,7 +18,7 @@ class TimeoutSpec extends Http4sSpec {
       delay(2.seconds, Ok("Slow"))
   }
 
-  val timeoutService = Timeout(1.nanosecond)(myService)
+  val timeoutService = Timeout(5.milliseconds)(myService)
 
   val fastReq = Request[IO](GET, uri("/fast"))
   val slowReq = Request[IO](GET, uri("/slow"))

@@ -11,13 +11,12 @@
           </div>
           {{ .Content }}
           <footer>
-            {{ $apiVer := index .Site.Data.build.versions "http4s.api" }}
             <nav>
               <ul class="pager">
                 {{ if .NextInSection }}
                 <li class="previous"><a href="{{.NextInSection.Permalink}}"><i class="fa fa-arrow-left"></i> {{.NextInSection.Title}}</a></li>
                 {{ end }}
-                <li><a href="https://github.com/http4s/http4s/edit/release-{{ $apiVer }}.x/docs/src/main/tut{{ replace .File.Path (print "v" $apiVer) ""}}"><i class="fa fa-pencil"></i> Edit this page</a></li>
+                <li>{{ partial "edit-link.html" . }}</li>
                 {{ if .PrevInSection }}
                 <li class="next"><a href="{{.PrevInSection.Permalink}}">{{.PrevInSection.Title}} <i class="fa fa-arrow-right"></i></a></li>
                 {{ end }}

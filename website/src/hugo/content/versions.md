@@ -239,7 +239,7 @@ title: Versions
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      {{< readfile "CHANGELOG.md" >}} 
+      {{< readfile "content/CHANGELOG.md" >}} 
     </div>
   </div>
 </div>
