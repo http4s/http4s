@@ -80,13 +80,13 @@ class UrlFormSpec extends Http4sSpec {
       (
         UrlForm.empty +? ("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) ===
           UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
-      ) must_== (true)
+      )
 
       (
         UrlForm.empty +? ("foo", 1) +? ("bar", Option
           .empty[Boolean]) ++? ("dummy", List("a", "b", "c")) ===
           UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
-      ) must_== (true)
+      )
     }
 
     "construct consistently from kv-pairs or and Map[String, Seq[String]]" in prop {

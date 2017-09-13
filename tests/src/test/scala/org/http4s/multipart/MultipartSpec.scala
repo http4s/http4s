@@ -3,6 +3,7 @@ package multipart
 
 import cats._
 import cats.effect._
+import cats.implicits._
 import fs2._
 import java.io.File
 import org.http4s.MediaType._
