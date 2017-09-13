@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <title>http4s: </title>
+
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/css/style.css" >
+</head>
+
+  <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+	<img src="http://http4s.org/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+      </a>
+    </div>
+    <div id="navbar" class="collapse navbar-collapse">
+      <ul class="nav navbar-nav">
+	
+	
+	  <li >
+	    <a href="/community/">Community</a>
+	  </li>
+	
+	  <li >
+	    <a href="/adopters/">Adopters</a>
+	  </li>
+	
+	<li class="dropdown">
+  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
+    Documentation <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
+    <li><a href="/versions/">Versions</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.18 (development)</li>
+    <li><a href="/v0.18/">Tutorial</a></li>
+    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.17</li>
+    <li><a href="/v0.17/">Tutorial</a></li>
+    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.16</li>
+    <li><a href="/v0.16/">Tutorial</a></li>
+    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15 (eol)</li>
+    <li><a href="/v0.15/">Tutorial</a></li>
+    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+  </ul>
+</li>
+
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="container">
+      <div class="content">
+        <div class="col-md-10" role="main">
+          <div class="page-header">
+            <h1></h1>
+          </div>
+          
+
+<h1 id="v0-17-0-2017-09-01">v0.17.0 (2017-09-01)</h1>
+
+<ul>
+<li>Honor <code>Retry-After</code> header in <code>Retry</code> middleware.  The response will
+not be retried until the maximum of the backoff strategy and any
+time specified by the <code>Retry-After</code> header of the response.</li>
+<li>The <code>RetryPolicy.defaultRetriable</code> only works for methods guaranteed
+to not have a body.  In fs2, we can&rsquo;t introspect the stream to
+guarantee that it can be rerun.  To retry requests for idempotent
+request methods, use <code>RetryPolicy.unsafeRetriable</code>.  To retry
+requests regardless of method, use
+<code>RetryPolicy.recklesslyRetriable</code>.</li>
+<li>Fix <code>Logger</code> middleware to render JSON bodies as text, not as a hex
+dump.</li>
+<li><code>MultipartParser.parse</code> returns a stream of <code>ByteVector</code> instead of
+a stream of <code>Byte</code>. This perserves chunking when parsing into the
+high-level <code>EntityDecoder[Multipart]</code>, and substantially improves
+performance on large files.  The high-level API is not affected.</li>
+</ul>
+
+<h1 id="v0-16-0-2017-09-01">v0.16.0 (2017-09-01)</h1>
+
+<ul>
+<li><code>Retry</code> middleware takes a <code>RetryPolicy</code> instead of a backoff
+strategy.  A <code>RetryPolicy</code> is a function of the request, the
+response, and the number of attempts.  Wrap the previous <code>backoff</code>
+in <code>RetryPolicy {}</code> for compatible behavior.</li>
+<li>Expose a <code>Part.fileData</code> constructor that accepts an <code>EntityBody</code>.</li>
+</ul>
+
+<h1 id="v0-17-0-rc3-2017-08-29">v0.17.0-RC3 (2017-08-29)</h1>
+
+<ul>
+<li>In blaze-server, when doing chunked transfer encoding, flush the
+header as soon as it is available.  It previously buffered until the
+first chunk was available.</li>
+</ul>
+
+<h1 id="v0-16-0-rc3-2017-08-29">v0.16.0-RC3 (2017-08-29)</h1>
+
+<ul>
+<li>Add a <code>responseHeaderTimeout</code> property to <code>BlazeClientConfig</code>.  This
+measures the time between the completion of writing the request body
+to the reception of a complete response header.</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>async-http-client-2.0.35</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-0-m1-2107-08-24">v0.18.0-M1 (2107-08-24)</h1>
+
+<p>This release is the product of a long period of parallel development
+across different foundation libraries, making a detailed changelog
+difficult.  This is a living document, so if any important points are
+missed here, please send a PR.</p>
+
+<p>The most important change in http4s-0.18 is that the effect type is
+parameterized.  Where previous versions were specialized on
+<code>scalaz.concurrent.Task</code> or <code>fs2.Task</code>, this version supports anything
+with a <code>cats.effect.Effect</code> instance.  The easiest way to port an
+existing service is to replace your <code>Task</code> with <code>cats.effect.IO</code>,
+which has a similar API and is already available on your classpath.
+If you prefer to bring your own effect, such as <code>monix.eval.Task</code> or
+stick to <code>scalaz.concurrent.Task</code> or put a transformer on <code>IO</code>, that&rsquo;s
+fine, too!</p>
+
+<p>The parameterization chanages many core signatures throughout http4s:
+- <code>Request</code> and <code>Response</code> become <code>Request[F[_]]</code> and
+  <code>Response[F[_]]</code>.  The <code>F</code> is the effect type of the body (i.e.,
+  <code>Stream[F, Byte]</code>), or what the body <code>.run</code>s to.
+- <code>HttpService</code> becomes <code>HttpService[F[_]]</code>, so that the service
+  returns an <code>F[Response[F]]</code>.  Instead of constructing with
+  <code>HttpService { ... }</code>, we now declare the effect type of the
+  service, like <code>HttpService[IO] { ... }</code>.  This determines the type
+  of request and response handled by the service.
+- <code>EntityEncoder[A]</code> and <code>EntityDecoder[A]</code> are now
+  <code>EntityEncoder[F[_], A]</code> and <code>EntityDecoder[F[_], A]</code>, respectively.
+  These act as a codec for <code>Request[F]</code> and <code>Response[F]</code>.  In practice,
+  this change tends to be transparent in the DSL.
+- The server builders now take an <code>F</code> parameter, which needs to match
+  the services mounted to them.
+- The client now takes an <code>F</code> parameter, which determines the requests
+  and responses it handles.</p>
+
+<p>Several dependencies are upgraded:
+- cats-1.0.0.MF
+- circe-0.9.0-M1
+- fs2-0.10.0-M6
+- fs2-reactive-streams-0.2.2
+- jawn-fs2-0.12.0-M1</p>
+
+<h1 id="v0-17-0-rc2-2017-08-24">v0.17.0-RC2 (2017-08-24)</h1>
+
+<ul>
+<li>Remove <code>ServiceSyntax.orNotFound(a: A): Task[Response]</code> in favor of
+<code>ServiceSyntax.orNotFound: Service[Request, Response]</code></li>
+</ul>
+
+<h1 id="v0-16-0-rc2-2017-08-24">v0.16.0-RC2 (2017-08-24)</h1>
+
+<ul>
+<li>Move http4s-blaze-core from <code>org.http4s.blaze</code> to
+<code>org.http4s.blazecore</code> to avoid a conflict with the non-http4s
+blaze-core module.</li>
+<li>Change <code>ServiceOps</code> to operate on a <code>Service[?, MaybeResponse]</code>.
+Give it an <code>orNotFound</code> that returns a <code>Service</code>.  The
+<code>orNotFound(a: A)</code> overload is left for compatibility with Scala
+2.10.</li>
+<li>Build with Lightbend compiler instead of Typelevel compiler so we
+don&rsquo;t expose <code>org.typelevel</code> dependencies that are incompatible with
+ntheir counterparts in <code>org.scala-lang</code>.</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>blaze-0.12.7 (fixes eviction notice in http4s-websocket)</li>
+<li>twirl-1.3.4</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-17-0-rc1-2017-08-16">v0.17.0-RC1 (2017-08-16)</h1>
+
+<ul>
+<li>Port <code>ChunkAggregator</code> to fs2</li>
+<li>Add logging middleware</li>
+<li>Standardize on <code>ExecutionContext</code> over <code>Strategy</code> and <code>ExecutorService</code></li>
+<li>Implement <code>Age</code> header</li>
+<li>Fix <code>Client#toHttpService</code> to not dispose until the body is consumed</li>
+<li>Add a buffered implementation of <code>EntityDecoder[Multipart]</code></li>
+<li>In async-http-client, don&rsquo;t use <code>ReactiveStreamsBodyGenerator</code> unless there is
+a body to transmit. This fixes an <code>IllegalStateException: unexpected message
+type</code></li>
+<li>Add <code>HSTS</code> middleware</li>
+<li>Add option to serve pre-gzipped resources</li>
+<li>Add RequestLogging and ResponseLogging middlewares</li>
+<li><code>StaticFile</code> options return <code>OptionT[Task, ?]</code></li>
+<li>Set <code>Content-Length</code> or <code>Transfer-Encoding: chunked</code> header when serving
+from a URL</li>
+<li>Explicitly close <code>URLConnection</code>`s if we are not reading the contents</li>
+<li>Upgrade to:
+
+<ul>
+<li>async-http-client-2.0.34</li>
+<li>fs2-0.9.7</li>
+<li>metrics-core-3.2.4</li>
+<li>scodec-bits-1.1.5</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-16-0-rc1-2017-08-16">v0.16.0-RC1 (2017-08-16)</h1>
+
+<ul>
+<li>Remove laziness from <code>ArbitraryInstances</code></li>
+<li>Support an arbitrary predicate for CORS allowed origins</li>
+<li>Support <code>Access-Control-Expose-Headers</code> header for CORS</li>
+<li>Fix thread safety issue in <code>EntityDecoder[XML]</code></li>
+<li>Support IPV6 headers in <code>X-Forwarded-For</code></li>
+<li>Add <code>status</code> and <code>successful</code> methods to client</li>
+<li>Overload <code>client.fetchAs</code> and <code>client.streaming</code> to accept a <code>Task[Request]</code></li>
+<li>Replace <code>Instant</code> with <code>HttpDate</code> to avoid silent truncation and constrain
+to dates that are legally renderable in HTTP.</li>
+<li>Fix bug in hash code of <code>CaseInsensitiveString</code></li>
+<li>Update <code>request.pathInfo</code> when changing <code>request.withUri</code>. To keep these
+values in sync, <code>request.copy</code> has been deprecated, but copy constructors
+based on <code>with</code> have been added.</li>
+<li>Remove <code>name</code> from <code>AttributeKey</code>.</li>
+<li>Add <code>withFragment</code> and <code>withoutFragment</code> to <code>Uri</code></li>
+<li>Construct <code>Content-Length</code> with <code>fromLong</code> to ensure validity, and
+<code>unsafeFromLong</code> when you can assert that it&rsquo;s positive.</li>
+<li>Add missing instances to <code>QueryParamDecoder</code> and <code>QueryParamEncoder</code>.</li>
+<li>Add <code>response.cookies</code> method to get a list of cookies from <code>Set-Cookie</code>
+header.  <code>Set-Cookie</code> is no longer a <code>Header.Extractable</code>, as it does
+not adhere to the HTTP spec of being concatenable by commas without
+changing semantics.</li>
+<li>Make servlet <code>HttpSession</code> available as a request attribute in servlet
+backends</li>
+<li>Fix <code>Part.name</code> to return the name from the <code>Content-Disposition</code> header
+instead of the name <em>of</em> the <code>Content-Disposition</code> header. Accordingly, it is
+no longer a <code>CaseInsensitiveString</code></li>
+<li><code>Request.toString</code> and <code>Response.toString</code> now redact sensitive headers. A
+method to redact arbitrary headers is added to <code>Headers</code>.</li>
+<li><code>Retry-After</code> is now modeled as a <code>Either[HttpDate, Long]</code> to reflect either
+an http-date or delta-seconds value.</li>
+<li>Look for index.html in <code>StaticFile</code> when rendering a directory instead of
+returning <code>401 Unauthorized</code>.</li>
+<li>Limit dates to a minimum of January 1, 1900, per RFC.</li>
+<li>Add <code>serviceErrorHandler</code> to <code>ServerBuilder</code> to allow pluggable error handlers
+when a server backend receives a failed task or a thrown Exception when
+invoking a service. The default calls <code>toHttpResponse</code> on <code>MessageFailure</code> and
+closes the connection with a <code>500 InternalServerError</code> on other non-fatal
+errors.  Fatal errors are left to the server.</li>
+<li><code>FollowRedirect</code> does not propagate sensitive headers when redirecting to a
+different authority.</li>
+<li>Add Content-Length header to empty response generators</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>async-http-client-2.0.34</li>
+<li>http4s-websocket-0.2.0</li>
+<li>jetty-9.4.6.v20170531</li>
+<li>json4s-3.5.3</li>
+<li>log4s-1.3.6</li>
+<li>metrics-core-3.2.3</li>
+<li>scala-2.12.3-bin-typelevel-4</li>
+<li>scalaz-7.2.15</li>
+<li>tomcat-8.5.20</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-15-16-2017-07-20">v0.15.16 (2017-07-20)</h1>
+
+<ul>
+<li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
+</ul>
+
+<h1 id="v0-15-15-2017-07-20"><del>v0.15.15 (2017-07-20)</del></h1>
+
+<ul>
+<li>Oops. Same as v0.15.14.</li>
+</ul>
+
+<h1 id="v0-15-14-2017-07-10">v0.15.14 (2017-07-10)</h1>
+
+<ul>
+<li>Close parens in <code>Request.toString</code></li>
+<li>Use &ldquo;message&rdquo; instead of &ldquo;request&rdquo; in message body failure messages</li>
+<li>Add <code>problem+json</code> media type</li>
+<li>Tolerate <code>[</code> and <code>]</code> in queries parsing URIs. These characters are parsed, but
+percent-encoded.</li>
+</ul>
+
+<h1 id="v0-17-0-m3-2017-05-27">v0.17.0-M3 (2017-05-27)</h1>
+
+<ul>
+<li>Fix file corruption issue when serving static files from the classpath</li>
+</ul>
+
+<h1 id="v0-16-0-m3-2017-05-25">v0.16.0-M3 (2017-05-25)</h1>
+
+<ul>
+<li>Fix <code>WebjarService</code> so it matches assets.</li>
+<li><code>ServerApp</code> overrides <code>process</code> to leave a single abstract method</li>
+<li>Add gzip trailer in <code>GZip</code> middleware</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>circe-0.8.0</li>
+<li>jetty-9.4.5.v20170502</li>
+<li>scalaz-7.2.13</li>
+<li>tomcat-8.5.15</li>
+</ul></li>
+<li><code>ProcessApp</code> uses a <code>Process[Task, Nothing]</code> rather than a
+<code>Process[Task, Unit]</code></li>
+<li><code>Credentials</code> is split into <code>Credentials.AuthParams</code> for key-value pairs and
+<code>Credentials.Token</code> for legacy token-based schemes.  <code>OAuthBearerToken</code> is
+subsumed by <code>Credentials.Token</code>.  <code>BasicCredentials</code> no longer extends
+<code>Credentials</code>, but is extractable from one.  This model permits the
+definition of other arbitrary credential schemes.</li>
+<li>Add <code>fromSeq</code> constructor to <code>UrlForm</code></li>
+<li>Allow <code>WebjarService</code> to pass on methods other than <code>GET</code>.  It previously
+threw a <code>MatchError</code>.</li>
+</ul>
+
+<h1 id="v0-15-13-2017-05-25">v0.15.13 (2017-05-25)</h1>
+
+<ul>
+<li>Patch-level upgrades to dependencies:
+
+<ul>
+<li>async-http-client-2.0.32</li>
+<li>blaze-0.12.6 (fixes infinite loop in some SSL handshakes)</li>
+<li>jetty-9.3.19.v20170502</li>
+<li>json4s-3.5.2</li>
+<li>tomcat-8.0.44</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-15-12-2017-05-11">v0.15.12 (2017-05-11)</h1>
+
+<ul>
+<li>Fix GZip middleware to render a correct stream</li>
+</ul>
+
+<h1 id="v0-17-0-m2-2017-04-30">v0.17.0-M2 (2017-04-30)</h1>
+
+<ul>
+<li><code>Timeout</code> middleware takes an implicit <code>Scheduler</code> and
+<code>ExecutionContext</code></li>
+<li>Bring back <code>http4s-async-client</code>, based on <code>fs2-reactive-stream</code></li>
+<li>Restore support for WebSockets</li>
+</ul>
+
+<h1 id="v0-16-0-m2-2017-04-30">v0.16.0-M2 (2017-04-30)</h1>
+
+<ul>
+<li>Upgraded dependencies:
+
+<ul>
+<li>argonaut-6.2</li>
+<li>jetty-9.4.4.v20170414</li>
+<li>tomcat-8.5.14</li>
+</ul></li>
+<li>Fix <code>ProcessApp</code> to terminate on process errors</li>
+<li>Set <code>secure</code> request attribute correctly in blaze server</li>
+<li>Exit with code <code>-1</code> when <code>ProcessApp</code> fails</li>
+<li>Make <code>ResourceService</code> respect <code>If-Modified-Since</code></li>
+<li>Rename <code>ProcessApp.main</code> to <code>ProcessApp.process</code> to avoid overload confusio</li>
+<li>Avoid intermediate String allocation in Circe&rsquo;s <code>jsonEncoder</code></li>
+<li>Adaptive EntityDecoder[Json] for circe: works directly from a ByteBuffer for
+small bodies, and incrementally through jawn for larger.</li>
+<li>Capture more context in detail message of parse errors</li>
+</ul>
+
+<h1 id="v0-15-11-2017-04-29">v0.15.11 (2017-04-29)</h1>
+
+<ul>
+<li>Upgrade to blaze-0.12.5 to pick up fix for <code>StackOverflowError</code> in
+SSL handshake</li>
+</ul>
+
+<h1 id="v0-15-10-2017-04-28">v0.15.10 (2017-04-28)</h1>
+
+<ul>
+<li>Patch-level upgrades to dependencies</li>
+<li>argonaut-6.2</li>
+<li>scalaz-7.2.12</li>
+<li>Allow preambles and epilogues in multipart bodies</li>
+<li>Limit multipart headers to 40 kilobytes to avoid unbounded buffering
+of long lines in a header</li>
+<li>Remove <code>' '</code> and <code>'?'</code> from alphabet for generated multipart
+boundaries, as these are not token characters and are known to cause
+trouble for some multipart implementations</li>
+<li>Fix multipart parsing for unlucky input chunk sizes</li>
+</ul>
+
+<h1 id="v0-15-9-2017-04-19">v0.15.9 (2017-04-19)</h1>
+
+<ul>
+<li>Terminate <code>ServerApp</code> even if the server fails to start</li>
+<li>Make <code>ResourceService</code> respect <code>If-Modified-Since</code></li>
+<li>Patch-level upgrades to dependencies:</li>
+<li>async-http-client-2.0.31</li>
+<li>jetty-9.3.18.v20170406</li>
+<li>json4s-3.5.1</li>
+<li>log4s-1.3.4</li>
+<li>metrics-core-3.1.4</li>
+<li>scalacheck-1.13.5</li>
+<li>scalaz-7.1.13 or scalaz-7.2.11</li>
+<li>tomcat-8.0.43</li>
+</ul>
+
+<h1 id="v0-17-0-m1-2017-04-08">v0.17.0-M1 (2017-04-08)</h1>
+
+<ul>
+<li>First release on cats and fs2
+
+<ul>
+<li>All scalaz types and typeclasses replaced by cats equivalengts</li>
+<li><code>scalaz.concurrent.Task</code> replaced by <code>fs2.Task</code><br /></li>
+<li><code>scalaz.stream.Process</code> replaced by <code>fs2.Stream</code></li>
+</ul></li>
+<li>Roughly at feature parity with v0.16.0-M1. Notable exceptions:
+
+<ul>
+<li>Multipart not yet supported</li>
+<li>Web sockets not yet supported</li>
+<li>Client retry middleware can&rsquo;t check idempotence of requests</li>
+<li>Utilties in <code>org.http4s.util.io</code> not yet ported</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-16-0-m1-2017-04-08">v0.16.0-M1 (2017-04-08)</h1>
+
+<ul>
+<li>Fix type of <code>AuthedService.empty</code></li>
+<li>Eliminate <code>Fallthrough</code> typeclass.  An <code>HttpService</code> now returns
+<code>MaybeResponse</code>, which can be a <code>Response</code> or <code>Pass</code>.  There is a
+<code>Semigroup[MaybeResponse]</code> instance that allows <code>HttpService</code>s to be
+chained as a semigroup.  <code>service orElse anotherService</code> is
+deprecated in favor of <code>service |+| anotherService</code>.</li>
+<li>Support configuring blaze and Jetty servers with a custom
+<code>SSLContext</code>.</li>
+<li>Upgraded dependencies for various modules:
+
+<ul>
+<li>async-http-client-2.0.31</li>
+<li>circe-0.7.1</li>
+<li>jetty-9.4.3.v20170317</li>
+<li>json4s-3.5.1</li>
+<li>logback-1.2.1</li>
+<li>log4s-1.3.4</li>
+<li>metrics-3.2.0</li>
+<li>scalacheck-1.13.5</li>
+<li>tomcat-8.0.43</li>
+</ul></li>
+<li>Deprecate <code>EntityEncoder[ByteBuffer]</code> and
+<code>EntityEncoder[CharBuffer]</code>.</li>
+<li>Add <code>EntityDecoder[Unit]</code>.</li>
+<li>Move <code>ResponseClass</code>es into <code>Status</code>.</li>
+<li>Use <code>SSLContext.getDefault</code> by default in blaze-client.  Use
+<code>BlazeServerConfig.insecure</code> to ignore certificate validity.  But
+please don&rsquo;t.</li>
+<li>Move <code>CaseInsensitiveString</code> syntax to <code>org.http4s.syntax</code>.</li>
+<li>Bundle an internal version of parboiled2.  This decouples core from
+shapeless, allowing applications to use their preferred version of
+shapeless.</li>
+<li>Rename <code>endpointAuthentication</code> to <code>checkEndpointAuthentication</code>.</li>
+<li>Add a <code>WebjarService</code> for serving files out of web jars.</li>
+<li>Implement <code>Retry-After</code> header.</li>
+<li>Stop building with <code>delambdafy</code> on Scala 2.11.</li>
+<li>Eliminate finalizer on <code>BlazeConnection</code>.</li>
+<li>Respond OK to CORS pre-flight requests even if the wrapped service
+does not return a successful response.  This is to allow <code>CORS</code>
+pre-flight checks of authenticated services.</li>
+<li>Deprecate <code>ServerApp</code> in favor of <code>org.http4s.util.ProcessApp</code>.  A
+<code>ProcessApp</code> is easier to compose all the resources a server needs via
+<code>Process.bracket</code>.</li>
+<li>Implement a <code>Referer</code> header.</li>
+</ul>
+
+<h1 id="v0-15-8-2017-04-06">v0.15.8 (2017-04-06)</h1>
+
+<ul>
+<li>Cache charset lookups to avoid synchronization.  Resolution of
+charsets is synchronized, with a cache size of two.  This avoids
+the synchronized call on the HTTP pool.</li>
+<li>Strip fragment from request target in blaze-client.  An HTTP request
+target should not include the fragment, and certain servers respond
+with a <code>400 Bad Request</code> in their presence.</li>
+</ul>
+
+<h1 id="v0-15-7-2017-03-09">v0.15.7 (2017-03-09)</h1>
+
+<ul>
+<li>Change default server and client executors to a minimum of four
+threads.</li>
+<li>Bring scofflaw async-http-client to justice for its brazen
+violations of Reactive Streams Rule 3.16, requesting of a null
+subscription.</li>
+<li>Destroy Tomcat instances after stopping, so they don&rsquo;t hold the port</li>
+<li>Deprecate <code>ArbitraryInstances.genCharsetRangeNoQuality</code>, which can
+cause deadlocks</li>
+<li>Patch-level upgrades to dependencies:
+
+<ul>
+<li>async-http-client-2.0.30</li>
+<li>jetty-9.3.16.v20170120</li>
+<li>logback-1.1.11</li>
+<li>metrics-3.1.3</li>
+<li>scala-xml-1.0.6</li>
+<li>scalaz-7.2.9</li>
+<li>tomcat-8.0.41</li>
+<li>twirl-1.2.1</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-15-6-2017-03-03">v0.15.6 (2017-03-03)</h1>
+
+<ul>
+<li>Log unhandled MessageFailures to <code>org.http4s.server.message-failures</code></li>
+</ul>
+
+<h1 id="v0-15-5-2017-02-20">v0.15.5 (2017-02-20)</h1>
+
+<ul>
+<li>Allow services wrapped in CORS middleware to fall through</li>
+<li>Don&rsquo;t log message about invalid CORS headers when no <code>Origin</code> header present</li>
+<li>Soften log about invalid CORS headers from info to debug</li>
+</ul>
+
+<h1 id="v0-15-4-2017-02-12">v0.15.4 (2017-02-12)</h1>
+
+<ul>
+<li>Call <code>toHttpResponse</code> on tasks failed with <code>MessageFailure</code>s from
+<code>HttpService</code>, to get proper 4xx handling instead of an internal
+server error.</li>
+</ul>
+
+<h1 id="v0-15-3-2017-01-17">v0.15.3 (2017-01-17)</h1>
+
+<ul>
+<li>Dispose of redirect responses in <code>FollowRedirect</code>. Fixes client deadlock under heavy load</li>
+<li>Refrain from logging headers with potentially sensitive info in blaze-client</li>
+<li>Add <code>hashCode</code> and <code>equals</code> to <code>Headers</code></li>
+<li>Make <code>challenge</code> in auth middlewares public to facilitate composing multiple auth mechanisms</li>
+<li>Fix blaze-client detection of stale connections</li>
+</ul>
+
+<h1 id="v0-15-2-2016-12-29">v0.15.2 (2016-12-29)</h1>
+
+<ul>
+<li>Add helpers to add cookies to requests</li>
+</ul>
+
+<h1 id="v0-12-6-2016-12-29">v0.12.6 (2016-12-29)</h1>
+
+<ul>
+<li>Backport rendering of details in <code>ParseFailure.getMessage</code></li>
+</ul>
+
+<h1 id="v0-12-5-2016-12-29"><del>v0.12.5 (2016-12-29)</del></h1>
+
+<ul>
+<li><del>Backport rendering of details in <code>ParseFailure.getMessage</code></del> Oops.</li>
+</ul>
+
+<h1 id="v0-15-1-2016-12-20">v0.15.1 (2016-12-20)</h1>
+
+<ul>
+<li>Fix GZip middleware to fallthrough non-matching responses</li>
+<li>Fix UnsupportedOperationException in Arbitrary[Uri]</li>
+<li>Upgrade to Scala 2.12.1 and Scalaz 7.2.8</li>
+</ul>
+
+<h1 id="v0-15-0-2016-11-30">v0.15.0 (2016-11-30)</h1>
+
+<ul>
+<li>Add support for Scala 2.12</li>
+<li>Added <code>Client.fromHttpService</code> to assist with testing.</li>
+<li>Make all case classes final where possible, sealed where not.</li>
+<li>Codec for Server Sent Events (SSE)</li>
+<li>Added JSONP middleware</li>
+<li>Improve Expires header to more easily build the header and support parsing of the header</li>
+<li>Replce lazy <code>Raw.parsed</code> field with a simple null check</li>
+<li>Added support for Zipkin headers</li>
+<li>Eliminate response attribute for detecting fallthrough response.
+The fallthrough response must be <code>Response.fallthrough</code>.</li>
+<li>Encode URI path segments created with <code>/</code></li>
+<li>Introduce <code>AuthedRequest</code> and <code>AuthedService</code> types.</li>
+<li>Replace <code>CharSequenceEncoder</code> with <code>CharBufferEncoder</code>, assuming
+that <code>CharBuffer</code> and <code>String</code> are the only <code>CharSequence</code>s one
+would want to encode.</li>
+<li>Remove <code>EnittyEncoder[Char]</code> and <code>EntityEncoder[Byte]</code>.  Send an
+array, buffer, or String if you want this.</li>
+<li>Add <code>DefaultHead</code> middleware for <code>HEAD</code> implementation.</li>
+<li>Decouple <code>http4s-server</code> from Dropwizard Metrics.  Metrics code is
+in the new <code>http4s-metrics</code> module.</li>
+<li>Allow custom scheduler for timeout middleware.</li>
+<li>Add parametric empty <code>EntityEncoder</code> and <code>EntityEncoder[Unit]</code>.</li>
+<li>Replace unlawful <code>Order[CharsetRange]</code> with <code>Equal[CharsetRange]</code>.</li>
+<li>Auth middlewares renamed <code>BasicAuth</code> and <code>DigestAuth</code>.</li>
+<li><code>BasicAuth</code> passes client password to store instead of requesting
+password from store.</li>
+<li>Remove realm as an argument to the basic and digest auth stores.</li>
+<li>Basic and digest auth stores return a parameterized type instead of
+just a String username.</li>
+<li>Upgrade to argonaut-6.2-RC2, circe-0.6.1, json4s-3.5.0</li>
+</ul>
+
+<h1 id="v0-14-11-2016-10-25">v0.14.11 (2016-10-25)</h1>
+
+<ul>
+<li>Fix expansion of <code>uri</code> and <code>q</code> macros by qualifying with <code>_root_</code></li>
+</ul>
+
+<h1 id="v0-14-10-2016-10-12">v0.14.10 (2016-10-12)</h1>
+
+<ul>
+<li>Include timeout type and duration in blaze client timeouts</li>
+</ul>
+
+<h1 id="v0-14-9-2016-10-09">v0.14.9 (2016-10-09)</h1>
+
+<ul>
+<li>Don&rsquo;t use <code>&quot;null&quot;</code> as query string in servlet backends for requests without a query string</li>
+</ul>
+
+<h1 id="v0-14-8-2016-10-04">v0.14.8 (2016-10-04)</h1>
+
+<ul>
+<li>Allow param names in UriTemplate to have encoded, reserved parameters</li>
+<li>Upgrade to blaze-0.12.1, to fix OutOfMemoryError with direct buffers</li>
+<li>Upgrade to Scalaz 7.1.<sup>10</sup>&frasl;<sub>7</sub>.2.6</li>
+<li>Upgrade to Jetty 9.3.12</li>
+<li>Upgrade to Tomcat 8.0.37</li>
+</ul>
+
+<h1 id="v0-14-7-2016-09-25">v0.14.7 (2016-09-25)</h1>
+
+<ul>
+<li>Retry middleware now only retries requests with idempotent methods
+and pure bodies and appropriate status codes</li>
+<li>Fix bug where redirects followed when an effectful chunk (i.e., <code>Await</code>) follows pure ones.</li>
+<li>Don&rsquo;t uppercase two hex digits after &ldquo;%25&rdquo; when percent encoding.</li>
+<li>Tolerate invalid percent-encodings when decoding.</li>
+<li>Omit scoverage dependencies from POM</li>
+</ul>
+
+<h1 id="v0-14-6-2016-09-11">v0.14.6 (2016-09-11)</h1>
+
+<ul>
+<li>Don&rsquo;t treat <code>Kill</code>ed responses (i.e., HEAD requests) as abnormal
+termination in metrics</li>
+</ul>
+
+<h1 id="v0-14-5-2016-09-02">v0.14.5 (2016-09-02)</h1>
+
+<ul>
+<li>Fix blaze-client handling of HEAD requests</li>
+</ul>
+
+<h1 id="v0-14-4-2016-08-29">v0.14.4 (2016-08-29)</h1>
+
+<ul>
+<li>Don&rsquo;t render trailing &ldquo;/&rdquo; for URIs with empty paths</li>
+<li>Avoid calling tail of empty list in <code>/:</code> extractor</li>
+</ul>
+
+<h1 id="v0-14-3-2016-08-24">v0.14.3 (2016-08-24)</h1>
+
+<ul>
+<li>Follow 301 and 302 responses to POST with a GET request.</li>
+<li>Follow all redirect responses to HEAD with a HEAD request.</li>
+<li>Fix bug where redirect response is disposed prematurely even if not followed.</li>
+<li>Fix bug where payload headers are sent from original request when
+following a redirect with a GET or HEAD.</li>
+<li>Return a failed task instead of throwing when a client callback
+throws an exception. Fixes a resource leak.</li>
+<li>Always render <code>Date</code> header in GMT.</li>
+<li>Fully support the three date formats specified by RFC 7231.</li>
+<li>Always specify peer information in blaze-client SSL engines</li>
+<li>Patch upgrades to latest async-http-client, jetty, scalaz, and scalaz-stream</li>
+</ul>
+
+<h1 id="v0-14-2-2016-08-10">v0.14.2 (2016-08-10)</h1>
+
+<ul>
+<li>Override <code>getMessage</code> in <code>UnexpectedStatus</code></li>
+</ul>
+
+<h1 id="v0-14-1-2016-06-15">v0.14.1 (2016-06-15)</h1>
+
+<ul>
+<li>Added the possibility to specify custom responses to MessageFailures</li>
+<li>Address issue with Retry middleware leaking connections</li>
+<li>Fixed the status code for a semantically invalid request to <code>422 UnprocessableEntity</code></li>
+<li>Rename <code>json</code> to <code>jsonDecoder</code> to reduce possibility of implicit shadowing</li>
+<li>Introduce the <code>ServerApp</code> trait</li>
+<li>Deprectate <code>onShutdown</code> and <code>awaitShutdown</code> in <code>Server</code></li>
+<li>Support for multipart messages</li>
+<li>The Path extractor for Long now supports negative numbers</li>
+<li>Upgrade to scalaz-stream-0.8.2(a) for compatibility with scodec-bits-1.1</li>
+<li>Downgrade to argonaut-6.1 (latest stable release) now that it cross builds for scalaz-7.2</li>
+<li>Upgrade parboiled2 for compatibility with shapeless-2.3.x</li>
+</ul>
+
+<h1 id="v0-14-0-2016-06-15"><del>v0.14.0 (2016-06-15)</del></h1>
+
+<ul>
+<li>Recalled. Use v0.14.1 instead.</li>
+</ul>
+
+<h1 id="v0-13-3-2016-06-15">v0.13.3 (2016-06-15)</h1>
+
+<ul>
+<li>Address issue with Retry middleware leaking connections.</li>
+<li>Pass the reason string when setting the <code>Status</code> for a successful <code>ParseResult</code>.</li>
+</ul>
+
+<h1 id="v0-13-2-2016-04-13">v0.13.2 (2016-04-13)</h1>
+
+<ul>
+<li>Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.</li>
+<li>Update version of jawn-parser which contains a fix for Json decoding.</li>
+</ul>
+
+<h1 id="v0-13-1-2016-04-07">v0.13.1 (2016-04-07)</h1>
+
+<ul>
+<li>Remove implicit resolution of <code>DefaultExecutor</code> in blaze-client.</li>
+</ul>
+
+<h1 id="v0-13-0-2016-03-29">v0.13.0 (2016-03-29)</h1>
+
+<ul>
+<li>Add support for scalaz-7.2.x (use version 0.13.0a).</li>
+<li>Add a client backed based on async-http-client.</li>
+<li>Encode keys when rendering a query string.</li>
+<li>New entity decoder based on json4s&rsquo; extract.</li>
+<li>Content-Length now accepts a Long.</li>
+<li>Upgrade to circe-0.3, json4s-3.3, and other patch releases.</li>
+<li>Fix deadlocks in blaze resulting from default executor on single-CPU machines.</li>
+<li>Refactor <code>DecodeFailure</code> into a new <code>RequestFailure</code> hierarchy.</li>
+<li>New methods for manipulating <code>UrlForm</code>.</li>
+<li>All parsed headers get a <code>parse</code> method to construct them from their value.</li>
+<li>Improve error message for unsupported media type decoding error.</li>
+<li>Introduce <code>BlazeClientConfig</code> class to simplify client construction.</li>
+<li>Unify client executor service semantics between blaze-client and async-http-client.</li>
+<li>Update default response message for UnsupportedMediaType failures.</li>
+<li>Add a <code>lenient</code> flag to blazee configuration to accept illegal characters in headers.</li>
+<li>Remove q-value from <code>MediaRange</code> and <code>MediaType</code>, replaced by <code>MediaRangeAndQValue</code>.</li>
+<li>Add <code>address</code> to <code>Server</code> trait.</li>
+<li>Lazily construct request body in Servlet NIO to support HTTP 100.</li>
+<li>Common operations pushed down to <code>MessageOps</code>.</li>
+<li>Fix loop in blaze-client when no connection can be established.</li>
+<li>Privatize most of the blaze internal types.</li>
+<li>Enable configuration of blaze server parser lengths.</li>
+<li>Add trailer support in blaze client.</li>
+<li>Provide an optional external executor to blaze clients.</li>
+<li>Fix Argonaut string interpolation</li>
+</ul>
+
+<h1 id="v0-12-4-2016-03-10">v0.12.4 (2016-03-10)</h1>
+
+<ul>
+<li>Fix bug on rejection of invalid URIs.</li>
+<li>Do not send <code>Transfer-Encoding</code> or <code>Content-Length</code> headers for 304 and others.</li>
+<li>Don&rsquo;t quote cookie values.</li>
+</ul>
+
+<h1 id="v0-12-3-2016-02-24">v0.12.3 (2016-02-24)</h1>
+
+<ul>
+<li>Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.</li>
+</ul>
+
+<h1 id="v0-12-2-2016-02-22">v0.12.2 (2016-02-22)</h1>
+
+<ul>
+<li><del>Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.</del> Oops.</li>
+</ul>
+
+<h1 id="v0-12-1-2016-01-30">v0.12.1 (2016-01-30)</h1>
+
+<ul>
+<li>Encode keys as well as values when rendering a query.</li>
+<li>Don&rsquo;t encode &lsquo;?&rsquo; or &lsquo;/&rsquo; when encoding a query.</li>
+</ul>
+
+<h1 id="v0-12-0-2016-01-15">v0.12.0 (2016-01-15)</h1>
+
+<ul>
+<li>Refactor the client API for resource safety when not reading the entire body.</li>
+<li>Rewrite client connection pool to support maximum concurrent
+connections instead of maximum idle connections.</li>
+<li>Optimize body collection for better connection keep-alive rate.</li>
+<li>Move <code>Service</code> and <code>HttpService</code>, because a <code>Client</code> can be viewed as a <code>Service</code>.</li>
+<li>Remove custom <code>DateTime</code> in favor of <code>java.time.Instant</code>.</li>
+<li>Support status 451 Unavailable For Legal Reasons.</li>
+<li>Various blaze-client optimizations.</li>
+<li>Don&rsquo;t let Blaze <code>IdentityWriter</code> write more than Content-Length bytes.</li>
+<li>Remove <code>identity</code> <code>Transfer-Encoding</code>, which was removed in HTTP RFC errata.</li>
+<li>In blaze, <code>requireClose</code> is now the return value of <code>writeEnd</code>.</li>
+<li>Remove body from <code>Request.toString</code> and <code>Response.toString</code>.</li>
+<li>Move blaze parser into its own class.</li>
+<li>Trigger a disconnect if an ignored body is too long.</li>
+<li>Configurable thread factories for happier profiling.</li>
+<li>Fix possible deadlock in default client execution context.</li>
+</ul>
+
+<h1 id="v0-11-3-2015-12-28">v0.11.3 (2015-12-28)</h1>
+
+<ul>
+<li>Blaze upgrade to fix parsing HTTP responses without a reason phrase.</li>
+<li>Don&rsquo;t write more than Content-Length bytes in blaze.</li>
+<li>Fix infinite loop in non-blocking Servlet I/O.</li>
+<li>Never write a response body on HEAD requests to blaze.</li>
+<li>Add missing <code>'&amp;'</code> between multivalued k/v pairs in <code>UrlFormCodec.encode</code></li>
+</ul>
+
+<h1 id="v0-11-2-2015-12-04">v0.11.2 (2015-12-04)</h1>
+
+<ul>
+<li>Fix stack safety issue in async servlet I/O.</li>
+<li>Reduce noise from timeout exceptions in <code>ClientTimeoutStage</code>.</li>
+<li>Address file descriptor leaks in blaze-client.</li>
+<li>Fix <code>FollowRedirect</code> middleware for 303 responses.</li>
+<li>Support keep-alives for client requests with bodies.</li>
+</ul>
+
+<h1 id="v0-11-1-2015-11-29">v0.11.1 (2015-11-29)</h1>
+
+<ul>
+<li>Honor <code>connectorPoolSize</code> and <code>bufferSize</code> parameters in <code>BlazeBuilder</code>.</li>
+<li>Add convenient <code>ETag</code> header constructor.</li>
+<li>Wait for final chunk to be written before closing the async context in non-blocking servlet I/O.</li>
+<li>Upgrade to jawn-streamz-0.7.0 to use scalaz-stream-0.8 across the board.</li>
+</ul>
+
+<h1 id="v0-11-0-2015-11-20">v0.11.0 (2015-11-20)</h1>
+
+<ul>
+<li>Upgrade to scalaz-stream 0.8</li>
+<li>Add Circe JSON support module.</li>
+<li>Add ability to require content-type matching with EntityDecoders.</li>
+<li>Cleanup blaze-client internals.</li>
+<li>Handle empty static files.</li>
+<li>Add ability to disable endpoint authentication for the blaze client.</li>
+<li>Add charset encoding for Argonaut JSON EntityEncoder.</li>
+</ul>
+
+<h1 id="v0-10-1-2015-10-07">v0.10.1 (2015-10-07)</h1>
+
+<ul>
+<li>Processes render data in chunked encoding by default.</li>
+<li>Incorporate type name into error message of QueryParam.</li>
+<li>Comma separate Access-Control-Allow-Methods header values.</li>
+<li>Default FallThrough behavior inspects for the FallThrough.fallthroughKey.</li>
+</ul>
+
+<h1 id="v0-10-0-2015-09-03">v0.10.0 (2015-09-03)</h1>
+
+<ul>
+<li>Replace <code>PartialService</code> with the <code>Fallthrough</code> typeclass and <code>orElse</code> syntax.</li>
+<li>Rename <code>withHeaders</code> to <code>replaceAllHeaders</code></li>
+<li>Set https endpoint identification algorithm when possible.</li>
+<li>Stack-safe <code>ProcessWriter</code> in blaze.</li>
+<li>Configureable number of connector threads and buffer size in blaze-server.</li>
+</ul>
+
+<h1 id="v0-9-3-2015-08-27">v0.9.3 (2015-08-27)</h1>
+
+<ul>
+<li>Trampoline recursive calls in blaze ProcessWriter.</li>
+<li>Handle server hangup and body termination correctly in blaze client.</li>
+</ul>
+
+<h1 id="v0-9-2-2015-08-26">v0.9.2 (2015-08-26)</h1>
+
+<ul>
+<li>Bump http4s-websockets to 1.0.3 to properly decode continuation opcode.</li>
+<li>Fix metrics incompatibility when using Jetty 9.3 backend.</li>
+<li>Preserve original headers when appending as opposed to quoting.</li>
+</ul>
+
+<h1 id="v0-8-5-2015-08-26">v0.8.5 (2015-08-26)</h1>
+
+<ul>
+<li>Preserve original headers when appending as opposed to quoting.</li>
+<li>Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh</li>
+</ul>
+
+<h1 id="v0-9-1-2015-08-19">v0.9.1 (2015-08-19)</h1>
+
+<ul>
+<li>Fix bug in servlet nio handler.</li>
+</ul>
+
+<h1 id="v0-9-0-2015-08-15">v0.9.0 (2015-08-15)</h1>
+
+<ul>
+<li>Require Java8.</li>
+<li><code>StaticFile</code> uses the filename extension exclusively to determine media-type.</li>
+<li>Add <code>/</code> method to <code>Uri</code>.</li>
+<li>Add <code>UrlFormLifter</code> middleware to aggregate url-form parameters with the query parameters.</li>
+<li>Add local address information to the <code>Request</code> type.</li>
+<li>Add a Http method &lsquo;or&rsquo; (<code>|</code>) extractor.</li>
+<li>Add <code>VirtualHost</code> middleware for serving multiple sites from one server.</li>
+<li>Add websocket configuration to the blaze server builder.</li>
+<li>Redefine default timeout status code to 500.</li>
+<li>Redefine the <code>Service</code> arrow result from <code>Task[Option[_]]</code> to <code>Task[_]</code>.</li>
+<li>Don&rsquo;t extend <code>AllInstances</code> with <code>Http4s</code> omnibus import object.</li>
+<li>Use UTF-8 as the default encoding for text bodies.</li>
+<li>Numerous bug fixes by numerous contributors!</li>
+</ul>
+
+<h1 id="v0-8-4-2015-07-13">v0.8.4 (2015-07-13)</h1>
+
+<ul>
+<li>Honor the buffer size parameter in gzip middleware.</li>
+<li>Handle service exceptions in servlet backends.</li>
+<li>Respect asyncTimeout in servlet backends.</li>
+<li>Fix prefix mounting bug in blaze-server.</li>
+<li>Do not apply CORS headers to unsuccessful OPTIONS requests.</li>
+</ul>
+
+<h1 id="v0-8-3-2015-07-02">v0.8.3 (2015-07-02)</h1>
+
+<ul>
+<li>Fix bug parsing IPv4 addresses found in URI construction.</li>
+</ul>
+
+<h1 id="v0-8-2-2015-06-22">v0.8.2 (2015-06-22)</h1>
+
+<ul>
+<li>Patch instrumented handler for Jetty to time async contexts correctly.</li>
+<li>Fix race condition with timeout registration and route execution in blaze client</li>
+<li>Replace <code>ConcurrentHashMap</code> with synchronized <code>HashMap</code> in <code>staticcontent</code> package.</li>
+<li>Fix static content from jars by avoiding <code>&quot;//&quot;</code> in path uris when serving static content.</li>
+<li>Quote MediaRange extensions.</li>
+<li>Upgrade to jawn-streamz-0.5.0 and blaze-0.8.2.</li>
+<li>Improve error handling in blaze-client.</li>
+<li>Respect the explicit default encoding passed to <code>decodeString</code>.</li>
+</ul>
+
+<h1 id="v0-8-1-2015-06-16">v0.8.1 (2015-06-16)</h1>
+
+<ul>
+<li>Authentication middleware integrated into the server package.</li>
+<li>Static content tools integrated into the server package.</li>
+<li>Rename HttpParser to HttpHeaderParser and allow registration and removal of header parsers.</li>
+<li>Make UrlForm EntityDecoder implicitly resolvable.</li>
+<li>Relax UrlForm parser strictness.</li>
+<li>Add &lsquo;follow redirect&rsquo; support as a client middleware.</li>
+<li>Add server middleware for auto retrying uris of form &lsquo;/foo/&rsquo; as &lsquo;/foo&rsquo;.</li>
+<li>Numerous bug fixes.</li>
+<li>Numerous version bumps.</li>
+</ul>
+
+<h1 id="v0-8-0-2015-06-16"><del>v0.8.0 (2015-06-16)</del></h1>
+
+<ul>
+<li>Mistake.  Go straight to v0.8.1.</li>
+</ul>
+
+<h1 id="v0-7-0-2015-05-05">v0.7.0 (2015-05-05)</h1>
+
+<ul>
+<li>Add QueryParamMatcher to the dsl which returns a ValidationNel.</li>
+<li>Dsl can differentiate between &lsquo;/foo/&rsquo; and &lsquo;/foo&rsquo;.</li>
+<li>Added http2 support for blaze backend.</li>
+<li>Added a metrics middleware usable on all server backends.</li>
+<li>Websockets are now modeled by an scalaz.stream.Exchange.</li>
+<li>Add <code>User-Agent</code> and <code>Allow</code> header types and parsers.</li>
+<li>Allow providing a Host header to the blaze client.</li>
+<li>Upgrade to scalaz-stream-7.0a.</li>
+<li>Added a CORS middleware.</li>
+<li>Numerous bug fixes.</li>
+<li>Numerous version bumps.</li>
+</ul>
+
+<h1 id="v0-6-5-2015-03-29">v0.6.5 (2015-03-29)</h1>
+
+<ul>
+<li>Fix bug in Request URI on servlet backend with non-empty context or servlet paths.</li>
+<li>Allow provided Host header for Blaze requests.</li>
+</ul>
+
+<h1 id="v0-6-4-2015-03-15">v0.6.4 (2015-03-15)</h1>
+
+<ul>
+<li>Avoid loading javax.servlet.WriteListener when deploying to a servlet 3.0 container.</li>
+</ul>
+
+<h1 id="v0-6-3-2015-03-15"><del>v0.6.3 (2015-03-15)</del></h1>
+
+<ul>
+<li>Forgot to pull origin before releasing.  Use v0.6.4 instead.</li>
+</ul>
+
+<h1 id="v0-6-2-2015-02-27">v0.6.2 (2015-02-27)</h1>
+
+<ul>
+<li>Use the thread pool provided to the Jetty servlet builder.</li>
+<li>Avoid throwing exceptions when parsing headers.</li>
+<li>Make trailing slash insignificant in service prefixes on servlet containers.</li>
+<li>Fix mapping of servlet query and mount prefix.</li>
+</ul>
+
+<h1 id="v0-6-1-2015-02-04">v0.6.1 (2015-02-04)</h1>
+
+<ul>
+<li>Update to blaze-0.5.1</li>
+<li>Remove unneeded error message (90b2f76097215)</li>
+<li>GZip middleware will not throw an exception if the AcceptEncoding header is not gzip (ed1b2a0d68a8)</li>
+</ul>
+
+<h1 id="v0-6-0-2015-01-27">v0.6.0 (2015-01-27)</h1>
+
+<h2 id="http4s-core">http4s-core</h2>
+
+<ul>
+<li>Remove ResponseBuilder in favor of Response companion.</li>
+<li>Allow &ldquo;;&rdquo; separators for query pairs.</li>
+<li>Make charset on Message an Option.</li>
+<li>Add a <code>flatMapR</code> method to EntityDecoder.</li>
+<li>Various enhancements to QueryParamEncoder and QueryParamDecoder.</li>
+<li>Make Query an IndexedSeq.</li>
+<li>Add parsers for Location and Proxy-Authenticate headers.</li>
+<li>Move EntityDecoder.apply to <code>Request.decode</code> and <code>Request.decodeWith</code></li>
+<li>Move headers into <code>org.http4s.headers</code> package.</li>
+<li>Make UriTranslation respect scriptName/pathInfo split.</li>
+<li>New method to resolve relative Uris.</li>
+<li>Encode query and fragment of Uri.</li>
+<li>Codec and wrapper type for URL-form-encoded bodies.</li>
+</ul>
+
+<h2 id="http4s-server">http4s-server</h2>
+
+<ul>
+<li>Add SSL support to all server builders.</li>
+</ul>
+
+<h2 id="http4s-blaze-server">http4s-blaze-server</h2>
+
+<ul>
+<li>Add Date header to blaze-server responses.</li>
+<li>Close connection when error happens during body write in blaze-server.</li>
+</ul>
+
+<h2 id="http4s-servlet">http4s-servlet</h2>
+
+<ul>
+<li>Use asynchronous servlet I/O on Servlet 3.1 containers.</li>
+<li>ServletContext syntax for easy mounting in a WAR deployment.</li>
+<li>Support Dropwizard Metrics collection for servlet containers.</li>
+</ul>
+
+<h2 id="http4s-jawn">http4s-jawn</h2>
+
+<ul>
+<li>Empty strings are a JSON decoding error.</li>
+</ul>
+
+<h2 id="http4s-argonaut">http4s-argonaut</h2>
+
+<ul>
+<li>Add codec instances for Argonaut&rsquo;s CodecJson.</li>
+</ul>
+
+<h2 id="http4s-json4s">http4s-json4s</h2>
+
+<ul>
+<li>Add codec instances for Json4s&rsquo; Reader/Writer.</li>
+</ul>
+
+<h2 id="http4s-twirl">http4s-twirl</h2>
+
+<ul>
+<li>New module to support Twirl templates</li>
+</ul>
+
+<h2 id="http4s-scala-xml">http4s-scala-xml</h2>
+
+<ul>
+<li>Split scala-xml support into http4s-scala-xml module.</li>
+<li>Change inferred type of <code>scala.xml.Elem</code> to <code>application/xml</code>.</li>
+</ul>
+
+<h2 id="http4s-client">http4s-client</h2>
+
+<ul>
+<li>Support for signing oauth-1 requests in client.</li>
+</ul>
+
+<h2 id="http4s-blaze-client">http4s-blaze-client</h2>
+
+<ul>
+<li>Fix blaze-client when receiving HTTP1 response without Content-Length header.</li>
+<li>Change default blaze-client executor to variable size.</li>
+<li>Fix problem with blaze-client timeouts.</li>
+</ul>
+
+<h1 id="v0-5-4-2015-01-08">v0.5.4 (2015-01-08)</h1>
+
+<ul>
+<li>Upgrade to blaze 0.4.1 to fix header parsing issue in blaze http/1.x client and server.</li>
+</ul>
+
+<h1 id="v0-5-3-2015-01-05">v0.5.3 (2015-01-05)</h1>
+
+<ul>
+<li>Upgrade to argonaut-6.1-M5 to match jawn. <a href="https://github.com/http4s/http4s/issues/157">#157</a></li>
+</ul>
+
+<h1 id="v0-5-2-2015-01-02">v0.5.2 (2015-01-02)</h1>
+
+<ul>
+<li>Upgrade to jawn-0.7.2.  Old version of jawn was incompatible with argonaut. [#157]](<a href="https://github.com/http4s/http4s/issues/157">https://github.com/http4s/http4s/issues/157</a>)</li>
+</ul>
+
+<h1 id="v0-5-1-2014-12-23">v0.5.1 (2014-12-23)</h1>
+
+<ul>
+<li>Include context path in calculation of scriptName/pathInfo. <a href="https://github.com/http4s/http4s/issues/140">#140</a></li>
+<li>Fix bug in UriTemplate for query params with multiple keys.</li>
+<li>Fix StackOverflowError in query parser. <a href="https://github.com/http4s/http4s/issues/147">#147</a></li>
+<li>Allow &lsquo;;&rsquo; separators for query pairs.</li>
+</ul>
+
+<h1 id="v0-5-0-2014-12-11">v0.5.0 (2014-12-11)</h1>
+
+<ul>
+<li>Client syntax has evloved and now will include Accept headers when used with EntityDecoder</li>
+<li>Parse JSON with jawn-streamz.</li>
+<li>EntityDecoder now returns an EitherT to make decoding failure explicit.</li>
+<li>Renamed Writable to EntityEncoder</li>
+<li>New query param typeclasses for encoding and decoding query strings.</li>
+<li>Status equality now discards the reason phrase.</li>
+<li>Match AttributeKeys as singletons.</li>
+<li>Added async timeout listener to servlet backends.</li>
+<li>Start blaze server asynchronously.</li>
+<li>Support specifying timeout and executor in blaze-client.</li>
+<li>Use NIO for encoding files.</li>
+</ul>
+
+<h1 id="v0-4-2-2014-12-01">v0.4.2 (2014-12-01)</h1>
+
+<ul>
+<li>Fix whitespace parsing in Authorization header <a href="https://github.com/http4s/http4s/issues/87">#87</a></li>
+</ul>
+
+<h1 id="v0-4-1-2014-11-20">v0.4.1 (2014-11-20)</h1>
+
+<ul>
+<li><code>Uri.query</code> and <code>Uri.fragment</code> are no longer decoded. <a href="https://github.com/http4s/http4s/issues/75">#75</a></li>
+</ul>
+
+<h1 id="v0-4-0-2014-11-18">v0.4.0 (2014-11-18)</h1>
+
+<ul>
+<li>Change HttpService form a <code>PartialFunction[Request,Task[Response]]</code>
+to <code>Service[Request, Response]</code>, a type that encapsulates a <code>Request =&gt; Task[Option[Response]]</code></li>
+<li>Upgrade to scalaz-stream-0.6a</li>
+<li>Upgrade to blaze-0.3.0</li>
+<li>Drop scala-logging for log4s</li>
+<li>Refactor ServerBuilders into an immutable builder pattern.</li>
+<li>Add a way to control the thread pool used for execution of a Service</li>
+<li>Modernize the Renderable/Renderer framework</li>
+<li>Change Renderable append operator from ~ to &lt;&lt;</li>
+<li>Split out the websocket codec and types into a seperate package</li>
+<li>Added ReplyException, an experimental way to allow an Exception to encode
+a default Response on for EntityDecoder etc.</li>
+<li>Many bug fixes and slight enhancements</li>
+</ul>
+
+<h1 id="v0-3-0-2014-08-29">v0.3.0 (2014-08-29)</h1>
+
+<ul>
+<li>New client API with Blaze implementation</li>
+<li>Upgrade to scalaz-7.1.0 and scalaz-stream-0.5a</li>
+<li>JSON Writable support through Argonaut and json4s.</li>
+<li>Add EntityDecoders for parsing bodies.</li>
+<li>Moved request and response generators to http4s-dsl to be more flexible to
+other frameworks&rdquo; syntax needs.</li>
+<li>Phased out exception-throwing methods for the construction of various
+model objects in favor of disjunctions and macro-enforced literals.</li>
+<li>Refactored imports to match the structure followed by <a href="https://github.com/scalaz/scalaz">scalaz</a>.</li>
+</ul>
+
+<h1 id="v0-2-0-2014-07-15">v0.2.0 (2014-07-15)</h1>
+
+<ul>
+<li>Scala 2.11 support</li>
+<li>Spun off http4s-server module. http4s-core is neutral between server and
+the future client.</li>
+<li>New builder for running Blaze, Jetty, and Tomcat servers.</li>
+<li>Configurable timeouts in each server backend.</li>
+<li>Replace Chunk with scodec.bits.ByteVector.</li>
+<li>Many enhancements and bugfixes to URI type.</li>
+<li>Drop joda-time dependency for slimmer date-time class.</li>
+<li>Capitalized method names in http4s-dsl.</li>
+</ul>
+
+<h1 id="v0-1-0-2014-04-15">v0.1.0 (2014-04-15)</h1>
+
+<ul>
+<li>Initial public release.</li>
+</ul>
+
+          <footer>
+            <nav>
+              <ul class="pager">
+                
+                <li><a href="https://github.com/http4s/http4s/edit/master/website/src/hugo/content/CHANGELOG.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
+                
+              </ul>
+            </nav>
+          </footer>
+        </div>
+        <div class="col-md-2" role="complementary">
+          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
+            <ul class="nav">
+              
+              
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+    
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+<script src="http://http4s.org/js/bootstrap.min.js"></script>    
+<script src="http://http4s.org/js/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+  </body>
+</html>
