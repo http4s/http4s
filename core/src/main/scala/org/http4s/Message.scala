@@ -260,6 +260,15 @@ sealed abstract case class Request[F[_]](
   private lazy val connectionInfo = attributes.get(Keys.ConnectionInfo)
 
   lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+
+  /**
+    Returns the the forwardFor value if present, else the remote address.
+    */
+  def from: Option[InetAddress] =
+    headers
+      .get(`X-Forwarded-For`)
+      .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
+
   lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
   lazy val remoteHost: Option[String] = remote.map(_.getHostName)
   lazy val remotePort: Option[Int] = remote.map(_.getPort)
