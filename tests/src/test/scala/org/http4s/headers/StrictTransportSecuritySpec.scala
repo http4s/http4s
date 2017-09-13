@@ -8,12 +8,16 @@ class StrictTransportSecuritySpec extends HeaderLaws {
 
   "fromLong" should {
     "support positive max age in seconds" in {
-      `Strict-Transport-Security`.fromLong(365).map(_.renderString) must beRight(
+      `Strict-Transport-Security`.fromLong(365).right.map(_.renderString) must beRight(
         "Strict-Transport-Security: max-age=365; includeSubDomains")
       `Strict-Transport-Security`
         .fromLong(365, includeSubDomains = false)
+        .right
         .map(_.renderString) must beRight("Strict-Transport-Security: max-age=365")
-      `Strict-Transport-Security`.fromLong(365, preload = true).map(_.renderString) must beRight(
+      `Strict-Transport-Security`
+        .fromLong(365, preload = true)
+        .right
+        .map(_.renderString) must beRight(
         "Strict-Transport-Security: max-age=365; includeSubDomains; preload")
     }
     "reject negative max age in seconds" in {

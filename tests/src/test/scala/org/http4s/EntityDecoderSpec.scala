@@ -225,7 +225,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       req
         .decode[UrlForm](form => Response(Ok).withBody(form))
         .attempt
-        .map((e: Either[Throwable, Response[IO]]) => e.getOrElse(Response(Status.BadRequest)))
+        .map((e: Either[Throwable, Response[IO]]) => e.right.getOrElse(Response(Status.BadRequest)))
     }
 
     "Decode form encoded body" in {
