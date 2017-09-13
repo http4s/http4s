@@ -2,7 +2,7 @@ package org.http4s
 
 import cats.data._
 import cats.effect.Sync
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.Stream._
 import fs2.interop.scodec.ByteVectorChunk

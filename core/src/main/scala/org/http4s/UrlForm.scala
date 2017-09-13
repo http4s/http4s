@@ -2,7 +2,7 @@ package org.http4s
 
 import cats._
 import cats.effect.Sync
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._

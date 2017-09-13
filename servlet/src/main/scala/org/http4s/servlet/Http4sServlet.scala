@@ -2,7 +2,7 @@ package org.http4s
 package servlet
 
 import cats.effect._
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.async
 import java.net.InetSocketAddress
 import javax.servlet._

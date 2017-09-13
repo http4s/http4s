@@ -3,7 +3,7 @@ package testing
 
 import cats._
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale

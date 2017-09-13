@@ -10,7 +10,7 @@
 package org.http4s
 
 import cats.effect.IO
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
 import org.http4s.testing._

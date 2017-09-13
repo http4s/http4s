@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.Uri._
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers

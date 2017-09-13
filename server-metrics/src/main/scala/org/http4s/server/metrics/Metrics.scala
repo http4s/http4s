@@ -3,7 +3,7 @@ package server
 package metrics
 
 import cats.effect._
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import com.codahale.metrics.MetricRegistry
 import fs2._
 import java.util.concurrent.TimeUnit

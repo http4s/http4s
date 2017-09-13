@@ -1,7 +1,7 @@
 package org.http4s
 package blazecore
 
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.ByteBuffer

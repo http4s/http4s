@@ -18,9 +18,9 @@
  */
 package org.http4s
 
-import cats.{Show, _}
+import cats._
 import cats.data.NonEmptyList
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.util.hashing.MurmurHash3

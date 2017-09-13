@@ -2,7 +2,7 @@ package org.http4s
 package multipart
 
 import cats.effect._
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import scala.annotation.tailrec
 import scodec.bits.ByteVector
