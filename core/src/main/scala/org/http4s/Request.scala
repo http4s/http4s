@@ -20,7 +20,7 @@ import org.http4s.server.ServerSoftware
   * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-sealed abstract case class Request[F[_]](
+case class Request[F[_]](
     method: Method = Method.GET,
     uri: Uri = Uri(path = "/"),
     httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
@@ -207,16 +207,15 @@ sealed abstract case class Request[F[_]](
   def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
       implicit F: Monad[F]): F[Response[F]]
 
-  /** Add a Cookie header for the provided [[Cookie]] */
-  final def addCookie(
-      cookie: Cookie)(implicit F: Functor[F], M: Message[F, Request[F]]): Request[F] =
-    M.putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
-
-  /** Add a Cookie header with the provided values */
-  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
-      implicit F: Functor[F],
-      M: Message[F, Request[F]]): Request[F] =
-    addCookie(Cookie(name, content, expires))
+//  /** Add a Cookie header for the provided [[Cookie]] */
+//  final def addCookie(cookie: Cookie)(implicit F: Functor[F], M: Message[F, Request[F]]): Request[F] =
+//    requestMessage.putHeaders[F, Request[F]](this)(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
+//
+//  /** Add a Cookie header with the provided values */
+//  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
+//      implicit F: Functor[F],
+//      M: Message[F, Request[F]]): Request[F] =
+//    addCookie(Cookie(name, content, expires))
 }
 
 object Request {
@@ -247,6 +246,24 @@ object Request {
     val ServerSoftware = AttributeKey[ServerSoftware]
   }
 
-  implicit def requestMessage[F]: Message[F, Request[F]] = ???
+  /**
+  implicit def requestMessage[F, Request[F[_]]]: Message[F, Request[F]] =
+    new Message[F, Request[F]] {
+
+      def httpVersion(m: Request[F]): HttpVersion = ???
+
+      def headers(m: Request[F]): Headers = ???
+
+      def attributes(m: Request[F]): AttributeMap = ???
+
+      def body(m: Request[F]): EntityBody[F] = ???
+
+      def change(m: Request[F])(
+          body: EntityBody[F] = body(m),
+          headers: Headers = headers(m),
+          attributes: AttributeMap = attributes(m)
+      ): Request[F] = ???
+    }
+  **/
 
 }
