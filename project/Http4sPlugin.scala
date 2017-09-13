@@ -37,6 +37,10 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     http4sMimaVersion := {
+<<<<<<< HEAD
+=======
+      val VRegex = """(\d+)\.(\d+)\.(\d+)a-?.*""".r
+>>>>>>> release-0.16.x
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
           Some(s"${major}.${minor}.0")
@@ -56,6 +60,9 @@ object Http4sPlugin extends AutoPlugin {
       case VersionExtractor(major, minor) => (major.toInt, minor.toInt)
     }
   }
+
+  def extractDocsPrefix(version: String) =
+    extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
   /**
    * @return the version we want to document, for example in tuts,
