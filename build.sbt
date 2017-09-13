@@ -14,9 +14,9 @@ apiVersion in ThisBuild := (version in ThisBuild).map {
 }.value
 
 // Root project
-name := "root"
+name := "http4s"
 description := "A minimal, Scala-idiomatic library for HTTP"
-enablePlugins(DisablePublishingPlugin)
+enablePlugins(PrivateProjectPlugin)
 
 // This defines macros that we use in core, so it needs to be split out
 lazy val parboiled2 = libraryProject("parboiled2")
@@ -229,8 +229,7 @@ lazy val twirl = http4sProject("twirl")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser
@@ -238,8 +237,7 @@ lazy val bench = http4sProject("bench")
   .dependsOn(core, circe)
 
 lazy val loadTest = http4sProject("load-test")
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Load tests for http4s servers",
     libraryDependencies ++= Seq(
@@ -257,8 +255,7 @@ val siteStageDirectory    = SettingKey[File]("site-stage-directory")
 val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
 val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 lazy val docs = http4sProject("docs")
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(unidocSettings)
   .settings(ghpages.settings)
   .settings(tutSettings)
@@ -389,8 +386,7 @@ lazy val docs = http4sProject("docs")
 
 
 lazy val examples = http4sProject("examples")
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
@@ -461,8 +457,7 @@ def libraryProject(name: String) = http4sProject(name)
 
 def exampleProject(name: String) = http4sProject(name)
   .in(file(name.replace("examples-", "examples/")))
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .dependsOn(examples)
 
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
@@ -508,10 +503,6 @@ lazy val commonSettings = Seq(
   },
   coursierVerbosity := 0,
   ivyLoggingLevel := UpdateLogging.Quiet // This doesn't seem to work? We see this in MiMa
-)
-
-lazy val noCoverageSettings = Seq(
-  coverageExcludedPackages := ".*"
 )
 
 def initCommands(additionalImports: String*) =
