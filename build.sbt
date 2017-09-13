@@ -305,7 +305,7 @@ lazy val docs = http4sProject("docs")
     baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isTravisBuild.value) new URI(s"http://http4s.org${docsPrefix}")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
+      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
     },
     siteMappings := {
       val docsPrefix = extractDocsPrefix(version.value)
