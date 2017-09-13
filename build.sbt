@@ -345,11 +345,7 @@ lazy val website = http4sProject("website")
           f.getCanonicalPath.startsWith(v) ||
           f.getCanonicalPath.charAt(v.size).isDigit
         }
-      },
-    ghpagesPushSite ~= { old =>
-      if (sys.env.get("TRAVIS_BRANCH") == Some("master")) old
-      else ()
-    }
+      }
   )
 
 lazy val examples = http4sProject("examples")
