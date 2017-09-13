@@ -34,7 +34,9 @@ lazy val parboiled2 = libraryProject("parboiled2")
     },
     // https://issues.scala-lang.org/browse/SI-9490
     (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
-    macroParadiseSetting
+    macroParadiseSetting,
+    // Remove starting in 0.18
+    mimaPreviousArtifacts := Set.empty
   )
 
 lazy val core = libraryProject("core")
