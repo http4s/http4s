@@ -63,6 +63,9 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
+  def extractDocsPrefix(version: String) =
+    extractApiVersion(version).productIterator.mkString("/v", ".", "")
+
   /**
    * @return the version we want to document, for example in tuts,
    * given the version being built.

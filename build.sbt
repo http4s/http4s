@@ -1,5 +1,4 @@
 import Http4sPlugin._
-import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
@@ -14,9 +13,9 @@ apiVersion in ThisBuild := (version in ThisBuild).map {
 }.value
 
 // Root project
-name := "root"
+name := "http4s"
 description := "A minimal, Scala-idiomatic library for HTTP"
-enablePlugins(DisablePublishingPlugin)
+enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
@@ -29,7 +28,9 @@ lazy val parboiled2 = libraryProject("parboiled2")
     ),
     // https://issues.scala-lang.org/browse/SI-9490
     (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
-    macroParadiseSetting
+    macroParadiseSetting,
+    // Remove starting in 0.18
+    mimaPreviousArtifacts := Set.empty
   )
 
 lazy val core = libraryProject("core")
@@ -227,8 +228,7 @@ lazy val twirl = http4sProject("twirl")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser
@@ -236,8 +236,7 @@ lazy val bench = http4sProject("bench")
   .dependsOn(core, circe)
 
 lazy val loadTest = http4sProject("load-test")
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Load tests for http4s servers",
     libraryDependencies ++= Seq(
@@ -250,17 +249,13 @@ lazy val loadTest = http4sProject("load-test")
 lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incrementally on recently changed files")
 
 
-val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
-val siteStageDirectory    = SettingKey[File]("site-stage-directory")
-val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
 val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
+
 lazy val docs = http4sProject("docs")
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(unidocSettings)
-  .settings(ghpages.settings)
   .settings(tutSettings)
-  .enablePlugins(HugoPlugin)
+  .enablePlugins(HugoPlugin, GhpagesPlugin)
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
@@ -303,35 +298,8 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    preStageSiteDirectory := sourceDirectory.value / "hugo",
-    siteStageDirectory := target.value / "site-stage",
-    sourceDirectory in Hugo := siteStageDirectory.value,
-    watchSources := {
-      // nasty hack to remove the target directory from watched sources
-      watchSources.value
-        .filterNot(_.getAbsolutePath.startsWith(
-          target.value.getAbsolutePath))
-    },
-    copySiteToStage := {
-      val (major, minor) = apiVersion.value
-      streams.value.log.debug(s"copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value} for v$major.$minor")
-      IO.copyDirectory(
-        source = preStageSiteDirectory.value,
-        target = siteStageDirectory.value,
-        overwrite = false,
-        preserveLastModified = true)
-      IO.copyDirectory(
-        source = tutTargetDirectory.value,
-        target = siteStageDirectory.value / "content" / s"v$major.$minor",
-        overwrite = false,
-        preserveLastModified = true)
-      IO.copyFile(
-        sourceFile = baseDirectory.value / ".." / "CHANGELOG.md",
-        targetFile = siteStageDirectory.value / "CHANGELOG.md",
-        preserveLastModified = true)
-    },
     exportMetadataForSite := {
-      val dest = (sourceDirectory in Hugo).value / "data" / "build.toml"
+      val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = apiVersion.value
       // Would be more elegant if `[versions.http4s]` was nested, but then
       // the index lookups in `shortcodes/version.html` get complicated.
@@ -348,47 +316,53 @@ lazy val docs = http4sProject("docs")
       IO.write(dest, buildData)
       dest
     },
-    copySiteToStage := copySiteToStage.dependsOn(tutQuick).value,
-    makeSite := makeSite.dependsOn(copySiteToStage, exportMetadataForSite).value,
+    makeSite := makeSite.dependsOn(tutQuick, exportMetadataForSite).value,
+    baseURL in Hugo := {
+      val docsPrefix = extractDocsPrefix(version.value)
+      if (isTravisBuild.value) new URI(s"http://http4s.org${docsPrefix}")
+      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
+    },
+    siteMappings := {
+      val docsPrefix = extractDocsPrefix(version.value)
+      for ((f, d) <- siteMappings.value) yield (f, docsPrefix + "/" + d)
+    },
+    siteMappings ++= {
+      val docsPrefix = extractDocsPrefix(version.value)
+      for ((f, d) <- (mappings in (ScalaUnidoc, packageDoc)).value)
+      yield (f, s"$docsPrefix/api/$d")
+    },
+    includeFilter in ghpagesCleanSite := {
+      new FileFilter {
+        val docsPrefix = extractDocsPrefix(version.value)
+        def accept(f: File) =
+          f.getCanonicalPath.startsWith((ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
+      }
+    }
+  )
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+
+lazy val website = http4sProject("website")
+  .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
+  .settings(
+    description := "Common area of http4s.org",
     baseURL in Hugo := {
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
-    includeFilter in Hugo := (
-      "*.html" |
-        "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-        "*.js" | "*.swf" | "*.json" | "*.md" |
-        "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-        "CNAME" | "_config.yml"
-    ),
-    siteMappings := {
-      if (Http4sGhPages.buildMainSite) siteMappings.value
-      else {
-        val (major, minor) = apiVersion.value
-        val prefix = s"/v${major}.${minor}/"
-        siteMappings.value.filter {
-          case (_, d) if d.startsWith(prefix) => true
-          case _ => false
+    excludeFilter in ghpagesCleanSite :=
+      new FileFilter {
+        val v = ghpagesRepository.value.getCanonicalPath + "/v"
+        def accept(f: File) = {
+          f.getCanonicalPath.startsWith(v) ||
+          f.getCanonicalPath.charAt(v.size).isDigit
         }
       }
-    },
-    siteMappings ++= {
-      val m = (mappings in (ScalaUnidoc, packageDoc)).value
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- m) yield (f, s"v$major.$minor/api/$d")
-    },
-    cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
-    synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
-    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
-
 
 lazy val examples = http4sProject("examples")
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
@@ -459,8 +433,7 @@ def libraryProject(name: String) = http4sProject(name)
 
 def exampleProject(name: String) = http4sProject(name)
   .in(file(name.replace("examples-", "examples/")))
-  .enablePlugins(DisablePublishingPlugin)
-  .settings(noCoverageSettings)
+  .enablePlugins(PrivateProjectPlugin)
   .dependsOn(examples)
 
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
@@ -508,11 +481,14 @@ lazy val commonSettings = Seq(
       }).transform(node).head
   },
   coursierVerbosity := 0,
-  ivyLoggingLevel := UpdateLogging.Quiet // This doesn't seem to work? We see this in MiMa
-)
-
-lazy val noCoverageSettings = Seq(
-  coverageExcludedPackages := ".*"
+  ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
+  git.remoteRepo := "git@github.com:http4s/http4s.git",
+  includeFilter in Hugo := (
+    "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
+    "*.js" | "*.swf" | "*.json" | "*.md" |
+    "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
+    "CNAME" | "_config.yml"
+  )
 )
 
 def initCommands(additionalImports: String*) =
