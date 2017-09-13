@@ -12,8 +12,7 @@
   <link rel="stylesheet" type="text/css" href="/css/style.css" >
 </head>
 
-  <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
+  <nav class="navbar navbar-inverse navbar-fixed-top">
   <div class="container">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -34,10 +33,6 @@
 	    <a href="/community/">Community</a>
 	  </li>
 	
-	  <li >
-	    <a href="/standards/">Coding Standard</a>
-	  </li>
-	
 	  <li class="active">
 	    <a href="/adopters/">Adopters</a>
 	  </li>
@@ -48,26 +43,24 @@
   </a>
   <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
     <li><a href="/versions/">Versions</a></li>
+
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.18 (development)</li>
-    <li><a href="/v0.18/">Tutorial</a></li>
-    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17</li>
-    <li><a href="/v0.17/">Tutorial</a></li>
-    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16</li>
+    <li class="dropdown-header">v0.16 (unreleased)</li>
     <li><a href="/v0.16/">Tutorial</a></li>
     <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
+
     
     <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15 (eol)</li>
+    <li class="dropdown-header">v0.16-cats (unreleased)</li>
+    <li><a href="/v0.16-cats/">Tutorial</a></li>
+    <li><a href="/v0.16-cats/api/org/http4s/">Scaladoc</a></li>
+
+    
+    <li role="separator" class="divider"></li>
+    <li class="dropdown-header">v0.15</li>
     <li><a href="/v0.15/">Tutorial</a></li>
-    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
+    <li><a href="/v0.15/api/">Scaladoc</a></li>
   </ul>
 </li>
 
@@ -75,12 +68,13 @@
       <ul class="nav navbar-nav navbar-right">
         <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
         <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        <li><a href="https://twitter.com/http4s/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
       </ul>
     </div>
   </div>
 </nav>
 
+  <body>
     <div class="container">
       <div class="content">
 	<div class="page-header">
@@ -94,11 +88,7 @@
 <dt><a href="http://www.cammy.com">Cammy</a></dt>
 <dd>Has about 10 services in production at thousands of requests per second.</dd>
 <dt><a href="http://www.verizon.com">Verizon</a></dt>
-<dd>Uses http4s extensively in its internal services and <a href="http://verizon.github.io">open source projects</a>.</dd>
-<dt><a href="https://www.kanluqu.com">看录取 Kanluqu</a></dt>
-<dd>College application resources for Chinese high school students, built entirely upon the Typelevel stack.</dd>
-<dt><a href="https://www.eckerd.edu/">Eckerd College</a></dt>
-<dd>Uses http4s for several of its internal services.
+<dd>Uses https extensively in its internal services and <a href="http://verizon.github.io">open source projects</a>.
 <br /></dd>
 </dl>
 
@@ -110,15 +100,11 @@
 <dt><a href="https://github.com/reactormonk/fleet-buddy">fleet-buddy</a></dt>
 <dd>Eve Online fleet buddy based on the CREST API</dd>
 <dt><a href="http://demo.http4s.org/">http4s-demo</a></dt>
-<dd>an <a href="https://github.com/http4s/http4s_demo">open source</a> demo app built with http4s</dd>
+<dd>an <a href="https://github.com/http4s/htt4ps_demo">open source</a> demo app built with http4s</dd>
 <dt><a href="http://httpize.herokuapp.com/">httpize</a></dt>
 <dd>a httpbin built with http4s <a href="https://github.com/ppurang/httpize">(source)</a></dd>
 <dt><a href="http://github.com/http4s/rho">rho (ρ)</a></dt>
 <dd>a self-documenting HTTP server DSL built upon http4s</dd>
-<dt><a href="https://github.com/timo-schmid/0x7e.xyz">0x7e.xyz</a></dt>
-<dd>A simple link-shortener</dd>
-<dt><a href="https://github.com/dbousamra/http4sbin">http4sbin</a></dt>
-<dd>A httpbin clone built with http4s</dd>
 </dl>
 
       </div>
@@ -127,7 +113,8 @@
       <div class="container">
 	<nav>
 	  <ul class="pager">
-	    <li><a href="https://github.com/http4s/http4s/edit/master/docs/src/hugo/content/adopters.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
+	    <li><a href="https://github.com/http4s/http4s/edit/master/website/src/hugo/content/adopters.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
 	  </ul>
 	</nav>
       </div>
