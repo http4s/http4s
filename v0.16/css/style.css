@@ -1,0 +1,78 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    margin-bottom: 60px;
+}
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 60px;
+    background-color: #f5f5f5;
+}
+.footer {
+    margin: 20px 0;
+}
+
+.content {
+    padding-top: 40px;
+}
+
+#navbar .navbar-right span {
+    font-size: 150%;
+}
+
+.navbar-brand .logo {
+    display: inline;
+    width: 1.5em;
+    height: 1.5em;
+}
+.navbar-brand, .jumbotron h1 {
+    font-family: 'Share Tech Mono', monospace;
+}
+
+.tut-nav {
+    padding-top: 100px;
+}
+.tut-nav .nav > li > a {
+    display: block;
+    padding: 4px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #767676;
+}
+.tut-nav .nav > li > a:hover,
+.tut-nav .nav > li > a:focus {
+    padding-left: 19px;
+    color: #563d7c;
+    text-decoration: none;
+    background-color: transparent;
+    border-left: 1px solid #563d7c;
+}
+.tut-nav .nav > .active > a,
+.tut-nav .nav > .active:hover > a,
+.tut-nav .nav > .active:focus > a {
+    padding-left: 18px;
+    font-weight: bold;
+    color: #563d7c;
+    background-color: transparent;
+    border-left: 2px solid #563d7c;
+}
+
+.jumbotron h1 img {
+    height: 183px;
+    float: left;
+    padding-right: 0.5em;
+}
+
+.flex, .flex > div[class*='col-'] {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    flex:1 0 auto;
+}
