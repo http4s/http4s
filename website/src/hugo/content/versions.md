@@ -226,7 +226,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
       </table>
     </div>
     <div role="tabpanel" class="tab-pane" id="changelog">
-      {{< readfile "CHANGELOG.md" >}} 
+      {{< readfile "content/CHANGELOG.md" >}} 
     </div>
   </div>
 </div>

@@ -24,4 +24,7 @@ checkPublishable "ghPages"
 eval "$(ssh-agent -s)";
 openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
 
-sbt ";ghpagesPushSite"
+PUBLISH_COMMAND=";docs/ghpagesPushSite"
+if [[ $PUBLISH_COMMAND = "master" ]]; then
+  PUBLISH_COMMAND="$PUBLISH_COMMAND ;website/ghpagesPushSite"
+fi
