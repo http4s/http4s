@@ -262,18 +262,9 @@ sealed abstract case class Request[F[_]](
   lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
 
   /**
-    Convenience method to grab the first X-Forwarded-For.  This is a convenience method.  If
-    all the X-Forwarded-For are needed then you will need to pull it from the headers.
-    */
-  lazy val forwardedFor: Option[InetAddress] = headers
-    .get(`X-Forwarded-For`)
-    .map(_.values)
-    .flatMap(_.head)
-
-  /**
     Returns the the forwardFor value if present, else the remote address.
     */
-  lazy val from: Option[InetAddress] =
+  def from: Option[InetAddress] =
     headers
       .get(`X-Forwarded-For`)
       .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)

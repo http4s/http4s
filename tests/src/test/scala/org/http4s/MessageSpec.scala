@@ -41,15 +41,6 @@ class MessageSpec extends Http4sSpec {
         r.remotePort must beSome(remote.getPort)
       }
 
-      "be utilized to determine the first X-Forwarded-For forwardFor value" in {
-        val forwardedValues =
-          NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
-        val r = Request()
-          .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
-          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
-        r.forwardedFor must_== forwardedValues.head
-      }
-
       "be utilized to determine the from value (first X-Forwarded-For if present)" in {
         val forwardedValues =
           NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
