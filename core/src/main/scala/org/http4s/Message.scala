@@ -15,16 +15,16 @@ import org.log4s.getLogger
 /**
   * Represents a HTTP Message.
   */
-trait Message[F[_], M[_]] {
+trait Message[F[_], M[_[_]]] {
 
   def httpVersion(m: M[F]): HttpVersion
   def headers(m: M[F]): Headers
   def body(m: M[F]): EntityBody[F]
   def attributes(m: M[F]): AttributeMap
   def change(m: M[F])(
-      body: EntityBody[F] = body(m),
-      headers: Headers = headers(m),
-      attributes: AttributeMap = attributes(m)): M[F]
+      b: EntityBody[F] = body(m),
+      h: Headers = headers(m),
+      a: AttributeMap = attributes(m)): M[F]
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withBody]],
@@ -34,7 +34,7 @@ trait Message[F[_], M[_]] {
     change(m)(body, headers(m), attributes(m))
 
   def transformHeaders(m: M[F])(f: Headers => Headers)(implicit F: Functor[F]): M[F] =
-    change(m)(headers = f(headers(m)))
+    change(m)(h = f(headers(m)))
 
   final def bodyAsText(m: M[F])(
       implicit defaultCharset: Charset = DefaultCharset): Stream[F, String] =
@@ -55,7 +55,7 @@ trait Message[F[_], M[_]] {
    */
 
   def withAttribute[A](m: M[F])(key: AttributeKey[A], value: A)(implicit F: Functor[F]): M[F] =
-    change(m)(attributes = attributes(m).put(key, value))
+    change(m)(a = attributes(m).put(key, value))
 
   /** Replace the body of this message with a new body
     *
@@ -80,7 +80,7 @@ trait Message[F[_], M[_]] {
         case None => F.pure(w.headers.toList)
       }
 
-      hs.map(newHeaders => change(m)(body = entity.body, headers = headers(m) ++ newHeaders))
+      hs.map(newHeaders => change(m)(b = entity.body, h = headers(m) ++ newHeaders))
     }
 
   /** Set an empty entity body on this message, and remove all payload headers
@@ -126,16 +126,6 @@ trait Message[F[_], M[_]] {
     */
   final def filterHeaders(m: M[F])(f: Header => Boolean)(implicit F: Functor[F]): M[F] =
     transformHeaders(m)(_.filter(f))
-
-  /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
-    *
-    * @param key [[AttributeKey]] with which to associate the value
-    * @param value value associated with the key
-    * @tparam A type of the value to store
-    * @return a new message object with the key/value pair appended
-    */
-  def withAttribute[A](m: M[F])(key: AttributeKey[A], value: A)(implicit F: Functor[F]): M[F] =
-    change(m)(body(m), headers(m), attributes(m).put(key, value))
 
   /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
     *
@@ -201,23 +191,23 @@ object Message {
       trailerHeaders.asInstanceOf[AttributeKey[F[Headers]]]
   }
 
-  def apply[F[_], M[_]](implicit M: Message[F, M[F]]): Message[F, M[F]] = M
+  def apply[F[_], M[_[_]]](implicit M: Message[F, M]): Message[F, M] = M
 
-  implicit class MessageOps[F[_], M[_]: Message[F, M[F]]](m: M[F]) {
+  implicit class MessageOps[F[_], M[_[_]]](m: M[F])(implicit ev: Message[F, M]) {
 
-    def httpVersion: HttpVersion = Message[F, M[F]].httpVersion(m)
+    def httpVersion: HttpVersion = Message[F, M].httpVersion(m)
 
-    def headers: Headers = Message[F, M[F]].headers(m)
+    def headers: Headers = Message[F, M].headers(m)
 
-    def body: EntityBody[F] = Message[F, M[F]].body(m)
+    def body: EntityBody[F] = Message[F, M].body(m)
 
-    def attributes: AttributeMap = Message[F, M[F]].attributes(m)
+    def attributes: AttributeMap = Message[F, M].attributes(m)
 
     def change(
         body: EntityBody[F] = body,
         headers: Headers = headers,
         attributes: AttributeMap = attributes): M[F] =
-      Message[F, M[F]].change(m)(body, headers, attributes)
+      Message[F, M].change(m)(body, headers, attributes)
 
   }
 
