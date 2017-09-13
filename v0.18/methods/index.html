@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <title>http4s: HTTP Methods</title>
 
-  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
-  <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -23,24 +23,12 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="/">
-	<img src="/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+	<img src="http://http4s.org/v0.18/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
       </a>
     </div>
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
 	
-	
-	  <li >
-	    <a href="/community/">Community</a>
-	  </li>
-	
-	  <li >
-	    <a href="/standards/">Coding Standard</a>
-	  </li>
-	
-	  <li >
-	    <a href="/adopters/">Adopters</a>
-	  </li>
 	
 	<li class="dropdown">
   <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
@@ -127,10 +115,10 @@ def deleteTweet(id: Int): IO[Unit] = ???
 // deleteTweet: (id: Int)cats.effect.IO[Unit]
 
 implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
-// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$2@5ab402a7
+// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$2@6e9757cf
 
 implicit val tweetDecoder = jsonOf[IO, Tweet]
-// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$2@7b0da1a
+// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$2@1bcaa57e
 
 val tweetService = HttpService[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
@@ -149,22 +137,19 @@ val tweetService = HttpService[IO] {
     deleteTweet(tweetId)
       .flatMap(_ =&gt; Ok())
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$4305/2090522669@6cade9a3)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$4350/568294924@51ee1bdf)
 </code></pre>
 
 <p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
 implementation of the <code>HEAD</code> route.</p>
 
           <footer>
-            
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://http4s.org/v0.18/dsl/"><i class="fa fa-arrow-left"></i> The http4s DSL</a></li>
-                
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/methods.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
-                
-                <li class="next"><a href="http://http4s.org/v0.18/middleware/">Middleware <i class="fa fa-arrow-right"></i></a></li>
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/methods.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
                 
               </ul>
             </nav>
@@ -243,8 +228,8 @@ implementation of the <code>HEAD</code> route.</p>
     
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-<script src="/js/bootstrap.min.js"></script>    
-<script src="/js/highlight.pack.js"></script>
+<script src="http://http4s.org/v0.18/js/bootstrap.min.js"></script>    
+<script src="http://http4s.org/v0.18/js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
   </body>

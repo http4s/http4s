@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <title>http4s: Middleware</title>
 
-  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
-  <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -23,24 +23,12 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="/">
-	<img src="/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+	<img src="http://http4s.org/v0.18/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
       </a>
     </div>
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
 	
-	
-	  <li >
-	    <a href="/community/">Community</a>
-	  </li>
-	
-	  <li >
-	    <a href="/standards/">Coding Standard</a>
-	  </li>
-	
-	  <li >
-	    <a href="/adopters/">Adopters</a>
-	  </li>
 	
 	<li class="dropdown">
   <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
@@ -144,7 +132,7 @@ we need to call <code>unsafeRunSync</code> on the result of the function to extr
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5870/1536702448@622e065d)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5917/391298129@551ec908)
 
 val goodRequest = Request[IO](Method.GET, uri(&quot;/&quot;))
 // goodRequest: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -162,7 +150,7 @@ service(badRequest).unsafeRunSync
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
 <pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
-// wrappedService: org.http4s.HttpService[cats.effect.IO] = Kleisli($$Lambda$5925/1420314786@51770c29)
+// wrappedService: org.http4s.HttpService[cats.effect.IO] = Kleisli($$Lambda$5972/361034146@5d8c11f8)
 
 wrappedService(goodRequest).unsafeRunSync
 // res2: org.http4s.MaybeResponse[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, SomeKey: SomeValue))
@@ -189,7 +177,7 @@ it as an <code>object</code> and use the <code>apply</code> method.</p>
 // defined object MyMiddle
 
 val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// newService: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.Kleisli$$Lambda$5931/992812071@1eaf1b7b)
+// newService: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.Kleisli$$Lambda$5978/2112131358@539bbee)
 
 newService(goodRequest).unsafeRunSync
 // res4: org.http4s.MaybeResponse[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, SomeKey: SomeValue))
@@ -219,10 +207,10 @@ You can also wrap a single service in multiple layers of middleware. For example
   case GET -&gt; Root / &quot;api&quot; =&gt;
     Ok()
 }
-// apiService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5870/1536702448@2330034d)
+// apiService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5917/391298129@37907da3)
 
 val aggregateService = apiService |+| MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// aggregateService: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$5937/243965654@20cd4a93)
+// aggregateService: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$5984/1634794584@4d56e028)
 
 val apiRequest = Request[IO](Method.GET, uri(&quot;/api&quot;))
 // apiRequest: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/api, headers=Headers())
@@ -255,15 +243,12 @@ package. These include:</p>
 <p>And a few others.</p>
 
           <footer>
-            
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://http4s.org/v0.18/methods/"><i class="fa fa-arrow-left"></i> HTTP Methods</a></li>
-                
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/middleware.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
-                
-                <li class="next"><a href="http://http4s.org/v0.18/auth/">Authentication <i class="fa fa-arrow-right"></i></a></li>
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/middleware.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
                 
               </ul>
             </nav>
@@ -342,8 +327,8 @@ package. These include:</p>
     
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-<script src="/js/bootstrap.min.js"></script>    
-<script src="/js/highlight.pack.js"></script>
+<script src="http://http4s.org/v0.18/js/bootstrap.min.js"></script>    
+<script src="http://http4s.org/v0.18/js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
   </body>

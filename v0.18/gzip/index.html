@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <title>http4s: GZip Compression</title>
 
-  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
-  <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/style.css" >
 </head>
 
   <body>
@@ -23,24 +23,12 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="/">
-	<img src="/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+	<img src="http://http4s.org/v0.18/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
       </a>
     </div>
     <div id="navbar" class="collapse navbar-collapse">
       <ul class="nav navbar-nav">
 	
-	
-	  <li >
-	    <a href="/community/">Community</a>
-	  </li>
-	
-	  <li >
-	    <a href="/standards/">Coding Standard</a>
-	  </li>
-	
-	  <li >
-	    <a href="/adopters/">Adopters</a>
-	  </li>
 	
 	<li class="dropdown">
   <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
@@ -112,7 +100,7 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5515/2002648502@46446aee)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$5562/87820415@7a4bac73)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -134,7 +122,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$5684/923681421@390846b7)
+// zipService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$5731/1749446245@2db7a8eb)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRunSync
@@ -181,15 +169,12 @@ of a service or middleware code. You can work with values while keeping them ins
 <code>F[Response]</code>.</p>
 
           <footer>
-            
             <nav>
               <ul class="pager">
                 
-                <li class="previous"><a href="http://http4s.org/v0.18/cors/"><i class="fa fa-arrow-left"></i> CORS</a></li>
-                
-                <li><a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/gzip.md"><i class="fa fa-pencil"></i> Edit this page</a></li>
-                
-                <li class="next"><a href="http://http4s.org/v0.18/hsts/">HSTS <i class="fa fa-arrow-right"></i></a></li>
+                <li>
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/gzip.md"><i class="fa fa-pencil"></i> Edit this page</a>
+</li>
                 
               </ul>
             </nav>
@@ -268,8 +253,8 @@ of a service or middleware code. You can work with values while keeping them ins
     
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-<script src="/js/bootstrap.min.js"></script>    
-<script src="/js/highlight.pack.js"></script>
+<script src="http://http4s.org/v0.18/js/bootstrap.min.js"></script>    
+<script src="http://http4s.org/v0.18/js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
   </body>
