@@ -4,12 +4,12 @@
   <meta charset="utf-8">
   <title>http4s: JSON handling</title>
 
-  <link rel="stylesheet" type="text/css" href="/css/bootstrap.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/font-awesome.min.css" >  
-  <link rel="stylesheet" type="text/css" href="/css/fontello.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.15/css/bootstrap.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.15/css/font-awesome.min.css" >  
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.15/css/fontello.css" >
   <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
-  <link rel="stylesheet" type="text/css" href="/css/highlight-github.css">
-  <link rel="stylesheet" type="text/css" href="/css/style.css" >
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.15/css/highlight-github.css">
+  <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.15/css/style.css" >
 </head>
 
   <nav class="navbar navbar-inverse navbar-fixed-top">
@@ -220,7 +220,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$14@1127feb1
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$14@401a74ed
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -457,8 +457,8 @@ def helloClient(name: String): Task[Hello] = {
     
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 
-<script src="/js/bootstrap.min.js"></script>    
-<script src="/js/highlight.pack.js"></script>
+<script src="http://http4s.org/v0.15/js/bootstrap.min.js"></script>    
+<script src="http://http4s.org/v0.15/js/highlight.pack.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
   </body>
