@@ -193,11 +193,11 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/dc20a38ddf2d3a0771f127c16b2e8a1d81e60af6/json4s-jackson/src/main/scala/org/http4s/json4s/jackson/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/53e5c78872c01f5050872e2449e8759a4419fb10/json4s-jackson/src/main/scala/org/http4s/json4s/jackson/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="Json4sJacksonInstances.html" class="extype" name="org.http4s.json4s.jackson.Json4sJacksonInstances">Json4sJacksonInstances</a>, <a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a>[<span class="extype" name="org.json4s.JsonAST.JValue">JValue</span>], <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="Json4sJacksonInstances.html" class="extype" name="org.http4s.json4s.jackson.Json4sJacksonInstances">Json4sJacksonInstances</a>, <a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a>[<span class="extype" name="org.json4s.JsonAST.JValue">JValue</span>], <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -318,7 +318,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">jsonEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A &lt;: <span class="extype" name="org.json4s.JsonAST.JValue">JValue</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Applicative">Applicative</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.F">F</span>]</span>)</span><span class="result">: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.A">A</span>]</span>
+        <span class="name">jsonEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A &lt;: <span class="extype" name="org.json4s.JsonAST.JValue">JValue</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.F">F</span>]</span>)</span><span class="result">: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
@@ -334,7 +334,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">jsonEncoderOf</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Applicative">Applicative</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.F">F</span>]</span>, <span name="writer">writer: <span class="extype" name="org.json4s.Writer">Writer</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.A">A</span>]</span>)</span><span class="result">: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.A">A</span>]</span>
+        <span class="name">jsonEncoderOf</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.F">F</span>]</span>, <span name="writer">writer: <span class="extype" name="org.json4s.Writer">Writer</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.A">A</span>]</span>)</span><span class="result">: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoderOf.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
@@ -403,9 +403,9 @@ idiomatic http4s, than <a href="../Json4sInstances.html#jsonOf[F[_],A](implicite
             </div><div class="parent" name="org.http4s.json4s.Json4sInstances">
               <h3>Inherited from <a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a>[<span class="extype" name="org.json4s.JsonAST.JValue">JValue</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></h3>
             </div>
         
         </div>
