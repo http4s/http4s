@@ -3,9 +3,6 @@ package org.http4s.util
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicLong
-
-import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 
 object threads {

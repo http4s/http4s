@@ -2,19 +2,17 @@ package org.http4s
 package client
 package blaze
 
+import cats.effect._
+import cats.implicits._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLContext
-
-import cats.effect._
-import cats.implicits._
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
+import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.syntax.async._
 import org.http4s.syntax.string._
-
 import scala.concurrent.Future
 
 private object Http1Support {

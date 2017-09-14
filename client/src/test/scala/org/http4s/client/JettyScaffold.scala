@@ -2,7 +2,7 @@ package org.http4s.client
 
 import java.net.{InetAddress, InetSocketAddress, ServerSocket}
 import javax.servlet.http.HttpServlet
-import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
+import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.specs2.mutable.SpecificationLike
 import org.specs2.specification.core.Fragments

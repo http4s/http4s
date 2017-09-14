@@ -1,16 +1,14 @@
 package org.http4s
 package client
 
-import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
-
 import cats._
 import cats.effect._
 import cats.implicits._
 import fs2._
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
 

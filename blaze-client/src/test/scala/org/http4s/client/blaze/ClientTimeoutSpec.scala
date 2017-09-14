@@ -2,16 +2,13 @@ package org.http4s
 package client
 package blaze
 
+import cats.effect._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
-import cats.effect._
-import fs2._
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.util.TickWheelExecutor
 import org.http4s.blazecore.{SeqTestHead, SlowTestHead}
 import org.specs2.specification.core.Fragments
-
 import scala.concurrent.TimeoutException
 import scala.concurrent.duration._
 

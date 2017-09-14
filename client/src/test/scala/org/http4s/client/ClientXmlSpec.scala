@@ -4,10 +4,8 @@ package client
 import cats.effect._
 import cats.implicits._
 import fs2.async.parallelTraverse
-import org.http4s.scalaxml
-import org.http4s.Status.Ok
 import org.http4s.Method.GET
-
+import org.http4s.Status.Ok
 import scala.xml.Elem
 
 class ClientXmlSpec extends Http4sSpec {

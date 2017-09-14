@@ -1,12 +1,10 @@
 package org.http4s
 
-import java.nio.{ByteBuffer, CharBuffer}
-
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
-import scodec.bits.ByteVector
-
+import java.nio.{ByteBuffer, CharBuffer}
 import scala.util.control.NonFatal
+import scodec.bits.ByteVector
 
 package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {

@@ -1,12 +1,11 @@
 package org.http4s
 package client
 
-import java.io._
-import java.util.concurrent.atomic._
-
 import cats.effect._
 import cats.implicits._
 import fs2._
+import java.io._
+import java.util.concurrent.atomic._
 
 object MockClient {
   def apply[F[_]: Sync](service: HttpService[F]): Client[F] = apply(service, ().pure[F])

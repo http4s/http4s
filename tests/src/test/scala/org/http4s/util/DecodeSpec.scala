@@ -1,11 +1,10 @@
 package org.http4s
 package util
 
-import java.nio.charset.StandardCharsets
-
 import cats.implicits._
 import fs2._
 import fs2.text.utf8Decode
+import java.nio.charset.StandardCharsets
 
 class DecodeSpec extends Http4sSpec {
   "decode" should {

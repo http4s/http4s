@@ -3,7 +3,6 @@ package headers
 
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
-import java.lang.{Long => JLong}
 
 object `X-B3-TraceId` extends HeaderKey.Internal[`X-B3-TraceId`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-TraceId`] =

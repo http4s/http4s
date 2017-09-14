@@ -9,7 +9,6 @@ import org.http4s.Charset._
 import org.http4s.Http4s._
 import org.http4s.Status._
 import org.http4s.headers._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object ServerTestRoutes {

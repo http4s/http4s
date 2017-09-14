@@ -2,18 +2,16 @@ package org.http4s
 package server
 package tomcat
 
-import java.net.InetSocketAddress
-import java.util
-import javax.servlet.http.HttpServlet
-import javax.servlet.{DispatcherType, Filter}
-
 import cats.effect._
-import org.apache.catalina.startup.Tomcat
+import java.util
+import java.net.InetSocketAddress
+import javax.servlet.{DispatcherType, Filter}
+import javax.servlet.http.HttpServlet
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.catalina.startup.Tomcat
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

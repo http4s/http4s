@@ -2,12 +2,10 @@ package org.http4s
 package multipart
 
 import cats.effect._
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
-import fs2.interop.scodec.ByteVectorChunk
-import scodec.bits.ByteVector
-
 import scala.annotation.tailrec
+import scodec.bits.ByteVector
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {

@@ -28,9 +28,8 @@ lazy val parboiled2 = libraryProject("parboiled2")
     ),
     // https://issues.scala-lang.org/browse/SI-9490
     (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
-    macroParadiseSetting,
-    // Remove starting in 0.18
-    mimaPreviousArtifacts := Set.empty
+    (scalacOptions in Compile) -= "-Ywarn-unused-import",
+    macroParadiseSetting
   )
 
 lazy val core = libraryProject("core")
@@ -221,7 +220,8 @@ lazy val scalaXml = libraryProject("scala-xml")
 lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
-    libraryDependencies += twirlApi
+    libraryDependencies += twirlApi,
+    TwirlKeys.templateImports := Nil
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
@@ -298,6 +298,7 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
+    scalacOptions in (Compile,doc) -= "-Ywarn-unused-import",
     exportMetadataForSite := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = apiVersion.value
@@ -369,7 +370,8 @@ lazy val examples = http4sProject("examples")
       circeGeneric,
       logbackClassic % "runtime",
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
-    )
+    ),
+    TwirlKeys.templateImports := Nil
   )
   .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)

@@ -3,7 +3,6 @@ package server
 
 import cats.effect._
 import cats.implicits._
-import cats._
 
 class HttpServiceSpec extends Http4sSpec {
 

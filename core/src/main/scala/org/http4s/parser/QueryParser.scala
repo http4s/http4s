@@ -1,16 +1,13 @@
 package org.http4s
 package parser
 
+import cats.implicits._
 import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
-
+import org.http4s.util.UrlCodingUtils
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
 import scala.io.Codec
-
-import cats.data._
-import cats.implicits._
-import org.http4s.util.UrlCodingUtils
 
 /** Split an encoded query string into unencoded key value pairs
   * It always assumes any input is a  valid query, including "".

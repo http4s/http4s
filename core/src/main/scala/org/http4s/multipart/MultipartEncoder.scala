@@ -6,7 +6,6 @@ import fs2._
 import org.http4s.util._
 
 private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Multipart[F]] {
-  import scala.language.postfixOps
 
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty

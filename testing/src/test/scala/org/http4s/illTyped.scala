@@ -17,10 +17,8 @@
 
 package org.http4s
 
-import scala.language.experimental.macros
-
 import java.util.regex.Pattern
-
+import scala.language.experimental.macros
 import scala.reflect.macros.{ParseException, TypecheckException, whitebox}
 
 /**

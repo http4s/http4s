@@ -28,13 +28,17 @@ object Http4sPlugin extends AutoPlugin {
 
     scalacOptions in Compile ++= Seq(
       "-Yno-adapted-args", // Curiously missing from RigPlugin
-      "-Ypartial-unification" // Needed on 2.11 for Either, good idea in general
+      "-Ypartial-unification", // Needed on 2.11 for Either, good idea in general
+      "-Ywarn-unused-import"
     ) ++ {
       // https://issues.scala-lang.org/browse/SI-8340
       CrossVersion.partialVersion(scalaVersion.value) match {
         case Some((2, n)) if n >= 11 => Seq("-Ywarn-numeric-widen")
         case _ => Seq.empty
       }
+    },
+    scalacOptions in (Compile, console) ~= { xs: Seq[String] =>
+      xs.filterNot(Set("-Xfatal-warnings", "-Ywarn-unused-import"))
     },
 
     http4sMimaVersion := {

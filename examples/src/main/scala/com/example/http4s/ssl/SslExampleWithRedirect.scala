@@ -9,8 +9,8 @@ import org.http4s.HttpService
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Host
-import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
+import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.StreamApp
 import scala.concurrent.ExecutionContext
 

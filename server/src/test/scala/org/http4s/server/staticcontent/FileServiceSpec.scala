@@ -2,10 +2,9 @@ package org.http4s
 package server
 package staticcontent
 
-import java.io.File
-
 import cats.effect._
 import fs2._
+import java.io.File
 import org.http4s.server.middleware.URITranslation
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {

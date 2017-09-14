@@ -1,8 +1,8 @@
 package org.http4s
 package argonaut
 
-import _root_.argonaut.Argonaut._
 import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
+import _root_.argonaut.Argonaut._
 import cats.Applicative
 import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade

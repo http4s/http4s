@@ -3,11 +3,9 @@ package client
 package middleware
 
 import cats.effect.IO
-import cats.implicits._
 import fs2._
 import org.http4s.dsl.io._
 import org.specs2.specification.Tables
-
 import scala.concurrent.duration._
 
 class RetrySpec extends Http4sSpec with Tables {

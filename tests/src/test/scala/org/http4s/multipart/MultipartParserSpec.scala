@@ -1,12 +1,11 @@
 package org.http4s
 package multipart
 
+import cats.effect._
+import fs2._
 import org.http4s.headers._
 import org.specs2.mutable._
 import org.specs2.specification.core.Fragments
-
-import cats.effect._
-import fs2._
 import scodec.bits.ByteVector
 
 object MultipartParserSpec extends Specification {

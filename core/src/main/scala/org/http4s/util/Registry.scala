@@ -20,7 +20,6 @@ package org.http4s.util
 
 import scala.collection.concurrent
 import scala.collection.concurrent.TrieMap
-import string._
 
 private[http4s] trait Registry {
   type Key

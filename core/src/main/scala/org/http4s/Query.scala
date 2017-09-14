@@ -1,15 +1,13 @@
 package org.http4s
 
-import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.{BitSet, IndexedSeq}
-import scala.collection.mutable.ListBuffer
-import scala.collection.{IndexedSeqOptimized, mutable}
-
-import cats.implicits._
 import org.http4s.Query._
+import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
-import org.http4s.internal.parboiled2.CharPredicate
+import scala.collection.{IndexedSeqOptimized, mutable}
+import scala.collection.generic.CanBuildFrom
+import scala.collection.immutable.IndexedSeq
+import scala.collection.mutable.ListBuffer
 
 /** Collection representation of a query string
   *
@@ -132,7 +130,7 @@ object Query {
     */
   def fromString(query: String): Query =
     if (query.isEmpty) new Query(Vector("" -> None))
-    else QueryParser.parseQueryString(query).getOrElse(Query.empty)
+    else QueryParser.parseQueryString(query).right.toOption.getOrElse(Query.empty)
 
   /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: Map[String, Seq[String]]): Query = {

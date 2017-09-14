@@ -1,7 +1,6 @@
 package org.http4s
 package server
 
-import cats._
 import cats.effect._
 import cats.implicits._
 import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse

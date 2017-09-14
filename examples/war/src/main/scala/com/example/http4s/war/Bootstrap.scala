@@ -1,10 +1,10 @@
-package com.examples.http4s.war
+package com.example.http4s
+package war
 
 import cats.effect.IO
-import com.example.http4s.ExampleService
 import fs2.Scheduler
-import javax.servlet.annotation.WebListener
 import javax.servlet.{ServletContextEvent, ServletContextListener}
+import javax.servlet.annotation.WebListener
 import org.http4s.servlet.syntax._
 
 @WebListener

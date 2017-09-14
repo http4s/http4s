@@ -1,7 +1,6 @@
 package org.http4s
 package parser
 
-import cats.data._
 import org.http4s.headers.Location
 
 // TODO: this could use more tests

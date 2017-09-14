@@ -1,16 +1,14 @@
 package org.http4s
 package client
 
-import java.nio.charset.StandardCharsets
-import javax.crypto
-
 import cats._
 import cats.data.NonEmptyList
 import cats.implicits._
+import java.nio.charset.StandardCharsets
+import javax.crypto
 import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
-
 import scala.collection.mutable.ListBuffer
 
 /** Basic OAuth1 message signing support

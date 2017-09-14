@@ -1,13 +1,12 @@
 package org.http4s
 package server
 
-import java.util.concurrent.TimeUnit
-
 import cats._
 import cats.implicits._
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
+import java.util.concurrent.TimeUnit
 
 package object metrics {
   private val defaultMapper = {

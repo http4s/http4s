@@ -1,10 +1,8 @@
 package org.http4s
 
 import java.net.URLEncoder
-
-import org.http4s.Uri.{Authority, Host, IPv4, IPv6, RegName, Scheme}
+import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
 import org.http4s.UriTemplate._
-
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}

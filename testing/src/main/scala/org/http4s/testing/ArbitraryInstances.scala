@@ -2,28 +2,19 @@ package org.http4s
 package testing
 
 import cats._
-import cats.implicits._
-
+import cats.data.NonEmptyList
+import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
-import java.time.temporal.ChronoUnit
 import java.util.Locale
-
-import scala.collection.JavaConverters._
-import scala.collection.immutable.BitSet
-
-import cats.data.NonEmptyList
 import org.http4s.headers._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
-
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
-import org.scalacheck.rng.Seed
-
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import scodec.bits.ByteVector
 
 trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {

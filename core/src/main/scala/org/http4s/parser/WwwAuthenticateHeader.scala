@@ -18,9 +18,8 @@
 package org.http4s
 package parser
 
-import org.http4s.internal.parboiled2.{ParserInput, Rule1}
 import org.http4s.headers.`WWW-Authenticate`
-import org.http4s.Challenge
+import org.http4s.internal.parboiled2.{ParserInput, Rule1}
 
 private[parser] trait WwwAuthenticateHeader {
 

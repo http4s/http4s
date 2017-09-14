@@ -1,13 +1,11 @@
 package org.http4s
 
-import scala.collection.concurrent.TrieMap
-
 import cats._
 import cats.implicits._
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
-
-import Method.Semantics
+import org.http4s.Method.Semantics
+import scala.collection.concurrent.TrieMap
 
 /**
   * An HTTP method.

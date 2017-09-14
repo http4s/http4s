@@ -4,9 +4,7 @@ package multipart
 import cats.effect._
 import cats.implicits._
 import fs2._
-
 import fs2.interop.scodec.ByteVectorChunk
-import org.log4s.getLogger
 import scodec.bits.ByteVector
 
 private[http4s] object MultipartDecoder {

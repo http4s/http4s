@@ -2,13 +2,11 @@ package org.http4s
 package server
 package blaze
 
+import cats.effect.Effect
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
-
-import cats.effect.Effect
 import org.http4s.blaze.http.http20._
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 

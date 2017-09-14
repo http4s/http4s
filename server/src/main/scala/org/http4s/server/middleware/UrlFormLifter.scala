@@ -2,7 +2,6 @@ package org.http4s
 package server
 package middleware
 
-import cats._
 import cats.effect._
 import cats.implicits._
 

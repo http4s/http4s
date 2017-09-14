@@ -1,7 +1,5 @@
 package org.http4s
 
-import java.time.Instant
-
 import cats.effect.IO
 import org.http4s.Charset._
 import org.http4s.Http4s._

@@ -1,8 +1,6 @@
 package org.http4s
 package headers
 
-import cats.implicits._
-
 class ZipkinHeaderSpec extends Http4sSpec with HeaderLaws {
   checkAll("X-B3-Sampled", headerLaws(`X-B3-Sampled`))
   checkAll("X-B3-Flags", headerLaws(`X-B3-Flags`))
@@ -47,8 +45,8 @@ class ZipkinHeaderSpec extends Http4sSpec with HeaderLaws {
       val sampledAndDebugFlag = "5"
       val result = `X-B3-Flags`.parse(sampledAndDebugFlag)
       result must beRight
-      result.toOption.get.flags must contain(Flag.Sampled)
-      result.toOption.get.flags must contain(Flag.Debug)
+      result.right.get.flags must contain(Flag.Sampled)
+      result.right.get.flags must contain(Flag.Debug)
     }
 
     "renders when no flags" >> {

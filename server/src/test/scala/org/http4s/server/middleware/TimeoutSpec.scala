@@ -2,14 +2,11 @@ package org.http4s
 package server
 package middleware
 
-import java.util.concurrent.atomic.AtomicBoolean
-
 import cats.effect._
 import cats.implicits._
 import fs2.Scheduler
-import org.http4s.Http4sSpec._
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
-
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {

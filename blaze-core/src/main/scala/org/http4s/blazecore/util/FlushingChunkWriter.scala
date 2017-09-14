@@ -2,17 +2,12 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
-
-import scala.concurrent._
-
 import cats.effect.Effect
 import fs2._
-import org.http4s.Headers
+import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
+import scala.concurrent._
 
 private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
     implicit protected val F: Effect[F],

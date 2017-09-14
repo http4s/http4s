@@ -1,13 +1,12 @@
 package org.http4s
 package blazecore
 
+import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.blaze.pipeline.Command._
 import org.http4s.blaze.util.TickWheelExecutor
-import java.nio.ByteBuffer
-
-import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Promise}
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {

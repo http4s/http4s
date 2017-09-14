@@ -8,7 +8,6 @@ import cats.implicits._
 import fs2._
 import org.http4s.blaze.util.Execution
 import org.http4s.util.chunk.ByteChunkMonoid
-
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 

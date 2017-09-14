@@ -2,8 +2,8 @@ package org.http4s
 package parser
 
 import org.http4s.headers.`Accept-Encoding`
+import org.http4s.Http4s._
 import org.specs2.mutable.Specification
-import Http4s._
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
   def hparse(value: String): ParseResult[`Accept-Encoding`] =

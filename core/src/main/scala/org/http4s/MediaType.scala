@@ -19,9 +19,9 @@
 package org.http4s
 
 import java.util.concurrent.atomic.AtomicReference
-import scala.annotation.tailrec
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.util.{Registry, Renderable, Writer}
+import scala.annotation.tailrec
 
 sealed class MediaRange private[http4s] (
     val mainType: String,

@@ -2,12 +2,11 @@ package org.http4s
 package server
 package middleware
 
-import java.nio.charset.StandardCharsets
-
 import cats._
 import cats.implicits._
 import fs2._
 import fs2.Stream._
+import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.log4s.getLogger
 

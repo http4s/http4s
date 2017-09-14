@@ -2,13 +2,12 @@ package org.http4s
 package server
 package blaze
 
+import cats.effect._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
-
-import cats.effect._
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
@@ -17,7 +16,6 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

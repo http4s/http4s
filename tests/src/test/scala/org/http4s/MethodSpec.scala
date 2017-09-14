@@ -1,20 +1,16 @@
 package org.http4s
 
-import java.util.Locale
-
-import cats.implicits._
 import cats.kernel.laws._
+import java.util.Locale
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Prop.forAll
-
-import Http4s._
 
 class MethodSpec extends Http4sSpec {
   import Method._
 
   "parses own string rendering to equal value" in {
     forAll(genToken) { token =>
-      fromString(token).map(_.renderString) must beRight(token)
+      fromString(token).right.map(_.renderString) must beRight(token)
     }
   }
 

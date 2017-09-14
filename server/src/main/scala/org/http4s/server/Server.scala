@@ -1,10 +1,9 @@
 package org.http4s
 package server
 
+import cats.effect._
 import java.net.InetSocketAddress
 import java.util.concurrent.CountDownLatch
-
-import cats.effect._
 
 abstract class Server[F[_]](implicit F: Effect[F]) {
   def shutdown: F[Unit]
