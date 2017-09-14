@@ -37,8 +37,14 @@ object Compression {
 
   def unzipResponse[F[_]: Functor](bufferSize: Int, resp: Response[F]): Response[F] = {
     logger.trace("GZip middleware decoding content")
-    val b = fs2chunk(header) ++
+    val b =
+      // TODO We should validate the header. Futhermore, there are
+      // optional extra headers that can extend the length before we
+      // get to the deflate-compressed body.
+      //
+      // We're also not validating the trailer.
       resp.body
+        .drop(header.size.toLong)
         .through(
           inflate(
             nowrap = true,
