@@ -128,7 +128,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case None if curTotal == maxTotal =>
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
-                val randKey = idleQueues.keys.drop(Random.nextInt(idleQueues.size)).head
+                val nonEmptyQueues = idleQueues.filter(_._2.nonEmpty)
+                val randKey = nonEmptyQueues.keys.drop(Random.nextInt(nonEmptyQueues.size)).head
                 idleQueues(randKey).dequeue().shutdown()
                 createConnection(key, callback)
 
