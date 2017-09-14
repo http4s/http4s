@@ -7,6 +7,7 @@ import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
+import scala.util.Random
 
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
@@ -122,6 +123,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
               case None if numConnectionsCheckHolds(key) =>
                 logger.debug(s"Active connection not found. Creating new one. $stats")
+                createConnection(key, callback)
+
+              case None if curTotal == maxTotal =>
+                logger.debug(
+                  s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
+                val randKey = idleQueues.keys.drop(Random.nextInt(idleQueues.size)).head
+                idleQueues(randKey).dequeue().shutdown()
                 createConnection(key, callback)
 
               case None => // we're full up. Add to waiting queue.
