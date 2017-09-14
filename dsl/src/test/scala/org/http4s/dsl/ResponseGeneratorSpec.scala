@@ -39,7 +39,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     )
 
     val resp: IO[Response[IO]] =
-      Ok("foo", Headers(`Content-Type`(MediaType.`application/json`)))(Monad[IO], w)
+      Ok("foo", `Content-Type`(MediaType.`application/json`))(Monad[IO], w)
     resp must returnValue(haveMediaType(MediaType.`application/json`))
   }
 

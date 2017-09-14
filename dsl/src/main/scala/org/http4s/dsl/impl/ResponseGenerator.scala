@@ -21,13 +21,18 @@ trait ResponseGenerator extends Any {
   * }}}
   */
 trait EmptyResponseGenerator[F[_]] extends Any with ResponseGenerator {
-  def apply()(implicit F: Applicative[F]): F[Response[F]] = F.pure(Response(status))
+  def apply()(implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(Response(status))
+
+  def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(Response(status, headers = Headers(headers: _*)))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
   *
-  * While it is possible to construct the [[org.http4s.Response]] manually, the EntityResponseGenerators
-  * offer shortcut syntax to make intention clear and concise.
+  * While it is possible to construct the [[org.http4s.Response]]
+  * manually, the EntityResponseGenerators offer shortcut syntax to
+  * make intention clear and concise.
   *
   * @example {{{
   * val resp: IO[Response] = Ok("Hello world!")
@@ -37,10 +42,10 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply()(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response(status, headers = Headers(`Content-Length`.zero)))
 
-  def apply[A](body: A)(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] =
-    apply(body, Headers.empty)(F, w)
+  def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(Response(status, headers = Headers(headers :+ `Content-Length`.zero: _*)))
 
-  def apply[A](body: A, headers: Headers)(
+  def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Response[F]] = {
     var h = w.headers ++ headers

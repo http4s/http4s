@@ -6,12 +6,11 @@ import cats.effect._
 import cats.implicits._
 import fs2.Stream._
 import org.http4s.Charset._
-import org.http4s.Http4s._
-import org.http4s.Status._
+import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object ServerTestRoutes {
+object ServerTestRoutes extends Http4sDsl[IO] {
 
   val textPlain: Header = `Content-Type`(MediaType.`text/plain`, `UTF-8`)
 
@@ -100,22 +99,24 @@ object ServerTestRoutes {
   )
 
   def apply() = HttpService[IO] {
-    case req if req.method == Method.GET && req.pathInfo == "/get" => Response(Ok).withBody("get")
+    case req if req.method == Method.GET && req.pathInfo == "/get" =>
+      Ok("get")
+
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Response[IO](Ok).withBody(eval(IO.shift >> IO("chu")) ++ eval(IO.shift >> IO("nk")))
+      Ok(eval(IO.shift >> IO("chu")) ++ eval(IO.shift >> IO("nk")))
 
     case req if req.method == Method.POST && req.pathInfo == "/post" =>
-      Response(Ok).withBody("post")
+      Ok("post")
 
     case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
-      Response[IO](Ok).withBody("Foo").putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.method == Method.POST && req.pathInfo == "/echo" =>
-      Response[IO](Ok).withBody(emit("post") ++ req.bodyAsText)
+      Ok(emit("post") ++ req.bodyAsText)
 
     // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
     case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
-      IO.pure(Response(NotModified))
+      NotModified()
   }
 
 }
