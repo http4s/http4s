@@ -85,6 +85,33 @@
           </div>
           
 
+<h1 id="v0-18-0-snapshot">v0.18.0-SNAPSHOT</h1>
+
+<ul>
+<li>Use http4s-dsl with any effect type by either:
+
+<ul>
+<li>extend <code>Http4sDsl[F]</code></li>
+<li>create an object that extends <code>Http4sDsl[F]</code>, and extend that.</li>
+<li><code>import org.http4s.dsl.io._</code> is still available for those who
+wish to specialize on <code>cats.effect.IO</code></li>
+</ul></li>
+<li>Remove <code>Semigroup[F[MaybeResponse[F]]]</code> constraint from
+<code>BlazeBuilder</code>.</li>
+<li>Fix <code>AutoSlash</code> middleware when a service is mounted with a prefix.</li>
+<li>Publish internal http4s-parboiled2 as a separate module.  This does
+not add any new third-party dependencies, but unbreaks <code>sbt
+publishLocal</code>.</li>
+<li>Add <code>Request.from</code>, which respects <code>X-Fowarded-For</code> header.</li>
+<li>Make <code>F</code> in <code>EffectMessageSyntax</code> invariant</li>
+<li>Upgraded dependencies:
+
+<ul>
+<li>jawn-fs2-0.12.0-M2</li>
+<li>twirl-1.3.7</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-17-0-2017-09-01">v0.17.0 (2017-09-01)</h1>
 
 <ul>
