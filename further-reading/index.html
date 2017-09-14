@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>http4s | http4s</title>
+  <title>http4s | Further reading</title>
 
   <link rel="stylesheet" type="text/css" href="http://http4s.org/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="http://http4s.org/css/font-awesome.min.css" >  
@@ -77,59 +77,53 @@
           </span>
 
           
+          <h1>Further reading</h1>
           
-          <div class="jumbotron mt-3">
-  <div class="container">
-    <p class="display-4">
-      Typeful, functional, streaming HTTP for Scala.
-    </p>
-    <button class="btn btn-primary btn-lg dropdown-toggle" type="button" id="doc-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-      Get started with http4s
-    </button>
-     <div class="dropdown-menu" aria-labelledby="doc-menu-item"> 
-  <a class="dropdown-item" href="/v0.18/">v0.18 (development)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (stable)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (stable)</a>
-  <a class="dropdown-item" href="/versions/">Help me choose...</a>
-  <div class="dropdown-divider"></div>    
-  <a class="dropdown-item" href="/v0.15/">v0.15 (EOL)</a>
-</div>
+          
+          
 
+<h2 id="blogs-and-slides">Blogs and slides</h2>
 
-  </div>
-</div>
+<p>These materials are from third parties.  Some of the material may be
+dated, but is considered interesting enough to share as a supplement
+to the official documentation.</p>
 
-<div class="container">
-  <div class="card-deck">
-    <div class="card p-3">
-      <h3 class="card-title">Typeful</h3>
+<ul>
+<li><a href="https://medium.com/@albamus/testing-and-error-handling-in-http4s-2a05572e535d">Testing and Error Handling in http4s</a> <small class="text-muted">(2017-08-26)</small></li>
+<li><a href="https://www.47deg.com/blog/fetch-doobie-http4s/">Combining data from a database and a web service with Fetch</a> <small class="text-muted">(2017-01-19)</small></li>
+<li><a href="https://partialflow.wordpress.com/2016/10/18/crud-and-error-handling-with-http4s/">CRUD and error handling with Http4s</a> <small class="text-muted">(2016-10-18)</small></li>
+<li><a href="https://www.slideshare.net/GaryCoady/http4s-doobie-and-circe-the-functional-web-stack">Http4s, Doobie and Circe: The Functional Web Stack</a> <small class="text-muted">(2016-04-15)</small></li>
+<li><a href="http://www.lyranthe.org/http4s/2016/02/18/request-pattern-matching.html">HttpRequest and pattern matching on requests</a> <small class="text-muted">(2016-02-18)</small></li>
+<li><a href="http://www.lyranthe.org/http4s/2016/02/16/setting-up-http4s.html">Seting up a http4s skeleton project</a> <small class="text-muted">(2016-02-16)</small></li>
+<li><a href="http://immutables.pl/2016/01/16/Streaming-data-using-http4s-and-scalaz-stream/">Streaming of data using http4s and scalaz-stream</a> <small class="text-muted">(2016-01-16)</small></li>
+</ul>
 
-      <p class="card-text">
-        http4s servers and clients share an immutable model of
-        requests and responses. Standard headers are modeled as
-        semantic types, and entity codecs are done by typeclass.
-      </p>
-    </div>
-    <div class="card p-3">
-      <h3 class="card-title">Functional</h3>
+<h2 id="dependencies">Dependencies</h2>
 
-      <p>
-        The pure functional side of Scala is favored to promote
-        composability and easy reasoning about your code.  I/O is
-        managed through <a href="https://github.com/typelevel/cats-effect">cats-effect</a>.
-      </p>
-    </div>
-    <div class="card p-3">
-      <h3 class="card-title">Streaming</h3>
+<p>http4s stands on the shoulders of giants.  To use it most effectively,
+it helps to be familiar with its dependencies.</p>
 
-      <p class="card-text">
-        http4s is built on <a href="https://github.com/functional-streams-for-scala/fs2">FS2</a>, 
-        a streaming library that provides for processing and emitting
-        large payloads in constant space and implementing websockets.
-      </p>
-    </div>
-  </div>
-</div>
+<ul>
+<li><a href="https://typelevel.github.io/cats">Cats</a> provides typeclasses and a
+few core data types.
+
+<ul>
+<li><a href="https://typelevel.org/cats/resources_for_learners.html">Resources for Learners</a></li>
+</ul></li>
+<li><a href="https://github.com/typelevel/cats-effect/">cats-effect</a> is used to
+mark effectful code.
+
+<ul>
+<li><a href="https://typelevel.org/blog/2017/05/02/io-monad-for-cats.html">An IO monad for cats</a></li>
+</ul></li>
+<li><a href="https://github.com/functional-streams-for-scala/fs2">FS2</a> provides
+support for streaming.
+
+<ul>
+<li><a href="https://github.com/functional-streams-for-scala/fs2/blob/series/0.10/docs/guide.md">The Official Guide</a></li>
+</ul></li>
+<li><a href="https://circe.github.io/circe/">Circe</a> is the recommended library for JSON.</li>
+</ul>
 
         </div>
 
@@ -162,7 +156,7 @@
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/further-reading/">Further reading</a>
+	      <a class="nav-link active" href="/further-reading/">Further reading</a>
             </li>
             
           </ul>
