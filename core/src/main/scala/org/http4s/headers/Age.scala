@@ -1,12 +1,9 @@
 package org.http4s
 package headers
 
-import org.http4s.util.{Renderer, Writer}
-import org.http4s.util.Renderable._
 import org.http4s.parser.HttpHeaderParser
-
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration._
+import org.http4s.util.{Renderer, Writer}
+import scala.concurrent.duration.{FiniteDuration, _}
 import scala.util.Try
 
 object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
@@ -38,7 +35,6 @@ object Age extends HeaderKey.Internal[Age] with HeaderKey.Singleton {
   * @param age age of the response
   */
 sealed abstract case class Age(age: Long) extends Header.Parsed {
-  import Age._
 
   val key = Age
 

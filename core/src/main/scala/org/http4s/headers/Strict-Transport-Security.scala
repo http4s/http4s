@@ -1,9 +1,9 @@
 package org.http4s
 package headers
 
-import scala.concurrent.duration.FiniteDuration
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
+import scala.concurrent.duration.FiniteDuration
 
 /**
   * Defined by http://tools.ietf.org/html/rfc6797

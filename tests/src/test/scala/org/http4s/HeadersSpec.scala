@@ -1,7 +1,6 @@
 package org.http4s
 
 import org.http4s.headers._
-import org.http4s.syntax.string._
 import org.http4s.util.nonEmptyList._
 
 class HeadersSpec extends Http4sSpec {

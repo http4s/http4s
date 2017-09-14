@@ -5,15 +5,9 @@ package util
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import scala.concurrent._
-
-import fs2._
-import org.http4s.blaze.http.Headers
-import org.http4s.blaze.pipeline.TailStage
-import org.http4s.blaze.http.http20.NodeMsg._
 import org.http4s.syntax.async._
 import org.http4s.util.StringWriter
-import org.http4s.util.chunk._
+import scala.concurrent._
 
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =

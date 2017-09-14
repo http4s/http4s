@@ -1,10 +1,7 @@
 package org.http4s
 
-import scala.concurrent.duration._
-
 import cats.kernel.laws._
 import org.http4s.CharsetRange.`*`
-import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 

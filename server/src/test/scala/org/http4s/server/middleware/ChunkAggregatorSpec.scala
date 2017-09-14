@@ -9,7 +9,6 @@ import fs2._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.util.chunk._
 import org.scalacheck._
 import org.specs2.matcher.MatchResult
 

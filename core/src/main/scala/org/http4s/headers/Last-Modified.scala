@@ -1,8 +1,6 @@
 package org.http4s
 package headers
 
-import java.time.Instant
-
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderer, Writer}
 

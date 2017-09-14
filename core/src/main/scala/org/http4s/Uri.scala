@@ -1,18 +1,15 @@
 package org.http4s
 
+import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
-
-import scala.language.experimental.macros
-import scala.reflect.macros.whitebox.Context
-
 import macrocompat.bundle
 import org.http4s.Uri._
-
-import cats.implicits._
 import org.http4s.internal.parboiled2.Parser
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util.{CaseInsensitiveString, Renderable, UrlCodingUtils, Writer}
+import scala.language.experimental.macros
+import scala.reflect.macros.whitebox.Context
 
 /** Representation of the [[Request]] URI
   * @param scheme     optional Uri Scheme. eg, http, https

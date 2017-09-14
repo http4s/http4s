@@ -2,12 +2,11 @@ package org.http4s
 package server
 package staticcontent
 
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
-
 import cats.effect._
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Paths}
 import scodec.bits.ByteVector
 
 private[staticcontent] trait StaticContentShared { this: Http4sSpec =>

@@ -1,10 +1,9 @@
 package org.http4s
 package argonaut.test // Get out of argonaut package so we can import custom instances
 
-import java.nio.charset.StandardCharsets
-
 import _root_.argonaut._
 import cats.effect.IO
+import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`

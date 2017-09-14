@@ -4,6 +4,7 @@ package middleware
 
 import cats._
 import cats.implicits._
+import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -13,8 +14,7 @@ import cats.implicits._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Functor](service: HttpService[F])(
-      implicit M: Semigroup[F[MaybeResponse[F]]]): HttpService[F] =
+  def apply[F[_]: Monad](service: HttpService[F]): HttpService[F] =
     HttpService.lift { req =>
       req.method match {
         case Method.HEAD =>
@@ -27,9 +27,6 @@ object DefaultHead {
   private def headAsTruncatedGet[F[_]: Functor](service: HttpService[F]): HttpService[F] =
     HttpService.lift { req =>
       val getReq = req.withMethod(Method.GET)
-      // TODO fs2 port I think .open.close is a fair translation of
-      // scalaz-stream's kill, but it doesn't run the cleanup.  Is
-      // this a bug?
       service(getReq).map(_.cata(resp => resp.copy(body = resp.body.drain), Pass()))
     }
 }

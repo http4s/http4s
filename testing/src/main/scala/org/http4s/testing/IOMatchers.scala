@@ -4,9 +4,8 @@
 package org.http4s.testing
 
 import cats.effect.IO
-import org.specs2.matcher.ValueChecks._
 import org.specs2.matcher._
-
+import org.specs2.matcher.ValueChecks._
 import scala.concurrent.duration.FiniteDuration
 
 /**

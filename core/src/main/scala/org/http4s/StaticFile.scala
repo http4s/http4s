@@ -1,24 +1,21 @@
 package org.http4s
 
-import java.io._
-import java.net.URL
-import java.nio.file.{Path, StandardOpenOption}
-import java.time.Instant
-
 import cats.data._
-import cats.implicits._
 import cats.effect.Sync
-import fs2.Stream._
+import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
+import fs2.Stream._
 import fs2.interop.scodec.ByteVectorChunk
 import fs2.io._
 import fs2.io.file.{FileHandle, pulls}
+import java.io._
+import java.net.URL
+import java.nio.file.{Path, StandardOpenOption}
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
 import scodec.bits.ByteVector
 
-// TODO: consider using the new scalaz.stream.nio.file operations
 object StaticFile {
   private[this] val logger = getLogger
 

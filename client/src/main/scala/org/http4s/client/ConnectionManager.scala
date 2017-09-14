@@ -2,7 +2,6 @@ package org.http4s
 package client
 
 import cats.effect._
-
 import scala.concurrent.ExecutionContext
 
 /** Type that is responsible for the client lifecycle

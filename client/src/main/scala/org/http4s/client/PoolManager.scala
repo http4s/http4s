@@ -4,7 +4,6 @@ package client
 import cats.effect._
 import fs2.async
 import org.log4s.getLogger
-
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -85,10 +84,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
 
   /**
-    * This generates a Task of Next Connection. The following calls are executed asynchronously
+    * This generates a effect of Next Connection. The following calls are executed asynchronously
     * with respect to whenever the execution of this task can occur.
     *
-    * If the pool is closed The task failure is executed.
+    * If the pool is closed the effect failure is executed.
     *
     * If the pool is not closed then we look for any connections in the idleQueues that match
     * the RequestKey requested.
@@ -102,7 +101,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * then the Request is placed in a waitingQueue to be executed when a connection is released.
     *
     * @param key The Request Key For The Connection
-    * @return A Task of NextConnection
+    * @return An effect of NextConnection
     */
   def borrow(key: RequestKey): F[NextConnection] =
     F.async { callback =>
@@ -159,7 +158,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * Otherwise the pool is shrunk.
     *
     * @param connection The connection to be released.
-    * @return A Task of Unit
+    * @return An effect of Unit
     */
   def release(connection: A): F[Unit] = F.delay {
     synchronized {
@@ -213,10 +212,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   /**
     * This invalidates a Connection. This is what is exposed externally, and
-    * is just a Task wrapper around disposing the connection.
+    * is just an effect wrapper around disposing the connection.
     *
     * @param connection The connection to invalidate
-    * @return A Task of Unit
+    * @return An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] =
     F.delay(disposeConnection(connection.requestKey, Some(connection)))
@@ -245,7 +244,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * Changes isClosed to true, no methods can reopen a closed Pool.
     * Shutdowns all connections in the IdleQueue and Sets Allocated to Zero
     *
-    * @return A Task Of Unit
+    * @return An effect Of Unit
     */
   def shutdown(): F[Unit] = F.delay {
     logger.info(s"Shutting down connection pool: $stats")

@@ -4,22 +4,21 @@ object ClientExample {
 
   def getSite() = {
 
+    import cats.effect.IO
     import org.http4s.Http4s._
     import org.http4s.client._
-    import cats.effect.IO
 
     val client: Client[IO] = blaze.SimpleHttp1Client()
 
     val page: IO[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.map(_.take(72)).unsafeRunSync()) // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).unsafeRunSync()) // each execution of the effect will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
-    import org.http4s.Status.{NotFound, Successful}
-    import io.circe._
     import io.circe.generic.auto._
+    import org.http4s.Status.{NotFound, Successful}
     import org.http4s.circe.jsonOf
 
     final case class Foo(bar: String)

@@ -2,11 +2,10 @@ package org.http4s
 package client
 package middleware
 
-import java.util.concurrent.atomic._
-
 import cats.effect._
 import cats.implicits._
 import fs2._
+import java.util.concurrent.atomic._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.specs2.mutable.Tables

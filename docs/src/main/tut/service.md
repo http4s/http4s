@@ -34,10 +34,10 @@ $ sbt console
 
 ## Your first service
 
-An `HttpService` is a simple alias for
-`Kleisli[Task, Request, Response]`.  If that's meaningful to you,
+An `HttpService[F]` is a simple alias for
+`Kleisli[F, Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
-around a `Request => Task[Response]`, and `Task` is an asynchronous
+around a `Request => F[Response]`, and `F` is an effectful
 operation.  We'll teach you what you need to know as we go, or you
 can, uh, fork a task to read these introductions first:
 
@@ -145,13 +145,13 @@ server.shutdown.unsafeRunSync()
 
 ### Running your service as an `App`
 
-Every `ServerBuilder` has a `.serve` method that returns a
-`Stream[Task, Nothing]`.  This stream runs forever without emitting
+Every `ServerBuilder[F]` has a `.serve` method that returns a
+`Stream[F, Nothing]`.  This stream runs forever without emitting
 any output.  When this process is run with `.unsafeRun` on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.
 
-As a convenience, http4s provides an `org.http4s.util.StreamApp` trait
+As a convenience, http4s provides an `org.http4s.util.StreamApp[F[_]]` trait
 with an abstract `main` method that returns a `Stream`.  A `StreamApp`
 runs the process and adds a JVM shutdown hook to interrupt the infinite
 process and gracefully shut down your server when a SIGTERM is received.
@@ -162,13 +162,12 @@ import org.http4s.server.blaze._
 import org.http4s.util.StreamApp
 
 object Main extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]) = {
+  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
     BlazeBuilder[IO]
       .bindHttp(8080, "localhost")
       .mountService(helloWorldService, "/")
       .mountService(services, "/api")
       .serve
-  }
 }
 ```
 

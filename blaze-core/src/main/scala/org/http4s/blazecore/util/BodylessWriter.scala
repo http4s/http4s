@@ -2,18 +2,14 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-
 import cats.effect._
-import cats.effect.implicits._
 import cats.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
+import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline._
 import org.http4s.util.StringWriter
-
 import scala.concurrent._
-import scala.util._
 
 /** Discards the body, killing it so as to clean up resources
   *

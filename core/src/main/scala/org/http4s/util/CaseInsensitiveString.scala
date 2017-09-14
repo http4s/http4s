@@ -1,7 +1,6 @@
 package org.http4s.util
 
-import java.util.Locale
-import cats.{Eq, Monoid, Order, Show}
+import cats.{Monoid, Order, Show}
 
 /**
   * A String wrapper such that two strings `x` and `y` are equal if

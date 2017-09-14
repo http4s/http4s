@@ -1,12 +1,10 @@
 package org.http4s
 
-import java.io._
-import java.nio.charset.StandardCharsets
-
 import cats.effect.IO
 import fs2._
+import java.io._
+import java.nio.charset.StandardCharsets
 import org.http4s.headers._
-
 import scala.concurrent.Future
 
 class EntityEncoderSpec extends Http4sSpec {

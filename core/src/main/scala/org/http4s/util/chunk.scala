@@ -1,9 +1,8 @@
 package org.http4s.util
 
-import java.nio.ByteBuffer
-
 import cats._
 import fs2._
+import java.nio.ByteBuffer
 
 trait ChunkInstances extends ChunkInstances0 {
 

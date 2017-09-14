@@ -7,7 +7,6 @@ package org.http4s.argonaut
 
 import _root_.argonaut._
 import _root_.jawn._
-
 import scala.collection.mutable
 
 /* Temporary parser until jawn-argonaut supports 6.2.x. */

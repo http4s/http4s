@@ -1,9 +1,8 @@
 package org.http4s.util
 
-import java.util.Locale
-
 import cats.Show
 import cats.kernel.laws.{GroupLaws, OrderLaws}
+import java.util.Locale
 import org.http4s.Http4sSpec
 import org.scalacheck.{Arbitrary, Gen, Prop}
 

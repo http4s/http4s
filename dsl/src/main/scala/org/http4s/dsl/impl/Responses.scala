@@ -1,9 +1,9 @@
 package org.http4s.dsl.impl
 
 import cats.Applicative
+import org.http4s.{Headers, Response, Status}
 import org.http4s.Status._
 import org.http4s.headers.`Content-Length`
-import org.http4s.{Headers, Response, Status}
 
 trait Responses[F[_]] {
   import Responses._

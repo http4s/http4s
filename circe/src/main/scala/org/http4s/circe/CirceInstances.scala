@@ -1,16 +1,15 @@
 package org.http4s
 package circe
 
-import java.nio.ByteBuffer
-
 import cats._
 import cats.effect._
 import cats.implicits._
 import fs2.Chunk
 import fs2.interop.scodec.ByteVectorChunk
-import io.circe.jawn.CirceSupportParser.facade
-import io.circe.jawn._
 import io.circe.{Decoder, Encoder, Json, Printer}
+import io.circe.jawn._
+import io.circe.jawn.CirceSupportParser.facade
+import java.nio.ByteBuffer
 import org.http4s.headers.`Content-Type`
 import scodec.bits.ByteVector
 

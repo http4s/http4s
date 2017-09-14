@@ -2,21 +2,17 @@ package org.http4s
 package server
 package middleware
 
-import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPOutputStream
-
 import cats.effect._
 import cats.implicits._
 import fs2._
-import org.http4s.server.syntax._
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
 import org.http4s.dsl.io._
-import org.http4s.implicits._
 import org.http4s.headers._
-import org.scalacheck.Prop.forAll
 import org.scalacheck.Properties
+import org.scalacheck.Prop.forAll
 
 class GZipSpec extends Http4sSpec {
-  implicit val S = IO.ioSemigroup[MaybeResponse[IO]]
 
   "GZip" should {
     "fall through if the route doesn't match" in {

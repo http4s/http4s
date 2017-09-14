@@ -1,17 +1,14 @@
 package org.http4s
 package servlet
 
-import java.util.concurrent.atomic.AtomicReference
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import javax.servlet.{ReadListener, WriteListener}
-
-import cats._
-import cats.implicits._
 import cats.effect._
+import cats.implicits._
 import fs2._
+import java.util.concurrent.atomic.AtomicReference
+import javax.servlet.{ReadListener, WriteListener}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.util.{TrampolineExecutionContext, bug}
 import org.log4s.getLogger
-
 import scala.annotation.tailrec
 
 /**
@@ -91,7 +88,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
 
       if (in.isFinished) Stream.empty
       else {
-        // This Task sets the callback and waits for the first bytes to read
+        // This effect sets the callback and waits for the first bytes to read
         val registerRead =
           // Shift execution to a different EC
           F.shift(TrampolineExecutionContext) >>

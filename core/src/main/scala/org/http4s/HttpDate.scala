@@ -3,7 +3,6 @@ package org.http4s
 import java.time.{Instant, ZoneId, ZonedDateTime}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import org.http4s.internal.parboiled2.{Parser, ParserInput}
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
 

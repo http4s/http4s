@@ -5,7 +5,6 @@ package util
 import cats.effect._
 import fs2._
 import org.http4s.blaze.pipeline.Command.EOF
-
 import scala.concurrent.{ExecutionContext, Future}
 
 class FailingWriter(implicit protected val F: Effect[IO]) extends EntityBodyWriter[IO] {

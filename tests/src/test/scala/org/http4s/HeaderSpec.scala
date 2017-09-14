@@ -1,9 +1,7 @@
 package org.http4s
 
-import java.time.Instant
-
+import org.http4s.headers._
 import org.specs2.mutable.Specification
-import headers._
 
 class HeaderSpec extends Specification {
   "Headers" should {

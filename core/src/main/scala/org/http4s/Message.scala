@@ -1,12 +1,11 @@
 package org.http4s
 
-import java.io.File
-import java.net.{InetAddress, InetSocketAddress}
-
 import cats._
 import cats.implicits._
 import fs2._
 import fs2.text._
+import java.io.File
+import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import org.http4s.util.nonEmptyList._
@@ -118,7 +117,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     *
     * @param decoder [[EntityDecoder]] used to decode the [[Message]]
     * @tparam T type of the result
-    * @return the `Task` which will generate the `DecodeResult[T]`
+    * @return the effect which will generate the `DecodeResult[T]`
     */
   override def attemptAs[T](
       implicit F: FlatMap[F],
@@ -144,7 +143,7 @@ object Message {
   * @param uri representation of the request URI
   * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
-  * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
+  * @param body fs2.Stream[F, Byte] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 sealed abstract case class Request[F[_]](
@@ -260,6 +259,15 @@ sealed abstract case class Request[F[_]](
   private lazy val connectionInfo = attributes.get(Keys.ConnectionInfo)
 
   lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
+
+  /**
+    Returns the the forwardFor value if present, else the remote address.
+    */
+  def from: Option[InetAddress] =
+    headers
+      .get(`X-Forwarded-For`)
+      .fold(remote.flatMap(remote => Option(remote.getAddress)))(_.values.head)
+
   lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
   lazy val remoteHost: Option[String] = remote.map(_.getHostName)
   lazy val remotePort: Option[Int] = remote.map(_.getPort)
@@ -355,8 +363,10 @@ sealed trait MaybeResponse[F[_]] {
     cata(Some(_), None)
 }
 
-object MaybeResponse {
-  implicit def instance[F[_]]: Monoid[MaybeResponse[F]] =
+object MaybeResponse extends MaybeResponseInstances
+
+trait MaybeResponseInstances {
+  implicit def http4sMonoidForMaybeResponse[F[_]]: Monoid[MaybeResponse[F]] =
     new Monoid[MaybeResponse[F]] {
       def empty =
         Pass()
@@ -364,13 +374,15 @@ object MaybeResponse {
         a.orElse(b)
     }
 
-//  implicit def monadInstance[F[_]](implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
-//    new Monoid[F[MaybeResponse[F]]] {
-//      def empty =
-//        F.pure(Pass())
-//      def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]): F[MaybeResponse[F]] =
-//        fa.flatMap(_.cata(F.pure, fb))
-//    }
+  implicit def http4sMonoidForFMaybeResponse[F[_]](
+      implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
+    new Monoid[F[MaybeResponse[F]]] {
+      override def empty =
+        Pass.pure[F]
+
+      override def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]) =
+        fa.flatMap(_.cata(F.pure, fb))
+    }
 }
 
 final case class Pass[F[_]]() extends MaybeResponse[F]

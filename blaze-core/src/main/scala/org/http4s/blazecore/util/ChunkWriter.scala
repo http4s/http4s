@@ -2,17 +2,15 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.ISO_8859_1
-
-import scala.concurrent._
-
 import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
+import org.http4s.util.chunk._
+import scala.concurrent._
 
 private[util] object ChunkWriter {
   val CRLFBytes = "\r\n".getBytes(ISO_8859_1)

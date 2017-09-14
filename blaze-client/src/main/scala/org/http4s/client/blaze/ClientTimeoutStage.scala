@@ -3,14 +3,12 @@ package org.http4s.client.blaze
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
-
-import org.http4s.blaze.pipeline.Command.{Disconnect, EOF, Error, OutboundCommand}
 import org.http4s.blaze.pipeline.MidStage
+import org.http4s.blaze.pipeline.Command.{Disconnect, EOF, Error, OutboundCommand}
 import org.http4s.blaze.util.{Cancellable, TickWheelExecutor}
-
 import scala.annotation.tailrec
-import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Promise}
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 final private[blaze] class ClientTimeoutStage(

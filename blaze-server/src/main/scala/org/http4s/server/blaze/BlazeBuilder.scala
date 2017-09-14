@@ -2,15 +2,12 @@ package org.http4s
 package server
 package blaze
 
+import cats.effect._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
-
-import cats._
-import cats.effect._
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
@@ -19,7 +16,6 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -37,7 +33,7 @@ class BlazeBuilder[F[_]](
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F]
-)(implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]])
+)(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -143,9 +139,7 @@ class BlazeBuilder[F[_]](
     copy(serviceErrorHandler = serviceErrorHandler)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map { mount =>
-      mount.prefix -> mount.service
-    }: _*)
+    val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
@@ -222,7 +216,7 @@ class BlazeBuilder[F[_]](
 
     val address = resolveAddress(socketAddress)
 
-    // if we have a Failure, it will be caught by the Task
+    // if we have a Failure, it will be caught by the effect
     val serverChannel = factory.bind(address, pipelineFactory).get
 
     new Server[F] {
@@ -281,7 +275,7 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Effect[F], S: Semigroup[F[MaybeResponse[F]]]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: Effect[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,

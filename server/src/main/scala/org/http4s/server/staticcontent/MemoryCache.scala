@@ -2,11 +2,10 @@ package org.http4s
 package server
 package staticcontent
 
-import java.util.concurrent.ConcurrentHashMap
-
 import cats.effect._
 import cats.implicits._
 import fs2.Stream._
+import java.util.concurrent.ConcurrentHashMap
 import org.http4s.util.chunk._
 import org.log4s.getLogger
 

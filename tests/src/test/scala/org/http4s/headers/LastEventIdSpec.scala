@@ -1,8 +1,9 @@
 package org.http4s
 package headers
 
-import org.scalacheck._, Arbitrary._
 import org.http4s.ServerSentEvent._
+import org.scalacheck._
+import org.scalacheck.Arbitrary._
 
 class LastEventIdSpec extends HeaderLaws {
   implicit val arbLastEventId: Arbitrary[`Last-Event-Id`] =

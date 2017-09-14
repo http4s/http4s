@@ -1,7 +1,6 @@
 package org.http4s.bench
 
 import java.util.concurrent.TimeUnit
-
 import org.http4s.Query
 import org.http4s.bench.input.QueryParamInput
 import org.openjdk.jmh.annotations._

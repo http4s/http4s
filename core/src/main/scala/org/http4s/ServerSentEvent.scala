@@ -1,12 +1,10 @@
 package org.http4s
 
-import java.util.regex.Pattern
-
 import fs2._
 import fs2.text.{utf8Decode, utf8Encode}
+import java.util.regex.Pattern
 import org.http4s.ServerSentEvent._
 import org.http4s.util.{Renderable, Writer}
-
 import scala.util.Try
 
 case class ServerSentEvent(

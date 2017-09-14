@@ -2,20 +2,19 @@ package org.http4s
 package server
 package middleware
 
+import cats._
+import fs2._
+import fs2.Stream._
+import fs2.compress._
 import java.util.zip.{CRC32, Deflater}
 import javax.xml.bind.DatatypeConverter
-
-import cats._
-import fs2.Stream._
-import fs2._
-import fs2.compress._
 import org.http4s.headers._
 import org.log4s.getLogger
 
 object GZip {
   private[this] val logger = getLogger
 
-  // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
+  // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
   def apply[F[_]: Functor](
       service: HttpService[F],

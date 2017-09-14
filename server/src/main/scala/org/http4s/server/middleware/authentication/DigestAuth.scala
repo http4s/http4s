@@ -3,18 +3,15 @@ package server
 package middleware
 package authentication
 
-import java.security.SecureRandom
-import java.math.BigInteger
-import java.util.Date
-
 import cats._
-
-import scala.concurrent.duration._
 import cats.data._
 import cats.effect.Sync
 import cats.implicits._
-import fs2._
+import java.math.BigInteger
+import java.security.SecureRandom
+import java.util.Date
 import org.http4s.headers._
+import scala.concurrent.duration._
 
 /**
   * Provides Digest Authentication from RFC 2617.

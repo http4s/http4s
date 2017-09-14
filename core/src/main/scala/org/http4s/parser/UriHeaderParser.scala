@@ -1,7 +1,6 @@
 package org.http4s.parser
 
 import java.nio.charset.StandardCharsets
-
 import org.http4s.{Header, Uri}
 import org.http4s.internal.parboiled2.Rule1
 

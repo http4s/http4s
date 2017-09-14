@@ -2,16 +2,14 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-
 import cats.effect._
 import cats.implicits._
 import fs2._
+import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.util.chunk._
 import org.http4s.util.StringWriter
+import org.http4s.util.chunk._
 import org.log4s.getLogger
-
 import scala.concurrent.{ExecutionContext, Future}
 
 private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(

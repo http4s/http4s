@@ -1,11 +1,8 @@
 package org.http4s
 
-import scala.util.control.{NoStackTrace, NonFatal}
-
 import cats._
-import cats.data._
 import cats.implicits._
-import fs2._
+import scala.util.control.{NoStackTrace, NonFatal}
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 sealed abstract class MessageFailure extends RuntimeException {

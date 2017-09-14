@@ -1,7 +1,6 @@
 package org.http4s.server.middleware.authentication
 
 import java.util.LinkedHashMap
-
 import scala.annotation.tailrec
 
 private[authentication] object NonceKeeper {

@@ -11,7 +11,7 @@ title: Coding Standard
 
 Prefer a parameterized effect type and cats-effect type classes over
 specializing on a task. (In versions before cats-effect is on the classpath,
-specialize on use `fs2.Task` or `scalaz.concurrent.Task`.)
+specialize on `fs2.Task` or `scalaz.concurrent.Task`.)
 
 ```scala
 // Good

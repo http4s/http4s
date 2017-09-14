@@ -7,12 +7,11 @@ import cats.effect.implicits._
 import cats.implicits._
 import fs2._
 import fs2.async.mutable.Signal
-import org.http4s.blaze.pipeline.stages.SerializingStage
+import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
+import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.websocket.WebsocketBits._
-import org.http4s.{websocket => ws4s}
-
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
@@ -84,7 +83,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
         _ <- deadSignal.map(signal => if (dec == 0) signal.set(true))
       } yield ()
 
-    // Task to send a close to the other endpoint
+    // Effect to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(sendOutboundCommand(Command.Disconnect))
 
     val wsStream = for {

@@ -18,9 +18,8 @@
 package org.http4s
 package parser
 
-import cats.implicits._
+import org.http4s.headers.`Content-Type`
 import org.http4s.internal.parboiled2._
-import headers.`Content-Type`
 
 private[parser] trait ContentTypeHeader {
 
@@ -46,7 +45,7 @@ private[parser] trait ContentTypeHeader {
 
           exts.foreach(_.foreach {
             case p @ (k, v) =>
-              if (k == "charset") charset = Charset.fromString(v).toOption
+              if (k == "charset") charset = Charset.fromString(v).right.toOption
               else ext += p
           })
 

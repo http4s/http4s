@@ -2,14 +2,11 @@ package org.http4s
 package blazecore
 package util
 
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
-
 import cats.effect._
 import fs2._
+import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
-
 import scala.concurrent.{ExecutionContext, Future}
 
 private[http4s] class CachingStaticWriter[F[_]](

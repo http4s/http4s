@@ -18,8 +18,8 @@
  */
 package org.http4s
 
-import org.http4s.util._
 import org.http4s.syntax.string._
+import org.http4s.util._
 
 final case class ContentCoding(coding: CaseInsensitiveString, qValue: QValue = QValue.One)
     extends HasQValue

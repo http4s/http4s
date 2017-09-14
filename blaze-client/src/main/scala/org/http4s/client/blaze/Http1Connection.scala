@@ -2,24 +2,21 @@ package org.http4s
 package client
 package blaze
 
-import java.nio.ByteBuffer
-import java.util.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicReference
-
 import cats.ApplicativeError
 import cats.effect._
 import cats.implicits._
 import fs2._
-import org.http4s.Uri.{Authority, RegName}
+import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReference
 import org.http4s.{headers => H}
+import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.Http1Writer
 import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
 import org.http4s.util.{StringWriter, Writer}
-import org.http4s.{headers => H}
-
 import scala.annotation.tailrec
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -235,7 +232,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
           val (rawBody, _): (EntityBody[F], () => Future[ByteBuffer]) =
             collectBodyFromParser(buffer, terminationCondition _)
 
-          // to collect the trailers we need a cleanup helper and a Task in the attribute map
+          // to collect the trailers we need a cleanup helper and an effect in the attribute map
           val (trailerCleanup, attributes): (() => Unit, AttributeMap) = {
             if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
               val trailers = new AtomicReference(Headers.empty)

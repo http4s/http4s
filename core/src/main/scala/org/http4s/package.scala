@@ -24,14 +24,14 @@ package object http4s { // scalastyle:ignore
   val DefaultCharset = Charset.`UTF-8`
 
   /**
-    * A Service wraps a function of request type `A` to a Task that runs
+    * A Service wraps a function of request type `A` to an effect that runs
     * to response type `B`.  By wrapping the [[Service]], we can compose them
     * using Kleisli operations.
     */
   type Service[F[_], A, B] = Kleisli[F, A, B]
 
   /**
-    * A [[Service]] that produces a Task to compute a [[Response]] from a
+    * A [[Service]] that produces an effect to compute a [[Response]] from a
     * [[Request]].  An HttpService can be run on any supported http4s
     * server backend, such as Blaze, Jetty, or Tomcat.
     */
@@ -106,4 +106,34 @@ package object http4s { // scalastyle:ignore
   type Http4sSyntax = syntax.AllSyntax
   @deprecated("Moved to org.http4s.syntax.all", "0.16")
   val Http4sSyntax = syntax.all
+
+  // Adapted from fs2: https://github.com/functional-streams-for-scala/fs2/blob/923c87d87a48001e7a45128f7184410cb9972283/core/shared/src/main/scala/fs2/fs2.scala#L25-L40
+  // Trick to get right-biased syntax for Either in 2.11 while retaining source compatibility with 2.12 and leaving
+  // -Xfatal-warnings and -Xwarn-unused-imports enabled. Delete when no longer supporting 2.11.
+  private[http4s] implicit class EitherSyntax[L, R](private val self: Either[L, R]) extends AnyVal {
+    def map[R2](f: R => R2): Either[L, R2] = self match {
+      case Right(r) => Right(f(r))
+      case l @ Left(_) => l.asInstanceOf[Either[L, R2]]
+    }
+
+    def flatMap[R2](f: R => Either[L, R2]): Either[L, R2] = self match {
+      case Right(r) => f(r)
+      case l @ Left(_) => l.asInstanceOf[Either[L, R2]]
+    }
+
+    def toOption: Option[R] = self match {
+      case Right(r) => Some(r)
+      case Left(_) => None
+    }
+
+    def getOrElse[R2 >: R](default: => R2): R2 = self match {
+      case Right(r) => r
+      case Left(_) => default
+    }
+
+    def valueOr[R2 >: R](f: L => R2): R2 = self match {
+      case Right(r) => r
+      case Left(l) => f(l)
+    }
+  }
 }

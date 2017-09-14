@@ -1,7 +1,7 @@
 package org.http4s
 
-import org.http4s.util.Writer
 import java.lang.{Long => JLong}
+import org.http4s.util.Writer
 
 package object headers {
 

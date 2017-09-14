@@ -1,11 +1,10 @@
 package org.http4s
 package circe.test // Get out of circe package so we can import custom instances
 
-import java.nio.charset.StandardCharsets
-
 import cats.effect.IO
 import io.circe._
 import io.circe.syntax._
+import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`

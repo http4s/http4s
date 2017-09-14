@@ -1,15 +1,13 @@
 package org.http4s
 package bench
 
-import java.nio.charset.{Charset => NioCharset, UnsupportedCharsetException}
+import cats.implicits._
+import java.nio.charset.{UnsupportedCharsetException, Charset => NioCharset}
 import java.util.{HashMap, Locale}
 import java.util.concurrent.TimeUnit
+import org.openjdk.jmh.annotations._
 import scala.collection.mutable
 import scala.collection.JavaConverters._
-import scala.util.Try
-
-import cats.implicits._
-import org.openjdk.jmh.annotations._
 
 @Fork(2)
 @Threads(8)

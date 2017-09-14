@@ -3,10 +3,8 @@ package server
 
 import cats.effect._
 import cats.implicits._
-import cats._
 
 class HttpServiceSpec extends Http4sSpec {
-  implicit val asd = Semigroup[HttpService[IO]]
 
   val srvc1 = HttpService[IO] {
     case req if req.pathInfo == "/match" =>

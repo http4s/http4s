@@ -7,7 +7,6 @@ import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 
 /**

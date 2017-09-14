@@ -1,14 +1,12 @@
 package org.http4s
 package server
 
+import cats.effect._
+import fs2._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
-
-import cats.effect._
-import fs2._
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 

@@ -3,9 +3,7 @@ package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
-
 import org.http4s.headers.`User-Agent`
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 

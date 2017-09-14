@@ -18,8 +18,8 @@
 package org.http4s
 package parser
 
-import org.http4s.internal.parboiled2._
 import org.http4s.headers.`Set-Cookie`
+import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.support.{::, HNil}
 
 private[parser] trait CookieHeader {

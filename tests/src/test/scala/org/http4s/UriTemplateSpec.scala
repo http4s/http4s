@@ -1,21 +1,7 @@
 package org.http4s
 
-import Uri.Authority
-import Uri.IPv4
-import Uri.IPv6
-import Uri.RegName
-import UriTemplate.FragmentElm
-import UriTemplate.MultiFragmentExp
-import UriTemplate.ParamContExp
-import UriTemplate.ParamElm
-import UriTemplate.ParamExp
-import UriTemplate.ParamReservedExp
-import UriTemplate.ParamVarExp
-import UriTemplate.PathElm
-import UriTemplate.PathExp
-import UriTemplate.ReservedExp
-import UriTemplate.SimpleFragmentExp
-import UriTemplate.VarExp
+import org.http4s.Uri.{Authority, IPv4, IPv6, RegName}
+import org.http4s.UriTemplate._
 
 object UriTemplateSpec extends Http4sSpec {
 

@@ -5,7 +5,7 @@ import cats._
 import cats.data.EitherT
 import cats.implicits._
 
-trait EffectMessageSyntax[F[+ _], M <: Message[F]] extends Any with MessageOps[F] {
+trait EffectMessageSyntax[F[_], M <: Message[F]] extends Any with MessageOps[F] {
   type Self = F[M#Self]
 
   def self: F[M]
@@ -14,7 +14,7 @@ trait EffectMessageSyntax[F[+ _], M <: Message[F]] extends Any with MessageOps[F
     self.map(_.transformHeaders(f))
 
   def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): Self =
-    self.flatMap(_.withBody(b))
+    self.flatMap(_.withBody(b).widen[M#Self])
 
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     self.map(_.withAttribute(key, value))

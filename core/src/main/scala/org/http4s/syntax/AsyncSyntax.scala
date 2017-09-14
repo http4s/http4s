@@ -2,7 +2,6 @@ package org.http4s.syntax
 
 import cats.Eval
 import cats.effect.Async
-
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AsyncSyntax {

@@ -1,14 +1,12 @@
 package org.http4s
 
 import cats._
-import scala.util.control.NonFatal
-
 import cats.arrow.Choice
 import cats.implicits._
-import fs2._
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.syntax.string._
 import org.log4s.getLogger
+import scala.util.control.NonFatal
 
 package object server {
 

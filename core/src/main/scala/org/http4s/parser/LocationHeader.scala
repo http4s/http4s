@@ -1,7 +1,7 @@
 package org.http4s.parser
 
-import org.http4s.headers.Location
 import org.http4s._
+import org.http4s.headers.Location
 
 trait LocationHeader {
 
