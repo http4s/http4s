@@ -1,80 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
   <meta charset="utf-8">
-  <title>http4s: The http4s DSL</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>http4s | The http4s DSL</title>
 
   <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/font-awesome.min.css" >  
   <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/fontello.css" >
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech+Mono" >
+  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Share+Tech" >
   <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/highlight-github.css">
   <link rel="stylesheet" type="text/css" href="http://http4s.org/v0.18/css/style.css" >
 </head>
 
   <body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
+    <nav class="navbar navbar-expand-md fixed-top navbar-dark bg-secondary">
+      <div class="container">
       <a class="navbar-brand" href="/">
-	<img src="http://http4s.org/v0.18/images/http4s-logo.svg" alt="logo" class="logo" /> http4s
+        http4s<img src="/images/http4s-logo.svg" alt="logo" class="logo" />
       </a>
-    </div>
-    <div id="navbar" class="collapse navbar-collapse">
-      <ul class="nav navbar-nav">
-	
-	
-	<li class="dropdown">
-  <a class="dropdown-toggle" id="doc-menu-item" data-toggle="dropdown" data-target="#" href="http://http4s.org/" role="button" aria-haspopup="true" aria-expanded="false">
-    Documentation <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" aria-labelledby="doc-menu-item">
-    <li><a href="/versions/">Versions</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.18 (development)</li>
-    <li><a href="/v0.18/">Tutorial</a></li>
-    <li><a href="/v0.18/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.17</li>
-    <li><a href="/v0.17/">Tutorial</a></li>
-    <li><a href="/v0.17/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.16</li>
-    <li><a href="/v0.16/">Tutorial</a></li>
-    <li><a href="/v0.16/api/org/http4s/">Scaladoc</a></li>
-    
-    <li role="separator" class="divider"></li>
-    <li class="dropdown-header">v0.15 (eol)</li>
-    <li><a href="/v0.15/">Tutorial</a></li>
-    <li><a href="/v0.15/api/org/http4s">Scaladoc</a></li>
-  </ul>
-</li>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fa fa-navicon"></i>
+      </button>
 
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
-        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="http://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Documentation
+          </a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item"> 
+  <a class="dropdown-item" href="/v0.18/">v0.18 (development)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (stable)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (stable)</a>
+  <a class="dropdown-item" href="/versions/">Help me choose...</a>
+  <div class="dropdown-divider"></div>    
+  <a class="dropdown-item" href="/v0.15/">v0.15 (EOL)</a>
+</div>
+
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="http://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
+        </ul>
+        <ul class="navbar-nav" id="http4s-social">
+        <li class="nav-item"><a class="nav-link" href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
+        <li class="nav-item"><a class="nav-link" href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
+        <li class="nav-item"><a class="nav-link" href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+        </ul>
+        
+      </div>
+    </nav>
 
     <div class="container">
-      <div class="content">
-        <div class="col-md-10" role="main">
-          <div class="page-header">
-            <h1>The http4s DSL</h1>
-          </div>
+
+      <div class="row row-offcanvas row-offcanvas-right">
+
+        <div class="col-12 col-md-9 order-1">
+          <span class="float-right">
+          <button type="button" class="btn btn-secondary btn-sm">
+            <i class="fa fa-edit"></i>
+          </button>
+          <span class="d-md-none">
+            <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
+              <i class="fa fa-navicon"></i>
+            </button>
+          </span>
+          </span>
+
+          
+          <h1>The http4s DSL</h1>
+          
+          
           
 
 <p>Recall from earlier that an <code>HttpService[F]</code> is just a type alias for
@@ -130,7 +135,7 @@ anything.  The right hand side of the request must return a
   case _ =&gt;
     IO(Response(Status.Ok))
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@1bdf6e90)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@1e30813b)
 </code></pre>
 
 <h2 id="testing-the-service">Testing the Service</h2>
@@ -143,7 +148,7 @@ and experiment directly in the REPL.</p>
 getRoot: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
 
 scala&gt; val io = service.run(getRoot)
-io: cats.effect.IO[org.http4s.MaybeResponse[cats.effect.IO]] = IO$1303062881
+io: cats.effect.IO[org.http4s.MaybeResponse[cats.effect.IO]] = IO$681807092
 </code></pre>
 
 <p>Where is our <code>Response[F]</code>?  It hasn&rsquo;t been created yet.  We wrapped it
@@ -247,7 +252,7 @@ res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 <p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
 
 <pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafeRunSync.headers
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 14 Sep 2017 17:04:13 GMT; Secure; HttpOnly)
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Thu, 14 Sep 2017 18:03:26 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -312,7 +317,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
      |   &quot;Greetings from the future!&quot;
      | })
 I run when the future is constructed.
-io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$878633745
+io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1823718623
 
 scala&gt; io.unsafeRunSync
 res11: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 26))
@@ -325,7 +330,7 @@ of course prefer to operate in [F]s:</p>
      |   println(&quot;I run when the IO is run.&quot;)
      |   &quot;Mission accomplished!&quot;
      | })
-io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$214932232
+io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$809452470
 
 scala&gt; io.unsafeRunSync
 I run when the IO is run.
@@ -358,10 +363,10 @@ for one second:</p>
 <p>We can see it for ourselves in the REPL:</p>
 
 <pre><code class="language-scala">scala&gt; val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s =&gt; {IO{println(s); s}})).run
-dripOutIO: cats.effect.IO[Unit] = IO$1946150409
+dripOutIO: cats.effect.IO[Unit] = IO$997791799
 
 scala&gt; dripOutIO.unsafeRunSync
-198693563 nanoseconds282714055 nanoseconds383247180 nanoseconds483162070 nanoseconds582580858 nanoseconds682755403 nanoseconds782721155 nanoseconds882569222 nanoseconds982702946 nanoseconds1082763722 nanoseconds
+156536479 nanoseconds248283398 nanoseconds342378526 nanoseconds442168258 nanoseconds542100252 nanoseconds642046750 nanoseconds742043000 nanoseconds842034378 nanoseconds941928401 nanoseconds1042164182 nanoseconds
 </code></pre>
 
 <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
@@ -388,7 +393,7 @@ other side the path. Naturally, <code>_</code> is a valid matcher too, so any ca
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case request @ _ -&gt; Root / &quot;api&quot; =&gt; Forbidden()
      | }
-res15: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@5b0724f0)
+res15: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@500a0930)
 </code></pre>
 
 <p>To also block all subcalls <code>/api/...</code>, you&rsquo;ll need <code>/:</code>, which is right
@@ -397,7 +402,7 @@ associative, and matches everything after, and not just the next element:</p>
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case request @ _ -&gt; &quot;api&quot; /: _ =&gt; Forbidden()
      | }
-res16: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@7d6b49fe)
+res16: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@5f4ffd9a)
 </code></pre>
 
 <p>For matching more than one <code>Method</code>, there&rsquo;s <code>|</code>:</p>
@@ -405,7 +410,7 @@ res16: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpS
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case request @ (GET | POST) -&gt; Root / &quot;api&quot;  =&gt; ???
      | }
-res17: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@19587009)
+res17: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@61a5aa34)
 </code></pre>
 
 <p>Honorable mention: <code>~</code>, for matching file extensions.</p>
@@ -413,7 +418,7 @@ res17: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpS
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
      | }
-res18: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@3042db7b)
+res18: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@670320ef)
 </code></pre>
 
 <h3 id="handling-path-parameters">Handling path parameters</h3>
@@ -429,7 +434,7 @@ val usersService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
     Ok(getUserName(userId))
 }
-// usersService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@6c6b84b0)
+// usersService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@5d6a166e)
 </code></pre>
 
 <p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
@@ -462,7 +467,7 @@ val dailyWeatherService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
     Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
 }
-// dailyWeatherService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@4d5ecf89)
+// dailyWeatherService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@11f0106c)
 
 println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService(_)).unsafeRunSync)
 // Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
@@ -491,7 +496,7 @@ object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;c
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@ab6df9f
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@69c33ed8
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
@@ -503,97 +508,102 @@ val averageTemperatureService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
 }
-// averageTemperatureService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6136/2023380568@554a2013)
+// averageTemperatureService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$6132/1515345628@10b06b91)
 </code></pre>
 
-          <footer>
-            <nav>
-              <ul class="pager">
-                
-                <li>
-<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/dsl.md"><i class="fa fa-pencil"></i> Edit this page</a>
-</li>
-                
-              </ul>
-            </nav>
-          </footer>
         </div>
-        <div class="col-md-2" role="complementary">
-          <nav class="tut-nav" data-spy="affix" data-offset-top="60" data-offset-bottom="200">
-            <ul class="nav">
-              
-              
-              <li >
-                <a href="/v0.18/">Quick Start</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/service/">Service</a>
-              </li>
-              
-              <li class="active">
-                <a href="/v0.18/dsl/">The http4s DSL</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/middleware/">Middleware</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/auth/">Authentication</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/cors/">CORS</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/gzip/">GZip Compression</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/hsts/">HSTS</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/static/">Static Files</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/client/">HTTP Client</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/entity/">Entity handling</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/streaming/">Streaming</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/json/">JSON handling</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/uri/">URI handling</a>
-              </li>
-              
-              <li >
-                <a href="/v0.18/api">Scaladoc</a>
-              </li>
-              
-            </ul>
-          </nav>
+
+        <div class="col-6 col-md-3 order-2 sidebar-offcanvas p-0" id="sidebar">
+          <ul class="nav flex-column">          
+            
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/">Quick Start</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/service/">Service</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link active" href="/v0.18/dsl/">The http4s DSL</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/middleware/">Middleware</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/auth/">Authentication</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/cors/">CORS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/gzip/">GZip Compression</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/hsts/">HSTS</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/static/">Static Files</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/client/">HTTP Client</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/entity/">Entity handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/streaming/">Streaming</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/json/">JSON handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/uri/">URI handling</a>
+            </li>
+            
+            <li class="nav-item">
+	      <a class="nav-link" href="/v0.18/api">Scaladoc</a>
+            </li>
+            
+          </ul>
         </div>
       </div>
-    </div>
-    
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+      <hr />
+      <footer class="text-muted text-center small">
+        http4s is a <a href="https://typelevel.org/">Typelevel</a> Incubator Project distributed under the <a href="https://github.com/http4s/http4s/LICENSE">Apache 2 License</a>.
+      </footer>
 
-<script src="http://http4s.org/v0.18/js/bootstrap.min.js"></script>    
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
 <script src="http://http4s.org/v0.18/js/highlight.pack.js"></script>
-<script>hljs.initHighlightingOnLoad();</script>
+<script>
+  hljs.initHighlightingOnLoad();
+  
+  $(document).ready(function () {
+    $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active')
+    });
+  });
+
+  $('h2').each(function() { $(this).prepend('<a href=#' + $(this).context.id + '>:link: </a>') })  
+</script>
 
   </body>
 </html>
+
+
