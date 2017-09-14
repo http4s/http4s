@@ -138,6 +138,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 val nonEmptyKeys = getNonEmptyKeys
                 val randKey = nonEmptyKeys.drop(Random.nextInt(nonEmptyKeys.size)).head
                 idleQueues(randKey).dequeue().shutdown()
+                decrConnection(randKey)
                 createConnection(key, callback)
 
               case None => // we're full up. Add to waiting queue.
