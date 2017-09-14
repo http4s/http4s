@@ -298,6 +298,7 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
+    scalacOptions in (Compile,doc) -= "-Ywarn-unused-import",
     exportMetadataForSite := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = apiVersion.value
