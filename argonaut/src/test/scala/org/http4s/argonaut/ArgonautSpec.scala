@@ -69,6 +69,20 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     }
   }
 
+  "JsonDecoder instance" should {
+    "decode json from a body" in {
+      val dec = JsonDecoder[IO, Foo]
+      val req = Request[IO]().withBody(foo.asJson)
+      req.flatMap(dec.decodeJson) must returnValue(foo)
+    }
+
+    "fail on invalid json" in {
+      val dec = JsonDecoder[IO, Foo]
+      val req = Request[IO]().withBody(List(13, 14).asJson)
+      req.flatMap(dec.decodeJson).attempt.unsafeRunSync must beLeft
+    }
+  }
+
   "json" should {
     "handle the optionality of jNumber" in {
       // TODO Urgh.  We need to make testing these smoother.

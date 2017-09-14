@@ -55,6 +55,21 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     }
   }
 
+  "JsonDecoder instance" should {
+    "decode json from a body" in {
+      val dec = JsonDecoder[IO, Option[Int]]
+      val req = Request[IO]().withBody("42").withContentType(Some(MediaType.`application/json`))
+      req.flatMap(dec.decodeJson) must returnValue(Some(42))
+    }
+
+    "fail on invalid json" in {
+      val dec = JsonDecoder[IO, Int]
+      val req =
+        Request[IO]().withBody(""""horse"""").withContentType(Some(MediaType.`application/json`))
+      req.flatMap(dec.decodeJson).attempt.unsafeRunSync must beLeft
+    }
+  }
+
   "jsonExtract" should {
     implicit val formats = org.json4s.DefaultFormats
 
