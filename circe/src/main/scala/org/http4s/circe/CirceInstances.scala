@@ -15,7 +15,7 @@ import scodec.bits.ByteVector
 
 trait CirceInstances {
 
-  implicit def http4sCirceJsonDecoder[F[_]: Sync, A](implicit decoder: Decoder[A]) =
+  implicit def http4sCirceJsonDecoder[F[_]: Sync, A: Decoder]: JsonDecoder[F, A] =
     new JsonDecoder[F, A] {
       override def decodeJson(message: Message[F]): F[A] =
         jsonOf[F, A]
