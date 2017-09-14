@@ -114,4 +114,16 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       uri.asJson.as[Uri].result must beRight(uri)
     }
   }
+
+  "Message[F].decodeJson[A]" should {
+    "decode json from a message" in {
+      val req = Request[IO]().withBody(foo.asJson)
+      req.flatMap(_.decodeJson[Foo]) must returnValue(foo)
+    }
+
+    "fail on invalid json" in {
+      val req = Request[IO]().withBody(List(13, 14).asJson)
+      req.flatMap(_.decodeJson[Foo]).attempt.unsafeRunSync must beLeft
+    }
+  }
 }
