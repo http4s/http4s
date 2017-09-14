@@ -84,6 +84,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
       callback(Left(error))
     }
 
+  private def getNonEmptyKeys: List[RequestKey] =
+    idleQueues.foldLeft(List.empty[RequestKey]) {
+      case (l, (k, q)) =>
+        if (q.nonEmpty) l :+ k
+        else l
+    }
+
   /**
     * This generates a effect of Next Connection. The following calls are executed asynchronously
     * with respect to whenever the execution of this task can occur.
@@ -128,8 +135,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case None if curTotal == maxTotal =>
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
-                val nonEmptyQueues = idleQueues.filter(_._2.nonEmpty)
-                val randKey = nonEmptyQueues.keys.drop(Random.nextInt(nonEmptyQueues.size)).head
+                val nonEmptyKeys = getNonEmptyKeys
+                val randKey = nonEmptyKeys.drop(Random.nextInt(nonEmptyKeys.size)).head
                 idleQueues(randKey).dequeue().shutdown()
                 createConnection(key, callback)
 
