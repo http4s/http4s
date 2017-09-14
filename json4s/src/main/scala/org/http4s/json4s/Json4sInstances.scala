@@ -14,6 +14,14 @@ object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLo
 trait Json4sInstances[J] {
   import CustomParser.facade
 
+  implicit def http4sJson4sJsonDecoder[F[_]: Sync, A: Reader]: JsonDecoder[F, A] =
+    new JsonDecoder[F, A] {
+      override def decodeJson(message: Message[F]): F[A] =
+        jsonOf[F, A]
+          .decode(message, strict = false)
+          .fold(throw _, identity)
+    }
+
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JValue] =
     jawn.jawnDecoder
 

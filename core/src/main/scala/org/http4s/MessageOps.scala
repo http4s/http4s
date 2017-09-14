@@ -85,6 +85,9 @@ trait MessageOps[F[_]] extends Any {
     */
   final def as[T](implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
     attemptAs.fold(throw _, identity)
+
+  def decodeJson[T](implicit jsonDecoder: JsonDecoder[F, T], F: FlatMap[F]): F[T]
+
 }
 
 trait RequestOps[F[_]] extends Any with MessageOps[F] {

@@ -123,6 +123,9 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
       implicit F: FlatMap[F],
       decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
     decoder.decode(this, strict = false)
+
+  override def decodeJson[T](implicit jsonDecoder: JsonDecoder[F, T], F: FlatMap[F]): F[T] =
+    jsonDecoder.decodeJson(this)
 }
 
 object Message {

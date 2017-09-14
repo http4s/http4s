@@ -25,4 +25,7 @@ trait EffectMessageSyntax[F[_], M <: Message[F]] extends Any with MessageOps[F] 
     EitherT(self.flatMap { msg =>
       decoder.decode(msg, false).value
     })
+
+  override def decodeJson[T](implicit jsonDecoder: JsonDecoder[F, T], F: FlatMap[F]): F[T] =
+    self.flatMap(msg => jsonDecoder.decodeJson(msg))
 }
