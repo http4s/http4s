@@ -1,3 +1,21 @@
+# v0.18.0-SNAPSHOT
+* Use http4s-dsl with any effect type by either:
+    * extend `Http4sDsl[F]`
+    * create an object that extends `Http4sDsl[F]`, and extend that.
+    * `import org.http4s.dsl.io._` is still available for those who
+      wish to specialize on `cats.effect.IO`
+* Remove `Semigroup[F[MaybeResponse[F]]]` constraint from
+  `BlazeBuilder`.
+* Fix `AutoSlash` middleware when a service is mounted with a prefix.
+* Publish internal http4s-parboiled2 as a separate module.  This does
+  not add any new third-party dependencies, but unbreaks `sbt
+  publishLocal`.
+* Add `Request.from`, which respects `X-Fowarded-For` header.
+* Make `F` in `EffectMessageSyntax` invariant
+* Upgraded dependencies:
+    * jawn-fs2-0.12.0-M2
+    * twirl-1.3.7
+
 # v0.17.0 (2017-09-01)
 * Honor `Retry-After` header in `Retry` middleware.  The response will
   not be retried until the maximum of the backoff strategy and any
