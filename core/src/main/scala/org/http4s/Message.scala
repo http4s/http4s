@@ -116,7 +116,7 @@ trait Message[F[_], M[_[_]]] {
     * @return the effect which will generate the `DecodeResult[T]`
     */
   def attemptAs[T](
-      m: M[F])(implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
+      m: M[F])(implicit F: FlatMap[F], decoder: EntityDecoder[F, T, M]): DecodeResult[F, T] =
     decoder.decode(m, strict = false)
 
   /** Remove headers that satisfy the predicate
