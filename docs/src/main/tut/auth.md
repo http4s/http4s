@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 120
 title: Authentication
 ---

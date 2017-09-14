@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 200
 title: HTTP Client
 ---

@@ -1,30 +1,23 @@
-<nav class="navbar navbar-inverse navbar-fixed-top">
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
   <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="/">
-	<img src="{{.Site.BaseURL}}/images/http4s-logo.svg" alt="logo" class="logo" /> {{ .Site.Title }}
-      </a>
-    </div>
+    <a class="navbar-brand" href="/">
+      http4s<img src="{{.Site.BaseUrl}}/images/http4s-logo.svg" alt="logo" class="logo" />
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
     <div id="navbar" class="collapse navbar-collapse">
-      <ul class="nav navbar-nav">
-	{{ $currentNode := . }}
-	{{ range .Site.Menus.main }}
-	  <li {{if $currentNode.IsMenuCurrent "main" . }}class="active"{{end}}>
-	    <a href="{{ .URL }}">{{ .Name }}</a>
-	  </li>
-	{{ end }}
-	{{ partial "nav-docs.html" . }}
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href="https://github.com/http4s/http4s" title="http4s/http4s on GitHub"><span class="icon-github-circled"></span></a></li>	
-        <li><a href="https://gitter.im/http4s/http4s" title="http4s/http4s on Gitter"><span class="icon-gitter" aria-hidden="true"></span></a></li>
-        <li><a href="https://twitter.com/http4s" title="@http4s on Twitter"><span class="icon-twitter" aria-hidden="true"></span></a></li>
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="http://http4s.org/#" id="projects-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Projects
+          </a>
+          <div class="dropdown-menu" aria-labelledby="projects-menu-item"> 
+            <a class="dropdown-item" href="/">http4s</a>
+            <a class="dropdown-item" href="https://github.com/http4s/blaze">blaze</a>
+            <a class="dropdown-item" href="https://github.com/http4s/rho">rho</a>
+          </div>
+        </li>
       </ul>
     </div>
   </div>

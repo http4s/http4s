@@ -1,78 +1,111 @@
-html {
-    position: relative;
-    min-height: 100%;
+/*
+ * Style tweaks
+ * --------------------------------------------------
+ */
+html,
+body {
+  overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
 body {
-    margin-bottom: 60px;
+  padding-top: 70px;
 }
-.footer {
+footer {
+  margin: 0.5rem 0;
+}
+
+/*
+ * Off Canvas
+ * --------------------------------------------------
+ */
+@media screen and (max-width: 767px) {
+  .row-offcanvas {
+    position: relative;
+    -webkit-transition: all .25s ease-out;
+         -o-transition: all .25s ease-out;
+            transition: all .25s ease-out;
+  }
+
+  .row-offcanvas-right {
+    right: 0;
+  }
+
+  .row-offcanvas-left {
+    left: 0;
+  }
+
+  .row-offcanvas-right
+  .sidebar-offcanvas {
+    right: -100%; /* 12 columns */
+  }
+
+  .row-offcanvas-right.active
+  .sidebar-offcanvas {
+    right: -50%; /* 6 columns */
+  }
+
+  .row-offcanvas-left
+  .sidebar-offcanvas {
+    left: -100%; /* 12 columns */
+  }
+
+  .row-offcanvas-left.active
+  .sidebar-offcanvas {
+    left: -50%; /* 6 columns */
+  }
+
+  .row-offcanvas-right.active {
+    right: 50%; /* 6 columns */
+  }
+
+  .row-offcanvas-left.active {
+    left: 50%; /* 6 columns */
+  }
+
+  .sidebar-offcanvas {
     position: absolute;
-    bottom: 0;
-    width: 100%;
-    /* Set the fixed height of the footer here */
-    height: 60px;
-    background-color: #f5f5f5;
-}
-.footer {
-    margin: 20px 0;
+    top: 0;
+    width: 50%; /* 6 columns */
+  }
 }
 
-.content {
-    padding-top: 40px;
-}
 
-#navbar .navbar-right span {
-    font-size: 150%;
+.navbar-brand {
+    font-size: 2em;
+    line-height: 0.75em;
 }
 
 .navbar-brand .logo {
     display: inline;
-    width: 1.5em;
-    height: 1.5em;
-}
-.navbar-brand, .jumbotron h1 {
-    font-family: 'Share Tech Mono', monospace;
+    width: 1em;
+    height: 1em;
 }
 
-.tut-nav {
-    padding-top: 100px;
+#http4s-social a.nav-link {
+    font-size: 1.5em;
+    padding: 0 0.25rem;
 }
-.tut-nav .nav > li > a {
+
+#sidebar {
+    border-left: 1px solid rgba(0,0,0,0.05);
+    font-size: 90%;
+}
+#sidebar .nav-link {
     display: block;
-    padding: 4px 20px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #767676;
+    padding: .25rem 1.5rem;
+    color: rgba(0,0,0,.65);
 }
-.tut-nav .nav > li > a:hover,
-.tut-nav .nav > li > a:focus {
-    padding-left: 19px;
-    color: #563d7c;
-    text-decoration: none;
-    background-color: transparent;
-    border-left: 1px solid #563d7c;
+#sidebar .nav-link.active {
+    font-weight: bolder;
 }
-.tut-nav .nav > .active > a,
-.tut-nav .nav > .active:hover > a,
-.tut-nav .nav > .active:focus > a {
-    padding-left: 18px;
-    font-weight: bold;
-    color: #563d7c;
-    background-color: transparent;
-    border-left: 2px solid #563d7c;
+#sidebar .nav-link.active::before {
+    visibility: visible;
 }
+#sidebar .nav-link::before {
+    content: "⇒";
+    visibility: hidden;
+p}
 
-.jumbotron h1 img {
-    height: 183px;
-    float: left;
-    padding-right: 0.5em;
-}
-
-.flex, .flex > div[class*='col-'] {
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-    flex:1 0 auto;
+.navbar-brand, h1, h2, h3, h4, h5, h6 {
+    font-family: 'Share Tech';
+    color: #c60;
 }

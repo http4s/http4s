@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 weight: 300
 title: Entity handling
 ---
