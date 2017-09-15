@@ -77,11 +77,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           IO(callback(Left(error)))
       }
     } else {
-      val message =
-        s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: $stats"
-      val error = new Exception(message)
-      logger.error(error)(message)
-      callback(Left(error))
+      addToWaitQueue(key, callback)
     }
 
   private def getNonEmptyKeys: List[RequestKey] =
@@ -91,9 +87,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         else l
     }
 
-  private def addToWaitQueue(
-      key: RequestKey,
-      callback: (Either[Throwable, NextConnection]) => Unit): Unit =
+  private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (waitQueue.length <= maxWaitQueueLimit) {
       waitQueue.enqueue(Waiting(key, callback))
     } else {
