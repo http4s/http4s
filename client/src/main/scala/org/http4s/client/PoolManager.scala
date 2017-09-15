@@ -91,6 +91,16 @@ private final class PoolManager[F[_], A <: Connection[F]](
         else l
     }
 
+  private def addToWaitQueue(
+      key: RequestKey,
+      callback: (Either[Throwable, NextConnection]) => Unit): Unit =
+    if (waitQueue.length <= maxWaitQueueLimit) {
+      waitQueue.enqueue(Waiting(key, callback))
+    } else {
+      logger.error(s"Max wait length reached, not scheduling.")
+      callback(Left(new Exception("Wait queue is full")))
+    }
+
   /**
     * This generates a effect of Next Connection. The following calls are executed asynchronously
     * with respect to whenever the execution of this task can occur.
@@ -136,19 +146,18 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
                 val nonEmptyKeys = getNonEmptyKeys
-                val randKey = nonEmptyKeys.drop(Random.nextInt(nonEmptyKeys.size)).head
-                idleQueues(randKey).dequeue().shutdown()
-                decrConnection(randKey)
-                createConnection(key, callback)
+                if (nonEmptyKeys.nonEmpty) {
+                  val randKey = nonEmptyKeys.drop(Random.nextInt(nonEmptyKeys.size)).head
+                  idleQueues(randKey).dequeue().shutdown()
+                  decrConnection(randKey)
+                  createConnection(key, callback)
+                } else {
+                  addToWaitQueue(key, callback)
+                }
 
               case None => // we're full up. Add to waiting queue.
                 logger.debug(s"No connections available.  Waiting on new connection: $stats")
-                if (waitQueue.length <= maxWaitQueueLimit) {
-                  waitQueue.enqueue(Waiting(key, callback))
-                } else {
-                  logger.error(s"Max wait length reached, not scheduling.")
-                  callback(Left(new Exception("Wait queue is full")))
-                }
+                addToWaitQueue(key, callback)
             }
           go()
         } else {
