@@ -88,6 +88,11 @@ trait CirceInstances {
     Decoder.decodeString.emap { str =>
       Uri.fromString(str).leftMap(_ => "Uri")
     }
+
+  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+    def decodeJson[A](implicit decoder: Decoder[A]): F[A] =
+      self.as(implicitly, jsonOf[F, A])
+  }
 }
 
 object CirceInstances {

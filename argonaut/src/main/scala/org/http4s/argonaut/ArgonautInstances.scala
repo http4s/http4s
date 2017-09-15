@@ -54,6 +54,11 @@ trait ArgonautInstances {
               .fromString(str)
               .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
   )
+
+  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+    def decodeJson[A](implicit decoder: DecodeJson[A]): F[A] =
+      self.as(implicitly, jsonOf[F, A])
+  }
 }
 
 object ArgonautInstances {
