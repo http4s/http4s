@@ -14,7 +14,7 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends He
   type Value = CharsetRange
 
   def qValue(charset: Charset): QValue = {
-    def specific = values.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
+    def specific = values.collectFirst { case cs: CharsetRange.Atom if cs.isSatisfiedBy(charset) => cs.qValue }
     def splatted = values.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
     specific orElse splatted getOrElse QValue.Zero
   }
