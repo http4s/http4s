@@ -24,7 +24,17 @@ class AcceptCharsetSpec extends HeaderLaws {
     acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.One
   }
 
-  "rejects non-matching charsets with no splat" in {
+  "rejects charset matching atom with q=0" in {
+    val acceptCharset = `Accept-Charset`(CharsetRange.*, CharsetRange.Atom(Charset.`UTF-8`, QValue.Zero))
+    acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.Zero
+  }
+
+  "rejects charset matching splat with q=0" in {
+    val acceptCharset = `Accept-Charset`(CharsetRange.*.withQValue(QValue.Zero), CharsetRange.Atom(Charset.`ISO-8859-1`, QValue.q(0.5)))
+    acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.Zero
+  }
+
+  "rejects unmatched charset" in {
     val acceptCharset = `Accept-Charset`(CharsetRange.Atom(Charset.`ISO-8859-1`, QValue.q(0.5)))
     acceptCharset.qValue(Charset.`UTF-8`) must_== QValue.Zero
   }

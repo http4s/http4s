@@ -25,6 +25,7 @@ import org.http4s.util._
 import scalaz.{\/, -\/, \/-}
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
+  @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")
   def satisfies(charsetRange: CharsetRange): Boolean = charsetRange isSatisfiedBy this
 
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
