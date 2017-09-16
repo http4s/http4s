@@ -1,7 +1,6 @@
 import Http4sPlugin._
 import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
-import sbtunidoc.Plugin.UnidocKeys._
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -26,9 +25,13 @@ lazy val parboiled2 = libraryProject("parboiled2")
     libraryDependencies ++= Seq(
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
-    // https://issues.scala-lang.org/browse/SI-9490
-    (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
-    (scalacOptions in Compile) -= "-Ywarn-unused-import",
+    // We use a minimal set of options, because this is upstream code,
+    // and we by no means want to be stricter.
+    scalacOptions := List(
+      "-encoding", "UTF-8",
+      "-feature",
+      "-language:_"
+    ),
     macroParadiseSetting
   )
 
@@ -246,16 +249,10 @@ lazy val loadTest = http4sProject("load-test")
   )
   .enablePlugins(GatlingPlugin)
 
-lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incrementally on recently changed files")
-
-
 val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 
 lazy val docs = http4sProject("docs")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(unidocSettings)
-  .settings(tutSettings)
-  .enablePlugins(HugoPlugin, GhpagesPlugin)
+  .enablePlugins(HugoPlugin, GhpagesPlugin, ScalaUnidocPlugin, TutPlugin, PrivateProjectPlugin)
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
@@ -281,14 +278,15 @@ lazy val docs = http4sProject("docs")
         case Some(s) =>
           val isMaster = git.gitCurrentBranch.value == "master"
           val isSnapshot = git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
-
+          val gitHeadCommit = git.gitHeadCommit.value
+          val v = version.value
           val path =
             if (isSnapshot && isMaster)
               s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
             else if (isSnapshot)
-              s"${s.browseUrl}/blob/${git.gitHeadCommit.value.get}€{FILE_PATH}.scala"
+              s"${s.browseUrl}/blob/${gitHeadCommit.get}€{FILE_PATH}.scala"
             else
-              s"${s.browseUrl}/blob/v${version.value}€{FILE_PATH}.scala"
+              s"${s.browseUrl}/blob/v${version}€{FILE_PATH}.scala"
 
           Seq(
             "-implicits",
@@ -298,7 +296,7 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    scalacOptions in (Compile,doc) -= "-Ywarn-unused-import",
+    scalacOptions in (Compile,doc) -= "-Ywarn-unused:imports",
     exportMetadataForSite := {
       val dest = target.value / "hugo-data" / "build.toml"
       val (major, minor) = apiVersion.value
