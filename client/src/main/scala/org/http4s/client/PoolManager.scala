@@ -6,7 +6,6 @@ import fs2.async
 import org.log4s.getLogger
 
 import scala.annotation.tailrec
-import scala.collection.immutable.VectorBuilder
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.util.Random
@@ -86,17 +85,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
       addToWaitQueue(key, callback)
     }
 
-  private def getNonEmptyKeys: Vector[RequestKey] = {
-    val vec = new VectorBuilder[RequestKey]
-    vec.sizeHint(idleQueues.size)
-    idleQueues.foldLeft(vec) {
-      case (v, (k, q)) =>
-        if (q.nonEmpty) v += k
-        else v
-    }
-    vec.result()
-  }
-
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (waitQueue.length <= maxWaitQueueLimit) {
       waitQueue.enqueue(Waiting(key, callback))
@@ -149,9 +137,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
               case None if curTotal == maxTotal =>
                 logger.debug(
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
-                val nonEmptyKeys = getNonEmptyKeys
-                if (nonEmptyKeys.nonEmpty) {
-                  val randKey = nonEmptyKeys(Random.nextInt(nonEmptyKeys.size))
+                val keys = idleQueues.keys
+                if (keys.nonEmpty) {
+                  val randKey = keys.drop(Random.nextInt(keys.size)).head
                   idleQueues(randKey).dequeue().shutdown()
                   decrConnection(randKey)
                   createConnection(key, callback)
