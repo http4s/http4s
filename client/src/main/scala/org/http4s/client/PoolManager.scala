@@ -4,7 +4,9 @@ package client
 import cats.effect._
 import fs2.async
 import org.log4s.getLogger
+
 import scala.annotation.tailrec
+import scala.collection.immutable.VectorBuilder
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.util.Random
@@ -28,7 +30,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private val waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
-    s"allocated=$allocated idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
+    s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
+
+  def statsForRequestKey(key: RequestKey): String = synchronized {
+    s"allocated=${allocated.get(key)} idleQueues.size=${idleQueues.get(key).map(_.size)} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
+  }
 
   private def getConnectionFromQueue(key: RequestKey): Option[A] =
     idleQueues.get(key).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None)
@@ -80,12 +86,16 @@ private final class PoolManager[F[_], A <: Connection[F]](
       addToWaitQueue(key, callback)
     }
 
-  private def getNonEmptyKeys: List[RequestKey] =
-    idleQueues.foldLeft(List.empty[RequestKey]) {
-      case (l, (k, q)) =>
-        if (q.nonEmpty) l :+ k
-        else l
+  private def getNonEmptyKeys: Vector[RequestKey] = {
+    val vec = new VectorBuilder[RequestKey]
+    vec.sizeHint(idleQueues.size)
+    idleQueues.foldLeft(vec) {
+      case (v, (k, q)) =>
+        if (q.nonEmpty) v += k
+        else v
     }
+    vec.result()
+  }
 
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (waitQueue.length <= maxWaitQueueLimit) {
@@ -141,7 +151,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                   s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
                 val nonEmptyKeys = getNonEmptyKeys
                 if (nonEmptyKeys.nonEmpty) {
-                  val randKey = nonEmptyKeys.drop(Random.nextInt(nonEmptyKeys.size)).head
+                  val randKey = nonEmptyKeys(Random.nextInt(nonEmptyKeys.size))
                   idleQueues(randKey).dequeue().shutdown()
                   decrConnection(randKey)
                   createConnection(key, callback)
@@ -217,9 +227,10 @@ private final class PoolManager[F[_], A <: Connection[F]](
               s"Connection returned could not be recycled, new connection needed: $stats")
             val Waiting(key, callback) = waitQueue.dequeue()
             createConnection(key, callback)
-          } else
+          } else {
             logger.debug(
               s"Connection could not be recycled, no pending requests. Shrinking pool: $stats")
+          }
         }
       } else if (!connection.isClosed) {
         logger.debug(s"Shutting down connection after pool closure: $stats")
