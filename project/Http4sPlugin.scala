@@ -26,10 +26,6 @@ object Http4sPlugin extends AutoPlugin {
     },
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
 
-    scalacOptions --= Seq(
-      "-Ywarn-unused:patvars"
-    ),
-
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
