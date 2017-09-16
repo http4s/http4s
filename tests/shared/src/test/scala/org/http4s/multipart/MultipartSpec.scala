@@ -20,7 +20,6 @@ class MultipartSpec extends Specification {
     Multipart form data can be
         encoded and decoded with    content types  $encodeAndDecodeMultipart
         encoded and decoded without content types  $encodeAndDecodeMultipartMissingContentType
-        encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData
         decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
         decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
         extract name properly if it is present     $extractNameIfPresent
@@ -82,28 +81,6 @@ class MultipartSpec extends Specification {
         mp === multipart
     }
 
-  }
-
-  def encodeAndDecodeMultipartWithBinaryFormData = {
-
-    val file = new File(getClass.getResource("/ball.png").toURI)
-
-    val field1 = Part.formData[IO]("field1", "Text_Field_1")
-    val field2 = Part.fileData[IO]("image", file, `Content-Type`(`image/png`))
-
-    val multipart = Multipart[IO](Vector(field1, field2))
-
-    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-    val body = entity.unsafeRunSync().body
-    val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
-    val result = decoded.value.unsafeRunSync()
-
-    result must beRight.like {
-      case mp =>
-        mp === multipart
-    }
   }
 
   def decodeMultipartRequestWithContentTypes = {
