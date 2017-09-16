@@ -18,8 +18,8 @@ object Logger {
              logBody: Boolean,
              redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
            )(httpService: HttpService)(implicit strategy: Strategy): HttpService =
-    ResponseLogger(logHeaders, logBody)(
-      RequestLogger(logHeaders, logBody)(
+    ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
+      RequestLogger(logHeaders, logBody, redactHeadersWhen)(
         httpService
       )
     )
