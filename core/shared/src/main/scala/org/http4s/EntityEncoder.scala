@@ -7,6 +7,7 @@ import cats._
 import cats.effect.{Async, Sync}
 import cats.implicits._
 import fs2._
+import fs2.Stream._
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import org.http4s.syntax.async._
