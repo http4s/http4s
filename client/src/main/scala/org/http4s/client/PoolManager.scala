@@ -36,7 +36,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
   }
 
   private def getConnectionFromQueue(key: RequestKey): Option[A] =
-    idleQueues.get(key).flatMap(q => if (q.nonEmpty) Some(q.dequeue()) else None)
+    idleQueues.get(key).flatMap { q =>
+      if (q.nonEmpty) {
+        val con = q.dequeue()
+        if (q.isEmpty) idleQueues.remove(key)
+        Some(con)
+      } else None
+    }
 
   private def incrConnection(key: RequestKey): Unit = {
     curTotal += 1
@@ -135,15 +141,17 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 createConnection(key, callback)
 
               case None if curTotal == maxTotal =>
-                logger.debug(
-                  s"No connections available for the desired key. Evicting oldest and creating a new connection: $stats")
                 val keys = idleQueues.keys
                 if (keys.nonEmpty) {
-                  val randKey = keys.drop(Random.nextInt(keys.size)).head
+                  logger.debug(
+                    s"No connections available for the desired key. Evicting random and creating a new connection: $stats")
+                  val randKey = keys.iterator.drop(Random.nextInt(keys.size)).next()
                   idleQueues(randKey).dequeue().shutdown()
                   decrConnection(randKey)
                   createConnection(key, callback)
                 } else {
+                  logger.debug(
+                    s"No connections available for the desired key. Adding to waitQueue: $stats")
                   addToWaitQueue(key, callback)
                 }
 
