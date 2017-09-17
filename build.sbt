@@ -274,6 +274,9 @@ lazy val docs = http4sProject("docs")
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         parboiled2JS,
+        coreJS,
+        testsJS,
+        testingJS,
         bench,
         examples,
         examplesBlaze,
