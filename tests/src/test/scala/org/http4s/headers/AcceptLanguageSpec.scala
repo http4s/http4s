@@ -1,6 +1,8 @@
 package org.http4s
 package headers
 
+import org.http4s.testing.ArbitraryInstances._
+
 class AcceptLanguageSpec extends HeaderLaws {
   val english = LanguageTag("en")
   val spanish = LanguageTag("es")

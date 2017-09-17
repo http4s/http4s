@@ -1,6 +1,8 @@
 package org.http4s
 package headers
 
+import org.http4s.testing.ArbitraryInstances._
+
 class AcceptEncodingSpec extends HeaderLaws {
   checkAll("Accept-Encoding", headerLaws(`Accept-Encoding`))
 
