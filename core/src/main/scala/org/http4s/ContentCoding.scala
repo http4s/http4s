@@ -23,11 +23,18 @@ import org.http4s.syntax.string._
 
 final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with Renderable {
   def withQValue(q: QValue): ContentCoding = copy(coding, q)
+
+  @deprecated("Use `Accept-Encoding`.isSatisfiedBy(encoding)", "0.16.1")
   def satisfies(encoding: ContentCoding): Boolean = encoding.satisfiedBy(this)
+
+  @deprecated("Use `Accept-Encoding`.isSatisfiedBy(encoding)", "0.16.1")
   def satisfiedBy(encoding: ContentCoding): Boolean = {
     (this.coding.toString == "*" || this.coding == encoding.coding) &&
     qValue.isAcceptable && encoding.qValue.isAcceptable
   }
+
+  def matches(encoding: ContentCoding): Boolean =
+    (this.coding.toString == "*" || this.coding == encoding.coding)
 
   override def render(writer: Writer): writer.type = writer << coding << qValue
 
@@ -56,4 +63,7 @@ object ContentCoding extends Registry {
   // Legacy encodings defined by RFC2616 3.5.
   val `x-compress`   = register("x-compress".ci, compress)
   val `x-gzip`       = register("x-gzip".ci, gzip)
+
+  def registered: Iterable[ContentCoding] =
+    registry.snapshot.values
 }
