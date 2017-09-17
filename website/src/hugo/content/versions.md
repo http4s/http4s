@@ -64,18 +64,8 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	  </tr>
 	</thead>
 	<tbody>
-      <tr>
-        <td>0.17.0-SNAPSHOT</td>
-        <td class="text-center"><span class="label label-warning">Development</span></td>
-        <td class="text-center"><i class="fa fa-ban"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td class="text-center"><i class="fa fa-check"></i></td>
-        <td>cats-0.9</td>
-        <td>fs2-0.9</td>
-        <td>1.8+</td>
-      </tr>
 	  <tr>
-	    <td>0.16.0</td>
+	    <td>0.16.1</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -85,7 +75,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.0</td>
+	    <td>0.16.1</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>

@@ -1,3 +1,40 @@
+# v0.16.1 (2017-09-17)
+* Publish our fork of parboiled2 as http4s-parboiled2 module.  It's
+  the exact same internal code as was in http4s-core, with no external
+  dependencies. By publishing an extra module, we enable a
+  `publishLocal` workflow.
+* Charset fixes: 
+  * Deprecate `CharsetRange.isSatisfiedBy` in favor of
+    and ```Accept-Charset`.isSatisfiedBy`` in favor of
+    ```Accept-Charset`.satisfiedBy``.
+  * Fix definition of `satisfiedBy` to respect priority of
+    ```Charset`.*``.
+  * Add `CharsetRange.matches`.
+* ContentCoding fixes: 
+  * Deprecate `ContentCoding.satisfiedBy` and
+    `ContentCoding.satisfies` in favor of ```Accept-Encoding`.satisfiedBy``.
+  * Deprecate ```Accept-Encoding`.preferred``, which has no reasonable
+    interpretation in the presence of splats.
+  * Add ```Accept-Language`.qValue``.
+  * Fix definition of `satisfiedBy` to respect priority of
+    `ContentCoding.*`.
+  * Add `ContentCoding.matches` and `ContentCoding.registered`.
+  * Add `Arbitrary[ContentCoding]` and ```Arbitrary[`Accept-Encoding`]`` 
+    instances.
+* LanguageTag fixes: 
+  * Deprecate `LanguageTag.satisfiedBy` and
+    `LanguageTag.satisfies` in favor of ```Accept-Language`.satisfiedBy``.
+  * Fix definition of `satisfiedBy` to respect priority of
+    `LanguageTag.*` and matches of a partial set of subtags.
+  * Add `LanguageTag.matches`.
+  * Deprecate `LanguageTag.withQuality` in favor of new
+    `LanguageTag.withQValue`.
+  * Deprecate ```Accept-Language`.preferred``, which has no reasonable
+    interpretation in the presence of splats.
+  * Add ```Accept-Language`.qValue``.
+  * Add `Arbitrary[LanguageTag]` and ```Arbitrary[`Accept-Language`]``
+    instances.
+
 # v0.16.0 (2017-09-01)
 * `Retry` middleware takes a `RetryPolicy` instead of a backoff
   strategy.  A `RetryPolicy` is a function of the request, the
