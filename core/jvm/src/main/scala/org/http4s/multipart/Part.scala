@@ -4,7 +4,7 @@ package multipart
 import cats.effect.{ContextShift, Sync}
 import fs2.Stream
 import fs2.text.utf8Encode
-import java.io.{File, InputStream}
+import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import scala.concurrent.ExecutionContext

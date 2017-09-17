@@ -163,7 +163,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       fs2ReactiveStreams
     )
   )
-  .dependsOn(coreJVM, testingJVM % "test->test", clientJVM % "compile;test->test")
+  .dependsOn(coreJVM, testingJVM % "test->test", clientJVM % "compile;test->test", clientTesting % "test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -366,6 +366,8 @@ lazy val docs = http4sProject("docs")
         testsJS,
         testingJS,
         clientJS,
+        jawnJS,
+        circeJS,
         bench,
         examples,
         examplesBlaze,
@@ -431,7 +433,7 @@ lazy val docs = http4sProject("docs")
       }
     },
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, dropwizardMetrics, prometheusMetrics)
+  .dependsOn(clientJVM, coreJVM, theDsl, blazeServer, blazeClient, circeJVM, dropwizardMetrics, prometheusMetrics)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)

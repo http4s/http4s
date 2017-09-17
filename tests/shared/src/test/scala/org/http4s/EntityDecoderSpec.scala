@@ -11,7 +11,6 @@ import cats.laws.discipline.arbitrary._
 import cats.laws.discipline.eq._
 import fs2._
 import fs2.Stream._
-import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 import cats.data.Chain
 import org.http4s.Status.Ok
