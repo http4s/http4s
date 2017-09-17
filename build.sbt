@@ -96,12 +96,21 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
   )
 lazy val client = libraryProject("client")
   .settings(
-    description := "Base library for building http4s clients",
+    description := "Base library for building http4s clients"
+  )
+  .dependsOn(core, testing)
+
+lazy val clientJVM = client.jvm
+lazy val clientJS = client.js
+
+lazy val clientTesting = libraryProject("client-testing")
+  .settings(
+    description := "Tests for http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
   .dependsOn(
-    coreJVM,
-    testing % "test->test",
+    clientJVM,
+    testingJVM % "test->test",
     server % "test->compile",
     theDsl % "test->compile",
     scalaXml % "test->compile")
@@ -138,7 +147,7 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients"
   )
-  .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", clientJVM % "compile;test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
@@ -148,7 +157,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
       fs2ReactiveStreams
     )
   )
-  .dependsOn(coreJVM, testingJVM % "test->test", client % "compile;test->test")
+  .dependsOn(coreJVM, testingJVM % "test->test", clientJVM % "compile;test->test")
 
 lazy val jettyClient = libraryProject("jetty-client")
   .settings(
@@ -207,12 +216,15 @@ lazy val theDsl = libraryProject("dsl")
   )
   .dependsOn(coreJVM, testingJVM % "test->test")
 
-lazy val jawn = libraryProject("jawn")
+lazy val jawn = libraryCrossProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
     libraryDependencies += jawnFs2
   )
-  .dependsOn(coreJVM, testingJVM % "test->test")
+  .dependsOn(core, testing % "test->test")
+
+lazy val jawnJVM = jawn.jvm
+lazy val jawnJS  = jawn.js
 
 lazy val argonaut = libraryProject("argonaut")
   .settings(
@@ -221,7 +233,7 @@ lazy val argonaut = libraryProject("argonaut")
       Http4sPlugin.argonaut
     )
   )
-  .dependsOn(coreJVM, testingJVM % "test->test", jawn % "compile;test->test")
+  .dependsOn(coreJVM, testingJVM % "test->test", jawnJVM % "compile;test->test")
 
 lazy val boopickle = libraryProject("boopickle")
   .settings(
@@ -232,7 +244,7 @@ lazy val boopickle = libraryProject("boopickle")
   )
   .dependsOn(core, testing % "test->test")
 
-lazy val circe = libraryProject("circe")
+lazy val circe = libraryCrossProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
     libraryDependencies ++= Seq(
@@ -240,7 +252,10 @@ lazy val circe = libraryProject("circe")
       circeTesting % "test"
     )
   )
-  .dependsOn(coreJVM, testingJVM % "test->test", jawn % "compile;test->test")
+  .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+
+lazy val circeJVM = circe.jvm
+lazy val circeJS  = circe.js
 
 lazy val json4s = libraryProject("json4s")
   .settings(
@@ -250,7 +265,7 @@ lazy val json4s = libraryProject("json4s")
       json4sCore
     ),
   )
-  .dependsOn(jawn % "compile;test->test")
+  .dependsOn(jawnJVM % "compile;test->test")
 
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
@@ -320,7 +335,7 @@ lazy val bench = http4sProject("bench")
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
   )
-  .dependsOn(coreJVM, circe)
+  .dependsOn(coreJVM, circeJVM)
 
 lazy val docs = http4sProject("docs")
   .enablePlugins(
@@ -344,6 +359,7 @@ lazy val docs = http4sProject("docs")
         coreJS,
         testsJS,
         testingJS,
+        clientJS,
         bench,
         examples,
         examplesBlaze,
@@ -442,7 +458,7 @@ lazy val examples = http4sProject("examples")
     ),
     TwirlKeys.templateImports := Nil
   )
-  .dependsOn(server, dropwizardMetrics, theDsl, circe, scalaXml, twirl)
+  .dependsOn(server, dropwizardMetrics, theDsl, circeJVM, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
