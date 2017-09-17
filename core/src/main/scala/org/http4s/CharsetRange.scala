@@ -15,7 +15,10 @@ sealed abstract class CharsetRange extends HasQValue with Renderable {
     * 
     * @since 0.16.1
     */
-  def matches(charset: Charset): Boolean
+  final def matches(charset: Charset): Boolean = this match {
+    case CharsetRange.`*`(_) => true
+    case CharsetRange.Atom(cs, _) => charset == cs
+  }
 }
 
 object CharsetRange extends CharsetRangeInstances {
@@ -24,8 +27,6 @@ object CharsetRange extends CharsetRangeInstances {
 
     @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")
     final def isSatisfiedBy(charset: Charset): Boolean = qValue.isAcceptable
-
-    final def matches(charset: Charset): Boolean = true
 
     final def render(writer: Writer): writer.type = writer << "*" << qValue
   }
@@ -37,8 +38,6 @@ object CharsetRange extends CharsetRangeInstances {
 
     @deprecated("Use `Accept-Charset`.isSatisfiedBy(charset)", "0.16.1")
     def isSatisfiedBy(charset: Charset): Boolean = qValue.isAcceptable && this.charset == charset
-
-    final def matches(charset: Charset): Boolean = this.charset == charset
 
     def render(writer: Writer): writer.type = writer << charset << qValue
   }

@@ -19,7 +19,10 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends He
     specific orElse splatted getOrElse QValue.Zero
   }
 
-  def isSatisfiedBy(charset: Charset): Boolean = qValue(charset) > QValue.Zero
+  @deprecated("Use satisfiedBy(charset)", "0.16.1")
+  def isSatisfiedBy(charset: Charset): Boolean = satisfiedBy(charset)
+
+  def satisfiedBy(charset: Charset): Boolean = qValue(charset) > QValue.Zero
 
   def map(f: CharsetRange => CharsetRange): `Accept-Charset` = `Accept-Charset`(values.map(f))
 }

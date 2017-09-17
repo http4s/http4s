@@ -1,10 +1,5 @@
 import com.typesafe.tools.mima.core._
 
-// This is a new introduction
-mimaBinaryIssueFilters ++= Seq(
-  ProblemFilters.exclude[ReversedMissingMethodProblem]("org.http4s.CharsetRange.matches")
-)
-
 // This is massive because we split out the parboiled2 module in
 // 0.16.1 and 0.17.1.  We are hiding this odious thing from the
 // build, and will eliminate it in the merge to 0.18.
