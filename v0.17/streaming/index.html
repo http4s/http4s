@@ -100,7 +100,7 @@ import org.http4s.dsl._
 
 // fs2's `time` module needs an implicit `Scheduler`
 implicit val scheduler = Scheduler.fromFixedDaemonPool(2)
-// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@2b0d3a94[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
+// scheduler: fs2.Scheduler = Scheduler(java.util.concurrent.ScheduledThreadPoolExecutor@674abe2f[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0])
 
 // fs2 `Async` needs an implicit `Strategy`
 implicit val strategy = Strategy.fromExecutionContext(scala.concurrent.ExecutionContext.Implicits.global)
@@ -114,7 +114,7 @@ val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$3361/284486978@7b9d57ab)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$3332/2037442937@2317ebae)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -146,7 +146,7 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.17.0&quot;,
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.17.1&quot;,
   &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.8.0&quot;
 )
 </code></pre>
