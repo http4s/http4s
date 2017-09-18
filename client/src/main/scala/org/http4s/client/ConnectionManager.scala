@@ -56,5 +56,19 @@ object ConnectionManager {
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,
       executionContext: ExecutionContext): ConnectionManager[F, A] =
-    new PoolManager[F, A](builder, maxTotal, executionContext)
+    pool(builder, maxTotal, -1, executionContext)
+
+  /** Create a [[ConnectionManager]] that will attempt to recycle connections
+    *
+    * @param builder generator of new connections
+    * @param maxTotal max total connections
+    * @param maxWaitSize: max number of requests to wait for a new connection.  Negative value is the same as unbounded.
+    * @param executionContext `ExecutionContext` where async operations will execute
+    */
+  def pool[F[_]: Effect, A <: Connection[F]](
+      builder: ConnectionBuilder[F, A],
+      maxTotal: Int,
+      maxWaitSize: Int,
+      executionContext: ExecutionContext): ConnectionManager[F, A] =
+    new PoolManager[F, A](builder, maxTotal, maxWaitSize, executionContext)
 }
