@@ -22,10 +22,6 @@ private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: B
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 
-  private lazy val doneFuture = Future.successful(())
-
-  private[this] var headers: ByteBuffer = null
-
   def writeHeaders(headerWriter: StringWriter): Future[Unit] =
     pipe.channelWrite(Http1Writer.headersToByteBuffer(headerWriter.result))
 

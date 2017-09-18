@@ -44,7 +44,7 @@ class TimeoutSpec extends Http4sSpec {
     }
 
     "clean up resources of the loser" in {
-      var clean = new AtomicBoolean(false)
+      val clean = new AtomicBoolean(false)
       val service = HttpService[IO] {
         case _ =>
           for {

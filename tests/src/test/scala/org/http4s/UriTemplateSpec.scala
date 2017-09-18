@@ -600,7 +600,6 @@ object UriTemplateSpec extends Http4sSpec {
         equalTo(UriTemplate(path = List(PathElm("orders"), PathElm("123"), item)))
     }
     "expand nothing" in {
-      val path = Some(List(PathElm("id"), VarExp("id")))
       val tpl = UriTemplate()
       tpl.expandAny("unknown", "123") must equalTo(tpl)
     }
@@ -719,9 +718,6 @@ object UriTemplateSpec extends Http4sSpec {
         equalTo(UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x"))))
     }
     "expand /{#x,y,z} to UriTemplate /#42{#x,z}" in {
-      val x = SimpleFragmentExp("x")
-      val y = SimpleFragmentExp("y")
-      val z = SimpleFragmentExp("z")
       val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y", "z")))
       tpl.expandFragment("y", "42") must
         equalTo(UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x", "z"))))

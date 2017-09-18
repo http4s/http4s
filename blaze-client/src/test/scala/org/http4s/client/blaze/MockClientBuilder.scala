@@ -6,7 +6,7 @@ import cats.effect.IO
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
 
-private object MockClientBuilder {
+private[blaze] object MockClientBuilder {
   def builder(
       head: => HeadStage[ByteBuffer],
       tail: => BlazeConnection[IO]): ConnectionBuilder[IO, BlazeConnection[IO]] = { req =>

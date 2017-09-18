@@ -12,7 +12,7 @@ import org.http4s.Uri._
 import org.http4s.util._
 import org.http4s.EntityEncoder._
 import org.specs2.Specification
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits.ByteVector
 
 class MultipartSpec extends Specification {
   sequential
@@ -174,10 +174,4 @@ I am a big moose
       Stream.empty.covary[IO])
     part.name must beEqualTo(Some("Rich Homie Quan"))
   }
-
-  private def fileToEntity(f: File): Entity[IO] = {
-    val bitVector = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
-    Entity[IO](body = Stream.emits(ByteVector(bitVector.toBase64.getBytes).toSeq))
-  }
-
 }

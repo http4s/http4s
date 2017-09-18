@@ -97,7 +97,6 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
       sealed case class Umlaut(wort: String)
       implicit val codec = CodecJson.derive[Umlaut]
-      val umlautDecoder = jsonOf[IO, Umlaut]
       s"handle JSON with umlauts: $wort" >> {
         val json = Json("wort" -> jString(wort))
         val result =

@@ -50,8 +50,7 @@ class UriParserSpec extends Http4sSpec {
 
     "parse a short IPv6 address" in {
       val s = "01ab::32ba:32ba"
-      Uri.requestTarget("01ab::32ba:32ba") must beRight(
-        Uri(authority = Some(Authority(host = IPv6("01ab::32ba:32ba")))))
+      Uri.requestTarget(s) must beRight(Uri(authority = Some(Authority(host = IPv6(s)))))
     }
 
     "handle port configurations" in {

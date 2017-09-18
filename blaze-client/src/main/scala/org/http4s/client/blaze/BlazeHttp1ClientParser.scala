@@ -5,16 +5,6 @@ import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 
-/** http/1.x parser for the blaze client */
-private object BlazeHttp1ClientParser {
-  def apply(
-      maxRequestLineSize: Int,
-      maxHeaderLength: Int,
-      maxChunkSize: Int,
-      isLenient: Boolean): BlazeHttp1ClientParser =
-    new BlazeHttp1ClientParser(maxRequestLineSize, maxHeaderLength, maxChunkSize, isLenient)
-}
-
 private[blaze] final class BlazeHttp1ClientParser(
     maxResponseLineSize: Int,
     maxHeaderLength: Int,

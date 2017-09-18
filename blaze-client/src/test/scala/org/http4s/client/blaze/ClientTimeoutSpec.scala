@@ -146,7 +146,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, scheduler)
       val c = mkClient(h, tail)(requestTimeout = 1.second)
 
-      val result = tail.runRequest(FooRequest).as[String]
+      tail.runRequest(FooRequest).as[String]
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -157,7 +157,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, scheduler)
       val c = mkClient(h, tail)(idleTimeout = 1.second)
 
-      val result = tail.runRequest(FooRequest).as[String]
+      tail.runRequest(FooRequest).as[String]
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
     }
@@ -179,7 +179,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       // header is split into two chunks, we wait for 10x
       val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
-      val result = tail.runRequest(FooRequest).as[String]
+      tail.runRequest(FooRequest).as[String]
 
       c.fetchAs[String](FooRequest).unsafeRunSync must_== "done"
     }

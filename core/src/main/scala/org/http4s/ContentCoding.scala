@@ -40,7 +40,7 @@ final case class ContentCoding(coding: CaseInsensitiveString, qValue: QValue = Q
   override def render(writer: Writer): writer.type = writer << coding << qValue
 
   // We want the normal case class generated methods except copy
-  private def copy(coding: CaseInsensitiveString = this.coding, q: QValue = this.qValue) =
+  private def copy(coding: CaseInsensitiveString, q: QValue) =
     ContentCoding(coding, q)
 }
 

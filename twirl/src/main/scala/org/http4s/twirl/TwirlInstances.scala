@@ -27,9 +27,8 @@ trait TwirlInstances {
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, Txt] =
     contentEncoder(`text/plain`)
 
-  private def contentEncoder[F[_], C <: Content](mediaType: MediaType)(
-      implicit F: Applicative[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, C] =
+  private def contentEncoder[F[_], C <: Content](
+      mediaType: MediaType)(implicit F: Applicative[F], charset: Charset): EntityEncoder[F, C] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[C](content => content.body)

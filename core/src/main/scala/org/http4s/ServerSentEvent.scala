@@ -77,7 +77,7 @@ object ServerSentEvent {
           case "retry" =>
             val newRetry = Try(value.toLong).toOption.orElse(retry)
             go(dataBuffer, eventType, id, newRetry, stream)
-          case field =>
+          case _ =>
             go(dataBuffer, eventType, id, retry, stream)
         }
 

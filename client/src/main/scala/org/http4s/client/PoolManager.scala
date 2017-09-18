@@ -46,7 +46,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           IO(callback(Right(NextConnection(conn, fresh = true))))
         case Left(error) =>
           logger.error(error)(s"Error establishing client connection for key $key")
-          disposeConnection(key, None)
+          disposeConnection(None)
           IO(callback(Left(error)))
       }
     } else {
@@ -89,7 +89,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"Recycling connection: $stats")
                 callback(Right(NextConnection(conn, fresh = false)))
 
-              case Some(closedConn) =>
+              case Some(closedConn @ _) =>
                 logger.debug(s"Evicting closed connection: $stats")
                 allocated -= 1
                 go()
@@ -191,7 +191,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] =
-    F.delay(disposeConnection(connection.requestKey, Some(connection)))
+    F.delay(disposeConnection(Some(connection)))
 
   /**
     * Synchronous Immediate Disposal of a Connection and Its Resources.
@@ -201,7 +201,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param key The request key for the connection. Not used internally.
     * @param connection An Option of a Connection to Dispose Of.
     */
-  private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
+  private def disposeConnection(connection: Option[A]): Unit = {
     logger.debug(s"Disposing of connection: $stats")
     synchronized {
       allocated -= 1

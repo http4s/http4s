@@ -440,9 +440,6 @@ trait ArbitraryInstances {
   private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
 
-  private def atLeast[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    timesBetween(min = 0, max = Int.MaxValue, g)
-
   private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     timesBetween(min = 0, max = n, g)
 

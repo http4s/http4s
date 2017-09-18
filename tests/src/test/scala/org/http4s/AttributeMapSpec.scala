@@ -29,8 +29,8 @@ class AttributeMapSpec extends Specification {
     // This is a compile test
     "Maintain the correct static type for keys" in {
       sealed case class Foo(stuff: String)
-      val mismatchedKey = AttributeKey[Foo]
-      // val ii = m(mismatchedKey) + 5   // FAILS TO COMPILE: Foo doesn't `+` with 5
+
+      illTyped("val mismatchedKey = AttributeKey[Foo]; val ii = m(mismatchedKey) + 5")
 
       val i: Int = m.get(k1).get + 4
       i must_== 5

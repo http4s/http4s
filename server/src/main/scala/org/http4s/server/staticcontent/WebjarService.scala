@@ -64,18 +64,6 @@ object WebjarService {
   }
 
   /**
-    * Ensures there is a slash at the end of the path
-    *
-    * @param path The path
-    * @return The path, ending with a slash
-    */
-  private def ensureSlash(path: String): String =
-    if (path.nonEmpty && !path.endsWith("/"))
-      path + "/"
-    else
-      path
-
-  /**
     * Returns an Option(WebjarAsset) for a Request, or None if it couldn't be mapped
     *
     * @param subPath The request path without the prefix
