@@ -99,6 +99,12 @@ private final class PoolManager[F[_], A <: Connection[F]](
       callback(Left(new Exception("Wait queue is full")))
     }
 
+  private def addToIdleQueue(connection: A, key: RequestKey) = {
+    val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
+    q.enqueue(connection)
+    idleQueues.update(key, q)
+  }
+
   /**
     * This generates a effect of Next Connection. The following calls are executed asynchronously
     * with respect to whenever the execution of this task can occur.
@@ -199,16 +205,22 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: $stats")
-              val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
-              q.enqueue(connection)
-              idleQueues.update(key, q)
+              addToIdleQueue(connection, key)
 
-            // returned connection didn't match any pending request: kill it and start a new one for a queued request
             case None =>
-              connection.shutdown()
-              decrConnection(key)
-              val Waiting(k, callback) = waitQueue.dequeue()
-              createConnection(k, callback)
+              waitQueue.dequeueFirst { waiter =>
+                allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
+              } match {
+                case Some(Waiting(k, cb)) =>
+                  // This is the first waiter not blocked on the request key limit. close the undesired connection and wait for another
+                  connection.shutdown()
+                  decrConnection(key)
+                  createConnection(k, cb)
+                case None =>
+                  // We're blocked not because of too many connections, but
+                  // because of too many connections per key.  We might be able to reuse this request.
+                  addToIdleQueue(connection, key)
+              }
           }
         } else {
           decrConnection(key)

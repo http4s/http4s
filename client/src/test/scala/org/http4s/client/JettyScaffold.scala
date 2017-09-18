@@ -4,38 +4,8 @@ import java.net.{InetAddress, InetSocketAddress, ServerSocket}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
-import org.specs2.mutable.SpecificationLike
-import org.specs2.specification.core.Fragments
 
-trait JettyScaffold extends SpecificationLike {
-  private val server = new JServer()
-  var address: InetSocketAddress = null
-
-  def testServlet: HttpServlet
-
-  override def map(fs: => Fragments) =
-    step(startServer()) ^ fs ^ step(server.stop())
-
-  private def startServer(): InetSocketAddress = {
-    address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
-
-    val context = new ServletContextHandler()
-    context.setContextPath("/")
-    context.addServlet(new ServletHolder("Test-servlet", testServlet), "/*")
-
-    server.setHandler(context)
-
-    val connector = new ServerConnector(server)
-    connector.setPort(address.getPort)
-
-    server.addConnector(connector)
-    server.start()
-
-    address
-  }
-}
-
-object JettyScaffold {
+class JettyScaffold(num: Int) {
 
   // hack to get a free port
   private def getNextPort() = {
@@ -45,4 +15,32 @@ object JettyScaffold {
     socket.close()
     port
   }
+
+  private var servers = Vector.empty[JServer]
+  var addresses = Vector.empty[InetSocketAddress]
+
+  def startServers(testServlet: HttpServlet): Unit = {
+    val res = (0 until num - 1).map { _ =>
+      val address = new InetSocketAddress(InetAddress.getLocalHost(), getNextPort())
+      val server = new JServer()
+      val context = new ServletContextHandler()
+      context.setContextPath("/")
+      context.addServlet(new ServletHolder("Test-servlet", testServlet), "/*")
+
+      server.setHandler(context)
+
+      val connector = new ServerConnector(server)
+      connector.setPort(address.getPort)
+
+      server.addConnector(connector)
+      server.start()
+
+      (address, server)
+    }.toVector
+
+    servers = res.map(_._2)
+    addresses = res.map(_._1)
+  }
+
+  def stopServers(): Unit = servers.foreach(_.stop())
 }
