@@ -84,7 +84,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           IO(callback(Right(NextConnection(conn, fresh = true))))
         case Left(error) =>
           logger.error(error)(s"Error establishing client connection for key $key")
-          disposeConnection(None)
+          disposeConnection(key, None)
           IO(callback(Left(error)))
       }
     } else {
@@ -99,7 +99,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
       callback(Left(new Exception("Wait queue is full")))
     }
 
-  private def addToIdleQueue(connection: A, key: RequestKey) = {
+  private def addToIdleQueue(connection: A, key: RequestKey): Unit = {
     val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
     q.enqueue(connection)
     idleQueues.update(key, q)
@@ -137,7 +137,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"Recycling connection: $stats")
                 callback(Right(NextConnection(conn, fresh = false)))
 
-              case Some(closedConn @ _) =>
+              case Some(closedConn) =>
                 logger.debug(s"Evicting closed connection: $stats")
                 decrConnection(key)
                 go()
@@ -172,6 +172,52 @@ private final class PoolManager[F[_], A <: Connection[F]](
       }
     }
 
+  private def releaseRecyclable(key: RequestKey, connection: A): Unit =
+    waitQueue.dequeueFirst(_.key == key) match {
+      case Some(Waiting(_, callback)) =>
+        logger.debug(s"Fulfilling waiting connection request: $stats")
+        callback(Right(NextConnection(connection, fresh = false)))
+
+      case None if waitQueue.isEmpty =>
+        logger.debug(s"Returning idle connection to pool: $stats")
+        addToIdleQueue(connection, key)
+
+      case None =>
+        findFirstAllowedWaitor match {
+          case Some(Waiting(k, cb)) =>
+            // This is the first waiter not blocked on the request key limit.
+            // close the undesired connection and wait for another
+            connection.shutdown()
+            decrConnection(key)
+            createConnection(k, cb)
+
+          case None =>
+            // We're blocked not because of too many connections, but
+            // because of too many connections per key.
+            // We might be able to reuse this request.
+            addToIdleQueue(connection, key)
+        }
+    }
+
+  private def releaseNonRecyclable(key: RequestKey, connection: A): Unit = {
+    decrConnection(key)
+
+    if (!connection.isClosed) {
+      logger.debug(s"Connection returned was busy.  Shutting down: $stats")
+      connection.shutdown()
+    }
+
+    if (waitQueue.nonEmpty) {
+      logger.debug(s"Connection returned could not be recycled, new connection needed: $stats")
+      findFirstAllowedWaitor.foreach {
+        case Waiting(k, callback) =>
+          createConnection(k, callback)
+      }
+    } else {
+      logger.debug(s"Connection could not be recycled, no pending requests. Shrinking pool: $stats")
+    }
+  }
+
   /**
     * This is how connections are returned to the ConnectionPool.
     *
@@ -198,47 +244,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
         logger.debug(s"Recycling connection: $stats")
         val key = connection.requestKey
         if (connection.isRecyclable) {
-          waitQueue.dequeueFirst(_.key == key) match {
-            case Some(Waiting(_, callback)) =>
-              logger.debug(s"Fulfilling waiting connection request: $stats")
-              callback(Right(NextConnection(connection, fresh = false)))
-
-            case None if waitQueue.isEmpty =>
-              logger.debug(s"Returning idle connection to pool: $stats")
-              addToIdleQueue(connection, key)
-
-            case None =>
-              waitQueue.dequeueFirst { waiter =>
-                allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
-              } match {
-                case Some(Waiting(k, cb)) =>
-                  // This is the first waiter not blocked on the request key limit. close the undesired connection and wait for another
-                  connection.shutdown()
-                  decrConnection(key)
-                  createConnection(k, cb)
-                case None =>
-                  // We're blocked not because of too many connections, but
-                  // because of too many connections per key.  We might be able to reuse this request.
-                  addToIdleQueue(connection, key)
-              }
-          }
+          releaseRecyclable(key, connection)
         } else {
-          decrConnection(key)
-
-          if (!connection.isClosed) {
-            logger.debug(s"Connection returned was busy.  Shutting down: $stats")
-            connection.shutdown()
-          }
-
-          if (waitQueue.nonEmpty) {
-            logger.debug(
-              s"Connection returned could not be recycled, new connection needed: $stats")
-            val Waiting(key, callback) = waitQueue.dequeue()
-            createConnection(key, callback)
-          } else {
-            logger.debug(
-              s"Connection could not be recycled, no pending requests. Shrinking pool: $stats")
-          }
+          releaseNonRecyclable(key, connection)
         }
       } else if (!connection.isClosed) {
         logger.debug(s"Shutting down connection after pool closure: $stats")
@@ -249,6 +257,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
   }
 
+  private def findFirstAllowedWaitor =
+    waitQueue.dequeueFirst { waiter =>
+      allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
+    }
+
   /**
     * This invalidates a Connection. This is what is exposed externally, and
     * is just an effect wrapper around disposing the connection.
@@ -257,7 +270,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] =
-    F.delay(disposeConnection(Some(connection)))
+    F.delay(disposeConnection(connection.requestKey, Some(connection)))
 
   /**
     * Synchronous Immediate Disposal of a Connection and Its Resources.
@@ -267,7 +280,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param key The request key for the connection. Not used internally.
     * @param connection An Option of a Connection to Dispose Of.
     */
-  private def disposeConnection(connection: Option[A]): Unit = {
+  private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
     logger.debug(s"Disposing of connection: $stats")
     synchronized {
       decrConnection(key)
