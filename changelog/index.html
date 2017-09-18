@@ -109,6 +109,63 @@ publishLocal</code>.</li>
 </ul></li>
 </ul>
 
+<h1 id="v0-17-1-2017-09-17">v0.17.1 (2017-09-17)</h1>
+
+<ul>
+<li>Fix bug where metrics were not captured in <code>Metrics</code> middleware.</li>
+<li>Pass <code>redactHeadersWhen</code> argument from <code>Logger</code> to <code>RequestLogger</code>
+and <code>ResponseLogger</code>.</li>
+</ul>
+
+<h1 id="v0-16-1-2017-09-17">v0.16.1 (2017-09-17)</h1>
+
+<ul>
+<li>Publish our fork of parboiled2 as http4s-parboiled2 module.  It&rsquo;s
+the exact same internal code as was in http4s-core, with no external
+dependencies. By publishing an extra module, we enable a
+<code>publishLocal</code> workflow.</li>
+<li>Charset fixes:
+
+<ul>
+<li>Deprecate <code>CharsetRange.isSatisfiedBy</code> in favor of
+and <code>Accept-Charset`.isSatisfiedBy`` in favor of
+</code>Accept-Charset<code>.satisfiedBy</code>`.</li>
+<li>Fix definition of <code>satisfiedBy</code> to respect priority of
+`<code>Charset`.*</code>.</li>
+<li>Add <code>CharsetRange.matches</code>.</li>
+</ul></li>
+<li>ContentCoding fixes:
+
+<ul>
+<li>Deprecate <code>ContentCoding.satisfiedBy</code> and
+<code>ContentCoding.satisfies</code> in favor of `<code>Accept-Encoding`.satisfiedBy</code>.</li>
+<li>Deprecate `<code>Accept-Encoding`.preferred</code>, which has no reasonable
+interpretation in the presence of splats.</li>
+<li>Add `<code>Accept-Language`.qValue</code>.</li>
+<li>Fix definition of <code>satisfiedBy</code> to respect priority of
+<code>ContentCoding.*</code>.</li>
+<li>Add <code>ContentCoding.matches</code> and <code>ContentCoding.registered</code>.</li>
+<li>Add <code>Arbitrary[ContentCoding]</code> and `<code>Arbitrary[`Accept-Encoding`]</code>
+instances.</li>
+</ul></li>
+<li>LanguageTag fixes:
+
+<ul>
+<li>Deprecate <code>LanguageTag.satisfiedBy</code> and
+<code>LanguageTag.satisfies</code> in favor of `<code>Accept-Language`.satisfiedBy</code>.</li>
+<li>Fix definition of <code>satisfiedBy</code> to respect priority of
+<code>LanguageTag.*</code> and matches of a partial set of subtags.</li>
+<li>Add <code>LanguageTag.matches</code>.</li>
+<li>Deprecate <code>LanguageTag.withQuality</code> in favor of new
+<code>LanguageTag.withQValue</code>.</li>
+<li>Deprecate `<code>Accept-Language`.preferred</code>, which has no reasonable
+interpretation in the presence of splats.</li>
+<li>Add `<code>Accept-Language`.qValue</code>.</li>
+<li>Add <code>Arbitrary[LanguageTag]</code> and `<code>Arbitrary[`Accept-Language`]</code>
+instances.</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-17-0-2017-09-01">v0.17.0 (2017-09-01)</h1>
 
 <ul>
