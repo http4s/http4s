@@ -14,11 +14,11 @@ class AcceptLanguageSpec
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))
-  val enq5 = `Accept-Language`(LanguageTag("en").withQuality(q(0.5)))
+  val enq5 = `Accept-Language`(LanguageTag("en").withQValue(q(0.5)))
   val en_cool = `Accept-Language`(LanguageTag("en", "cool"))
 
   val all = `Accept-Language`(LanguageTag.`*`)
-  val ninguno = `Accept-Language`(LanguageTag.`*`.withQuality(QValue.Zero))
+  val ninguno = `Accept-Language`(LanguageTag.`*`.withQValue(QValue.Zero))
 
   "Accept-Language" should {
     "Give correct value" in {
@@ -30,24 +30,6 @@ class AcceptLanguageSpec
       parse(en.value) must be_==(en)
       parse(enq5.value) must be_==(enq5)
       parse(en_cool.value) must be_==(en_cool)
-    }
-
-    "Offer preferred" in {
-      val unordered = `Accept-Language`(
-        en.values.head.withQuality(q(0.2)),
-        fr.values.head.withQuality(q(0.1)),
-        en_cool.values.head)
-      unordered.preferred must be_==(en_cool.values.head)
-    }
-
-    "Be satisfied correctly" in {
-      all.satisfiedBy(en.values.head) must be_==(true)
-      ninguno.satisfiedBy(en.values.head) must be_==(false)
-
-      en.satisfiedBy(en_cool.values.head) must be_==(true)
-      en_cool.satisfiedBy(en.values.head) must be_==(false)
-
-      en.satisfiedBy(fr.values.head) must be_==(false)
     }
   }
 }
