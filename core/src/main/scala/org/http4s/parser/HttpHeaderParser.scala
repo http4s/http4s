@@ -75,7 +75,7 @@ object HttpHeaderParser
         try parser(header.value)
         catch {
           // We need a way to bail on invalid dates without throwing.  There should be a better way.
-          case e: ParseFailure =>
+          case _: ParseFailure =>
             ParseResult.success(header)
           case e: InvocationTargetException if e.getCause.isInstanceOf[ParseFailure] =>
             // TODO curse this runtime reflection

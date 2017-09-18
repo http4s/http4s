@@ -6,6 +6,8 @@
  */
 package org.http4s
 
+import org.http4s.util.bug
+
 // T must be invariant to work properly.
 
 /** A key in an [[AttributeMap]] that constrains its associated value to be of type `T`.
@@ -63,7 +65,10 @@ final class AttributeMap private (private val backing: Map[AttributeKey[_], Any]
 
   /** All mappings in this map.  The [[AttributeEntry]] type preserves the typesafety of mappings, although the specific types are unknown.*/
   def entries: Iterable[AttributeEntry[_]] =
-    for ((k: AttributeKey[kt], v) <- backing) yield AttributeEntry(k, v.asInstanceOf[kt])
+    backing.map {
+      case (k: AttributeKey[kt], v) => AttributeEntry(k, v.asInstanceOf[kt])
+      case kv => throw bug(s"Received $kv in entries backing map")
+    }
 
   /** `true` if there are no mappings in this map, `false` if there are. */
   def isEmpty: Boolean = backing.isEmpty

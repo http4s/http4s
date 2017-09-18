@@ -1,8 +1,6 @@
 package org.http4s
 
-import java.time.{Instant, ZoneId, ZonedDateTime}
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.time.{Instant, ZonedDateTime}
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
 
@@ -35,11 +33,6 @@ class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[H
 }
 
 object HttpDate {
-  private val dateFormat =
-    DateTimeFormatter
-      .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
-      .withLocale(Locale.US)
-      .withZone(ZoneId.of("GMT"))
 
   /**
     * Constructs an `HttpDate` from the current time. Starting on January 1,n

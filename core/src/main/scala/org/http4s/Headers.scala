@@ -81,8 +81,8 @@ final class Headers private (headers: List[Header])
         val acc = new ListBuffer[Header]
         this.headers.foreach { orig =>
           orig.parsed match {
-            case h: Header.Recurring => acc += orig
-            case h: `Set-Cookie` => acc += orig
+            case _: Header.Recurring => acc += orig
+            case _: `Set-Cookie` => acc += orig
             case h if !hs.exists(_.name == h.name) => acc += orig
             case _ => // NOOP, drop non recurring header that already exists
           }

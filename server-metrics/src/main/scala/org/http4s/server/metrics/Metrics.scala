@@ -63,8 +63,8 @@ object Metrics {
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
           val code = r.cata(_.status, Status.NotFound).code
 
-          def capture(r: Response[F]) =
-            r.body
+          def capture(body: EntityBody[F]) =
+            body
               .onFinalize {
                 F.delay {
                   generalMetrics(method, elapsed)
@@ -79,7 +79,7 @@ object Metrics {
                 abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
                 Stream.fail(cause)
               }
-          r
+          r.cata(resp => resp.copy(body = capture(resp.body)), r)
         }
         .leftMap { e =>
           generalMetrics(method, elapsed)

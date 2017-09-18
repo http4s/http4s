@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
-private object ProtocolSelector {
+private[blaze] object ProtocolSelector {
   def apply[F[_]: Effect](
       engine: SSLEngine,
       service: HttpService[F],

@@ -78,7 +78,7 @@ object QValue extends QValueInstances with QValueFunctions {
   def fromString(s: String): ParseResult[QValue] =
     try fromDouble(s.toDouble)
     catch {
-      case e: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
+      case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
     }
 
   /** Exists to support compile-time verified literals. Do not call directly. */

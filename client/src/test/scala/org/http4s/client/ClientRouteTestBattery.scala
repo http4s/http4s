@@ -4,7 +4,6 @@ package client
 import cats.effect._
 import cats.implicits._
 import fs2._
-import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
@@ -109,18 +108,6 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends 
     expected.headers.foreach(h => h must beOneOf(hs: _*))
 
     rec.httpVersion must be_==(expected.httpVersion)
-  }
-
-  private def translateTests(
-      address: InetSocketAddress,
-      method: Method,
-      paths: Map[String, Response[IO]]): Map[Request[IO], Response[IO]] = {
-    val port = address.getPort()
-    val name = address.getHostName()
-    paths.map {
-      case (s, r) =>
-        (Request[IO](method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
-    }
   }
 
   private def renderResponse(srv: HttpServletResponse, resp: Response[IO]): Unit = {

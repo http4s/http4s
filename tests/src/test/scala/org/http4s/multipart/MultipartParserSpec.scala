@@ -192,7 +192,7 @@ object MultipartParserSpec extends Specification {
       val input = ruinDelims(unprocessedInput)
 
       val results =
-        unspool(input, 15).through(MultipartParser.parse(boundary, 100))
+        unspool(input, 15).through(MultipartParser.parse(boundary))
 
       results.runLog.unsafeRunSync() must throwA(
         MalformedMessageBodyFailure("Part header was longer than 100-byte limit"))
@@ -272,10 +272,6 @@ object MultipartParserSpec extends Specification {
 
       val results = unspool(input).through(MultipartParser.parse(boundary))
 
-      val bytes = results.runLog.unsafeRunSync().collect {
-        case Right(bv) => bv
-      }
-
       val (headers, bv) =
         results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
@@ -309,10 +305,10 @@ object MultipartParserSpec extends Specification {
       val results = unspool(input).through(MultipartParser.parse(boundary))
 
       // Accumulator Bytevector Resets on New Header, so bv represents ByteVector of last Part.
-      val (headers, bv) =
+      val (_, bv) =
         results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
-          case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, ByteVector.empty)
+          case ((hsAcc, _), Left(hs)) => (hsAcc ++ hs, ByteVector.empty)
         }
 
       bv.decodeUtf8 must beRight("bar")
@@ -337,7 +333,7 @@ object MultipartParserSpec extends Specification {
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results = unspool(input).through(MultipartParser.parse(boundaryTest))
 
-      val (headers, bv) =
+      val (headers, _) =
         results.runLog.unsafeRunSync().foldLeft((List.empty[Headers], ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
           case ((hsAcc, bvAcc), Left(hs)) => (hs :: hsAcc, bvAcc)

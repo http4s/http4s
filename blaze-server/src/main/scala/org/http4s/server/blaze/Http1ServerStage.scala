@@ -19,7 +19,7 @@ import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
-private object Http1ServerStage {
+private[blaze] object Http1ServerStage {
 
   def apply[F[_]: Effect](
       service: HttpService[F],

@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 title: HSTS
 weight: 126
 ---

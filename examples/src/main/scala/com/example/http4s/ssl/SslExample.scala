@@ -15,7 +15,7 @@ abstract class SslExample[F[_]: Effect] extends StreamApp[F] {
 
   def builder: ServerBuilder[F] with SSLKeyStoreSupport[F]
 
-  def stream(args: List[String], requestShutdown: IO[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       builder
         .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")

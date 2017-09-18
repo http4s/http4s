@@ -97,7 +97,6 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
       sealed case class Umlaut(wort: String)
       implicit val codec = CodecJson.derive[Umlaut]
-      val umlautDecoder = jsonOf[IO, Umlaut]
       s"handle JSON with umlauts: $wort" >> {
         val json = Json("wort" -> jString(wort))
         val result =
@@ -112,6 +111,18 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       // TODO would benefit from Arbitrary[Uri]
       val uri = Uri.uri("http://www.example.com/")
       uri.asJson.as[Uri].result must beRight(uri)
+    }
+  }
+
+  "Message[F].decodeJson[A]" should {
+    "decode json from a message" in {
+      val req = Request[IO]().withBody(foo.asJson)
+      req.flatMap(_.decodeJson[Foo]) must returnValue(foo)
+    }
+
+    "fail on invalid json" in {
+      val req = Request[IO]().withBody(List(13, 14).asJson)
+      req.flatMap(_.decodeJson[Foo]).attempt.unsafeRunSync must beLeft
     }
   }
 }
