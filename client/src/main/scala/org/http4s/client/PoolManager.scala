@@ -11,6 +11,7 @@ import scala.concurrent.ExecutionContext
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
+    maxWaitSize: Int,
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
@@ -22,6 +23,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private var allocated = 0
   private val idleQueue = new mutable.Queue[A]
   private val waitQueue = new mutable.Queue[Waiting]
+
+  private def isWaitQueueFull[T] = isQueueFull[T](maxWaitSize)
 
   private def stats =
     s"allocated=$allocated idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
@@ -72,7 +75,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * If no matching connection is found and the pool is full, and we have connections in the idleQueue
     * then a connection in the idleQueue is shutdown and a new connection is created to perform the request.
     * If no matching connection is found and the pool is full, and all connections are currently in use
-    * then the Request is placed in a waitingQueue to be executed when a connection is released.
+    * then the Request is placed in a waitingQueue to be executed when a connection is released.  However
+    * if the waitingQueue is full then an error is returned.
     *
     * @param key The Request Key For The Connection
     * @return An effect of NextConnection
@@ -104,10 +108,15 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 allocated -= 1
                 idleQueue.dequeue().shutdown()
                 createConnection(key, callback)
-
-              case None => // we're full up. Add to waiting queue.
+              case None if !isWaitQueueFull(waitQueue) => // we're full up. Add to waiting queue.
                 logger.debug(s"No connections available.  Waiting on new connection: $stats")
                 waitQueue.enqueue(Waiting(key, callback))
+              case None => // idle and wait queues are full
+                val message =
+                  s"WaitQueue is full.  Queue must drain below the maximum of $maxWaitSize: $stats"
+                val error = new Exception(message)
+                logger.error(error)(message)
+                callback(Left(error))
             }
           go()
         } else {
@@ -229,4 +238,16 @@ private final class PoolManager[F[_], A <: Connection[F]](
       }
     }
   }
+
+  /*
+    A negative value for max is treated as unbounded.
+   */
+  private def isQueueFull[T](max: Int): (mutable.Queue[T] => Boolean) =
+    if (max < 0) { (_: mutable.Queue[T]) =>
+      false
+    } else if (max == 0) { (_: mutable.Queue[T]) =>
+      true
+    } else { (queue: mutable.Queue[T]) =>
+      queue.size >= max
+    }
 }
