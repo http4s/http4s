@@ -332,9 +332,8 @@ object UriTemplate {
 
   protected def renderUriTemplate(t: UriTemplate): String = t match {
     case UriTemplate(None, None, Nil, Nil, Nil) => "/"
-    case UriTemplate(Some(s), Some(a), Nil, Nil, Nil) => renderSchemeAndAuthority(t)
-    case UriTemplate(Some(s), Some(a), List(), Nil, Nil) => renderSchemeAndAuthority(t)
-    case UriTemplate(scheme, authority, path, params, fragment) =>
+    case UriTemplate(Some(_), Some(_), Nil, Nil, Nil) => renderSchemeAndAuthority(t)
+    case UriTemplate(scheme @ _, authority @ _, path @ _, params @ _, fragment @ _) =>
       renderSchemeAndAuthority(t) + renderPathAndQueryAndFragment(t)
     case _ => ""
   }
@@ -346,10 +345,10 @@ object UriTemplate {
   }
 
   protected def pathExp(p: PathDef): Boolean = p match {
-    case PathElm(n) => false
-    case VarExp(ns) => true
-    case ReservedExp(ns) => true
-    case PathExp(ns) => true
+    case PathElm(_) => false
+    case VarExp(_) => true
+    case ReservedExp(_) => true
+    case PathExp(_) => true
   }
 
   protected def queryExp(q: QueryDef): Boolean = q match {

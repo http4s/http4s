@@ -6,7 +6,6 @@ import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.{Logger => SLogger}
-import scala.concurrent.ExecutionContext
 import scodec.bits.ByteVector
 
 /**
@@ -29,8 +28,8 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
       logger: SLogger)(
-      implicit F: Sync[F],
-      executionContext: ExecutionContext = ExecutionContext.global): F[Unit] = {
+      implicit F: Sync[F]
+  ): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)

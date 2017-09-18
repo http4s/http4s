@@ -40,14 +40,14 @@ object AsyncHttpClient {
     * @param bufferSize body chunks to buffer when reading the body; defaults to 8
     * @param ec The ExecutionContext to run responses on
     */
-  def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig, bufferSize: Int = 8)(
+  def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: Effect[F],
       ec: ExecutionContext): Client[F] = {
     val client = new DefaultAsyncHttpClient(config)
     Client(
       Service.lift { req: Request[F] =>
         F.async[DisposableResponse[F]] { cb =>
-          client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize))
+          client.executeRequest(toAsyncRequest(req), asyncHandler(cb))
           ()
         }
       },
@@ -55,9 +55,8 @@ object AsyncHttpClient {
     )
   }
 
-  private def asyncHandler[F[_]](cb: Callback[DisposableResponse[F]], bufferSize: Int)(
-      implicit F: Effect[F],
-      ec: ExecutionContext) =
+  private def asyncHandler[F[_]](
+      cb: Callback[DisposableResponse[F]])(implicit F: Effect[F], ec: ExecutionContext) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var dr: DisposableResponse[F] =

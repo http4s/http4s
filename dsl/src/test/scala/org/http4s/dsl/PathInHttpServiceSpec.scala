@@ -63,7 +63,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
       }
     case GET -> Root / "multiopt" :? MultiOptCounter(counters) =>
       counters match {
-        case Valid(cs @ (c :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
+        case Valid(cs @ (_ :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
         case Valid(Nil) => Ok("absent")
         case Invalid(_) => BadRequest()
       }

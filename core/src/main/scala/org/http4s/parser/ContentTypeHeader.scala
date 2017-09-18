@@ -34,7 +34,7 @@ private[parser] trait ContentTypeHeader {
         (range: MediaRange, exts: Option[Seq[(String, String)]]) =>
           val mediaType = range match {
             case m: MediaType => m
-            case m =>
+            case _ =>
               throw new ParseFailure(
                 "Invalid Content-Type header",
                 "Content-Type header doesn't support media ranges")

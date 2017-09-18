@@ -39,7 +39,7 @@ class EntityLimiterSpec extends Http4sSpec {
         case r: Request[IO] if r.uri.path == "/echo2" => r.decode[String](Response[IO](Ok).withBody)
       }
 
-      val st = EntityLimiter(s, 3)
+      val st = EntityLimiter(s, 3) |+| s2
       (st
         .apply(Request[IO](POST, uri("/echo2"), body = b))
         .map(_ => -1)

@@ -191,7 +191,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         state.getAndSet(Ready) match {
           case Blocked(cb) => cb(writeChunk)
           case AwaitingLastWrite(cb) => cb(Right(()))
-          case old =>
+          case old @ _ =>
         }
 
       override def onError(t: Throwable): Unit =

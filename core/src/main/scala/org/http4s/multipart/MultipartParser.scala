@@ -22,9 +22,7 @@ object MultipartParser {
 
   final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
-  def parse[F[_]: Sync](
-      boundary: Boundary,
-      headerLimit: Long = 40 * 1024): Pipe[F, Byte, Either[Headers, ByteVector]] = s => {
+  def parse[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Either[Headers, ByteVector]] = s => {
     val bufferedMultipartT = s.runLog.map(vec => ByteVector(vec))
     val parts = bufferedMultipartT.flatMap(parseToParts(_)(boundary))
     val listT = parts.map(splitParts(_)(boundary)(List.empty[Either[Headers, ByteVector]]))

@@ -19,12 +19,15 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private def addShutdownHook(
       requestShutdown: Signal[F, Boolean],
       halted: Signal[IO, Boolean]): F[Unit] =
-    F.delay(sys.addShutdownHook {
-      val hook = requestShutdown.set(true).runAsync(_ => IO.unit) >> halted.discrete
-        .takeWhile(_ == false)
-        .run
-      hook.unsafeRunSync()
-    })
+    F.delay {
+      sys.addShutdownHook {
+        val hook = requestShutdown.set(true).runAsync(_ => IO.unit) >> halted.discrete
+          .takeWhile(_ == false)
+          .run
+        hook.unsafeRunSync()
+      }
+      ()
+    }
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
   private[util] def doMain(args: List[String]): IO[Int] =

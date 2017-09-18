@@ -15,9 +15,7 @@ import org.http4s.util.Renderable
   * @see [http://tools.ietf.org/html/rfc7231#section-6 RFC7231, Section 6]
   * @see [http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]
   */
-final case class Status private (code: Int)(
-    val reason: String = "",
-    val isEntityAllowed: Boolean = true)
+final case class Status private (code: Int)(val reason: String, val isEntityAllowed: Boolean)
     extends Ordered[Status]
     with Renderable {
   // scalastyle:off magic.number
@@ -43,6 +41,9 @@ final case class Status private (code: Int)(
 }
 
 object Status {
+  private def apply(code: Int)(reason: String, isEntityAllowed: Boolean = true) =
+    new Status(code)(reason, isEntityAllowed)
+
   sealed trait ResponseClass {
     def isSuccess: Boolean
 

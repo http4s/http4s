@@ -96,7 +96,8 @@ private[parser] trait SimpleHeaders {
         HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
           Digit1 ~ EOL ~> ((t: Int) =>
             Expires(org.http4s.HttpDate.unsafeFromEpochSecond(t.toLong / 1000L))) | // Used for bogus http servers returning 0
-          NegDigit1 ~ EOL ~> ((_: Int) => Expires(org.http4s.HttpDate.Epoch)) // Used for bogus http servers returning -1
+          NegDigit1 ~ EOL ~> Function
+            .const(Expires(org.http4s.HttpDate.Epoch)) _ // Used for bogus http servers returning -1
       }
     }.parse
 

@@ -215,7 +215,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
         }
       }
 
-      def useReader(is: R) =
+      def useReader =
         Stream
           .eval(readToBytes)
           .repeat
@@ -223,7 +223,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
           .flatMap(Stream.chunk[Byte])
 
       // The reader is closed at the end like InputStream
-      Stream.bracket(r)(useReader, t => F.delay(t.close()))
+      Stream.bracket(r)(_ => useReader, t => F.delay(t.close()))
     }
 
   implicit def multipartEncoder[F[_]: Sync]: EntityEncoder[F, Multipart[F]] =

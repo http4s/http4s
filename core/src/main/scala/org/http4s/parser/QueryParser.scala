@@ -98,8 +98,8 @@ private[http4s] class QueryParser(
   private def decodeParam(str: String): String =
     try UrlCodingUtils.urlDecode(str, codec.charSet, plusIsSpace = true)
     catch {
-      case e: IllegalArgumentException => ""
-      case e: UnsupportedEncodingException => ""
+      case _: IllegalArgumentException => ""
+      case _: UnsupportedEncodingException => ""
     }
 }
 

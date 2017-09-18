@@ -148,7 +148,7 @@ class Http1ServerStageSpec extends Http4sSpec {
   "Http1ServerStage: routes" should {
     "Do not send `Transfer-Encoding: identity` response" in {
       val service = HttpService[IO] {
-        case req =>
+        case _ =>
           val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
           Response[IO](headers = headers)
             .withBody("hello world")
@@ -170,7 +170,7 @@ class Http1ServerStageSpec extends Http4sSpec {
 
     "Do not send an entity or entity-headers for a status that doesn't permit it" in {
       val service: HttpService[IO] = HttpService[IO] {
-        case req =>
+        case _ =>
           Response[IO](status = Status.NotModified)
             .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
             .withBody("Foo!")
@@ -281,7 +281,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Drop the connection if the body is ignored and was not read to completion by the Http1Stage" in {
 
       val service = HttpService[IO] {
-        case req => Response().withBody("foo")
+        case _ => Response().withBody("foo")
       }
 
       // The first request will get split into two chunks, leaving the last byte off

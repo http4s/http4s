@@ -17,7 +17,6 @@ private[blaze] final class Http1ServerParser[F[_]](
   private var uri: String = _
   private var method: String = _
   private var minor: Int = -1
-  private var major: Int = -1
   private val headers = new ListBuffer[Header]
 
   def minorVersion(): Int = minor
@@ -68,7 +67,6 @@ private[blaze] final class Http1ServerParser[F[_]](
     logger.trace(s"Received request($methodString $uri $scheme/$majorversion.$minorversion)")
     this.uri = uri
     this.method = methodString
-    this.major = majorversion
     this.minor = minorversion
     false
   }
@@ -84,7 +82,6 @@ private[blaze] final class Http1ServerParser[F[_]](
     uri = null
     method = null
     minor = -1
-    major = -1
     headers.clear()
     super.reset()
   }

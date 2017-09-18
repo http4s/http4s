@@ -24,10 +24,10 @@ private[parser] trait StrictTransportSecurityHeader {
 
     def stsAttributes
       : Rule[`Strict-Transport-Security` :: HNil, `Strict-Transport-Security` :: HNil] = rule {
-      capture("includeSubDomains") ~> { (sts: `Strict-Transport-Security`, _: String) =>
+      "includeSubDomains" ~ MATCH ~> { (sts: `Strict-Transport-Security`) =>
         sts.withIncludeSubDomains(true)
       } |
-        capture("preload") ~> { (sts: `Strict-Transport-Security`, _: String) =>
+        "preload" ~ MATCH ~> { (sts: `Strict-Transport-Security`) =>
           sts.withPreload(true)
         }
     }
