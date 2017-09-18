@@ -82,7 +82,7 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;0.16.0&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;0.16.1&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
@@ -211,7 +211,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt; 
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@2ac60252
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@49fc12b4
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
