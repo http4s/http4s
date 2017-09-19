@@ -474,15 +474,7 @@ def http4sCrossProject(name: String, crossType: CrossType) = CrossProject(name, 
     initCommands()
   ).jsSettings(
     // Ignore, tut is not supported in scala.js
-    sources in (Compile,doc) := Seq.empty,
-    // This is needed to support the  TLS compiler and scala.js at the same time
-    // Remove the dependency on the scalajs-compiler
-    libraryDependencies ~= { (libDeps: Seq[ModuleID]) =>
-      libDeps.filterNot(dep => dep.name == "scalajs-compiler")
-    },
-
-    // And add a custom one:
-    addCompilerPlugin("org.scala-js" % "scalajs-compiler" % scalaJSVersion cross CrossVersion.patch)
+    sources in (Compile,doc) := Seq.empty
   )
 
 def libraryProject(name: String) = http4sProject(name)
