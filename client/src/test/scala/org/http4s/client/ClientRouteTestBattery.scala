@@ -1,14 +1,18 @@
 package org.http4s
 package client
 
+import java.net.InetSocketAddress
+
 import cats.effect._
 import cats.implicits._
 import fs2._
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.specs2.specification.core.Fragments
+
 import scala.concurrent.duration._
 
 abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends Http4sSpec {
