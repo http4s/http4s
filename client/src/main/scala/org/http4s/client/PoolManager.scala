@@ -73,7 +73,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * and feed it the callback. If we cannot create a connection because we are already full then this
     * completes the callback on the error synchronously.
     *
-    * @param key The RequestKey for the Connection.
+    * @param key      The RequestKey for the Connection.
     * @param callback The callback to complete with the NextConnection.
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
@@ -165,6 +165,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"No connections available.  Waiting on new connection: $stats")
                 addToWaitQueue(key, callback)
             }
+
           go()
         } else {
           callback(Left(new IllegalStateException("Connection pool is closed")))
@@ -183,7 +184,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         addToIdleQueue(connection, key)
 
       case None =>
-        findFirstAllowedWaitor match {
+        findFirstAllowedWaiter match {
           case Some(Waiting(k, cb)) =>
             // This is the first waiter not blocked on the request key limit.
             // close the undesired connection and wait for another
@@ -207,14 +208,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
       connection.shutdown()
     }
 
-    if (waitQueue.nonEmpty) {
-      logger.debug(s"Connection returned could not be recycled, new connection needed: $stats")
-      findFirstAllowedWaitor.foreach {
-        case Waiting(k, callback) =>
-          createConnection(k, callback)
-      }
-    } else {
-      logger.debug(s"Connection could not be recycled, no pending requests. Shrinking pool: $stats")
+    findFirstAllowedWaiter match {
+      case Some(Waiting(k, callback)) =>
+        logger.debug(s"Connection returned could not be recycled, new connection needed: $stats")
+        createConnection(k, callback)
+
+      case None =>
+        logger.debug(
+          s"Connection could not be recycled, no pending requests. Shrinking pool: $stats")
     }
   }
 
@@ -257,7 +258,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
   }
 
-  private def findFirstAllowedWaitor =
+  private def findFirstAllowedWaiter =
     waitQueue.dequeueFirst { waiter =>
       allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
     }
@@ -277,7 +278,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * By taking an Option of a connection this also serves as a synchronized allocated decrease.
     *
-    * @param key The request key for the connection. Not used internally.
+    * @param key        The request key for the connection. Not used internally.
     * @param connection An Option of a Connection to Dispose Of.
     */
   private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
