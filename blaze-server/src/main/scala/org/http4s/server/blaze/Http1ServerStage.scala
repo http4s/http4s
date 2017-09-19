@@ -103,13 +103,13 @@ private class Http1ServerStage(service: HttpService,
 
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
-        {
+        strategy({
           try serviceFn(req).handleWith(serviceErrorHandler(req))
           catch serviceErrorHandler(req)
         }.unsafeRunAsync {
           case Right(resp) => renderResponse(req, resp, cleanup)
           case Left(t)     => internalServerError(s"Error running route: $req", t, req, cleanup)
-        }
+        })
       case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().withHttpVersion(protocol))
     }
   }

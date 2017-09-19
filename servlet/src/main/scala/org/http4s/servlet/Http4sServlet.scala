@@ -87,14 +87,14 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response = Task.start {
+    val response = Task.delay {
       try serviceFn(request)
         // Handle message failures coming out of the service as failed tasks
         .handleWith(serviceErrorHandler(request))
       catch
         // Handle message failures _thrown_ by the service, just in case
         serviceErrorHandler(request)
-    }(Strategy.fromExecutionContext(executionContext)).flatten
+    }.async(Strategy.fromExecutionContext(executionContext)).flatten
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }

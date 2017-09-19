@@ -2,6 +2,12 @@ package org.http4s
 package server
 package tomcat
 
-class TomcatServerSpec extends ServerAddressSpec {
+import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
+
+class TomcatServerSpec extends ServerSpec {
   val builder = TomcatBuilder
+
+  // Prevents us from loading jar and war URLs, but lets us
+  // run Tomcat twice in the same JVM.  This makes me grumpy.
+  TomcatURLStreamHandlerFactory.disable()
 }

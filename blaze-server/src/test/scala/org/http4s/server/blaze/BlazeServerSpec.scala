@@ -6,22 +6,6 @@ import java.util.concurrent.Executors
 
 import scala.concurrent.ExecutionContext
 
-class BlazeServerSpec extends ServerAddressSpec {
+class BlazeServerSpec extends ServerSpec {
   def builder = BlazeBuilder
-
-  "BlazeServer" should {
-
-    // This test just needs to finish to pass, failure will hang
-    "Startup and shutdown without blocking" in {
-      val s = BlazeBuilder
-        .bindAny()
-        .run
-
-      s.shutdownNow()
-
-      true must_== true
-    }
-
-  }
-
 }
