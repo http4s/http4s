@@ -125,13 +125,7 @@ lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients"
   )
-  .dependsOn(blazeCore % "compile;test->test", clientJVM % "compile;test->test")
-
-lazy val blazeClientTesting = libraryProject("blaze-client-testing")
-  .settings(
-    description := "blaze implementation for http4s clients"
-  )
-  .dependsOn(clientTesting % "test->test", blazeClient, blazeCore % "compile;test->test", clientJVM % "compile;test->test")
+  .dependsOn(blazeCore % "compile;test->test", clientJVM % "compile;test->test", clientTesting % "test->test", blazeCore % "compile;test->test", clientJVM % "compile;test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
