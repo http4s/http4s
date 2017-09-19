@@ -12,7 +12,7 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-lazy val core = libraryCrossProject("core")
+lazy val core = libraryCrossProject("core", CrossType.Fill)
   .enablePlugins(BuildInfoPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
@@ -61,7 +61,7 @@ lazy val testingJVM = testing.jvm
 lazy val testingJS  = testing.js
 
 // Defined outside core/src/test so it can depend on published testing
-lazy val tests = libraryCrossProject("tests")
+lazy val tests = libraryCrossProject("tests", CrossType.Full)
   .settings(
     description := "Tests for core project",
     mimaPreviousArtifacts := Set.empty
@@ -472,7 +472,7 @@ def http4sProject(name: String) =
       initCommands()
     )
 
-def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.Full)
+def http4sCrossProject(name: String, crossType: CrossType) = CrossProject(name, file(name), crossType, JSPlatform, JVMPlatform)
   .settings(commonSettings)
   .settings(
     moduleName := s"http4s-$name",
@@ -493,7 +493,7 @@ def http4sCrossProject(name: String) = CrossProject(name, file(name), CrossType.
 
 def libraryProject(name: String) = http4sProject(name)
 
-def libraryCrossProject(name: String) = http4sCrossProject(name)
+def libraryCrossProject(name: String, crossType: CrossType = CrossType.Pure) = http4sCrossProject(name, crossType)
 
 def exampleProject(name: String) =
   http4sProject(name)
