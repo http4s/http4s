@@ -20,7 +20,7 @@ class JettyScaffold(num: Int) {
   var addresses = Vector.empty[InetSocketAddress]
 
   def startServers(testServlet: HttpServlet): Unit = {
-    val res = (0 until num - 1).map { _ =>
+    val res = (0 until num).map { _ =>
       val address = new InetSocketAddress(InetAddress.getLocalHost(), getNextPort())
       val server = new JServer()
       val context = new ServletContextHandler()

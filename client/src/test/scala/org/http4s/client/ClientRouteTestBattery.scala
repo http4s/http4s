@@ -35,11 +35,6 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends 
     }
   }
 
-  step {
-    jettyServ.startServers(testServlet)
-    address = jettyServ.addresses.head
-  }
-
   Fragments.foreach(GetRoutes.getPaths.toSeq) {
     case (path, expected) =>
       s"Execute GET: $path" in {
@@ -63,9 +58,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends 
 
     "Repeat a simple request" in {
       val path = GetRoutes.SimplePath
+
       def fetchBody = client.toService(_.as[String]).local { uri: Uri =>
         Request(uri = uri)
       }
+
       val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
       async
         .parallelTraverse((0 until 10).toVector)(_ => fetchBody.run(url).map(_.length))
@@ -95,12 +92,16 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends 
     }
   }
 
-  step {
-    jettyServ.stopServers()
-  }
-
   override def map(fs: => Fragments): Fragments =
-    super.map(fs ^ step(client.shutdown.unsafeRunSync()))
+    super.map(
+      step {
+        jettyServ.startServers(testServlet)
+        address = jettyServ.addresses.head
+      } ^ fs ^ step {
+        client.shutdown.unsafeRunSync()
+        jettyServ.stopServers()
+      }
+    )
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]) = {
     val hs = rec.headers.toSeq
