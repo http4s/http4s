@@ -80,4 +80,12 @@ object threads {
       timeout: Boolean = false): ExecutionContext =
     ExecutionContext.fromExecutorService(newDaemonPool(name, min, cpuFactor, timeout))
 
+  def executionContextToExecutor(ec: ExecutionContext): Executor =
+    ec match {
+      case e: Executor => e
+      case _ =>
+        new Executor {
+          def execute(r: Runnable): Unit = ec.execute(r)
+        }
+    }
 }

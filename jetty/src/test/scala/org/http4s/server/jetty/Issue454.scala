@@ -46,7 +46,6 @@ object Issue454 {
       case GET -> Root => Ok(insanelyHugeData)
     },
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
-    executionContext = org.http4s.Http4sSpec.TestExecutionContext,
     serviceErrorHandler = DefaultServiceErrorHandler
   )
 }

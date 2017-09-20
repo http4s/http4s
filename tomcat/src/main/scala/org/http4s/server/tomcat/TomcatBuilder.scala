@@ -9,16 +9,19 @@ import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 import org.apache.catalina.startup.Tomcat
+import org.apache.coyote.AbstractProtocol
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+import org.http4s.util.threads.executionContextToExecutor
+import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 sealed class TomcatBuilder[F[_]: Effect] private (
     socketAddress: InetSocketAddress,
-    private val executionContext: ExecutionContext,
+    private val executionContext: Option[ExecutionContext],
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
     private val servletIo: ServletIo[F],
@@ -33,9 +36,11 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   private val F = Effect[F]
   type Self = TomcatBuilder[F]
 
+  private[this] val logger = getLogger(classOf[TomcatBuilder[F]])
+
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
-      executionContext: ExecutionContext = executionContext,
+      executionContext: Option[ExecutionContext] = executionContext,
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
       servletIo: ServletIo[F] = servletIo,
@@ -65,8 +70,19 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
+  /** Uses the specified execution context as the Tomcat executor. Lacks
+    * the monitoring of a Catalina executor, but works as the standard in
+    * the Scala ecosystem.
+    *
+    * Does not work with all Catalina protocols.  Will fall back to
+    * the Tomcat internal executor if it can't be set.
+    */
   override def withExecutionContext(executionContext: ExecutionContext): Self =
-    copy(executionContext = executionContext)
+    copy(executionContext = Some(executionContext))
+
+  /** Uses the default internal executor. */
+  def withInternalExecutor: Self =
+    copy(executionContext = None)
 
   override def mountServlet(
       servlet: HttpServlet,
@@ -90,6 +106,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       val filterDef = new FilterDef
       filterDef.setFilterName(filterName)
       filterDef.setFilter(filter)
+
       filterDef.setAsyncSupported(true.toString)
       ctx.addFilterDef(filterDef)
 
@@ -108,7 +125,6 @@ sealed class TomcatBuilder[F[_]: Effect] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext,
         serviceErrorHandler = builder.serviceErrorHandler
       )
       val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
@@ -166,6 +182,16 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       "connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
+    executionContext.foreach { ec =>
+      conn.getProtocolHandler match {
+        case p: AbstractProtocol[_] =>
+          // It would be highly unusual for
+          p.setExecutor(executionContextToExecutor(ec))
+        case p =>
+          logger.warn(s"Could not set executor on protocol handler $p. Using internal executor.")
+      }
+    }
+
     val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
     for ((mount, i) <- mounts.zipWithIndex)
       mount.f(rootContext, i, this)
@@ -202,7 +228,7 @@ object TomcatBuilder {
   def apply[F[_]: Effect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
       socketAddress = ServerBuilder.DefaultSocketAddress,
-      executionContext = ExecutionContext.global,
+      executionContext = None,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       servletIo = ServletContainer.DefaultServletIo[F],
