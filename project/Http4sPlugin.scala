@@ -29,7 +29,7 @@ object Http4sPlugin extends AutoPlugin {
     // Rig will take care of this on production builds.  We haven't fully
     // implemented that machinery yet, so we're going to live without this
     // one for now.
-    scalacOptions := "-Xcheckinit"
+    scalacOptions -= "-Xcheckinit",
 
     http4sMimaVersion := {
       version.value match {
