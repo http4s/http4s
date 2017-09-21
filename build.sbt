@@ -270,9 +270,9 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
-        loadTest
+        loadTest,
+        parboiled2 // internal API, compiled with different flags, generally irritating
       ),
-    // documentation source code linking
     scalacOptions in (Compile,doc) ++= {
       scmInfo.value match {
         case Some(s) =>
