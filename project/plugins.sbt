@@ -8,7 +8,7 @@ addSbtPlugin("com.typesafe.sbt"   %  "sbt-twirl"             % "1.3.7")
 addSbtPlugin("io.gatling"         %  "gatling-sbt"           % "2.2.2")
 addSbtPlugin("io.get-coursier"    %  "sbt-coursier"          % "1.0.0-RC11")
 addSbtPlugin("io.spray"           %  "sbt-revolver"          % "0.9.0")
-addSbtPlugin("io.verizon.build"   %  "sbt-rig"               % "5.0.73")
+addSbtPlugin("io.verizon.build"   %  "sbt-rig"               % "5.0.37")
 addSbtPlugin("pl.project13.scala" %  "sbt-jmh"               % "0.2.27")
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"

@@ -26,6 +26,11 @@ object Http4sPlugin extends AutoPlugin {
     },
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
 
+    // Rig will take care of this on production builds.  We haven't fully
+    // implemented that machinery yet, so we're going to live without this
+    // one for now.
+    scalacOptions := "-Xcheckinit"
+
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
