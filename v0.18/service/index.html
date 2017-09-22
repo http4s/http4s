@@ -142,7 +142,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3985/953389046@1eb1e8b8)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$8961/1836534673@58164fb7)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -169,6 +169,9 @@ implicit def tweetsEncoder: EntityEncoder[IO, Seq[Tweet]] = ???
 // tweetsEncoder: org.http4s.EntityEncoder[cats.effect.IO,Seq[Tweet]]
 
 def getTweet(tweetId: Int): IO[Tweet] = ???
+// &lt;console&gt;:25: warning: parameter value tweetId in method getTweet is never used
+//        def getTweet(tweetId: Int): IO[Tweet] = ???
+//                     ^
 // getTweet: (tweetId: Int)cats.effect.IO[Tweet]
 
 def getPopularTweets(): IO[Seq[Tweet]] = ???
@@ -180,7 +183,13 @@ val tweetService = HttpService[IO] {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$3985/953389046@775f668)
+// &lt;console&gt;:26: warning: pattern var request in method applyOrElse is never used; `request@_' suppresses this warning
+//          case request @ GET -&gt; Root / &quot;tweets&quot; / &quot;popular&quot; =&gt;
+//               ^
+// &lt;console&gt;:28: warning: pattern var request in method applyOrElse is never used; `request@_' suppresses this warning
+//          case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+//               ^
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$8961/1836534673@317f95ff)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -207,10 +216,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$4003/41360965@a9df8b8)
+// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$8980/1531515422@5f48a571)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$2034999704
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1213732277
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
