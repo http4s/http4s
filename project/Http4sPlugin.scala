@@ -26,20 +26,10 @@ object Http4sPlugin extends AutoPlugin {
     },
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
 
-    scalacOptions in Compile ++= Seq(
-      "-Yno-adapted-args", // Curiously missing from RigPlugin
-      "-Ypartial-unification", // Needed on 2.11 for Either, good idea in general
-      "-Ywarn-unused-import"
-    ) ++ {
-      // https://issues.scala-lang.org/browse/SI-8340
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 11 => Seq("-Ywarn-numeric-widen")
-        case _ => Seq.empty
-      }
-    },
-    scalacOptions in (Compile, console) ~= { xs: Seq[String] =>
-      xs.filterNot(Set("-Xfatal-warnings", "-Ywarn-unused-import"))
-    },
+    // Rig will take care of this on production builds.  We haven't fully
+    // implemented that machinery yet, so we're going to live without this
+    // one for now.
+    scalacOptions -= "-Xcheckinit",
 
     http4sMimaVersion := {
       version.value match {
@@ -98,7 +88,7 @@ object Http4sPlugin extends AutoPlugin {
   }
 
   val macroParadiseSetting =
-    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch)
+    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"

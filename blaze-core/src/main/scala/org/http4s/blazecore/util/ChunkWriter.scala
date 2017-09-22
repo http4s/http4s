@@ -43,9 +43,9 @@ private[util] object ChunkWriter {
     }
     async.unsafeRunAsync(f) {
       case Right(buffer) =>
-        IO(promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))))
+        IO { promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))); () }
       case Left(t) =>
-        IO(promise.failure(t))
+        IO { promise.failure(t); () }
     }
     promise.future
   }
