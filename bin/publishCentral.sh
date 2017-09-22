@@ -5,5 +5,5 @@ set -e
 
 checkPublishable "Sonatype/Maven Central"
 
-sbt "publish"
+sbt ";coverageOff ;publish"
 
