@@ -18,6 +18,6 @@ case class Logger(name: String) {
     println(s)
   }
 
-  def error(t: Any)(s: => String): Unit =
+  def error(s: => String): Unit =
     println(s)
 }
