@@ -210,7 +210,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Create a HTTP1 client which will attempt to recycle connections</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1054e372c7faf51f896746fda708365b6f55a84b/blaze-client/src/main/scala/org/http4s/client/blaze/PooledHttp1Client.scala" target="_blank">PooledHttp1Client.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Create a HTTP1 client which will attempt to recycle connections</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e8bd7ac15dabdcea319398230120f55e28dd3008/blaze-client/src/main/scala/org/http4s/client/blaze/PooledHttp1Client.scala" target="_blank">PooledHttp1Client.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -316,9 +316,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.blaze.PooledHttp1Client#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](maxTotalConnections:Int,config:org.http4s.client.blaze.BlazeClientConfig)(implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_]](Int,BlazeClientConfig)(Effect[F]):Client[F]"></a>
+      <a id="apply[F[_]](maxTotalConnections:Int,maxWaitQueueLimit:Int,maxConnectionsPerRequestKey:org.http4s.client.RequestKey=&gt;Int,config:org.http4s.client.blaze.BlazeClientConfig)(implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_]](Int,Int,(RequestKey)⇒Int,BlazeClientConfig)(Effect[F]):Client[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/PooledHttp1Client$.html#apply[F[_]](maxTotalConnections:Int,config:org.http4s.client.blaze.BlazeClientConfig)(implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../../org/http4s/client/blaze/PooledHttp1Client$.html#apply[F[_]](maxTotalConnections:Int,maxWaitQueueLimit:Int,maxConnectionsPerRequestKey:org.http4s.client.RequestKey=&gt;Int,config:org.http4s.client.blaze.BlazeClientConfig)(implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -327,12 +327,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="maxTotalConnections">maxTotalConnections: <a href="http://www.scala-lang.org/api/2.12.3/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">DefaultMaxTotalConnections</span></span>, <span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a> = <span class="symbol"><span class="name"><a href="BlazeClientConfig$.html">BlazeClientConfig.defaultConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.blaze.PooledHttp1Client.apply.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.PooledHttp1Client.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="maxTotalConnections">maxTotalConnections: <a href="http://www.scala-lang.org/api/2.12.3/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">DefaultMaxTotalConnections</span></span>, <span name="maxWaitQueueLimit">maxWaitQueueLimit: <a href="http://www.scala-lang.org/api/2.12.3/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">DefaultMaxWaitQueueLimit</span></span>, <span name="maxConnectionsPerRequestKey">maxConnectionsPerRequestKey: (<a href="../RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.3/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">_ =&gt; DefaultMaxTotalConnections</span></span>, <span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a> = <span class="symbol"><span class="name"><a href="BlazeClientConfig$.html">BlazeClientConfig.defaultConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.blaze.PooledHttp1Client.apply.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.PooledHttp1Client.apply.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Construct a new PooledHttp1Client
 </p><div class="fullcomment"><div class="comment cmt"><p>Construct a new PooledHttp1Client
-</p></div><dl class="paramcmts block"><dt class="param">maxTotalConnections</dt><dd class="cmt"><p>maximum connections the client will have at any specific time</p></dd><dt class="param">config</dt><dd class="cmt"><p>blaze client configuration options</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">maxTotalConnections</dt><dd class="cmt"><p>maximum connections the client will have at any specific time</p></dd><dt class="param">maxWaitQueueLimit</dt><dd class="cmt"><p>maximum number requests waiting for a connection at any specific time</p></dd><dt class="param">maxConnectionsPerRequestKey</dt><dd class="cmt"><p>Map of RequestKey to number of max connections</p></dd><dt class="param">config</dt><dd class="cmt"><p>blaze client configuration options</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
