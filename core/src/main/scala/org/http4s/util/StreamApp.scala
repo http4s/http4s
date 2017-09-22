@@ -10,16 +10,17 @@ trait StreamApp {
 
   def stream(args: List[String]): Stream[Task, Nothing]
 
-  private implicit val strategy: Strategy = Strategy.sequential
-
-  private[this] val shutdownRequested =
+  private[this] val shutdownRequested = {
+    implicit val strategy: Strategy = Strategy.sequential
     signalOf[Task, Boolean](false).unsafeRun
+  }
 
   final val requestShutdown: Task[Unit] =
     shutdownRequested.set(true)
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
   private[util] def doMain(args: Array[String]): Int = {
+    implicit val strategy: Strategy = Strategy.sequential    
     val halted = signalOf[Task, Boolean](false).unsafeRun
 
     val p = shutdownRequested.interrupt(stream(args.toList))
