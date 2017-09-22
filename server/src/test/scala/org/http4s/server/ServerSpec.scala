@@ -6,7 +6,6 @@ import org.http4s.internal.compatibility._
 import org.http4s.dsl._
 import org.specs2.specification.AfterAll
 import scala.io.Source
-import scalaz.{\/-, -\/}
 import scalaz.concurrent.Task
 
 trait ServerContext extends AfterAll {
