@@ -56,6 +56,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     if (numConnections == 1) {
       allocated.remove(key)
       idleQueues.remove(key)
+      ()
     } else {
       allocated.update(key, numConnections - 1)
     }
@@ -137,7 +138,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"Recycling connection: $stats")
                 callback(Right(NextConnection(conn, fresh = false)))
 
-              case Some(closedConn) =>
+              case Some(closedConn @ _) =>
                 logger.debug(s"Evicting closed connection: $stats")
                 decrConnection(key)
                 go()
