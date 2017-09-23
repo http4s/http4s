@@ -29,6 +29,10 @@ trait ServerBuilder {
   def withExecutorService(executorService: ExecutorService): Self =
     withExecutionContext(ExecutionContext.fromExecutorService(executorService))
 
+  @deprecated("Use withExecutionContext", "0.17.0")
+  def withServiceExecutor(executorService: ExecutorService): Self =
+    withExecutorService(executorService)
+
   def withExecutionContext(executionContext: ExecutionContext): Self
 
   def mountService(service: HttpService, prefix: String = ""): Self
