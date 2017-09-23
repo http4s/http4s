@@ -60,10 +60,11 @@ This runs:
 
 ### Formatting
 
-[Scalafmt] is run on compile.  The Travis CI build verifies that all
-code is formatted correctly and will fail if a diff is found.  If you
-compile your code before submitting a pull request, formatting should
-just work.
+The Travis CI build verifies that code is formatted correctly
+according to the [Scalafmt] config and will fail if a diff is found.
+
+You can run `validate` to test the formatting before opening a PR.  If
+your PR fails due to formatting, run `;scalafmt ;test:scalafmt`.
 
 [Scalafmt]: http://scalameta.org/scalafmt/
 
