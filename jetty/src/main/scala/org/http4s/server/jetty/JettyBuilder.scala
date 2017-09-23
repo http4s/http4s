@@ -13,7 +13,7 @@ import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHo
 import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import scala.concurrent.ExecutionContext
@@ -21,7 +21,7 @@ import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]: Effect] private (
     socketAddress: InetSocketAddress,
-    private val executionContext: ExecutionContext,
+    private val threadPool: ThreadPool,
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
     private val servletIo: ServletIo[F],
@@ -39,7 +39,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
-      executionContext: ExecutionContext = executionContext,
+      threadPool: ThreadPool = threadPool,
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
       servletIo: ServletIo[F] = servletIo,
@@ -49,7 +49,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
   ): Self =
     new JettyBuilder(
       socketAddress,
-      executionContext,
+      threadPool,
       idleTimeout,
       asyncTimeout,
       servletIo,
@@ -73,8 +73,24 @@ sealed class JettyBuilder[F[_]: Effect] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
+  /** Uses the specified execution context as the Jetty thread
+    * pool. Lacks the monitoring of a Jetty thread pool, but is
+    * the standard type in the Scala ecosystem.
+    */
   override def withExecutionContext(executionContext: ExecutionContext): Self =
-    copy(executionContext = executionContext)
+    copy(threadPool = new ThreadPool {
+      def execute(r: Runnable): Unit = executionContext.execute(r)
+      def getIdleThreads(): Int = -1
+      def getThreads(): Int = -1
+      def isLowOnThreads(): Boolean = false
+      def join(): Unit = {}
+    })
+
+  /** Uses the specified Jetty thread pool. This is a specialization of
+    * the `java.util.concurrent.Executor`, plus monitoring stats.
+    */
+  def withThreadPool(threadPool: ThreadPool): Self =
+    copy(threadPool = threadPool)
 
   override def mountServlet(
       servlet: HttpServlet,
@@ -104,7 +120,6 @@ sealed class JettyBuilder[F[_]: Effect] private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext,
         serviceErrorHandler = builder.serviceErrorHandler
       )
       val servletName = s"servlet-$index"
@@ -173,7 +188,6 @@ sealed class JettyBuilder[F[_]: Effect] private (
   }
 
   def start: F[Server[F]] = F.delay {
-    val threadPool = new QueuedThreadPool
     val jetty = new JServer(threadPool)
 
     val context = new ServletContextHandler()
@@ -218,7 +232,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
 object JettyBuilder {
   def apply[F[_]: Effect] = new JettyBuilder[F](
     socketAddress = ServerBuilder.DefaultSocketAddress,
-    executionContext = ExecutionContext.global,
+    threadPool = new QueuedThreadPool,
     idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
     asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
     servletIo = ServletContainer.DefaultServletIo,
