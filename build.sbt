@@ -500,4 +500,4 @@ def initCommands(additionalImports: String*) =
     "cats.implicits._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
-addCommandAlias("validate", ";test ;scalafmt::test; test:scalafmt::test ;makeSite ;mimaReportBinaryIssues")
+addCommandAlias("validate", ";test ;scalafmt::test; makeSite ;mimaReportBinaryIssues")

@@ -64,7 +64,7 @@ The Travis CI build verifies that code is formatted correctly
 according to the [Scalafmt] config and will fail if a diff is found.
 
 You can run `validate` to test the formatting before opening a PR.  If
-your PR fails due to formatting, run `;scalafmt ;test:scalafmt`.
+your PR fails due to formatting, run `;test:scalafmt`.
 
 [Scalafmt]: http://scalameta.org/scalafmt/
 
