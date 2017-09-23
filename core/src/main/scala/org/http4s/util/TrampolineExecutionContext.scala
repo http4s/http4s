@@ -9,6 +9,7 @@ import java.util.{ArrayDeque, Collections, Deque, List => JList}
 import java.util.concurrent.{AbstractExecutorService, TimeUnit}
 import scala.concurrent.ExecutionContextExecutorService
 
+@deprecated("Use execution.trampoline instead", "0.18.0-M2")
 object TrampolineExecutionContext
     extends AbstractExecutorService
     with ExecutionContextExecutorService {

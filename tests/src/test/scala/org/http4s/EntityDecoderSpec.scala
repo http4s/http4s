@@ -8,12 +8,12 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
-import org.http4s.util.TrampolineExecutionContext
+import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
 import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
-  implicit val executionContext: ExecutionContext = TrampolineExecutionContext
+  implicit val executionContext: ExecutionContext = trampoline
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.runLog.map(_.toArray)

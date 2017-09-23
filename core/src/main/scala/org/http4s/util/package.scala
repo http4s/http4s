@@ -3,6 +3,7 @@ package org.http4s
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.{ByteBuffer, CharBuffer}
+import scala.concurrent.ExecutionContextExecutor
 import scala.util.control.NonFatal
 import scodec.bits.ByteVector
 
@@ -48,4 +49,9 @@ package object util {
 
   @deprecated("Moved to org.http4s.syntax.StringSyntax", "0.16")
   type CaseInsensitiveStringSyntax = org.http4s.syntax.StringSyntax
+
+  @deprecated(
+    "Moved to org.http4s.execution.trampoline, is now merely a ExecutionContextExecutor.",
+    "0.18.0-M2")
+  val TrampolineExecutionContext: ExecutionContextExecutor = execution.trampoline
 }
