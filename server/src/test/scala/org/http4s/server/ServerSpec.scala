@@ -41,12 +41,10 @@ trait ServerSpec extends Http4sSpec with AfterAll {
     }
 
     "route requests on the service executor" in {
-      println("foo")
       get("/thread/routing") must startWith("http4s-spec-")
     }
 
     "execute the service task on the service executor" in {
-      println("foo")
       get("/thread/effect") must startWith("http4s-spec-")
     }
   }
