@@ -101,19 +101,19 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
                     override def onDataAvailable(): Unit =
                       state.getAndSet(Ready) match {
                         case Blocked(cb) => read(cb)
-                        case _ =>
+                        case _ => ()
                       }
 
                     override def onError(t: Throwable): Unit =
                       state.getAndSet(Errored(t)) match {
                         case Blocked(cb) => cb(Left(t))
-                        case _ =>
+                        case _ => ()
                       }
 
                     override def onAllDataRead(): Unit =
                       state.getAndSet(Complete) match {
                         case Blocked(cb) => cb(rightNone)
-                        case _ =>
+                        case _ => ()
                       }
                   }
                 )
@@ -191,14 +191,14 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         state.getAndSet(Ready) match {
           case Blocked(cb) => cb(writeChunk)
           case AwaitingLastWrite(cb) => cb(Right(()))
-          case old @ _ =>
+          case old @ _ => ()
         }
 
       override def onError(t: Throwable): Unit =
         state.getAndSet(Errored(t)) match {
           case Blocked(cb) => cb(Left(t))
           case AwaitingLastWrite(cb) => cb(Left(t))
-          case _ =>
+          case _ => ()
         }
     }
     /*
@@ -214,7 +214,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         F.async[Unit] { cb =>
           state.getAndSet(AwaitingLastWrite(cb)) match {
             case Ready if out.isReady => cb(Right(()))
-            case _ =>
+            case _ => ()
           }
         }
     }
@@ -236,6 +236,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
                     if (state.compareAndSet(blocked, e))
                       cb(Left(t))
                   case _ =>
+                    ()
                 }
               }
               .map(_(chunk))
