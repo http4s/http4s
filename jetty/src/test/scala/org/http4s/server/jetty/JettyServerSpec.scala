@@ -3,5 +3,5 @@ package server
 package jetty
 
 class JettyServerSpec extends ServerSpec {
-  val builder = JettyBuilder
+  def builder = JettyBuilder
 }
