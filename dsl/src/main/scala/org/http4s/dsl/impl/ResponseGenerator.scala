@@ -21,9 +21,6 @@ trait ResponseGenerator extends Any {
   * }}}
   */
 trait EmptyResponseGenerator[F[_]] extends Any with ResponseGenerator {
-  def apply()(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response(status))
-
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response(status, headers = Headers(headers: _*)))
 }
@@ -39,11 +36,8 @@ trait EmptyResponseGenerator[F[_]] extends Any with ResponseGenerator {
   * }}}
   */
 trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
-  def apply()(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response(status, headers = Headers(`Content-Length`.zero)))
-
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(Response(status, headers = Headers(headers :+ `Content-Length`.zero: _*)))
+    F.pure(Response(status, headers = Headers(`Content-Length`.zero +: headers: _*)))
 
   def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
@@ -61,13 +55,15 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
   }
 }
 
-trait LocationResponseGenerator[F[_]] extends Any with ResponseGenerator {
+trait LocationResponseGenerator[F[_]] extends Any with EntityResponseGenerator[F] {
+  @deprecated("Use `apply(Location(location))` instead", "0.18.0-M2")
   def apply(location: Uri)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(
       Response[F](status = status, headers = Headers(`Content-Length`.zero, Location(location))))
 }
 
 trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
+  @deprecated("Use ``apply(`WWW-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
   def apply(challenge: Challenge, challenges: Challenge*)(
       implicit F: Applicative[F]): F[Response[F]] =
     F.pure(
@@ -75,9 +71,36 @@ trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator 
         status = status,
         headers = Headers(`Content-Length`.zero, `WWW-Authenticate`(challenge, challenges: _*))
       ))
+
+  /** A 401 status MUST contain a `WWW-Authenticate` header, which
+    * distinguishes this from other `EntityResponseGenerator`s.
+    */
+  def apply(authenticate: `WWW-Authenticate`, headers: Header*)(
+      implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(
+      Response(status, headers = Headers(`Content-Length`.zero +: authenticate +: headers: _*)))
+
+  /** A 401 status MUST contain a `WWW-Authenticate` header, which
+    * distinguishes this from other `EntityResponseGenerator`s.
+    */
+  def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header*)(
+      implicit F: Monad[F],
+      w: EntityEncoder[F, A]): F[Response[F]] = {
+    val h = w.headers ++ Headers(authenticate +: headers.toList)
+    w.toEntity(body).flatMap {
+      case Entity(proc, len) =>
+        val headers = len
+          .map { l =>
+            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+          }
+          .getOrElse(h)
+        F.pure(Response(status = status, headers = headers, body = proc))
+    }
+  }
 }
 
 trait ProxyAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
+  @deprecated("Use ``apply(`Proxy-Authenticate`(challenge, challenges)`` instead", "0.18.0-M2")
   def apply(challenge: Challenge, challenges: Challenge*)(
       implicit F: Applicative[F]): F[Response[F]] =
     F.pure(
@@ -85,4 +108,30 @@ trait ProxyAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerato
         status = status,
         headers = Headers(`Content-Length`.zero, `Proxy-Authenticate`(challenge, challenges: _*))
       ))
+
+  /** A 407 status MUST contain a `Proxy-Authenticate` header, which
+    * distinguishes this from other `EntityResponseGenerator`s.
+    */
+  def apply(authenticate: `Proxy-Authenticate`, headers: Header*)(
+      implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(
+      Response(status, headers = Headers(`Content-Length`.zero +: authenticate +: headers.toList)))
+
+  /** A 407 status MUST contain a `Proxy-Authenticate` header, which
+    * distinguishes this from other `EntityResponseGenerator`s.
+    */
+  def apply[A](authenticate: `Proxy-Authenticate`, body: A, headers: Header*)(
+      implicit F: Monad[F],
+      w: EntityEncoder[F, A]): F[Response[F]] = {
+    val h = w.headers ++ Headers(authenticate +: headers.toList)
+    w.toEntity(body).flatMap {
+      case Entity(proc, len) =>
+        val headers = len
+          .map { l =>
+            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+          }
+          .getOrElse(h)
+        F.pure(Response(status = status, headers = headers, body = proc))
+    }
+  }
 }

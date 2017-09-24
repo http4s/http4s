@@ -25,7 +25,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
         Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
       )
     case _ -> Root / "different-authority" =>
-      TemporaryRedirect(uri("http://www.example.com/ok"))
+      TemporaryRedirect(Location(uri("http://www.example.com/ok")))
     case _ -> Root / status =>
       Response[IO](status = Status.fromInt(status.toInt).yolo)
         .putHeaders(Location(uri("/ok")))
@@ -133,7 +133,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       val statefulService = HttpService[IO] {
         case GET -> Root / "loop" =>
           val body = loopCounter.incrementAndGet.toString
-          MovedPermanently(uri("/loop")).flatMap(_.withBody(body))
+          MovedPermanently(Location(uri("/loop"))).flatMap(_.withBody(body))
       }
       val client = FollowRedirect(3)(Client.fromHttpService(statefulService))
       client.fetch(Request[IO](uri = uri("http://localhost/loop"))) {
