@@ -1,8 +1,6 @@
 package org.http4s
 
-import java.time.{Instant, ZoneId, ZonedDateTime}
-import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.time.{Instant, ZonedDateTime}
 import org.http4s.parser.AdditionalRules
 import org.http4s.util.{Renderable, Writer}
 
@@ -35,11 +33,20 @@ class HttpDate private (val epochSecond: Long) extends Renderable with Ordered[H
 }
 
 object HttpDate {
-  private val dateFormat =
-    DateTimeFormatter
-      .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
-      .withLocale(Locale.US)
-      .withZone(ZoneId.of("GMT"))
+  private val MinEpochSecond = -2208988800L
+  private val MaxEpochSecond = 253402300799L
+
+  /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
+    *
+    * The minimum year is specified by RFC5322 as 1900.
+    *
+    * @see https://tools.ietf.org/html/rfc7231#page-65
+    * @see https://tools.ietf.org/html/rfc5322#page-14
+    */
+  val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
+
+  /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
+  val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
   /**
     * Constructs an `HttpDate` from the current time. Starting on January 1,n
@@ -52,22 +59,6 @@ object HttpDate {
   /** The `HttpDate` equal to `Thu, Jan 01 1970 00:00:00 GMT` */
   val Epoch: HttpDate =
     unsafeFromEpochSecond(0)
-
-  private val MinEpochSecond = -2208988800L
-
-  /** The earliest value reprsentable as an HTTP-date, `Mon, 01 Jan 1900 00:00:00 GMT`.
-    *
-    * The minimum year is specified by RFC5322 as 1900.
-    *
-    * @see https://tools.ietf.org/html/rfc7231#page-65
-    * @see https://tools.ietf.org/html/rfc5322#page-14
-    */
-  val MinValue = HttpDate.unsafeFromEpochSecond(MinEpochSecond)
-
-  private val MaxEpochSecond = 253402300799L
-
-  /** The latest value reprsentable by RFC1123, `Fri, 31 Dec 9999 23:59:59 GMT`. */
-  val MaxValue = HttpDate.unsafeFromEpochSecond(MaxEpochSecond)
 
   /** Parses a date according to RFC7321, Section 7.1.1.1
     *

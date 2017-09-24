@@ -20,7 +20,7 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
     "parse all encodings" in {
       foreach(ContentCoding.snapshot) {
-        case (name, coding) =>
+        case (_, coding) =>
           parse(coding.renderString).values.head should be_==(coding)
       }
     }
@@ -44,22 +44,5 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
       `Accept-Encoding`(ContentCoding.gzip, ContentCoding.compress))
 
     parse(gzip1.value) must be_==(gzip)
-  }
-
-  "Offer preferred" in {
-    val unordered = `Accept-Encoding`(
-      ContentCoding.gzip.withQValue(q(0.5)),
-      ContentCoding.compress.withQValue(q(0.1)),
-      ContentCoding.deflate)
-
-    unordered.preferred must be_==(ContentCoding.deflate)
-  }
-
-  "Be satisfied correctly" in {
-    `Accept-Encoding`(ContentCoding.`*`).satisfiedBy(ContentCoding.gzip) should beTrue
-    `Accept-Encoding`(ContentCoding.`*`.withQValue(QValue.Zero))
-      .satisfiedBy(ContentCoding.gzip) should beFalse
-    gzip.satisfiedBy(ContentCoding.gzip) should beTrue
-    gzip.satisfiedBy(ContentCoding.deflate) should beFalse
   }
 }

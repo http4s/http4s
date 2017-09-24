@@ -22,7 +22,7 @@ trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
   final def apply[A](uri: Uri, body: A, headers: Header*)(
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Request[F]] = {
-    var h = w.headers ++ headers
+    val h = w.headers ++ headers
     w.toEntity(body).flatMap {
       case Entity(proc, len) =>
         val headers = len

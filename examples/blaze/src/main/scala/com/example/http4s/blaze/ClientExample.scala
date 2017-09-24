@@ -29,7 +29,7 @@ object ClientExample {
     // Match on response code!
     val page2 = client.get(uri("http://http4s.org/resources/foo.json")) {
       case Successful(resp) => resp.as[Foo].map("Received response: " + _)
-      case NotFound(resp) => IO.pure("Not Found!!!")
+      case NotFound(_) => IO.pure("Not Found!!!")
       case resp => IO.pure("Failed: " + resp.status)
     }
 

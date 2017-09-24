@@ -113,7 +113,7 @@ object StaticFile {
         notModified.orElse {
           val (body, contentLength) =
             if (f.length() < end) (empty.covary[F], 0L)
-            else (fileToBody[F](f, start, end, buffsize), end - start)
+            else (fileToBody[F](f, start, end), end - start)
 
           val contentType = nameToContentType(f.getName)
           val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
@@ -137,8 +137,8 @@ object StaticFile {
   private def fileToBody[F[_]: Sync](
       f: File,
       start: Long,
-      end: Long,
-      buffsize: Int): EntityBody[F] = {
+      end: Long
+  ): EntityBody[F] = {
     // Based on fs2 handling of files
     def readAllFromFileHandle(chunkSize: Int, start: Long, end: Long)(
         h: FileHandle[F]): Pull[F, Byte, Unit] =

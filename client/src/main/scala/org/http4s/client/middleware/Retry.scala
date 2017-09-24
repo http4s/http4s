@@ -25,7 +25,7 @@ object Retry {
     def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
       client.open(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
-        case right @ Right(dr @ DisposableResponse(response, _)) =>
+        case Right(dr @ DisposableResponse(response, _)) =>
           policy(req, Right(dr.response), attempts) match {
             case Some(duration) =>
               logger.info(
@@ -51,7 +51,7 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`] = None)(
+        retryHeader: Option[`Retry-After`])(
         implicit F: Async[F],
         executionContext: ExecutionContext): F[DisposableResponse[F]] = {
       val headerDuration = retryHeader
@@ -138,7 +138,7 @@ object RetryPolicy {
     * run twice.  The most common symptom of this will be resubmitting
     * an empty request body.
     */
-  def recklesslyRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
+  def recklesslyRetriable[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     isErrorOrRetriableStatus(result)
 
   private def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =

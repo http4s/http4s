@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 title: Middleware
 weight: 115
 ---

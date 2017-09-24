@@ -43,7 +43,7 @@ object FollowRedirect {
       client: Client[F])(implicit F: MonadError[F, Throwable]): Client[F] = {
     def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] = {
       client.open(req).flatMap {
-        case dr @ DisposableResponse(resp, dispose) =>
+        case dr @ DisposableResponse(resp, _) =>
           def redirectUri =
             resp.headers.get(Location).map { loc =>
               val uri = loc.uri

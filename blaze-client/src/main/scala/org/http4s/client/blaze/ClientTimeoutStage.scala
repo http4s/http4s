@@ -156,7 +156,7 @@ final private[blaze] class ClientTimeoutStage(
         if (!timeoutState.compareAndSet(c, next)) go()
         else c.cancel()
 
-      case e: TimeoutException =>
+      case _: TimeoutException =>
         if (next != null) next.cancel()
     }; go()
   }

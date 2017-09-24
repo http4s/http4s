@@ -66,7 +66,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       val authedService: AuthedService[IO, User] =
         AuthedService {
-          case POST -> Root as user => Ok()
+          case POST -> Root as _ => Ok()
         }
 
       val middleWare = AuthMiddleware(authUser, onAuthFailure)

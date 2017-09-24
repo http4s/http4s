@@ -150,7 +150,7 @@ private class Http2NodeStage[F[_]](
         if (pseudoDone) error += "Pseudo header in invalid position. "
 
       case h @ (k, _) if k.startsWith(":") => error += s"Invalid pseudo header: $h. "
-      case h @ (k, _) if !validHeaderName(k) => error += s"Invalid header key: $k. "
+      case (k, _) if !validHeaderName(k) => error += s"Invalid header key: $k. "
 
       case hs => // Non pseudo headers
         pseudoDone = true
@@ -163,10 +163,10 @@ private class Http2NodeStage[F[_]](
               if (sz != 0 && endStream) error += s"Nonzero content length ($sz) for end of stream."
               else if (sz < 0) error += s"Negative content length: $sz"
               else contentLength = sz
-            } catch { case t: NumberFormatException => error += s"Invalid content-length: $v. " } else
+            } catch { case _: NumberFormatException => error += s"Invalid content-length: $v. " } else
               error += "Received multiple content-length headers"
 
-          case h @ (TE, v) =>
+          case (TE, v) =>
             if (!v.equalsIgnoreCase("trailers"))
               error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
           // ignore otherwise
@@ -186,19 +186,23 @@ private class Http2NodeStage[F[_]](
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
       async.unsafeRunAsync {
-        try service(req).recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+        try service(req)
+          .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+          .handleError { _ =>
+            Response[F](InternalServerError, req.httpVersion)
+          }
+          .map(renderResponse(_))
         catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
       } {
-        case Right(resp) =>
-          IO(renderResponse(req, resp))
+        case Right(_) =>
+          IO.unit
         case Left(t) =>
-          val resp = Response[F](InternalServerError, req.httpVersion)
-          IO(renderResponse(req, resp))
+          IO(logger.error(t)("Error rendering response"))
       }
     }
   }
 
-  private def renderResponse(req: Request[F], maybeResponse: MaybeResponse[F]): F[Unit] = {
+  private def renderResponse(maybeResponse: MaybeResponse[F]): F[Unit] = {
     val resp = maybeResponse.orNotFound
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))

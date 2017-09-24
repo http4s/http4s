@@ -27,7 +27,6 @@ private object Http1Support {
   }
 
   private val Https: Scheme = "https".ci
-  private val Http: Scheme = "http".ci
 }
 
 /** Provides basic HTTP1 pipeline building

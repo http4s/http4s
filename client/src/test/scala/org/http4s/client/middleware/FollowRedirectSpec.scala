@@ -24,9 +24,9 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
           req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
         Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
       )
-    case req @ _ -> Root / "different-authority" =>
+    case _ -> Root / "different-authority" =>
       TemporaryRedirect(uri("http://www.example.com/ok"))
-    case req @ _ -> Root / status =>
+    case _ -> Root / status =>
       Response[IO](status = Status.fromInt(status.toInt).yolo)
         .putHeaders(Location(uri("/ok")))
         .pure[IO]

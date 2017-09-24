@@ -53,7 +53,7 @@ private[http4s] object MultipartDecoder {
 
     s.pull.uncons1.flatMap {
       case Some((Left(headers), s)) => go(Part(headers, EmptyBody), lastWasLeft = true)(s)
-      case Some((Right(byte), s)) =>
+      case Some((Right(byte @ _), _)) =>
         Pull.fail(InvalidMessageBodyFailure("No headers in first part"))
       case None => Pull.pure(None)
     }.stream

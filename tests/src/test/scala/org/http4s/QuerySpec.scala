@@ -25,8 +25,6 @@ class QuerySpec extends Http4sSpec {
   }
 
   "Query".can {
-    val elem = ("k", Some("v"))
-
     "append a query param" >> forAll { (p: KeyValue, q: Query) =>
       val q2 = q :+ p
       q2 must beAnInstanceOf[Query]

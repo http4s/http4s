@@ -137,14 +137,14 @@ class PathSpec extends Http4sSpec {
 
     "Int extractor, invalid int" in {
       (Path("/user/invalid") match {
-        case Root / "user" / IntVar(userId) => true
+        case Root / "user" / IntVar(userId @ _) => true
         case _ => false
       }) must beFalse
     }
 
     "Int extractor, number format error" in {
       (Path("/user/2147483648") match {
-        case Root / "user" / IntVar(userId) => true
+        case Root / "user" / IntVar(userId @ _) => true
         case _ => false
       }) must beFalse
     }
@@ -167,13 +167,13 @@ class PathSpec extends Http4sSpec {
       "invalid" >> {
         "a word" in {
           (Path("/user/invalid") match {
-            case Root / "user" / LongVar(userId) => true
+            case Root / "user" / LongVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "number but out of domain" in {
           (Path("/user/9223372036854775808") match {
-            case Root / "user" / LongVar(userId) => true
+            case Root / "user" / LongVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }

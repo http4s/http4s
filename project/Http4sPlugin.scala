@@ -26,20 +26,10 @@ object Http4sPlugin extends AutoPlugin {
     },
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
 
-    scalacOptions in Compile ++= Seq(
-      "-Yno-adapted-args", // Curiously missing from RigPlugin
-      "-Ypartial-unification", // Needed on 2.11 for Either, good idea in general
-      "-Ywarn-unused-import"
-    ) ++ {
-      // https://issues.scala-lang.org/browse/SI-8340
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, n)) if n >= 11 => Seq("-Ywarn-numeric-widen")
-        case _ => Seq.empty
-      }
-    },
-    scalacOptions in (Compile, console) ~= { xs: Seq[String] =>
-      xs.filterNot(Set("-Xfatal-warnings", "-Ywarn-unused-import"))
-    },
+    // Rig will take care of this on production builds.  We haven't fully
+    // implemented that machinery yet, so we're going to live without this
+    // one for now.
+    scalacOptions -= "-Xcheckinit",
 
     http4sMimaVersion := {
       version.value match {
@@ -54,7 +44,7 @@ object Http4sPlugin extends AutoPlugin {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
 
-    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.3" cross CrossVersion.binary),
+    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.4" cross CrossVersion.binary),
 
     scalafmtVersion := "1.2.0",
     scalafmtOnCompile := sys.env.get("TRAVIS").isEmpty
@@ -98,7 +88,7 @@ object Http4sPlugin extends AutoPlugin {
   }
 
   val macroParadiseSetting =
-    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.patch)
+    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
@@ -115,7 +105,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.0-M6"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.2.2"
   lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
-  lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.2.5"
+  lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.0"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.0"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
@@ -143,5 +133,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.20"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.4"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.7"
 }

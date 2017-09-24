@@ -238,7 +238,7 @@ trait UriFunctions {
     * Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
     */
   def removeDotSegments(path: Path): Path = {
-    def loop(input: List[Char], output: List[Char], depth: Int = 0): Path = input match {
+    def loop(input: List[Char], output: List[Char], depth: Int): Path = input match {
       case Nil => output.reverse.mkString
       case '.' :: '.' :: '/' :: rest => loop(rest, output, depth) // remove initial ../
       case '.' :: '/' :: rest => loop(rest, output, depth) // remove initial ./

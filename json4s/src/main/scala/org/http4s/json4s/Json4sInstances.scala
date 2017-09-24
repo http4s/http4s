@@ -76,4 +76,9 @@ trait Json4sInstances[J] {
       def write(uri: Uri): JValue =
         JString(uri.toString)
     }
+
+  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+    def decodeJson[A](implicit decoder: Reader[A]): F[A] =
+      self.as(implicitly, jsonOf[F, A])
+  }
 }

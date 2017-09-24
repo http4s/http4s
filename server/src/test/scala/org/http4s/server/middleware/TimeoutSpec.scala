@@ -4,7 +4,7 @@ package middleware
 
 import cats.effect._
 import cats.implicits._
-import fs2.Scheduler
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
 import scala.concurrent.duration._
@@ -14,37 +14,38 @@ class TimeoutSpec extends Http4sSpec {
   val myService = HttpService[IO] {
     case _ -> Root / "fast" =>
       Ok("Fast")
-    case _ -> Root / "slow" =>
-      delay(2.seconds, Ok("Slow"))
+    case _ -> Root / "never" =>
+      IO.async[Response[IO]] { _ =>
+        ()
+      }
   }
 
   val timeoutService = Timeout(5.milliseconds)(myService)
 
   val fastReq = Request[IO](GET, uri("/fast"))
-  val slowReq = Request[IO](GET, uri("/slow"))
+  val neverReq = Request[IO](GET, uri("/never"))
+
+  def checkStatus(resp: IO[Response[IO]], status: Status) =
+    resp.unsafeRunTimed(3.seconds).getOrElse(throw new TimeoutException) must haveStatus(status)
 
   "Timeout Middleware" should {
     "have no effect if the response is not delayed" in {
-      timeoutService.orNotFound(fastReq) must returnStatus(Status.Ok)
+      val service = Timeout(Duration.Inf)(myService)
+      checkStatus(service.orNotFound(fastReq), Status.Ok)
     }
 
     "return a 500 error if the result takes too long" in {
-      timeoutService.orNotFound(slowReq) must returnStatus(Status.InternalServerError)
+      checkStatus(timeoutService.orNotFound(neverReq), Status.InternalServerError)
     }
 
     "return the provided response if the result takes too long" in {
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
       val altTimeoutService = Timeout(1.nanosecond, IO.pure(customTimeout))(myService)
-      altTimeoutService.orNotFound(slowReq) must returnStatus(customTimeout.status)
-    }
-
-    "handle infinite durations" in {
-      val service = Timeout(Duration.Inf)(myService)
-      service.orNotFound(slowReq) must returnStatus(Status.Ok)
+      checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
     }
 
     "clean up resources of the loser" in {
-      var clean = new AtomicBoolean(false)
+      val clean = new AtomicBoolean(false)
       val service = HttpService[IO] {
         case _ =>
           for {
@@ -53,14 +54,12 @@ class TimeoutSpec extends Http4sSpec {
           } yield resp
       }
       val timeoutService = Timeout(1.millis)(service)
-      timeoutService.orNotFound(Request[IO]()) must returnStatus(InternalServerError)
+      checkStatus(timeoutService.orNotFound(Request[IO]()), InternalServerError)
       // Give the losing response enough time to finish
       clean.get must beTrue.eventually
     }
   }
 
-  private val scheduler = Scheduler.allocate[IO](corePoolSize = 1).map(_._1).unsafeRunSync()
-
   private def delay[F[_]: Effect, A](duration: FiniteDuration, fa: F[A]): F[A] =
-    scheduler.sleep_(duration).run.followedBy(fa)
+    Http4sSpec.TestScheduler.sleep_(duration).run.followedBy(fa)
 }

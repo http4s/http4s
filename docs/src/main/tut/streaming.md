@@ -1,5 +1,5 @@
 ---
-menu: tut
+menu: main
 title: Streaming
 weight: 305
 ---

@@ -78,10 +78,10 @@ private[parser] trait CookieHeader {
           cookie.copy(path = Some(pathValue))
         } |
         // TODO: Capture so we can create the rule, but there must be a better way
-        capture("Secure") ~> { (cookie: Cookie, s: String) =>
+        "Secure" ~ MATCH ~> { (cookie: Cookie) =>
           cookie.copy(secure = true)
         } |
-        capture("HttpOnly") ~> { (cookie: Cookie, s: String) =>
+        "HttpOnly" ~ MATCH ~> { (cookie: Cookie) =>
           cookie.copy(httpOnly = true)
         } |
         StringValue ~> { (cookie: Cookie, stringValue: String) =>

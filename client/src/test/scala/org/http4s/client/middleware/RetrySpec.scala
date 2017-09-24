@@ -13,8 +13,6 @@ class RetrySpec extends Http4sSpec with Tables {
   val route = HttpService[IO] {
     case _ -> Root / status =>
       IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
-    case _ -> Root / status =>
-      BadRequest()
   }
 
   val defaultClient: Client[IO] = Client.fromHttpService(route)
@@ -35,7 +33,7 @@ class RetrySpec extends Http4sSpec with Tables {
     }
     val retryClient = Retry[IO](policy)(client)
     val req = Request[IO](method, uri("http://localhost/") / status.code.toString).withBody(body)
-    val resp = retryClient
+    retryClient
       .fetch(req) { _ =>
         IO.unit
       }

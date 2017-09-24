@@ -1,28 +1,41 @@
 ---
-type: common
 menu: main
-weight: 300
+weight: 450
 title: Adopters
 ---
 
-## Commercial
+## Industrial
 
 [Cammy](http://www.cammy.com)
 : Has about 10 services in production at thousands of requests per second.
 
-[Verizon](http://www.verizon.com)
-: Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
+[Eckerd College](https://www.eckerd.edu/)
+: Uses http4s for several of its internal services.
 
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
-[Eckerd College](https://www.eckerd.edu/)
-: Uses http4s for several of its internal services.
-	
-## Open Source
+[Verizon](http://www.verizon.com)
+: Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
+
+## Libraries
 
 [CouchDB-Scala](https://github.com/beloglazov/couchdb-scala)
 : a purely functional Scala client for CouchDB
+
+[Helm](https://github.com/Verizon/helm)
+: A native Scala client for interacting with Consul
+
+[http4s-directives](https://github.com/hamnis/http4s-directives)
+: Implementation of unfiltered-directives using http4s
+
+[rho](https://github.com/http4s/rho)
+: A self-documenting DSL built on http4s 
+
+## Open Source apps
+
+[0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
+: A simple link-shortener
 
 [fleet-buddy](https://github.com/reactormonk/fleet-buddy)
 : Eve Online fleet buddy based on the CREST API
@@ -30,14 +43,26 @@ title: Adopters
 [http4s-demo](http://demo.http4s.org/)
 : an [open source](https://github.com/http4s/http4s_demo) demo app built with http4s
 
+[http4sbin](https://github.com/dbousamra/http4sbin)
+: A httpbin clone built with http4s
+
 [httpize](http://httpize.herokuapp.com/)
 : a httpbin built with http4s [(source)](https://github.com/ppurang/httpize)
 
-[rho (ρ)](http://github.com/http4s/rho)
-: a self-documenting HTTP server DSL built upon http4s
+[Nelson](https://verizon.github.io/nelson/)
+: Automated, multi-region container deployment
 
-[0x7e.xyz](https://github.com/timo-schmid/0x7e.xyz)
-: A simple link-shortener
+[scala-pet-store](https://github.com/pauljamescleary/scala-pet-store)
+: An implementation of the java pet store using FP techniques in scala
 
-[http4sbin](https://github.com/dbousamra/http4sbin)
-: A httpbin clone built with http4s
+[todo-backend-typelevel](https://github.com/aeons/todo-backend-typelevel)
+: todo-backend implementation using the Typelevel stack
+
+[twitterstorm](https://github.com/ChristopherDavenport/twitterstorm)
+: Twitter Streaming API Processing Example Project 
+
+<hr />
+
+<small>
+[<i class="fa fa-edit" aria-hidden="true"></i> Add yourself](https://github.com/http4s/http4s.org/edit/master/community/adopters.md), alphabetically, if you please.
+</small>

@@ -158,11 +158,12 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       min: Int,
       sec: Int,
       wkday: Int): HttpDate =
-    Try(
+    Try {
       org.http4s.HttpDate.unsafeFromZonedDateTime(
-        ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC))).getOrElse {
+        ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC))
+    }.getOrElse {
       // TODO Would be better if this message had the real input.
-      throw new ParseFailure("Invalid date", s"$year-$month-$day $hour:$min:$sec")
+      throw new ParseFailure("Invalid date", s"$wkday $year-$month-$day $hour:$min:$sec")
     }
 
   /* 3.9 Quality Values */

@@ -1,21 +1,39 @@
 package org.http4s
 package client
 
+import java.net.InetSocketAddress
+
 import cats.effect._
 import cats.implicits._
 import fs2._
-import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.dsl.io._
 import org.specs2.specification.core.Fragments
+
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String, client: Client[IO])
-    extends Http4sSpec
-    with JettyScaffold {
+abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends Http4sSpec {
   val timeout = 20.seconds
+  val jettyServ = new JettyScaffold(1)
+  var address: InetSocketAddress = null
+
+  def testServlet = new HttpServlet {
+    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
+      GetRoutes.getPaths.get(req.getRequestURI) match {
+        case Some(r) => renderResponse(srv, r)
+        case None => srv.sendError(404)
+      }
+
+    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
+      srv.setStatus(200)
+      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
+      srv.getOutputStream.print(s)
+      srv.getOutputStream.flush()
+    }
+  }
 
   Fragments.foreach(GetRoutes.getPaths.toSeq) {
     case (path, expected) =>
@@ -40,9 +58,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
 
     "Repeat a simple request" in {
       val path = GetRoutes.SimplePath
+
       def fetchBody = client.toService(_.as[String]).local { uri: Uri =>
         Request(uri = uri)
       }
+
       val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
       async
         .parallelTraverse((0 until 10).toVector)(_ => fetchBody.run(url).map(_.length))
@@ -73,22 +93,15 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
   }
 
   override def map(fs: => Fragments): Fragments =
-    super.map(fs ^ step(client.shutdown.unsafeRunSync()))
-
-  def testServlet = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
-      GetRoutes.getPaths.get(req.getRequestURI) match {
-        case Some(r) => renderResponse(srv, r)
-        case None => srv.sendError(404)
+    super.map(
+      step {
+        jettyServ.startServers(testServlet)
+        address = jettyServ.addresses.head
+      } ^ fs ^ step {
+        client.shutdown.unsafeRunSync()
+        jettyServ.stopServers()
       }
-
-    override def doPost(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
-      srv.setStatus(200)
-      val s = scala.io.Source.fromInputStream(req.getInputStream).mkString
-      srv.getOutputStream.print(s)
-      srv.getOutputStream.flush()
-    }
-  }
+    )
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]) = {
     val hs = rec.headers.toSeq
@@ -100,18 +113,6 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     expected.headers.foreach(h => h must beOneOf(hs: _*))
 
     rec.httpVersion must be_==(expected.httpVersion)
-  }
-
-  private def translateTests(
-      address: InetSocketAddress,
-      method: Method,
-      paths: Map[String, Response[IO]]): Map[Request[IO], Response[IO]] = {
-    val port = address.getPort()
-    val name = address.getHostName()
-    paths.map {
-      case (s, r) =>
-        (Request[IO](method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
-    }
   }
 
   private def renderResponse(srv: HttpServletResponse, resp: Response[IO]): Unit = {

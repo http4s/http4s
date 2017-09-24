@@ -196,6 +196,57 @@ trait ArbitraryInstances {
         }
       } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail: _*)
     }
+  def genContentCodingNoQuality: Gen[ContentCoding] =
+    oneOf(ContentCoding.registered.toSeq)
+
+  implicit val arbitraryContentCoding: Arbitrary[ContentCoding] =
+    Arbitrary {
+      for {
+        cc <- genContentCodingNoQuality
+        q <- arbitrary[QValue]
+      } yield cc.withQValue(q)
+    }
+
+  implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
+    Arbitrary {
+      for {
+        // make a set first so we don't have contradictory q-values
+        contentCodings <- nonEmptyContainerOf[Set, ContentCoding](genContentCodingNoQuality)
+          .map(_.toVector)
+        qValues <- containerOfN[Vector, QValue](contentCodings.size, arbitraryQValue.arbitrary)
+        contentCodingsWithQ = contentCodings.zip(qValues).map {
+          case (coding, q) => coding.withQValue(q)
+        }
+      } yield `Accept-Encoding`(contentCodingsWithQ.head, contentCodingsWithQ.tail: _*)
+    }
+
+  def genLanguageTagNoQuality: Gen[LanguageTag] =
+    frequency(
+      3 -> (for {
+        primaryTag <- genToken
+        subTags <- frequency(4 -> Nil, 1 -> listOf(genToken))
+      } yield LanguageTag(primaryTag, subTags = subTags)),
+      1 -> const(LanguageTag.`*`)
+    )
+
+  implicit val arbitraryLanguageTag: Arbitrary[LanguageTag] =
+    Arbitrary {
+      for {
+        lt <- genLanguageTagNoQuality
+        q <- arbitrary[QValue]
+      } yield lt.copy(q = q)
+    }
+
+  implicit val arbitraryAcceptLanguage: Arbitrary[`Accept-Language`] =
+    Arbitrary {
+      for {
+        // make a set first so we don't have contradictory q-values
+        languageTags <- nonEmptyContainerOf[Set, LanguageTag](genLanguageTagNoQuality)
+          .map(_.toVector)
+        qValues <- containerOfN[Vector, QValue](languageTags.size, arbitraryQValue.arbitrary)
+        tagsWithQ = languageTags.zip(qValues).map { case (tag, q) => tag.copy(q = q) }
+      } yield `Accept-Language`(tagsWithQ.head, tagsWithQ.tail: _*)
+    }
 
   implicit val arbitraryUrlForm: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
@@ -389,9 +440,6 @@ trait ArbitraryInstances {
   private def times[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     listOfN(n, g).suchThat(_.length == n).map(_.reduce(_ |+| _))
 
-  private def atLeast[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
-    timesBetween(min = 0, max = Int.MaxValue, g)
-
   private def atMost[T: Monoid](n: Int, g: Gen[T]): Gen[T] =
     timesBetween(min = 0, max = n, g)
 
@@ -479,4 +527,10 @@ trait ArbitraryInstances {
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
   }
+}
+
+object ArbitraryInstances extends ArbitraryInstances {
+  // This were introduced after .0 and need to be kept out of the
+  // trait.  We can move them back into the trait in the next .0.
+
 }

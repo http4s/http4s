@@ -45,28 +45,28 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
   "Client" should {
     "match responses to Uris with get" in {
       client.get(req.uri) {
-        case Ok(resp) => IO.pure("Ok")
+        case Ok(_) => IO.pure("Ok")
         case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "match responses to requests with fetch" in {
       client.fetch(req) {
-        case Ok(resp) => IO.pure("Ok")
+        case Ok(_) => IO.pure("Ok")
         case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "match responses to request tasks with fetch" in {
       client.fetch(IO.pure(req)) {
-        case Ok(resp) => IO.pure("Ok")
+        case Ok(_) => IO.pure("Ok")
         case _ => IO.pure("fail")
       } must returnValue("Ok")
     }
 
     "match responses to request tasks with fetch" in {
       client.fetch(IO.pure(req)) {
-        case Ok(resp) => IO.pure("Ok")
+        case Ok(_) => IO.pure("Ok")
         case _ => IO.pure("fail")
       } must returnValue("Ok")
     }

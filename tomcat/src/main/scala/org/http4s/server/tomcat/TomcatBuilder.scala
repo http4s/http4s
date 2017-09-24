@@ -136,7 +136,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   override def start: F[Server[F]] = F.delay {
     val tomcat = new Tomcat
 
-    val context = tomcat.addContext("", getClass.getResource("/").getPath)
+    tomcat.addContext("", getClass.getResource("/").getPath)
 
     val conn = tomcat.getConnector()
 

@@ -48,7 +48,7 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Response[F]] = {
-    var h = w.headers ++ headers
+    val h = w.headers ++ headers
     w.toEntity(body).flatMap {
       case Entity(proc, len) =>
         val headers = len

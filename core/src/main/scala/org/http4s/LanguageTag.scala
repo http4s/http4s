@@ -34,7 +34,10 @@ object LanguageTag {
 
 final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil)
     extends Renderable {
+  @deprecated("Use languageTag.withQValue", "0.16.1")
   def withQuality(q: QValue): LanguageTag = LanguageTag(primaryTag, q, subTags)
+
+  def withQValue(q: QValue): LanguageTag = copy(q = q)
 
   def render(writer: Writer): writer.type = {
     writer.append(primaryTag)
@@ -49,10 +52,17 @@ final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags
     else if (tags2.isEmpty || tags1.head != tags2.head) false
     else checkLists(tags1.tail, tags2.tail)
 
+  @deprecated("Use `Accept-Language`.satisfiedBy(encoding)", "0.16.1")
   def satisfies(encoding: LanguageTag): Boolean = encoding.satisfiedBy(this)
+
+  @deprecated("Use `Accept-Language`.satisfiedBy(encoding)", "0.16.1")
   def satisfiedBy(encoding: LanguageTag): Boolean =
     (this.primaryTag == "*" || this.primaryTag == encoding.primaryTag) &&
       q.isAcceptable && encoding.q.isAcceptable &&
       q <= encoding.q &&
       checkLists(subTags, encoding.subTags)
+
+  def matches(languageTag: LanguageTag): Boolean =
+    this.primaryTag == "*" || (this.primaryTag == languageTag.primaryTag &&
+      checkLists(subTags, languageTag.subTags))
 }
