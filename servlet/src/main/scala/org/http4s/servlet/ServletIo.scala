@@ -7,7 +7,8 @@ import fs2._
 import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{ReadListener, WriteListener}
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.http4s.util.{TrampolineExecutionContext, bug}
+import org.http4s.util.bug
+import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
 
@@ -91,7 +92,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         // This effect sets the callback and waits for the first bytes to read
         val registerRead =
           // Shift execution to a different EC
-          F.shift(TrampolineExecutionContext) >>
+          F.shift(trampoline) >>
             F.async[Option[Chunk[Byte]]] { cb =>
               if (!state.compareAndSet(Init, Blocked(cb))) {
                 cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
@@ -122,7 +123,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         val readStream = Stream.eval(registerRead) ++ Stream
           .repeatEval( // perform the initial set then transition into normal read mode
             // Shift execution to a different EC
-            F.shift(TrampolineExecutionContext) >>
+            F.shift(trampoline) >>
               F.async[Option[Chunk[Byte]]] { cb =>
                 @tailrec
                 def go(): Unit = state.get match {
@@ -210,7 +211,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
 
     val awaitLastWrite = Stream.eval_ {
       // Shift execution to a different EC
-      F.shift(TrampolineExecutionContext) >>
+      F.shift(trampoline) >>
         F.async[Unit] { cb =>
           state.getAndSet(AwaitingLastWrite(cb)) match {
             case Ready if out.isReady => cb(Right(()))
@@ -225,7 +226,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
       response.body.chunks
         .evalMap { chunk =>
           // Shift execution to a different EC
-          F.shift(TrampolineExecutionContext) >>
+          F.shift(trampoline) >>
             F.async[Chunk[Byte] => Unit] { cb =>
                 val blocked = Blocked(cb)
                 state.getAndSet(blocked) match {

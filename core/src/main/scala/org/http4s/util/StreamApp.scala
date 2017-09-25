@@ -13,8 +13,6 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
 
   def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing]
 
-  private implicit val executionContext: ExecutionContext = TrampolineExecutionContext
-
   /** Adds a shutdown hook that interrupts the stream and waits for it to finish */
   private def addShutdownHook(
       requestShutdown: Signal[F, Boolean],
@@ -30,7 +28,8 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
     }
 
   /** Exposed for testing, so we can check exit values before the dramatic sys.exit */
-  private[util] def doMain(args: List[String]): IO[Int] =
+  private[util] def doMain(args: List[String]): IO[Int] = {
+    implicit val ec: ExecutionContext = execution.direct
     async.ref[IO, Int].flatMap { exitCode =>
       async.signalOf[IO, Boolean](false).flatMap { halted =>
         async
@@ -53,6 +52,7 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
           exitCode.get
       }
     }
+  }
 
   def main(args: Array[String]): Unit =
     sys.exit(doMain(args.toList).unsafeRunSync)
