@@ -500,6 +500,4 @@ def initCommands(additionalImports: String*) =
     "cats.implicits._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
-addCommandAlias("validate", ";test ;scalafmt::test; test:scalafmt::test ;makeSite ;mimaReportBinaryIssues")
-// Why doesn't this work from project/*.scala?
-scalafmtOnCompile in Sbt := false
+addCommandAlias("validate", ";test ;scalafmt::test; makeSite ;mimaReportBinaryIssues")

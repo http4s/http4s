@@ -47,7 +47,16 @@ object Http4sPlugin extends AutoPlugin {
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.4" cross CrossVersion.binary),
 
     scalafmtVersion := "1.2.0",
-    scalafmtOnCompile := sys.env.get("TRAVIS").isEmpty
+    scalafmt in Test := {
+      (scalafmt in Compile).value
+      (scalafmt in Test).value
+      ()
+    },
+    test in (Test, scalafmt) := {
+      (test in (Compile, scalafmt)).value
+      (test in (Test, scalafmt)).value
+      ()
+    }
   )
 
   def extractApiVersion(version: String) = {
