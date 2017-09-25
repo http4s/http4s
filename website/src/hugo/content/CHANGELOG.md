@@ -1,3 +1,12 @@
+# v0.16.2 (2017-09-25)
+* Dependency patch upgrades:
+  * async-http-client-2.0.37
+  * blaze-0.12.8: changes default number of selector threads to
+    from `2 * cores + 1` to `max(4, cores + 1)`.
+  * jetty-9.4.7.v20170914
+  * tomcat-8.5.21
+  * twirl-1.3.7
+
 # v0.17.1 (2017-09-17)
 * Fix bug where metrics were not captured in `Metrics` middleware.
 * Pass `redactHeadersWhen` argument from `Logger` to `RequestLogger`
