@@ -1,4 +1,4 @@
-# v0.16.2
+# v0.16.2 (2017-09-25)
 * Dependency patch upgrades:
   * async-http-client-2.0.37
   * blaze-0.12.8: changes default number of selector threads to

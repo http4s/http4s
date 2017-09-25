@@ -65,7 +65,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	</thead>
 	<tbody>
 	  <tr>
-	    <td>0.16.1</td>
+	    <td>0.16.2a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -75,7 +75,7 @@ After deliberations both internally and with <a href="https://github.com/http4s/
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.1</td>
+	    <td>0.16.2</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
