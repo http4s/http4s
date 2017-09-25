@@ -104,7 +104,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.35"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.37"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.8"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.8.0"
@@ -141,7 +141,7 @@ object Http4sPlugin extends AutoPlugin {
   def specs2MatcherExtra(szv: String)       = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core(szv).revision
   def specs2Scalacheck(szv: String)         = "org.specs2"             %% "specs2-scalacheck"         % specs2Core(szv).revision
   def scalazStream(szv: String)             = "org.scalaz.stream"      %% "scalaz-stream"             % "0.8.6" forScalaz szv
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.20"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.21"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.7"
 }

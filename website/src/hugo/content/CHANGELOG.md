@@ -1,3 +1,12 @@
+# v0.16.2
+* Dependency patch upgrades:
+  * async-http-client-2.0.37
+  * blaze-0.12.8: changes default number of selector threads to
+    from `2 * cores + 1` to `max(4, cores + 1)`.
+  * jetty-9.4.7.v20170914
+  * tomcat-8.5.21
+  * twirl-1.3.7
+
 # v0.16.1 (2017-09-17)
 * Publish our fork of parboiled2 as http4s-parboiled2 module.  It's
   the exact same internal code as was in http4s-core, with no external
