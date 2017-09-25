@@ -134,10 +134,11 @@ which are relevant past patch release .0.
 
 <h3 id="formatting">Formatting</h3>
 
-<p><a href="http://scalameta.org/scalafmt/">Scalafmt</a> is run on compile.  The Travis CI build verifies that all
-code is formatted correctly and will fail if a diff is found.  If you
-compile your code before submitting a pull request, formatting should
-just work.</p>
+<p>The Travis CI build verifies that code is formatted correctly
+according to the <a href="http://scalameta.org/scalafmt/">Scalafmt</a> config and will fail if a diff is found.</p>
+
+<p>You can run <code>validate</code> to test the formatting before opening a PR.  If
+your PR fails due to formatting, run <code>;test:scalafmt</code>.</p>
 
 <h3 id="types">Types</h3>
 
