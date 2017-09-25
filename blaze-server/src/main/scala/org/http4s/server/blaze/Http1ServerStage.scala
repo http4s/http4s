@@ -122,16 +122,19 @@ private[blaze] class Http1ServerStage[F[_]](
 
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
-        async.unsafeRunAsync {
-          try serviceFn(req).handleErrorWith(
-            serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
-          catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
-        } {
-          case Right(resp) =>
-            IO(renderResponse(req, resp, cleanup))
-          case Left(t) =>
-            IO(internalServerError(s"Error running route: $req", t, req, cleanup))
-        }
+        executionContext.execute(new Runnable {
+          def run(): Unit =
+            F.runAsync(
+                try serviceFn(req).handleErrorWith(
+                  serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+                catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])) {
+                case Right(resp) =>
+                  IO(renderResponse(req, resp, cleanup))
+                case Left(t) =>
+                  IO(internalServerError(s"Error running route: $req", t, req, cleanup))
+              }
+              .unsafeRunSync()
+        })
       case Left((e, protocol)) =>
         badMessage(e.details, new BadRequest(e.sanitized), Request[F]().withHttpVersion(protocol))
     }

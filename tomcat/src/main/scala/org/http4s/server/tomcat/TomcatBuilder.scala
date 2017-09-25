@@ -90,6 +90,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       val filterDef = new FilterDef
       filterDef.setFilterName(filterName)
       filterDef.setFilter(filter)
+
       filterDef.setAsyncSupported(true.toString)
       ctx.addFilterDef(filterDef)
 

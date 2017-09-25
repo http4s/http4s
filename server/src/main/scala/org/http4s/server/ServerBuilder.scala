@@ -28,6 +28,10 @@ trait ServerBuilder[F[_]] {
   def withExecutorService(executorService: ExecutorService): Self =
     withExecutionContext(ExecutionContext.fromExecutorService(executorService))
 
+  @deprecated("Use withExecutionContext", "0.17.0")
+  def withServiceExecutor(executorService: ExecutorService): Self =
+    withExecutorService(executorService)
+
   def withExecutionContext(executionContext: ExecutionContext): Self
 
   /** Sets the handler for errors thrown invoking the service.  Is not

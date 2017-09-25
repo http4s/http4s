@@ -169,11 +169,9 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
       //////////////////////// Multi Part //////////////////////////
       /* TODO fs2 port
     case req @ GET -> Root / "form" =>
-            println("FORM")
       Ok(html.form())
 
     case req @ POST -> Root / "multipart" =>
-      println("MULTIPART")
       req.decode[Multipart] { m =>
         Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map { case f: Part => f.name }.mkString("\n")}""")
       }
