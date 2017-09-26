@@ -368,7 +368,11 @@ final case class Response[F[_]](
 }
 
 object Response {
-  def notFound[F[_]: Monad](request: Request[F])(
+  private[this] val notFoundBody = Stream("Not found").through(text.utf8Encode)
+
+  def notFound[F[_]]: Response[F] = Response(Status.NotFound, body = notFoundBody)
+
+  def notFoundFor[F[_]: Monad](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Response[F](Status.NotFound).withBody(s"${request.pathInfo} not found")
+    Response(Status.NotFound).withBody(s"${request.pathInfo} not found")
 }

@@ -283,7 +283,7 @@ object Client {
         val disposed = new AtomicBoolean(false)
         val req0 = req.withBodyStream(interruptible(req.body, disposed))
         service(req0).value.map { maybeResponse =>
-          val response = maybeResponse.getOrElse(Response(Status.NotFound))
+          val response = maybeResponse.getOrElse(Response.notFound)
           DisposableResponse(
             response.copy(body = interruptible(response.body, disposed)),
             F.delay(disposed.set(true))

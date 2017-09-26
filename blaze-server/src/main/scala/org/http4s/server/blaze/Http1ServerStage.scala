@@ -132,7 +132,7 @@ private[blaze] class Http1ServerStage[F[_]](
                 catch serviceErrorHandler(req).andThen(_.map(Option.apply))
               } {
                 case Right(resp) =>
-                  IO(renderResponse(req, resp.getOrElse(Response(Status.NotFound)), cleanup))
+                  IO(renderResponse(req, resp.getOrElse(Response.notFound), cleanup))
                 case Left(t) =>
                   IO(internalServerError(s"Error running route: $req", t, req, cleanup))
               }

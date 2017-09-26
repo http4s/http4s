@@ -17,7 +17,7 @@ object HttpService extends Serializable {
     Kleisli(f)
 
   /** Lifts a partial function to an `HttpService`. Responds with
-    * [[org.http4s.Response.notFound]], which generates a 404, for any request
+    * [[org.http4s.Response.notFoundFor]], which generates a 404, for any request
     * where `pf` is not defined.
     */
   def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(
