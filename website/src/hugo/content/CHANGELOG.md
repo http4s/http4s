@@ -12,9 +12,59 @@
   publishLocal`.
 * Add `Request.from`, which respects `X-Fowarded-For` header.
 * Make `F` in `EffectMessageSyntax` invariant
+* Add `message.decodeJson[A]` syntax to replace awkward `message.as(implicitly,
+  jsonOf[A])`. Brought into scope by importing one of the following, based on
+  your JSON library of choice.
+  * `import org.http4s.argonaut._`
+  * `import org.http4s.circe._`
+  * `import org.http4s.json4s.jackson._`
+  * `import org.http4s.json4s.native._`
+* `AsyncHttpClient.apply` no longer takes a `bufferSize`.  It is made
+  irrelevant by fs2-reactive-streams.
+* `MultipartParser.parse` no longer takes a `headerLimit`, which was unused.
+* Add `maxWaitQueueLimit` (default 256) and `maxConnectionsPerRequestKey`
+  (default 10) to `PooledHttp1Client`.
+* Remove private implicit `ExecutionContext` from `StreamApp`. This had been
+  known to cause diverging implicit resolution that was hard to debug.
+* Shift execution of the routing of the `HttpService` to the `ExecutionContext`
+  provided by the `JettyBuilder` or `TomcatBuilder`. Previously, it only shifted
+  the response task and stream. This was a regression from v0.16.
+* Add two utility execution contexts. These may be used to increase throughput
+  as the server builder's `ExecutionContext`. Blocking calls on routing may
+  decrease fairness or even deadlock your service, so use at your own risk:
+  * `org.http4s.util.execution.direct`
+  * `org.http4s.util.execution.trampoline`
+* Deprecate `EffectRequestSyntax` and `EffectResponseSyntax`. These were
+  previously used to provide methods such as `.putHeaders` and `.withBody`
+  on types `F[Request]` and `F[Response]`.  As an alternative:
+  * Call `.map` or `.flatMap` on `F[Request]` and `F[Response]` to get access
+    to all the same methods.
+  * Variadic headers have been added to all the status code generators in
+    `Http4sDsl[F]` and method generators in `import org.http4s.client._`.
+    For example:
+    * `POST(uri, urlForm, Header("Authrorization", "Bearer s3cr3t"))`
+    * ```Ok("<h2>This will have an html content type!</h2>", `Content-Type`(`text/html`))``
 * Upgraded dependencies:
     * jawn-fs2-0.12.0-M2
-    * twirl-1.3.7
+
+# v0.17.2
+* Remove private implicit `Strategy` from `StreamApp`. This had been known to
+  cause diverging implicit resolution that was hard to debug.
+* Shift execution of HttpService to the `ExecutionContext` provided by the
+  `BlazeBuilder`. Previously, it only shifted the response stream. This was a
+  regression from 0.16.
+* Split off http4s-parboiled2 module as `"org.http4s" %% "parboiled"`. There are
+  no externally visible changes, but this simplifies and speeds the http4s
+  build.
+
+# v0.16.2 (2017-09-25)
+* Dependency patch upgrades:
+  * async-http-client-2.0.37
+  * blaze-0.12.8: changes default number of selector threads to
+    from `2 * cores + 1` to `max(4, cores + 1)`.
+  * jetty-9.4.7.v20170914
+  * tomcat-8.5.21
+  * twirl-1.3.7
 
 # v0.17.1 (2017-09-17)
 * Fix bug where metrics were not captured in `Metrics` middleware.
