@@ -149,10 +149,10 @@ For example:</li>
 </ul></li>
 </ul>
 
-<h1 id="v0-17-2">v0.17.2</h1>
+<h1 id="v0-17-2-2017-09-25">v0.17.2 (2017-09-25)</h1>
 
 <ul>
-<li>Remove private implicit <code>Strategy</code> from <code>StreamApp</code>. This had been known to
+<li>Remove private implicit strategy from <code>StreamApp</code>. This had been known to
 cause diverging implicit resolution that was hard to debug.</li>
 <li>Shift execution of HttpService to the <code>ExecutionContext</code> provided by the
 <code>BlazeBuilder</code>. Previously, it only shifted the response stream. This was a
