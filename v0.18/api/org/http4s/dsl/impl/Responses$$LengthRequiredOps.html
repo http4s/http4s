@@ -525,7 +525,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/581a77355a3c608124e8f676a5ba2381e0464c3f/dsl/src/main/scala/org/http4s/dsl/impl/Responses.scala" target="_blank">Responses.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/3b13de802109a2064e3652e3022c8ff94a45b60f/dsl/src/main/scala/org/http4s/dsl/impl/Responses.scala" target="_blank">Responses.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -698,9 +698,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[A](body:A,headers:org.http4s.Headers)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](A,Headers)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
+      <a id="apply[A](body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](A,Header*)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$LengthRequiredOps.html#apply[A](body:A,headers:org.http4s.Headers)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/Responses$$LengthRequiredOps.html#apply[A](body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -709,14 +709,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span></span>, <span name="headers">headers: <a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span></span>, <span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a></dd></dl></div>
     </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[A](body:A)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](A)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
+      <a id="apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply(Header*)(Applicative[F]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$LengthRequiredOps.html#apply[A](body:A)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/Responses$$LengthRequiredOps.html#apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -725,23 +725,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a></dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply()(Applicative[F]):F[Response[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$LengthRequiredOps.html#apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]]</span>
+        <span class="name">apply</span><span class="params">(<span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.LengthRequiredOps.F">F</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a></dd></dl></div>

@@ -145,26 +145,35 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$48688185
+&lt;console&gt;:30: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
+       val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
+                                   ^
+&lt;console&gt;:30: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
+       val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
+                        ^
+response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$2001557586
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@6784cc50
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@47925586
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@719b0545
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@7d6add93
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@7d55b40f
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@dba4a3a
 
 scala&gt; println(response.as[Resp].unsafeRunSync)
+&lt;console&gt;:34: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
+       println(response.as[Resp].unsafeRunSync)
+               ^
 Audio()
 </code></pre>
 

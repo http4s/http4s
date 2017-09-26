@@ -142,7 +142,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$8967/839800103@42096e54)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$8958/2136291024@665cd8da)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -189,7 +189,7 @@ val tweetService = HttpService[IO] {
 // &lt;console&gt;:28: warning: pattern var request in method applyOrElse is never used; `request@_' suppresses this warning
 //          case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
 //               ^
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$8967/839800103@6cba5381)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.package$HttpService$$$Lambda$8958/2136291024@3ae482dd)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -216,10 +216,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$8986/741677431@5745e005)
+// services: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.MaybeResponse[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroup$$Lambda$8977/1223756956@236c8c01)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1644861024
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1028655690
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run

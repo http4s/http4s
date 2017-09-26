@@ -347,7 +347,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p> Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><p>While it is possible to for the <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
 offer shortcut syntax to make intention clear and concise.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/581a77355a3c608124e8f676a5ba2381e0464c3f/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd><div class="block">Example:
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/3b13de802109a2064e3652e3022c8ff94a45b60f/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd><div class="block">Example:
                <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: F[Response] = Status.Continue()</pre></li></ol>
             </div></dl><div class="toggleContainer block">
           <span class="toggle">
@@ -543,9 +543,9 @@ offer shortcut syntax to make intention clear and concise.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.dsl.impl.EmptyResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply()(Applicative[F]):F[Response[F]]"></a>
+      <a id="apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply(Header*)(Applicative[F]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/EmptyResponseGenerator.html#apply()(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/EmptyResponseGenerator.html#apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -554,7 +554,7 @@ offer shortcut syntax to make intention clear and concise.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator.F">F</span>]]</span>
+        <span class="name">apply</span><span class="params">(<span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator.F">F</span>]]</span>
       </span>
       
       
