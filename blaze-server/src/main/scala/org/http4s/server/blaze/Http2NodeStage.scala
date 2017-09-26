@@ -2,6 +2,7 @@ package org.http4s
 package server
 package blaze
 
+import cats.data.OptionT
 import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
@@ -187,12 +188,11 @@ private class Http2NodeStage[F[_]](
 
       async.unsafeRunAsync {
         try service(req)
-          .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
-          .handleError { _ =>
-            Response[F](InternalServerError, req.httpVersion)
-          }
-          .map(renderResponse(_))
-        catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
+          .recoverWith(serviceErrorHandler(req).andThen(OptionT.liftF(_)))
+          .handleError(_ => Response(InternalServerError, req.httpVersion))
+          .value
+          .map(mr => renderResponse(mr.getOrElse(Response(org.http4s.Status.NotFound))))
+        catch serviceErrorHandler(req).andThen(_.map(Option.apply))
       } {
         case Right(_) =>
           IO.unit
@@ -202,8 +202,7 @@ private class Http2NodeStage[F[_]](
     }
   }
 
-  private def renderResponse(maybeResponse: MaybeResponse[F]): F[Unit] = {
-    val resp = maybeResponse.orNotFound
+  private def renderResponse(resp: Response[F]): F[Unit] = {
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
     resp.headers.foreach { h =>

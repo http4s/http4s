@@ -2,13 +2,14 @@ package org.http4s
 package server
 package blaze
 
+import cats.data.OptionT
 import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
-import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
 import org.http4s.blazecore.Http1Stage
@@ -124,12 +125,14 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit =
-            F.runAsync(
-                try serviceFn(req).handleErrorWith(
-                  serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
-                catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])) {
+            F.runAsync {
+                try serviceFn(req)
+                  .handleErrorWith(serviceErrorHandler(req).andThen(OptionT.liftF(_)))
+                  .value
+                catch serviceErrorHandler(req).andThen(_.map(Option.apply))
+              } {
                 case Right(resp) =>
-                  IO(renderResponse(req, resp, cleanup))
+                  IO(renderResponse(req, resp.getOrElse(Response(Status.NotFound)), cleanup))
                 case Left(t) =>
                   IO(internalServerError(s"Error running route: $req", t, req, cleanup))
               }
@@ -142,9 +145,8 @@ private[blaze] class Http1ServerStage[F[_]](
 
   protected def renderResponse(
       req: Request[F],
-      maybeResponse: MaybeResponse[F],
+      resp: Response[F],
       bodyCleanup: () => Future[ByteBuffer]): Unit = {
-    val resp = maybeResponse.orNotFound
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 

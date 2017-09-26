@@ -20,9 +20,8 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
 
   override protected def renderResponse(
       req: Request[F],
-      maybeResponse: MaybeResponse[F],
+      resp: Response[F],
       cleanup: () => Future[ByteBuffer]): Unit = {
-    val resp = maybeResponse.orNotFound
     val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey[F])
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
