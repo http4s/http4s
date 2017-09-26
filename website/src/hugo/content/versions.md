@@ -60,7 +60,7 @@ title: Versions
       <td>1.8+</td>
     </tr>
     <tr>
-      <td><a href="/v0.17">0.17.1</a></td>
+      <td><a href="/v0.17">0.17.2</a></td>
       <td class="text-center"><span class="badge badge-success">Stable</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>

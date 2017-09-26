@@ -18,23 +18,6 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-// This defines macros that we use in core, so it needs to be split out
-lazy val parboiled2 = libraryProject("parboiled2")
-  .settings(
-    description := "Internal fork of parboiled2 to remove shapeless dependency",    
-    libraryDependencies ++= Seq(
-      scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
-    ),
-    // We use a minimal set of options, because this is upstream code,
-    // and we by no means want to be stricter.
-    scalacOptions := List(
-      "-encoding", "UTF-8",
-      "-feature",
-      "-language:_"
-    ),
-    macroParadiseSetting
-  )
-
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -47,13 +30,13 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       macroCompat,
+      parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
   )
-  .dependsOn(parboiled2)
 
 lazy val testing = libraryProject("testing")
   .settings(
@@ -270,8 +253,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
-        loadTest,
-        parboiled2 // internal API, compiled with different flags, generally irritating
+        loadTest
       ),
     scalacOptions in (Compile,doc) ++= {
       scmInfo.value match {
