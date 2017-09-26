@@ -1,3 +1,9 @@
+---
+menu: main
+weight: 101
+title: Changelog
+---
+
 # v0.18.0-SNAPSHOT
 * Use http4s-dsl with any effect type by either:
     * extend `Http4sDsl[F]`
