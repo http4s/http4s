@@ -7,7 +7,6 @@ import cats.implicits._
 import org.http4s.headers.{Connection, `Content-Length`}
 import org.http4s.syntax.string._
 import org.log4s.getLogger
-
 import scala.util.control.NonFatal
 
 package object server {

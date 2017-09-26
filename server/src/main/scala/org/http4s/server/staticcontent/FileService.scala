@@ -2,13 +2,11 @@ package org.http4s
 package server
 package staticcontent
 
-import java.io.File
-
 import cats.data._
 import cats.effect._
+import java.io.File
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
-
 import scala.concurrent.ExecutionContext
 
 object FileService {

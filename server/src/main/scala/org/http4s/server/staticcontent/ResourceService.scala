@@ -4,7 +4,6 @@ package staticcontent
 
 import cats.data.OptionT
 import cats.effect._
-
 import scala.concurrent.ExecutionContext
 
 object ResourceService {
