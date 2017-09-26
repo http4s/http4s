@@ -336,7 +336,7 @@ lazy val website = http4sProject("website")
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
         def accept(f: File) = {
-          f.getCanonicalPath.startsWith(v) ||
+          f.getCanonicalPath.startsWith(v) &&
           f.getCanonicalPath.charAt(v.size).isDigit
         }
       }
