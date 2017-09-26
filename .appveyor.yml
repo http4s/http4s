@@ -1,0 +1,25 @@
+environment:
+  global:
+    COMPILE: compile
+    TEST_COMPILE: test:compile
+    TEST_SUITE: test
+  matrix:
+    - SCALA_VERSION: 2.11.11
+    - SCALA_VERSION: 2.12.3
+
+install:
+  - ps: |
+         Add-Type -AssemblyName System.IO.Compression.FileSystem
+         if (!(Test-Path -Path "C:\sbt\sbt-launcher-packaging-0.13.13" )) {
+           (new-object System.Net.WebClient).DownloadFile(
+              'https://dl.bintray.com/sbt/native-packages/sbt/0.13.13/sbt-0.13.13.zip',
+              'C:\sbt-0.13.13.zip'
+           )
+           [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\sbt-0.13.13.zip", "C:\sbt")
+         }
+  - cmd: SET PATH=C:\sbt\sbt-launcher-packaging-0.13.13\bin;%JAVA_HOME%\bin;%PATH%
+
+build_script: 
+  - sbt "; ++ %SCALA_VERSION% %COMPILE%; ++ %SCALA_VERSION% %TEST_COMPILE%"
+test_script:
+  - sbt"; ++ %SCALA_VERSION% %TEST_SUITE%"
