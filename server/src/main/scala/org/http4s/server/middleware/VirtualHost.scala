@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.implicits._
+import cats.data.OptionT
 import org.http4s.Status.{BadRequest, NotFound}
 import org.http4s.headers.Host
 
@@ -60,26 +60,20 @@ object VirtualHost {
 
   def apply[F[_]](first: HostService[F], rest: HostService[F]*)(
       implicit F: Monad[F],
-      W: EntityEncoder[F, String]): HttpService[F] = {
-
-    val all = (first +: rest).toVector
-
-    Service.lift { req: Request[F] =>
+      W: EntityEncoder[F, String]): HttpService[F] =
+    HttpService.liftF { req =>
       req.headers
         .get(Host)
-        .fold(Response[F](BadRequest).withBody("Host header required.").widen[MaybeResponse[F]]) {
-          h =>
-            // Fill in the host port if possible
-            val host: Host = h.port match {
-              case Some(_) => h
-              case None =>
-                h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
-            }
-            all
-              .collectFirst { case HostService(s, p) if p(host) => s(req) }
-              .getOrElse(
-                Response[F](NotFound).withBody(s"Host '$host' not found.").widen[MaybeResponse[F]])
+        .fold(OptionT.liftF(Response[F](BadRequest).withBody("Host header required."))) { h =>
+          // Fill in the host port if possible
+          val host: Host = h.port match {
+            case Some(_) => h
+            case None =>
+              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
+          }
+          (first +: rest).toVector
+            .collectFirst { case HostService(s, p) if p(host) => s(req) }
+            .getOrElse(OptionT.liftF(Response[F](NotFound).withBody(s"Host '$host' not found.")))
         }
     }
-  }
 }

@@ -3,9 +3,9 @@ package server
 package middleware
 
 import cats._
-import cats.implicits._
-import fs2._
+import cats.data.OptionT
 import fs2.Stream._
+import fs2._
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.log4s.getLogger
@@ -28,24 +28,20 @@ object Jsonp {
 
   def apply[F[_]: Monad](callbackParam: String)(service: HttpService[F])(
       implicit W: EntityEncoder[F, String]): HttpService[F] =
-    HttpService.lift { req =>
+    HttpService.liftF { req =>
       req.params.get(callbackParam) match {
         case Some(ValidCallback(callback)) =>
-          service(req).map {
-            case resp: Response[F] =>
-              resp.contentType.map(_.mediaType) match {
-                case Some(MediaType.`application/json`) =>
-                  jsonp(resp, callback)
-                case _ =>
-                  resp
-              }
-            case Pass() => Pass()
+          service(req).map { response =>
+            response.contentType.map(_.mediaType) match {
+              case Some(MediaType.`application/json`) =>
+                jsonp(response, callback)
+              case _ =>
+                response
+            }
           }
         case Some(invalidCallback) =>
           logger.warn(s"Jsonp requested with invalid callback function name $invalidCallback")
-          Response[F](Status.BadRequest)
-            .withBody(s"Not a valid callback name.")
-            .widen[MaybeResponse[F]]
+          OptionT.liftF(Response[F](Status.BadRequest).withBody(s"Not a valid callback name."))
         case None =>
           service(req)
       }

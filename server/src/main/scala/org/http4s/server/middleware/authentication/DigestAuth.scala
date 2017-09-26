@@ -63,17 +63,15 @@ object DigestAuth {
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
   def challenge[F[_], A](realm: String, store: AuthenticationStore[F, A], nonceKeeper: NonceKeeper)(
-      implicit F: Sync[F]): Service[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
-    Service.lift { req =>
-      {
-        def paramsToChallenge(params: Map[String, String]) =
-          Either.left(Challenge("Digest", realm, params))
+      implicit F: Sync[F]): Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+    Kleisli { req =>
+      def paramsToChallenge(params: Map[String, String]) =
+        Either.left(Challenge("Digest", realm, params))
 
-        checkAuth(realm, store, nonceKeeper, req).flatMap {
-          case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
-          case StaleNonce => getChallengeParams(nonceKeeper, true).map(paramsToChallenge)
-          case _ => getChallengeParams(nonceKeeper, false).map(paramsToChallenge)
-        }
+      checkAuth(realm, store, nonceKeeper, req).flatMap {
+        case OK(authInfo) => F.pure(Either.right(AuthedRequest(authInfo, req)))
+        case StaleNonce => getChallengeParams(nonceKeeper, staleNonce = true).map(paramsToChallenge)
+        case _ => getChallengeParams(nonceKeeper, staleNonce = false).map(paramsToChallenge)
       }
     }
 

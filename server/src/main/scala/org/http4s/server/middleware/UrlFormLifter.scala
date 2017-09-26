@@ -2,8 +2,8 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.OptionT
 import cats.effect._
-import cats.implicits._
 
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
   * request query params.
@@ -15,13 +15,13 @@ import cats.implicits._
 object UrlFormLifter {
 
   def apply[F[_]: Sync](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
-    Service.lift { req: Request[F] =>
-      def addUrlForm(form: UrlForm): F[MaybeResponse[F]] = {
+    HttpService.liftF[F] { req =>
+      def addUrlForm(form: UrlForm): OptionT[F, Response[F]] = {
         val flatForm = form.values.toVector.flatMap { case (k, vs) => vs.map(v => (k, Some(v))) }
         val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]
         val newQuery = Query(params: _*)
 
-        val newRequest: Request[F] = req
+        val newRequest = req
           .withUri(req.uri.copy(query = newQuery))
           .withEmptyBody
         service(newRequest)
@@ -30,12 +30,13 @@ object UrlFormLifter {
       req.headers.get(headers.`Content-Type`) match {
         case Some(headers.`Content-Type`(MediaType.`application/x-www-form-urlencoded`, _))
             if checkRequest(req) =>
-          UrlForm
-            .entityDecoder[F]
-            .decode(req, strictDecode)
-            .value
-            .flatMap(
-              _.fold(_.toHttpResponse[F](req.httpVersion).widen[MaybeResponse[F]], addUrlForm))
+          for {
+            decoded <- OptionT.liftF(UrlForm.entityDecoder[F].decode(req, strictDecode).value)
+            resp <- decoded.fold(
+              mf => OptionT.liftF(mf.toHttpResponse[F](req.httpVersion)),
+              addUrlForm
+            )
+          } yield resp
 
         case _ => service(req)
       }

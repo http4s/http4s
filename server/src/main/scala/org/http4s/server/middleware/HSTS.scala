@@ -21,15 +21,8 @@ object HSTS {
 
   def apply[F[_]: Functor](
       service: HttpService[F],
-      header: `Strict-Transport-Security`): HttpService[F] = Service.lift { req =>
-    service
-      .map {
-        case resp: Response[F] =>
-          val r: MaybeResponse[F] = resp.putHeaders(header)
-          r
-        case pass: Pass[F] => pass
-      }
-      .apply(req)
+      header: `Strict-Transport-Security`): HttpService[F] = HttpService.liftF { req =>
+    service.map(_.putHeaders(header)).apply(req)
   }
 
   def unsafeFromDuration[F[_]: Functor](

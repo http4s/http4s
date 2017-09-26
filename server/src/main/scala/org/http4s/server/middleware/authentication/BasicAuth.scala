@@ -4,6 +4,7 @@ package middleware
 package authentication
 
 import cats._
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.http4s.headers.Authorization
@@ -33,8 +34,8 @@ object BasicAuth {
     challenged(challenge(realm, validate))
 
   def challenge[F[_]: Applicative, A](realm: String, validate: BasicAuthenticator[F, A])
-    : Service[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
-    Service.lift { req =>
+    : Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]] =
+    Kleisli { req =>
       validatePassword(validate, req).map {
         case Some(authInfo) =>
           Right(AuthedRequest(authInfo, req))

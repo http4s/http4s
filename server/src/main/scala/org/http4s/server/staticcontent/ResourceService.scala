@@ -2,8 +2,9 @@ package org.http4s
 package server
 package staticcontent
 
+import cats.data.OptionT
 import cats.effect._
-import cats.implicits._
+
 import scala.concurrent.ExecutionContext
 
 object ResourceService {
@@ -26,19 +27,16 @@ object ResourceService {
       preferGzipped: Boolean = false)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply[F[_]: Sync](config: Config[F]): HttpService[F] = Service.lift {
-    req =>
-      val uriPath = req.pathInfo
-      if (!uriPath.startsWith(config.pathPrefix))
-        Pass.pure
-      else
+  private[staticcontent] def apply[F[_]: Sync](config: Config[F]): HttpService[F] =
+    HttpService.liftF {
+      case request if request.pathInfo.startsWith(config.pathPrefix) =>
         StaticFile
           .fromResource(
-            sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)),
-            req = Some(req),
+            sanitize(s"${config.basePath}/${getSubPath(request.pathInfo, config.pathPrefix)}"),
+            Some(request),
             preferGzipped = config.preferGzipped
           )
-          .fold(Pass.pure[F])(config.cacheStrategy.cache(uriPath, _).widen[MaybeResponse[F]])
-          .flatten
-  }
+          .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
+      case _ => OptionT.none
+    }
 }

@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats._
+import cats.data.OptionT
 import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
@@ -39,7 +40,7 @@ object CORS {
     */
   def apply[F[_]](service: HttpService[F], config: CORSConfig = DefaultCORSConfig)(
       implicit F: Applicative[F]): HttpService[F] =
-    Service.lift { req =>
+    HttpService.liftF { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header, acrm: Header): Response[F] =
         corsHeaders(origin.value, acrm.value, isPreflight = true)(Response())
@@ -59,7 +60,7 @@ object CORS {
               "Access-Control-Allow-Methods",
               config.allowedMethods.fold(acrm)(_.mkString("", ", ", ""))),
             Header("Access-Control-Allow-Origin", origin),
-            Header("Access-Control-Max-Age", config.maxAge.toString())
+            Header("Access-Control-Max-Age", config.maxAge.toString)
           )
       }
 
@@ -67,11 +68,11 @@ object CORS {
         (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
           case (true, true, _, _) => true
           case (true, false, _, acrm) =>
-            config.allowedMethods.map(_.contains(acrm)).getOrElse(false)
+            config.allowedMethods.exists(_.contains(acrm))
           case (false, true, origin, _) => config.allowedOrigins(origin)
           case (false, false, origin, acrm) =>
-            (config.allowedMethods.map(_.contains(acrm)).getOrElse(false) && config.allowedOrigins(
-              origin))
+            config.allowedMethods.exists(_.contains(acrm)) &&
+              config.allowedOrigins(origin)
         }
 
       def headerFromStrings(headerName: String, values: Set[String]): Header =
@@ -80,19 +81,16 @@ object CORS {
       (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
         case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
-          F.pure(createOptionsResponse(origin, acrm))
+          OptionT.some(createOptionsResponse(origin, acrm))
         case (_, Some(origin), _) =>
           if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString))) {
-            service(req).map {
-              case resp: Response[F] =>
-                logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-                corsHeaders(origin.value, req.method.renderString, false)(resp)
-              case Pass() =>
-                Pass()
+            service(req).map { resp =>
+              logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
+              corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)
             }
           } else {
             logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
-            F.pure(Response(status = Status.Forbidden))
+            OptionT.some(Response(status = Status.Forbidden))
           }
         case _ =>
           // This request is out of scope for CORS

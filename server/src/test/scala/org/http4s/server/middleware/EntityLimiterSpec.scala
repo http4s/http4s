@@ -14,7 +14,7 @@ import org.http4s.Status._
 class EntityLimiterSpec extends Http4sSpec {
 
   val s = HttpService[IO] {
-    case r: Request[IO] if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withBody)
+    case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withBody)
   }
 
   val b = chunk(Chunk.bytes("hello".getBytes(StandardCharsets.UTF_8)))
@@ -24,31 +24,33 @@ class EntityLimiterSpec extends Http4sSpec {
     "Allow reasonable entities" in {
       EntityLimiter(s, 100)
         .apply(Request[IO](POST, uri("/echo"), body = b))
-        .map(_ => -1) must returnValue(-1)
+        .map(_ => -1)
+        .value must returnValue(Some(-1))
     }
 
     "Limit the maximum size of an EntityBody" in {
       EntityLimiter(s, 3)
         .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
-        .handleError { case EntityTooLarge(i) => i } must returnValue(3)
+        .value
+        .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3))
     }
 
     "Chain correctly with other HttpServices" in {
       val s2 = HttpService[IO] {
-        case r: Request[IO] if r.uri.path == "/echo2" => r.decode[String](Response[IO](Ok).withBody)
+        case r if r.uri.path == "/echo2" => r.decode[String](Response[IO](Ok).withBody)
       }
 
       val st = EntityLimiter(s, 3) |+| s2
-      (st
-        .apply(Request[IO](POST, uri("/echo2"), body = b))
+
+      st.apply(Request[IO](POST, uri("/echo2"), body = b))
         .map(_ => -1)
-        must returnValue(-1))
-      (st
-        .apply(Request[IO](POST, uri("/echo"), body = b))
+        .value must returnValue(Some(-1))
+
+      st.apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
-        .handleError { case EntityTooLarge(i) => i }
-        must returnValue(3L))
+        .value
+        .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3L))
     }
   }
 
