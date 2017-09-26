@@ -9,9 +9,9 @@ skeleton project from its [giter8 template]:
 
 ```sbt
 // Linux/Mac
-$ sbt -sbt-version 0.13.15 new http4s/http4s.g8
+$ sbt -sbt-version 1.0.2 new http4s/http4s.g8 -b 0.16
 // Windows
-$ sbt -sbt-version0.13.15 new http4s/http4s.g8
+$ sbt -sbt-version1.0.2 new http4s/http4s.g8 -b 0.16
 ```
 
 Follow the prompts.  For every step along the way, a default value is
@@ -28,24 +28,30 @@ to make this a domain you own, in reverse order (i.e., TLD first).
 `package`
 : by default, your organization followed by the project name.
 
+`sbt_version`
+: the version of SBT for your generated project.
+
 `scala_version`
-: defaults to the latest available version of Scala
+: the version of Scala for your generated project. 
 
 `http4s_version`
 : defaults to the latest stable release of http4s.  See
-the [versions] page for other suggestions.
+  the [versions] page for other suggestions.
+
+`logback_version`
+: the version of Logback for logging in your generated project.
 
 At the end of the process, you'll see:
 
 ```
-Template applied in ./http4s-quickstart
+Template applied in ./quickstart
 ```
 
 In addition to sbt build machinery, two Scala source files are
 generated:
 
 ```sh
-$ cd http4s-quickstart
+$ cd quickstart
 $ find . -name '*.scala'
 ./src/main/scala/com/example/http4squickstart/HelloWorld.scala
 ./src/main/scala/com/example/http4squickstart/Server.scala
