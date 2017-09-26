@@ -77,7 +77,7 @@ title: Versions
 	</thead>
 	<tbody>
       <tr>
-        <td>0.17.1</td>
+        <td>0.17.2</td>
         <td class="text-center"><span class="label label-primary">Stable</span></td>
         <td class="text-center"><i class="fa fa-ban"></i></td>
         <td class="text-center"><i class="fa fa-check"></i></td>

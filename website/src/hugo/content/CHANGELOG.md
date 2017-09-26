@@ -1,4 +1,4 @@
-# v0.17.2
+# v0.17.2 (2017-09-25)
 * Remove private implicit strategy from `StreamApp`. This had been known to
   cause diverging implicit resolution that was hard to debug.
 * Shift execution of HttpService to the `ExecutionContext` provided by the
