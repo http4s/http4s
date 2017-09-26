@@ -1,3 +1,12 @@
+# v0.17.2
+* Remove private implicit strategy from `StreamApp`. This had been known to
+  cause diverging implicit resolution that was hard to debug.
+* Shift execution of HttpService to the `ExecutionContext` provided by the
+  `BlazeBuilder` as advertised. Previously, it only shifted the response stream.
+* Split off http4s-parboiled2 module as `"org.http4s" %% "parboiled"`. There are
+  no externally visible changes, but this simplifies and speeds the http4s
+  build.
+
 # v0.16.2 (2017-09-25)
 * Dependency patch upgrades:
   * async-http-client-2.0.37
