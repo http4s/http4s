@@ -37,7 +37,8 @@ class GZipSpec extends Http4sSpec {
             val gzipService: HttpService[IO] = GZip(service)
             val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/"))
               .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
-            val actual: IO[Array[Byte]] = gzipService.orNotFound(req).as[Chunk[Byte]].map(_.toArray)
+            val actual: IO[Array[Byte]] =
+              gzipService.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
             val byteArrayStream = new ByteArrayOutputStream()
             val gzipStream = new GZIPOutputStream(byteArrayStream)

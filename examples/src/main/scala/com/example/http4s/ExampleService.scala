@@ -13,7 +13,6 @@ import org.http4s.headers._
 import org.http4s.server._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
-import org.http4s.syntax.EffectResponseOps
 import org.http4s.twirl._
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -62,14 +61,11 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case GET -> Root / "redirect" =>
         // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
-        TemporaryRedirect(uri("/http4s/"))
+        TemporaryRedirect(Location(uri("/http4s/")))
 
       case GET -> Root / "content-change" =>
         // EntityEncoder typically deals with appropriate headers, but they can be overridden
-        val resp: F[Response[F]] = Ok("<h2>This will have an html content type!</h2>")
-        val fr: EffectResponseOps[F] = http4sEffectResponseSyntax(resp)
-        val w: F[Response[F]] = fr.withContentType(Some(`Content-Type`(`text/html`)))
-        w
+        Ok("<h2>This will have an html content type!</h2>", `Content-Type`(`text/html`))
 
       case req @ GET -> "static" /: path =>
         // captures everything after "/static" into `path`
@@ -88,8 +84,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case req @ POST -> Root / "echo2" =>
         // Even more useful, the body can be transformed in the response
-        Ok(req.body.drop(6))
-          .putHeaders(`Content-Type`(`text/plain`))
+        Ok(req.body.drop(6), `Content-Type`(`text/plain`))
 
       case GET -> Root / "echo2" =>
         Ok(html.submissionForm("echo data"))
@@ -123,19 +118,19 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
       case HEAD -> Root / "helloworld" =>
         helloWorldService
 
-      // HEAD responses with Content-Lenght, but empty content
+      // HEAD responses with Content-Length, but empty content
       case HEAD -> Root / "head" =>
-        Ok("").putHeaders(`Content-Length`.unsafeFromLong(1024))
+        Ok("", `Content-Length`.unsafeFromLong(1024))
 
       // Response with invalid Content-Length header generates
       // an error (underflow causes the connection to be closed)
       case GET -> Root / "underflow" =>
-        Ok("foo").putHeaders(`Content-Length`.unsafeFromLong(4))
+        Ok("foo", `Content-Length`.unsafeFromLong(4))
 
       // Response with invalid Content-Length header generates
       // an error (overflow causes the extra bytes to be ignored)
       case GET -> Root / "overflow" =>
-        Ok("foo").putHeaders(`Content-Length`.unsafeFromLong(2))
+        Ok("foo", `Content-Length`.unsafeFromLong(2))
 
       ///////////////////////////////////////////////////////////////
       //////////////// Form encoding example ////////////////////////

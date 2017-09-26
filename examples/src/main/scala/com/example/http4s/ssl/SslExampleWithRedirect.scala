@@ -8,7 +8,7 @@ import java.nio.file.Paths
 import org.http4s.HttpService
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.dsl.Http4sDsl
-import org.http4s.headers.Host
+import org.http4s.headers.{Host, Location}
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.StreamApp
@@ -35,7 +35,7 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
                 request.uri.authority.flatMap(_.userInfo),
                 RegName(host),
                 port = securePort.some)))
-          MovedPermanently(baseUri.withPath(request.uri.path))
+          MovedPermanently(Location(baseUri.withPath(request.uri.path)))
         case _ =>
           BadRequest()
       }

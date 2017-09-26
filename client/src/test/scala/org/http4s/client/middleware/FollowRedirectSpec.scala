@@ -16,7 +16,8 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
 
   val service = HttpService[IO] {
     case req @ _ -> Root / "ok" =>
-      Ok(req.body).putHeaders(
+      Ok(
+        req.body,
         Header("X-Original-Method", req.method.toString),
         Header(
           "X-Original-Content-Length",
@@ -24,7 +25,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
         Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
       )
     case _ -> Root / "different-authority" =>
-      TemporaryRedirect(uri("http://www.example.com/ok"))
+      TemporaryRedirect(Location(uri("http://www.example.com/ok")))
     case _ -> Root / status =>
       Response[IO](status = Status.fromInt(status.toInt).yolo)
         .putHeaders(Location(uri("/ok")))
@@ -132,7 +133,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       val statefulService = HttpService[IO] {
         case GET -> Root / "loop" =>
           val body = loopCounter.incrementAndGet.toString
-          MovedPermanently(uri("/loop")).withBody(body)
+          MovedPermanently(Location(uri("/loop"))).flatMap(_.withBody(body))
       }
       val client = FollowRedirect(3)(Client.fromHttpService(statefulService))
       client.fetch(Request[IO](uri = uri("http://localhost/loop"))) {
@@ -152,9 +153,10 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
     }
 
     "Not send sensitive headers when redirecting to a different authority" in {
-      val req = Request[IO](PUT, uri("http://localhost/different-authority"))
-        .withBody("Don't expose mah secrets!")
-        .putHeaders(Header("Authorization", "Bearer s3cr3t"))
+      val req = PUT(
+        uri("http://localhost/different-authority"),
+        "Don't expose mah secrets!",
+        Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
           resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
@@ -162,9 +164,10 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
     }
 
     "Send sensitive headers when redirecting to same authority" in {
-      val req = Request[IO](PUT, uri("http://localhost/307"))
-        .withBody("You already know mah secrets!")
-        .putHeaders(Header("Authorization", "Bearer s3cr3t"))
+      val req = PUT(
+        uri("http://localhost/307"),
+        "You already know mah secrets!",
+        Header("Authorization", "Bearer s3cr3t"))
       client.fetch(req) {
         case Ok(resp) =>
           resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]

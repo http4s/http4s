@@ -201,10 +201,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
       IO.async[String] { cb =>
         request
-          .decodeWith(happyDecoder, strict = false) { s =>
+          .flatMap(_.decodeWith(happyDecoder, strict = false) { s =>
             cb(Right(s))
             IO.pure(Response())
-          }
+          })
           .unsafeRunSync
         ()
       } must returnValue("hooray")
@@ -213,9 +213,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
         DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
-      request.decodeWith(grumpyDecoder, strict = false) { _ =>
+      request.flatMap(_.decodeWith(grumpyDecoder, strict = false) { _ =>
         IO.pure(Response())
-      } must returnValue(haveStatus(Status.BadRequest))
+      }) must returnValue(haveStatus(Status.BadRequest))
     }
   }
 
@@ -333,7 +333,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "Use an charset defined by the Content-Type header" in {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
-        .withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
+        .map(_.withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`)))))
         .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`US-ASCII`)) must returnValue(
         str)
     }
@@ -341,7 +341,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "Use the default if the Content-Type header does not define one" in {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
-        .withContentType(Some(`Content-Type`(MediaType.`text/plain`, None)))
+        .map(_.withContentType(Some(`Content-Type`(MediaType.`text/plain`, None))))
         .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`UTF-8`)) must returnValue(str)
     }
   }

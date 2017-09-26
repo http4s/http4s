@@ -36,7 +36,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
 
       case GET -> Root / "date" =>
         val date = HttpDate.now
-        Ok(date.toString()).putHeaders(Date(date))
+        Ok(date.toString, Date(date))
 
       case req @ GET -> Root / "echo-headers" =>
         Ok(req.headers.mkString("\n"))

@@ -12,10 +12,10 @@ class DefaultHeadSpec extends Http4sSpec {
       Ok("hello")
 
     case GET -> Root / "special" =>
-      Ok().putHeaders(Header("X-Handled-By", "GET"))
+      Ok(Header("X-Handled-By", "GET"))
 
     case HEAD -> Root / "special" =>
-      Ok().putHeaders(Header("X-Handled-By", "HEAD"))
+      Ok(Header("X-Handled-By", "HEAD"))
   })
 
   "DefaultHead" should {

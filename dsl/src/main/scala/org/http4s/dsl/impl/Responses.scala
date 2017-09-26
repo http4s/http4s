@@ -1,7 +1,8 @@
-package org.http4s.dsl.impl
+package org.http4s
+package dsl
+package impl
 
 import cats.Applicative
-import org.http4s.{Headers, Response, Status}
 import org.http4s.Status._
 import org.http4s.headers.`Content-Length`
 
@@ -161,8 +162,8 @@ object Responses {
   final class ResetContentOps[F[_]](val status: ResetContent.type)
       extends AnyVal
       with EmptyResponseGenerator[F] {
-    override def apply()(implicit F: Applicative[F]): F[Response[F]] =
-      F.pure(Response(ResetContent, headers = Headers(`Content-Length`.zero)))
+    override def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
+      F.pure(Response(ResetContent, headers = Headers(`Content-Length`.zero +: headers: _*)))
   }
   // TODO helpers for Content-Range and multipart/byteranges
   final class PartialContentOps[F[_]](val status: PartialContent.type)

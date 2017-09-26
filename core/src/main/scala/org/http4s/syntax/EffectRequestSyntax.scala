@@ -5,6 +5,7 @@ import cats._
 import cats.implicits._
 
 trait EffectRequestSyntax extends Any {
+  @deprecated("Use map or flatMap directly on the request", "0.18.0-M2")
   implicit def http4sEffectRequestSyntax[F[_]](req: F[Request[F]]): EffectRequestOps[F] =
     new EffectRequestOps[F](req)
 }
