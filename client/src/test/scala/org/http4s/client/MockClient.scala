@@ -1,11 +1,13 @@
 package org.http4s
 package client
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import fs2._
 import java.io._
 import java.util.concurrent.atomic._
+import org.http4s.syntax.kleisliResponse._
 
 object MockClient {
   def apply[F[_]: Sync](service: HttpService[F]): Client[F] = apply(service, ().pure[F])
@@ -34,13 +36,13 @@ object MockClient {
         .through(killable("client was shut down", isShutdown))
     }
 
-    def disposableService(service: HttpService[F]): Service[F, Request[F], DisposableResponse[F]] =
-      Service.lift { req: Request[F] =>
+    def disposableService(service: HttpService[F]): Kleisli[F, Request[F], DisposableResponse[F]] =
+      Kleisli { req =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.withBodyStream(interruptable(req.body, disposed))
-        service(req0).map { resp =>
+        service.orNotFound(req0).map { resp =>
           DisposableResponse(
-            resp.orNotFound.copy(body = interruptable(resp.orNotFound.body, disposed)),
+            resp.copy(body = interruptable(resp.body, disposed)),
             F.delay(disposed.set(true)).flatMap(_ => dispose)
           )
         }

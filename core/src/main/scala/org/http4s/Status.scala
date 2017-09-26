@@ -53,6 +53,7 @@ object Status {
     final def unapply[F[_]](resp: Response[F]): Option[Response[F]] =
       resp match {
         case Response(status, _, _, _, _) if status.responseClass == this => Some(resp)
+        case _ => None
       }
   }
 

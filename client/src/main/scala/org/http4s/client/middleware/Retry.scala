@@ -7,9 +7,12 @@ import cats.implicits._
 import fs2._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+
+import cats.data.Kleisli
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
@@ -66,7 +69,7 @@ object Retry {
       scheduler.sleep_[F](sleepDuration).run >> prepareLoop(req.withEmptyBody, attempts + 1)
     }
 
-    client.copy(open = Service.lift(prepareLoop(_, 1)))
+    client.copy(open = Kleisli(prepareLoop(_, 1)))
   }
 }
 

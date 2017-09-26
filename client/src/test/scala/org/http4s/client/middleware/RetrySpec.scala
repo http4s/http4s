@@ -2,6 +2,7 @@ package org.http4s
 package client
 package middleware
 
+import cats.data.Kleisli
 import cats.effect.IO
 import fs2._
 import org.http4s.dsl.io._
@@ -67,7 +68,7 @@ class RetrySpec extends Http4sSpec with Tables {
     }
 
     "retry exceptions" in {
-      val failClient = Client[IO](Service.const(IO.raiseError(new Exception("boom"))), IO.unit)
+      val failClient = Client[IO](Kleisli.lift(IO.raiseError(new Exception("boom"))), IO.unit)
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
   }

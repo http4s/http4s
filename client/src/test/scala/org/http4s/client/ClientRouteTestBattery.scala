@@ -59,7 +59,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO]) extends 
     "Repeat a simple request" in {
       val path = GetRoutes.SimplePath
 
-      def fetchBody = client.toService(_.as[String]).local { uri: Uri =>
+      def fetchBody = client.toKleisli(_.as[String]).local { uri: Uri =>
         Request(uri = uri)
       }
 
