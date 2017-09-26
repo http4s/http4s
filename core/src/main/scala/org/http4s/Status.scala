@@ -43,17 +43,16 @@ sealed abstract case class Status private (code: Int)(
 }
 
 object Status {
-  def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true) =
+  def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {}
 
   sealed trait ResponseClass {
     def isSuccess: Boolean
 
     /** Match a [[Response]] based on [[Status]] category */
-    final def unapply[F[_]](resp: MaybeResponse[F]): Option[Response[F]] =
+    final def unapply[F[_]](resp: Response[F]): Option[Response[F]] =
       resp match {
-        case resp @ Response(status, _, _, _, _) if status.responseClass == this => Some(resp)
-        case _ => None
+        case Response(status, _, _, _, _) if status.responseClass == this => Some(resp)
       }
   }
 
