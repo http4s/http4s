@@ -275,5 +275,6 @@ mimaBinaryIssueFilters ++= Seq(
   ProblemFilters.exclude[MissingClassProblem]("org.http4s.internal.parboiled2.support.OpTreeContext$Named$"),
   ProblemFilters.exclude[MissingClassProblem]("org.http4s.internal.parboiled2.support.OpTreeContext$FirstOf"),
   ProblemFilters.exclude[MissingClassProblem]("org.http4s.internal.parboiled2.util.Base64$"),
-  ProblemFilters.exclude[MissingClassProblem]("org.http4s.internal.parboiled2.util.Base64")
+  ProblemFilters.exclude[MissingClassProblem]("org.http4s.internal.parboiled2.util.Base64"),
+  ProblemFilters.exclude[MissingClassProblem]("org.http4s.internal.parboiled2.StringBuilding")
 )

@@ -19,20 +19,6 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-// This defines macros that we use in core, so it needs to be split out
-lazy val parboiled2 = libraryProject("parboiled2")
-  .settings(
-    description := "Internal fork of parboiled2 to remove shapeless dependency",    
-    libraryDependencies ++= Seq(
-      scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided"
-    ),
-    // https://issues.scala-lang.org/browse/SI-9490
-    (scalacOptions in Compile) --= Seq("-Ywarn-inaccessible", "-Xlint", "-Xlint:inaccessible"),
-    macroParadiseSetting,
-    // Remove starting in 0.18
-    mimaPreviousArtifacts := Set.empty
-  )
-
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -45,13 +31,13 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       macroCompat,
+      parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
   )
-  .dependsOn(parboiled2)
 
 lazy val testing = libraryProject("testing")
   .settings(
