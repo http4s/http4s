@@ -4,18 +4,18 @@ package blaze
 
 import cats.effect.{Effect, IO}
 import cats.implicits._
-import fs2.Stream._
 import fs2._
+import fs2.Stream._
 import java.util.Locale
+import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
 import org.http4s.Status._
 import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.Http2Exception._
 import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
+import org.http4s.blaze.http.http20.Http2Exception._
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blazecore.util.{End, Http2Writer}
 import org.http4s.syntax.string._
-import org.http4s.{Headers => HHeaders, Method => HMethod}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration

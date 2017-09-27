@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.implicits.{catsSyntaxEither => _, _}
+import cats.implicits.{catsSyntaxEither => _}
 import java.nio.charset.StandardCharsets
 import macrocompat.bundle
 import org.http4s.Uri._

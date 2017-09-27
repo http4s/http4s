@@ -1,9 +1,10 @@
 package org.http4s.build
 
-import sbt._, Keys._
-
-import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
-import scoverage.ScoverageSbtPlugin, ScoverageSbtPlugin.autoImport._
+import com.typesafe.tools.mima.plugin.MimaPlugin
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import sbt._
+import scoverage.ScoverageSbtPlugin
+import scoverage.ScoverageSbtPlugin.autoImport._
 import verizon.build.DisablePublishingPlugin
 
 object PrivateProjectPlugin extends AutoPlugin {

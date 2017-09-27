@@ -1,7 +1,7 @@
 package org.http4s
 
-import cats.data.{Kleisli, OptionT}
 import cats.{Applicative, Functor}
+import cats.data.{Kleisli, OptionT}
 
 object AuthedService {
 

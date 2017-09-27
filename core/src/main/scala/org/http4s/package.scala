@@ -1,7 +1,7 @@
 package org
 
-import cats.arrow.FunctionK
 import cats.{Functor, Monad, Semigroup}
+import cats.arrow.FunctionK
 import cats.data._
 import fs2._
 

@@ -4,7 +4,7 @@ package dsl
 import cats._
 import cats.effect.IO
 import org.http4s.dsl.io._
-import org.http4s.headers.{Accept, `Content-Length`, `Content-Type`}
+import org.http4s.headers.{`Content-Length`, `Content-Type`, Accept}
 
 class ResponseGeneratorSpec extends Http4sSpec {
 

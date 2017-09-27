@@ -2,7 +2,7 @@ package org.http4s
 package parser
 
 import cats.data.NonEmptyList
-import org.http4s.headers.{Range, `Accept-Ranges`, `Content-Range`}
+import org.http4s.headers.{`Accept-Ranges`, `Content-Range`, Range}
 import org.http4s.headers.Range.SubRange
 import org.http4s.internal.parboiled2._
 

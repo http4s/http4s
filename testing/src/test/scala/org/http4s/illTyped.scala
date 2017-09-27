@@ -19,7 +19,7 @@ package org.http4s
 
 import java.util.regex.Pattern
 import scala.language.experimental.macros
-import scala.reflect.macros.{ParseException, TypecheckException, whitebox}
+import scala.reflect.macros.{whitebox, ParseException, TypecheckException}
 
 /**
   * A utility which ensures that a code fragment does not typecheck.

@@ -7,7 +7,7 @@ import fs2._
 import fs2.Stream._
 import fs2.interop.scodec.ByteVectorChunk
 import fs2.io._
-import fs2.io.file.{FileHandle, pulls}
+import fs2.io.file.{pulls, FileHandle}
 import java.io._
 import java.net.URL
 import java.nio.file.{Path, StandardOpenOption}

@@ -1,7 +1,4 @@
-import Http4sPlugin._
-import com.typesafe.sbt.SbtGit.GitKeys._
-import com.typesafe.sbt.pgp.PgpKeys._
-
+import org.http4s.build.Http4sPlugin._
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
