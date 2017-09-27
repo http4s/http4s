@@ -2,7 +2,6 @@ package org.http4s
 package server
 package blaze
 
-import cats.data.OptionT
 import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
@@ -127,12 +126,12 @@ private[blaze] class Http1ServerStage[F[_]](
           def run(): Unit =
             F.runAsync {
                 try serviceFn(req)
-                  .handleErrorWith(serviceErrorHandler(req).andThen(OptionT.liftF(_)))
-                  .value
-                catch serviceErrorHandler(req).andThen(_.map(Option.apply))
+                  .getOrElse(Response.notFound)
+                  .handleErrorWith(serviceErrorHandler(req))
+                catch serviceErrorHandler(req)
               } {
                 case Right(resp) =>
-                  IO(renderResponse(req, resp.getOrElse(Response.notFound), cleanup))
+                  IO(renderResponse(req, resp, cleanup))
                 case Left(t) =>
                   IO(internalServerError(s"Error running route: $req", t, req, cleanup))
               }

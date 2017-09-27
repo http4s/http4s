@@ -2,6 +2,7 @@ package org.http4s
 package client
 package blaze
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.http4s.blaze.pipeline.Command
@@ -22,7 +23,7 @@ object BlazeClient {
       config: BlazeClientConfig,
       onShutdown: F[Unit])(implicit F: Sync[F]): Client[F] =
     Client(
-      Service.lift { req: Request[F] =>
+      Kleisli { req =>
         val key = RequestKey.fromRequest(req)
 
         // If we can't invalidate a connection, it shouldn't tank the subsequent operation,

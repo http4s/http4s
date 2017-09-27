@@ -88,7 +88,6 @@ class Http4sServlet[F[_]](
     val response =
       Response[F](Status.BadRequest)
         .withBody(parseFailure.sanitized)
-        .widen[MaybeResponse[F]]
     renderResponse(response, servletResponse, bodyWriter)
   }
 
@@ -100,12 +99,12 @@ class Http4sServlet[F[_]](
     // TODO: This can probably be handled nicer with Effect
     val response = F.shift(executionContext) >> F
       .delay(
-        try serviceFn(request)
+        try serviceFn(request).getOrElse(Response.notFound)
         // Handle message failures coming out of the service as failed tasks
-          .recoverWith(serviceErrorHandler(request).andThen(_.widen[MaybeResponse[F]]))
+          .recoverWith(serviceErrorHandler(request))
         catch
         // Handle message failures _thrown_ by the service, just in case
-        serviceErrorHandler(request).andThen(_.widen[MaybeResponse[F]])
+        serviceErrorHandler(request)
       )
       .flatten
 
@@ -123,7 +122,6 @@ class Http4sServlet[F[_]](
           val response =
             Response[F](Status.InternalServerError)
               .withBody("Service timed out.")
-              .widen[MaybeResponse[F]]
           renderResponse(response, servletResponse, bodyWriter)
         } else {
           logger.warn(
@@ -138,17 +136,16 @@ class Http4sServlet[F[_]](
   }
 
   private def renderResponse(
-      response: F[MaybeResponse[F]],
+      response: F[Response[F]],
       servletResponse: HttpServletResponse,
       bodyWriter: BodyWriter[F]): F[Unit] =
-    response.flatMap { maybeResponse =>
-      val r = maybeResponse.orNotFound
+    response.flatMap { resp =>
       // Note: the servlet API gives us no undeprecated method to both set
       // a body and a status reason.  We sacrifice the status reason.
-      servletResponse.setStatus(r.status.code)
-      for (header <- r.headers if header.isNot(`Transfer-Encoding`))
+      servletResponse.setStatus(resp.status.code)
+      for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
         servletResponse.addHeader(header.name.toString, header.value)
-      bodyWriter(r)
+      bodyWriter(resp)
     }
 
   private def errorHandler(
@@ -159,7 +156,7 @@ class Http4sServlet[F[_]](
 
     case t: Throwable =>
       logger.error(t)("Error processing request")
-      val response = F.pure(Response[F](Status.InternalServerError).asMaybeResponse)
+      val response = F.pure(Response[F](Status.InternalServerError))
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
       async

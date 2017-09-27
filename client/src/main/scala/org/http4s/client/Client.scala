@@ -282,10 +282,9 @@ object Client {
       Kleisli { req: Request[F] =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.withBodyStream(interruptible(req.body, disposed))
-        service(req0).value.map { maybeResponse =>
-          val response = maybeResponse.getOrElse(Response.notFound)
+        service(req0).getOrElse(Response.notFound).map { resp =>
           DisposableResponse(
-            response.copy(body = interruptible(response.body, disposed)),
+            resp.copy(body = interruptible(resp.body, disposed)),
             F.delay(disposed.set(true))
           )
         }

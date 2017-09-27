@@ -2,21 +2,20 @@ package org.http4s
 package server
 package blaze
 
-import cats.data.OptionT
 import cats.effect.{Effect, IO}
 import cats.implicits._
-import fs2._
 import fs2.Stream._
+import fs2._
 import java.util.Locale
-import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
 import org.http4s.Status._
 import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
 import org.http4s.blaze.http.http20.Http2Exception._
+import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blazecore.util.{End, Http2Writer}
 import org.http4s.syntax.string._
+import org.http4s.{Headers => HHeaders, Method => HMethod}
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -188,11 +187,11 @@ private class Http2NodeStage[F[_]](
 
       async.unsafeRunAsync {
         try service(req)
-          .recoverWith(serviceErrorHandler(req).andThen(OptionT.liftF(_)))
+          .getOrElse(Response.notFound)
+          .recoverWith(serviceErrorHandler(req))
           .handleError(_ => Response(InternalServerError, req.httpVersion))
-          .value
-          .map(resp => renderResponse(resp.getOrElse(Response.notFound)))
-        catch serviceErrorHandler(req).andThen(_.map(Option.apply))
+          .map(renderResponse)
+        catch serviceErrorHandler(req)
       } {
         case Right(_) =>
           IO.unit

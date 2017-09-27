@@ -2,7 +2,6 @@ package org.http4s
 package server
 
 import cats._
-import cats.implicits._
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -34,8 +33,7 @@ package object metrics {
   def metricsService[F[_]: Monad](
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper): HttpService[F] =
-    HttpService.lift { req =>
-      if (req.method == Method.GET) metricsResponse[F](registry, mapper).widen[MaybeResponse[F]]
-      else Pass.pure
+    HttpService {
+      case req if req.method == Method.GET => metricsResponse(registry, mapper)
     }
 }
