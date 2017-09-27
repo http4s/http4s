@@ -337,13 +337,20 @@ sealed trait MaybeResponse {
 }
 
 object MaybeResponse {
-  implicit val instance: Monoid[MaybeResponse] =
+  /** Intentionally not implicit. Do not use unless you've read and understood the
+    * deprecation warning on [[instance]].
+    */
+  val monoidInstance: Monoid[MaybeResponse] =
     new Monoid[MaybeResponse] {
       def zero =
         Pass
       def append(a: MaybeResponse, b: => MaybeResponse) =
         a orElse b
     }
+
+  @deprecated("""We derive `Monoid[Kleisli[Task, Request, MaybeResponse]]` from `Monoid[Task[MaybeResponse]]`, which needs to have the "orElse"-like semantics of `taskInstance`.  The presence of this monoid makes it easy to locate a monoid that evaluates both effects, which is not what we want when chaining `HttpService`s.  Use `taskInstance` instead.""", "0.16.3")
+  implicit val instance: Monoid[MaybeResponse] =
+    monoidInstance
 
   implicit val taskInstance: Monoid[Task[MaybeResponse]] =
     new Monoid[Task[MaybeResponse]] {
