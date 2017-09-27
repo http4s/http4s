@@ -9,12 +9,12 @@ import scodec.bits.ByteVector
 
 private[http4s] object MultipartDecoder {
 
-  def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
+  def decoder[F[_]: Sync, M[_[_]]](implicit M: Message[F, M]): EntityDecoder[F, Multipart[F], M] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
+      M.contentType(msg).flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {
-            msg.body
+            M.body(msg)
               .through(MultipartParser.parse(Boundary(boundary)))
               .through(gatherParts)
               .runLog
