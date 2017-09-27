@@ -498,11 +498,11 @@ def initCommands(additionalImports: String*) =
     "org.http4s._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
+// Run by developers before PR
+addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")
+
 // Run by the primary CI job
 addCommandAlias("ci", ";coverage ;clean ;test ;coverageReport ;coverageOff ;makeSite ;mimaReportBinaryIssues")
 
 // Run by secondary builds
 addCommandAlias("ciLite", ";coverageOff ;test ;mimaReportBinaryIssues")
-
-// Run by developers before PR
-addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")
