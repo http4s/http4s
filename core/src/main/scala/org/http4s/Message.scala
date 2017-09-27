@@ -348,7 +348,7 @@ object MaybeResponse {
         a orElse b
     }
 
-  @deprecated("""We derive `Monoid[Kleisli[Task, Request, MaybeResponse]]` from `Monoid[Task[MaybeResponse]]`, which needs to have the "orElse"-like semantics of `taskInstance`.  The presence of this monoid makes it easy to locate a monoid that evaluates both effects, which is not what we want when chaining `HttpService`s.  Use `taskInstance` instead.""", "0.16.3")
+  @deprecated("""We derive `Monoid[Kleisli[Task, Request, MaybeResponse]]` from `Monoid[Task[MaybeResponse]]`, which needs to have the "orElse"-like semantics of `taskInstance`.  The presence of this monoid makes it easy to locate a monoid that evaluates both effects, which means that when chaining `HttpService`s, both services run even if the first service does not return `Pass`.  To ensure that a correct monoid is resolved for this use case, use `taskInstance` instead.  If you really need a `Monoid[MaybeResponse]` and understand how it can hurt you, use `monoidInstance`.""", "0.16.3")
   implicit val instance: Monoid[MaybeResponse] =
     monoidInstance
 
