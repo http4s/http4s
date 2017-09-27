@@ -2,8 +2,10 @@ package org.http4s.build
 
 import sbt._, Keys._
 
-import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
 import com.typesafe.sbt.SbtPgp.autoImport._
+import com.typesafe.sbt.git.JGit
+import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
+import org.eclipse.jgit.lib.Repository
 import org.http4s.build.ScalazPlugin.autoImport._
 import org.http4s.build.ScalazPlugin.scalazVersionRewriters
 import sbtrelease._
@@ -16,6 +18,9 @@ import verizon.build.common._
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
     val http4sMimaVersion = settingKey[Option[String]]("Version to target for MiMa compatibility")
+    val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
+    val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
+    val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
   }
   import autoImport._
 
@@ -72,7 +77,36 @@ object Http4sPlugin extends AutoPlugin {
     usePgpKeyHex("42FAD8A85B13261D"),
     pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
     pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",
-    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray)
+    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray),
+
+    exportMetadataForSite := {
+      val dest = target.value / "hugo-data" / "build.toml"
+      val (major, minor) = apiVersion.value
+
+      val releases = latestPerMinorVersion(baseDirectory.value)
+        .map { case ((major, minor), v) => s""""$major.$minor" = "${v.string}""""}
+        .mkString("\n")
+
+      // Would be more elegant if `[versions.http4s]` was nested, but then
+      // the index lookups in `shortcodes/version.html` get complicated.
+      val buildData: String =
+        s"""
+           |[versions]
+           |"http4s.api" = "$major.$minor"
+           |"http4s.current" = "${version.value}"
+           |"http4s.doc" = "${docExampleVersion(version.value)}"
+           |scalaz = "${scalazVersion.value}"
+           |circe = "${circeJawn.revision}"
+           |cryptobits = "${cryptobits.revision}"
+           |"argonaut-shapeless_6.2" = "1.2.0-M5"
+           |
+           |[releases]
+           |${releases}
+         """.stripMargin
+
+      IO.write(dest, buildData)
+      dest
+    }
   )
 
   def extractApiVersion(version: String) = {
@@ -120,6 +154,27 @@ object Http4sPlugin extends AutoPlugin {
         case _ => Seq.empty
       }
     ).flatten
+
+  def latestPerMinorVersion(file: File): Map[(Int, Int), Version] =
+    JGit(file).tags.collect {
+      case ref if ref.getName.startsWith("refs/tags/v") =>
+        Version(ref.getName.substring("refs/tags/v".size))
+    }.foldLeft(Map.empty[(Int, Int), Version]) {
+      case (m, Some(v)) =>
+        def toMinor(v: Version) = (v.major, v.subversions.headOption.getOrElse(0))
+        def patch(v: Version) = v.subversions.drop(1).headOption.getOrElse(0)
+        def milestone(v: Version) = v.qualifier match {
+          case Some(q) if q.startsWith("-M") => q.substring(2).toInt
+          case Some(q) if q.startsWith("-RC") => q.substring(3).toInt + 1000000
+          case None => Int.MaxValue
+        }
+        val versionOrdering: Ordering[Version] =
+          Ordering[(Int, Int)].on(v => (patch(v), milestone(v)))
+        val key = toMinor(v)
+        val max = m.get(key).fold(v) { v0 => versionOrdering.max(v, v0) }
+        m.updated(key, max)
+      case (m, None) => m
+    }
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
