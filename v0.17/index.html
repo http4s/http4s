@@ -74,9 +74,9 @@
 skeleton project from its <a href="https://github.com/http4s/http4s.g8">giter8 template</a>:</p>
 
 <pre><code class="language-sbt">// Linux/Mac
-$ sbt -sbt-version 0.13.15 new http4s/http4s.g8 -b 0.17
+$ sbt -sbt-version 1.0.2 new http4s/http4s.g8 -b 0.17
 // Windows
-$ sbt -sbt-version0.13.15 new http4s/http4s.g8 -b 0.17
+$ sbt -sbt-version1.0.2 new http4s/http4s.g8 -b 0.17
 </code></pre>
 
 <p>Follow the prompts.  For every step along the way, a default value is
@@ -91,22 +91,26 @@ to make this a domain you own, in reverse order (i.e., TLD first).
 <code>io.github.username</code> is also a fine choice.</dd>
 <dt><code>package</code></dt>
 <dd>by default, your organization followed by the project name.</dd>
+<dt><code>sbt_version</code></dt>
+<dd>the version of SBT for your generated project.</dd>
 <dt><code>scala_version</code></dt>
-<dd>defaults to the latest available version of Scala</dd>
+<dd>the version of Scala for your generated project.</dd>
 <dt><code>http4s_version</code></dt>
 <dd>defaults to the latest stable release of http4s.  See
 the <a href="/versions/">versions</a> page for other suggestions.</dd>
+<dt><code>logback_version</code></dt>
+<dd>the version of Logback for logging in your generated project.</dd>
 </dl>
 
 <p>At the end of the process, you&rsquo;ll see:</p>
 
-<pre><code>Template applied in ./http4s-quickstart
+<pre><code>Template applied in ./quickstart
 </code></pre>
 
 <p>In addition to sbt build machinery, two Scala source files are
 generated:</p>
 
-<pre><code class="language-sh">$ cd http4s-quickstart
+<pre><code class="language-sh">$ cd quickstart
 $ find . -name '*.scala'
 ./src/main/scala/com/example/http4squickstart/HelloWorld.scala
 ./src/main/scala/com/example/http4squickstart/Server.scala
