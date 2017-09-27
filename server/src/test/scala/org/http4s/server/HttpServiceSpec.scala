@@ -3,6 +3,7 @@ package server
 
 import cats.effect._
 import cats.implicits._
+import org.http4s.instances.kleisli._
 
 class HttpServiceSpec extends Http4sSpec {
 
@@ -25,7 +26,7 @@ class HttpServiceSpec extends Http4sSpec {
       Response[IO](Status.Ok).withBody("srvc2conflict")
   }
 
-  val aggregate1 = srvc1 |+| srvc2
+  val aggregate1 = srvc1 <+> srvc2
 
   "HttpService" should {
     "Return a valid Response from the first service of an aggregate" in {

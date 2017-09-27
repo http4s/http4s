@@ -4,7 +4,7 @@ import org.http4s.Query._
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.parser.QueryParser
 import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
-import scala.collection.{mutable, IndexedSeqOptimized}
+import scala.collection.{IndexedSeqOptimized, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable.ListBuffer

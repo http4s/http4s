@@ -7,6 +7,7 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.nio.charset.StandardCharsets
+import org.http4s.instances.kleisli._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.Method._
 import org.http4s.Status._
@@ -41,7 +42,7 @@ class EntityLimiterSpec extends Http4sSpec {
         case r if r.uri.path == "/echo2" => r.decode[String](Response[IO](Ok).withBody)
       }
 
-      val st = EntityLimiter(s, 3) |+| s2
+      val st = EntityLimiter(s, 3) <+> s2
 
       st.apply(Request[IO](POST, uri("/echo2"), body = b))
         .map(_ => -1)

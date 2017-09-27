@@ -9,6 +9,7 @@ import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 import org.http4s.dsl.io._
 import org.http4s.headers._
+import org.http4s.instances.kleisli._
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
@@ -16,7 +17,7 @@ class GZipSpec extends Http4sSpec {
 
   "GZip" should {
     "fall through if the route doesn't match" in {
-      val service = GZip(HttpService.empty[IO]) |+| HttpService[IO] {
+      val service = GZip(HttpService.empty[IO]) <+> HttpService[IO] {
         case GET -> Root => Ok("pong")
       }
       val req =

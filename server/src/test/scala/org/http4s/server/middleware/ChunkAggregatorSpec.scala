@@ -31,9 +31,10 @@ class ChunkAggregatorSpec extends Http4sSpec {
           .map(_.removeHeader(`Content-Length`))
       }
 
-      ChunkAggregator(service).run(Request()).value.unsafeRunSync must beSome.like { case response =>
-        response.status must_== Ok
-        responseCheck(response)
+      ChunkAggregator(service).run(Request()).value.unsafeRunSync must beSome.like {
+        case response =>
+          response.status must_== Ok
+          responseCheck(response)
       }
     }
 

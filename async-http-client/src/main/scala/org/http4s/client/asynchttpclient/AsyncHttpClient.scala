@@ -12,7 +12,11 @@ import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import java.nio.ByteBuffer
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.asynchttpclient.request.body.generator.{BodyGenerator, ByteArrayBodyGenerator, ReactiveStreamsBodyGenerator}
+import org.asynchttpclient.request.body.generator.{
+  BodyGenerator,
+  ByteArrayBodyGenerator,
+  ReactiveStreamsBodyGenerator
+}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.util.threads._
 import org.reactivestreams.Publisher

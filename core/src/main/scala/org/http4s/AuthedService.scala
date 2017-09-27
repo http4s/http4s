@@ -2,6 +2,7 @@ package org.http4s
 
 import cats.{Applicative, Functor}
 import cats.data.{Kleisli, OptionT}
+import org.http4s.instances.functionK.FToOptionT
 
 object AuthedService {
 

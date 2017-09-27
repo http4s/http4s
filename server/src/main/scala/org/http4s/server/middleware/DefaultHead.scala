@@ -4,6 +4,7 @@ package middleware
 
 import cats._
 import cats.implicits._
+import org.http4s.instances.kleisli._
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -17,7 +18,7 @@ object DefaultHead {
     HttpService.liftF { req =>
       req.method match {
         case Method.HEAD =>
-          (service |+| headAsTruncatedGet(service))(req)
+          (service <+> headAsTruncatedGet(service))(req)
         case _ =>
           service(req)
       }

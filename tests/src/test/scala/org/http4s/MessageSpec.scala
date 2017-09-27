@@ -3,7 +3,7 @@ package org.http4s
 import cats.data.NonEmptyList
 import cats.effect.IO
 import java.net.{InetAddress, InetSocketAddress}
-import org.http4s.headers.{`Content-Type`, `X-Forwarded-For`, Authorization}
+import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 
 class MessageSpec extends Http4sSpec {
 

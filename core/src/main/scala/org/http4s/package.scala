@@ -1,7 +1,5 @@
 package org
 
-import cats.{Functor, Monad, Semigroup}
-import cats.arrow.FunctionK
 import cats.data._
 import fs2._
 
@@ -78,12 +76,4 @@ package object http4s { // scalastyle:ignore
     }
   }
 
-  implicit def http4sHttpServiceSemigroup[F[_]: Monad]: Semigroup[HttpService[F]] =
-    new Semigroup[HttpService[F]] {
-      override def combine(x: HttpService[F], y: HttpService[F]) =
-        Kleisli(request => x(request).orElse(y(request)))
-    }
-
-  def FToOptionT[F[_]: Functor]: FunctionK[F, OptionT[F, ?]] =
-    Lambda[FunctionK[F, OptionT[F, ?]]](OptionT.liftF(_))
 }

@@ -5,7 +5,7 @@ import cats.arrow.Choice
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import org.http4s.headers.{Connection, `Content-Length`}
-import org.http4s.syntax.string._
+import org.http4s.implicits._
 import org.log4s.getLogger
 import scala.util.control.NonFatal
 

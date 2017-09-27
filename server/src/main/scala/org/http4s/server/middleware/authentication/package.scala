@@ -5,6 +5,7 @@ package middleware
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import org.http4s.headers._
+import org.http4s.instances.functionK.FToOptionT
 
 package object authentication {
   def challenged[F[_], A](

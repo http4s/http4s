@@ -2,16 +2,15 @@ package org.http4s
 package client
 
 import cats._
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import fs2._
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
-
-import cats.data.Kleisli
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-
+import org.http4s.instances.functionK.FToOptionT
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
 

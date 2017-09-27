@@ -1,7 +1,8 @@
 package org.http4s
 
-import cats.{Applicative, Functor}
-import cats.data.{Kleisli, OptionT}
+import cats._
+import cats.data._
+import org.http4s.instances.functionK.FToOptionT
 
 object HttpService extends Serializable {
 
