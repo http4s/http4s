@@ -1,9 +1,0 @@
-#!/bin/bash
-
-for SCALAZ_VERSION in $(sed -ne 's/.*SCALAZ_VERSION=\(.*\)/\1/p' .travis.yml | sort | uniq); do
-    for SCALA_VERSION in 2.12.3 2.11.11 2.10.6; do
-	      env SCALAZ_VERSION=$SCALAZ_VERSION SCALA_VERSION=$SCALA_VERSION sbt +clean +publishSigned
-    done
-done
-sbt sonatypeRelease
-
