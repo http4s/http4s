@@ -9,9 +9,9 @@ skeleton project from its [giter8 template]:
 
 ```sbt
 // Linux/Mac
-$ sbt -sbt-version 0.13.15 new http4s/http4s.g8 -b 0.17
+$ sbt -sbt-version 1.0.2 new http4s/http4s.g8 -b 0.18
 // Windows
-$ sbt -sbt-version0.13.15 new http4s/http4s.g8 -b 0.17
+$ sbt -sbt-version1.0.2 new http4s/http4s.g8 -b 0.18
 ```
 
 Follow the prompts.  For every step along the way, a default value is
@@ -28,33 +28,41 @@ to make this a domain you own, in reverse order (i.e., TLD first).
 `package`
 : by default, your organization followed by the project name.
 
+`sbt_version`
+: the version of SBT for your generated project.
+
 `scala_version`
-: defaults to the latest available version of Scala
+: the version of Scala for your generated project. 
 
 `http4s_version`
 : defaults to the latest stable release of http4s.  See
-the [versions] page for other suggestions.
+  the [versions] page for other suggestions.
+
+`logback_version`
+: the version of Logback for logging in your generated project.
 
 At the end of the process, you'll see:
 
 ```
-Template applied in ./http4s-quickstart
+Template applied in ./quickstart
 ```
 
-In addition to sbt build machinery, two Scala source files are
+In addition to sbt build machinery, a Scala source files are
 generated:
 
 ```sh
-$ cd http4s-quickstart
+$ cd quickstart
 $ find . -name '*.scala'
-./src/main/scala/com/example/http4squickstart/HelloWorld.scala
-./src/main/scala/com/example/http4squickstart/Server.scala
+./src/main/scala/com/example/http4squickstart/HelloWorldServer.scala
 ```
 
-`HelloWorld.scala` defines a service that responds to HTTP requests on
-`GET /hello/$USERNAME` with a JSON greeting.  `Server.scala` defines
-an object that extends `App` to start a server.  sbt will find and run
-any app that it finds in your project.  Let's try it:
+`HelloWorldService.scala` defines a runnable class by extending `StreamApp[IO]`.
+A `StreamApp[IO]` must define a method `stream(args: List[String],
+requestShutdown: IO[Unit])` which acts the entry point to your application. That
+method starts blaze, http4s' native server backend.
+
+The `route` method defines a simple `HttpService` that responds to `GET
+/hello/$USERNAME` with a JSON greeting.  Let's try it:
 
 ```sh
 $ sbt run
@@ -68,9 +76,8 @@ back, you should see a line similar to this:
 264 [run-main-0] INFO org.http4s.blaze.channel.nio1.NIO1SocketServerGroup - Service bound to address /127.0.0.1:8080
 ```
 
-This indicates that /blaze/, htttp4s' native server backend, is
-running our service on port 8080.  Let's try out the hello world
-service with curl:
+This indicates that blaze is running our service on port 8080. Let's try out the
+hello world service with curl:
 
 ```sh
 $ curl -i http://localhost:8080/hello/world
