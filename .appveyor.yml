@@ -24,3 +24,8 @@ build_script:
   - sbt "; ++%SCALA_VERSION% %COMPILE%; ++%SCALA_VERSION% %TEST_COMPILE%"
 test_script:
   - sbt "; ++%SCALA_VERSION% %TEST_SUITE%"
+
+cache:
+  - C:\sbt -> appveyor.yml
+  - C:\Users\appveyor\.ivy2 -> appveyor.yml
+  - C:\Users\appveyor\.coursier -> appveyor.yml 
