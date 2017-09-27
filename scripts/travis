@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Publishing to gh-pages and sonatype only done from select branches and
+# never from pull requests.
+function checkPublishable() {
+    if [[ $TRAVIS_PULL_REQUEST != "false" ]]; then
+        echo "Pull requests are not published"
+        return 1
+    elif [[ $TRAVIS_REPO_SLUG != "http4s/http4s" ]]; then
+        echo "Builds in repositories other than http4s/http4s are not published."
+        return 1
+    elif [[ $TRAVIS_BRANCH != "master" && $TRAVIS_BRANCH != "release-"* && $TRAVIS_TAG != "" ]]; then
+        echo "This is not a publishable branch"
+        return 1
+    else
+        echo "This build is publishable"
+        return 0
+    fi
+}
+
+# Build git commit message to be used when Travis updates the
+# gh-pages branch to publish a new version of the website.
+function gh_pages_commit_message() {
+    local SHORT_COMMIT=$(printf "%.8s" "$TRAVIS_COMMIT")
+    cat <<EOM
+updated site
+
+   Job: $TRAVIS_JOB_NUMBER
+Commit: $SHORT_COMMIT
+Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
+EOM
+}
+
+mkdir -p $HOME/bin
+PATH=$HOME/bin:$PATH
+
+SBT_OPTS+=" ++$TRAVIS_SCALA_VERSION"
+
+export PATH
+export SBT_OPTS
+
+if [[ $TRAVIS_JOB_NUMBER == *.1 ]]; then
+    # Install hugo static site generator from GitHub releases page.
+    curl -s -L "https://github.com/spf13/hugo/releases/download/v${HUGO_VERSION}/hugo_${HUGO_VERSION}_Linux-64bit.tar.gz" | tar xzf - hugo
+    mv "./hugo" "$HOME/bin/hugo"
+fi
+
+if checkPublishable; then
+    PUBLISH_COMMAND=";publishSigned"
+
+    # Disable Making Sure It's the Real Github
+    echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+
+    # Record minimal build information via the Git user ident
+    git config --global user.name "Travis CI";
+    git config --global user.email "travis-ci@http4s.org";
+    SBT_GHPAGES_COMMIT_MESSAGE=$(gh_pages_commit_message)
+    export SBT_GHPAGES_COMMIT_MESSAGE
+
+    # Add secret deploy key to ssh-agent for deploy
+    eval "$(ssh-agent -s)";
+    openssl aes-256-cbc -d -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc | ssh-add -;
+
+    # Decrypt pgp secrets
+    openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/.gnupg/secret.tar.enc -out project/.gnupg/secret.tar -d
+    tar xv -C project/.gnupg -f project/.gnupg/secret.tar
+
+    PUBLISH_COMMAND+=" ;docs/ghpagesPushSite"
+    if [[ $TRAVIS_BRANCH = "master" ]]; then
+        PUBLISH_COMMAND+=" ;website/ghpagesPushSite"
+    fi
+else
+    PUBLISH_COMMAND=""
+fi
+
+if [[ ! -z $TRAVIS_TAG ]]; then
+    echo "This is a tagged build. Releasing."
+    sbt ";release with-defaults"
+elif [[ $TRAVIS_JOB_NUMBER == *.1 ]]; then
+    echo "This is the primary build. Running ci steps."
+    sbt ";ci $PUBLISH_COMMAND"
+else
+    echo "This is a secondary build. Running ciLite steps."
+    sbt ";ciLite $PUBLISH_COMMAND"
+fi

@@ -3,12 +3,15 @@ package org.http4s.build
 import sbt._, Keys._
 
 import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
+import com.typesafe.sbt.SbtPgp.autoImport._
 import org.http4s.build.ScalazPlugin.autoImport._
 import org.http4s.build.ScalazPlugin.scalazVersionRewriters
 import sbtrelease._
 import sbtrelease.ReleasePlugin.autoImport._
+import sbtrelease.ReleaseStateTransformations._
 import scala.util.Properties.envOrNone
 import verizon.build.RigPlugin, RigPlugin._
+import verizon.build.common._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -21,12 +24,9 @@ object Http4sPlugin extends AutoPlugin {
   override def requires = RigPlugin && MimaPlugin && ScalazPlugin
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
+    scalazVersion := sys.env.getOrElse("SCALAZ_VERSION", "7.2.15"),
     scalazVersionRewriter := scalazVersionRewriters.scalazStream_0_8,
 
-    // Override rig's default of the Travis build number being the bugfix number
-    releaseVersion := { ver =>
-      Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
-    },
     scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
 
     // Curiously missing from RigPlugin
@@ -53,7 +53,26 @@ object Http4sPlugin extends AutoPlugin {
     mimaFailOnProblem := http4sMimaVersion.value.isDefined,
     mimaPreviousArtifacts := (http4sMimaVersion.value map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-    }).toSet
+    }).toSet,
+
+    // Override rig's default of the Travis build number being the bugfix number
+    releaseVersion := { ver =>
+      Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError)
+    },
+    releaseProcess := Seq(
+      checkSnapshotDependencies,
+      inquireVersions,
+      setReleaseVersion,
+      runTestWithCoverage,
+      openSonatypeRepo,
+      publishArtifacsWithoutInstrumentation, // [sic]
+      releaseAndClose
+    ),
+    useGpg := false,
+    usePgpKeyHex("42FAD8A85B13261D"),
+    pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
+    pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",
+    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray)
   )
 
   def extractApiVersion(version: String) = {

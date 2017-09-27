@@ -1,15 +1,23 @@
 language: scala
 dist: trusty
 jdk: oraclejdk8
+scala:
+- 2.12.3
+- 2.11.11
+- 2.10.6
 env:
+  matrix:
+  - SCALAZ_VERSION=7.2.15
+  - SCALAZ_VERSION=7.1.13
   global:
   - HUGO_VERSION=0.26
   - LOGBACK_ROOT_LEVEL=WARN
   - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
+  - secure: PsdgpD9rs4MiVydsyV+dKJtPvD2Gg677tFzGlPbo239XX3e+bfEDbzoKTqnQyg3SAnb5R32tKKDzi12lluihPxiWLhAAX15SS51nxQhDoRX4//JMOpnL5+xAneUNMEXO5z/3Gwo/pITWlErAawrdOtWt1BBdi3vNMqRxSb5QLuc=
 notifications:
   webhooks:
     urls:
-      - secure: "aD5b1XnAbGJi6YYofSUdradQngsxkG+xlrbev2kv/xSxD3LtzEiUrewODYmDCPiAL3biTi9/4Ye5mkC7g0ksW1X5ZpW46c5cxpuICE14Ke8EdGF4xK7HW70GvK4We9s8xDddHR4QrNk6G216B+9IPgrnT/VkCaJ327AM5oGWoDY="
+    - secure: aD5b1XnAbGJi6YYofSUdradQngsxkG+xlrbev2kv/xSxD3LtzEiUrewODYmDCPiAL3biTi9/4Ye5mkC7g0ksW1X5ZpW46c5cxpuICE14Ke8EdGF4xK7HW70GvK4We9s8xDddHR4QrNk6G216B+9IPgrnT/VkCaJ327AM5oGWoDY=
     on_success: change
     on_failure: always
     on_start: never
@@ -20,66 +28,7 @@ cache:
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
 before_cache:
-  # Cleanup the cached directories to avoid unnecessary cache updates
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
-  - find $HOME/.sbt        -name "*.lock"               -print -delete
-
-jobs:
-  include:
-    - &tests
-      stage: Test
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/specialTest.sh
-    - <<: *tests
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-
-    - stage: Publish Site
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-
-    - &publishSonatype
-      stage: Publish Sonatype
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-
+- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+- find $HOME/.sbt        -name "*.lock"               -print -delete
+script: scripts/travis
+after_success: bash <(curl -s https://codecov.io/bash)

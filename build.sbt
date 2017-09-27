@@ -1,7 +1,6 @@
 import Http4sPlugin._
 import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
-import sbtunidoc.Plugin.UnidocKeys._
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
@@ -248,16 +247,16 @@ lazy val loadTest = http4sProject("load-test")
   )
   .enablePlugins(GatlingPlugin)
 
-lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incrementally on recently changed files")
-
-
 val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
 
 lazy val docs = http4sProject("docs")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(unidocSettings)
-  .settings(tutSettings)
-  .enablePlugins(HugoPlugin, GhpagesPlugin)
+  .enablePlugins(
+    GhpagesPlugin,
+    HugoPlugin,
+    PrivateProjectPlugin,
+    ScalaUnidocPlugin,
+    TutPlugin
+  )
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
@@ -499,4 +498,11 @@ def initCommands(additionalImports: String*) =
     "org.http4s._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
+// Run by the primary CI job
+addCommandAlias("ci", ";coverage ;clean ;test ;coverageReport ;coverageOff ;makeSite ;mimaReportBinaryIssues")
+
+// Run by secondary builds
+addCommandAlias("ciLite", ";coverageOff ;test ;mimaReportBinaryIssues")
+
+// Run by developers before PR
 addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")
