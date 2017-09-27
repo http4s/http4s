@@ -250,6 +250,7 @@ lazy val docs = http4sProject("docs")
         bench,
         examples,
         examplesBlaze,
+        examplesDocker,
         examplesJetty,
         examplesTomcat,
         examplesWar,
@@ -371,6 +372,21 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     }).value
   )
   .dependsOn(blazeServer, blazeClient)
+
+lazy val examplesDocker = http4sProject("examples-docker")
+  .in(file("examples/docker"))
+  .enablePlugins(JavaAppPackaging, DockerPlugin, PrivateProjectPlugin)
+  .settings(
+    description := "Builds a docker image for a blaze-server",
+    packageName in Docker := "http4s/blaze-server",
+    maintainer in Docker := "http4s",
+    dockerUpdateLatest := true,
+    dockerExposedPorts := List(8080),
+    libraryDependencies ++= Seq(
+      logbackClassic % "runtime"
+    )
+  )
+  .dependsOn(blazeServer, theDsl)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
