@@ -106,15 +106,15 @@ path of `/api`. The services can be mounted in any order as the request will be
 matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
-Multiple `HttpService`s can be combined with the `orElse` method by importing
-`org.http4s.server.syntax._`.
+Multiple `HttpService`s can be combined with the `combineK` method (or its alias 
+`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`.
 
 ```tut:book
-import org.http4s.server.blaze._
-import org.http4s.server.syntax._
 import cats.implicits._
+import org.http4s.server.blaze._
+import org.http4s.implicits._
 
-val services = tweetService |+| helloWorldService
+val services = tweetService <+> helloWorldService
 val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api").start
 ```
 

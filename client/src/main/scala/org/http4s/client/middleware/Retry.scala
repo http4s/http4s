@@ -2,17 +2,15 @@ package org.http4s
 package client
 package middleware
 
+import cats.data.Kleisli
 import cats.effect.Async
 import cats.implicits._
 import fs2._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-
-import cats.data.Kleisli
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}

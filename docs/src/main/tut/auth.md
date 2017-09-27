@@ -19,6 +19,7 @@ Or in code, using `cats.effect.IO` as the effect type:
 import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
+import org.http4s.implicits._
 import org.http4s.server._
 
 case class User(id: Long, name: String)
@@ -48,7 +49,7 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```tut:book
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedService[IO, String] = Kleisli(req => Forbidden(req.authInfo))
+val onFailure: AuthedService[IO, String] = AuthedService.lift(req => Forbidden(req.authInfo))
 val middleware = AuthMiddleware(authUser, onFailure)
 
 val service: HttpService[IO] = middleware(authedService)
