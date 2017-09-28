@@ -193,6 +193,7 @@ private class Http2NodeStage[F[_]](
                 .recoverWith(serviceErrorHandler(req))
                 .handleError(_ => Response(InternalServerError, req.httpVersion))
                 .map(renderResponse)
+              catch serviceErrorHandler(req)
             } {
               case Right(_) =>
                 IO.unit
