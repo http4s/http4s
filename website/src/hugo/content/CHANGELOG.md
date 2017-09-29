@@ -1,4 +1,4 @@
-# v0.16.3-SNAPSHOT
+# v0.16.3 (2017-09-29)
 * Fix `java.io.IOException: An invalid argument was supplied` on blaze-client
   for Windows when writing an empty sequence of `ByteBuffer`s.
 * Set encoding of `captureWriter` to UTF-8 instead of the platform default.
