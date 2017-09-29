@@ -10,7 +10,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import org.http4s.instances.functionK.FToOptionT
+import org.http4s.syntax.kleisli._
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
 
@@ -98,12 +98,10 @@ final case class Client[F[_]](
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpService: HttpService[F] =
-    open
-      .map {
-        case DisposableResponse(response, dispose) =>
-          response.copy(body = response.body.onFinalize(dispose))
-      }
-      .transform(FToOptionT)
+    open.map {
+      case DisposableResponse(response, dispose) =>
+        response.copy(body = response.body.onFinalize(dispose))
+    }.liftOptionT
 
   def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream

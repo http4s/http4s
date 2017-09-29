@@ -7,7 +7,7 @@ import cats.implicits._
 import fs2._
 import java.io._
 import java.util.concurrent.atomic._
-import org.http4s.syntax.kleisliResponse._
+import org.http4s.syntax.kleisli._
 
 object MockClient {
   def apply[F[_]: Sync](service: HttpService[F]): Client[F] = apply(service, ().pure[F])

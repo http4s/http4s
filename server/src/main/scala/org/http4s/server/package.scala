@@ -51,7 +51,7 @@ package object server {
   object AuthMiddleware {
     def apply[F[_]: Monad, T](authUser: Kleisli[F, Request[F], T]): AuthMiddleware[F, T] =
       service => {
-        service.compose(AuthedRequest(authUser.run).transform(FToOptionT))
+        service.compose(AuthedRequest(authUser.run).liftOptionT)
       }
 
     def apply[F[_], Err, T](
@@ -66,7 +66,7 @@ package object server {
               suc => AuthedRequest(suc, authed.req)
             )
           }
-          .compose(AuthedRequest(authUser.run).transform(FToOptionT))
+          .compose(AuthedRequest(authUser.run).liftOptionT)
     }
   }
 

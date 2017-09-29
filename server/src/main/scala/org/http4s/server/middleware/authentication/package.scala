@@ -5,14 +5,14 @@ package middleware
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import org.http4s.headers._
-import org.http4s.instances.functionK.FToOptionT
+import org.http4s.syntax.kleisli._
 
 package object authentication {
   def challenged[F[_], A](
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]])(
       service: AuthedService[F, A])(implicit F: Sync[F]): HttpService[F] =
     HttpService.liftF { req =>
-      challenge.transform(FToOptionT)(req).flatMap {
+      challenge.liftOptionT(req).flatMap {
         case Right(authedRequest) =>
           service(authedRequest)
         case Left(challenge) =>

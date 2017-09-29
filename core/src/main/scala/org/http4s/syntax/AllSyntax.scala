@@ -6,5 +6,5 @@ trait AllSyntax
     with AsyncSyntax
     with EffectResponseSyntax
     with EffectRequestSyntax
-    with KleisliResponseSyntax
+    with KleisliSyntax
     with StringSyntax
