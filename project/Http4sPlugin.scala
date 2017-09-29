@@ -109,7 +109,7 @@ object Http4sPlugin extends AutoPlugin {
            |scalaz = "${scalazVersion.value}"
            |circe = "${circeJawn.revision}"
            |cryptobits = "${cryptobits.revision}"
-           |"argonaut-shapeless_6.2" = "1.2.0-M5"
+           |"argonaut-shapeless_6.2" = "1.2.0-M6"
            |
            |[releases]
            |${releases}
@@ -254,13 +254,14 @@ object Http4sPlugin extends AutoPlugin {
       case (m, Some(v)) =>
         def toMinor(v: Version) = (v.major, v.subversions.headOption.getOrElse(0))
         def patch(v: Version) = v.subversions.drop(1).headOption.getOrElse(0)
+        // M before RC before final
         def milestone(v: Version) = v.qualifier match {
-          case Some(q) if q.startsWith("-M") => q.substring(2).toInt
-          case Some(q) if q.startsWith("-RC") => q.substring(3).toInt + 1000000
-          case None => Int.MaxValue
+          case Some(q) if q.startsWith("-M") => (0, q.substring(2).toInt)
+          case Some(q) if q.startsWith("-RC") => (1, q.substring(3).toInt)
+          case None => (2, 0)
         }
         val versionOrdering: Ordering[Version] =
-          Ordering[(Int, Int)].on(v => (patch(v), milestone(v)))
+          Ordering[(Int, (Int, Int))].on(v => (patch(v), milestone(v)))
         val key = toMinor(v)
         val max = m.get(key).fold(v) { v0 => versionOrdering.max(v, v0) }
         m.updated(key, max)
