@@ -124,72 +124,45 @@ object Http4sPlugin extends AutoPlugin {
     releaseVersion := { ver => Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError) },
     releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
 
-    releaseProcess := Seq(
-      if (!isSnapshot.value)
-        Seq(
-          checkSnapshotDependencies,
-          inquireVersions,
-          setReleaseVersion,
-          tagRelease
-        )
-      else
-        Seq.empty[ReleaseStep],
+    releaseProcess := {
+      implicit class StepSyntax(val step: ReleaseStep) {
+        def when(cond: Boolean) =
+          if (cond) step else ReleaseStep(identity)
+      }
 
-      Seq[ReleaseStep](
+      implicit class StateFCommand(val step: State => State) {
+        def when(cond: Boolean) =
+          StepSyntax(step).when(cond)
+      }
+
+      val release = !isSnapshot.value
+      val publish = http4sPublish.value
+      val primary = http4sPrimary.value
+      val master = http4sMasterBranch.value
+
+      Seq(
+        checkSnapshotDependencies.when(release),
+        inquireVersions.when(release),
+        setReleaseVersion.when(release),
         runTestWithCoverage,
-        releaseStepCommand("mimaReportBinaryIssues")
-      ),
-
-      if (http4sPrimary.value)
-        Seq[ReleaseStep](
-          releaseStepCommand("docs/makeSite"),
-          releaseStepCommand("website/makeSite")
-        )
-      else
-        Seq.empty,
-
-      if (http4sPublish.value && !isSnapshot.value)
-        Seq(
-          openSonatypeRepo,
-          publishArtifacsWithoutInstrumentation,
-          releaseAndClose
-        )
-      else if (http4sPublish.value)
-        Seq(
-          publishArtifacsWithoutInstrumentation
-        )
-      else
-        Seq.empty,
-
-      if (http4sPublish.value && http4sPrimary.value)
-        Seq[ReleaseStep](
-          releaseStepCommand("docs/ghpagesPushSite")
-        )
-      else
-        Seq.empty,
-
-      if (http4sPublish.value && http4sPrimary.value && http4sMasterBranch.value)
-        Seq[ReleaseStep](
-          releaseStepCommand("website/ghpagesPushSite")
-        )
-      else
-        Seq.empty,
-
-      if (http4sPublish.value && http4sPrimary.value && !isSnapshot.value)
-        Seq(
-          setNextVersion,
-          commitNextVersion,
-          pushChanges
-        )
-      else
-        Seq.empty,
-
-      // We need a superfluous final step to ensure exit code
-      // propagation from failed steps above.
-      //
-      // https://github.com/sbt/sbt-release/issues/95
-      Seq[ReleaseStep](releaseStepCommand("show version"))
-    ).flatten
+        releaseStepCommand("mimaReportBinaryIssues"),
+        releaseStepCommand("docs/makeSite").when(primary),
+        releaseStepCommand("website/makeSite").when(primary),
+        openSonatypeRepo.when(publish && release),
+        publishArtifacsWithoutInstrumentation.when(publish),
+        releaseAndClose.when(publish && release),
+        releaseStepCommand("docs/ghpagesPushSite").when(publish && primary),
+        releaseStepCommand("website/ghpagesPushSite").when(publish && primary && master),
+        setNextVersion.when(publish && primary && release),
+        commitNextVersion.when(publish && primary && release),
+        pushChanges.when(publish && primary && release),
+        // We need a superfluous final step to ensure exit code
+        // propagation from failed steps above.
+        //
+        // https://github.com/sbt/sbt-release/issues/95
+        releaseStepCommand("show version")
+      )
+    }
   )
 
   val signingSettings = Seq(
