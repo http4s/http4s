@@ -1,6 +1,6 @@
 import org.http4s.build.Http4sPlugin._
-import org.scalajs.sbtplugin.cross.CrossProject
 import scala.xml.transform.{RewriteRule, RuleTransformer}
+import sbtcrossproject.{crossProject, CrossProject, CrossType}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
@@ -355,7 +355,6 @@ lazy val docs = http4sProject("docs")
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
-        parboiled2JS,
         coreJS,
         testsJS,
         testingJS,
