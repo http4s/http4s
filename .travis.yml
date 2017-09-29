@@ -1,7 +1,14 @@
 language: scala
 dist: trusty
 jdk: oraclejdk8
+scala:
+- 2.12.3
+- 2.11.11
+- 2.10.6
 env:
+  matrix:
+  - SCALAZ_VERSION=7.2.15
+  - SCALAZ_VERSION=7.1.13
   global:
   - HUGO_VERSION=0.26
   - LOGBACK_ROOT_LEVEL=WARN
@@ -19,67 +26,20 @@ cache:
   - "$HOME/.coursier/cache"
   - "$HOME/.ivy2/cache"
   - "$HOME/.sbt/boot"
+
+install:
+  - scripts/install-hugo
+
+before_script:
+  - source scripts/helpers
+  - PATH="$HOME/bin:$PATH"
+  - decrypt_deploy_key
+  - decrypt_pgp_secrets
+  - configure_git
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION ci
+
 before_cache:
-  # Cleanup the cached directories to avoid unnecessary cache updates
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
-  - find $HOME/.sbt        -name "*.lock"               -print -delete
-
-jobs:
-  include:
-    - &tests
-      stage: Test
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/specialTest.sh
-    - <<: *tests
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-    - <<: *tests
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/test.sh
-
-    - stage: Publish Site
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishSite.sh
-
-    - &publishSonatype
-      stage: Publish Sonatype
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.12.3
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.11.11
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.2.15
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-    - <<: *publishSonatype
-      scala: 2.10.6
-      env: SCALAZ_VERSION=7.1.13
-      script: $TRAVIS_BUILD_DIR/bin/publishCentral.sh
-
+  - cleanup_cache
+after_success:
+  - upload_codecov()
