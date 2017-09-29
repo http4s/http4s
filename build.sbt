@@ -1,6 +1,6 @@
 import org.http4s.build.Http4sPlugin._
-import org.scalajs.sbtplugin.cross.CrossProject
 import scala.xml.transform.{RewriteRule, RuleTransformer}
+import sbtcrossproject.{crossProject, CrossProject, CrossType}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
@@ -12,7 +12,7 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
-lazy val core = libraryCrossProject("core", CrossType.Fill)
+lazy val core = libraryCrossProject("core", CrossType.Full)
   .enablePlugins(BuildInfoPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
@@ -26,6 +26,7 @@ lazy val core = libraryCrossProject("core", CrossType.Fill)
       fs2Scodec,
       http4sWebsocket.value,
       macroCompat.value,
+      parboiled.value,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scodecBits.value,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
@@ -288,7 +289,6 @@ lazy val docs = http4sProject("docs")
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
-        parboiled2JS,
         coreJS,
         testsJS,
         testingJS,

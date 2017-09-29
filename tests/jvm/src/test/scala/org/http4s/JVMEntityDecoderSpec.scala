@@ -8,13 +8,13 @@ import cats.implicits._
 import fs2.Stream._
 import fs2._
 import org.http4s.Status.Ok
-import org.http4s.util.TrampolineExecutionContext
+import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
 
 import scala.concurrent.ExecutionContext
 
 class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
-  implicit val executionContext: ExecutionContext = TrampolineExecutionContext
+  implicit val executionContext: ExecutionContext = trampoline
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.runLog.map(_.toArray)

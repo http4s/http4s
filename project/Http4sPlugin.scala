@@ -299,7 +299,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val macroCompat                      = Def.setting("org.typelevel"          %%% "macro-compat"              % "1.1.1")
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.5"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
+  lazy val parboiled                        = Def.setting("org.http4s"             %% "parboiled"                 % "1.0.0")
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
