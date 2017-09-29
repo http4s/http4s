@@ -1,7 +1,7 @@
 package org.http4s.util
 
 import java.io.{Writer => JWriter, _}
-
+import java.nio.charset.StandardCharsets
 import scalaz.concurrent._
 import scalaz.stream._
 import scalaz.stream.async.{boundedQueue, unboundedQueue}
@@ -84,9 +84,8 @@ package object io {
     captureOutputStream(osCallbackToWriterCallback(f))
 
   private def osCallbackToWriterCallback(f: JWriter => Unit) = { out: OutputStream =>
-    val w = new OutputStreamWriter(out)
+    val w = new OutputStreamWriter(out, StandardCharsets.UTF_8)
     f(w)
     w.flush()
   }
 }
-
