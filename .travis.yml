@@ -36,7 +36,7 @@ before_script:
   - decrypt_deploy_key
   - decrypt_pgp_secrets
   - configure_git
-  - [ $TRAVIS_PULL_REQUEST = 'false' ] && git checkout -qf $TRAVIS_BRANCH
+  - "[ $TRAVIS_PULL_REQUEST = 'false' ] && git checkout -qf $TRAVIS_BRANCH"
 script:
   - sbt ++$TRAVIS_SCALA_VERSION ci
 
