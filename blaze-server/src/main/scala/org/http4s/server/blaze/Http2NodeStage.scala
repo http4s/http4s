@@ -195,7 +195,7 @@ private class Http2NodeStage(
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      {
+      strategy({
         try service(req).handleWith(serviceErrorHandler(req))
         catch serviceErrorHandler(req)
       }.unsafeRunAsync {
@@ -203,7 +203,7 @@ private class Http2NodeStage(
         case Left(t) =>
           val resp = Response(InternalServerError, req.httpVersion)
           renderResponse(req, resp)
-      }
+      })
     }
   }
 
