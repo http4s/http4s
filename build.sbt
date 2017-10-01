@@ -1,16 +1,11 @@
 import Http4sPlugin._
 import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
-import sbtunidoc.Plugin.UnidocKeys._
 
 import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-
-apiVersion in ThisBuild := (version in ThisBuild).map {
-  case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
-}.value
 
 // Root project
 name := "http4s"
@@ -23,7 +18,11 @@ lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
-    buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
+    buildInfoKeys := Seq[BuildInfoKey](
+      version,
+      scalaVersion,
+      BuildInfoKey.map(http4sApiVersion) { case (_, v) => "apiVersion" -> v }
+    ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
       fs2Cats,
@@ -232,16 +231,14 @@ lazy val loadTest = http4sProject("load-test")
   )
   .enablePlugins(GatlingPlugin)
 
-lazy val tutQuick2 = TaskKey[Seq[(File, String)]]("tutQuick2", "Run tut incrementally on recently changed files")
-
-
-val exportMetadataForSite = TaskKey[File]("export-metadata-for-site", "Export build metadata, like http4s and key dependency versions, for use in tuts and when building site")
-
 lazy val docs = http4sProject("docs")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(unidocSettings)
-  .settings(tutSettings)
-  .enablePlugins(HugoPlugin, GhpagesPlugin)
+  .enablePlugins(
+    GhpagesPlugin,
+    HugoPlugin,
+    PrivateProjectPlugin,
+    ScalaUnidocPlugin,
+    TutPlugin
+  )
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
@@ -284,25 +281,7 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    exportMetadataForSite := {
-      val dest = target.value / "hugo-data" / "build.toml"
-      val (major, minor) = apiVersion.value
-      // Would be more elegant if `[versions.http4s]` was nested, but then
-      // the index lookups in `shortcodes/version.html` get complicated.
-      val buildData: String =
-        s"""
-           |[versions]
-           |"http4s.api" = "$major.$minor"
-           |"http4s.current" = "${version.value}"
-           |"http4s.doc" = "${docExampleVersion(version.value)}"
-           |circe = "${circeJawn.revision}"
-           |cryptobits = "${cryptobits.revision}"
-           |"argonaut-shapeless_6.2" = "1.2.0-M5"
-         """.stripMargin
-      IO.write(dest, buildData)
-      dest
-    },
-    makeSite := makeSite.dependsOn(tutQuick, exportMetadataForSite).value,
+    makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
     baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
       if (isTravisBuild.value) new URI(s"http://http4s.org${docsPrefix}")
@@ -335,6 +314,7 @@ lazy val website = http4sProject("website")
       if (isTravisBuild.value) new URI(s"http://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
+    makeSite := makeSite.dependsOn(http4sBuildData).value,
     // all .md|markdown files go into `content` dir for hugo processing
     ghpagesNoJekyll := true,
     excludeFilter in ghpagesCleanSite :=
@@ -422,24 +402,20 @@ def exampleProject(name: String) = http4sProject(name)
   .enablePlugins(PrivateProjectPlugin)
   .dependsOn(examples)
 
-lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
-
-lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
-
 lazy val commonSettings = Seq(
-  jvmTarget := scalaVersion.map {
+  http4sJvmTarget := scalaVersion.map {
     VersionNumber(_).numbers match {
       case Seq(2, 10, _*) => "1.7"
       case _ => "1.8"
     }
   }.value,
   scalacOptions in Compile ++= Seq(
-    s"-target:jvm-${jvmTarget.value}"
+    s"-target:jvm-${http4sJvmTarget.value}"
   ),
   scalacOptions in (Compile, doc) += "-no-link-warnings",
   javacOptions ++= Seq(
-    "-source", jvmTarget.value,
-    "-target", jvmTarget.value,
+    "-source", http4sJvmTarget.value,
+    "-target", http4sJvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
@@ -486,4 +462,7 @@ def initCommands(additionalImports: String*) =
     "cats.implicits._"
   ) ++ additionalImports).mkString("import ", ", ", "")
 
-addCommandAlias("validate", ";test ;makeSite ;mimaReportBinaryIssues")
+
+// Everything is driven through release steps and the http4s* variables
+// This won't actually release unless on Travis.
+addCommandAlias("ci", ";release with-defaults")

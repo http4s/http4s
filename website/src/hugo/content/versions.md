@@ -87,7 +87,7 @@ title: Versions
         <td>1.8+</td>
       </tr>
 	  <tr>
-	    <td>0.16.2a</td>
+	    <td>{{% latestInSeries "0.16" %}}a</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -97,7 +97,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.16.2</td>
+	    <td>{{% latestInSeries "0.16" %}}</td>
 	    <td class="text-center"><span class="label label-primary">Stable</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -107,7 +107,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.16a</td>
+	    <td>{{% latestInSeries "0.15" %}}a</td>
 	    <td class="text-center"><span class="label label-primary">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -117,7 +117,7 @@ title: Versions
 	    <td>1.8+</td>
 	  </tr>
 	  <tr>
-	    <td>0.15.16</td>
+	    <td>{{% latestInSeries "0.15" %}}</td>
 	    <td class="text-center"><span class="label label-primary">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -129,32 +129,8 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.14.11a</td>
+	    <td>{{% latestInSeries "0.14" %}}a</td>
 	    <td class="text-center"><span class="label label-primary">EOL</span></td>
-	    <td class="text-center"><i class="fa fa-check"></i></td>
-	    <td class="text-center"><i class="fa fa-check"></i></td>
-	    <td class="text-center"><i class="fa fa-ban"></i></td>
-	    <td>scalaz-7.2</td>
-	    <td>scalaz-stream-0.8a</td>
-	    <td>1.8+</td>
-	  </tr>
-	</tbody>
-	<tbody>
-	  <tr>
-	    <td>0.14.11</td>
-	    <td class="text-center"><span class="label label-primary">EOL</span></td>
-	    <td class="text-center"><i class="fa fa-check"></i></td>
-	    <td class="text-center"><i class="fa fa-check"></i></td>
-	    <td class="text-center"><i class="fa fa-ban"></i></td>
-	    <td>scalaz-7.1</td>
-	    <td>scalaz-stream-0.8</td>
-	    <td>1.8+</td>
-	  </tr>
-	</tbody>
-	<tbody>
-	  <tr>
-	    <td>0.13.3a</td>
-	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-ban"></i></td>
@@ -165,7 +141,31 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.13.3</td>
+	    <td>{{% latestInSeries "0.14" %}}</td>
+	    <td class="text-center"><span class="label label-primary">EOL</span></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-ban"></i></td>
+	    <td>scalaz-7.1</td>
+	    <td>scalaz-stream-0.8</td>
+	    <td>1.8+</td>
+	  </tr>
+	</tbody>
+	<tbody>
+	  <tr>
+	    <td>{{% latestInSeries "0.13" %}}a</td>
+	    <td class="text-center"><span class="label label-default">EOL</span></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-check"></i></td>
+	    <td class="text-center"><i class="fa fa-ban"></i></td>
+	    <td>scalaz-7.2</td>
+	    <td>scalaz-stream-0.8a</td>
+	    <td>1.8+</td>
+	  </tr>
+	</tbody>
+	<tbody>
+	  <tr>
+	    <td>{{% latestInSeries "0.13" %}}</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -177,7 +177,7 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.12.6</td>
+	    <td>{{% latestInSeries "0.12" %}}</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -189,7 +189,7 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.11.3</td>
+	    <td>{{% latestInSeries "0.11" %}}</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -201,7 +201,7 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.10.1</td>
+	    <td>{{% latestInSeries "0.10" %}}</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -213,7 +213,7 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.9.3</td>
+	    <td>{{% latestInSeries "0.9" %}}</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
@@ -225,7 +225,7 @@ title: Versions
 	</tbody>
 	<tbody>
 	  <tr>
-	    <td>0.8.6</td>
+	    <td>{{% latestInSeries "0.8" %}}</td>
 	    <td class="text-center"><span class="label label-default">EOL</span></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>
 	    <td class="text-center"><i class="fa fa-check"></i></td>

@@ -7,6 +7,13 @@
   no externally visible changes, but this simplifies and speeds the http4s
   build.
 
+# v0.16.3 (2017-09-29)
+* Fix `java.io.IOException: An invalid argument was supplied` on blaze-client
+  for Windows when writing an empty sequence of `ByteBuffer`s.
+* Set encoding of `captureWriter` to UTF-8 instead of the platform default.
+* Dependency upgrades:
+  * blaze-0.12.9
+
 # v0.16.2 (2017-09-25)
 * Dependency patch upgrades:
   * async-http-client-2.0.37
