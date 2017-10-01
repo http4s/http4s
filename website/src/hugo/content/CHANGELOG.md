@@ -1,3 +1,15 @@
+# v0.17.3
+* Shift execution of HttpService to the `ExecutionContext` provided by the
+  `BlazeBuilder` when using HTTP/2. Previously, it only shifted the response
+  task and body stream.
+
+# v0.16.3 (2017-09-29)
+* Fix `java.io.IOException: An invalid argument was supplied` on blaze-client
+  for Windows when writing an empty sequence of `ByteBuffer`s.
+* Set encoding of `captureWriter` to UTF-8 instead of the platform default.
+* Dependency upgrades:
+  * blaze-0.12.9
+
 # v0.17.2 (2017-09-25)
 * Remove private implicit strategy from `StreamApp`. This had been known to
   cause diverging implicit resolution that was hard to debug.
@@ -6,13 +18,6 @@
 * Split off http4s-parboiled2 module as `"org.http4s" %% "parboiled"`. There are
   no externally visible changes, but this simplifies and speeds the http4s
   build.
-
-# v0.16.3 (2017-09-29)
-* Fix `java.io.IOException: An invalid argument was supplied` on blaze-client
-  for Windows when writing an empty sequence of `ByteBuffer`s.
-* Set encoding of `captureWriter` to UTF-8 instead of the platform default.
-* Dependency upgrades:
-  * blaze-0.12.9
 
 # v0.16.2 (2017-09-25)
 * Dependency patch upgrades:
