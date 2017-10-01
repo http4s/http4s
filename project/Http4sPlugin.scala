@@ -1,5 +1,6 @@
 package org.http4s.build
 
+import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
 import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
