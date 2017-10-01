@@ -185,20 +185,23 @@ private class Http2NodeStage[F[_]](
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      async.unsafeRunAsync {
-        try service(req)
-          .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
-          .handleError { _ =>
-            Response[F](InternalServerError, req.httpVersion)
+      executionContext.execute(new Runnable {
+        def run() =
+          F.unsafeRunAsync {
+            try service(req)
+              .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+              .handleError { _ =>
+                Response[F](InternalServerError, req.httpVersion)
+              }
+              .map(renderResponse(_))
+            catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
+          } {
+            case Right(_) =>
+              IO.unit
+            case Left(t) =>
+              IO(logger.error(t)("Error rendering response"))
           }
-          .map(renderResponse(_))
-        catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
-      } {
-        case Right(_) =>
-          IO.unit
-        case Left(t) =>
-          IO(logger.error(t)("Error rendering response"))
-      }
+      })
     }
   }
 

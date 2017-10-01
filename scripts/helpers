@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+function decrypt_deploy_key() {
+    echo "Decrypting deploy key"
+    eval "$(ssh-agent -s)"
+    openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc -d | ssh-add -
+}
+
+function decrypt_pgp_secrets() {
+    echo "Decrypting PGP secrets"
+    openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/.gnupg/secret.tar.enc -out project/.gnupg/secret.tar -d
+    tar xv -C project/.gnupg -f project/.gnupg/secret.tar
+}
+
+function configure_git() {
+    echo "Configuring git"
+    git config --global user.name "Travis CI"
+    git config --global user.email "travis-ci@http4s.org"
+
+    local SHORT_COMMIT=$(printf "%.8s" "$TRAVIS_COMMIT")
+
+    read -r -d '' SBT_GHPAGES_COMMIT_MESSAGE <<EOM
+Updated site from $SHORT_COMMIT
+
+Job:    $TRAVIS_JOB_NUMBER
+Commit: $SHORT_COMMIT
+Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
+EOM
+    return 0
+}
+
+function cleanup_cache() {
+    echo "Cleaning up the cache"
+    find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+    find $HOME/.sbt        -name "*.lock"               -print -delete
+}
+
+function upload_codecov() {
+    if find . -name 'scoverage-data' -exec false {} +; then
+        echo "No codecov report found. Skipping upload."
+    else
+        echo "Uploading codecov"
+        bash <(curl -s https://codecov.io/bash)
+    fi
+}

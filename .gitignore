@@ -22,3 +22,7 @@ atlassian-ide-plugin.xml
 .ensime_cache
 .cache-main
 .cache-tests
+
+project/travis-deploy-key
+project/.gnupg
+!project/.gnupg/secret.tar.enc

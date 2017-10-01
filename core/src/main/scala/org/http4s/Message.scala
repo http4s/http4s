@@ -366,10 +366,14 @@ sealed trait MaybeResponse[F[_]] {
 object MaybeResponse extends MaybeResponseInstances
 
 trait MaybeResponseInstances {
-  implicit def http4sMonoidForMaybeResponse[F[_]]: Monoid[MaybeResponse[F]] =
+
+  /** Intentionally not implicit. Do not use unless you've read and understood the
+    * deprecation warning on [[instance]].
+    */
+  def http4sMonoidForMaybeResponse[F[_]]: Monoid[MaybeResponse[F]] =
     new Monoid[MaybeResponse[F]] {
       def empty =
-        Pass()
+        Pass[F]
       def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
         a.orElse(b)
     }
