@@ -367,8 +367,8 @@ object MaybeResponse extends MaybeResponseInstances
 
 trait MaybeResponseInstances {
 
-  /** Intentionally not implicit. Do not use unless you've read and understood the
-    * deprecation warning on [[instance]].
+  /** Intentionally not implicit. Will be disappearing altogether in
+    * https://github.com/http4s/http4s/pull/1424
     */
   def http4sMonoidForMaybeResponse[F[_]]: Monoid[MaybeResponse[F]] =
     new Monoid[MaybeResponse[F]] {
