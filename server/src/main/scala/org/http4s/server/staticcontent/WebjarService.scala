@@ -51,7 +51,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply(config: Config): HttpService = Service {
+  def apply(config: Config): HttpService = HttpService.lift {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)
@@ -59,7 +59,9 @@ object WebjarService {
           .flatMap(toWebjarAsset)
           .filter(config.filter)
           .map(serveWebjarAsset(config, request))
-          .getOrElse(Pass.now)
+        .getOrElse(Pass.now)
+    case _ =>
+      Pass.now
   }
 
   /**
