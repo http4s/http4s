@@ -55,7 +55,8 @@ object Http4sPlugin extends AutoPlugin {
       case VersionNumber(Seq(major, minor, _*), _, _) => (major.toInt, minor.toInt)
     }.value,
     coverageEnabled := isTravisBuild.value && http4sPrimary.value,
-    coverageHighlighting := true
+    coverageHighlighting := true,
+    git.remoteRepo := "git@github.com:http4s/http4s.git"
   ) ++ signingSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
