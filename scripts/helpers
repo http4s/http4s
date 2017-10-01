@@ -1,15 +1,23 @@
 #!/usr/bin/env bash
 
 function decrypt_deploy_key() {
-    echo "Decrypting deploy key"
-    eval "$(ssh-agent -s)"
-    openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc -d | ssh-add -
+    if [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+        echo "Decrypting deploy key"
+        eval "$(ssh-agent -s)"
+        openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/travis-deploy-key.enc -d | ssh-add -
+    else
+        echo "Not decrypting deploy key for a pull request"
+    fi
 }
 
 function decrypt_pgp_secrets() {
-    echo "Decrypting PGP secrets"
-    openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/.gnupg/secret.tar.enc -out project/.gnupg/secret.tar -d
-    tar xv -C project/.gnupg -f project/.gnupg/secret.tar
+    if [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+        echo "Decrypting PGP secrets"
+        openssl aes-256-cbc -K $encrypted_8735ae5b3321_key -iv $encrypted_8735ae5b3321_iv -in project/.gnupg/secret.tar.enc -out project/.gnupg/secret.tar -d
+        tar xv -C project/.gnupg -f project/.gnupg/secret.tar
+    else
+        echo "Not decrypting pgp secrets on a pull request"
+    fi
 }
 
 function configure_git() {
