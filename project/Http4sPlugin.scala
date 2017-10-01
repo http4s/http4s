@@ -75,7 +75,7 @@ object Http4sPlugin extends AutoPlugin {
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
-          Some(s"${major}.${minor}.0")
+          Some(s"${major}.${minor}.${patch.toInt - 1}")
         case _ =>
           None
       }
