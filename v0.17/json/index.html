@@ -103,7 +103,7 @@ community.  The functionality is similar:</p>
 <pre><code class="language-scala">libraryDependencies += Seq(
   &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M5&quot;
+  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M6&quot;
 )
 </code></pre>
 
@@ -213,7 +213,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@342a5de8
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@21053191
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
