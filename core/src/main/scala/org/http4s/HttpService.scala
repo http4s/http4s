@@ -2,7 +2,6 @@ package org.http4s
 
 import cats._
 import cats.data._
-import org.http4s.syntax.kleisli._
 
 object HttpService extends Serializable {
 
@@ -12,7 +11,7 @@ object HttpService extends Serializable {
     * `apply` instead.
     */
   def lift[F[_]: Functor](f: Request[F] => F[Response[F]]): HttpService[F] =
-    Kleisli(f).liftOptionT
+    Kleisli(f.andThen(OptionT.liftF(_)))
 
   def liftF[F[_]](f: Request[F] => OptionT[F, Response[F]]): HttpService[F] =
     Kleisli(f)

@@ -2,7 +2,6 @@ package org.http4s
 
 import cats.{Applicative, Functor}
 import cats.data.{Kleisli, OptionT}
-import org.http4s.syntax.kleisli._
 
 object AuthedService {
 
@@ -12,7 +11,7 @@ object AuthedService {
     * `apply` instead.
     */
   def lift[F[_]: Functor, T](f: AuthedRequest[F, T] => F[Response[F]]): AuthedService[F, T] =
-    Kleisli(f).liftOptionT
+    Kleisli(f.andThen(OptionT.liftF(_)))
 
   def liftF[F[_], T](f: AuthedRequest[F, T] => OptionT[F, Response[F]]): AuthedService[F, T] =
     Kleisli(f)

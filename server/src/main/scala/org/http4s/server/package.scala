@@ -5,7 +5,7 @@ import cats.arrow.Choice
 import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import org.http4s.headers.{Connection, `Content-Length`}
-import org.http4s.implicits._
+import org.http4s.syntax.string._
 import org.log4s.getLogger
 import scala.util.control.NonFatal
 
@@ -51,7 +51,7 @@ package object server {
   object AuthMiddleware {
     def apply[F[_]: Monad, T](authUser: Kleisli[F, Request[F], T]): AuthMiddleware[F, T] =
       service => {
-        service.compose(AuthedRequest(authUser.run).liftOptionT)
+        service.compose(AuthedRequest(authUser.run).mapF(OptionT.liftF(_)))
       }
 
     def apply[F[_], Err, T](
@@ -66,7 +66,7 @@ package object server {
               suc => AuthedRequest(suc, authed.req)
             )
           }
-          .compose(AuthedRequest(authUser.run).liftOptionT)
+          .compose(AuthedRequest(authUser.run).mapF(OptionT.liftF(_)))
     }
   }
 

@@ -75,5 +75,4 @@ package object http4s { // scalastyle:ignore
       case Left(l) => f(l)
     }
   }
-
 }
