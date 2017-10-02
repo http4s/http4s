@@ -41,20 +41,20 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
       }
   }
 
-  def sslStream(implicit scheduler: Scheduler): Stream[F, Nothing] =
+  def sslStream(implicit scheduler: Scheduler): Stream[F, Unit] =
     builder
       .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
       .mountService(new ExampleService[F].service, "/http4s")
       .bindHttp(8443)
       .serve
 
-  def redirectStream: Stream[F, Nothing] =
+  def redirectStream: Stream[F, Unit] =
     builder
       .mountService(redirectService, "/http4s")
       .bindHttp(8080)
       .serve
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Unit] =
     Scheduler[F](corePoolSize = 2).flatMap { implicit scheduler =>
       sslStream.mergeHaltBoth(redirectStream)
     }

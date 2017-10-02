@@ -22,7 +22,7 @@ class BlazeMetricsExampleApp[F[_]: Effect] extends StreamApp[F] {
       "/metrics" -> metricsService[F](metricsRegistry)
     )
 
-  def stream(args: List[String], requestShutdown: F[Unit]): fs2.Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): fs2.Stream[F, Unit] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       BlazeBuilder[F]
         .bindHttp(8080)
