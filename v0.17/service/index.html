@@ -79,7 +79,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.11.8&quot; // Also supports 2.10.x and 2.12.x
 
-val http4sVersion = &quot;0.17.2&quot;
+val http4sVersion = &quot;0.17.3&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -131,7 +131,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$28876/157603825@589fb549)
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$28690/346022308@231f5b04)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -172,7 +172,7 @@ val tweetService = HttpService {
   case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$28876/157603825@45fe4ac4)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$28690/346022308@41310582)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -199,10 +199,10 @@ import cats.implicits._
 // import cats.implicits._
 
 val services = tweetService |+| helloWorldService
-// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$28890/1739451324@79b7793e)
+// services: cats.data.Kleisli[fs2.Task,org.http4s.Request,org.http4s.MaybeResponse] = Kleisli(cats.data.KleisliSemigroup$$Lambda$28704/1785232772@396094eb)
 
 val builder = BlazeBuilder.bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@451e9631
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@3d4d79dd
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
