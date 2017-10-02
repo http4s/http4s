@@ -1,4 +1,4 @@
-# v0.17.3
+# v0.17.3 (2017-10-02)
 * Shift execution of HttpService to the `ExecutionContext` provided by the
   `BlazeBuilder` when using HTTP/2. Previously, it only shifted the response
   task and body stream.
