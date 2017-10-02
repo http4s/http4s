@@ -34,6 +34,12 @@ Job:    $TRAVIS_JOB_NUMBER
 Commit: $SHORT_COMMIT
 Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
+
+    if [[ $TRAVIS_PULL_REQUEST = 'false' ]]; then
+        git remote add upstream git@github.com:${TRAVIS_REPO_SLUG}.git
+        git checkout -qf $TRAVIS_BRANCH
+        git branch -u upstream/${TRAVIS_BRANCH}
+    fi
     return 0
 }
 
