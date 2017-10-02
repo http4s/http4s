@@ -50,7 +50,7 @@ title: Versions
   </thead>
   <tbody>
     <tr>
-      <td><a href="/v0.18">0.18.0&#8209;M1</a></td>
+      <td><a href="/v0.18">{{% latestInSeries "0.18" %}}</a></td>
       <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -60,7 +60,7 @@ title: Versions
       <td>1.8+</td>
     </tr>
     <tr>
-      <td><a href="/v0.17">0.17.2</a></td>
+      <td><a href="/v0.17">{{% latestInSeries "0.17" %}}</a></td>
       <td class="text-center"><span class="badge badge-success">Stable</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -70,7 +70,7 @@ title: Versions
       <td>1.8+</td>
     </tr>
     <tr>
-      <td><a href="/v0.16">0.16.2a</a></td>
+      <td><a href="/v0.16">{{% latestInSeries "0.16" %}}a</a></td>
       <td class="text-center"><span class="badge badge-success">Stable</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -80,7 +80,7 @@ title: Versions
       <td>1.8+</td>
     </tr>
     <tr>
-      <td><a href="/v0.16">0.16.2</a></td>
+      <td><a href="/v0.16">{{% latestInSeries "0.16" %}}</a></td>
       <td class="text-center"><span class="badge badge-success">Stable</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -90,7 +90,7 @@ title: Versions
       <td>1.8+</td>
     </tr>
     <tr>
-      <td><a href="/v0.15">0.15.16a</a></td>
+      <td><a href="/v0.15">{{% latestInSeries "0.15" %}}a</a></td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -100,7 +100,7 @@ title: Versions
       <td>1.8+</td>
     </tr>
     <tr>
-      <td><a href="/v0.15">0.15.16</a></td>
+      <td><a href="/v0.15">{{% latestInSeries "0.15" %}}</a></td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -112,31 +112,7 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.14.11a</td>
-      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
-      <td class="text-center"><i class="fa fa-check"></i></td>
-      <td class="text-center"><i class="fa fa-check"></i></td>
-      <td class="text-center"><i class="fa fa-ban"></i></td>
-      <td>scalaz&#8209;7.2</td>
-      <td>scalaz&#8209;stream&#8209;0.8a</td>
-      <td>1.8+</td>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td>0.14.11</td>
-      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
-      <td class="text-center"><i class="fa fa-check"></i></td>
-      <td class="text-center"><i class="fa fa-check"></i></td>
-      <td class="text-center"><i class="fa fa-ban"></i></td>
-      <td>scalaz&#8209;7.1</td>
-      <td>scalaz&#8209;stream&#8209;0.8</td>
-      <td>1.8+</td>
-    </tr>
-  </tbody>
-  <tbody>
-    <tr>
-      <td>0.13.3a</td>
+      <td>{{% latestInSeries "0.14" %}}a</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -148,7 +124,7 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.13.3</td>
+      <td>{{% latestInSeries "0.14" %}}</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -160,7 +136,19 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.12.6</td>
+      <td>{{% latestInSeries "0.13" %}}a</td>
+      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td>scalaz&#8209;7.2</td>
+      <td>scalaz&#8209;stream&#8209;0.8a</td>
+      <td>1.8+</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td>{{% latestInSeries "0.13" %}}</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -172,7 +160,7 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.11.3</td>
+      <td>{{% latestInSeries "0.12" %}}</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -184,7 +172,19 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.10.1</td>
+      <td>{{% latestInSeries "0.11" %}}</td>
+      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td>scalaz&#8209;7.1</td>
+      <td>scalaz&#8209;stream&#8209;0.8</td>
+      <td>1.8+</td>
+    </tr>
+  </tbody>
+  <tbody>
+    <tr>
+      <td>{{% latestInSeries "0.10" %}}</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -196,7 +196,7 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.9.3</td>
+      <td>{{% latestInSeries "0.9" %}}</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -208,7 +208,7 @@ title: Versions
   </tbody>
   <tbody>
     <tr>
-      <td>0.8.6</td>
+      <td>{{% latestInSeries "0.8" %}}</td>
       <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>

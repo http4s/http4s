@@ -44,7 +44,7 @@ First you'll need to checkout a local copy of the code base:
 git clone git@github.com:http4s/http4s.git
 ```
 
-To build http4s, you should have [SBT] and [Hugo] installed.  Run `sbt validate`.
+To build http4s, you should have [SBT] and [Hugo] installed.  Run `sbt ci`.
 This runs:
 
 * `test`: compiles all code and runs the unit tests
