@@ -38,6 +38,7 @@ EOM
     if [[ $TRAVIS_PULL_REQUEST = 'false' ]]; then
         git remote add upstream git@github.com:${TRAVIS_REPO_SLUG}.git
         git checkout -qf $TRAVIS_BRANCH
+        git fetch -q upstream
         git branch -u upstream/${TRAVIS_BRANCH}
     fi
     return 0
