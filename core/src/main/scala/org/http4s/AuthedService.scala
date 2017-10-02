@@ -10,6 +10,7 @@ object AuthedService {
     * handle all requests it is given.  If `f` is a `PartialFunction`, use
     * `apply` instead.
     */
+  @deprecated("Use liftF with an OptionT[F, Response[F]] instead", "0.18")
   def lift[F[_]: Functor, T](f: AuthedRequest[F, T] => F[Response[F]]): AuthedService[F, T] =
     Kleisli(f.andThen(OptionT.liftF(_)))
 

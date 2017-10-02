@@ -10,6 +10,7 @@ object HttpService extends Serializable {
     * handle all requests it is given.  If `f` is a `PartialFunction`, use
     * `apply` instead.
     */
+  @deprecated("Use liftF with an OptionT[F, Response[F]] instead", "0.18")
   def lift[F[_]: Functor](f: Request[F] => F[Response[F]]): HttpService[F] =
     Kleisli(f.andThen(OptionT.liftF(_)))
 

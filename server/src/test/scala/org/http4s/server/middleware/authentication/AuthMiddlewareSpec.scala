@@ -1,6 +1,6 @@
 package org.http4s.server.middleware.authentication
 
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -17,7 +17,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Kleisli.pure(Left("Unauthorized"))
 
       val onAuthFailure: AuthedService[IO, String] =
-        AuthedService.lift(req => Forbidden(req.authInfo))
+        AuthedService.liftF(req => OptionT.liftF(Forbidden(req.authInfo)))
 
       val authedService: AuthedService[IO, User] =
         AuthedService {
@@ -40,7 +40,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Kleisli.pure(Right(userId))
 
       val onAuthFailure: AuthedService[IO, String] =
-        AuthedService.lift(req => Forbidden(req.authInfo))
+        AuthedService.liftF(req => OptionT.liftF(Forbidden(req.authInfo)))
 
       val authedService: AuthedService[IO, User] =
         AuthedService {
@@ -62,7 +62,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Kleisli.pure(Right(userId))
 
       val onAuthFailure: AuthedService[IO, String] =
-        AuthedService.lift(req => Forbidden(req.authInfo))
+        AuthedService.liftF(req => OptionT.liftF(Forbidden(req.authInfo)))
 
       val authedService: AuthedService[IO, User] =
         AuthedService {
