@@ -187,20 +187,21 @@ private class Http2NodeStage[F[_]](
 
       executionContext.execute(new Runnable {
         def run() =
-          F.unsafeRunAsync {
-            try service(req)
-              .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
-              .handleError { _ =>
-                Response[F](InternalServerError, req.httpVersion)
-              }
-              .map(renderResponse(_))
-            catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
-          } {
-            case Right(_) =>
-              IO.unit
-            case Left(t) =>
-              IO(logger.error(t)("Error rendering response"))
-          }
+          F.runAsync {
+              try service(req)
+                .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
+                .handleError { _ =>
+                  Response[F](InternalServerError, req.httpVersion)
+                }
+                .map(renderResponse(_))
+              catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
+            } {
+              case Right(_) =>
+                IO.unit
+              case Left(t) =>
+                IO(logger.error(t)("Error rendering response"))
+            }
+            .unsafeRunSync()
       })
     }
   }
