@@ -123,7 +123,12 @@ object Http4sPlugin extends AutoPlugin {
 
   val releaseSettings = Seq(
     // Reset a couple sbt-release defaults that rig changed
-    releaseVersion := { ver => Version(ver).map(_.withoutQualifier.string).getOrElse(versionFormatError) },
+    releaseVersion := { ver =>
+      Version(ver).map(v =>
+        v.copy(qualifier = v.qualifier.map(_.replaceAllLiterally("-SNAPSHOT", "")))
+          .string
+      ).getOrElse(versionFormatError)
+    },
     releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
 
     releaseProcess := {

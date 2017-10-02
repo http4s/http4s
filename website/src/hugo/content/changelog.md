@@ -4,7 +4,7 @@ weight: 101
 title: Changelog
 ---
 
-# v0.18.0-SNAPSHOT
+# v0.18.0-M2 (2017-10-02)
 * Use http4s-dsl with any effect type by either:
     * extend `Http4sDsl[F]`
     * create an object that extends `Http4sDsl[F]`, and extend that.
@@ -48,12 +48,26 @@ title: Changelog
   * Variadic headers have been added to all the status code generators in
     `Http4sDsl[F]` and method generators in `import org.http4s.client._`.
     For example:
-    * `POST(uri, urlForm, Header("Authrorization", "Bearer s3cr3t"))`
-    * ```Ok("<h2>This will have an html content type!</h2>", `Content-Type`(`text/html`))``
+    * `POST(uri, urlForm, Header("Authorization", "Bearer s3cr3t"))`
+    * ``Ok("This will have an html content type!", `Content-Type`(`text/html`))``
+* Restate `HttpService[F]` as a `Kleisli[OptionT[F, ?], Request[F], Response[F]]`.
+* Similarly, `AuthedService[F]` as a `Kleisli[OptionT[F, ?], AuthedRequest[F], Response[F]]`.
+* `MaybeResponse` is removed, because the optionality is now expressed through
+  the `OptionT` in `HttpService`. Instead of composing `HttpService` via a
+  `Semigroup`, compose via a `SemigroupK`. Import `org.http4s.implicits._` to
+  get a `SemigroupK[HttpService]`, and chain services as `s1 <+> s2`. We hope to
+  remove the need for `org.http4s.implicits._` in a future version of cats with
+  [issue 1428](https://github.com/typelevel/cats/issues/1428).
+* The `Service` type alias is deprecated in favor of `Kleisli`.  It used to represent
+  a partial application of the first type parameter, but since version 0.18, it is
+  identical to `Kleisli.
+* `HttpService.lift`, `AuthedService.lift` are deprecated in favor of `Kleisli.apply`.
+* Remove `java.xml.bind` dependency from `GZip` middleware to avoid an
+  extra module dependency in Java 9.
 * Upgraded dependencies:
     * jawn-fs2-0.12.0-M2
 
-# v0.17.3
+# v0.17.3 (2017-10-02)
 * Shift execution of HttpService to the `ExecutionContext` provided by the
   `BlazeBuilder` when using HTTP/2. Previously, it only shifted the response
   task and body stream.
