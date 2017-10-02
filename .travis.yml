@@ -32,7 +32,7 @@ before_script:
   - decrypt_deploy_key
   - decrypt_pgp_secrets
   - configure_git
-  - "[ $TRAVIS_PULL_REQUEST = 'false' ] && git checkout -qf $TRAVIS_BRANCH"
+  - "if [[ $TRAVIS_PULL_REQUEST = 'false' ]]; then git checkout -qf $TRAVIS_BRANCH; fi"
 script:
   - sbt ++$TRAVIS_SCALA_VERSION ci
 
