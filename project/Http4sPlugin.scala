@@ -1,13 +1,14 @@
 package org.http4s.build
 
-import sbt._, Keys._
-
-import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
-import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin, ScalafmtCorePlugin.autoImport._
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
+import com.typesafe.tools.mima.plugin.MimaPlugin
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import sbt._
+import sbt.Keys._
 import sbtrelease._
 import sbtrelease.ReleasePlugin.autoImport._
-import scala.util.Properties.envOrNone
-import verizon.build.RigPlugin, RigPlugin._
+import verizon.build.RigPlugin
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {

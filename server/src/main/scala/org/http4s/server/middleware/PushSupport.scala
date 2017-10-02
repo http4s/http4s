@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats._
+import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import org.log4s.getLogger
 
@@ -51,27 +52,29 @@ object PushSupport {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route
-            .flatMapF {
-              case response: Response[F] =>
-                response.attributes
-                  .get(pushLocationKey)
-                  .map { pushed =>
-                    collectResponse(pushed, req, verify, route)
-                      .map(accumulated ++ _ :+ PushResponse(v.location, response))
-                  }
-                  .getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
-              case Pass() =>
-                F.pure(Vector.empty[PushResponse[F]])
-            }
-            .apply(newReq)
-          catch { case t: Throwable => handleException(t); facc }
+          try {
+            route
+              .mapF[OptionT[F, ?], Vector[PushResponse[F]]] {
+                _.semiflatMap { response =>
+                  response.attributes
+                    .get(pushLocationKey)
+                    .map { pushed =>
+                      collectResponse(pushed, req, verify, route).map(
+                        accumulated ++ _ :+ PushResponse(v.location, response))
+                    }
+                    .getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
+                }
+              }
+              .apply(newReq)
+              .getOrElse(Vector.empty[PushResponse[F]])
+          } catch { case t: Throwable => handleException(t); facc }
         } else {
           try route
-            .flatMapF { resp => // Need to make sure to catch exceptions
-              facc.map(_ :+ PushResponse(v.location, resp.orNotFound))
+            .flatMapF { response =>
+              OptionT.liftF(facc.map(_ :+ PushResponse(v.location, response)))
             }
             .apply(newReq)
+            .getOrElse(Vector.empty[PushResponse[F]])
           catch { case t: Throwable => handleException(t); facc }
         }
       } else facc
@@ -87,12 +90,11 @@ object PushSupport {
       service: HttpService[F],
       verify: String => Boolean = _ => true): HttpService[F] = {
 
-    def gather(req: Request[F], resp: Response[F]): Response[F] =
+    def gather(req: Request[F])(resp: Response[F]): Response[F] =
       resp.attributes
         .get(pushLocationKey)
         .map { fresource =>
-          val collected: F[Vector[PushResponse[F]]] =
-            collectResponse(fresource, req, verify, service)
+          val collected = collectResponse(fresource, req, verify, service)
           resp.copy(
             body = resp.body,
             attributes = resp.attributes.put(pushResponsesKey[F], collected)
@@ -100,9 +102,7 @@ object PushSupport {
         }
         .getOrElse(resp)
 
-    Service.lift { req =>
-      service(req).map(_.cata(gather(req, _), Pass()))
-    }
+    Kleisli(req => service(req).map(gather(req)))
   }
 
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)

@@ -37,7 +37,7 @@ We'll need the following imports to get started:
 
 ```tut:book
 import cats.effect._
-import org.http4s._, org.http4s.dsl.io._
+import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
@@ -68,7 +68,7 @@ and experiment directly in the REPL.
 ```tut
 val getRoot = Request[IO](Method.GET, uri("/"))
 
-val io = service.run(getRoot)
+val io = service.orNotFound.run(getRoot)
 ```
 
 Where is our `Response[F]`?  It hasn't been created yet.  We wrapped it
@@ -110,7 +110,7 @@ service:
 ```tut:book
 HttpService[IO] {
   case _ => Ok()
-}.run(getRoot).unsafeRunSync
+}.orNotFound.run(getRoot).unsafeRunSync
 ```
 
 This syntax works for other status codes as well.  In our example, we
@@ -120,7 +120,7 @@ response:
 ```tut:book
 HttpService[IO] {
   case _ => NoContent()
-}.run(getRoot).unsafeRunSync
+}.orNotFound.run(getRoot).unsafeRunSync
 ```
 
 ### Headers
@@ -357,7 +357,7 @@ val dailyWeatherService = HttpService[IO] {
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
-println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService(_)).unsafeRunSync)
+println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
 ```
 
 ### Handling query parameters

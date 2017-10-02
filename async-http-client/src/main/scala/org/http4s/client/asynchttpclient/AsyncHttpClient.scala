@@ -2,14 +2,14 @@ package org.http4s
 package client
 package asynchttpclient
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.effect.implicits._
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2._
 import fs2.Stream._
+import fs2._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
 import java.nio.ByteBuffer
-import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{
@@ -17,6 +17,7 @@ import org.asynchttpclient.request.body.generator.{
   ByteArrayBodyGenerator,
   ReactiveStreamsBodyGenerator
 }
+import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.util.threads._
 import org.reactivestreams.Publisher
 import scala.collection.JavaConverters._
@@ -45,7 +46,7 @@ object AsyncHttpClient {
       ec: ExecutionContext): Client[F] = {
     val client = new DefaultAsyncHttpClient(config)
     Client(
-      Service.lift { req: Request[F] =>
+      Kleisli { req =>
         F.async[DisposableResponse[F]] { cb =>
           client.executeRequest(toAsyncRequest(req), asyncHandler(cb))
           ()

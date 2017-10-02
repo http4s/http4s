@@ -38,7 +38,7 @@ class AuthenticationSpec extends Http4sSpec {
 
   val service = AuthedService[IO, String] {
     case GET -> Root as user => Ok(user)
-    case req as _ => Response.notFound(req)
+    case req as _ => Response.notFoundFor(req)
   }
 
   val basicAuthMiddleware = BasicAuth(realm, validatePassword _)

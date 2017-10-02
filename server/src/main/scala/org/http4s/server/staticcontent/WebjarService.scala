@@ -2,9 +2,8 @@ package org.http4s
 package server
 package staticcontent
 
-import cats._
-import cats.effect._
-import cats.implicits._
+import cats.data.{Kleisli, OptionT}
+import cats.effect.Sync
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -52,15 +51,16 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply[F[_]: Monad: Sync](config: Config[F]): HttpService[F] = Service {
+  def apply[F[_]: Sync](config: Config[F]): HttpService[F] = Kleisli {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
-      Option(request.pathInfo)
+      OptionT
+        .pure[F](request.pathInfo)
         .map(sanitize)
-        .flatMap(toWebjarAsset)
+        .subflatMap(toWebjarAsset)
         .filter(config.filter)
-        .map(serveWebjarAsset(config, request))
-        .getOrElse(Pass.pure[F])
+        .flatMap(serveWebjarAsset(config, request)(_))
+    case _ => OptionT.none
   }
 
   /**
@@ -87,9 +87,8 @@ object WebjarService {
     * @return Either the the Asset, if it exist, or Pass
     */
   private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])(
-      webjarAsset: WebjarAsset): F[MaybeResponse[F]] =
+      webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))
-      .fold(Pass.pure[F])(config.cacheStrategy.cache(request.pathInfo, _).widen[MaybeResponse[F]])
-      .flatten
+      .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
 }

@@ -1,8 +1,7 @@
 package org.http4s.server.middleware.authentication
 
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
-import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.AuthMiddleware
@@ -14,11 +13,11 @@ class AuthMiddlewareSpec extends Http4sSpec {
   "AuthMiddleware" should {
     "fall back to onAuthFailure when authentication returns a Either.Left" in {
 
-      val authUser: Service[IO, Request[IO], Either[String, User]] =
-        Kleisli(_ => IO.pure(Left("Unauthorized")))
+      val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
+        Kleisli.pure(Left("Unauthorized"))
 
       val onAuthFailure: AuthedService[IO, String] =
-        Kleisli(req => Forbidden(req.authInfo).widen[MaybeResponse[IO]])
+        Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 
       val authedService: AuthedService[IO, User] =
         AuthedService {
@@ -37,11 +36,11 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
       val userId: User = 42
 
-      val authUser: Service[IO, Request[IO], Either[String, User]] =
-        Kleisli(_ => IO.pure(Right(userId)))
+      val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
+        Kleisli.pure(Right(userId))
 
       val onAuthFailure: AuthedService[IO, String] =
-        Kleisli(req => Forbidden(req.authInfo).widen[MaybeResponse[IO]])
+        Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 
       val authedService: AuthedService[IO, User] =
         AuthedService {
@@ -55,14 +54,15 @@ class AuthMiddlewareSpec extends Http4sSpec {
       service.orNotFound(Request[IO]()) must returnStatus(Ok)
       service.orNotFound(Request[IO]()) must returnBody("42")
     }
+
     "not find a route if requested with the wrong verb inside an authenticated route" in {
       val userId: User = 42
 
-      val authUser: Service[IO, Request[IO], Either[String, User]] =
-        Kleisli(_ => IO.pure(Right(userId)))
+      val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
+        Kleisli.pure(Right(userId))
 
       val onAuthFailure: AuthedService[IO, String] =
-        Kleisli(req => Forbidden(req.authInfo).widen[MaybeResponse[IO]])
+        Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 
       val authedService: AuthedService[IO, User] =
         AuthedService {

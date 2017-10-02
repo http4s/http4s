@@ -13,9 +13,9 @@ import org.log4s.getLogger
 
 /**
   * Represents a HTTP Message. The interesting subclasses are Request and
-  * Response while most of the functionality is found in [[MessageSyntax]] and
+  * Response while most of the functionality is found in [[MessageOps]] and
   * [[ResponseOps]]
-  * @see [[MessageSyntax]], [[ResponseOps]]
+  * @see [[MessageOps]], [[ResponseOps]]
   */
 sealed trait Message[F[_]] extends MessageOps[F] { self =>
   type Self <: Message[F] { type Self = self.Self }
@@ -34,14 +34,6 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
       case cs =>
         body.through(util.decode(cs))
     }
-
-  /** True if and only if the body is composed solely of Emits and Halt. This
-    * indicates that the body can be re-run without side-effects. */
-  // TODO fs2 port need to replace unemit
-  /*
-  def isBodyPure: Boolean =
-    body.unemit._2.isHalt
-   */
 
   def attributes: AttributeMap
 
@@ -302,13 +294,6 @@ sealed abstract case class Request[F[_]](
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers.redactSensitive()})"""
 
-  // A request is idempotent if and only if its method is idempotent and its body
-  // is pure.  If true, this request can be submitted multipe times.
-  // TODO fs2 port uncomment when isBodyPure is back
-  /*
-  def isIdempotent: Boolean =
-    method.isIdempotent && isBodyPure
- */
 }
 
 object Request {
@@ -340,57 +325,6 @@ object Request {
   }
 }
 
-/** Represents that a service either returns a [[Response]] or a [[Pass]] to
-  * fall through to another service.
-  */
-sealed trait MaybeResponse[F[_]] {
-  def cata[A](f: Response[F] => A, a: => A): A =
-    this match {
-      case r: Response[F] => f(r)
-      case _: Pass[F] => a
-    }
-
-  def orElse[B >: Response[F]](b: => B): B =
-    this match {
-      case r: Response[F] => r
-      case _: Pass[F] => b
-    }
-
-  def orNotFound: Response[F] =
-    orElse(Response(Status.NotFound))
-
-  def toOption: Option[Response[F]] =
-    cata(Some(_), None)
-}
-
-object MaybeResponse extends MaybeResponseInstances
-
-trait MaybeResponseInstances {
-  implicit def http4sMonoidForMaybeResponse[F[_]]: Monoid[MaybeResponse[F]] =
-    new Monoid[MaybeResponse[F]] {
-      def empty =
-        Pass()
-      def combine(a: MaybeResponse[F], b: MaybeResponse[F]) =
-        a.orElse(b)
-    }
-
-  implicit def http4sMonoidForFMaybeResponse[F[_]](
-      implicit F: Monad[F]): Monoid[F[MaybeResponse[F]]] =
-    new Monoid[F[MaybeResponse[F]]] {
-      override def empty =
-        Pass.pure[F]
-
-      override def combine(fa: F[MaybeResponse[F]], fb: F[MaybeResponse[F]]) =
-        fa.flatMap(_.cata(F.pure, fb))
-    }
-}
-
-final case class Pass[F[_]]() extends MaybeResponse[F]
-
-object Pass {
-  def pure[F[_]](implicit F: Applicative[F]): F[MaybeResponse[F]] = F.pure(Pass[F]())
-}
-
 /** Representation of the HTTP response to send back to the client
   *
   * @param status [[Status]] code and message
@@ -406,7 +340,6 @@ final case class Response[F[_]](
     body: EntityBody[F] = EmptyBody,
     attributes: AttributeMap = AttributeMap.empty)
     extends Message[F]
-    with MaybeResponse[F]
     with ResponseOps[F] {
   type Self = Response[F]
 
@@ -427,8 +360,6 @@ final case class Response[F[_]](
     s"""Response(status=${status.code}, headers=$newHeaders)"""
   }
 
-  def asMaybeResponse: MaybeResponse[F] = this
-
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion. */
@@ -437,9 +368,11 @@ final case class Response[F[_]](
 }
 
 object Response {
-  def notFound[F[_]](
-      request: Request[F])(implicit F: Monad[F], EE: EntityEncoder[F, String]): F[Response[F]] = {
-    val body = s"${request.pathInfo} not found"
-    Response[F](Status.NotFound).withBody(body)
-  }
+  private[this] val notFoundBody = Stream("Not found").through(text.utf8Encode)
+
+  def notFound[F[_]]: Response[F] = Response(Status.NotFound, body = notFoundBody)
+
+  def notFoundFor[F[_]: Monad](request: Request[F])(
+      implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
+    Response(Status.NotFound).withBody(s"${request.pathInfo} not found")
 }

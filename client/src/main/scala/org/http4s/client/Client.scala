@@ -2,6 +2,7 @@ package org.http4s
 package client
 
 import cats._
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -46,7 +47,7 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
   *                 open connections and freeing resources
   */
 final case class Client[F[_]](
-    open: Service[F, Request[F], DisposableResponse[F]],
+    open: Kleisli[F, Request[F], DisposableResponse[F]],
     shutdown: F[Unit])(implicit F: MonadError[F, Throwable]) {
 
   /** Submits a request, and provides a callback to process the response.
@@ -72,15 +73,19 @@ final case class Client[F[_]](
     req.flatMap(fetch(_)(f))
 
   /**
-    * Returns this client as a [[Service]].  All connections created by this
+    * Returns this client as a [[Kleisli]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
     * This method effectively reverses the arguments to `fetch`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
-  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
+  def toKleisli[A](f: Response[F] => F[A]): Kleisli[F, Request[F], A] =
     open.flatMapF(_.apply(f))
+
+  @deprecated("Use toKleisli", "0.18")
+  def toService[A](f: Response[F] => F[A]): Service[F, Request[F], A] =
+    toKleisli(f)
 
   /**
     * Returns this client as an [[HttpService]].  It is the responsibility of
@@ -88,14 +93,16 @@ final case class Client[F[_]](
     * underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
-    * [[toService]], and [[streaming]] are safer alternatives, as their
+    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpService: HttpService[F] =
-    open.map {
-      case DisposableResponse(response, dispose) =>
-        response.copy(body = response.body.onFinalize(dispose))
-    }
+    open
+      .map {
+        case DisposableResponse(response, dispose) =>
+          response.copy(body = response.body.onFinalize(dispose))
+      }
+      .mapF(OptionT.liftF(_))
 
   def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream
@@ -269,12 +276,11 @@ object Client {
         .through(killable("client was shut down", isShutdown))
     }
 
-    def disposableService(service: HttpService[F]): Service[F, Request[F], DisposableResponse[F]] =
-      Service.lift { req: Request[F] =>
+    def disposableService(service: HttpService[F]): Kleisli[F, Request[F], DisposableResponse[F]] =
+      Kleisli { req: Request[F] =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.withBodyStream(interruptible(req.body, disposed))
-        service(req0).map { maybeResp =>
-          val resp = maybeResp.orNotFound
+        service(req0).getOrElse(Response.notFound).map { resp =>
           DisposableResponse(
             resp.copy(body = interruptible(resp.body, disposed)),
             F.delay(disposed.set(true))

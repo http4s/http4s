@@ -144,8 +144,8 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
 
     "Dispose of original response when redirecting" in {
       var disposed = 0
-      val disposingService = service.map { mr =>
-        DisposableResponse(mr.orNotFound, IO(disposed = disposed + 1))
+      val disposingService = service.orNotFound.map { mr =>
+        DisposableResponse(mr, IO { disposed = disposed + 1; () })
       }
       val client = FollowRedirect(3)(Client(disposingService, IO.unit))
       client.expect[String](uri("http://localhost/301")).unsafeRunSync()

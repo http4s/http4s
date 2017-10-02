@@ -2,6 +2,7 @@ package org.http4s
 package client
 package middleware
 
+import cats.data.Kleisli
 import cats.effect.Async
 import cats.implicits._
 import fs2._
@@ -66,7 +67,7 @@ object Retry {
       scheduler.sleep_[F](sleepDuration).run >> prepareLoop(req.withEmptyBody, attempts + 1)
     }
 
-    client.copy(open = Service.lift(prepareLoop(_, 1)))
+    client.copy(open = Kleisli(prepareLoop(_, 1)))
   }
 }
 

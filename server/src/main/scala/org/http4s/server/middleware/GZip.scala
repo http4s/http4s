@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats._
+import cats.data.Kleisli
 import fs2._
 import fs2.Stream._
 import fs2.compress._
@@ -20,7 +21,7 @@ object GZip {
       service: HttpService[F],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION): HttpService[F] =
-    Service.lift { req: Request[F] =>
+    Kleisli { req =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
           service.map(zipOrPass(_, bufferSize, level)).apply(req)
@@ -33,13 +34,12 @@ object GZip {
       ContentCoding.`x-gzip`)
 
   private def zipOrPass[F[_]: Functor](
-      response: MaybeResponse[F],
+      response: Response[F],
       bufferSize: Int,
-      level: Int): MaybeResponse[F] =
+      level: Int): Response[F] =
     response match {
-      case resp: Response[F] if isZippable(resp) => zipResponse(bufferSize, level, resp)
-      case resp: Response[F] => resp // Don't touch it, Content-Encoding already set
-      case Pass() => Pass()
+      case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
+      case resp => resp // Don't touch it, Content-Encoding already set
     }
 
   private def isZippable[F[_]](resp: Response[F]): Boolean = {

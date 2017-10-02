@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.OptionT
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -22,15 +23,8 @@ object Timeout {
   private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(
       implicit executionContext: ExecutionContext): HttpService[F] =
     service.mapF { resp =>
-      async.race(resp, timeoutResponse).map(_.merge)
+      OptionT(async.race(resp.value, timeoutResponse.map(_.some)).map(_.merge))
     }
-
-  /** Creates an `F` that is scheduled to return `response` after `timeout`.
-    */
-  private def delay[F[_]: Effect](duration: FiniteDuration, response: F[Response[F]])(
-      implicit executionContext: ExecutionContext,
-      scheduler: Scheduler): F[Response[F]] =
-    scheduler.sleep_[F](duration).run.followedBy(response)
 
   /** Transform the service to return a timeout response [[Status]]
     * after the supplied duration if the service response is not yet
@@ -46,7 +40,7 @@ object Timeout {
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpService[F] =
     timeout match {
-      case fd: FiniteDuration => race(delay(fd, response))(service)
+      case fd: FiniteDuration => race(scheduler.effect.delay(response, fd))(service)
       case _ => service
     }
 

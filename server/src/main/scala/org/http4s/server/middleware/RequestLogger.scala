@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -21,11 +22,12 @@ object RequestLogger {
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
   )(service: HttpService[F])(
       implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
-    Service.lift { req =>
+    Kleisli { req =>
       if (!logBody)
-        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) >> service(req)
+        OptionT(
+          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) >> service(req).value)
       else
-        async.unboundedQueue[F, Byte].flatMap { queue =>
+        OptionT.liftF(async.unboundedQueue[F, Byte]).flatMap { queue =>
           val newBody =
             Stream
               .eval(queue.size.get)

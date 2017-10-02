@@ -1,9 +1,10 @@
 package org.http4s
 package server
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse
+import org.http4s.instances.kleisli._
 
 object Router {
 
@@ -26,12 +27,12 @@ object Router {
       default: HttpService[F]): HttpService[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, service)) =>
-        if (prefix.isEmpty || prefix == "/") service |+| acc
+        if (prefix.isEmpty || prefix == "/") service <+> acc
         else
-          HttpService.lift { req =>
+          Kleisli { req =>
             (
               if (req.pathInfo.startsWith(prefix))
-                translate(prefix)(service) |+| acc
+                translate(prefix)(service) <+> acc
               else
                 acc
             )(req)

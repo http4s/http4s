@@ -6,6 +6,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
+import org.http4s.instances.kleisli._
 
 class CORSSpec extends Http4sSpec {
 
@@ -138,7 +139,7 @@ class CORSSpec extends Http4sSpec {
       val req = buildRequest("/2")
       val s1 = CORS(HttpService[IO] { case GET -> Root / "1" => Ok() })
       val s2 = CORS(HttpService[IO] { case GET -> Root / "2" => Ok() })
-      (s1 |+| s2).orNotFound(req) must returnStatus(Ok)
+      (s1 <+> s2).orNotFound(req) must returnStatus(Ok)
     }
   }
 }
