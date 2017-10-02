@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import org.http4s.Status.{BadRequest, NotFound}
 import org.http4s.headers.Host
 
@@ -61,7 +61,7 @@ object VirtualHost {
   def apply[F[_]](first: HostService[F], rest: HostService[F]*)(
       implicit F: Monad[F],
       W: EntityEncoder[F, String]): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       req.headers
         .get(Host)
         .fold(OptionT.liftF(Response[F](BadRequest).withBody("Host header required."))) { h =>

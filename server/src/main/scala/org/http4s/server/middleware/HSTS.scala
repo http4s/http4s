@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats._
+import cats.data.Kleisli
 import org.http4s.headers.`Strict-Transport-Security`
 import scala.concurrent.duration._
 
@@ -21,7 +22,7 @@ object HSTS {
 
   def apply[F[_]: Functor](
       service: HttpService[F],
-      header: `Strict-Transport-Security`): HttpService[F] = HttpService.liftF { req =>
+      header: `Strict-Transport-Security`): HttpService[F] = Kleisli { req =>
     service.map(_.putHeaders(header)).apply(req)
   }
 

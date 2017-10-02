@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import fs2.Stream._
 import fs2._
 import java.nio.charset.StandardCharsets
@@ -28,7 +28,7 @@ object Jsonp {
 
   def apply[F[_]: Monad](callbackParam: String)(service: HttpService[F])(
       implicit W: EntityEncoder[F, String]): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       req.params.get(callbackParam) match {
         case Some(ValidCallback(callback)) =>
           service(req).map { response =>

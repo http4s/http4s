@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
@@ -40,7 +40,7 @@ object CORS {
     */
   def apply[F[_]](service: HttpService[F], config: CORSConfig = DefaultCORSConfig)(
       implicit F: Applicative[F]): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header, acrm: Header): Response[F] =
         corsHeaders(origin.value, acrm.value, isPreflight = true)(Response())

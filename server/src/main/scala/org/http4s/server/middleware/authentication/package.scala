@@ -10,7 +10,7 @@ package object authentication {
   def challenged[F[_], A](
       challenge: Kleisli[F, Request[F], Either[Challenge, AuthedRequest[F, A]]])(
       service: AuthedService[F, A])(implicit F: Sync[F]): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       challenge
         .mapF(OptionT.liftF(_))
         .run(req)

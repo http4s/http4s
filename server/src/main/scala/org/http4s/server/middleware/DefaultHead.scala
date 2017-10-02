@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats._
+import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.instances.kleisli._
 
@@ -15,7 +16,7 @@ import org.http4s.instances.kleisli._
   */
 object DefaultHead {
   def apply[F[_]: Monad](service: HttpService[F]): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       req.method match {
         case Method.HEAD =>
           (service <+> headAsTruncatedGet(service))(req)
@@ -25,7 +26,7 @@ object DefaultHead {
     }
 
   private def headAsTruncatedGet[F[_]: Functor](service: HttpService[F]): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       val getReq = req.withMethod(Method.GET)
       service(getReq).map(response => response.copy(body = response.body.drain))
     }

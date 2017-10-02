@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -22,7 +23,7 @@ object ResponseLogger {
   )(service: HttpService[F])(
       implicit F: Effect[F],
       ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
-    HttpService.liftF { req =>
+    Kleisli { req =>
       service(req).semiflatMap { response =>
         if (!logBody)
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(

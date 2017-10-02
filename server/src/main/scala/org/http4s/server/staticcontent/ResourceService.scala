@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import scala.concurrent.ExecutionContext
 
@@ -27,7 +27,7 @@ object ResourceService {
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
   private[staticcontent] def apply[F[_]: Sync](config: Config[F]): HttpService[F] =
-    HttpService.liftF {
+    Kleisli {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         StaticFile
           .fromResource(

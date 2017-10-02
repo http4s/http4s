@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
@@ -15,7 +15,7 @@ import cats.effect._
 object UrlFormLifter {
 
   def apply[F[_]: Sync](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
-    HttpService.liftF[F] { req =>
+    Kleisli { req =>
       def addUrlForm(form: UrlForm): OptionT[F, Response[F]] = {
         val flatForm = form.values.toVector.flatMap { case (k, vs) => vs.map(v => (k, Some(v))) }
         val params = req.uri.query.toVector ++ flatForm: Vector[(String, Option[String])]

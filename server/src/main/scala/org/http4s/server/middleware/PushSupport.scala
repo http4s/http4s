@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.implicits._
 import org.log4s.getLogger
 
@@ -102,9 +102,7 @@ object PushSupport {
         }
         .getOrElse(resp)
 
-    HttpService.liftF { req =>
-      service(req).map(gather(req))
-    }
+    Kleisli(req => service(req).map(gather(req)))
   }
 
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)

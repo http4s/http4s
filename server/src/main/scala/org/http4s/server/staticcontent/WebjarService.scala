@@ -2,7 +2,7 @@ package org.http4s
 package server
 package staticcontent
 
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 
 /**
@@ -51,7 +51,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply[F[_]: Sync](config: Config[F]): HttpService[F] = HttpService.liftF {
+  def apply[F[_]: Sync](config: Config[F]): HttpService[F] = Kleisli {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       OptionT

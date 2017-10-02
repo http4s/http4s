@@ -26,7 +26,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
   "ChunkAggregator" should {
     def checkResponse(body: EntityBody[IO], transferCodings: List[TransferCoding])(
         responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] = {
-      val service: HttpService[IO] = HttpService.liftF { _ =>
+      val service: HttpService[IO] = Kleisli { _ =>
         OptionT.liftF(
           Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
             .map(_.removeHeader(`Content-Length`)))
