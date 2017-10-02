@@ -2,6 +2,7 @@ package org.http4s
 package server
 package metrics
 
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import com.codahale.metrics.MetricRegistry
@@ -56,14 +57,14 @@ object Metrics {
     }
 
     def onFinish(method: Method, start: Long)(
-        r: Either[Throwable, MaybeResponse[F]]): Either[Throwable, MaybeResponse[F]] = {
+        r: Either[Throwable, Option[Response[F]]]): Either[Throwable, Option[Response[F]]] = {
       val elapsed = System.nanoTime() - start
 
       r.map { r =>
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-          val code = r.cata(_.status, Status.NotFound).code
+          val code = r.fold(Status.NotFound)(_.status).code
 
-          def capture(body: EntityBody[F]) =
+          def capture(body: EntityBody[F]): EntityBody[F] =
             body
               .onFinalize {
                 F.delay {
@@ -79,7 +80,7 @@ object Metrics {
                 abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
                 Stream.fail(cause)
               }
-          r.cata(resp => resp.copy(body = capture(resp.body)), r)
+          r.map(resp => resp.copy(body = capture(resp.body)))
         }
         .leftMap { e =>
           generalMetrics(method, elapsed)
@@ -89,10 +90,14 @@ object Metrics {
         }
     }
 
-    Service.lift { req: Request[F] =>
+    Kleisli { req =>
       val now = System.nanoTime()
       active_requests.inc()
-      service(req).attempt.flatMap(onFinish(req.method, now)(_).fold(F.raiseError, F.pure))
+      OptionT {
+        service(req).value.attempt
+          .flatMap(onFinish(req.method, now)(_)
+            .fold[F[Option[Response[F]]]](F.raiseError, F.pure))
+      }
     }
   }
 }

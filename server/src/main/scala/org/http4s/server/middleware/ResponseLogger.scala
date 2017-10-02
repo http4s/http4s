@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -10,7 +11,7 @@ import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 
 /**
-  * Simple Middleware for Logging Responses As They Are Processed
+  * Simple middleware for logging responses as they are processed
   */
 object ResponseLogger {
   private[this] val logger = getLogger
@@ -22,30 +23,28 @@ object ResponseLogger {
   )(service: HttpService[F])(
       implicit F: Effect[F],
       ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
-    Service.lift { req =>
-      service(req).flatMap {
-        case Pass() => Pass.pure
-        case response: Response[F] =>
-          if (!logBody)
-            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              logger) >> F.delay(response)
-          else
-            async.unboundedQueue[F, Byte].map { queue =>
-              val newBody = Stream
-                .eval(queue.size.get)
-                .flatMap(size => queue.dequeue.take(size.toLong))
+    Kleisli { req =>
+      service(req).semiflatMap { response =>
+        if (!logBody)
+          Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
+            logger) >> F.delay(response)
+        else
+          async.unboundedQueue[F, Byte].map { queue =>
+            val newBody = Stream
+              .eval(queue.size.get)
+              .flatMap(size => queue.dequeue.take(size.toLong))
 
-              response.copy(
-                body = response.body
-                  .observe(queue.enqueue)
-                  .onFinalize {
-                    Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen)(logger)
-                  }
-              )
-            }
+            response.copy(
+              body = response.body
+                .observe(queue.enqueue)
+                .onFinalize {
+                  Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
+                    logHeaders,
+                    logBody,
+                    redactHeadersWhen)(logger)
+                }
+            )
+          }
       }
     }
 }

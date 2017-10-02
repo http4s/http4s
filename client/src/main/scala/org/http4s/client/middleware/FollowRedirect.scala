@@ -3,6 +3,7 @@ package client
 package middleware
 
 import cats._
+import cats.data.Kleisli
 import cats.implicits._
 import fs2._
 import org.http4s.Method._
@@ -147,6 +148,6 @@ object FollowRedirect {
       }
     }
 
-    client.copy(open = Service.lift(prepareLoop(_, 0)))
+    client.copy(open = Kleisli(prepareLoop(_, 0)))
   }
 }

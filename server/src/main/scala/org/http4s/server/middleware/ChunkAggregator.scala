@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats.Functor
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, OptionT}
 import cats.effect.Sync
 import cats.implicits._
 import fs2._
@@ -14,17 +14,16 @@ import scodec.bits.ByteVector
 
 object ChunkAggregator {
   def apply[F[_]](service: HttpService[F])(implicit F: Sync[F]): HttpService[F] =
-    service.flatMapF[MaybeResponse[F]] {
-      case Pass() => Pass.pure
-      case response: Response[F] =>
-        response.body.runFold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap { fullBody =>
+    service.flatMapF { response =>
+      OptionT.liftF(response.body.runFold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap {
+        fullBody =>
           if (fullBody.nonEmpty)
             response
               .withBody(ByteVectorChunk(fullBody): Chunk[Byte])
               .map(removeChunkedTransferEncoding)
           else
             F.pure(response)
-        }
+      })
     }
 
   private def removeChunkedTransferEncoding[F[_]: Functor]: Response[F] => Response[F] =

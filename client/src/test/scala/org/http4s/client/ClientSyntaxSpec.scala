@@ -37,7 +37,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       disposed = true
       ()
     }
-    val disposingClient = Client(route.map(r => DisposableResponse(r.orNotFound, dispose)), IO.unit)
+    val disposingClient = Client(route.orNotFound.map(r => DisposableResponse(r, dispose)), IO.unit)
     f(disposingClient).attempt.unsafeRunSync()
     disposed must beTrue
   }
@@ -227,21 +227,21 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "toService disposes of the response on success" in {
-      assertDisposes(_.toService(_ => IO.pure(())).run(req))
+      assertDisposes(_.toKleisli(_ => IO.pure(())).run(req))
     }
 
     "toService disposes of the response on failure" in {
-      assertDisposes(_.toService(_ => IO.raiseError(SadTrombone)).run(req))
+      assertDisposes(_.toKleisli(_ => IO.raiseError(SadTrombone)).run(req))
     }
 
     "toHttpService disposes the response if the body is run" in {
-      assertDisposes(_.toHttpService.flatMapF(_.orNotFound.body.run).run(req))
+      assertDisposes(_.toHttpService.orNotFound.flatMapF(_.body.run).run(req))
     }
 
     "toHttpService disposes of the response if the body is run, even if it fails" in {
       assertDisposes(
-        _.toHttpService
-          .flatMapF(_.orNotFound.body.flatMap(_ => Stream.fail(SadTrombone)).run)
+        _.toHttpService.orNotFound
+          .flatMapF(_.body.flatMap(_ => Stream.fail(SadTrombone)).run)
           .run(req))
     }
 

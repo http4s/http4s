@@ -27,6 +27,7 @@ and some imports.
 import cats.effect._
 import cats.implicits._
 import org.http4s._
+import org.http4s.implicits._
 import org.http4s.dsl.io._
 ```
 
@@ -65,8 +66,8 @@ val service = HttpService[IO] {
 val goodRequest = Request[IO](Method.GET, uri("/"))
 val badRequest = Request[IO](Method.GET, uri("/bad"))
 
-service(goodRequest).unsafeRunSync
-service(badRequest).unsafeRunSync
+service.orNotFound(goodRequest).unsafeRunSync
+service.orNotFound(badRequest).unsafeRunSync
 ```
 
 Now, we'll wrap the service in our middleware to create a new service, and try it out.
@@ -74,8 +75,8 @@ Now, we'll wrap the service in our middleware to create a new service, and try i
 ```tut:book
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
 
-wrappedService(goodRequest).unsafeRunSync
-wrappedService(badRequest).unsafeRunSync
+wrappedService.orNotFound(goodRequest).unsafeRunSync
+wrappedService.orNotFound(badRequest).unsafeRunSync
 ```
 
 Note that the successful response has your header added to it.
@@ -85,8 +86,8 @@ it as an `object` and use the `apply` method.
 
 ```tut:book
 object MyMiddle {
-  def addHeader(mResp: MaybeResponse[IO], header: Header) =
-    mResp match {
+  def addHeader(resp: Response[IO], header: Header) =
+    resp match {
       case Status.Successful(resp) => resp.putHeaders(header)
       case resp => resp
     }
@@ -97,8 +98,8 @@ object MyMiddle {
 
 val newService = MyMiddle(service, Header("SomeKey", "SomeValue"))
 
-newService(goodRequest).unsafeRunSync
-newService(badRequest).unsafeRunSync
+newService.orNotFound(goodRequest).unsafeRunSync
+newService.orNotFound(badRequest).unsafeRunSync
 ```
 
 It is possible for the wrapped `Service` to have different `Request` and `Response`
@@ -123,12 +124,12 @@ val apiService = HttpService[IO] {
     Ok()
 }
 
-val aggregateService = apiService |+| MyMiddle(service, Header("SomeKey", "SomeValue"))
+val aggregateService = apiService <+> MyMiddle(service, Header("SomeKey", "SomeValue"))
 
 val apiRequest = Request[IO](Method.GET, uri("/api"))
 
-aggregateService(goodRequest).unsafeRunSync
-aggregateService(apiRequest).unsafeRunSync
+aggregateService.orNotFound(goodRequest).unsafeRunSync
+aggregateService.orNotFound(apiRequest).unsafeRunSync
 ```
 
 Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` had

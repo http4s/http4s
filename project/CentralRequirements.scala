@@ -1,6 +1,7 @@
 package org.http4s.build
 
-import sbt._, Keys._
+import sbt._
+import sbt.Keys._
 import verizon.build.RigPlugin
 import xerial.sbt.Sonatype.autoImport.sonatypeProfileName
 

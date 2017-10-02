@@ -3,8 +3,9 @@ package server
 package middleware
 
 import cats._
+import cats.data.Kleisli
 import cats.implicits._
-import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse
+import org.http4s.instances.kleisli._
 
 /** Handles HEAD requests as a GET without a body.
   *
@@ -15,18 +16,18 @@ import org.http4s.Http4sInstances.http4sMonoidForFMaybeResponse
   */
 object DefaultHead {
   def apply[F[_]: Monad](service: HttpService[F]): HttpService[F] =
-    HttpService.lift { req =>
+    Kleisli { req =>
       req.method match {
         case Method.HEAD =>
-          (service |+| headAsTruncatedGet(service))(req)
+          (service <+> headAsTruncatedGet(service))(req)
         case _ =>
           service(req)
       }
     }
 
   private def headAsTruncatedGet[F[_]: Functor](service: HttpService[F]): HttpService[F] =
-    HttpService.lift { req =>
+    Kleisli { req =>
       val getReq = req.withMethod(Method.GET)
-      service(getReq).map(_.cata(resp => resp.copy(body = resp.body.drain), Pass()))
+      service(getReq).map(response => response.copy(body = response.body.drain))
     }
 }

@@ -5,6 +5,7 @@ import cats.data._
 import cats.effect.Sync
 import cats.implicits._
 
+@deprecated("Deprecated in favor of Kleisli", "0.18")
 object Service {
 
   /**

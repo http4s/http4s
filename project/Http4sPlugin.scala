@@ -1,20 +1,19 @@
 package org.http4s.build
 
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
+import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
 import com.typesafe.sbt.git.JGit
-import com.typesafe.tools.mima.plugin.MimaPlugin, MimaPlugin.autoImport._
-import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin, ScalafmtCorePlugin.autoImport._
-import org.eclipse.jgit.lib.Repository
-import sbt._
+import com.typesafe.tools.mima.plugin.MimaPlugin
+import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbt.Keys._
-import sbtrelease._
+import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
 import sbtrelease.ReleaseStateTransformations._
-import scoverage.ScoverageKeys.{coverageEnabled,coverageHighlighting}
-import scala.util.Properties.envOrNone
+import sbtrelease._
+import scoverage.ScoverageKeys.{coverageEnabled, coverageHighlighting}
 import verizon.build.RigPlugin
-import verizon.build.RigPlugin._
 import verizon.build.RigPlugin.autoImport._
 import verizon.build.common._
 

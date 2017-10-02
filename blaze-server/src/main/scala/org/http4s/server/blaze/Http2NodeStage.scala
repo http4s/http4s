@@ -184,17 +184,15 @@ private class Http2NodeStage[F[_]](
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
-
       executionContext.execute(new Runnable {
-        def run() =
+        def run(): Unit =
           F.runAsync {
               try service(req)
-                .recoverWith(serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]]))
-                .handleError { _ =>
-                  Response[F](InternalServerError, req.httpVersion)
-                }
-                .map(renderResponse(_))
-              catch serviceErrorHandler(req).andThen(_.widen[MaybeResponse[F]])
+                .getOrElse(Response.notFound)
+                .recoverWith(serviceErrorHandler(req))
+                .handleError(_ => Response(InternalServerError, req.httpVersion))
+                .map(renderResponse)
+              catch serviceErrorHandler(req)
             } {
               case Right(_) =>
                 IO.unit
@@ -206,8 +204,7 @@ private class Http2NodeStage[F[_]](
     }
   }
 
-  private def renderResponse(maybeResponse: MaybeResponse[F]): F[Unit] = {
-    val resp = maybeResponse.orNotFound
+  private def renderResponse(resp: Response[F]): F[Unit] = {
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
     resp.headers.foreach { h =>
