@@ -82,7 +82,7 @@
           
           
 
-<h1 id="v0-18-0-snapshot">v0.18.0-SNAPSHOT</h1>
+<h1 id="v0-18-0-m2-2017-10-03">v0.18.0-M2 (2017-10-03)</h1>
 
 <ul>
 <li>Use http4s-dsl with any effect type by either:
@@ -139,13 +139,49 @@ to all the same methods.</li>
 <li>Variadic headers have been added to all the status code generators in
 <code>Http4sDsl[F]</code> and method generators in <code>import org.http4s.client._</code>.
 For example:</li>
-<li><code>POST(uri, urlForm, Header(&quot;Authrorization&quot;, &quot;Bearer s3cr3t&quot;))</code></li>
-<li>`<code>Ok(&quot;&lt;h2&gt;This will have an html content type!&lt;/h2&gt;&quot;, `Content-Type`(`text/html`))</code></li>
+<li><code>POST(uri, urlForm, Header(&quot;Authorization&quot;, &quot;Bearer s3cr3t&quot;))</code></li>
+<li><code>Ok(&quot;This will have an html content type!&quot;, `Content-Type`(`text/html`))</code></li>
 </ul></li>
+<li>Restate <code>HttpService[F]</code> as a <code>Kleisli[OptionT[F, ?], Request[F], Response[F]]</code>.</li>
+<li>Similarly, <code>AuthedService[F]</code> as a <code>Kleisli[OptionT[F, ?], AuthedRequest[F], Response[F]]</code>.</li>
+<li><code>MaybeResponse</code> is removed, because the optionality is now expressed through
+the <code>OptionT</code> in <code>HttpService</code>. Instead of composing <code>HttpService</code> via a
+<code>Semigroup</code>, compose via a <code>SemigroupK</code>. Import <code>org.http4s.implicits._</code> to
+get a <code>SemigroupK[HttpService]</code>, and chain services as <code>s1 &lt;+&gt; s2</code>. We hope to
+remove the need for <code>org.http4s.implicits._</code> in a future version of cats with
+<a href="https://github.com/typelevel/cats/issues/1428">issue 1428</a>.</li>
+<li>The <code>Service</code> type alias is deprecated in favor of <code>Kleisli</code>.  It used to represent
+a partial application of the first type parameter, but since version 0.18, it is
+identical to `Kleisli.</li>
+<li><code>HttpService.lift</code>, <code>AuthedService.lift</code> are deprecated in favor of <code>Kleisli.apply</code>.</li>
+<li>Remove <code>java.xml.bind</code> dependency from <code>GZip</code> middleware to avoid an
+extra module dependency in Java 9.</li>
 <li>Upgraded dependencies:
 
 <ul>
 <li>jawn-fs2-0.12.0-M2</li>
+<li>log4s-1.4.0</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-17-3-2017-10-02">v0.17.3 (2017-10-02)</h1>
+
+<ul>
+<li>Shift execution of HttpService to the <code>ExecutionContext</code> provided by the
+<code>BlazeBuilder</code> when using HTTP/2. Previously, it only shifted the response
+task and body stream.</li>
+</ul>
+
+<h1 id="v0-16-3-2017-09-29">v0.16.3 (2017-09-29)</h1>
+
+<ul>
+<li>Fix <code>java.io.IOException: An invalid argument was supplied</code> on blaze-client
+for Windows when writing an empty sequence of <code>ByteBuffer</code>s.</li>
+<li>Set encoding of <code>captureWriter</code> to UTF-8 instead of the platform default.</li>
+<li>Dependency upgrades:
+
+<ul>
+<li>blaze-0.12.9</li>
 </ul></li>
 </ul>
 
