@@ -41,7 +41,7 @@ class BlazeBuilder[F[_]](
     with server.WebSocketSupport[F] {
   type Self = BlazeBuilder[F]
 
-  private[this] val logger = getLogger(classOf[BlazeBuilder[F]])
+  private[this] val logger = getLogger
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,

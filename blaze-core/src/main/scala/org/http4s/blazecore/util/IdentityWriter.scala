@@ -17,7 +17,7 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 
-  private[this] val logger = getLogger(classOf[IdentityWriter[F]])
+  private[this] val logger = getLogger
   private[this] var headers: ByteBuffer = null
 
   private var bodyBytesWritten = 0L

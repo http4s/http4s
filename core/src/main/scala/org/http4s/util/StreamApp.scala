@@ -9,7 +9,7 @@ import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 
 abstract class StreamApp[F[_]](implicit F: Effect[F]) {
-  private[this] val logger = getLogger(classOf[StreamApp[F]])
+  private[this] val logger = getLogger
 
   def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing]
 
