@@ -20,7 +20,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
 
-  private[this] val logger = getLogger(classOf[PoolManager[F, A]])
+  private[this] val logger = getLogger
 
   private var isClosed = false
   private var curTotal = 0

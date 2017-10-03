@@ -21,7 +21,7 @@ class Http4sServlet[F[_]](
     private[this] var servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
     extends HttpServlet {
-  private[this] val logger = getLogger(classOf[Http4sServlet[F]])
+  private[this] val logger = getLogger
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
 

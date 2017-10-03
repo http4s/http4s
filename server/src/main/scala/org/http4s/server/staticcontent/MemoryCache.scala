@@ -15,7 +15,7 @@ import org.log4s.getLogger
   * to avoid disk access.
   */
 class MemoryCache[F[_]] extends CacheStrategy[F] {
-  private[this] val logger = getLogger(classOf[MemoryCache[F]])
+  private[this] val logger = getLogger
   private val cacheMap = new ConcurrentHashMap[String, Response[F]]()
 
   override def cache(uriPath: String, resp: Response[F])(implicit F: Sync[F]): F[Response[F]] =

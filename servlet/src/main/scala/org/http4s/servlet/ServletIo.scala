@@ -55,7 +55,7 @@ final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends Servlet
   * operationally annoying.
   */
 final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
-  private[this] val logger = getLogger(classOf[NonBlockingServletIo[F]])
+  private[this] val logger = getLogger
 
   private[this] def rightSome[A](a: A) = Right(Some(a))
   private[this] val rightNone = Right(None)
