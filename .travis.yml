@@ -1,5 +1,9 @@
 language: scala
 dist: trusty
+branches:
+  only:
+    - master
+    - /^release-/
 jdk: oraclejdk8
 scala:
 - 2.12.3
