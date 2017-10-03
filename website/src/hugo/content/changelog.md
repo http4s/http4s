@@ -4,7 +4,7 @@ weight: 101
 title: Changelog
 ---
 
-# v0.18.0-M2 (2017-10-02)
+# v0.18.0-M2 (2017-10-03)
 * Use http4s-dsl with any effect type by either:
     * extend `Http4sDsl[F]`
     * create an object that extends `Http4sDsl[F]`, and extend that.
@@ -66,6 +66,7 @@ title: Changelog
   extra module dependency in Java 9.
 * Upgraded dependencies:
     * jawn-fs2-0.12.0-M2
+    * log4s-1.4.0
 
 # v0.17.3 (2017-10-02)
 * Shift execution of HttpService to the `ExecutionContext` provided by the
