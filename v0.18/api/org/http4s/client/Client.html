@@ -292,7 +292,7 @@ HTTP connection.">
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Client</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="open">open: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Client</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="open">open: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -301,7 +301,7 @@ HTTP connection.">
 </p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
             implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>an effect to shut down this Shutdown this client, closing any
-                open connections and freeing resources</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c3c3ef7c4cb2cba0a7379a81a6de8fa369541123/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
+                open connections and freeing resources</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/vsbt.SettingKey$$anon$4@465baf6e/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -357,9 +357,9 @@ HTTP connection.">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.client.Client#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(open:org.http4s.Service[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]],shutdown:F[Unit])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]"></a><a id="&lt;init&gt;:Client[F]"></a>
+      <a id="&lt;init&gt;(open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]],shutdown:F[Unit])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]"></a><a id="&lt;init&gt;:Client[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#&lt;init&gt;(open:org.http4s.Service[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]],shutdown:F[Unit])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#&lt;init&gt;(open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]],shutdown:F[Unit])(implicitF:cats.MonadError[F,Throwable]):org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -368,7 +368,7 @@ HTTP connection.">
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Client</span><span class="params">(<span name="open">open: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span>
+        <span class="name">Client</span><span class="params">(<span name="open">open: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
@@ -925,9 +925,9 @@ completion of the decoding.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.client.Client#open" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="open:org.http4s.Service[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]]"></a><a id="open:Service[F,Request[F],DisposableResponse[F]]"></a>
+      <a id="open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]]"></a><a id="open:Kleisli[F,Request[F],DisposableResponse[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#open:org.http4s.Service[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#open:cats.data.Kleisli[F,org.http4s.Request[F],org.http4s.client.DisposableResponse[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -936,7 +936,7 @@ completion of the decoding.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">open</span><span class="result">: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>
+        <span class="name">open</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>
       </span>
       
       
@@ -1098,19 +1098,19 @@ successful</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toHttpService</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
+        <span class="name">toHttpService</span><span class="result">: <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.Service[F,org.http4s.Request[F],org.http4s.MaybeResponse[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the responsibility of
+      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the responsibility of
 callers of this service to run the response body to dispose of the
 underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
-<a href="#toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toService">toService</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
+<a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
 signatures guarantee disposal of the HTTP connection.
 </p></div></div>
-    </li><li name="org.http4s.client.Client#toService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]"></a><a id="toService[A]((Response[F])⇒F[A]):Service[F,Request[F],A]"></a>
+    </li><li name="org.http4s.client.Client#toKleisli" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]"></a><a id="toKleisli[A]((Response[F])⇒F[A]):Kleisli[F,Request[F],A]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1119,10 +1119,10 @@ signatures guarantee disposal of the HTTP connection.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toService</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>)</span><span class="result">: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>
+        <span class="name">toKleisli</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toKleisli.A">A</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toKleisli.A">A</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns this client as a <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as a <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>.  All connections created by this
+      <p class="shortcomment cmt">Returns this client as a <span class="extype" name="Kleisli">Kleisli</span>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as a <span class="extype" name="Kleisli">Kleisli</span>.  All connections created by this
 service are disposed on completion of callback task f.</p><p>This method effectively reverses the arguments to <code>fetch</code>, and is
 preferred when an HTTP client is composed into a larger Kleisli function,
 or when a common response callback is used by many call sites.
@@ -1299,6 +1299,25 @@ connection is closed at the completion of the decoding.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#toService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]"></a><a id="toService[A]((Response[F])⇒F[A]):Service[F,Request[F],A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use toKleisli">toService</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]) ⇒ <span class="extype" name="org.http4s.client.Client.F">F</span>[<span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>)</span><span class="result">: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <span class="extype" name="org.http4s.client.Client.toService.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18)</i> Use toKleisli</p></dd></dl></div>
     </li></ol>
             </div>
         </div>

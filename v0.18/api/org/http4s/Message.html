@@ -228,6 +228,24 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.instances" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="instances"></a><a id="instances:instances"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#instances" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="instances/index.html">
+              <span class="name">instances</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.jawn" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="jawn"></a><a id="jawn:jawn"></a>
       <span class="permalink">
@@ -465,8 +483,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         </a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="package$$AuthedService$.html" title=""></a>
-                        <a href="package$$AuthedService$.html" title="">
+                        <a class="object" href="AuthedService$.html" title=""></a>
+                        <a href="AuthedService$.html" title="">
                           AuthedService
                         </a>
                       </li><li class="current-entities indented2">
@@ -655,8 +673,8 @@ Time (UTC).">
                         </a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="package$$HttpService$.html" title=""></a>
-                        <a href="package$$HttpService$.html" title="">
+                        <a class="object" href="HttpService$.html" title=""></a>
+                        <a href="HttpService$.html" title="">
                           HttpService
                         </a>
                       </li><li class="current-entities indented2">
@@ -700,20 +718,6 @@ Time (UTC).">
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
                         <a href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message.">
                           MalformedMessageBodyFailure
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
-fall through to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
-fall through to another service.">
-                          MaybeResponse
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="MaybeResponseInstances.html" title=""></a>
-                        <a href="MaybeResponseInstances.html" title="">
-                          MaybeResponseInstances
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MediaRange$.html" title=""></a>
@@ -798,12 +802,6 @@ final case class GenericParsingFailure(sanitized: String, details: String, respo
                         <a class="class" href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message."></a>
                         <a href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message.">
                           ParsingFailure
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Pass$.html" title=""></a>
-                        <a class="class" href="Pass.html" title=""></a>
-                        <a href="Pass.html" title="">
-                          Pass
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
@@ -1018,8 +1016,8 @@ conform string.">
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and
-Response while most of the functionality is found in <span class="extype" name="MessageSyntax">MessageSyntax</span> and
-<a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c3c3ef7c4cb2cba0a7379a81a6de8fa369541123/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><span class="extype" name="MessageSyntax">MessageSyntax</span>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
+Response while most of the functionality is found in <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a> and
+<a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Message.F">F</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/vsbt.SettingKey$$anon$4@465baf6e/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1102,7 +1100,7 @@ Response while most of the functionality is found in <span class="extype" name="
 
         <div class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.Message#attributes" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.Message#attributes" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="attributes:org.http4s.AttributeMap"></a><a id="attributes:AttributeMap"></a>
       <span class="permalink">
       <a href="../../org/http4s/Message.html#attributes:org.http4s.AttributeMap" title="Permalink">
@@ -1117,8 +1115,7 @@ Response while most of the functionality is found in <span class="extype" name="
         <span class="name">attributes</span><span class="result">: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>
       </span>
       
-      <p class="shortcomment cmt">True if and only if the body is composed solely of Emits and Halt.</p><div class="fullcomment"><div class="comment cmt"><p>True if and only if the body is composed solely of Emits and Halt. This
-indicates that the body can be re-run without side-effects.</p></div></div>
+      
     </li><li name="org.http4s.Message#body" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="body:org.http4s.EntityBody[F]"></a><a id="body:EntityBody[F]"></a>
       <span class="permalink">

@@ -92,7 +92,7 @@ popular Scala JSON libraries are supported as modules.</p>
 <p>The http4s team recommends circe.  Only http4s-circe is required for
 basic interop with circe, but to follow this tutorial, install all three:</p>
 
-<pre><code class="language-scala">val http4sVersion = &quot;0.18.0-SNAPSHOT&quot;
+<pre><code class="language-scala">val http4sVersion = &quot;0.18.0-M2&quot;
 
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
@@ -113,7 +113,7 @@ community.  The functionality is similar:</p>
 <pre><code class="language-scala">libraryDependencies += Seq(
   &quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M5&quot;
+  &quot;com.github.alexarchambault&quot; %% &quot;argonaut-shapeless_6.2&quot; % &quot;1.2.0-M6&quot;
 )
 </code></pre>
 
@@ -226,7 +226,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@4cbbcb89
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@131cd08b
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -299,7 +299,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@725f40f5
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@4dceb8ac
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[User].unsafeRunSync
 // &lt;console&gt;:44: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
@@ -376,7 +376,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$2001190719
+// helloAlice: cats.effect.IO[Hello] = IO$1542890333
 
 helloAlice.unsafeRunSync
 // res20: Hello = Hello(Alice)

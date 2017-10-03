@@ -228,6 +228,24 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.instances" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="instances"></a><a id="instances:instances"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#instances" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="instances/index.html">
+              <span class="name">instances</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.jawn" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="jawn"></a><a id="jawn:jawn"></a>
       <span class="permalink">
@@ -465,8 +483,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         </a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="package$$AuthedService$.html" title=""></a>
-                        <a href="package$$AuthedService$.html" title="">
+                        <a class="object" href="AuthedService$.html" title=""></a>
+                        <a href="AuthedService$.html" title="">
                           AuthedService
                         </a>
                       </li><li class="current-entities indented2">
@@ -655,8 +673,8 @@ Time (UTC).">
                         </a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="object" href="package$$HttpService$.html" title=""></a>
-                        <a href="package$$HttpService$.html" title="">
+                        <a class="object" href="HttpService$.html" title=""></a>
+                        <a href="HttpService$.html" title="">
                           HttpService
                         </a>
                       </li><li class="current-entities indented2">
@@ -700,20 +718,6 @@ Time (UTC).">
                         <a class="class" href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message."></a>
                         <a href="MalformedMessageBodyFailure.html" title="Indicates an syntactic error decoding the body of an HTTP Message.">
                           MalformedMessageBodyFailure
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="MaybeResponse$.html" title=""></a>
-                        <a class="trait" href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
-fall through to another service."></a>
-                        <a href="MaybeResponse.html" title="Represents that a service either returns a Response or a Pass to
-fall through to another service.">
-                          MaybeResponse
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="trait" href="MaybeResponseInstances.html" title=""></a>
-                        <a href="MaybeResponseInstances.html" title="">
-                          MaybeResponseInstances
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="MediaRange$.html" title=""></a>
@@ -798,12 +802,6 @@ final case class GenericParsingFailure(sanitized: String, details: String, respo
                         <a class="class" href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message."></a>
                         <a href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message.">
                           ParsingFailure
-                        </a>
-                      </li><li class="current-entities indented2">
-                        <a class="object" href="Pass$.html" title=""></a>
-                        <a class="class" href="Pass.html" title=""></a>
-                        <a href="Pass.html" title="">
-                          Pass
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
@@ -1012,18 +1010,18 @@ conform string.">
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Response</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Response</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.Response.F">F</span>] = <span class="symbol"><span class="name"><a href="index.html#EmptyBody:org.http4s.package.EntityBody[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                  backend for additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c3c3ef7c4cb2cba0a7379a81a6de8fa369541123/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
+                  backend for additional processing such as java.io.File object</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/vsbt.SettingKey$$anon$4@465baf6e/core/src/main/scala/org/http4s/Message.scala" target="_blank">Message.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>], <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -1049,7 +1047,7 @@ conform string.">
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.Response"><span>Response</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.ResponseOps"><span>ResponseOps</span></li><li class="in" name="org.http4s.MaybeResponse"><span>MaybeResponse</span></li><li class="in" name="org.http4s.Message"><span>Message</span></li><li class="in" name="org.http4s.MessageOps"><span>MessageOps</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.Response"><span>Response</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.ResponseOps"><span>ResponseOps</span></li><li class="in" name="org.http4s.Message"><span>Message</span></li><li class="in" name="org.http4s.MessageOps"><span>MessageOps</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -1275,22 +1273,6 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.Response#asMaybeResponse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="asMaybeResponse:org.http4s.MaybeResponse[F]"></a><a id="asMaybeResponse:MaybeResponse[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#asMaybeResponse:org.http4s.MaybeResponse[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">asMaybeResponse</span><span class="result">: <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.Message#attemptAs" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="attemptAs[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.DecodeResult[F,T]"></a><a id="attemptAs[T](FlatMap[F],EntityDecoder[F,T]):DecodeResult[F,T]"></a>
       <span class="permalink">
@@ -1357,22 +1339,6 @@ conform string.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
-    </li><li name="org.http4s.MaybeResponse#cata" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="cata[A](f:org.http4s.Response[F]=&gt;A,a:=&gt;A):A"></a><a id="cata[A]((Response[F])⇒A,⇒A):A"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#cata[A](f:org.http4s.Response[F]=&gt;A,a:=&gt;A):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">cata</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]) ⇒ <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>, <span name="a">a: ⇒ <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MaybeResponse.cata.A">A</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
     </li><li name="org.http4s.Response#change" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="change(body:org.http4s.EntityBody[F],headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Response.this.Self"></a><a id="change(EntityBody[F],Headers,AttributeMap):Self"></a>
       <span class="permalink">
@@ -1768,38 +1734,6 @@ deletion.</p></div></div>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.MaybeResponse#orElse" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="orElse[B&gt;:org.http4s.Response[F]](b:=&gt;B):B"></a><a id="orElse[B&gt;:Response[F]](⇒B):B"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#orElse[B&gt;:org.http4s.Response[F]](b:=&gt;B):B" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">orElse</span><span class="tparams">[<span name="B">B &gt;: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>]</span><span class="params">(<span name="b">b: ⇒ <span class="extype" name="org.http4s.MaybeResponse.orElse.B">B</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MaybeResponse.orElse.B">B</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
-    </li><li name="org.http4s.MaybeResponse#orNotFound" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="orNotFound:org.http4s.Response[F]"></a><a id="orNotFound:Response[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#orNotFound:org.http4s.Response[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">orNotFound</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#putHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="putHeaders(headers:org.http4s.Header*)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="putHeaders(Header*)(Functor[F]):Self"></a>
       <span class="permalink">
@@ -1933,22 +1867,6 @@ The passed headers are assumed to contain no duplicate Singleton headers.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.MaybeResponse#toOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toOption:Option[org.http4s.Response[F]]"></a><a id="toOption:Option[Response[F]]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Response.html#toOption:Option[org.http4s.Response[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toOption</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Response.F">F</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a></dd></dl></div>
     </li><li name="org.http4s.Response#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
@@ -2264,8 +2182,6 @@ that make no sense with an empty body.
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.3/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
             </div><div class="parent" name="org.http4s.ResponseOps">
               <h3>Inherited from <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</h3>
-            </div><div class="parent" name="org.http4s.MaybeResponse">
-              <h3>Inherited from <a href="MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.Response.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.MessageOps">

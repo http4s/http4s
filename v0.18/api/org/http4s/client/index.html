@@ -355,6 +355,24 @@ HTTP connection.">
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.instances" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="instances"></a><a id="instances:instances"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#instances" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="../instances/index.html">
+              <span class="name">instances</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.jawn" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="jawn"></a><a id="jawn:jawn"></a>
       <span class="permalink">
@@ -601,7 +619,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 <span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
 <span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
 <span class="kw">val</span> req1 = r.unsafeRunSync
-<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c3c3ef7c4cb2cba0a7379a81a6de8fa369541123/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/vsbt.SettingKey$$anon$4@465baf6e/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -667,7 +685,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       <span class="symbol">
         <a title="A Client submits Requests to a server and processes the Response." href="Client.html">
               <span class="name">Client</span>
-            </a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="open">open: <a href="../index.html#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+            </a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="open">open: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>], <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]]</span>, <span name="shutdown">shutdown: <span class="extype" name="org.http4s.client.Client.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/MonadError.html#cats.MonadError" class="extype" name="cats.MonadError">MonadError</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>, <span class="extype" name="scala.Throwable">Throwable</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
