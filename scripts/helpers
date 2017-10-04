@@ -37,7 +37,17 @@ EOM
 
     if [[ $TRAVIS_PULL_REQUEST = 'false' ]]; then
         git remote add upstream git@github.com:${TRAVIS_REPO_SLUG}.git
+
+        local head_ref=$(git rev-parse HEAD)
+        local branch_ref=$(git rev-parse "$TRAVIS_BRANCH")
+        if [[ $head_ref != $branch_ref ]]; then
+            echo "Error reattaching head: $head_ref is not HEAD of $TRAVIS_BRANCH ($branch_ref)"
+            exit 1
+        fi
+
+        # Reattach our head
         git checkout -qf $TRAVIS_BRANCH
+
         git fetch -q upstream
         git branch -u upstream/${TRAVIS_BRANCH}
     fi
