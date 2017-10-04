@@ -1,3 +1,9 @@
+# v0.17.4 (2017-10-04)
+* Fix reading of request body in non-blocking servlet backend. It was previously
+  only reading the first byte of each chunk.
+* Dependency upgrades:
+  * fs2-reactive-streams-0.1.1
+
 # v0.16.4 (2017-10-04)
 * Backport removal `java.xml.bind` dependency from `GZip` middleware,
   to play more nicely with Java 9.
