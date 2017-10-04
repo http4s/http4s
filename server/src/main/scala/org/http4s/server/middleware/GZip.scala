@@ -2,13 +2,11 @@ package org.http4s
 package server
 package middleware
 
-import scala.annotation.tailrec
-
+import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
-import javax.xml.bind.DatatypeConverter
-
 import org.http4s.headers.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
 import org.log4s.getLogger
+import scala.annotation.tailrec
 import scalaz.stream.{ Process0, Process1 }
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
@@ -81,8 +79,13 @@ object GZip {
       }
 
       def trailer =
-        ByteVector.view(DatatypeConverter.parseHexBinary("%08x".format(crc.getValue)).reverse) ++
-        ByteVector.view(DatatypeConverter.parseHexBinary("%08x".format(length % GZIP_LENGTH_MOD)).reverse)
+        ByteVector.view(
+          ByteBuffer
+            .allocate(Integer.BYTES * 2)
+            .order(ByteOrder.LITTLE_ENDIAN)
+            .putInt(crc.getValue.toInt)
+            .putInt((length % GZIP_LENGTH_MOD).toInt)
+            .array())
 
       emit(header) ++ (go() onComplete flush())
     }
