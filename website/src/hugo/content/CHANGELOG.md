@@ -1,3 +1,11 @@
+# v0.16.4 (2017-10-04)
+* Backport removal `java.xml.bind` dependency from `GZip` middleware,
+  to play more nicely with Java 9.
+* Dependency upgrades:
+  * metrics-core-3.2.5
+  * tomcat-8.0.23
+  * twirl-1.3.12
+
 # v0.16.3 (2017-09-29)
 * Fix `java.io.IOException: An invalid argument was supplied` on blaze-client
   for Windows when writing an empty sequence of `ByteBuffer`s.
