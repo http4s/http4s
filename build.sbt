@@ -471,6 +471,7 @@ def http4sCrossProject(name: String, crossType: CrossType) = CrossProject(name, 
   .settings(
     moduleName := s"http4s-$name",
     testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"showtimes", "failtrace"),
+    coverageEnabled := false, // scoverage not supported on scala.js
     initCommands()
   ).jsSettings(
     // Ignore, tut is not supported in scala.js
