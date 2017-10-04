@@ -47,9 +47,7 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
     conn.setRequestProperty("Content-Length", bytes.size.toString)
     conn.setDoOutput(true)
     conn.getOutputStream.write(bytes)
-    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
-      .getLines
-      .mkString
+    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
   }
 
   "A server" should {
