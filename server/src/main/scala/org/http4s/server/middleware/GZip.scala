@@ -2,16 +2,16 @@ package org.http4s
 package server
 package middleware
 
-import scala.annotation.tailrec
-import java.util.zip.{CRC32, Deflater}
-import javax.xml.bind.DatatypeConverter
-
 import fs2._
 import fs2.Stream._
 import fs2.compress._
 import fs2.interop.cats._
+import java.nio.{ByteBuffer, ByteOrder}
+import java.util.zip.{CRC32, Deflater}
+import javax.xml.bind.DatatypeConverter
 import org.http4s.headers._
 import org.log4s.getLogger
+import scala.annotation.tailrec
 import scodec.bits.ByteVector
 
 object GZip {
@@ -91,7 +91,11 @@ object GZip {
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] = {
     Chunk.bytes(
-        DatatypeConverter.parseHexBinary("%08x".format(gen.crc.getValue())).reverse ++
-        DatatypeConverter.parseHexBinary("%08x".format(gen.inputLength % GZIP_LENGTH_MOD)).reverse)
+      ByteBuffer
+        .allocate(Integer.BYTES * 2)
+        .order(ByteOrder.LITTLE_ENDIAN)
+        .putInt(gen.crc.getValue.toInt)
+        .putInt((gen.inputLength % GZIP_LENGTH_MOD).toInt)
+        .array())
   }
 }
