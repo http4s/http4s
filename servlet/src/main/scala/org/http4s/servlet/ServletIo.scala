@@ -151,7 +151,7 @@ final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
           go()
         }
       )
-      readStream.through(pipe.unNoneTerminate).unchunk.map(_(0))
+      readStream.through(pipe.unNoneTerminate).flatMap(Stream.chunk)
     }
   }
 
