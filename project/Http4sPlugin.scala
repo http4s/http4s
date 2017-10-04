@@ -151,7 +151,7 @@ object Http4sPlugin extends AutoPlugin {
         checkSnapshotDependencies.when(release),
         inquireVersions.when(release),
         setReleaseVersion.when(release),
-        tagRelease.when(release),
+        tagRelease.when(primary && release),
         runTestWithCoverage,
         releaseStepCommand("mimaReportBinaryIssues"),
         releaseStepCommand("test:scalafmt::test").when(primary),
