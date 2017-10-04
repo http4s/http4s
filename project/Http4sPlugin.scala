@@ -261,7 +261,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.3.6"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
-  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.4"
+  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.5"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
@@ -273,7 +273,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "3.9.4"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.21"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.23"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.7"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.12"
 }
