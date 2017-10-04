@@ -14,6 +14,7 @@ class TimeoutSpec extends Http4sSpec {
   val myService = HttpService[IO] {
     case _ -> Root / "fast" =>
       Ok("Fast")
+
     case _ -> Root / "never" =>
       IO.async[Response[IO]] { _ =>
         ()

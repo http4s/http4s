@@ -148,6 +148,10 @@ object Http4sPlugin extends AutoPlugin {
       val master = http4sMasterBranch.value
 
       Seq(
+        // For debugging purposes
+        releaseStepCommand("show core/version"),
+        releaseStepCommand("show core/isSnapshot"),
+
         checkSnapshotDependencies.when(release),
         inquireVersions.when(release),
         setReleaseVersion.when(release),
@@ -169,7 +173,7 @@ object Http4sPlugin extends AutoPlugin {
         // propagation from failed steps above.
         //
         // https://github.com/sbt/sbt-release/issues/95
-        releaseStepCommand("show version")
+        releaseStepCommand("show core/version")
       )
     }
   )
