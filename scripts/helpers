@@ -36,10 +36,11 @@ Detail: https://travis-ci.org/$TRAVIS_REPO_SLUG/builds/$TRAVIS_BUILD_ID
 EOM
 
     if [[ $TRAVIS_PULL_REQUEST = 'false' ]]; then
-        git remote add upstream git@github.com:${TRAVIS_REPO_SLUG}.git
         git checkout -qf $TRAVIS_BRANCH
-        git fetch -q upstream
-        git branch -u upstream/${TRAVIS_BRANCH}
+        git reset --hard $TRAVIS_COMMIT
+        git remote set-url origin git@github.com:${TRAVIS_REPO_SLUG}.git
+        git config branch.${TRAVIS_BRANCH}.merge
+        git config branch.${TRAVIS_BRANCH}.remote
     fi
     return 0
 }
