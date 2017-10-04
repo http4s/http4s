@@ -152,10 +152,29 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
                   case Init =>
                     cb(Left(bug("Should have left Init state by now")))
                 }
-                go()
-              })
-        readStream.unNoneTerminate.unchunk.map(_(0))
-      }
+                else { /* NOOP: our callback is either still needed or has been handled */ }
+              }
+              else go() // Our state transitioned so try again.
+
+            case Complete => cb(rightNone)
+
+            case e@Errored(t) => cb(Left(t))
+
+            // This should never happen so throw a huge fit if it does.
+            case Blocked(c1) =>
+              val t = bug("Two callbacks found in read state")
+              cb(Left(t))
+              c1(Left(t))
+              logger.error(t)("This should never happen. Please report.")
+              throw t
+
+            case Init =>
+              cb(Left(bug("Should have left Init state by now")))
+          }
+          go()
+        }
+      )
+      readStream.through(pipe.unNoneTerminate).flatMap(Stream.chunk)
     }
 
   override protected[servlet] def initWriter(

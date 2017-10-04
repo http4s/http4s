@@ -2,7 +2,8 @@ package org.http4s
 package server
 
 import cats.effect.IO
-import java.net.URL
+import java.net.{HttpURLConnection, URL}
+import java.nio.charset.StandardCharsets
 import org.http4s.dsl.Http4sDsl
 import org.specs2.specification.AfterAll
 import scala.io.Source
@@ -21,6 +22,9 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
 
         case GET -> Root / "thread" / "effect" =>
           IO(Thread.currentThread.getName).flatMap(Ok(_))
+
+        case req @ POST -> Root / "echo" =>
+          Ok(req.body)
       })
       .start
       .unsafeRunSync()
@@ -34,6 +38,20 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
       .getLines
       .mkString
 
+  // This too
+  private def post(path: String, body: String): String = {
+    val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+    val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+    val bytes = body.getBytes(StandardCharsets.UTF_8)
+    conn.setRequestMethod("POST")
+    conn.setRequestProperty("Content-Length", bytes.size.toString)
+    conn.setDoOutput(true)
+    conn.getOutputStream.write(bytes)
+    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name)
+      .getLines
+      .mkString
+  }
+
   "A server" should {
     "route requests on the service executor" in {
       get("/thread/routing") must startWith("http4s-spec-")
@@ -41,6 +59,11 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
 
     "execute the service task on the service executor" in {
       get("/thread/effect") must startWith("http4s-spec-")
+    }
+
+    "be able to echo its input" in {
+      val input = """{ "Hello": "world" }"""
+      post("/echo", input) must startWith(input)
     }
   }
 }
