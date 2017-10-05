@@ -4,6 +4,9 @@ weight: 101
 title: Changelog
 ---
 
+# v0.18.0-M3 (2017-10-04)
+* Merges from maintenance releases 0.16.4 and 0.17.4.
+
 # v0.17.4 (2017-10-04)
 * Fix reading of request body in non-blocking servlet backend. It was previously
   only reading the first byte of each chunk.
