@@ -161,7 +161,21 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand("test:scalafmt::test").when(primary),
         releaseStepCommand("docs/makeSite").when(primary),
         releaseStepCommand("website/makeSite").when(primary),
+
+        // Diagnose what's running amok here
+        releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
+        releaseStepCommand(s"git config branch.master.merge"),
+        releaseStepCommand(s"git config branch.master.remote"),
+        releaseStepCommand(s"git remote show origin"),
+
         openSonatypeRepo.when(publish && release),
+
+        // Diagnose what's running amok here
+        releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
+        releaseStepCommand(s"git config branch.master.merge"),
+        releaseStepCommand(s"git config branch.master.remote"),
+        releaseStepCommand(s"git remote show origin"),
+
         publishToSonatypeWithoutInstrumentation.when(publish),
         releaseAndClose.when(publish && release),
         releaseStepCommand("docs/ghpagesPushSite").when(publish && primary),
