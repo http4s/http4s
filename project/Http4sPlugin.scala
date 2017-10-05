@@ -4,8 +4,8 @@ import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
-import com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration
 import com.typesafe.sbt.git.JGit
+import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbt.Keys._
@@ -119,14 +119,7 @@ object Http4sPlugin extends AutoPlugin {
          """.stripMargin
 
       IO.write(dest, buildData)
-    },
-
-    // Not with the other signing settings, because depends on isSnapshot, which
-    // is project scoped.
-    publishSignedConfiguration := Def.taskDyn {
-      val overwrite = isSnapshot.value
-      publishSignedConfiguration.map(_.withOverwrite(overwrite))
-    }.value
+    }
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -138,7 +131,10 @@ object Http4sPlugin extends AutoPlugin {
       ).getOrElse(versionFormatError)
     },
     releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
-
+    releasePublishArtifactsAction := Def.taskDyn {
+      if (isSnapshot.value) publish
+      else publishSigned
+    }.value,
     releaseProcess := {
       implicit class StepSyntax(val step: ReleaseStep) {
         def when(cond: Boolean) =
