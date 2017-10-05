@@ -77,15 +77,15 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   }
 
   def main(args: Array[String]): Unit =
-    sys.exit(doMain(args.toList).unsafeRunSync.code)
+    sys.exit(doMain(args.toList).unsafeRunSync.code.toInt)
 }
 
 object StreamApp {
-  sealed abstract case class ExitCode(code: Int)
+  final case class ExitCode(code: Byte)
 
   object ExitCode {
-    def apply(code: Int): ExitCode = new ExitCode(code) {}
-    val success: ExitCode = apply(0)
-    val error: ExitCode = apply(1)
+    def fromInt(code: Int): ExitCode = ExitCode(code.toByte)
+    val success: ExitCode = ExitCode(0)
+    val error: ExitCode = ExitCode(1)
   }
 }
