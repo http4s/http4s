@@ -4,8 +4,8 @@ import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
-import com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration
 import com.typesafe.sbt.git.JGit
+import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
 import sbt.Keys._
@@ -119,14 +119,7 @@ object Http4sPlugin extends AutoPlugin {
          """.stripMargin
 
       IO.write(dest, buildData)
-    },
-
-    // Not with the other signing settings, because depends on isSnapshot, which
-    // is project scoped.
-    publishSignedConfiguration := Def.taskDyn {
-      val overwrite = isSnapshot.value
-      publishSignedConfiguration.map(_.withOverwrite(overwrite))
-    }.value
+    }
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -138,7 +131,10 @@ object Http4sPlugin extends AutoPlugin {
       ).getOrElse(versionFormatError)
     },
     releaseTagName := s"v${if (releaseUseGlobalVersion.value) (version in ThisBuild).value else version.value}",
-
+    releasePublishArtifactsAction := Def.taskDyn {
+      if (isSnapshot.value) publish
+      else publishSigned
+    }.value,
     releaseProcess := {
       implicit class StepSyntax(val step: ReleaseStep) {
         def when(cond: Boolean) =
@@ -151,7 +147,7 @@ object Http4sPlugin extends AutoPlugin {
       }
 
       val release = !isSnapshot.value
-      val publish = http4sPublish.value
+      val publishable = http4sPublish.value
       val primary = http4sPrimary.value
       val master = http4sMasterBranch.value
 
@@ -165,12 +161,12 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand("test:scalafmt::test").when(primary),
         releaseStepCommand("docs/makeSite").when(primary),
         releaseStepCommand("website/makeSite").when(primary),
-        openSonatypeRepo.when(publish && release),
-        publishToSonatypeWithoutInstrumentation.when(publish),
-        releaseAndClose.when(publish && release),
-        releaseStepCommand("docs/ghpagesPushSite").when(publish && primary),
-        releaseStepCommand("website/ghpagesPushSite").when(publish && primary && master),
-        setNextVersion.when(publish && primary && release),
+        openSonatypeRepo.when(publishable && release),
+        publishToSonatypeWithoutInstrumentation.when(publishable),
+        releaseAndClose.when(publishable && release),
+        releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
+        releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
+        setNextVersion.when(publishable && primary && release),
 
         // Diagnose what's running amok here
         releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
@@ -178,7 +174,7 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand(s"git config branch.master.remote"),
         releaseStepCommand(s"git remote show origin"),
 
-        commitNextVersion.when(publish && primary && release),
+        commitNextVersion.when(publishable && primary && release),
 
         // Diagnose what's running amok here
         releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
@@ -186,7 +182,7 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand(s"git config branch.master.remote"),
         releaseStepCommand(s"git remote show origin"),
 
-        pushChanges.when(publish && primary && release),
+        pushChanges.when(publishable && primary && release),
         // We need a superfluous final step to ensure exit code
         // propagation from failed steps above.
         //
