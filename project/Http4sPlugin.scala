@@ -4,6 +4,7 @@ import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin
 import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import com.typesafe.sbt.SbtGit.git
 import com.typesafe.sbt.SbtPgp.autoImport._
+import com.typesafe.sbt.pgp.PgpKeys.publishSignedConfiguration
 import com.typesafe.sbt.git.JGit
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
@@ -118,7 +119,14 @@ object Http4sPlugin extends AutoPlugin {
          """.stripMargin
 
       IO.write(dest, buildData)
-    }
+    },
+
+    // Not with the other signing settings, because depends on isSnapshot, which
+    // is project scoped.
+    publishSignedConfiguration := Def.taskDyn {
+      val overwrite = isSnapshot.value
+      publishSignedConfiguration.map(_.withOverwrite(overwrite))
+    }.value
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -148,10 +156,6 @@ object Http4sPlugin extends AutoPlugin {
       val master = http4sMasterBranch.value
 
       Seq(
-        // For debugging purposes
-        releaseStepCommand("show core/version"),
-        releaseStepCommand("show core/isSnapshot"),
-
         checkSnapshotDependencies.when(release),
         inquireVersions.when(release),
         setReleaseVersion.when(release),
@@ -161,21 +165,7 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand("test:scalafmt::test").when(primary),
         releaseStepCommand("docs/makeSite").when(primary),
         releaseStepCommand("website/makeSite").when(primary),
-
-        // Diagnose what's running amok here
-        releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
-        releaseStepCommand(s"git config branch.master.merge"),
-        releaseStepCommand(s"git config branch.master.remote"),
-        releaseStepCommand(s"git remote show origin"),
-
         openSonatypeRepo.when(publish && release),
-
-        // Diagnose what's running amok here
-        releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
-        releaseStepCommand(s"git config branch.master.merge"),
-        releaseStepCommand(s"git config branch.master.remote"),
-        releaseStepCommand(s"git remote show origin"),
-
         publishToSonatypeWithoutInstrumentation.when(publish),
         releaseAndClose.when(publish && release),
         releaseStepCommand("docs/ghpagesPushSite").when(publish && primary),
@@ -211,7 +201,7 @@ object Http4sPlugin extends AutoPlugin {
     usePgpKeyHex("42FAD8A85B13261D"),
     pgpPublicRing := baseDirectory.value / "project" / ".gnupg" / "pubring.gpg",
     pgpSecretRing := baseDirectory.value / "project" / ".gnupg" / "secring.gpg",
-    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray)
+    pgpPassphrase := sys.env.get("PGP_PASS").map(_.toArray),
   )
 
   def extractApiVersion(version: String) = {
