@@ -8,6 +8,7 @@ import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.middleware.HSTS
 import org.http4s.util.StreamApp
+import org.http4s.util.StreamApp.ExitCode
 
 abstract class SslExample[F[_]: Effect] extends StreamApp[F] {
   // TODO: Reference server.jks from something other than one child down.
@@ -15,7 +16,7 @@ abstract class SslExample[F[_]: Effect] extends StreamApp[F] {
 
   def builder: ServerBuilder[F] with SSLKeyStoreSupport[F]
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       builder
         .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")

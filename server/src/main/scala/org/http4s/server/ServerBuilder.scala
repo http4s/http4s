@@ -7,6 +7,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.util.StreamApp.ExitCode
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -51,7 +52,7 @@ trait ServerBuilder[F[_]] {
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
-  final def serve(implicit F: Async[F]): Stream[F, Nothing] =
+  final def serve(implicit F: Async[F]): Stream[F, ExitCode] =
     Stream.bracket(start)((_: Server[F]) => Stream.eval_(F.async[Unit](_ => ())), _.shutdown)
 }
 
