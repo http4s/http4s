@@ -147,7 +147,7 @@ object Http4sPlugin extends AutoPlugin {
       }
 
       val release = !isSnapshot.value
-      val publish = http4sPublish.value
+      val publishable = http4sPublish.value
       val primary = http4sPrimary.value
       val master = http4sMasterBranch.value
 
@@ -161,12 +161,12 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand("test:scalafmt::test").when(primary),
         releaseStepCommand("docs/makeSite").when(primary),
         releaseStepCommand("website/makeSite").when(primary),
-        openSonatypeRepo.when(publish && release),
-        publishToSonatypeWithoutInstrumentation.when(publish),
-        releaseAndClose.when(publish && release),
-        releaseStepCommand("docs/ghpagesPushSite").when(publish && primary),
-        releaseStepCommand("website/ghpagesPushSite").when(publish && primary && master),
-        setNextVersion.when(publish && primary && release),
+        openSonatypeRepo.when(publishable && release),
+        publishToSonatypeWithoutInstrumentation.when(publishable),
+        releaseAndClose.when(publishable && release),
+        releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
+        releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
+        setNextVersion.when(publishable && primary && release),
 
         // Diagnose what's running amok here
         releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
@@ -174,7 +174,7 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand(s"git config branch.master.remote"),
         releaseStepCommand(s"git remote show origin"),
 
-        commitNextVersion.when(publish && primary && release),
+        commitNextVersion.when(publishable && primary && release),
 
         // Diagnose what's running amok here
         releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
@@ -182,7 +182,7 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand(s"git config branch.master.remote"),
         releaseStepCommand(s"git remote show origin"),
 
-        pushChanges.when(publish && primary && release),
+        pushChanges.when(publishable && primary && release),
         // We need a superfluous final step to ensure exit code
         // propagation from failed steps above.
         //
