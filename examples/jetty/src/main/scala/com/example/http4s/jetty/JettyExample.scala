@@ -16,7 +16,7 @@ class JettyExampleApp[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Unit] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       JettyBuilder[F]
         .bindHttp(8080)

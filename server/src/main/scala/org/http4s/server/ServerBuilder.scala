@@ -51,7 +51,7 @@ trait ServerBuilder[F[_]] {
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
-  final def serve(implicit F: Async[F]): Stream[F, Nothing] =
+  final def serve(implicit F: Async[F]): Stream[F, Unit] =
     Stream.bracket(start)((_: Server[F]) => Stream.eval_(F.async[Unit](_ => ())), _.shutdown)
 }
 

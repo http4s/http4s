@@ -45,7 +45,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F]
       }
   }
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Unit] =
     Scheduler[F](corePoolSize = 2).flatMap { scheduler =>
       BlazeBuilder[F]
         .bindHttp(8080)
