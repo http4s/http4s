@@ -57,13 +57,13 @@ class UriParserSpec extends Http4sSpec {
       val portExamples: Seq[(String, Uri)] = Seq(
         (
           "http://foo.com",
-          Uri(Some("http".ci), Some(Authority(host = RegName("foo.com".ci), port = None)))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
         (
           "http://foo.com:",
-          Uri(Some("http".ci), Some(Authority(host = RegName("foo.com".ci), port = None)))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
         (
           "http://foo.com:80",
-          Uri(Some("http".ci), Some(Authority(host = RegName("foo.com".ci), port = Some(80)))))
+          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = Some(80)))))
       )
 
       check(portExamples)
@@ -73,32 +73,32 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
-            Some("http".ci),
+            Some(Scheme.http),
             Some(Authority(host = RegName("www.foo.com".ci))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
         (
           "http://192.168.1.1",
-          Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci))))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
-            Some("http".ci),
+            Some(Scheme.http),
             Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
-            Some("http".ci),
+            Some(Scheme.http),
             Some(Authority(host = IPv6("2001:db8::7".ci))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
-        ("mailto:John.Doe@example.com", Uri(Some("mailto".ci), path = "John.Doe@example.com"))
+        ("mailto:John.Doe@example.com", Uri(Some(Scheme("mailto")), path = "John.Doe@example.com"))
       )
 
       check(absoluteUris)
@@ -120,7 +120,7 @@ class UriParserSpec extends Http4sSpec {
       val u = Uri.requestTarget("http://foo.bar/foo#Examples")
       u must beRight(
         Uri(
-          Some("http".ci),
+          Some(Scheme.http),
           Some(Authority(host = RegName("foo.bar".ci))),
           "/foo",
           Query.empty,
@@ -131,7 +131,7 @@ class UriParserSpec extends Http4sSpec {
       val u = Uri.requestTarget("http://foo.bar/foo?bar=baz#Example-Fragment")
       u must beRight(
         Uri(
-          Some("http".ci),
+          Some(Scheme.http),
           Some(Authority(host = RegName("foo.bar".ci))),
           "/foo",
           Query.fromPairs("bar" -> "baz"),
@@ -214,32 +214,32 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         (
           "http://www.foo.com",
-          Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci))))),
         (
           "http://www.foo.com/foo?bar=baz",
           Uri(
-            Some("http".ci),
+            Some(Scheme.http),
             Some(Authority(host = RegName("www.foo.com".ci))),
             "/foo",
             Query.fromPairs("bar" -> "baz"))),
         (
           "http://192.168.1.1",
-          Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+          Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci))))),
         (
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
-            Some("http".ci),
+            Some(Scheme.http),
             Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
           "http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(
-            Some("http".ci),
+            Some(Scheme.http),
             Some(Authority(host = IPv6("2001:db8::7".ci))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
-        ("mailto:John.Doe@example.com", Uri(Some("mailto".ci), path = "John.Doe@example.com"))
+        ("mailto:John.Doe@example.com", Uri(Some(Scheme("mailto")), path = "John.Doe@example.com"))
       )
 
       check(absoluteUris)

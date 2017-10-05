@@ -59,7 +59,7 @@ private[parser] trait Rfc3986Parser extends IpParser with StringBuilding {
   }
 
   def Scheme = rule {
-    capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
+    capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new org.http4s.Scheme(_))
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule {
