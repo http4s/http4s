@@ -9,7 +9,7 @@ import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.headers.Accept
 import org.specs2.matcher.MustThrownMatchers
 
-class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
+class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with  MustThrownMatchers {
 
   val route = HttpService[IO] {
     case r if r.method == GET && r.pathInfo == "/" =>
