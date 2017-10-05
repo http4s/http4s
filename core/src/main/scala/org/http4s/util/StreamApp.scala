@@ -84,8 +84,8 @@ object StreamApp {
   sealed abstract case class ExitCode(code: Int)
 
   object ExitCode {
-    def fromInt(code: Int): ExitCode = new ExitCode(code) {}
-    val success: ExitCode = fromInt(0)
-    val error: ExitCode = fromInt(-1)
+    def apply(code: Int): ExitCode = new ExitCode(code) {}
+    val success: ExitCode = apply(0)
+    val error: ExitCode = apply(1)
   }
 }
