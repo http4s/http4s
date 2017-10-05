@@ -8,3 +8,4 @@ trait AllSyntax
     with EffectRequestSyntax
     with KleisliSyntax
     with StringSyntax
+    with LiteralsSyntax

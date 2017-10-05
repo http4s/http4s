@@ -7,7 +7,7 @@ import org.http4s.Uri._
 import org.http4s.internal.parboiled2.Parser
 import org.http4s.parser._
 import org.http4s.syntax.string._
-import org.http4s.util.{CaseInsensitiveString, Renderable, UrlCodingUtils, Writer}
+import org.http4s.util._
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
 
@@ -20,7 +20,7 @@ import scala.reflect.macros.whitebox.Context
   */
 // TODO fix Location header, add unit tests
 final case class Uri(
-    scheme: Option[CaseInsensitiveString] = None,
+    scheme: Option[Scheme] = None,
     authority: Option[Authority] = None,
     path: Path = "",
     query: Query = Query.empty,
@@ -157,8 +157,6 @@ object Uri extends UriFunctions {
     new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
       .run()(Parser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
-
-  type Scheme = CaseInsensitiveString
 
   type UserInfo = String
 

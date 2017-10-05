@@ -5,7 +5,7 @@ import cats.effect.Effect
 import cats.syntax.option._
 import fs2._
 import java.nio.file.Paths
-import org.http4s.HttpService
+import org.http4s.{HttpService, Scheme}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.{Host, Location}
@@ -30,7 +30,7 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
       request.headers.get(Host) match {
         case Some(Host(host, _)) =>
           val baseUri = request.uri.copy(
-            scheme = "https".ci.some,
+            scheme = Scheme.https.some,
             authority = Some(
               Authority(
                 request.uri.authority.flatMap(_.userInfo),

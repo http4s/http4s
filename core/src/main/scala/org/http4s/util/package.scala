@@ -54,4 +54,23 @@ package object util {
     "Moved to org.http4s.execution.trampoline, is now merely a ExecutionContextExecutor.",
     "0.18.0-M2")
   val TrampolineExecutionContext: ExecutionContextExecutor = execution.trampoline
+
+  /* This is nearly identical to the hashCode of java.lang.String, but converting
+   * to lower case on the fly to avoid copying `value`'s character storage.
+   */
+  def hashLower(s: String): Int = {
+    var h = 0
+    var i = 0
+    val len = s.length
+    while (i < len) {
+      // Strings are equal igoring case if either their uppercase or lowercase
+      // forms are equal. Equality of one does not imply the other, so we need
+      // to go in both directions. A character is not guaranteed to make this
+      // round trip, but it doesn't matter as long as all equal characters
+      // hash the same.
+      h = h * 31 + Character.toLowerCase(Character.toUpperCase(s.charAt(i)))
+      i += 1
+    }
+    h
+  }
 }

@@ -8,6 +8,7 @@ import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
 import org.http4s.headers._
+import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
 import org.scalacheck.{Arbitrary, Cogen, Gen}
@@ -501,6 +502,29 @@ trait ArbitraryInstances {
     oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
   val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
+  implicit val arbitraryScheme: Arbitrary[Scheme] = Arbitrary {
+    frequency(
+      5 -> Scheme.http,
+      5 -> Scheme.https,
+      1 -> scheme"HTTP",
+      1 -> scheme"HTTPS",
+      3 -> (for {
+        head <- alphaChar
+        tail <- listOf(
+          frequency(
+            36 -> alphaNumChar,
+            1 -> const('+'),
+            1 -> const('-'),
+            1 -> const('.')
+          )
+        )
+      } yield HttpCodec[Scheme].parseOrThrow(tail.mkString(head.toString, "", "")))
+    )
+  }
+
+  implicit val cogenScheme: Cogen[Scheme] =
+    Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
+
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {
     val genSegmentNzNc =
@@ -513,7 +537,7 @@ trait ArbitraryInstances {
     val genPathRootless = genSegmentNz |+| genPathAbEmpty
     val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
-    val genScheme = oneOf("http", "https").map(CaseInsensitiveString.apply)
+    val genScheme = oneOf(Scheme.http, Scheme.https)
     val genPath =
       oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
     val genFragment: Gen[Uri.Fragment] =

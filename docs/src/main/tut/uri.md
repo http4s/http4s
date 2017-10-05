@@ -36,11 +36,10 @@ assert(docs == docs2)
 
 ```tut:book
 import org.http4s.UriTemplate._
-import org.http4s.syntax.string._
 
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName("http4s.org"))),
-  scheme = Some("http".ci),
+  scheme = Some(Scheme.http),
   path = List(PathElm("docs"), PathElm("0.15"))
 )
 

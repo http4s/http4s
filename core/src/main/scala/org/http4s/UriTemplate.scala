@@ -3,6 +3,7 @@ package org.http4s
 import java.net.URLEncoder
 import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
 import org.http4s.UriTemplate._
+import org.http4s.util.StringWriter
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
@@ -220,7 +221,8 @@ object UriTemplate {
     case _ => ""
   }
 
-  protected def renderScheme(s: Scheme): String = s + ":"
+  protected def renderScheme(s: Scheme): String =
+    (new StringWriter << s << ":").result
 
   protected def renderSchemeAndAuthority(t: UriTemplate): String = t match {
     case UriTemplate(None, None, _, _, _) => ""

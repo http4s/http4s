@@ -6,21 +6,23 @@ import java.net.URLDecoder
 import java.nio.charset.Charset
 import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
+import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
 import org.http4s.syntax.string._
 
-private[parser] trait Rfc3986Parser extends IpParser with StringBuilding {
-  this: Parser =>
-
+private[parser] trait Rfc3986Parser
+    extends Parser
+    with Scheme.Parser
+    with IpParser
+    with StringBuilding {
   // scalastyle:off public.methods.have.type
-  import CharPredicate.{Alpha, Digit, HexDigit}
 
   def charset: Charset
 
   def Uri: Rule1[org.http4s.Uri] = rule { (AbsoluteUri | RelativeRef) ~ EOI }
 
   def AbsoluteUri = rule {
-    Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
+    scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
       (scheme, auth, path, query, fragment) =>
         org.http4s
           .Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
@@ -56,10 +58,6 @@ private[parser] trait Rfc3986Parser extends IpParser with StringBuilding {
       PathEmpty ~> { (e: String) =>
         None :: e :: HNil
       }
-  }
-
-  def Scheme = rule {
-    capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule {
