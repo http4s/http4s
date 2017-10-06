@@ -184,7 +184,7 @@ x.value.equalsIgnoreCase(y.value)
                           Renderer
                         </a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
+                        <a class="object" href="StreamApp$.html" title=""></a>
                         <a class="class" href="" title=""></a>
                         <a href="" title="">
                           StreamApp
@@ -238,14 +238,16 @@ x.value.equalsIgnoreCase(y.value)
           <div id="content">
             <body class="class type">
       <div id="definition">
-        <div class="big-circle class">c</div>
+        <a href="StreamApp$.html" title="See companion object"><div class="big-circle class-companion-object">c</div></a>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.util">util</a></p>
-        <h1>StreamApp<span class="permalink">
+        <h1><a href="StreamApp$.html" title="See companion object">StreamApp</a><span class="permalink">
       <a href="../../../org/http4s/util/StreamApp.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="StreamApp$.html" title="See companion object">object StreamApp</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -343,9 +345,9 @@ x.value.equalsIgnoreCase(y.value)
         <div class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="org.http4s.util.StreamApp#stream" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,Nothing]"></a><a id="stream(List[String],F[Unit]):Stream[F,Nothing]"></a>
+      <a id="stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,org.http4s.util.StreamApp.ExitCode]"></a><a id="stream(List[String],F[Unit]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/StreamApp.html#stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,Nothing]" title="Permalink">
+      <a href="../../../org/http4s/util/StreamApp.html#stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,org.http4s.util.StreamApp.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -354,10 +356,10 @@ x.value.equalsIgnoreCase(y.value)
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="requestShutdown">requestShutdown: <span class="extype" name="org.http4s.util.StreamApp.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.util.StreamApp.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Nothing" class="extype" name="scala.collection.immutable.List">Nothing</a>]</span>
+        <span class="name">stream</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="requestShutdown">requestShutdown: <span class="extype" name="org.http4s.util.StreamApp.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.3/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.util.StreamApp.F">F</span>, <a href="StreamApp$$ExitCode.html" class="extype" name="org.http4s.util.StreamApp.ExitCode">ExitCode</a>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">An application stream that should never emit or emit a single ExitCode</p>
     </li></ol>
             </div>
 
