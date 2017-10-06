@@ -12,6 +12,7 @@ import org.http4s.headers.{Host, Location}
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.StreamApp
+import org.http4s.util.StreamApp.ExitCode
 import scala.concurrent.ExecutionContext
 
 abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
@@ -41,20 +42,20 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
       }
   }
 
-  def sslStream(implicit scheduler: Scheduler): Stream[F, Nothing] =
+  def sslStream(implicit scheduler: Scheduler): Stream[F, ExitCode] =
     builder
       .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
       .mountService(new ExampleService[F].service, "/http4s")
       .bindHttp(8443)
       .serve
 
-  def redirectStream: Stream[F, Nothing] =
+  def redirectStream: Stream[F, ExitCode] =
     builder
       .mountService(redirectService, "/http4s")
       .bindHttp(8080)
       .serve
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler[F](corePoolSize = 2).flatMap { implicit scheduler =>
       sslStream.mergeHaltBoth(redirectStream)
     }

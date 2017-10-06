@@ -6,6 +6,7 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.async.mutable.Signal
+import org.http4s.util.StreamApp.ExitCode
 import scala.concurrent.duration._
 
 class StreamAppSpec extends Http4sSpec {
@@ -17,26 +18,38 @@ class StreamAppSpec extends Http4sSpec {
       * Takes the Stream that constitutes the Stream App
       * and observably cleans up when the process is stopped.
       */
-    class TestStreamApp(stream: IO[Unit] => Stream[IO, Nothing]) extends StreamApp[IO] {
+    class TestStreamApp(stream: IO[Unit] => Stream[IO, ExitCode]) extends StreamApp[IO] {
       val cleanedUp: Signal[IO, Boolean] = async.signalOf[IO, Boolean](false).unsafeRunSync
 
-      override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
+      override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
         stream(requestShutdown).onFinalize(cleanedUp.set(true))
     }
 
-    "Terminate Server on a Stream Failure" in {
+    "Terminate server on a failed stream" in {
       val testApp = new TestStreamApp(_ => fail(new Throwable("Bad Initial Process")))
-      testApp.doMain(List.empty) should returnValue(-1)
-      testApp.cleanedUp.get.unsafeRunSync should beTrue
+      testApp.doMain(List.empty) should returnValue(ExitCode.error)
+      testApp.cleanedUp.get should returnValue(true)
     }
 
-    "Terminate Server on a Valid Process" in {
-      val testApp = new TestStreamApp(_ => emit("Valid Process").drain)
-      testApp.doMain(List.empty) should returnValue(0)
-      testApp.cleanedUp.get.unsafeRunSync should beTrue
+    "Terminate server on a valid stream" in {
+      val testApp = new TestStreamApp(_ => emit(ExitCode.success))
+      testApp.doMain(List.empty) should returnValue(ExitCode.success)
+      testApp.cleanedUp.get should returnValue(true)
     }
 
-    "requestShutdown Shuts Down a Server From A Separate Thread" in {
+    "Terminate server on an empty stream" in {
+      val testApp = new TestStreamApp(_ => Stream.empty)
+      testApp.doMain(List.empty) should returnValue(ExitCode.success)
+      testApp.cleanedUp.get should returnValue(true)
+    }
+
+    "Terminate server with a specific exit code" in {
+      val testApp = new TestStreamApp(_ => emit(ExitCode(42)))
+      testApp.doMain(List.empty) should returnValue(ExitCode(42))
+      testApp.cleanedUp.get should returnValue(true)
+    }
+
+    "requestShutdown shuts down a server from a separate thread" in {
       val requestShutdown = async.signalOf[IO, IO[Unit]](IO.unit).unsafeRunSync
 
       val testApp = new TestStreamApp(
@@ -54,7 +67,7 @@ class StreamAppSpec extends Http4sSpec {
         _ <- requestShutdown.get.flatten
         result <- runApp
         cleanedUp <- testApp.cleanedUp.get
-      } yield (result, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((0, true))
+      } yield (result, cleanedUp)).unsafeRunTimed(5.seconds) should beSome((ExitCode.success, true))
     }
   }
 }

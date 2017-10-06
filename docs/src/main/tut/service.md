@@ -160,9 +160,10 @@ process and gracefully shut down your server when a SIGTERM is received.
 import fs2.Stream
 import org.http4s.server.blaze._
 import org.http4s.util.StreamApp
+import org.http4s.util.StreamApp.ExitCode
 
 object Main extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, Nothing] =
+  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080, "localhost")
       .mountService(helloWorldService, "/")

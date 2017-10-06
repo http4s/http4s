@@ -8,6 +8,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.websocket._
 import org.http4s.util.StreamApp
+import org.http4s.util.StreamApp.ExitCode
 import org.http4s.websocket.WebsocketBits._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -45,13 +46,14 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F]
       }
   }
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
-    Scheduler[F](corePoolSize = 2).flatMap { scheduler =>
-      BlazeBuilder[F]
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
+    for {
+      scheduler <- Scheduler[F](corePoolSize = 2)
+      exitCode <- BlazeBuilder[F]
         .bindHttp(8080)
         .withWebSockets(true)
         .mountService(route(scheduler), "/http4s")
         .serve
-    }
+    } yield exitCode
 
 }

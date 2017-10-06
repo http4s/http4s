@@ -9,6 +9,7 @@ import org.http4s.server.HttpMiddleware
 import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.metrics._
 import org.http4s.util.StreamApp
+import org.http4s.util.StreamApp.ExitCode
 
 object JettyExample extends JettyExampleApp[IO]
 
@@ -16,7 +17,7 @@ class JettyExampleApp[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       JettyBuilder[F]
         .bindHttp(8080)

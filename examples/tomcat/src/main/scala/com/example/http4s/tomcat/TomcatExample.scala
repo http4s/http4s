@@ -15,7 +15,7 @@ class TomcatExampleApp[F[_]: Effect] extends StreamApp[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, StreamApp.ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       TomcatBuilder[F]
         .bindHttp(8080)

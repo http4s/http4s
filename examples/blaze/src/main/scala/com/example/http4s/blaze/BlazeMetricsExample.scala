@@ -9,6 +9,7 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.metrics._
 import org.http4s.server.{HttpMiddleware, Router}
 import org.http4s.util.StreamApp
+import org.http4s.util.StreamApp.ExitCode
 
 object BlazeMetricsExample extends BlazeMetricsExampleApp[IO]
 
@@ -16,17 +17,18 @@ class BlazeMetricsExampleApp[F[_]: Effect] extends StreamApp[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry()
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def srvc(implicit scheduler: Scheduler): HttpService[F] =
+  def service(implicit scheduler: Scheduler): HttpService[F] =
     Router(
       "" -> metrics(new ExampleService[F].service),
       "/metrics" -> metricsService[F](metricsRegistry)
     )
 
-  def stream(args: List[String], requestShutdown: F[Unit]): fs2.Stream[F, Nothing] =
-    Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
-      BlazeBuilder[F]
+  def stream(args: List[String], requestShutdown: F[Unit]): fs2.Stream[F, ExitCode] =
+    for {
+      scheduler <- Scheduler(corePoolSize = 2)
+      exitCode <- BlazeBuilder[F]
         .bindHttp(8080)
-        .mountService(srvc, "/http4s")
+        .mountService(service(scheduler), "/http4s")
         .serve
-    }
+    } yield exitCode
 }
