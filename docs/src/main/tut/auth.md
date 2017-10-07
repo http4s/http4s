@@ -24,7 +24,7 @@ import org.http4s.server._
 
 case class User(id: Long, name: String)
 
-val authUser: Service[IO, Request[IO], User] = Kleisli(_ => IO(???))
+val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ => OptionT.liftF(IO(???)))
 val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
 val authedService: AuthedService[IO, User] =
   AuthedService {
