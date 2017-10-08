@@ -2,12 +2,13 @@ package org.http4s
 
 import cats.data.NonEmptyList
 import cats.effect.IO
+import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
 
 class MessageSpec extends Http4sSpec {
 
-  "Request" should {
+  "Request" >> {
     "ConnectionInfo" should {
       val local = InetSocketAddress.createUnresolved("www.local.com", 8080)
       val remote = InetSocketAddress.createUnresolved("www.remote.com", 45444)
@@ -55,22 +56,6 @@ class MessageSpec extends Http4sSpec {
       }
 
     }
-
-    /* TODO fs2 spec bring back when unemit comes back
-    "isIdempotent" should {
-      "be true if the method is idempotent and the body is pure" in {
-        Request(Method.GET).withBody("pure").map(_.isIdempotent) must returnValue(true)
-      }
-
-      "be false if the body is effectful" in {
-        Request(Method.GET).withBody(Task.now("effectful")).map(_.isIdempotent) must returnValue(true)
-      }
-
-      "be false if the method is not idempotent" in {
-        Request(Method.POST).isIdempotent must beFalse
-      }
-    }
-     */
 
     "support cookies" should {
       "contain a Cookie header when an explicit cookie is added" in {
@@ -127,8 +112,8 @@ class MessageSpec extends Http4sSpec {
     }
   }
 
-  "Message" should {
-    "decode" >> {
+  "Message" >> {
+    "decode" should {
       "produce a UnsupportedMediaType in the event of a decode failure" >> {
         "MediaTypeMismatch" in {
           val req = Request[IO](headers = Headers(`Content-Type`(MediaType.`application/base64`)))
@@ -144,11 +129,21 @@ class MessageSpec extends Http4sSpec {
     }
   }
 
-  "Response" should {
+  "Response" >> {
     "toString" should {
       "redact a `Set-Cookie` header" in {
         val resp = Response().putHeaders(headers.`Set-Cookie`(Cookie("token", "value")))
         resp.toString must_== ("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
+      }
+    }
+
+    "notFound" should {
+      "return a plain text UTF-8 not found response" in {
+        val resp: Response[Pure] = Response.notFound
+
+        resp.contentType must beSome(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
+        resp.status must_=== Status.NotFound
+        resp.body.through(fs2.text.utf8Decode).toList.mkString("") must_=== "Not found"
       }
     }
   }

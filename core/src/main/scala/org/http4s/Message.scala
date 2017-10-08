@@ -368,9 +368,13 @@ final case class Response[F[_]](
 }
 
 object Response {
-  private[this] val notFoundBody = Stream("Not found").through(text.utf8Encode)
+  private[this] val pureNotFound: Response[Pure] =
+    Response(
+      Status.NotFound,
+      body = Stream("Not found").through(text.utf8Encode),
+      headers = Headers(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`)))
 
-  def notFound[F[_]]: Response[F] = Response(Status.NotFound, body = notFoundBody)
+  def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 
   def notFoundFor[F[_]: Monad](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
