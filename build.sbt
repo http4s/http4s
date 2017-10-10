@@ -39,6 +39,7 @@ lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
+      catsEffectLaws,
       scalacheck,
       specs2Core
     ),
