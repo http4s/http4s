@@ -80,7 +80,7 @@ object FileService {
 
   // Attempts to sanitize the file location and retrieve the file. Returns None if the file doesn't exist.
   private def getFile(unsafePath: String): Option[File] = {
-    val f = new File(sanitize(unsafePath))
+    val f = new File(PathNormalizer.removeDotSegments(unsafePath))
     if (f.exists()) Some(f)
     else None
   }

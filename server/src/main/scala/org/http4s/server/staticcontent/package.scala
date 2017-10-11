@@ -20,8 +20,6 @@ package object staticcontent {
   /** Make a new [[org.http4s.HttpService]] that serves static files from webjars */
   def webjarService(config: WebjarService.Config): HttpService = WebjarService(config)
 
-  private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
-
   private[staticcontent] val AcceptRangeHeader = `Accept-Ranges`(RangeUnit.Bytes)
 
   // Will strip the pathPrefix from the first part of the Uri, returning the remainder without a leading '/'
