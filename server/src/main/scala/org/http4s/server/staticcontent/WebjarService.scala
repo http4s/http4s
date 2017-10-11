@@ -53,7 +53,7 @@ object WebjarService {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       Option(request.pathInfo)
-          .map(sanitize)
+          .map(PathNormalizer.removeDotSegments)
           .flatMap(toWebjarAsset)
           .filter(config.filter)
           .map(serveWebjarAsset(config, request))
