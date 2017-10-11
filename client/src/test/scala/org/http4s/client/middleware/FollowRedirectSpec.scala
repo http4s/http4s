@@ -6,11 +6,12 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import java.util.concurrent.atomic._
+import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.specs2.mutable.Tables
 
-class FollowRedirectSpec extends Http4sSpec with Tables {
+class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables {
 
   private val loopCounter = new AtomicInteger(0)
 

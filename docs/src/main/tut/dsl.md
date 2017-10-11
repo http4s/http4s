@@ -339,7 +339,7 @@ in which `IntVar` does it.
 ```tut:book
 import java.time.LocalDate
 import scala.util.Try
-import org.http4s.client._
+import org.http4s.client.dsl.io._
 
 object LocalDateVar {
   def unapply(str: String): Option[LocalDate] = {

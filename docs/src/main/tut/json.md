@@ -98,6 +98,7 @@ useful on client requests:
 
 ```tut:book
 import org.http4s.client._
+import org.http4s.client.dsl.io._
 
 POST(uri("/hello"), json"""{"name": "Alice"}""").unsafeRunSync
 ```
