@@ -115,19 +115,19 @@ case class User(id: Long, name: String)
 // defined class User
 
 val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ =&gt; OptionT.liftF(IO(???)))
-// authUser: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],User] = Kleisli($$Lambda$57036/2144221922@d170abb)
+// authUser: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],User] = Kleisli($$Lambda$57045/2063097217@7b005b30)
 
 val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
-// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57037/2061508032@b131926
+// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57046/28545966@17b8f0e9
 
 val authedService: AuthedService[IO, User] =
   AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
-// authedService: org.http4s.AuthedService[cats.effect.IO,User] = Kleisli(org.http4s.AuthedService$$$Lambda$57040/2107261861@b9affae)
+// authedService: org.http4s.AuthedService[cats.effect.IO,User] = Kleisli(org.http4s.AuthedService$$$Lambda$57049/884651877@56732fbd)
 
 val service: HttpService[IO] = middleware(authedService)
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57042/2147428939@7446a79d)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57051/1867383025@6b6132d4)
 </code></pre>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
@@ -144,19 +144,19 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 error handling, we recommend an error <a href="http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
 
 <pre><code class="language-scala">val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
-// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57043/225167343@2d6bc3c9)
+// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57052/193088816@9e4ca2c)
 
 val onFailure: AuthedService[IO, String] = AuthedService.lift(req =&gt; Forbidden(req.authInfo))
 // &lt;console&gt;:36: warning: method lift in object AuthedService is deprecated (since 0.18): Use liftF with an OptionT[F, Response[F]] instead
 //        val onFailure: AuthedService[IO, String] = AuthedService.lift(req =&gt; Forbidden(req.authInfo))
 //                                                                 ^
-// onFailure: org.http4s.AuthedService[cats.effect.IO,String] = Kleisli(scala.Function1$$Lambda$5599/624885485@5eb07677)
+// onFailure: org.http4s.AuthedService[cats.effect.IO,String] = Kleisli(scala.Function1$$Lambda$5608/2010295593@6b9ace92)
 
 val middleware = AuthMiddleware(authUser, onFailure)
-// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57046/1009351952@5c025ad0
+// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57055/1941325893@63529b5a
 
 val service: HttpService[IO] = middleware(authedService)
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57042/2147428939@2d5a4772)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57051/1867383025@e4f1f54)
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
@@ -187,10 +187,10 @@ import java.time._
 // import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@33a3f6b9)
+// key: org.reactormonk.PrivateKey = PrivateKey([B@3549b38e)
 
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@33a3f6b9))
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@3549b38e))
 
 val clock = Clock.systemUTC
 // clock: java.time.Clock = SystemClock[Z]
@@ -217,7 +217,7 @@ val logIn: Service[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
 // &lt;console&gt;:49: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
 //              Ok(&quot;Logged in!&quot;).addCookie(Cookie(&quot;authcookie&quot;, message))
 //                ^
-// logIn: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli($$Lambda$57053/303065374@10542fcc)
+// logIn: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli($$Lambda$57062/2038752189@551f3dda)
 </code></pre>
 
 <p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
@@ -240,7 +240,7 @@ val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request 
 // &lt;console&gt;:44: warning: type Service in package http4s is deprecated (since 0.18): Deprecated in favor of just using Kleisli
 //        val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
 //                      ^
-// authUser: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57054/1341876550@1527749)
+// authUser: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57063/100957802@7daa137)
 </code></pre>
 
 <h3 id="authorization-header">Authorization Header</h3>
@@ -266,7 +266,7 @@ val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request 
 // &lt;console&gt;:48: warning: type Service in package http4s is deprecated (since 0.18): Deprecated in favor of just using Kleisli
 //        val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
 //                      ^
-// authUser: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57055/1936427624@4148dad0)
+// authUser: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57064/1139862184@a1bec67)
 </code></pre>
 
         </div>

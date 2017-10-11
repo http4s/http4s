@@ -176,20 +176,7 @@
         <span class="name">client</span>
       </span>
       
-      <p class="shortcomment cmt">Provides extension methods for using a http4s <a href="Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><div class="fullcomment"><div class="comment cmt"><p>Provides extension methods for using a http4s <a href="Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><pre><span class="kw">import</span> cats.effect.IO
-<span class="kw">import</span> org.http4s._
-<span class="kw">import</span> org.http4s.client._
-<span class="kw">import</span> org.http4s.Http4s._
-<span class="kw">import</span> org.http4s.Status._
-<span class="kw">import</span> org.http4s.Method._
-<span class="kw">import</span> org.http4s.EntityDecoder
-
-<span class="kw">def</span> client: Client[IO] = ???
-
-<span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
-<span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
-<span class="kw">val</span> req1 = r.unsafeRunSync
-<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.client.asynchttpclient" visbl="pub" class="indented4 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="asynchttpclient"></a><a id="asynchttpclient:asynchttpclient"></a>
       <span class="permalink">
@@ -222,6 +209,24 @@
       <span class="symbol">
         <a title="" href="blaze/index.html">
               <span class="name">blaze</span>
+            </a>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.dsl" visbl="pub" class="indented4 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="dsl"></a><a id="dsl:dsl"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/index.html#dsl" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="dsl/index.html">
+              <span class="name">dsl</span>
             </a>
       </span>
       
@@ -606,24 +611,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Provides extension methods for using a http4s <a href="Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><pre><span class="kw">import</span> cats.effect.IO
-<span class="kw">import</span> org.http4s._
-<span class="kw">import</span> org.http4s.client._
-<span class="kw">import</span> org.http4s.Http4s._
-<span class="kw">import</span> org.http4s.Status._
-<span class="kw">import</span> org.http4s.Method._
-<span class="kw">import</span> org.http4s.EntityDecoder
-
-<span class="kw">def</span> client: Client[IO] = ???
-
-<span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
-<span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
-<span class="kw">val</span> req1 = r.unsafeRunSync
-<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../ClientTypes.html" class="extype" name="org.http4s.ClientTypes">ClientTypes</a>, <a href="../Http4sClientDsl.html" class="extype" name="org.http4s.Http4sClientDsl">Http4sClientDsl</a>[<span class="extype" name="cats.effect.IO">IO</span>], <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../ClientTypes.html" class="extype" name="org.http4s.ClientTypes">ClientTypes</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -649,7 +641,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.client"><span>client</span></li><li class="in" name="org.http4s.ClientTypes"><span>ClientTypes</span></li><li class="in" name="org.http4s.Http4sClientDsl"><span>Http4sClientDsl</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.client"><span>client</span></li><li class="in" name="org.http4s.ClientTypes"><span>ClientTypes</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -829,55 +821,7 @@ HTTP connection.</p>
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.Http4sClientDsl#http4sHeadersDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="http4sHeadersDecoder[T](implicitF:cats.Applicative[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.EntityDecoder[F,(org.http4s.Headers,T)]"></a><a id="http4sHeadersDecoder[T](Applicative[IO],EntityDecoder[IO,T]):EntityDecoder[IO,(Headers,T)]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#http4sHeadersDecoder[T](implicitF:cats.Applicative[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):org.http4s.EntityDecoder[F,(org.http4s.Headers,T)]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">http4sHeadersDecoder</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>, <span name="decoder">decoder: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="cats.effect.IO">IO</span>, <span class="extype" name="org.http4s.Http4sClientDsl.http4sHeadersDecoder.T">T</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="cats.effect.IO">IO</span>, (<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <span class="extype" name="org.http4s.Http4sClientDsl.http4sHeadersDecoder.T">T</span>)]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Http4sClientDsl.html" class="extype" name="org.http4s.Http4sClientDsl">Http4sClientDsl</a></dd></dl></div>
-    </li><li name="org.http4s.Http4sClientDsl#http4sNoBodyOps" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="http4sNoBodyOps(method:org.http4s.Methodwithorg.http4s.Method.NoBody):org.http4s.Http4sClientDsl.NoBodyOps[F]"></a><a id="http4sNoBodyOps(MethodwithNoBody):NoBodyOps[IO]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#http4sNoBodyOps(method:org.http4s.Methodwithorg.http4s.Method.NoBody):org.http4s.Http4sClientDsl.NoBodyOps[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">http4sNoBodyOps</span><span class="params">(<span name="method">method: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a> with <a href="../Method$$NoBody.html" class="extype" name="org.http4s.Method.NoBody">NoBody</a></span>)</span><span class="result">: <a href="../Http4sClientDsl$$NoBodyOps.html" class="extype" name="org.http4s.Http4sClientDsl.NoBodyOps">NoBodyOps</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Http4sClientDsl.html" class="extype" name="org.http4s.Http4sClientDsl">Http4sClientDsl</a></dd></dl></div>
-    </li><li name="org.http4s.Http4sClientDsl#http4sWithBodySyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="http4sWithBodySyntax(method:org.http4s.Methodwithorg.http4s.Method.PermitsBody):org.http4s.Http4sClientDsl.WithBodyOps[F]"></a><a id="http4sWithBodySyntax(MethodwithPermitsBody):WithBodyOps[IO]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/index.html#http4sWithBodySyntax(method:org.http4s.Methodwithorg.http4s.Method.PermitsBody):org.http4s.Http4sClientDsl.WithBodyOps[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">http4sWithBodySyntax</span><span class="params">(<span name="method">method: <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a> with <a href="../Method$$PermitsBody.html" class="extype" name="org.http4s.Method.PermitsBody">PermitsBody</a></span>)</span><span class="result">: <a href="../Http4sClientDsl$$WithBodyOps.html" class="extype" name="org.http4s.Http4sClientDsl.WithBodyOps">WithBodyOps</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Http4sClientDsl.html" class="extype" name="org.http4s.Http4sClientDsl">Http4sClientDsl</a></dd></dl></div>
-    </li><li name="org.http4s.client.Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="org.http4s.client.Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Client"></a><a id="Client:Client"></a>
       <span class="permalink">
       <a href="../../../org/http4s/client/index.html#Client" title="Permalink">
@@ -943,8 +887,6 @@ HTTP connection.</p>
         <div id="inheritedMembers">
         <div class="parent" name="org.http4s.ClientTypes">
               <h3>Inherited from <a href="../ClientTypes.html" class="extype" name="org.http4s.ClientTypes">ClientTypes</a></h3>
-            </div><div class="parent" name="org.http4s.Http4sClientDsl">
-              <h3>Inherited from <a href="../Http4sClientDsl.html" class="extype" name="org.http4s.Http4sClientDsl">Http4sClientDsl</a>[<span class="extype" name="cats.effect.IO">IO</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.3/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

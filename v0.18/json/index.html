@@ -190,6 +190,9 @@ useful on client requests:</p>
 <pre><code class="language-scala">import org.http4s.client._
 // import org.http4s.client._
 
+import org.http4s.client.dsl.io._
+// import org.http4s.client.dsl.io._
+
 POST(uri(&quot;/hello&quot;), json&quot;&quot;&quot;{&quot;name&quot;: &quot;Alice&quot;}&quot;&quot;&quot;).unsafeRunSync
 // res2: org.http4s.Request[cats.effect.IO] = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 16))
 </code></pre>
@@ -214,7 +217,7 @@ to JSON as long as an implicit <code>Encoder</code> is in scope:</p>
 </code></pre>
 
 <pre><code class="language-scala">scala&gt; Hello(&quot;Alice&quot;).asJson
-&lt;console&gt;:39: error: could not find implicit value for parameter encoder: io.circe.Encoder[Hello]
+&lt;console&gt;:42: error: could not find implicit value for parameter encoder: io.circe.Encoder[Hello]
        Hello(&quot;Alice&quot;).asJson
                       ^
 </code></pre>
@@ -226,7 +229,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@1d820ce5
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@63c4369b
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -269,7 +272,7 @@ or client, we need an <code>EntityDecoder[JSON]</code> to receive it.</p>
 response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"><code>as</code> syntax</a>:</p>
 
 <pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].unsafeRunSync
-// &lt;console&gt;:41: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
+// &lt;console&gt;:44: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
 //        Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[Json].unsafeRunSync
 //          ^
 // res8: io.circe.Json =
@@ -278,7 +281,7 @@ response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T]
 // }
 
 POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[Json].unsafeRunSync
-// &lt;console&gt;:41: warning: method http4sEffectRequestSyntax in trait EffectRequestSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the request
+// &lt;console&gt;:44: warning: method http4sEffectRequestSyntax in trait EffectRequestSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the request
 //        POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[Json].unsafeRunSync
 //            ^
 // res9: io.circe.Json =
@@ -299,16 +302,16 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@ce4df13
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@1509d68a
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[User].unsafeRunSync
-// &lt;console&gt;:44: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
+// &lt;console&gt;:47: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
 //        Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).as[User].unsafeRunSync
 //          ^
 // res10: User = User(Alice)
 
 POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[User].unsafeRunSync
-// &lt;console&gt;:44: warning: method http4sEffectRequestSyntax in trait EffectRequestSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the request
+// &lt;console&gt;:47: warning: method http4sEffectRequestSyntax in trait EffectRequestSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the request
 //        POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).as[User].unsafeRunSync
 //            ^
 // res11: User = User(Bob)
@@ -376,7 +379,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$1147037972
+// helloAlice: cats.effect.IO[Hello] = IO$1456734279
 
 helloAlice.unsafeRunSync
 // res20: Hello = Hello(Alice)

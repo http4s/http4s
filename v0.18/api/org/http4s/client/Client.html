@@ -119,25 +119,12 @@
         <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <a title="Provides extension methods for using a http4s org.http4s.client.Client" href="index.html">
+        <a title="" href="index.html">
               <span class="name">client</span>
             </a>
       </span>
       
-      <p class="shortcomment cmt">Provides extension methods for using a http4s <a href="" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><div class="fullcomment"><div class="comment cmt"><p>Provides extension methods for using a http4s <a href="" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><pre><span class="kw">import</span> cats.effect.IO
-<span class="kw">import</span> org.http4s._
-<span class="kw">import</span> org.http4s.client._
-<span class="kw">import</span> org.http4s.Http4s._
-<span class="kw">import</span> org.http4s.Status._
-<span class="kw">import</span> org.http4s.Method._
-<span class="kw">import</span> org.http4s.EntityDecoder
-
-<span class="kw">def</span> client: Client[IO] = ???
-
-<span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
-<span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
-<span class="kw">val</span> req1 = r.unsafeRunSync
-<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.client.asynchttpclient" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asynchttpclient"></a><a id="asynchttpclient:asynchttpclient"></a>
       <span class="permalink">
@@ -170,6 +157,24 @@
       <span class="symbol">
         <a title="" href="blaze/index.html">
               <span class="name">blaze</span>
+            </a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
+    </li><li name="org.http4s.client.dsl" visbl="pub" class="indented4 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="dsl"></a><a id="dsl:dsl"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/index.html#dsl" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="dsl/index.html">
+              <span class="name">dsl</span>
             </a>
       </span>
       
