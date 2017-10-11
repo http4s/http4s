@@ -1,5 +1,6 @@
 package org.http4s
 package client
+package dsl
 
 import cats._
 import org.http4s.Method.{NoBody, PermitsBody}
@@ -15,8 +16,8 @@ trait Http4sClientDsl[F[_]] {
     new NoBodyOps[F](method)
 
   implicit def http4sHeadersDecoder[T](
-    implicit F: Applicative[F],
-    decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
+      implicit F: Applicative[F],
+      decoder: EntityDecoder[F, T]): EntityDecoder[F, (Headers, T)] = {
     val s = decoder.consumes.toList
     EntityDecoder.decodeBy(s.head, s.tail: _*)(resp =>
       decoder.decode(resp, strict = true).map(t => (resp.headers, t)))

@@ -3,8 +3,8 @@ package com.example.http4s.blaze
 import cats.effect.IO
 import org.http4s._
 import org.http4s.Uri._
-import org.http4s.client.Http4sClientDsl
 import org.http4s.client.blaze.{defaultClient => client}
+import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.implicits._
 import org.http4s.multipart._
