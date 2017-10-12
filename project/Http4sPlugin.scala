@@ -281,11 +281,11 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.6.0"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M11"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.5.0"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.1.0"
-  lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
-  lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
-  lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
+  lazy val cats                             = Def.setting("org.typelevel"          %% "cats-core"                 % "1.5.0")
+  lazy val catsEffect                       = Def.setting("org.typelevel"          %% "cats-effect"               % "1.1.0")
+  lazy val catsEffectLaws                   = Def.setting("org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision)
+  lazy val catsKernelLaws                   = Def.setting("org.typelevel"          %% "cats-kernel-laws"          % cats.revision)
+  lazy val catsLaws                         = Def.setting("org.typelevel"          %% "cats-laws"                 % cats.revision)
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.11.0"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
@@ -295,8 +295,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.5"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.2"
-  lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
+  lazy val fs2Io                            = Def.setting("co.fs2"                 %% "fs2-io"                    % "1.0.2")
+  lazy val fs2ReactiveStreams               = Def.setting("co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision)
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.14.0"
   lazy val jawnJson4s                       = "org.typelevel"          %% "jawn-json4s"               % "0.14.0"
@@ -325,7 +325,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
-  lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
