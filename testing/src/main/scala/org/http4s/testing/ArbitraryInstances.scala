@@ -66,7 +66,7 @@ trait ArbitraryInstances {
     genFieldContent
 
   val genStandardMethod: Gen[Method] =
-    oneOf(Method.registered.toSeq)
+    oneOf(Method.all)
 
   implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(
     frequency(
