@@ -62,7 +62,7 @@ class StaticFileSpec extends Http4sSpec {
       }
 
       val tests = List(
-        "./testing/src/test/resources/logback-test.xml",
+        "./testing/shared/src/test/resources/logback-test.xml",
         "./server/src/test/resources/testresource.txt",
         "./.travis.yml")
 

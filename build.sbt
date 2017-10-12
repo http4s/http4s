@@ -23,7 +23,7 @@ lazy val core = libraryCrossProject("core", CrossType.Full)
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
-      fs2Scodec,
+      fs2Scodec.value,
       http4sWebsocket.value,
       macroCompat.value,
       parboiled.value,
@@ -46,13 +46,13 @@ lazy val core = libraryCrossProject("core", CrossType.Full)
 lazy val coreJVM = core.jvm
 lazy val coreJS  = core.js
 
-lazy val testing = libraryCrossProject("testing")
+lazy val testing = libraryCrossProject("testing", CrossType.Full)
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
       catsEffectLaws,
       scalacheck,
-      specs2Core
+      specs2Core.value
     ),
     macroParadiseSetting
   )
@@ -67,10 +67,20 @@ lazy val tests = libraryCrossProject("tests", CrossType.Full)
     description := "Tests for core project",
     mimaPreviousArtifacts := Set.empty
   )
+  .jsSettings(
+    libraryDependencies ++= Seq("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion),
+    scalaJSStage in Test := FastOptStage,
+    testFrameworks := Seq(TestFramework("org.specs2.runner.Specs2Framework"))
+  )
   .dependsOn(core, testing % "test->test")
 
-lazy val testsJVM = tests.jvm
+lazy val testsJVM = tests.jvm.dependsOn(testingJVM)
 lazy val testsJS  = tests.js
+  .settings(
+    libraryDependencies ++= Seq("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion),
+    scalaJSStage in Test := FastOptStage,
+    testFrameworks := Seq(TestFramework("org.specs2.runner.Specs2Framework"))
+  )
 
 lazy val server = libraryProject("server")
   .settings(
@@ -508,14 +518,14 @@ lazy val commonSettings = Seq(
     "-Xlint:unchecked"
   ),
   libraryDependencies ++= Seq(
-    catsLaws,
-    catsKernelLaws,
+    catsLaws.value,
+    catsKernelLaws.value,
     discipline,
     logbackClassic,
     scalacheck, // 0.13.3 fixes None.get
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    specs2Core.value,
+    specs2MatcherExtra.value,
+    specs2Scalacheck.value
   ).map(_ % "test"),
   // don't include scoverage as a dependency in the pom
   // https://github.com/scoverage/sbt-scoverage/issues/153

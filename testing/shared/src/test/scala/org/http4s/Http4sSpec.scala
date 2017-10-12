@@ -121,10 +121,5 @@ object Http4sSpec {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
-  val TestScheduler: Scheduler = {
-    val (sched, _) = Scheduler
-      .allocate[IO](corePoolSize = 4, threadPrefix = "http4s-spec-scheduler")
-      .unsafeRunSync()
-    sched
-  }
+  val TestScheduler: Scheduler = PlatformTestScheduler.TestScheduler
 }
