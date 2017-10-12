@@ -58,7 +58,7 @@ object EntityCodecTests {
   def apply[F[_], A](
       implicit effectF: Effect[F],
       entityEncoderFA: EntityEncoder[F, A],
-      entityDecoderFA: EntityDecoder[F, A],
+      entityDecoderFA: EntityDecoder[F, A]
   ): EntityCodecTests[F, A] = new EntityCodecTests[F, A] {
     val laws: EntityCodecLaws[F, A] = EntityCodecLaws[F, A]
   }

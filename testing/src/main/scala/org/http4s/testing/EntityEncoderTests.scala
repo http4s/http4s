@@ -30,7 +30,7 @@ trait EntityEncoderLaws[F[_], A] extends ToIOSyntax {
 object EntityEncoderLaws {
   def apply[F[_], A](
       implicit effectF: Effect[F],
-      entityEncoderFA: EntityEncoder[F, A],
+      entityEncoderFA: EntityEncoder[F, A]
   ): EntityEncoderLaws[F, A] = new EntityEncoderLaws[F, A] {
     val effect = effectF
     val encoder = entityEncoderFA
@@ -51,7 +51,7 @@ trait EntityEncoderTests[F[_], A] extends Laws {
       ioBooleanToProp(laws.accurateContentLengthIfDefined(a))
     },
     "noContentLengthInStaticHeaders" -> laws.noContentLengthInStaticHeaders,
-    "noTransferEncodingInStaticHeaders" -> laws.noTransferEncodingInStaticHeaders,
+    "noTransferEncodingInStaticHeaders" -> laws.noTransferEncodingInStaticHeaders
   )
 }
 
