@@ -4,6 +4,14 @@ weight: 101
 title: Changelog
 ---
 
+# v0.17.5 (2017-10-12)
+* Merged changes from v0.16.5
+
+# v0.16.5 (2017-10-11)
+* Correctly implement sanitization of dot segments in static file paths
+  according to RFC 3986 5.2.4. Most importantly, this fixes an issue where `...`
+  is reinterpreted as `..` and can escape the root of the static file service.
+
 # v0.18.0-M3 (2017-10-04)
 * Merges from maintenance releases 0.16.4 and 0.17.4.
 

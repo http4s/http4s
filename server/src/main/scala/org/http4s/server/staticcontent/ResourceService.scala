@@ -31,7 +31,8 @@ object ResourceService {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         StaticFile
           .fromResource(
-            sanitize(s"${config.basePath}/${getSubPath(request.pathInfo, config.pathPrefix)}"),
+            PathNormalizer.removeDotSegments(
+              s"${config.basePath}/${getSubPath(request.pathInfo, config.pathPrefix)}"),
             Some(request),
             preferGzipped = config.preferGzipped
           )
