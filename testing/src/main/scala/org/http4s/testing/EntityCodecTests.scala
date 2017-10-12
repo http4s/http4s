@@ -9,25 +9,18 @@ import cats.effect.laws.util.TestInstances._
 import cats.laws._
 import cats.laws.discipline._
 import org.scalacheck.{Arbitrary, Prop, Shrink}
-import org.typelevel.discipline.Laws
 
-trait EntityCodecLaws[F[_], A] {
+trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] with ToIOSyntax {
   implicit def effect: Effect[F]
   implicit def encoder: EntityEncoder[F, A]
   implicit def decoder: EntityDecoder[F, A]
 
-  def entityCodecRoundTrip(a: A): IsEq[IO[Either[DecodeFailure, A]]] = {
-    var result: Option[Either[DecodeFailure, A]] = None
-    val read = IO(result.get)
-    effect.runAsync(for {
+  def entityCodecRoundTrip(a: A): IsEq[IO[Either[DecodeFailure, A]]] =
+    (for {
       entity <- encoder.toEntity(a)
       message = Request(body = entity.body, headers = encoder.headers)
       a0 <- decoder.decode(message, strict = true).value
-    } yield a0) {
-      case Left(e) => IO.raiseError(e)
-      case Right(a) => IO { result = Some(a) }
-    } >> read <-> IO.pure(Right(a))
-  }
+    } yield a0).toIO <-> IO.pure(Right(a))
 }
 
 object EntityCodecLaws {
@@ -41,7 +34,7 @@ object EntityCodecLaws {
   }
 }
 
-trait EntityCodecTests[F[_], A] extends Laws {
+trait EntityCodecTests[F[_], A] extends EntityEncoderTests[F, A] {
   def laws: EntityCodecLaws[F, A]
 
   implicit def eqDecodeFailure: Eq[DecodeFailure] =
@@ -53,8 +46,8 @@ trait EntityCodecTests[F[_], A] extends Laws {
       shrinkA: Shrink[A],
       eqA: Eq[A],
       testContext: TestContext): RuleSet = new DefaultRuleSet(
-    name = "Entity codec",
-    parent = None,
+    name = "EntityCodec",
+    parent = Some(entityEncoder),
     "roundTrip" -> Prop.forAll { (a: A) =>
       laws.entityCodecRoundTrip(a)
     }
@@ -63,9 +56,9 @@ trait EntityCodecTests[F[_], A] extends Laws {
 
 object EntityCodecTests {
   def apply[F[_], A](
-      implicit effect: Effect[F],
-      entityEncoder: EntityEncoder[F, A],
-      entityDecoder: EntityDecoder[F, A],
+      implicit effectF: Effect[F],
+      entityEncoderFA: EntityEncoder[F, A],
+      entityDecoderFA: EntityDecoder[F, A],
   ): EntityCodecTests[F, A] = new EntityCodecTests[F, A] {
     val laws: EntityCodecLaws[F, A] = EntityCodecLaws[F, A]
   }

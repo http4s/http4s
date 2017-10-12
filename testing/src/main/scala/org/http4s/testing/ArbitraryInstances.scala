@@ -4,6 +4,7 @@ package testing
 import cats._
 import cats.data.NonEmptyList
 import cats.implicits.{catsSyntaxEither => _, _}
+import fs2.Stream
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
@@ -399,6 +400,9 @@ trait ArbitraryInstances {
       )
     }
 
+  implicit val arbitraryHeaders: Arbitrary[Headers] =
+    Arbitrary(listOf(arbitrary[Header]).map(Headers(_: _*)))
+
   implicit val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
     import ServerSentEvent._
     def singleLineString: Gen[String] =
@@ -527,6 +531,28 @@ trait ArbitraryInstances {
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
   }
+
+  // TODO This could be a lot more interesting.
+  // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
+  implicit def arbitraryEntityBody[F[_]] = Gen.sized { size =>
+    Gen.listOfN(size, arbitrary[Byte]).map(Stream.emits)
+  }
+
+  implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
+    Arbitrary(Gen.sized { size =>
+      for {
+        body <- arbitraryEntityBody
+        length <- Gen.oneOf(Some(size.toLong), None)
+      } yield Entity(body, length)
+    })
+
+  implicit def arbitraryEntityEncoder[F[_], A](
+      implicit CA: Cogen[A],
+      AF: Arbitrary[F[Entity[F]]]): Arbitrary[EntityEncoder[F, A]] =
+    Arbitrary(for {
+      f <- arbitrary[A => F[Entity[F]]]
+      hs <- arbitrary[Headers]
+    } yield EntityEncoder.encodeBy(hs)(f))
 }
 
 object ArbitraryInstances extends ArbitraryInstances {
