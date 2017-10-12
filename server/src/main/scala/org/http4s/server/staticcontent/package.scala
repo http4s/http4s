@@ -20,7 +20,8 @@ package object staticcontent {
   /** Make a new [[org.http4s.HttpService]] that serves static files from webjars */
   def webjarService(config: WebjarService.Config): HttpService = WebjarService(config)
 
-  private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
+  @deprecated("Replaced by PathNormalizer.removeDotSegments", "0.16.5")
+  private[staticcontent] val sanitize = PathNormalizer.removeDotSegments _
 
   private[staticcontent] val AcceptRangeHeader = `Accept-Ranges`(RangeUnit.Bytes)
 

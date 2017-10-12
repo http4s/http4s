@@ -32,7 +32,7 @@ object ResourceService {
     else
       StaticFile
         .fromResource(
-          sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)),
+          PathNormalizer.removeDotSegments(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)),
           req = Some(req),
           preferGzipped = config.preferGzipped
         )
