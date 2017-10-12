@@ -163,7 +163,10 @@ lazy val argonaut = libraryProject("argonaut")
 lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
-    libraryDependencies += circeJawn
+    libraryDependencies ++= Seq(
+      circeJawn,
+      circeTesting % "test"
+    )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 

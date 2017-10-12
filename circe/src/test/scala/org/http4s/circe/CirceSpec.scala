@@ -2,17 +2,22 @@ package org.http4s
 package circe.test // Get out of circe package so we can import custom instances
 
 import cats.effect.IO
+import cats.effect.laws.util.TestContext
 import io.circe._
 import io.circe.syntax._
+import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
 import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
+import org.http4s.testing.EntityCodecTests
 import org.specs2.specification.core.Fragment
 
 // Originally based on ArgonautSpec
 class CirceSpec extends JawnDecodeSupportSpec[Json] {
+  implicit val testContext = TestContext()
+
   testJsonDecoder(jsonDecoder)
 
   sealed case class Foo(bar: Int)
@@ -133,4 +138,6 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       req.flatMap(_.decodeJson[Foo]).attempt.unsafeRunSync must beLeft
     }
   }
+
+  checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Json].entityCodec)
 }
