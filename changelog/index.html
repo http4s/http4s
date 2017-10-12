@@ -82,10 +82,41 @@
           
           
 
+<p>Maintenance branches are merged before each new release. This change log is
+ordered chronologically, so each release contains all changes described below
+it.</p>
+
+<h1 id="v0-18-0-m4-2017-10-12">v0.18.0-M4 (2017-10-12)</h1>
+
+<ul>
+<li>Syntax for building requests moved from <code>org.http4s.client._</code> to
+<code>org.http4s.client.dsl.Http4sClientDsl[F]</code>, with concrete type <code>IO</code>
+available as <code>org.http4s.client.dsl.io._</code>.  This is consistent with
+http4s-dsl for servers.</li>
+<li>Change <code>StreamApp</code> to return a <code>Stream[F, ExitCode]</code>. The first exit code
+returned by the stream is the exit code of the JVM. This allows custom exit
+codes, and eases dead code warnings in certain constructions that involved
+mapping over <code>Nothing</code>.</li>
+<li><code>AuthMiddleware.apply</code> now takes an <code>Kleisli[OptionT[F, ?], Request[F], T]</code>
+instead of a <code>Kleisli[F, Request[F], T]</code>.</li>
+<li>Set <code>Content-Type</code> header on default <code>NotFound</code> response.</li>
+<li>Merges from v0.16.5 and v0.17.5.</li>
+<li>Remove mutable map that backs <code>Method</code> registry. All methods in the IANA
+registry are available through <code>Method.all</code>. Custom methods should be memoized
+by other means.</li>
+<li>Adds an <code>EntityDecoder[F, Array[Byte]]</code> and <code>EntityDecoder[F, Array[Char]]</code>
+for symmetry with provided <code>EntityEncoder</code> instances.</li>
+<li>Adds <code>Arbitrary</code> instances for <code>Headers</code>, <code>EntityBody[F]</code> (currently just
+single chunk), <code>Entity[F]</code>, and <code>EntityEncoder[F, A]</code>.</li>
+<li>Adds <code>EntityEncoderLaws</code> for <code>EntityEncoder</code>.</li>
+<li>Adds <code>EntityCodecLaws</code>.  &ldquo;EntityCodec&rdquo; is not a type in http4s, but these
+laws relate an <code>EntityEncoder[F, A]</code> to an <code>EntityDecoder[F, A]</code>.</li>
+</ul>
+
 <h1 id="v0-17-5-2017-10-12">v0.17.5 (2017-10-12)</h1>
 
 <ul>
-<li>Merged changes from v0.16.5</li>
+<li>Merges only.</li>
 </ul>
 
 <h1 id="v0-16-5-2017-10-11">v0.16.5 (2017-10-11)</h1>
@@ -99,7 +130,7 @@ is reinterpreted as <code>..</code> and can escape the root of the static file s
 <h1 id="v0-18-0-m3-2017-10-04">v0.18.0-M3 (2017-10-04)</h1>
 
 <ul>
-<li>Merges from maintenance releases 0.16.4 and 0.17.4.</li>
+<li>Merges only.</li>
 </ul>
 
 <h1 id="v0-17-4-2017-10-04">v0.17.4 (2017-10-04)</h1>
