@@ -156,11 +156,17 @@ trait EntityDecoderInstances {
   implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
+  implicit def byteArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Byte]] =
+    binary.map(_.toArray)
+
   implicit def text[F[_]: Sync](
       implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs =>
         new String(bs.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
+
+  implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
+    text.map(_.toArray)
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile[F[_]: MonadError[?[_], Throwable]](file: File)(

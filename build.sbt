@@ -39,6 +39,7 @@ lazy val testing = libraryProject("testing")
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
+      catsEffectLaws,
       scalacheck,
       specs2Core
     ),
@@ -162,7 +163,10 @@ lazy val argonaut = libraryProject("argonaut")
 lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
-    libraryDependencies += circeJawn
+    libraryDependencies ++= Seq(
+      circeJawn,
+      circeTesting % "test"
+    )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
