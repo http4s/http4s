@@ -4,8 +4,36 @@ weight: 101
 title: Changelog
 ---
 
+Maintenance branches are merged before each new release. This change log is
+ordered chronologically, so each release contains all changes described below
+it.
+
+# v0.18.0-M4 (2017-10-12)
+* Syntax for building requests moved from `org.http4s.client._` to
+  `org.http4s.client.dsl.Http4sClientDsl[F]`, with concrete type `IO`
+  available as `org.http4s.client.dsl.io._`.  This is consistent with
+  http4s-dsl for servers.
+* Change `StreamApp` to return a `Stream[F, ExitCode]`. The first exit code
+  returned by the stream is the exit code of the JVM. This allows custom exit
+  codes, and eases dead code warnings in certain constructions that involved
+  mapping over `Nothing`.
+* `AuthMiddleware.apply` now takes an `Kleisli[OptionT[F, ?], Request[F], T]`
+  instead of a `Kleisli[F, Request[F], T]`.
+* Set `Content-Type` header on default `NotFound` response.
+* Merges from v0.16.5 and v0.17.5.
+* Remove mutable map that backs `Method` registry. All methods in the IANA
+  registry are available through `Method.all`. Custom methods should be memoized
+  by other means.
+* Adds an `EntityDecoder[F, Array[Byte]]` and `EntityDecoder[F, Array[Char]]`
+  for symmetry with provided `EntityEncoder` instances.
+* Adds `Arbitrary` instances for `Headers`, `EntityBody[F]` (currently just
+  single chunk), `Entity[F]`, and `EntityEncoder[F, A]`.
+* Adds `EnityEncoderLaws` for `EntityEncoder`.
+* Adds `EntityCodecLaws`.  "EntityCodec" is not a type in http4s, but these
+  laws relate an `EntityEncoder[F, A]` to an `EntityDecoder[F, A]`.
+
 # v0.17.5 (2017-10-12)
-* Merged changes from v0.16.5
+* Merges only.
 
 # v0.16.5 (2017-10-11)
 * Correctly implement sanitization of dot segments in static file paths
@@ -13,7 +41,7 @@ title: Changelog
   is reinterpreted as `..` and can escape the root of the static file service.
 
 # v0.18.0-M3 (2017-10-04)
-* Merges from maintenance releases 0.16.4 and 0.17.4.
+* Merges only.
 
 # v0.17.4 (2017-10-04)
 * Fix reading of request body in non-blocking servlet backend. It was previously
