@@ -39,6 +39,6 @@ class MethodSpec extends Http4sSpec {
   }
 
   "safety implies idempotence" in {
-    foreach(Method.registered.filter(_.isSafe)) { _.isIdempotent }
+    foreach(Method.all.filter(_.isSafe)) { _.isIdempotent }
   }
 }

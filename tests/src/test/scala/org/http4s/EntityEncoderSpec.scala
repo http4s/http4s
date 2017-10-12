@@ -1,27 +1,20 @@
 package org.http4s
 
+import cats.Eq
 import cats.effect.IO
+import cats.implicits._
+import cats.laws.discipline.ContravariantTests
+import cats.laws.discipline.eq._
 import fs2._
 import java.io._
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeoutException
 import org.http4s.headers._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSpec {
   "EntityEncoder" should {
-    "render strings" in {
-      writeToString("pong") must_== "pong"
-    }
-
-    "calculate the content length of strings" in {
-      EntityEncoder[IO, String].toEntity("pong").map(_.length) must returnValue(Some(4))
-    }
-
-    "render byte arrays" in {
-      val hello = "hello"
-      writeToString(hello.getBytes(StandardCharsets.UTF_8)) must_== hello
-    }
-
     "render futures" in {
       val hello = "Hello"
       writeToString(Future(hello)) must_== hello
@@ -126,5 +119,26 @@ class EntityEncoderSpec extends Http4sSpec {
       EntityEncoder[IO, ModelA] must_== w1
       EntityEncoder[IO, ModelB] must_== w2
     }
+  }
+
+  {
+    import org.scalacheck._, Arbitrary.arbitrary
+    implicit def arbitraryIO[A](implicit A: Arbitrary[A]): Arbitrary[IO[A]] =
+      Arbitrary(arbitrary[A].map(IO.apply(_)))
+    implicit def entityEq: Eq[IO[Entity[IO]]] =
+      Eq.by[IO[Entity[IO]], (Option[Long], Vector[Byte])](
+        _.flatMap {
+          case Entity(body, length) =>
+            body.runLog.map { bytes =>
+              (length, bytes)
+            }
+        }.unsafeRunTimed(1.second).getOrElse(throw new TimeoutException)
+      )
+    implicit def entityEncoderEq[A: Arbitrary]: Eq[EntityEncoder[IO, A]] =
+      Eq.by[EntityEncoder[IO, A], (Headers, A => IO[Entity[IO]])](enc =>
+        (enc.headers, enc.toEntity))
+    checkAll(
+      "Contravariant[EntityEncoder[F, ?]]",
+      ContravariantTests[EntityEncoder[IO, ?]].contravariant[Int, Int, Int])
   }
 }

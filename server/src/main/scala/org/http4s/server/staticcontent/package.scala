@@ -23,8 +23,6 @@ package object staticcontent {
   def webjarService[F[_]: Sync](config: WebjarService.Config[F]): HttpService[F] =
     WebjarService(config)
 
-  private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
-
   private[staticcontent] val AcceptRangeHeader = `Accept-Ranges`(RangeUnit.Bytes)
 
   // Will strip the pathPrefix from the first part of the Uri, returning the remainder without a leading '/'

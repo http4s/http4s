@@ -56,7 +56,7 @@ object WebjarService {
     case request if request.method == Method.GET =>
       OptionT
         .pure[F](request.pathInfo)
-        .map(sanitize)
+        .map(PathNormalizer.removeDotSegments)
         .subflatMap(toWebjarAsset)
         .filter(config.filter)
         .flatMap(serveWebjarAsset(config, request)(_))

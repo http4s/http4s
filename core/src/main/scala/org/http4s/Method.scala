@@ -5,7 +5,6 @@ import cats.implicits._
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.Method.Semantics
-import scala.collection.concurrent.TrieMap
 
 /**
   * An HTTP method.
@@ -43,7 +42,7 @@ object Method extends MethodInstances {
   sealed trait NoBody extends Method
 
   def fromString(s: String): ParseResult[Method] =
-    registry.getOrElse(
+    allByKey.getOrElse(
       s,
       Rfc2616BasicRules
         .token(s)
@@ -54,54 +53,97 @@ object Method extends MethodInstances {
 
   import Semantics._
 
-  // Lookups will usually be on fromString, so we store it wrapped in a Right
-  private val registry = TrieMap[String, Right[Nothing, Method]]()
+  type IdempotentMethod = Method with Idempotent
+  type IdempotentMethodNoBody = IdempotentMethod with NoBody
+  type IdempotentMethodWithBody = IdempotentMethod with PermitsBody
+  type SafeMethod = Method with Safe
+  type SafeMethodNoBody = SafeMethod with NoBody
+  type SafeMethodWithBody = SafeMethod with PermitsBody
+  type DefaultMethod = Method with Default
+  type DefaultMethodNoBody = DefaultMethod with NoBody
+  type DefaultMethodWithBody = DefaultMethod with PermitsBody
 
-  private def register[M <: Method](method: M): method.type = {
-    registry(method.name) = Right(method)
-    method
-  }
-
-  def registered: Iterable[Method] = registry.readOnlySnapshot().values.map(_.right.get)
   // TODO: find out the rest of the body permissions. http://www.iana.org/assignments/http-methods/http-methods.xhtml#methods
-  val ACL = register(new Method("ACL") with Idempotent)
-  val `BASELINE-CONTROL` = register(new Method("BASELINE-CONTROL") with Idempotent)
-  val BIND = register(new Method("BIND") with Idempotent)
-  val CHECKIN = register(new Method("CHECKIN") with Idempotent)
-  val CHECKOUT = register(new Method("CHECKOUT") with Idempotent)
-  val CONNECT = register(new Method("CONNECT") with Default with NoBody)
-  val COPY = register(new Method("COPY") with Idempotent)
-  val DELETE = register(new Method("DELETE") with Idempotent with NoBody)
-  val GET = register(new Method("GET") with Safe with NoBody)
-  val HEAD = register(new Method("HEAD") with Safe with NoBody)
-  val LABEL = register(new Method("LABEL") with Idempotent with PermitsBody)
-  val LINK = register(new Method("LINK") with Idempotent)
-  val LOCK = register(new Method("LOCK") with Default)
-  val MERGE = register(new Method("MERGE") with Idempotent)
-  val MKACTIVITY = register(new Method("MKACTIVITY") with Idempotent)
-  val MKCALENDAR = register(new Method("MKCALENDAR") with Idempotent)
-  val MKCOL = register(new Method("MKCOL") with Idempotent)
-  val MKREDIRECTREF = register(new Method("MKREDIRECTREF") with Idempotent)
-  val MKWORKSPACE = register(new Method("MKWORKSPACE") with Idempotent)
-  val MOVE = register(new Method("MOVE") with Idempotent)
-  val OPTIONS = register(new Method("OPTIONS") with Safe with PermitsBody)
-  val ORDERPATCH = register(new Method("ORDERPATCH") with Idempotent)
-  val PATCH = register(new Method("PATCH") with Default with PermitsBody)
-  val POST = register(new Method("POST") with Default with PermitsBody)
-  val PROPFIND = register(new Method("PROPFIND") with Safe)
-  val PROPPATCH = register(new Method("PROPPATCH") with Idempotent)
-  val PUT = register(new Method("PUT") with Idempotent with PermitsBody)
-  val REBIND = register(new Method("REBIND") with Idempotent)
-  val REPORT = register(new Method("REPORT") with Safe)
-  val SEARCH = register(new Method("SEARCH") with Safe)
-  val TRACE = register(new Method("TRACE") with Safe with PermitsBody)
-  val UNBIND = register(new Method("UNBIND") with Idempotent)
-  val UNCHECKOUT = register(new Method("UNCHECKOUT") with Idempotent)
-  val UNLINK = register(new Method("UNLINK") with Idempotent)
-  val UNLOCK = register(new Method("UNLOCK") with Idempotent)
-  val UPDATE = register(new Method("UPDATE") with Idempotent)
-  val UPDATEREDIRECTREF = register(new Method("UPDATEREDIRECTREF") with Idempotent)
-  val `VERSION-CONTROL` = register(new Method("VERSION-CONTROL") with Idempotent)
+  val ACL: IdempotentMethod = new Method("ACL") with Idempotent
+  val `BASELINE-CONTROL`: IdempotentMethod = new Method("BASELINE-CONTROL") with Idempotent
+  val BIND: IdempotentMethod = new Method("BIND") with Idempotent
+  val CHECKIN: IdempotentMethod = new Method("CHECKIN") with Idempotent
+  val CHECKOUT: IdempotentMethod = new Method("CHECKOUT") with Idempotent
+  val CONNECT: DefaultMethodNoBody = new Method("CONNECT") with Default with NoBody
+  val COPY: IdempotentMethod = new Method("COPY") with Idempotent
+  val DELETE: IdempotentMethodNoBody = new Method("DELETE") with Idempotent with NoBody
+  val GET: SafeMethodNoBody = new Method("GET") with Safe with NoBody
+  val HEAD: SafeMethodNoBody = new Method("HEAD") with Safe with NoBody
+  val LABEL: IdempotentMethodWithBody = new Method("LABEL") with Idempotent with PermitsBody
+  val LINK: IdempotentMethod = new Method("LINK") with Idempotent
+  val LOCK: DefaultMethod = new Method("LOCK") with Default
+  val MERGE: IdempotentMethod = new Method("MERGE") with Idempotent
+  val MKACTIVITY: IdempotentMethod = new Method("MKACTIVITY") with Idempotent
+  val MKCALENDAR: IdempotentMethod = new Method("MKCALENDAR") with Idempotent
+  val MKCOL: IdempotentMethod = new Method("MKCOL") with Idempotent
+  val MKREDIRECTREF: IdempotentMethod = new Method("MKREDIRECTREF") with Idempotent
+  val MKWORKSPACE: IdempotentMethod = new Method("MKWORKSPACE") with Idempotent
+  val MOVE: IdempotentMethod = new Method("MOVE") with Idempotent
+  val OPTIONS: SafeMethodWithBody = new Method("OPTIONS") with Safe with PermitsBody
+  val ORDERPATCH: IdempotentMethod = new Method("ORDERPATCH") with Idempotent
+  val PATCH: DefaultMethodWithBody = new Method("PATCH") with Default with PermitsBody
+  val POST: DefaultMethodWithBody = new Method("POST") with Default with PermitsBody
+  val PROPFIND: SafeMethod = new Method("PROPFIND") with Safe
+  val PROPPATCH: IdempotentMethod = new Method("PROPPATCH") with Idempotent
+  val PUT: IdempotentMethodWithBody = new Method("PUT") with Idempotent with PermitsBody
+  val REBIND: IdempotentMethod = new Method("REBIND") with Idempotent
+  val REPORT: SafeMethod = new Method("REPORT") with Safe
+  val SEARCH: SafeMethod = new Method("SEARCH") with Safe
+  val TRACE: SafeMethodWithBody = new Method("TRACE") with Safe with PermitsBody
+  val UNBIND: IdempotentMethod = new Method("UNBIND") with Idempotent
+  val UNCHECKOUT: IdempotentMethod = new Method("UNCHECKOUT") with Idempotent
+  val UNLINK: IdempotentMethod = new Method("UNLINK") with Idempotent
+  val UNLOCK: IdempotentMethod = new Method("UNLOCK") with Idempotent
+  val UPDATE: IdempotentMethod = new Method("UPDATE") with Idempotent
+  val UPDATEREDIRECTREF: IdempotentMethod = new Method("UPDATEREDIRECTREF") with Idempotent
+  val `VERSION-CONTROL`: IdempotentMethod = new Method("VERSION-CONTROL") with Idempotent
+
+  val all = List(
+    ACL,
+    `BASELINE-CONTROL`,
+    BIND,
+    CHECKIN,
+    CHECKOUT,
+    CONNECT,
+    COPY,
+    DELETE,
+    GET,
+    HEAD,
+    LABEL,
+    LINK,
+    LOCK,
+    MERGE,
+    MKACTIVITY,
+    MKCALENDAR,
+    MKCOL,
+    MKREDIRECTREF,
+    MKWORKSPACE,
+    MOVE,
+    OPTIONS,
+    ORDERPATCH,
+    PATCH,
+    POST,
+    PROPFIND,
+    PROPPATCH,
+    PUT,
+    REBIND,
+    REPORT,
+    SEARCH,
+    TRACE,
+    UNBIND,
+    UNCHECKOUT,
+    UNLINK,
+    UNLOCK,
+    UPDATEREDIRECTREF,
+    `VERSION-CONTROL`
+  )
+
+  private val allByKey: Map[String, Right[Nothing, Method]] = all.map(m => (m.name, Right(m))).toMap
 }
 
 trait MethodInstances {
