@@ -1,3 +1,6 @@
+# v0.17.5 (2017-10-11)
+* Merged changes from v0.16.5
+
 # v0.16.5 (2017-10-11)
 * Correctly implement sanitization of dot segments in static file paths
   according to RFC 3986 5.2.4. Most importantly, this fixes an issue where `...`
