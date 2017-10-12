@@ -142,7 +142,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54937/656229459@59c8abfb)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54423/687906833@1b6d8f18)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -189,7 +189,7 @@ val tweetService = HttpService[IO] {
 // &lt;console&gt;:28: warning: pattern var request in method applyOrElse is never used; `request@_' suppresses this warning
 //          case request @ GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
 //               ^
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54937/656229459@2a0326b2)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54423/687906833@1b888f8c)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -216,10 +216,10 @@ import org.http4s.implicits._
 // import org.http4s.implicits._
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.instances.KleisliInstances$$anon$1$$Lambda$54952/1331042779@290efa8e)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.instances.KleisliInstances$$anon$1$$Lambda$54438/49629144@13e33244)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$126161295
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$779541718
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
