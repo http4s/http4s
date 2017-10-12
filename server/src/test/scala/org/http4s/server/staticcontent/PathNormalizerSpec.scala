@@ -48,6 +48,8 @@ class PathNormalizerSpec extends Specification with Tables with ScalaCheck {
       val path      = Paths.get(prefix, processed).normalize
 
       path.startsWith(Paths.get(prefix)) must beTrue
+      processed must not contain "./"
+      processed must not contain "../"
     }.setGen(pathGen)
   }
 
