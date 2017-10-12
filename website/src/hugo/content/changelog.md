@@ -28,7 +28,7 @@ it.
   for symmetry with provided `EntityEncoder` instances.
 * Adds `Arbitrary` instances for `Headers`, `EntityBody[F]` (currently just
   single chunk), `Entity[F]`, and `EntityEncoder[F, A]`.
-* Adds `EnityEncoderLaws` for `EntityEncoder`.
+* Adds `EntityEncoderLaws` for `EntityEncoder`.
 * Adds `EntityCodecLaws`.  "EntityCodec" is not a type in http4s, but these
   laws relate an `EntityEncoder[F, A]` to an `EntityDecoder[F, A]`.
 
