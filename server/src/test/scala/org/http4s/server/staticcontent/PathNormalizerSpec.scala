@@ -53,19 +53,14 @@ class PathNormalizerSpec extends Specification with Tables with ScalaCheck {
     }.setGen(pathGen)
   }
 
-  lazy val maybeSlashGen: Gen[String] = Gen.oneOf("", "/")
-
   lazy val pathSegmentGen: Gen[String] =
-    for {
-      str  <- Gen.alphaNumStr
-      path <- Gen.oneOf(str, ".", "..")
-    } yield s"/$path"
+    Gen.oneOf(Gen.alphaNumStr, Gen.const("."), Gen.const(".."))
 
   lazy val pathGen: Gen[String] =
     for {
-      firstSlash   <- maybeSlashGen
-      pathSegments <- Gen.listOf(pathSegmentGen)
-      lastSlash    <- maybeSlashGen
-    } yield s"$firstSlash${pathSegments.mkString("")}$lastSlash"
+      firstPathSegment <- Gen.oneOf(Gen.const(""), pathSegmentGen)
+      pathSegments     <- Gen.listOf(pathSegmentGen.map(p => s"/$p"))
+      lastSlash        <- Gen.oneOf("", "/")
+    } yield s"$firstPathSegment${pathSegments.mkString("")}$lastSlash"
 
 }
