@@ -16,10 +16,8 @@ class SchemeSpec extends Http4sSpec {
   }
 
   "compareTo" should {
-    "be consistent with value.compareToIgnoreCase" in {
-      prop { (a: Scheme, b: Scheme) =>
-        a.value.compareToIgnoreCase(b.value) must_== a.compareTo(b)
-      }
+    "be consistent with value.compareToIgnoreCase" in prop { (a: Scheme, b: Scheme) =>
+      a.compare(b) must_== a.value.compareToIgnoreCase(b.value)
     }
   }
 

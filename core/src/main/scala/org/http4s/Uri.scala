@@ -124,7 +124,7 @@ object Uri extends UriFunctions {
     *
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
     */
-  final class Scheme private (val value: String) extends Comparable[Scheme] {
+  final class Scheme private (val value: String) extends Ordered[Scheme] {
     override def equals(o: Any) = o match {
       case that: Scheme => this.value.equalsIgnoreCase(that.value)
       case _ => false
@@ -140,7 +140,7 @@ object Uri extends UriFunctions {
 
     override def toString = s"Scheme($value)"
 
-    override def compareTo(other: Scheme): Int =
+    override def compare(other: Scheme): Int =
       value.compareToIgnoreCase(other.value)
   }
 
