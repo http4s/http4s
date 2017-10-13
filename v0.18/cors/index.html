@@ -107,7 +107,7 @@ import org.http4s.implicits._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54574/108725669@564dfe9b)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54399/1915149540@194bdc9a)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -122,7 +122,7 @@ service.orNotFound(request).unsafeRunSync
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$54644/2034781345@31e04a54)
+// corsService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$54469/1536281324@3462dff2)
 
 corsService.orNotFound(request).unsafeRunSync
 // res1: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
@@ -176,10 +176,10 @@ val methodConfig = CORSConfig(
   allowedMethods = Some(Set(&quot;GET&quot;, &quot;POST&quot;)),
   allowCredentials = true,
   maxAge = 1.day.toSeconds)
-// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$54643/1017610265@61257765,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
+// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$54468/746655586@581d5ffa,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$54644/2034781345@627ec04a)
+// corsMethodSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$54469/1536281324@669c941d)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync
 // res3: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
@@ -203,7 +203,7 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Set(yahoo.com, duckduckgo.com),None,Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$54644/2034781345@12d5bcda)
+// corsOriginSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$54469/1536281324@33cd1f97)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync
 // res6: org.http4s.Response[cats.effect.IO] = Response(status=403, headers=Headers())

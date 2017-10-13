@@ -119,12 +119,9 @@ assert(docs == docs2)
 <pre><code class="language-scala">import org.http4s.UriTemplate._
 // import org.http4s.UriTemplate._
 
-import org.http4s.syntax.string._
-// import org.http4s.syntax.string._
-
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName(&quot;http4s.org&quot;))),
-  scheme = Some(&quot;http&quot;.ci),
+  scheme = Some(Scheme.http),
   path = List(PathElm(&quot;docs&quot;), PathElm(&quot;0.15&quot;))
 )
 // template: org.http4s.UriTemplate = http://http4s.org/docs/0.15

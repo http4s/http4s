@@ -643,6 +643,12 @@ entire resulting A.">
                           Http4sVersion
                         </a>
                       </li><li class="current-entities indented2">
+                        <a class="object" href="HttpCodec$.html" title=""></a>
+                        <a class="trait" href="HttpCodec.html" title=""></a>
+                        <a href="HttpCodec.html" title="">
+                          HttpCodec
+                        </a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="HttpDate$.html" title=""></a>
                         <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal
 Time (UTC)."></a>
@@ -889,6 +895,14 @@ Usually used in conjunction with QueryParamEncoder and QueryParamDecoder
                         <a class="trait" href="ResponseOps.html" title=""></a>
                         <a href="ResponseOps.html" title="">
                           ResponseOps
+                        </a>
+                      </li><li class="current-entities indented2">
+                        <a class="object" href="Scheme$.html" title=""></a>
+                        <a class="class" href="Scheme.html" title="Each org.http4s.Uri begins with a scheme name that refers to a
+specification for assigning identifiers within that scheme."></a>
+                        <a href="Scheme.html" title="Each org.http4s.Uri begins with a scheme name that refers to a
+specification for assigning identifiers within that scheme.">
+                          Scheme
                         </a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="ServerSentEvent$.html" title=""></a>
@@ -1705,6 +1719,24 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </span>
       
       
+    </li><li name="org.http4s.HttpCodec" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpCodec[A]extendsRenderer[A]"></a><a id="HttpCodec[A]:HttpCodec[A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpCodec[A]extendsRenderer[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpCodec.html">
+              <span class="name">HttpCodec</span>
+            </a><span class="tparams">[<span name="A">A</span>]</span><span class="result"> extends <a href="util/Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.HttpCodec.A">A</span>]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.HttpDate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpDateextendsRenderablewithOrdered[org.http4s.HttpDate]"></a><a id="HttpDate:HttpDate"></a>
       <span class="permalink">
@@ -2437,6 +2469,28 @@ status line, headers, and a possible request body.
       </span>
       
       
+    </li><li name="org.http4s.Scheme" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SchemeextendsComparable[org.http4s.Scheme]"></a><a id="Scheme:Scheme"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#SchemeextendsComparable[org.http4s.Scheme]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="Each org.http4s.Uri begins with a scheme name that refers to a
+specification for assigning identifiers within that scheme." href="Scheme.html">
+              <span class="name">Scheme</span>
+            </a><span class="result"> extends <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="Scheme.html" class="extype" name="org.http4s.Scheme">Scheme</a>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Each <a href="Uri.html" class="extype" name="org.http4s.Uri">org.http4s.Uri</a> begins with a scheme name that refers to a
+specification for assigning identifiers within that scheme.</p><div class="fullcomment"><div class="comment cmt"><p>Each <a href="Uri.html" class="extype" name="org.http4s.Uri">org.http4s.Uri</a> begins with a scheme name that refers to a
+specification for assigning identifiers within that scheme.
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>https://www.ietf.org/rfc/rfc3986.txt, Section 3.1</p></span></dd></dl></div>
     </li><li name="org.http4s.ServerSentEvent" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ServerSentEventextendsRenderablewithProductwithSerializable"></a><a id="ServerSentEvent:ServerSentEvent"></a>
       <span class="permalink">
@@ -2542,7 +2596,7 @@ status line, headers, and a possible request body.
       <span class="symbol">
         <a title="Representation of the Request URI" href="Uri.html">
               <span class="name">Uri</span>
-            </a><span class="params">(<span name="scheme">scheme: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] = <span class="symbol">None</span></span>, <span name="authority">authority: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Path</a> = <span class="symbol">&quot;&quot;</span></span>, <span name="query">query: <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> = <span class="symbol"><span class="name"><a href="Query$.html">Query.empty</a></span></span></span>, <span name="fragment">fragment: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$.html#Fragment=String" class="extmbr" name="org.http4s.Uri.Fragment">Fragment</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="QueryOps.html" class="extype" name="org.http4s.QueryOps">QueryOps</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+            </a><span class="params">(<span name="scheme">scheme: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Scheme.html" class="extype" name="org.http4s.Scheme">Scheme</a>] = <span class="symbol">None</span></span>, <span name="authority">authority: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Path</a> = <span class="symbol">&quot;&quot;</span></span>, <span name="query">query: <a href="Query.html" class="extype" name="org.http4s.Query">Query</a> = <span class="symbol"><span class="name"><a href="Query$.html">Query.empty</a></span></span></span>, <span name="fragment">fragment: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$.html#Fragment=String" class="extmbr" name="org.http4s.Uri.Fragment">Fragment</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="QueryOps.html" class="extype" name="org.http4s.QueryOps">QueryOps</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Representation of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> URI</p><div class="fullcomment"><div class="comment cmt"><p>Representation of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> URI</p></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>url-encoded string representation of the path component of the Uri.</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. url-encoded.</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. url-encoded.</p></dd></dl></div>
@@ -2579,7 +2633,7 @@ status line, headers, and a possible request body.
         <a title="Simple representation of a URI Template that can be rendered as RFC6570
 conform string." href="UriTemplate.html">
               <span class="name">UriTemplate</span>
-            </a><span class="params">(<span name="scheme">scheme: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$.html#Scheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.Uri.Scheme">Scheme</a>] = <span class="symbol">None</span></span>, <span name="authority">authority: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="UriTemplate$.html#Path=List[org.http4s.UriTemplate.PathDef]" class="extmbr" name="org.http4s.UriTemplate.Path">Path</a> = <span class="symbol">Nil</span></span>, <span name="query">query: <a href="UriTemplate$.html#Query=List[org.http4s.UriTemplate.QueryDef]" class="extmbr" name="org.http4s.UriTemplate.Query">UriTemplate.Query</a> = <span class="symbol">Nil</span></span>, <span name="fragment">fragment: <a href="UriTemplate$.html#Fragment=List[org.http4s.UriTemplate.FragmentDef]" class="extmbr" name="org.http4s.UriTemplate.Fragment">Fragment</a> = <span class="symbol">Nil</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+            </a><span class="params">(<span name="scheme">scheme: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Scheme.html" class="extype" name="org.http4s.Scheme">Scheme</a>] = <span class="symbol">None</span></span>, <span name="authority">authority: <a href="http://www.scala-lang.org/api/2.12.3/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="UriTemplate$.html#Path=List[org.http4s.UriTemplate.PathDef]" class="extmbr" name="org.http4s.UriTemplate.Path">Path</a> = <span class="symbol">Nil</span></span>, <span name="query">query: <a href="UriTemplate$.html#Query=List[org.http4s.UriTemplate.QueryDef]" class="extmbr" name="org.http4s.UriTemplate.Query">UriTemplate.Query</a> = <span class="symbol">Nil</span></span>, <span name="fragment">fragment: <a href="UriTemplate$.html#Fragment=List[org.http4s.UriTemplate.FragmentDef]" class="extmbr" name="org.http4s.UriTemplate.Fragment">Fragment</a> = <span class="symbol">Nil</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Simple representation of a URI Template that can be rendered as RFC6570
@@ -3107,6 +3161,24 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
+    </li><li name="org.http4s.HttpCodec" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpCodec"></a><a id="HttpCodec:HttpCodec"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpCodec" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpCodec$.html">
+              <span class="name">HttpCodec</span>
+            </a>
+      </span>
+      
+      
     </li><li name="org.http4s.HttpDate" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpDate"></a><a id="HttpDate:HttpDate"></a>
       <span class="permalink">
@@ -3479,6 +3551,24 @@ final case class GenericParsingFailure(sanitized: String, details: String, respo
         <a title="" href="Response$.html">
               <span class="name">Response</span>
             </a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.3/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.Scheme" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Scheme"></a><a id="Scheme:Scheme"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Scheme" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="Scheme$.html">
+              <span class="name">Scheme</span>
+            </a>
       </span>
       
       
