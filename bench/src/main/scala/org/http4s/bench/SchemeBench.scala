@@ -1,6 +1,7 @@
 package org.http4s
 package bench
 
+import org.http4s.Uri.Scheme
 import org.openjdk.jmh.annotations._
 
 @Fork(2)

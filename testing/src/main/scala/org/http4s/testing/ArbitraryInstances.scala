@@ -12,6 +12,7 @@ import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.Uri.Scheme
 import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
@@ -512,7 +513,7 @@ trait ArbitraryInstances {
     const(":"),
     const("@"))
 
-  implicit val arbitraryScheme: Arbitrary[Scheme] = Arbitrary {
+  implicit val arbitraryScheme: Arbitrary[Uri.Scheme] = Arbitrary {
     frequency(
       5 -> Scheme.http,
       5 -> Scheme.https,
@@ -532,15 +533,15 @@ trait ArbitraryInstances {
     )
   }
 
-  implicit val cogenScheme: Cogen[Scheme] =
+  implicit val cogenScheme: Cogen[Uri.Scheme] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
-  implicit val arbitraryFragment: Arbitrary[Fragment] = Arbitrary {
+  implicit val arbitraryFragment: Arbitrary[Uri.Fragment] = Arbitrary {
     listOf(frequency(60 -> genPchar, 1 -> const("/"), 1 -> const("?"))).map(cs =>
-      HttpCodec[Fragment].parseOrThrow(cs.mkString))
+      HttpCodec[Uri.Fragment].parseOrThrow(cs.mkString))
   }
 
-  implicit val cogenFragment: Cogen[Fragment] =
+  implicit val cogenFragment: Cogen[Uri.Fragment] =
     Cogen[String].contramap(_.value)
 
   /** https://tools.ietf.org/html/rfc3986 */

@@ -8,6 +8,6 @@ trait LiteralsSyntax {
 }
 
 class LiteralsOps(val sc: StringContext) extends AnyVal {
-  def fragment(): Fragment = macro Macros.fragment
-  def scheme(): Scheme = macro Macros.scheme
+  def fragment(): Uri.Fragment = macro Macros.fragment
+  def scheme(): Uri.Scheme = macro Macros.scheme
 }

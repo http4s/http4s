@@ -1,14 +1,16 @@
 package org.http4s
 
+import cats.{Order, Show}
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
 import macrocompat.bundle
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.Parser
+import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
 import scala.language.experimental.macros
+import scala.math.Ordered
 import scala.reflect.macros.whitebox.Context
 
 /** Representation of the [[Request]] URI
@@ -27,7 +29,6 @@ final case class Uri(
     fragment: Option[Fragment] = None)
     extends QueryOps
     with Renderable {
-  import Uri._
 
   def withPath(path: Path): Uri = copy(path = path)
 
@@ -116,6 +117,116 @@ final case class Uri(
 }
 
 object Uri extends UriFunctions {
+
+  /** Each [[org.http4s.Uri]] begins with a scheme name that refers to a
+    * specification for assigning identifiers within that scheme.
+    *
+    * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.1
+    */
+  final class Scheme private (val value: String) extends Comparable[Scheme] {
+    override def equals(o: Any) = o match {
+      case that: Scheme => this.value.equalsIgnoreCase(that.value)
+      case _ => false
+    }
+
+    private[this] var hash = 0
+    override def hashCode(): Int = {
+      if (hash == 0) {
+        hash = hashLower(value)
+      }
+      hash
+    }
+
+    override def toString = s"Scheme($value)"
+
+    override def compareTo(other: Scheme): Int =
+      value.compareToIgnoreCase(other.value)
+  }
+
+  object Scheme {
+    val http: Scheme = new Scheme("http")
+    val https: Scheme = new Scheme("https")
+
+    def parse(s: String): ParseResult[Scheme] =
+      new Http4sParser[Scheme](s, "Invalid scheme") with Parser {
+        def main = scheme
+      }.parse
+
+    private[http4s] trait Parser { self: PbParser =>
+      import Rfc3986Predicates._
+      def scheme = rule {
+        "https" ~ push(https) |
+          "http" ~ push(http) |
+          capture(ALPHA ~ zeroOrMore(schemeChar)) ~> (new Scheme(_))
+      }
+    }
+
+    implicit val http4sInstancesForScheme: Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] =
+      new Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] {
+        def show(s: Scheme): String = s.toString
+
+        def parse(s: String): ParseResult[Scheme] =
+          Scheme.parse(s)
+
+        def render(writer: Writer, scheme: Scheme): writer.type =
+          writer << scheme.value
+
+        def compare(x: Scheme, y: Scheme) =
+          x.compareTo(y)
+      }
+  }
+
+  /** The fragment identifier component of a [[org.http4s.Uri]] allows indirect
+    * identification of a secondary resource by reference to a primary resource
+    * and additional identifying information.
+    *
+    * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.5
+    */
+  final class Fragment private (val value: String) extends AnyVal with Ordered[Fragment] {
+    override def toString(): String = s"Fragment($value)"
+
+    override def compare(other: Fragment): Int =
+      value.compare(other.value)
+  }
+
+  object Fragment {
+    val empty: Fragment = new Fragment("")
+
+    /** Construct a fragment from its decoded value */
+    def apply(s: String): Fragment = new Fragment(s)
+
+    /** Parse a fragment from its encoded value */
+    def parse(s: String): ParseResult[Fragment] =
+      new Http4sParser[Fragment](s, "fragment Invalid") with Parser {
+        def main = fragment
+      }.parse
+
+    private[http4s] trait Parser extends Rfc3986Rules { self: PbParser =>
+      import Rfc3986Predicates._
+      def fragment = rule {
+        run(sb.setLength(0)) ~
+          (oneOrMore(fragmentCharNoPct ~ appendSB() | `pct-encoded`) ~ push(
+            Fragment(UrlCodingUtils.urlDecode(sb.toString))) |
+            push(Fragment.empty))
+      }
+    }
+
+    implicit val http4sInstancesForFragment
+      : Show[Fragment] with HttpCodec[Fragment] with Order[Fragment] =
+      new Show[Fragment] with HttpCodec[Fragment] with Order[Fragment] {
+        def show(s: Fragment): String = s.toString
+
+        def parse(s: String): ParseResult[Fragment] =
+          Fragment.parse(s)
+
+        def render(writer: Writer, fragment: Fragment): writer.type =
+          writer << UrlCodingUtils.urlEncode(fragment.value)
+
+        def compare(x: Fragment, y: Fragment) =
+          x.compareTo(y)
+      }
+  }
+
   @bundle
   class Macros(val c: Context) {
     import c.universe._
@@ -140,7 +251,7 @@ object Uri extends UriFunctions {
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] =
     new RequestUriParser(s, StandardCharsets.UTF_8).Uri
-      .run()(Parser.DeliveryScheme.Either)
+      .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
 
   /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
@@ -155,7 +266,7 @@ object Uri extends UriFunctions {
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] =
     new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
-      .run()(Parser.DeliveryScheme.Either)
+      .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
   type UserInfo = String

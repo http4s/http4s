@@ -7,7 +7,7 @@ import cats.implicits._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLContext
-import org.http4s.Scheme
+import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage

@@ -5,8 +5,8 @@ import cats.effect.Effect
 import cats.syntax.option._
 import fs2._
 import java.nio.file.Paths
-import org.http4s.{HttpService, Scheme}
-import org.http4s.Uri.{Authority, RegName}
+import org.http4s.HttpService
+import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.{Host, Location}
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}

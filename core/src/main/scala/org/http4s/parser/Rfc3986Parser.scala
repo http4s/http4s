@@ -12,8 +12,8 @@ import org.http4s.syntax.string._
 
 private[parser] trait Rfc3986Parser
     extends Parser
-    with Fragment.Parser
-    with Scheme.Parser
+    with Uri.Fragment.Parser
+    with Uri.Scheme.Parser
     with IpParser
     with StringBuilding {
   // scalastyle:off public.methods.have.type
