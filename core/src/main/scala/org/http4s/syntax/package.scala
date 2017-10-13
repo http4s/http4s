@@ -8,5 +8,6 @@ package object syntax {
   @deprecated("Use map or flatMap on the request instead", "0.18.0-M2")
   object effectResponse extends EffectResponseSyntax
   object kleisli extends KleisliSyntax
+  object literals extends LiteralsSyntax
   object string extends StringSyntax
 }

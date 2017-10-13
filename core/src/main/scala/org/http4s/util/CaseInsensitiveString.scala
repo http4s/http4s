@@ -18,19 +18,7 @@ sealed class CaseInsensitiveString private (val value: String)
   private[this] var hash = 0
   override def hashCode(): Int = {
     if (hash == 0) {
-      var h = 0
-      var i = 0
-      val len = value.length
-      while (i < len) {
-        // Strings are equal igoring case if either their uppercase or lowercase
-        // forms are equal. Equality of one does not imply the other, so we need
-        // to go in both directions. A character is not guaranteed to make this
-        // round trip, but it doesn't matter as long as all equal characters
-        // hash the same.
-        h = h * 31 + Character.toLowerCase(Character.toUpperCase(value.charAt(i)))
-        i += 1
-      }
-      hash = h
+      hash = hashLower(value)
     }
     hash
   }
