@@ -35,10 +35,10 @@ val tweetService = HttpService[IO] {
     req.as[Tweet]
       .flatMap(updateTweet(tweetId, _))
       .flatMap(_.fold(NotFound())(Ok(_)))
-  case req @ HEAD -> Root / "tweets" / IntVar(tweetId) =>
+  case HEAD -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(_ => Ok()))
-  case req @ DELETE -> Root / "tweets" / IntVar(tweetId) =>
+  case DELETE -> Root / "tweets" / IntVar(tweetId) =>
     deleteTweet(tweetId)
       .flatMap(_ => Ok())
 }

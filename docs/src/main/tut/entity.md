@@ -53,7 +53,7 @@ sealed trait Resp
 case class Audio(body: String) extends Resp
 case class Video(body: String) extends Resp
 
-val response = Ok().withBody("").withContentType(Some(MediaType.`audio/ogg`))
+val response = Ok("").map(_.withContentType(Some(MediaType.`audio/ogg`)))
 val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =>
   EitherT {
     msg.as[String].map(s => Audio(s).asRight[DecodeFailure])
@@ -65,7 +65,7 @@ val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] 
   }
 }
 implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-println(response.as[Resp].unsafeRunSync)
+println(response.flatMap(_.as[Resp]).unsafeRunSync)
 ```
 
 ## Presupplied Encoders/Decoders

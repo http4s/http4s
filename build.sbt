@@ -261,6 +261,10 @@ lazy val docs = http4sProject("docs")
         examplesWar,
         loadTest
       ),
+    scalacOptions in Tut ~= {
+      // unused params warnings are disabled due to undefined functions in the doc
+      _.filterNot(_ == "-Ywarn-unused:params") :+ "-Xfatal-warnings"
+    },
     scalacOptions in (Compile,doc) ++= {
       scmInfo.value match {
         case Some(s) =>

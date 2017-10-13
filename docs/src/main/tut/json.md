@@ -168,8 +168,8 @@ The `org.http4s.circe._` package provides an implicit
 response body to JSON using the [`as` syntax]:
 
 ```tut:book
-Ok("""{"name":"Alice"}""").as[Json].unsafeRunSync
-POST(uri("/hello"),"""{"name":"Bob"}""").as[Json].unsafeRunSync
+Ok("""{"name":"Alice"}""").flatMap(_.as[Json]).unsafeRunSync
+POST(uri("/hello"),"""{"name":"Bob"}""").flatMap(_.as[Json]).unsafeRunSync
 ```
 
 Like sending raw JSON, this is useful to a point, but we typically
@@ -185,8 +185,8 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 
 ```tut:book
 implicit val userDecoder = jsonOf[IO, User]
-Ok("""{"name":"Alice"}""").as[User].unsafeRunSync
-POST(uri("/hello"), """{"name":"Bob"}""").as[User].unsafeRunSync
+Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
+POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
 Note the argument to `as` is in parentheses instead of square

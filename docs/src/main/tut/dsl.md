@@ -141,7 +141,7 @@ import org.http4s.util.nonEmptyList
 ```
 
 ```tut
-Ok("Ok response.").putHeaders(`Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync.headers
+Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSync.headers
 ```
 
 http4s defines all the well known headers directly, but sometimes you need to
@@ -149,7 +149,7 @@ define custom headers, typically prefixed by an `X-`. In simple cases you can
 construct a `Header` instance by hand
 
 ```tut
-Ok("Ok response.").putHeaders(Header("X-Auth-Token", "value")).unsafeRunSync.headers
+Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync.headers
 ```
 
 ### Cookies
@@ -158,20 +158,20 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```tut
-Ok("Ok response.").addCookie(Cookie("foo", "bar")).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(Cookie("foo", "bar"))).unsafeRunSync.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-Ok("Ok response.").addCookie(Cookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true)).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(Cookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
 to empty. http4s can do that with `removeCookie`
 
 ```tut
-Ok("Ok response.").removeCookie("foo").unsafeRunSync.headers
+Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync.headers
 ```
 
 ### Responding with a body
@@ -289,7 +289,7 @@ other side the path. Naturally, `_` is a valid matcher too, so any call to
 
 ```tut
 HttpService[IO] {
-  case request @ _ -> Root / "api" => Forbidden()
+  case _ -> Root / "api" => Forbidden()
 }
 ```
 
@@ -298,7 +298,7 @@ associative, and matches everything after, and not just the next element:
 
 ```tut
 HttpService[IO] {
-  case request @ _ -> "api" /: _ => Forbidden()
+  case _ -> "api" /: _ => Forbidden()
 }
 ```
 
@@ -306,7 +306,7 @@ For matching more than one `Method`, there's `|`:
 
 ```tut
 HttpService[IO] {
-  case request @ (GET | POST) -> Root / "api"  => ???
+  case (GET | POST) -> Root / "api"  => ???
 }
 ```
 
@@ -327,7 +327,7 @@ of `IntVar` and `LongVar`.
 def getUserName(userId: Int): IO[String] = ???
 
 val usersService = HttpService[IO] {
-  case request @ GET -> Root / "users" / IntVar(userId) =>
+  case GET -> Root / "users" / IntVar(userId) =>
     Ok(getUserName(userId))
 }
 ```
@@ -353,7 +353,7 @@ object LocalDateVar {
 def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
 val dailyWeatherService = HttpService[IO] {
-  case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
+  case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
@@ -385,7 +385,7 @@ object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
 
 val averageTemperatureService = HttpService[IO] {
-  case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
+  case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
 ```
