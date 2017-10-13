@@ -231,7 +231,7 @@ http://example.org/a file
     "render an URL with username and password" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(Some("username:password"), RegName("some.example.com"), None)),
+        Some(Authority(Some(userInfo"username:password"), RegName("some.example.com"), None)),
         "/",
         Query.empty,
         None).toString must_== ("http://username:password@some.example.com/")
@@ -240,7 +240,7 @@ http://example.org/a file
     "render an URL with username and password, path and params" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(Some("username:password"), RegName("some.example.com"), None)),
+        Some(Authority(Some(userInfo"username:password"), RegName("some.example.com"), None)),
         "/some/path",
         Query.fromString("param1=5&param-without-value"),
         None

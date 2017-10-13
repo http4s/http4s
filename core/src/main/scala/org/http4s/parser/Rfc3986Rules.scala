@@ -34,4 +34,5 @@ object Rfc3986Predicates {
   val pcharNoPct = unreserved ++ `sub-delims` ++ ":@"
   val fragmentCharNoPct = pcharNoPct ++ "/?"
   val schemeChar = ALPHA ++ DIGIT ++ "+-."
+  val userInfoChar = unreserved ++ `sub-delims` ++ ":"
 }

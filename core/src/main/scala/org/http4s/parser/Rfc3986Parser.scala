@@ -14,6 +14,7 @@ private[parser] trait Rfc3986Parser
     extends Parser
     with Uri.Fragment.Parser
     with Uri.Scheme.Parser
+    with Uri.UserInfo.Parser
     with IpParser
     with StringBuilding {
   // scalastyle:off public.methods.have.type
@@ -62,7 +63,7 @@ private[parser] trait Rfc3986Parser
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule {
-    optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _)
+    optional(userinfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _)
   }
 
   def UserInfo = rule {

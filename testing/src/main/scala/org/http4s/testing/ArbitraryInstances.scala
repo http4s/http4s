@@ -492,13 +492,26 @@ trait ArbitraryInstances {
     oneOf(arbitraryIPv4.arbitrary, arbitraryIPv6.arbitrary, genRegName)
   }
 
+  implicit val arbitraryUserInfo: Arbitrary[Uri.UserInfo] = Arbitrary {
+    frequency(
+      20 -> nonEmptyListOf(arbitrary[Char]).map(u => Uri.UserInfo(u.mkString)),
+      1 -> nonEmptyListOf(arbitrary[Char]).map(p => Uri.UserInfo("", Some(p.mkString))),
+      4 -> (for {
+        username <- nonEmptyListOf(arbitrary[Char]).map(_.mkString)
+        password <- arbitrary[String]
+      } yield Uri.UserInfo(username, Some(password)))
+    )
+  }
+
+  implicit val cogenUserInfo: Cogen[Uri.UserInfo] =
+    Cogen[(String, Option[String])].contramap(info => (info.username, info.password))
+
   implicit val arbitraryAuthority: Arbitrary[Uri.Authority] = Arbitrary {
     for {
-      userInfo <- identifier
-      maybeUserInfo <- Gen.option(userInfo)
+      userInfo <- Gen.option(arbitraryUserInfo.arbitrary)
       host <- arbitraryUriHost.arbitrary
-      maybePort <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
-    } yield Uri.Authority(maybeUserInfo, host, maybePort)
+      port <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
+    } yield Uri.Authority(userInfo, host, port)
   }
 
   val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(

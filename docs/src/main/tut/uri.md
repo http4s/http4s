@@ -39,7 +39,7 @@ import org.http4s.UriTemplate._
 
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName("http4s.org"))),
-  scheme = Some(Scheme.http),
+  scheme = Some(Uri.Scheme.http),
   path = List(PathElm("docs"), PathElm("0.15"))
 )
 

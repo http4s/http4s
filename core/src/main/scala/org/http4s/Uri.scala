@@ -9,6 +9,7 @@ import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
+import org.http4s.util.UrlCodingUtils.{pathEncode, urlEncode, urlDecode}
 import scala.language.experimental.macros
 import scala.math.Ordered
 import scala.reflect.macros.whitebox.Context
@@ -37,7 +38,7 @@ final case class Uri(
   def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
 
   def /(newSegment: Path): Uri = {
-    val encoded = UrlCodingUtils.pathEncode(newSegment)
+    val encoded = pathEncode(newSegment)
     val newPath =
       if (path.isEmpty || path.last != '/') s"$path/$encoded"
       else s"$path$encoded"
@@ -176,6 +177,74 @@ object Uri extends UriFunctions {
       }
   }
 
+  /** The userinfo subcomponent may consist of a user name and, optionally,
+    * scheme-specific information about how to gain authorization to access the
+    * resource.
+    *
+    * Password is transmitted in clear text.  If you use it, you are bad and
+    * you should feel bad.
+    *
+    * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.2.1
+    */
+  final case class UserInfo (username: String, password: Option[String] = None) extends Ordered[UserInfo] {
+    // password intentionally omitted
+    override def toString = s"UserInfo($username,<REDACTED>)"
+
+    override def compare(other: UserInfo): Int =
+      (username compare other.username) match {
+        case 0 =>
+          (password, other.password) match {
+            case (Some(p0), Some(p1)) => p0 compare p1
+            case (Some(_), None) => 1
+            case (None, Some(_)) => -1
+            case (None, None) => 0
+          }
+        case nonZero => nonZero
+      }
+  }
+
+  object UserInfo {
+    def parse(s: String): ParseResult[UserInfo] =
+      new Http4sParser[UserInfo](s, "Invalid user info") with Parser {
+        def main = userinfo
+      }.parse
+
+    private[http4s] trait Parser extends Rfc3986Rules { self: PbParser =>
+      import Rfc3986Predicates._
+      def userinfo = rule {
+        run(sb.setLength(0)) ~
+          oneOrMore(userInfoChar ~ appendSB() | `pct-encoded`) ~ push {
+            val s = sb.toString
+            val sep = s.indexOf(':')
+            if (sep < 0) UserInfo(urlDecode(s))
+            else {
+              val username = urlDecode(s.take(sep))
+              val password = urlDecode(s.drop(sep + 1))
+              UserInfo(username, Some(password))
+            }
+          }
+      }
+    }
+
+    implicit val http4sInstancesForUserInfo: Show[UserInfo] with HttpCodec[UserInfo] with Order[UserInfo] =
+      new Show[UserInfo] with HttpCodec[UserInfo] with Order[UserInfo] {
+        def show(s: UserInfo): String = s.toString
+
+        def parse(s: String): ParseResult[UserInfo] =
+          UserInfo.parse(s)
+
+        def render(writer: Writer, userInfo: UserInfo): writer.type = {
+          writer << urlEncode(userInfo.username)
+          userInfo.password.foreach(p => writer << ":" << urlEncode(p))
+          writer
+        }
+
+        def compare(x: UserInfo, y: UserInfo) =
+          x.compareTo(y)
+      }
+  }
+
+
   /** The fragment identifier component of a [[org.http4s.Uri]] allows indirect
     * identification of a secondary resource by reference to a primary resource
     * and additional identifying information.
@@ -206,7 +275,7 @@ object Uri extends UriFunctions {
       def fragment = rule {
         run(sb.setLength(0)) ~
           (oneOrMore(fragmentCharNoPct ~ appendSB() | `pct-encoded`) ~ push(
-            Fragment(UrlCodingUtils.urlDecode(sb.toString))) |
+            Fragment(urlDecode(sb.toString))) |
             push(Fragment.empty))
       }
     }
@@ -220,7 +289,7 @@ object Uri extends UriFunctions {
           Fragment.parse(s)
 
         def render(writer: Writer, fragment: Fragment): writer.type =
-          writer << UrlCodingUtils.urlEncode(fragment.value)
+          writer << urlEncode(fragment.value)
 
         def compare(x: Fragment, y: Fragment) =
           x.compareTo(y)
@@ -268,8 +337,6 @@ object Uri extends UriFunctions {
     new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
-
-  type UserInfo = String
 
   type Path = String
 
