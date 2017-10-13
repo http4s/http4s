@@ -1,7 +1,7 @@
 package org.http4s
 
 import java.net.URLEncoder
-import org.http4s.Uri.{apply => _, unapply => _, Fragment => _, Path => _, _}
+import org.http4s.Uri.{apply => _, unapply => _, Path => _, _}
 import org.http4s.UriTemplate._
 import org.http4s.util.StringWriter
 import scala.collection.mutable
@@ -25,7 +25,7 @@ final case class UriTemplate(
     authority: Option[Authority] = None,
     path: Path = Nil,
     query: UriTemplate.Query = Nil,
-    fragment: Fragment = Nil) {
+    fragment: FragmentDefs = Nil) {
 
   /**
     * Replaces any expansion type that matches the given `name`. If no matching
@@ -100,7 +100,7 @@ object UriTemplate {
 
   type Path = List[PathDef]
   type Query = List[QueryDef]
-  type Fragment = List[FragmentDef]
+  type FragmentDefs = List[FragmentDef]
 
   protected val unreserved =
     (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') :+ '-' :+ '.' :+ '_' :+ '~').toSet
@@ -189,7 +189,10 @@ object UriTemplate {
     acc.toList
   }
 
-  protected def expandFragmentN(fragment: Fragment, name: String, value: String): Fragment = {
+  protected def expandFragmentN(
+      fragment: FragmentDefs,
+      name: String,
+      value: String): FragmentDefs = {
     val acc = new ArrayBuffer[FragmentDef]()
     fragment.foreach {
       case p @ FragmentElm(_) => acc.append(p)
@@ -259,7 +262,7 @@ object UriTemplate {
     else "?" + elements.mkString("&") + exps.mkString
   }
 
-  protected def renderFragment(f: Fragment): String = {
+  protected def renderFragment(f: FragmentDefs): String = {
     val elements = new mutable.ArrayBuffer[String]()
     val expansions = new mutable.ArrayBuffer[String]()
     f.map {
@@ -278,7 +281,7 @@ object UriTemplate {
     }
   }
 
-  protected def renderFragmentIdentifier(f: Fragment): String = {
+  protected def renderFragmentIdentifier(f: FragmentDefs): Fragment = {
     val elements = new mutable.ArrayBuffer[String]()
     f.map {
       case FragmentElm(v) => elements.append(v)
@@ -287,8 +290,8 @@ object UriTemplate {
       case MultiFragmentExp(_) =>
         throw new IllegalStateException("MultiFragmentExp cannot be converted to a Uri")
     }
-    if (elements.isEmpty) ""
-    else elements.mkString(",")
+    if (elements.isEmpty) Fragment.empty
+    else Fragment(elements.mkString(","))
   }
 
   protected def buildQuery(q: Query): org.http4s.Query = {

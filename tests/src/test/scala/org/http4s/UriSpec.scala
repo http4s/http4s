@@ -28,7 +28,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "Not UrlDecode the uri fragment" in {
-        getUri("http://localhost:8080/blah#x=abc&y=ijk").fragment must_=== Some("x=abc&y=ijk")
+        getUri("http://localhost:8080/blah#x=abc&y=ijk").fragment must_=== Some(
+          fragment"x=abc&y=ijk")
       }
 
       "parse scheme correctly" in {
@@ -97,7 +98,7 @@ http://example.org/a file
     "parse properly" in {
       val uri = getUri("http://localhost:8080/blah?x=abc#y=ijk")
       uri.query must_== Query.fromPairs("x" -> "abc")
-      uri.fragment must_== Some("y=ijk")
+      uri.fragment must_== Some(fragment"y=ijk")
     }
   }
 
@@ -251,15 +252,15 @@ http://example.org/a file
     }
 
     "render relative URI with empty query string and fragment" in {
-      Uri(path = "/", query = Query.fromString(""), fragment = Some("")).toString must_== ("/?#")
+      Uri(path = "/", query = Query.fromString(""), fragment = Some(Fragment.empty)).toString must_== ("/?#")
     }
 
     "render relative URI with empty fragment" in {
-      Uri(path = "/", query = Query.empty, fragment = Some("")).toString must_== ("/#")
+      Uri(path = "/", query = Query.empty, fragment = Some(Fragment.empty)).toString must_== ("/#")
     }
 
     "render relative path with fragment" in {
-      Uri(path = "/foo/bar", fragment = Some("an-anchor")).toString must_== ("/foo/bar#an-anchor")
+      Uri(path = "/foo/bar", fragment = Some(fragment"an-anchor")).toString must_== ("/foo/bar#an-anchor")
     }
 
     "render relative path with parameters" in {
@@ -270,7 +271,7 @@ http://example.org/a file
       Uri(
         path = "/foo/bar",
         query = Query.fromString("foo=bar&ding=dong"),
-        fragment = Some("an_anchor")).toString must_== ("/foo/bar?foo=bar&ding=dong#an_anchor")
+        fragment = Some(fragment"an_anchor")).toString must_== ("/foo/bar?foo=bar&ding=dong#an_anchor")
     }
 
     "render relative path without parameters" in {
@@ -707,25 +708,19 @@ http://example.org/a file
   "Uri.withFragment convenience method" should {
     "set a Fragment" in {
       val u = Uri(path = "/")
-      val updated = u.withFragment("nonsense")
+      val updated = u.withFragment(fragment"nonsense")
       updated.renderString must_== "/#nonsense"
     }
     "set a new Fragment" in {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
-      val updated = u.withFragment("nonsense")
+      val u = Uri(path = "/", fragment = Some(fragment"adjakda"))
+      val updated = u.withFragment(fragment"nonsense")
       updated.renderString must_== "/#nonsense"
-    }
-    "set no Fragment on a null String" in {
-      val u = Uri(path = "/", fragment = Some("adjakda"))
-      val evilString: String = null
-      val updated = u.withFragment(evilString)
-      updated.renderString must_== "/"
     }
   }
 
   "Uri.withoutFragment convenience method" should {
     "unset a Fragment" in {
-      val u = Uri(path = "/", fragment = Some("nonsense"))
+      val u = Uri(path = "/", fragment = Some(fragment"nonsense"))
       val updated = u.withoutFragment
       updated.renderString must_== "/"
     }
@@ -738,7 +733,7 @@ http://example.org/a file
       u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~"
     }
     "Encode special chars in the fragment" in {
-      val u = Uri(path = "/", fragment = Some(" !$&'()*+,;=:/?@~"))
+      val u = Uri(path = "/", fragment = Some(Fragment(" !$&'()*+,;=:/?@~")))
       u.renderString must_== "/#%20!$&'()*+,;=:/?@~"
     }
   }

@@ -102,7 +102,7 @@ final case class Uri(
     writer << path
     if (query.nonEmpty) writer << '?' << query
     fragment.foreach { f =>
-      writer << '#' << UrlCodingUtils.urlEncode(f, spaceIsPlus = false)
+      writer << '#' << UrlCodingUtils.urlEncode(f.value, spaceIsPlus = false)
     }
     writer
   }
@@ -161,7 +161,6 @@ object Uri extends UriFunctions {
   type UserInfo = String
 
   type Path = String
-  type Fragment = String
 
   final case class Authority(
       userInfo: Option[UserInfo] = None,

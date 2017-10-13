@@ -12,6 +12,7 @@ import org.http4s.syntax.string._
 
 private[parser] trait Rfc3986Parser
     extends Parser
+    with Fragment.Parser
     with Scheme.Parser
     with IpParser
     with StringBuilding {
@@ -22,7 +23,7 @@ private[parser] trait Rfc3986Parser
   def Uri: Rule1[org.http4s.Uri] = rule { (AbsoluteUri | RelativeRef) ~ EOI }
 
   def AbsoluteUri = rule {
-    scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
+    scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ fragment) ~> {
       (scheme, auth, path, query, fragment) =>
         org.http4s
           .Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
@@ -30,7 +31,7 @@ private[parser] trait Rfc3986Parser
   }
 
   def RelativeRef = rule {
-    RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> {
+    RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ fragment) ~> {
       (auth, path, query, fragment) =>
         org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
     }

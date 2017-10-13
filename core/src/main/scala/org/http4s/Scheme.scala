@@ -1,9 +1,8 @@
 package org.http4s
 
 import cats.{Order, Show}
-import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
-import org.http4s.parser.Http4sParser
+import org.http4s.parser.{Http4sParser, Rfc3986Predicates}
 import org.http4s.util.{Writer, hashLower}
 
 /** Each [[org.http4s.Uri]] begins with a scheme name that refers to a
@@ -41,10 +40,11 @@ object Scheme {
     }.parse
 
   private[http4s] trait Parser { self: PbParser =>
+    import Rfc3986Predicates._
     def scheme = rule {
       "https" ~ push(https) |
         "http" ~ push(http) |
-        capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
+        capture(ALPHA ~ zeroOrMore(schemeChar)) ~> (new Scheme(_))
     }
   }
 

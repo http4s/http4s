@@ -505,6 +505,12 @@ trait ArbitraryInstances {
   val genUnreserved: Gen[Char] =
     oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
   val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
+  val genPchar: Gen[String] = oneOf(
+    genUnreserved.map(_.toString),
+    genPctEncoded,
+    genSubDelims.map(_.toString),
+    const(":"),
+    const("@"))
 
   implicit val arbitraryScheme: Arbitrary[Scheme] = Arbitrary {
     frequency(
@@ -529,13 +535,20 @@ trait ArbitraryInstances {
   implicit val cogenScheme: Cogen[Scheme] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
+  implicit val arbitraryFragment: Arbitrary[Fragment] = Arbitrary {
+    listOf(frequency(60 -> genPchar, 1 -> const("/"), 1 -> const("?"))).map(cs =>
+      HttpCodec[Fragment].parseOrThrow(cs.mkString))
+  }
+
+  implicit val cogenFragment: Cogen[Fragment] =
+    Cogen[String].contramap(_.value)
+
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {
     val genSegmentNzNc =
       nonEmptyListOf(oneOf(genUnreserved, genPctEncoded, genSubDelims, const("@"))).map(_.mkString)
-    val genPChar = oneOf(genUnreserved, genPctEncoded, genSubDelims, const(":"), const("@"))
-    val genSegmentNz = nonEmptyListOf(genPChar).map(_.mkString)
-    val genSegment = listOf(genPChar).map(_.mkString)
+    val genSegmentNz = nonEmptyListOf(genPchar).map(_.mkString)
+    val genSegment = listOf(genPchar).map(_.mkString)
     val genPathEmpty = const("")
     val genPathAbEmpty = listOf(const("/") |+| genSegment).map(_.mkString)
     val genPathRootless = genSegmentNz |+| genPathAbEmpty
@@ -544,15 +557,13 @@ trait ArbitraryInstances {
     val genScheme = oneOf(Scheme.http, Scheme.https)
     val genPath =
       oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
-    val genFragment: Gen[Uri.Fragment] =
-      listOf(oneOf(genPChar, const("/"), const("?"))).map(_.mkString)
 
     for {
       scheme <- Gen.option(genScheme)
       authority <- Gen.option(arbitraryAuthority.arbitrary)
       path <- genPath
       query <- arbitraryQuery.arbitrary
-      fragment <- Gen.option(genFragment)
+      fragment <- Gen.option(arbitraryFragment.arbitrary)
     } yield Uri(scheme, authority, path, query, fragment)
   }
 

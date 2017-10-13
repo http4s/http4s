@@ -384,7 +384,7 @@ object UriTemplateSpec extends Http4sSpec {
     "convert /#test to Uri" in {
       val fragment = List(FragmentElm("test"))
       UriTemplate(fragment = fragment).toUriIfPossible.get must
-        equalTo(Uri(fragment = Some("test")))
+        equalTo(Uri(fragment = Some(fragment"test")))
     }
     "convert {path}/search{?term}{#section} to UriTemplate" in {
       val path = List(VarExp("path"), PathElm("search"))
@@ -407,12 +407,12 @@ object UriTemplateSpec extends Http4sSpec {
     "convert /?# to Uri" in {
       val fragment = List(FragmentElm(""))
       UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toUriIfPossible.get must
-        equalTo(Uri(query = Query.fromString(""), fragment = Some("")))
+        equalTo(Uri(query = Query.fromString(""), fragment = Some(Fragment.empty)))
     }
     "convert /# to Uri" in {
       val fragment = List(FragmentElm(""))
       UriTemplate(fragment = fragment).toUriIfPossible.get must
-        equalTo(Uri(fragment = Some("")))
+        equalTo(Uri(fragment = Some(Fragment.empty)))
     }
     "convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/{rel}/search{?term}{#section} to UriTemplate" in {
       val scheme = Some(Scheme.http)
@@ -547,7 +547,7 @@ object UriTemplateSpec extends Http4sSpec {
             authority,
             "/some/path",
             Query.fromString("param1=5&param-without-value"),
-            Some("sec-1.2")))
+            Some(fragment"sec-1.2")))
     }
   }
 

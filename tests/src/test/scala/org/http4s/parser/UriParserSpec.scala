@@ -124,7 +124,7 @@ class UriParserSpec extends Http4sSpec {
           Some(Authority(host = RegName("foo.bar".ci))),
           "/foo",
           Query.empty,
-          Some("Examples")))
+          Some(fragment"Examples")))
     }
 
     "parse absolute URI with parameters and fragment" in {
@@ -135,7 +135,7 @@ class UriParserSpec extends Http4sSpec {
           Some(Authority(host = RegName("foo.bar".ci))),
           "/foo",
           Query.fromPairs("bar" -> "baz"),
-          Some("Example-Fragment")))
+          Some(fragment"Example-Fragment")))
     }
 
     "parse relative URI with empty query string" in {
@@ -145,18 +145,22 @@ class UriParserSpec extends Http4sSpec {
 
     "parse relative URI with empty query string followed by empty fragment" in {
       val u = Uri.requestTarget("/foo/bar?#")
-      u must beRight(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("")))
+      u must beRight(
+        Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some(Fragment.empty)))
     }
 
     "parse relative URI with empty query string followed by fragment" in {
       val u = Uri.requestTarget("/foo/bar?#Example_of_Fragment")
       u must beRight(
-        Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("Example_of_Fragment")))
+        Uri(
+          path = "/foo/bar",
+          query = Query("" -> None),
+          fragment = Some(fragment"Example_of_Fragment")))
     }
 
     "parse relative URI with fragment" in {
       val u = Uri.requestTarget("/foo/bar#Examples_of_Fragment")
-      u must beRight(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
+      u must beRight(Uri(path = "/foo/bar", fragment = Some(fragment"Examples_of_Fragment")))
     }
 
     "parse relative URI with single parameter without a value followed by a fragment" in {
@@ -165,7 +169,7 @@ class UriParserSpec extends Http4sSpec {
         Uri(
           path = "/foo/bar",
           query = Query("bar" -> None),
-          fragment = Some("Example_of_Fragment")))
+          fragment = Some(fragment"Example_of_Fragment")))
     }
 
     "parse relative URI with parameters and fragment" in {
@@ -174,12 +178,12 @@ class UriParserSpec extends Http4sSpec {
         Uri(
           path = "/foo/bar",
           query = Query.fromPairs("bar" -> "baz"),
-          fragment = Some("Example_of_Fragment")))
+          fragment = Some(fragment"Example_of_Fragment")))
     }
 
     "parse relative URI with slash and fragment" in {
       val u = Uri.requestTarget("/#Example_Fragment")
-      u must beRight(Uri(path = "/", fragment = Some("Example_Fragment")))
+      u must beRight(Uri(path = "/", fragment = Some(fragment"Example_Fragment")))
     }
 
     {
@@ -278,7 +282,7 @@ class UriParserSpec extends Http4sSpec {
     "parse a path-absolute uri with query and fragment" in {
       Uri.fromString("/a/b?foo#bar") must beRight.like {
         case u =>
-          u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
+          u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some(fragment"bar"))
       }
     }
   }
