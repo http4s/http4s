@@ -83,8 +83,7 @@
           
 
 <p>A <a href="../service">service</a> is a <code>Kleisli[F, Request, Response]</code>, the composable version of
-<code>Request[F] =&gt; F[Response[F]]</code>. http4s provides an alias called <code>Service[F, Request,
-Response]</code>. A service with authentication also requires some kind of <code>User</code>
+<code>Request[F] =&gt; F[Response[F]]</code>. A service with authentication also requires some kind of <code>User</code>
 object which identifies which user did the request. To store the <code>User</code> object
 along with the <code>Request</code>, there&rsquo;s <code>AuthedRequest[F, User]</code>, which is equivalent to
 <code>(User, Request[F])</code>. So the service has the signature <code>AuthedRequest[F, User] =&gt;
@@ -115,19 +114,19 @@ case class User(id: Long, name: String)
 // defined class User
 
 val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ =&gt; OptionT.liftF(IO(???)))
-// authUser: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],User] = Kleisli($$Lambda$57386/347400583@5d42f1b0)
+// authUser: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],User] = Kleisli($$Lambda$57657/154416348@3c5492f8)
 
 val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
-// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57387/456451755@8dbcb8
+// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57658/1214150706@1fb40af2
 
 val authedService: AuthedService[IO, User] =
   AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
-// authedService: org.http4s.AuthedService[cats.effect.IO,User] = Kleisli(org.http4s.AuthedService$$$Lambda$57390/808090454@6ebca4ca)
+// authedService: org.http4s.AuthedService[cats.effect.IO,User] = Kleisli(org.http4s.AuthedService$$$Lambda$57661/341260688@49c0e0c8)
 
 val service: HttpService[IO] = middleware(authedService)
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57392/1219743825@386b6883)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57663/852009639@4765a6e0)
 </code></pre>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
@@ -144,19 +143,16 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 error handling, we recommend an error <a href="http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
 
 <pre><code class="language-scala">val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
-// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57393/2078073659@3cb023df)
+// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57664/1640840355@87d4822)
 
-val onFailure: AuthedService[IO, String] = AuthedService.lift(req =&gt; Forbidden(req.authInfo))
-// &lt;console&gt;:36: warning: method lift in object AuthedService is deprecated (since 0.18): Use liftF with an OptionT[F, Response[F]] instead
-//        val onFailure: AuthedService[IO, String] = AuthedService.lift(req =&gt; Forbidden(req.authInfo))
-//                                                                 ^
-// onFailure: org.http4s.AuthedService[cats.effect.IO,String] = Kleisli(scala.Function1$$Lambda$5613/84419025@61587a0b)
+val onFailure: AuthedService[IO, String] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
+// onFailure: org.http4s.AuthedService[cats.effect.IO,String] = Kleisli($$Lambda$57665/1186074584@41e7a6b)
 
 val middleware = AuthMiddleware(authUser, onFailure)
-// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57396/1265910687@143f16c4
+// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$57666/371433330@23da744f
 
 val service: HttpService[IO] = middleware(authedService)
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57392/1219743825@286991be)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$57663/852009639@7cc48093)
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
@@ -187,48 +183,36 @@ import java.time._
 // import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@6346cd2)
+// key: org.reactormonk.PrivateKey = PrivateKey([B@5fbbab55)
 
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@6346cd2))
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@5fbbab55))
 
 val clock = Clock.systemUTC
 // clock: java.time.Clock = SystemClock[Z]
 
 def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
-// &lt;console&gt;:42: warning: parameter value request in method verifyLogin is never used
-//        def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
-//                        ^
 // verifyLogin: (request: org.http4s.Request[cats.effect.IO])cats.effect.IO[Either[String,User]]
 
-val logIn: Service[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
+val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
   verifyLogin(request: Request[IO]).flatMap(_ match {
     case Left(error) =&gt;
       Forbidden(error)
     case Right(user) =&gt; {
       val message = crypto.signToken(user.id.toString, clock.millis.toString)
-      Ok(&quot;Logged in!&quot;).addCookie(Cookie(&quot;authcookie&quot;, message))
+      Ok(&quot;Logged in!&quot;).map(_.addCookie(Cookie(&quot;authcookie&quot;, message)))
     }
   })
 })
-// &lt;console&gt;:43: warning: type Service in package http4s is deprecated (since 0.18): Deprecated in favor of just using Kleisli
-//        val logIn: Service[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
-//                   ^
-// &lt;console&gt;:49: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
-//              Ok(&quot;Logged in!&quot;).addCookie(Cookie(&quot;authcookie&quot;, message))
-//                ^
-// logIn: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli($$Lambda$57403/1941181837@aa4be8b)
+// logIn: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli($$Lambda$57673/336909546@3bc941da)
 </code></pre>
 
 <p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
 
-<pre><code class="language-scala">def retrieveUser: Service[IO, Long, User] = Kleisli(id =&gt; IO(???))
-// &lt;console&gt;:42: warning: type Service in package http4s is deprecated (since 0.18): Deprecated in favor of just using Kleisli
-//        def retrieveUser: Service[IO, Long, User] = Kleisli(id =&gt; IO(???))
-//                          ^
-// retrieveUser: org.http4s.Service[cats.effect.IO,Long,User]
+<pre><code class="language-scala">def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id =&gt; IO(???))
+// retrieveUser: cats.data.Kleisli[cats.effect.IO,Long,User]
 
-val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
+val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
     header &lt;- headers.Cookie.from(request.headers).toRight(&quot;Cookie parsing error&quot;)
     cookie &lt;- header.values.toList.find(_.name == &quot;authcookie&quot;).toRight(&quot;Couldn't find the authcookie&quot;)
@@ -237,10 +221,7 @@ val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request 
   } yield message
   message.traverse(retrieveUser.run)
 })
-// &lt;console&gt;:44: warning: type Service in package http4s is deprecated (since 0.18): Deprecated in favor of just using Kleisli
-//        val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
-//                      ^
-// authUser: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57404/962034426@5abf6849)
+// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57674/544176045@2d237af8)
 </code></pre>
 
 <h3 id="authorization-header">Authorization Header</h3>
@@ -255,7 +236,7 @@ function.</p>
 import org.http4s.headers.Authorization
 // import org.http4s.headers.Authorization
 
-val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
+val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
     header &lt;- request.headers.get(Authorization).toRight(&quot;Couldn't find an Authorization header&quot;)
     token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Cookie invalid&quot;)
@@ -263,10 +244,7 @@ val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request 
   } yield message
   message.traverse(retrieveUser.run)
 })
-// &lt;console&gt;:48: warning: type Service in package http4s is deprecated (since 0.18): Deprecated in favor of just using Kleisli
-//        val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
-//                      ^
-// authUser: org.http4s.Service[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57405/123864222@1ac7394b)
+// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$57675/545410256@7f0c26cf)
 </code></pre>
 
         </div>

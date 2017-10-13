@@ -108,37 +108,22 @@ import org.http4s.circe._
 // defined object Tweet
 
 def getTweet(tweetId: Int): IO[Option[TweetWithId]] = ???
-// &lt;console&gt;:32: warning: parameter value tweetId in method getTweet is never used
-//        def getTweet(tweetId: Int): IO[Option[TweetWithId]] = ???
-//                     ^
 // getTweet: (tweetId: Int)cats.effect.IO[Option[TweetWithId]]
 
 def addTweet(tweet: Tweet): IO[TweetWithId] = ???
-// &lt;console&gt;:34: warning: parameter value tweet in method addTweet is never used
-//        def addTweet(tweet: Tweet): IO[TweetWithId] = ???
-//                     ^
 // addTweet: (tweet: Tweet)cats.effect.IO[TweetWithId]
 
 def updateTweet(id: Int, tweet: Tweet): IO[Option[TweetWithId]] = ???
-// &lt;console&gt;:34: warning: parameter value id in method updateTweet is never used
-//        def updateTweet(id: Int, tweet: Tweet): IO[Option[TweetWithId]] = ???
-//                        ^
-// &lt;console&gt;:34: warning: parameter value tweet in method updateTweet is never used
-//        def updateTweet(id: Int, tweet: Tweet): IO[Option[TweetWithId]] = ???
-//                                 ^
 // updateTweet: (id: Int, tweet: Tweet)cats.effect.IO[Option[TweetWithId]]
 
 def deleteTweet(id: Int): IO[Unit] = ???
-// &lt;console&gt;:30: warning: parameter value id in method deleteTweet is never used
-//        def deleteTweet(id: Int): IO[Unit] = ???
-//                        ^
 // deleteTweet: (id: Int)cats.effect.IO[Unit]
 
 implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
-// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$2@3b94d39c
+// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$2@789bf9f6
 
 implicit val tweetDecoder = jsonOf[IO, Tweet]
-// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$2@5af8dfaa
+// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$2@25362f5c
 
 val tweetService = HttpService[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
@@ -150,20 +135,14 @@ val tweetService = HttpService[IO] {
     req.as[Tweet]
       .flatMap(updateTweet(tweetId, _))
       .flatMap(_.fold(NotFound())(Ok(_)))
-  case req @ HEAD -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+  case HEAD -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(_ =&gt; Ok()))
-  case req @ DELETE -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
+  case DELETE -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     deleteTweet(tweetId)
       .flatMap(_ =&gt; Ok())
 }
-// &lt;console&gt;:48: warning: pattern var req in method applyOrElse is never used; `req@_' suppresses this warning
-//          case req @ HEAD -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
-//               ^
-// &lt;console&gt;:51: warning: pattern var req in method applyOrElse is never used; `req@_' suppresses this warning
-//          case req @ DELETE -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
-//               ^
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$55010/1307938858@7932d25c)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$55271/443889238@5fdda2fa)
 </code></pre>
 
 <p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native

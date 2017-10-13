@@ -144,36 +144,27 @@ defined class Audio
 scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
-scala&gt; val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-&lt;console&gt;:30: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
-       val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-                                   ^
-&lt;console&gt;:30: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
-       val response = Ok().withBody(&quot;&quot;).withContentType(Some(MediaType.`audio/ogg`))
-                        ^
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$145975737
+scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(Some(MediaType.`audio/ogg`)))
+response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1978633517
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@745bd1d1
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@2b2fb23e
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@60426611
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@35e4d1c0
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@6ca5437a
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@69900fea
 
-scala&gt; println(response.as[Resp].unsafeRunSync)
-&lt;console&gt;:34: warning: method http4sEffectResponseSyntax in trait EffectResponseSyntax is deprecated (since 0.18.0-M2): Use map or flatMap directly on the response
-       println(response.as[Resp].unsafeRunSync)
-               ^
+scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
 Audio()
 </code></pre>
 
