@@ -35,7 +35,7 @@ Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
 ```tut:book
-def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = Service.lift { req: Request[IO] =>
+def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = cats.data.Kleisli { req: Request[IO] =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)

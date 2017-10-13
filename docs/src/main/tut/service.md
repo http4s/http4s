@@ -88,9 +88,9 @@ def getTweet(tweetId: Int): IO[Tweet] = ???
 def getPopularTweets(): IO[Seq[Tweet]] = ???
 
 val tweetService = HttpService[IO] {
-  case request @ GET -> Root / "tweets" / "popular" =>
+  case GET -> Root / "tweets" / "popular" =>
     Ok(getPopularTweets())
-  case request @ GET -> Root / "tweets" / IntVar(tweetId) =>
+  case GET -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId).flatMap(Ok(_))
 }
 ```
@@ -106,7 +106,7 @@ path of `/api`. The services can be mounted in any order as the request will be
 matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
-Multiple `HttpService`s can be combined with the `combineK` method (or its alias 
+Multiple `HttpService`s can be combined with the `combineK` method (or its alias
 `<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`.
 
 ```tut:book

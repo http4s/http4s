@@ -5,8 +5,7 @@ title: Authentication
 ---
 
 A [service] is a `Kleisli[F, Request, Response]`, the composable version of
-`Request[F] => F[Response[F]]`. http4s provides an alias called `Service[F, Request,
-Response]`. A service with authentication also requires some kind of `User`
+`Request[F] => F[Response[F]]`. A service with authentication also requires some kind of `User`
 object which identifies which user did the request. To store the `User` object
 along with the `Request`, there's `AuthedRequest[F, User]`, which is equivalent to
 `(User, Request[F])`. So the service has the signature `AuthedRequest[F, User] =>
@@ -49,12 +48,11 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```tut:book
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedService[IO, String] = AuthedService.lift(req => Forbidden(req.authInfo))
+val onFailure: AuthedService[IO, String] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
 val service: HttpService[IO] = middleware(authedService)
 ```
-
 
 ## Implementing authUser
 
@@ -87,13 +85,13 @@ val crypto = CryptoBits(key)
 val clock = Clock.systemUTC
 
 def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
-val logIn: Service[IO, Request[IO], Response[IO]] = Kleisli({ request =>
+val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
   verifyLogin(request: Request[IO]).flatMap(_ match {
     case Left(error) =>
       Forbidden(error)
     case Right(user) => {
       val message = crypto.signToken(user.id.toString, clock.millis.toString)
-      Ok("Logged in!").addCookie(Cookie("authcookie", message))
+      Ok("Logged in!").map(_.addCookie(Cookie("authcookie", message)))
     }
   })
 })
@@ -102,8 +100,8 @@ val logIn: Service[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
 ```tut:book
-def retrieveUser: Service[IO, Long, User] = Kleisli(id => IO(???))
-val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
+val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- headers.Cookie.from(request.headers).toRight("Cookie parsing error")
     cookie <- header.values.toList.find(_.name == "authcookie").toRight("Couldn't find the authcookie")
@@ -124,7 +122,7 @@ function.
 import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
-val authUser: Service[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
+val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- request.headers.get(Authorization).toRight("Couldn't find an Authorization header")
     token <- crypto.validateSignedToken(header.value).toRight("Cookie invalid")
