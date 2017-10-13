@@ -9,7 +9,7 @@ import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.parser._
 import org.http4s.syntax.string._
 import org.http4s.util._
-import org.http4s.util.UrlCodingUtils.{pathEncode, urlEncode, urlDecode}
+import org.http4s.util.UrlCodingUtils.{pathEncode, urlDecode, urlEncode}
 import scala.language.experimental.macros
 import scala.math.Ordered
 import scala.reflect.macros.whitebox.Context
@@ -31,11 +31,15 @@ final case class Uri(
     extends QueryOps
     with Renderable {
 
+  def withSchemeOption(scheme: Option[Scheme]) = copy(scheme = scheme)
+  def withScheme(scheme: Scheme): Uri = withSchemeOption(Some(scheme))
+  def withoutScheme: Uri = withSchemeOption(None)
+
   def withPath(path: Path): Uri = copy(path = path)
 
-  def withFragment(fragment: Fragment): Uri = copy(fragment = Option(fragment))
-
-  def withoutFragment: Uri = copy(fragment = Option.empty[Fragment])
+  def withFragmentOption(fragment: Option[Fragment]) = copy(fragment = fragment)
+  def withFragment(fragment: Fragment): Uri = withFragmentOption(Some(fragment))
+  def withoutFragment: Uri = withFragmentOption(None)
 
   def /(newSegment: Path): Uri = {
     val encoded = pathEncode(newSegment)
@@ -45,9 +49,21 @@ final case class Uri(
     copy(path = newPath)
   }
 
+  def withAuthorityOption(authority: Option[Authority]): Uri = copy(authority = authority)
+  def withAuthority(authority: Authority): Uri = withAuthorityOption(Some(authority))
+  def withoutAuthority: Uri = withAuthorityOption(None)
+
   def host: Option[Host] = authority.map(_.host)
+  def withHostOption(host: Option[Host]) =
+    withAuthorityOption(host.fold(Option.empty[Authority])(h =>
+      Some(authority.fold(Authority(host = h))(_.withHost(h)))))
+  def withHost(host: Host) = withHostOption(Some(host))
+
   def port: Option[Int] = authority.flatMap(_.port)
+  def withoutPort: Uri = withAuthorityOption(authority.map(_.withoutPort))
+
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
+  def withoutUserInfo: Uri = withAuthorityOption(authority.map(_.withoutUserInfo))
 
   def resolve(relative: Uri): Uri = Uri.resolve(this, relative)
 
@@ -186,21 +202,28 @@ object Uri extends UriFunctions {
     *
     * @see https://www.ietf.org/rfc/rfc3986.txt, Section 3.2.1
     */
-  final case class UserInfo (username: String, password: Option[String] = None) extends Ordered[UserInfo] {
+  final case class UserInfo(username: String, password: Option[String] = None)
+      extends Ordered[UserInfo] {
     // password intentionally omitted
     override def toString = s"UserInfo($username,<REDACTED>)"
 
     override def compare(other: UserInfo): Int =
-      (username compare other.username) match {
+      username.compare(other.username) match {
         case 0 =>
           (password, other.password) match {
-            case (Some(p0), Some(p1)) => p0 compare p1
+            case (Some(p0), Some(p1)) => p0.compare(p1)
             case (Some(_), None) => 1
             case (None, Some(_)) => -1
             case (None, None) => 0
           }
         case nonZero => nonZero
       }
+
+    def withUsername(username: String): UserInfo = copy(username = username)
+
+    def withPasswordOption(password: Option[String]) = copy(password = password)
+    def withPassword(password: String): UserInfo = withPasswordOption(Some(password))
+    def withoutPassword: UserInfo = withPasswordOption(None)
   }
 
   object UserInfo {
@@ -214,19 +237,20 @@ object Uri extends UriFunctions {
       def userinfo = rule {
         run(sb.setLength(0)) ~
           oneOrMore(userInfoChar ~ appendSB() | `pct-encoded`) ~ push {
-            val s = sb.toString
-            val sep = s.indexOf(':')
-            if (sep < 0) UserInfo(urlDecode(s))
-            else {
-              val username = urlDecode(s.take(sep))
-              val password = urlDecode(s.drop(sep + 1))
-              UserInfo(username, Some(password))
-            }
+          val s = sb.toString
+          val sep = s.indexOf(':')
+          if (sep < 0) UserInfo(urlDecode(s))
+          else {
+            val username = urlDecode(s.take(sep))
+            val password = urlDecode(s.drop(sep + 1))
+            UserInfo(username, Some(password))
           }
+        }
       }
     }
 
-    implicit val http4sInstancesForUserInfo: Show[UserInfo] with HttpCodec[UserInfo] with Order[UserInfo] =
+    implicit val http4sInstancesForUserInfo
+      : Show[UserInfo] with HttpCodec[UserInfo] with Order[UserInfo] =
       new Show[UserInfo] with HttpCodec[UserInfo] with Order[UserInfo] {
         def show(s: UserInfo): String = s.toString
 
@@ -243,7 +267,6 @@ object Uri extends UriFunctions {
           x.compareTo(y)
       }
   }
-
 
   /** The fragment identifier component of a [[org.http4s.Uri]] allows indirect
     * identification of a secondary resource by reference to a primary resource
@@ -353,6 +376,16 @@ object Uri extends UriFunctions {
       case Authority(_, h, _) => writer << h
       case _ => writer
     }
+
+    def withUserInfoOption(userInfo: Option[UserInfo]): Authority = copy(userInfo = userInfo)
+    def withUserInfo(userInfo: UserInfo): Authority = withUserInfoOption(Some(userInfo))
+    def withoutUserInfo: Authority = withUserInfoOption(None)
+
+    def withHost(host: Host): Authority = copy(host = host)
+
+    def withPortOption(port: Option[Int]): Authority = copy(port = port)
+    def withPort(port: Int): Authority = withPortOption(Some(port))
+    def withoutPort: Authority = withPortOption(None)
   }
 
   sealed trait Host extends Renderable {

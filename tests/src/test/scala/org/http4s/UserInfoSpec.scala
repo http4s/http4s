@@ -13,12 +13,13 @@ class UserInfoSpec extends Http4sSpec {
       UserInfo(a, pw).compare(UserInfo(b, pw)) must_== a.compare(b)
     }
 
-    "be consistent with password compare when usernames equal" in prop { (a: String, b: String, u: String) =>
-      UserInfo(u, Some(a)).compare(UserInfo(u, Some(b))) must_== a.compare(b)
+    "be consistent with password compare when usernames equal" in prop {
+      (a: String, b: String, u: String) =>
+        UserInfo(u, Some(a)).compare(UserInfo(u, Some(b))) must_== a.compare(b)
     }
 
     "sort no password before any password when usernames equal" in prop { (u: String, p: String) =>
-      UserInfo(u, None).compare(UserInfo(u, Some(p))) must be lessThan(0)
+      (UserInfo(u, None).compare(UserInfo(u, Some(p))) must be).lessThan(0)
     }
   }
 
