@@ -59,7 +59,7 @@ final case class Uri(
       Some(authority.fold(Authority(host = h))(_.withHost(h)))))
   def withHost(host: Host) = withHostOption(Some(host))
 
-  def port: Option[Int] = authority.flatMap(_.port)
+  def port: Option[Port] = authority.flatMap(_.port)
   def withoutPort: Uri = withAuthorityOption(authority.map(_.withoutPort))
 
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
@@ -189,6 +189,57 @@ object Uri extends UriFunctions {
           writer << scheme.value
 
         def compare(x: Scheme, y: Scheme) =
+          x.compareTo(y)
+      }
+  }
+
+  final class Port private (val toInt: Int) extends AnyVal with Ordered[Port] {
+    override def toString = s"Port($toInt)"
+
+    override def compare(other: Port): Int =
+      toInt.compare(other.toInt)
+  }
+
+  object Port {
+    val ephemeral = new Port(0)
+    val http = new Port(80)
+    val https = new Port(443)
+    val `http-alt` = new Port(8080)
+
+    def parse(s: String): ParseResult[Port] =
+      new Http4sParser[Port](s, "Invalid port") with Parser {
+        def main = port
+      }.parse
+
+    def fromInt(i: Int): Either[InvalidPortNumber, Port] =
+      if (i >=0 && i < 65536) Right(new Port(i))
+      else Left(InvalidPortNumber(i))
+
+    final case class InvalidPortNumber(i: Int)
+      extends IllegalArgumentException(s"Invalid port number: ${i}")
+
+    private[http4s] trait Parser { self: PbParser =>
+      import Rfc3986Predicates._
+      def port = rule {
+        capture((1 to 5).times(DIGIT)) ~ run { s: String =>
+          val i = s.toInt
+          if (i < 65536) push(new Port(i))
+          else MISMATCH
+        }
+      }
+    }
+
+    implicit val http4sInstancesForPort: Show[Port] with HttpCodec[Port] with Order[Port] =
+      new Show[Port] with HttpCodec[Port] with Order[Port] {
+        def show(s: Port): String = s.toString
+
+        def parse(s: String): ParseResult[Port] =
+          Port.parse(s)
+
+        def render(writer: Writer, port: Port): writer.type =
+          writer << port.toInt
+
+        def compare(x: Port, y: Port) =
           x.compareTo(y)
       }
   }
@@ -366,7 +417,7 @@ object Uri extends UriFunctions {
   final case class Authority(
       userInfo: Option[UserInfo] = None,
       host: Host = RegName("localhost"),
-      port: Option[Int] = None)
+      port: Option[Port] = None)
       extends Renderable {
 
     override def render(writer: Writer): writer.type = this match {
@@ -383,8 +434,8 @@ object Uri extends UriFunctions {
 
     def withHost(host: Host): Authority = copy(host = host)
 
-    def withPortOption(port: Option[Int]): Authority = copy(port = port)
-    def withPort(port: Int): Authority = withPortOption(Some(port))
+    def withPortOption(port: Option[Port]): Authority = copy(port = port)
+    def withPort(port: Port): Authority = withPortOption(Some(port))
     def withoutPort: Authority = withPortOption(None)
   }
 

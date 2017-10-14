@@ -16,7 +16,7 @@ import org.http4s.util.StreamApp.ExitCode
 import scala.concurrent.ExecutionContext
 
 abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
-  val securePort = 8443
+  val securePort = port"8443"
 
   implicit val executionContext: ExecutionContext = ExecutionContext.global
 

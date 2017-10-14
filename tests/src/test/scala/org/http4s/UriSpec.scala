@@ -57,7 +57,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       "parse port correctly" >> {
         "if there is one" in {
           val uri = getUri("http://localhost:8080/")
-          uri.port must_=== Some(8080)
+          uri.port must_=== Some(port"8080")
         }
         "if there is none" in {
           val uri = getUri("http://localhost/")
@@ -68,7 +68,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       "both authority and port" in {
         val auth = getUri("http://localhost:8080/").authority.get
         auth.host must_=== RegName("localhost")
-        auth.port must_=== Some(8080)
+        auth.port must_=== Some(port"8080")
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
@@ -138,7 +138,7 @@ http://example.org/a file
       // You can add a port too
       uri("/route/").copy(
         scheme = Scheme.https.some,
-        authority = Some(Authority(None, RegName("example.com"), Some(8443)))) must_== uri(
+        authority = Some(Authority(None, RegName("example.com"), Some(port"8443")))) must_== uri(
         "https://example.com:8443/route/")
     }
   }
@@ -175,7 +175,7 @@ http://example.org/a file
     }
 
     "render URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci), port = Some(80)))).toString must_== ("http://www.foo.com:80")
+      Uri(Some(Scheme.http), Some(Authority(host = RegName("www.foo.com".ci), port = Some(Port.http)))).toString must_== ("http://www.foo.com:80")
     }
 
     "render URL without port" in {
@@ -185,13 +185,13 @@ http://example.org/a file
     "render IPv4 URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+        Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(Port.http))),
         "/c",
         Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
     }
 
     "render IPv4 URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(8080)))).toString must_== ("http://192.168.1.1:8080")
+      Uri(Some(Scheme.http), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(Port.`http-alt`)))).toString must_== ("http://192.168.1.1:8080")
     }
 
     "render IPv4 URL without port" in {
@@ -211,7 +211,7 @@ http://example.org/a file
         Some(Scheme.http),
         Some(Authority(
           host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci),
-          port = Some(8080)))).toString must_== ("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080")
+          port = Some(Port.`http-alt`)))).toString must_== ("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080")
     }
 
     "render IPv6 URL without port" in {

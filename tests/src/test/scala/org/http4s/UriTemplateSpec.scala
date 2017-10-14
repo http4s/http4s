@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.Uri.{Authority, Fragment, IPv4, IPv6, RegName, Scheme}
+import org.http4s.Uri.{Authority, Fragment, IPv4, IPv6, Port, RegName, Scheme}
 import org.http4s.UriTemplate._
 
 object UriTemplateSpec extends Http4sSpec {
@@ -209,7 +209,7 @@ object UriTemplateSpec extends Http4sSpec {
     "render http://www.foo.com:80" in {
       val scheme = Some(Scheme.http)
       val host = RegName("www.foo.com".ci)
-      val authority = Some(Authority(host = host, port = Some(80)))
+      val authority = Some(Authority(host = host, port = Some(Port.http)))
       val path = Nil
       val query = Nil
       UriTemplate(scheme, authority, path, query).toString must
@@ -226,7 +226,7 @@ object UriTemplateSpec extends Http4sSpec {
     "render http://192.168.1.1:8080" in {
       val scheme = Some(Scheme.http)
       val host = IPv4("192.168.1.1".ci)
-      val authority = Some(Authority(host = host, port = Some(8080)))
+      val authority = Some(Authority(host = host, port = Some(Port.`http-alt`)))
       val query = List(ParamElm("", Nil))
       UriTemplate(scheme, authority, Nil, query).toString must equalTo("http://192.168.1.1:8080/?")
       UriTemplate(scheme, authority, Nil, Nil).toString must equalTo("http://192.168.1.1:8080")
@@ -234,7 +234,7 @@ object UriTemplateSpec extends Http4sSpec {
     "render http://192.168.1.1:80/c?GB=object&Class=one" in {
       val scheme = Some(Scheme.http)
       val host = IPv4("192.168.1.1".ci)
-      val authority = Some(Authority(host = host, port = Some(80)))
+      val authority = Some(Authority(host = host, port = Some(Port.http)))
       val path = List(PathElm("c"))
       val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toString must
@@ -243,7 +243,7 @@ object UriTemplateSpec extends Http4sSpec {
     "render http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080" in {
       val scheme = Some(Scheme.http)
       val host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)
-      val authority = Some(Authority(host = host, port = Some(8080)))
+      val authority = Some(Authority(host = host, port = Some(Port.`http-alt`)))
       UriTemplate(scheme, authority).toString must
         equalTo("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080")
     }
@@ -427,7 +427,7 @@ object UriTemplateSpec extends Http4sSpec {
     "convert http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]:8080/{rel}/search{?term}{#section} to UriTemplate" in {
       val scheme = Some(Scheme.http)
       val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
-      val authority = Some(Authority(host = host, port = Some(8080)))
+      val authority = Some(Authority(host = host, port = Some(Port.`http-alt`)))
       val path = List(VarExp("rel"), PathElm("search"))
       val query = List(ParamExp("term"))
       val fragment = List(SimpleFragmentExp("section"))
@@ -455,7 +455,7 @@ object UriTemplateSpec extends Http4sSpec {
     "convert http://www.foo.com:80 to Uri" in {
       val scheme = Some(Scheme.http)
       val host = RegName("www.foo.com".ci)
-      val authority = Some(Authority(host = host, port = Some(80)))
+      val authority = Some(Authority(host = host, port = Some(Port.http)))
       val path = Nil
       UriTemplate(scheme, authority, path).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, ""))
@@ -477,7 +477,7 @@ object UriTemplateSpec extends Http4sSpec {
     "convert http://192.168.1.1:8080 to Uri" in {
       val scheme = Some(Scheme.http)
       val host = IPv4("192.168.1.1".ci)
-      val authority = Some(Authority(host = host, port = Some(8080)))
+      val authority = Some(Authority(host = host, port = Some(Port.`http-alt`)))
       val query = List(ParamElm("", Nil))
       UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(
         Uri(scheme, authority, "", Query.fromString("")))
@@ -487,7 +487,7 @@ object UriTemplateSpec extends Http4sSpec {
     "convert http://192.168.1.1:80/c?GB=object&Class=one to Uri" in {
       val scheme = Some(Scheme.http)
       val host = IPv4("192.168.1.1".ci)
-      val authority = Some(Authority(host = host, port = Some(80)))
+      val authority = Some(Authority(host = host, port = Some(Port.http)))
       val path = List(PathElm("c"))
       val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
@@ -512,7 +512,7 @@ object UriTemplateSpec extends Http4sSpec {
     "convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]:8080 to Uri" in {
       val scheme = Some(Scheme.http)
       val host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)
-      val authority = Some(Authority(None, host, Some(8080)))
+      val authority = Some(Authority(None, host, Some(Port.`http-alt`)))
       UriTemplate(scheme, authority).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }

@@ -120,13 +120,13 @@ private[parser] trait SimpleHeaders {
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
   def HOST(value: String): ParseResult[Host] =
-    new Http4sHeaderParser[Host](value) with Rfc3986Parser {
+    new Http4sHeaderParser[Host](value) with Rfc3986Parser with Uri.Port.Parser {
       def charset = StandardCharsets.UTF_8
 
       def entry = rule {
         (Token | IpLiteral) ~ OptWS ~
-          optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (org.http4s.headers
-          .Host(_: String, _: Option[Int]))
+          optional(":" ~ port) ~ EOL ~> (org.http4s.headers
+            .Host(_: String, _: Option[org.http4s.Uri.Port]))
       }
     }.parse
 

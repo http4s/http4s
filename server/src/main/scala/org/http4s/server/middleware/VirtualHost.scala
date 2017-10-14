@@ -69,7 +69,7 @@ object VirtualHost {
           val host: Host = h.port match {
             case Some(_) => h
             case None =>
-              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
+              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) Uri.Port.https else Uri.Port.http)))
           }
           (first +: rest).toVector
             .collectFirst { case HostService(s, p) if p(host) => s(req) }

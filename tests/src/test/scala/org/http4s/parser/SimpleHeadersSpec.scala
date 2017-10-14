@@ -45,7 +45,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Host" in {
-      val header1 = Host("foo", Some(5))
+      val header1 = Host("foo", Some(port"8080"))
       HttpHeaderParser.parseHeader(header1.toRaw) must beRight(header1)
 
       val header2 = Host("foo", None)

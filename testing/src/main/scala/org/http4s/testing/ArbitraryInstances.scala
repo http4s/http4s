@@ -506,11 +506,17 @@ trait ArbitraryInstances {
   implicit val cogenUserInfo: Cogen[Uri.UserInfo] =
     Cogen[(String, Option[String])].contramap(info => (info.username, info.password))
 
+  implicit val arbitraryPort: Arbitrary[Uri.Port] =
+    Arbitrary { Gen.chooseNum(0, 65535).map(Uri.Port.fromInt(_).valueOr(throw _)) }
+
+  implicit val cogenPort: Cogen[Uri.Port] =
+    Cogen[Int].contramap(_.toInt)
+
   implicit val arbitraryAuthority: Arbitrary[Uri.Authority] = Arbitrary {
     for {
-      userInfo <- Gen.option(arbitraryUserInfo.arbitrary)
-      host <- arbitraryUriHost.arbitrary
-      port <- Gen.option(posNum[Int].suchThat(port => port >= 0 && port <= 65536))
+      userInfo <- Gen.option(arbitrary[Uri.UserInfo])
+      host <- arbitrary[Uri.Host]
+      port <- Gen.option(arbitrary[Uri.Port])
     } yield Uri.Authority(userInfo, host, port)
   }
 

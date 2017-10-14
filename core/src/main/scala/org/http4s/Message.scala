@@ -277,9 +277,9 @@ sealed abstract case class Request[F[_]](
   lazy val serverPort: Int =
     server
       .map(_.getPort)
-      .orElse(uri.port)
-      .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80) // scalastyle:ignore
+      .orElse(uri.port.map(_.toInt))
+      .orElse(headers.get(Host).flatMap(_.port.map(_.toInt)))
+      .getOrElse(Uri.Port.http.toInt)
 
   /** Whether the Request was received over a secure medium */
   lazy val isSecure: Option[Boolean] = connectionInfo.map(_.secure)

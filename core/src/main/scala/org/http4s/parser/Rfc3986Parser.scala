@@ -13,6 +13,7 @@ import org.http4s.syntax.string._
 private[parser] trait Rfc3986Parser
     extends Parser
     with Uri.Fragment.Parser
+    with Uri.Port.Parser
     with Uri.Scheme.Parser
     with Uri.UserInfo.Parser
     with IpParser
@@ -63,7 +64,7 @@ private[parser] trait Rfc3986Parser
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule {
-    optional(userinfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _)
+    optional(userinfo ~ "@") ~ Host ~ optional(":" ~ port) ~> (org.http4s.Uri.Authority.apply _)
   }
 
   def UserInfo = rule {
@@ -80,12 +81,6 @@ private[parser] trait Rfc3986Parser
       capture(RegName) ~> { s: String =>
         org.http4s.Uri.RegName(decode(s).ci)
       }
-  }
-
-  def Port = rule {
-    ":" ~ (capture(oneOrMore(Digit)) ~> { s: String =>
-      (Some(s.toInt))
-    } | push(None)) | push(None)
   }
 
   def IpLiteral = rule { "[" ~ capture(IpV6Address | IpVFuture) ~ "]" }

@@ -58,7 +58,7 @@ final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Ef
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Scheme.https, auth) =>
-        val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(443))
+        val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(Uri.Port.https).toInt)
         eng.setUseClientMode(true)
 
         if (config.checkEndpointIdentification) {
@@ -76,8 +76,8 @@ final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Ef
   private def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
     requestKey match {
       case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse { if (s == Scheme.https) 443 else 80 }
+        val port = auth.port.getOrElse { if (s == Scheme.https) Uri.Port.https else Uri.Port.http }
         val host = auth.host.value
-        Either.catchNonFatal(new InetSocketAddress(host, port))
+        Either.catchNonFatal(new InetSocketAddress(host, port.toInt))
     }
 }

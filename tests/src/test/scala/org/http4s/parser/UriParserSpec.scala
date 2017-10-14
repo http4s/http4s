@@ -59,11 +59,8 @@ class UriParserSpec extends Http4sSpec {
           "http://foo.com",
           Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
         (
-          "http://foo.com:",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = None)))),
-        (
           "http://foo.com:80",
-          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = Some(80)))))
+          Uri(Some(Scheme.http), Some(Authority(host = RegName("foo.com".ci), port = Some(Port.http)))))
       )
 
       check(portExamples)
@@ -88,7 +85,7 @@ class UriParserSpec extends Http4sSpec {
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(Port.http))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
@@ -233,7 +230,7 @@ class UriParserSpec extends Http4sSpec {
           "http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(
             Some(Scheme.http),
-            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))),
+            Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(Port.http))),
             "/c",
             Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         (
