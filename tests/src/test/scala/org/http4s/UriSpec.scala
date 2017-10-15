@@ -131,14 +131,12 @@ http://example.org/a file
       uri("http://example.com/").copy(scheme = Scheme.https.some) must_== uri(
         "https://example.com/")
       // Must add the authority to set the scheme and host
-      uri("/route/").copy(
-        scheme = Scheme.https.some,
-        authority = Some(Authority(None, host"example.com"))) must_== uri(
+      uri("/route/")
+        .copy(scheme = Scheme.https.some, authority = authority"example.com".some) must_== uri(
         "https://example.com/route/")
       // You can add a port too
-      uri("/route/").copy(
-        scheme = Scheme.https.some,
-        authority = Some(Authority(None, host"example.com", Some(port"8443")))) must_== uri(
+      uri("/route/")
+        .copy(scheme = Scheme.https.some, authority = authority"example.com:8443".some) must_== uri(
         "https://example.com:8443/route/")
     }
   }
@@ -171,58 +169,47 @@ http://example.org/a file
     }
 
     "render URL with parameters" in {
-      Uri(
-        Some(Scheme.http),
-        Some(Authority(host = host"www.foo.com")),
-        "/foo",
-        Query.fromPairs("bar" -> "baz")).toString must_== ("http://www.foo.com/foo?bar=baz")
+      Uri(Some(Scheme.http), Some(authority"www.foo.com"), "/foo", Query.fromPairs("bar" -> "baz")).toString must_== ("http://www.foo.com/foo?bar=baz")
     }
 
     "render URL with port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = host"www.foo.com", port = Some(Port.http)))).toString must_== ("http://www.foo.com:80")
+      Uri(Some(Scheme.http), Some(authority"www.foo.com:80")).toString must_== ("http://www.foo.com:80")
     }
 
     "render URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = host"www.foo.com"))).toString must_== ("http://www.foo.com")
+      Uri(Some(Scheme.http), Some(authority"www.foo.com")).toString must_== ("http://www.foo.com")
     }
 
     "render IPv4 URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = host"192.168.1.1", port = Some(Port.http))),
+        Some(authority"192.168.1.1:80"),
         "/c",
         Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://192.168.1.1:80/c?GB=object&Class=one")
     }
 
     "render IPv4 URL with port" in {
-      Uri(
-        Some(Scheme.http),
-        Some(Authority(host = host"192.168.1.1", port = Some(Port.`http-alt`)))).toString must_== ("http://192.168.1.1:8080")
+      Uri(Some(Scheme.http), Some(authority"192.168.1.1:8080")).toString must_== ("http://192.168.1.1:8080")
     }
 
     "render IPv4 URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = host"192.168.1.1"))).toString must_== ("http://192.168.1.1")
+      Uri(Some(Scheme.http), Some(authority"192.168.1.1")).toString must_== ("http://192.168.1.1")
     }
 
     "render IPv6 URL with parameters" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(host = host"[2001:db8::7]")),
+        Some(authority"[2001:db8::7]"),
         "/c",
         Query.fromPairs("GB" -> "object", "Class" -> "one")).toString must_== ("http://[2001:db8::7]/c?GB=object&Class=one")
     }
 
     "render IPv6 URL with port" in {
-      Uri(
-        Some(Scheme.http),
-        Some(
-          Authority(
-            host = host"[2001:db8:85a3:8d3:1319:8a2e:370:7344]",
-            port = Some(Port.`http-alt`)))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
+      Uri(Some(Scheme.http), Some(authority"[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]:8080")
     }
 
     "render IPv6 URL without port" in {
-      Uri(Some(Scheme.http), Some(Authority(host = host"[2001:db8:85a3:8d3:1319:8a2e:370:7344]"))).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
+      Uri(Some(Scheme.http), Some(authority"[2001:db8:85a3:8d3:1319:8a2e:370:7344]")).toString must_== ("http://[2001:db8:85a3:8d3:1319:8a2e:370:7344]")
     }
 
     "not append a '/' unless it's in the path" in {
@@ -233,10 +220,10 @@ http://example.org/a file
       Uri(Some(scheme"mailto"), path = "John.Doe@example.com").toString must_== ("mailto:John.Doe@example.com")
     }
 
-    "render an URL with username and password" in {
+    "render a URL with username and password" in {
       Uri(
         Some(Scheme.http),
-        Some(Authority(Some(userInfo"username:password"), host"some.example.com", None)),
+        Some(authority"username:password@some.example.com"),
         "/",
         Query.empty,
         None).toString must_== ("http://username:password@some.example.com/")

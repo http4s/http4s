@@ -417,6 +417,53 @@ object Uri extends UriFunctions {
       }
   }
 
+  final case class Authority(
+      userInfo: Option[UserInfo] = None,
+      host: Host = Host.localhost,
+      port: Option[Port] = None) {
+    def withUserInfoOption(userInfo: Option[UserInfo]): Authority = copy(userInfo = userInfo)
+    def withUserInfo(userInfo: UserInfo): Authority = withUserInfoOption(Some(userInfo))
+    def withoutUserInfo: Authority = withUserInfoOption(None)
+
+    def withHost(host: Host): Authority = copy(host = host)
+
+    def withPortOption(port: Option[Port]): Authority = copy(port = port)
+    def withPort(port: Port): Authority = withPortOption(Some(port))
+    def withoutPort: Authority = withPortOption(None)
+  }
+
+  object Authority {
+    def parse(s: String): ParseResult[Authority] =
+      new Http4sParser[Authority](s, "Invalid authority") with Parser {
+        def main = authority
+      }.parse
+
+    private[http4s] trait Parser extends Host.Parser with UserInfo.Parser with Port.Parser {
+      self: PbParser =>
+      def authority: Rule1[Authority] = rule {
+        optional(userinfo ~ "@") ~ host ~ optional(":" ~ port) ~> (Authority(_, _, _))
+      }
+    }
+
+    implicit val http4sInstancesForAuthority
+      : Show[Authority] with HttpCodec[Authority] with Eq[Authority] =
+      new Show[Authority] with HttpCodec[Authority] with Eq[Authority] {
+        def show(s: Authority): String = s.toString
+
+        def parse(s: String): ParseResult[Authority] = Authority.parse(s)
+
+        def render(writer: Writer, authority: Authority): writer.type =
+          authority match {
+            case Authority(Some(u), h, None) => writer << u << '@' << h
+            case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
+            case Authority(None, h, Some(p)) => writer << h << ':' << p
+            case Authority(None, h, None) => writer << h
+          }
+
+        def eqv(a: Authority, b: Authority): Boolean = a == b
+      }
+  }
+
   /** The fragment identifier component of a [[org.http4s.Uri]] allows indirect
     * identification of a secondary resource by reference to a primary resource
     * and additional identifying information.
@@ -511,31 +558,6 @@ object Uri extends UriFunctions {
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
 
   type Path = String
-
-  final case class Authority(
-      userInfo: Option[UserInfo] = None,
-      host: Host = Host.localhost,
-      port: Option[Port] = None)
-      extends Renderable {
-
-    override def render(writer: Writer): writer.type = this match {
-      case Authority(Some(u), h, None) => writer << u << '@' << h
-      case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
-      case Authority(None, h, Some(p)) => writer << h << ':' << p
-      case Authority(_, h, _) => writer << h
-      case _ => writer
-    }
-
-    def withUserInfoOption(userInfo: Option[UserInfo]): Authority = copy(userInfo = userInfo)
-    def withUserInfo(userInfo: UserInfo): Authority = withUserInfoOption(Some(userInfo))
-    def withoutUserInfo: Authority = withUserInfoOption(None)
-
-    def withHost(host: Host): Authority = copy(host = host)
-
-    def withPortOption(port: Option[Port]): Authority = copy(port = port)
-    def withPort(port: Port): Authority = withPortOption(Some(port))
-    def withoutPort: Authority = withPortOption(None)
-  }
 }
 
 trait UriFunctions {

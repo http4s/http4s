@@ -12,8 +12,7 @@ import org.http4s.internal.parboiled2.support.HNil
 private[parser] trait Rfc3986Parser
     extends Parser
     with Uri.Fragment.Parser
-    with Uri.Host.Parser
-    with Uri.Port.Parser
+    with Uri.Authority.Parser
     with Uri.Scheme.Parser
     with Uri.UserInfo.Parser
     with IpParser
@@ -40,7 +39,7 @@ private[parser] trait Rfc3986Parser
   }
 
   def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {
+    "//" ~ authority ~ PathAbempty ~> {
       (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
         auth.some :: path :: HNil
     } |
@@ -52,7 +51,7 @@ private[parser] trait Rfc3986Parser
   }
 
   def RelativePart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {
+    "//" ~ authority ~ PathAbempty ~> {
       (auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) =>
         auth.some :: path :: HNil
     } |
@@ -61,10 +60,6 @@ private[parser] trait Rfc3986Parser
       PathEmpty ~> { (e: String) =>
         None :: e :: HNil
       }
-  }
-
-  def Authority: Rule1[org.http4s.Uri.Authority] = rule {
-    optional(userinfo ~ "@") ~ host ~ optional(":" ~ port) ~> (org.http4s.Uri.Authority.apply _)
   }
 
   def Path: Rule1[String] = rule {

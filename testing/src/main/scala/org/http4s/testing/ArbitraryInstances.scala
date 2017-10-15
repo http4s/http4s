@@ -525,6 +525,10 @@ trait ArbitraryInstances {
     } yield Uri.Authority(userInfo, host, port)
   }
 
+  implicit val cogenAuthority: Cogen[Uri.Authority] =
+    Cogen[(Option[Uri.UserInfo], Uri.Host, Option[Uri.Port])].contramap(auth =>
+      (auth.userInfo, auth.host, auth.port))
+
   val genPctEncoded: Gen[String] = const("%") |+| genHexDigit.map(_.toString) |+| genHexDigit.map(
     _.toString)
   val genUnreserved: Gen[Char] =

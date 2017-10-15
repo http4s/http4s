@@ -10,6 +10,16 @@ private[http4s] object Macros {
     s
   }
 
+  def authority(c: Context)(): c.Expr[Uri.Authority] = {
+    import c.universe._
+    val s = literalString(c)
+    Uri.Authority.parse(s) match {
+      case Right(_) =>
+        c.Expr(q"""org.http4s.HttpCodec[org.http4s.Uri.Authority].parseOrThrow($s)""")
+      case Left(e) => throw e
+    }
+  }
+
   def fragment(c: Context)(): c.Expr[Uri.Fragment] = {
     import c.universe._
     val s = literalString(c)

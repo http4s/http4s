@@ -8,6 +8,7 @@ trait LiteralsSyntax {
 }
 
 class LiteralsOps(val sc: StringContext) extends AnyVal {
+  def authority(): Uri.Authority = macro Macros.authority
   def fragment(): Uri.Fragment = macro Macros.fragment
   def host(): Uri.Host = macro Macros.host
   def port(): Uri.Port = macro Macros.port
