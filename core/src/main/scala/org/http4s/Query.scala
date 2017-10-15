@@ -2,7 +2,7 @@ package org.http4s
 
 import org.http4s.Query._
 import org.http4s.internal.parboiled2.CharPredicate
-import org.http4s.parser.QueryParser
+import org.http4s.parser.{QueryParser, Rfc3986Predicates}
 import org.http4s.util.{Renderable, UrlCodingUtils, Writer}
 import scala.collection.{IndexedSeqOptimized, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -113,7 +113,7 @@ object Query {
    *   -- http://tools.ietf.org/html/rfc3986#section-3.4
    */
   private val NoEncode: CharPredicate =
-    UrlCodingUtils.Unreserved ++ "?/"
+    Rfc3986Predicates.unreserved ++ "?/"
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)

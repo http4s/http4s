@@ -7,6 +7,7 @@ import org.http4s.client.blaze.{defaultClient => client}
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
+import org.http4s.syntax.literals._
 
 object ClientMultipartPostExample extends Http4sClientDsl[IO] {
 
@@ -16,7 +17,7 @@ object ClientMultipartPostExample extends Http4sClientDsl[IO] {
     // n.b. This service does not appear to gracefully handle chunked requests.
     val url = Uri(
       scheme = Some(Scheme.http),
-      authority = Some(Authority(host = RegName("www.posttestserver.com"))),
+      authority = Some(Authority(host = host"www.posttestserver.com")),
       path = "/post.php?dir=http4s")
 
     val multipart = Multipart[IO](

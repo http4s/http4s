@@ -7,15 +7,12 @@ package org.http4s.util
 import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
-import org.http4s.internal.parboiled2.CharPredicate
+import org.http4s.parser.Rfc3986Predicates._
 
 private[http4s] object UrlCodingUtils {
 
-  val Unreserved =
-    CharPredicate.AlphaNum ++ "-_.~"
-
   private val toSkip =
-    Unreserved ++ "!$&'()*+,;=:/?@"
+    unreserved ++ reserved -- "[]"
 
   // scalastyle:off magic.number
   private val HexUpperCaseChars = (0 until 16).map { i =>
@@ -60,10 +57,16 @@ private[http4s] object UrlCodingUtils {
   }
 
   private val SkipEncodeInPath =
-    Unreserved ++ ":@!$&'()*+,;="
+    unreserved ++ ":@!$&'()*+,;="
 
   def pathEncode(s: String, charset: Charset = UTF_8): String =
     UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInPath)
+
+  private val SkipEncodeInHost =
+    unreserved ++ `sub-delims`
+
+  def hostEncode(s: String, charset: Charset = UTF_8): String =
+    UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInHost)
 
   /**
     * Percent-decodes a string.

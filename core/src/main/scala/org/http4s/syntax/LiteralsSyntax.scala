@@ -9,6 +9,7 @@ trait LiteralsSyntax {
 
 class LiteralsOps(val sc: StringContext) extends AnyVal {
   def fragment(): Uri.Fragment = macro Macros.fragment
+  def host(): Uri.Host = macro Macros.host
   def port(): Uri.Port = macro Macros.port
   def scheme(): Uri.Scheme = macro Macros.scheme
   def userInfo(): Uri.UserInfo = macro Macros.userInfo

@@ -58,7 +58,8 @@ final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Ef
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
       case RequestKey(Scheme.https, auth) =>
-        val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(Uri.Port.https).toInt)
+        val eng =
+          sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(Uri.Port.https).toInt)
         eng.setUseClientMode(true)
 
         if (config.checkEndpointIdentification) {

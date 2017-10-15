@@ -124,9 +124,8 @@ private[parser] trait SimpleHeaders {
       def charset = StandardCharsets.UTF_8
 
       def entry = rule {
-        (Token | IpLiteral) ~ OptWS ~
-          optional(":" ~ port) ~ EOL ~> (org.http4s.headers
-            .Host(_: String, _: Option[org.http4s.Uri.Port]))
+        host ~ optional(":" ~ port) ~ EOL ~> (org.http4s.headers
+          .Host(_: org.http4s.Uri.Host, _: Option[org.http4s.Uri.Port]))
       }
     }.parse
 
@@ -204,7 +203,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`X-Forwarded-For`](value) with IpParser {
       def entry = rule {
         oneOrMore(
-          (capture(IpV4Address | IpV6Address) ~> { s: String =>
+          (capture(IPv4Address | IPv6Address) ~> { s: String =>
             Some(InetAddress.getByName(s))
           }) |
             ("unknown" ~ push(None))).separatedBy(ListSep) ~

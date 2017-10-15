@@ -19,6 +19,15 @@ private[http4s] object Macros {
     }
   }
 
+  def host(c: Context)(): c.Expr[Uri.Host] = {
+    import c.universe._
+    val s = literalString(c)
+    Uri.Host.parse(s) match {
+      case Right(_) => c.Expr(q"""org.http4s.HttpCodec[org.http4s.Uri.Host].parseOrThrow($s)""")
+      case Left(e) => throw e
+    }
+  }
+
   def port(c: Context)(): c.Expr[Uri.Port] = {
     import c.universe._
     val s = literalString(c)

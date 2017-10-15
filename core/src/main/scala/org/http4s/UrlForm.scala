@@ -124,7 +124,7 @@ object UrlForm {
         s,
         charset.nioCharset,
         spaceIsPlus = true,
-        toSkip = UrlCodingUtils.Unreserved)
+        toSkip = Rfc3986Predicates.unreserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach {

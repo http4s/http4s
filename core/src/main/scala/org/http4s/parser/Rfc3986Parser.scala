@@ -8,11 +8,11 @@ import org.http4s.{Query => Q}
 import org.http4s.internal.parboiled2._
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit, HexDigit}
 import org.http4s.internal.parboiled2.support.HNil
-import org.http4s.syntax.string._
 
 private[parser] trait Rfc3986Parser
     extends Parser
     with Uri.Fragment.Parser
+    with Uri.Host.Parser
     with Uri.Port.Parser
     with Uri.Scheme.Parser
     with Uri.UserInfo.Parser
@@ -64,30 +64,8 @@ private[parser] trait Rfc3986Parser
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule {
-    optional(userinfo ~ "@") ~ Host ~ optional(":" ~ port) ~> (org.http4s.Uri.Authority.apply _)
+    optional(userinfo ~ "@") ~ host ~ optional(":" ~ port) ~> (org.http4s.Uri.Authority.apply _)
   }
-
-  def UserInfo = rule {
-    capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _)
-  }
-
-  def Host: Rule1[org.http4s.Uri.Host] = rule {
-    capture(IpV4Address) ~> { s: String =>
-      org.http4s.Uri.IPv4(s.ci)
-    } |
-      (IpLiteral | capture(IpV6Address)) ~> { s: String =>
-        org.http4s.Uri.IPv6(s.ci)
-      } |
-      capture(RegName) ~> { s: String =>
-        org.http4s.Uri.RegName(decode(s).ci)
-      }
-  }
-
-  def IpLiteral = rule { "[" ~ capture(IpV6Address | IpVFuture) ~ "]" }
-
-  def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":") }
-
-  def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
 
   def Path: Rule1[String] = rule {
     (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String =>

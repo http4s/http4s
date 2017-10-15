@@ -2,6 +2,7 @@ package org.http4s.util
 
 import cats.data.NonEmptyList
 import fs2._
+import java.net.{Inet4Address, Inet6Address}
 import java.nio.charset.{Charset, StandardCharsets}
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
@@ -59,6 +60,16 @@ object Renderer {
         case Left(a) => ra.render(writer, a)
         case Right(b) => rb.render(writer, b)
       }
+  }
+
+  implicit val inet4AddressRenderer: Renderer[Inet4Address] = new Renderer[Inet4Address] {
+    override def render(writer: Writer, ipv4: Inet4Address): writer.type =
+      writer << ipv4.toString
+  }
+
+  implicit val inet6AddressRenderer: Renderer[Inet6Address] = new Renderer[Inet6Address] {
+    override def render(writer: Writer, ipv6: Inet6Address): writer.type =
+      writer << ipv6.toString
   }
 }
 

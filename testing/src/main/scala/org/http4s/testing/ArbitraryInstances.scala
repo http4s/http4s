@@ -453,7 +453,7 @@ trait ArbitraryInstances {
     oneOf(g, const(ev.empty))
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val arbitraryIPv4: Arbitrary[Uri.IPv4] = Arbitrary {
+  def genIPv4Host: Gen[Uri.Host] = {
     val num = numChar.map(_.toString)
     def range(min: Int, max: Int) = choose(min.toChar, max.toChar).map(_.toString)
     val genDecOctet = oneOf(
@@ -463,13 +463,13 @@ trait ArbitraryInstances {
       const("2") |+| range(48, 52) |+| num,
       const("25") |+| range(48, 51)
     )
-    listOfN(4, genDecOctet).map(_.mkString(".")).map(Uri.IPv4.apply)
+    listOfN(4, genDecOctet).map(_.mkString(".")).map(HttpCodec[Uri.Host].parseOrThrow)
   }
 
   // https://tools.ietf.org/html/rfc3986#appendix-A
-  implicit val arbitraryIPv6: Arbitrary[Uri.IPv6] = Arbitrary {
+  def genIPv6Host: Gen[Uri.Host] = {
     val h16 = timesBetween(min = 1, max = 4, genHexDigit.map(_.toString))
-    val ls32 = oneOf(h16 |+| const(":") |+| h16, arbitraryIPv4.arbitrary.map(_.address.value))
+    val ls32 = oneOf(h16 |+| const(":") |+| h16, genIPv4Host.map(_.value))
     val h16colon = h16 |+| const(":")
     val :: = const("::")
 
@@ -483,14 +483,19 @@ trait ArbitraryInstances {
       opt(atMost(4, h16colon) |+| h16) |+| :: |+| ls32,
       opt(atMost(5, h16colon) |+| h16) |+| :: |+| h16,
       opt(atMost(6, h16colon) |+| h16) |+| ::
-    ).map(Uri.IPv6.apply)
+    ).map(s => HttpCodec[Uri.Host].parseOrThrow(s"[$s]"))
   }
 
+  def genRegisteredName: Gen[Uri.Host] =
+    listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn =>
+      HttpCodec[Uri.Host].parseOrThrow(rn.mkString))
+
   implicit val arbitraryUriHost: Arbitrary[Uri.Host] = Arbitrary {
-    val genRegName =
-      listOf(oneOf(genUnreserved, genPctEncoded, genSubDelims)).map(rn => Uri.RegName(rn.mkString))
-    oneOf(arbitraryIPv4.arbitrary, arbitraryIPv6.arbitrary, genRegName)
+    oneOf(genIPv4Host, genIPv6Host, genRegisteredName)
   }
+
+  implicit val cogenHost: Cogen[Uri.Host] =
+    Cogen[String].contramap(_.value)
 
   implicit val arbitraryUserInfo: Arbitrary[Uri.UserInfo] = Arbitrary {
     frequency(

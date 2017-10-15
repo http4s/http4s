@@ -271,7 +271,7 @@ sealed abstract case class Request[F[_]](
     server
       .map(_.getHostString)
       .orElse(uri.host.map(_.value))
-      .orElse(headers.get(Host).map(_.host))
+      .orElse(headers.get(Host).map(_.host.value))
       .getOrElse(InetAddress.getLocalHost.getHostName)
 
   lazy val serverPort: Int =

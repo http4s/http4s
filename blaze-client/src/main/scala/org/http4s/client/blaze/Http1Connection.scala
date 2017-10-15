@@ -10,7 +10,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.{headers => H}
-import org.http4s.Uri.{Authority, RegName}
+import org.http4s.Uri.Authority
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blazecore.Http1Stage
@@ -301,8 +301,8 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
       if (Host.from(req.headers).isDefined) {
         val host = Host.from(req.headers).get
         val newAuth = req.uri.authority match {
-          case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
-          case None => Authority(host = RegName(host.host), port = host.port)
+          case Some(auth) => auth.copy(host = host.host, port = host.port)
+          case None => Authority(host = host.host, port = host.port)
         }
         validateRequest(req.withUri(req.uri.copy(authority = Some(newAuth))))
       } else if (`Content-Length`.from(req.headers).nonEmpty) { // translate to HTTP/1.0

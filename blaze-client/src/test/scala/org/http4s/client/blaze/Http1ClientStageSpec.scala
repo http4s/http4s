@@ -170,7 +170,7 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Utilize a provided Host header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.replaceAllHeaders(headers.Host("bar.test"))
+      val req = FooRequest.replaceAllHeaders(headers.Host(host"bar.test"))
 
       val (request, response) = getSubmission(req, resp)
 

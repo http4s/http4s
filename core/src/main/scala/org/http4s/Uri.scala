@@ -1,15 +1,15 @@
 package org.http4s
 
-import cats.{Order, Show}
+import cats.{Eq, Order, Show}
 import cats.implicits.{catsSyntaxEither => _, _}
+import java.net.{InetAddress, UnknownHostException}
 import java.nio.charset.StandardCharsets
 import macrocompat.bundle
 import org.http4s.Uri._
-import org.http4s.internal.parboiled2.{Parser => PbParser}
+import org.http4s.internal.parboiled2.{Parser => PbParser, Rule1}
 import org.http4s.parser._
-import org.http4s.syntax.string._
 import org.http4s.util._
-import org.http4s.util.UrlCodingUtils.{pathEncode, urlDecode, urlEncode}
+import org.http4s.util.UrlCodingUtils.{hostEncode, pathEncode, urlDecode, urlEncode}
 import scala.language.experimental.macros
 import scala.math.Ordered
 import scala.reflect.macros.whitebox.Context
@@ -21,7 +21,6 @@ import scala.reflect.macros.whitebox.Context
   * @param query      optional Query. url-encoded.
   * @param fragment   optional Uri Fragment. url-encoded.
   */
-// TODO fix Location header, add unit tests
 final case class Uri(
     scheme: Option[Scheme] = None,
     authority: Option[Authority] = None,
@@ -212,11 +211,11 @@ object Uri extends UriFunctions {
       }.parse
 
     def fromInt(i: Int): Either[InvalidPortNumber, Port] =
-      if (i >=0 && i < 65536) Right(new Port(i))
+      if (i >= 0 && i < 65536) Right(new Port(i))
       else Left(InvalidPortNumber(i))
 
     final case class InvalidPortNumber(i: Int)
-      extends IllegalArgumentException(s"Invalid port number: ${i}")
+        extends IllegalArgumentException(s"Invalid port number: ${i}")
 
     private[http4s] trait Parser { self: PbParser =>
       import Rfc3986Predicates._
@@ -319,6 +318,105 @@ object Uri extends UriFunctions {
       }
   }
 
+  sealed abstract class Host {
+    def inetAddress: Either[UnknownHostException, InetAddress]
+    def value: String
+    def render(w: Writer): w.type
+
+    final override def equals(o: Any) = o match {
+      case that: Host => this.value.equalsIgnoreCase(that.value)
+      case _ => false
+    }
+
+    final override def hashCode(): Int = value.##
+
+    override final def toString = s"Host($value)"
+  }
+
+  object Host {
+    private def fromName(name: String) = new Host {
+      def inetAddress =
+        try Right(InetAddress.getByName(name))
+        catch { case e: UnknownHostException => Left(e) }
+      def value = name
+      def render(w: Writer): w.type = w << hostEncode(value)
+    }
+
+    private def fromIPv4(address: InetAddress) = new Host {
+      def inetAddress = Right(address)
+      def value = util.toAddrString(address)
+      def render(w: Writer): w.type = w << value
+    }
+
+    private def fromIPv6(address: InetAddress) = new Host {
+      def inetAddress = Right(address)
+      def value = s"[${util.toAddrString(address)}]"
+      def render(w: Writer): w.type = w << value
+    }
+
+    private def fromIPvFuture(s: String) = new Host {
+      def inetAddress = Left(new UnknownHostException("Can't resolve host from future IP format"))
+      def value = s"[$s]"
+      def render(w: Writer): w.type = w << value
+    }
+
+    val localhost: Host = fromName("localhost")
+    val `*` : Host = new Host {
+      def inetAddress = Left(new UnknownHostException("* is not a hostname"))
+      def value = "*"
+      def render(w: Writer): w.type = w << "*"
+    }
+
+    def parse(s: String): ParseResult[Host] =
+      new Http4sParser[Host](s, "Invalid host") with Parser {
+        def main = host
+      }.parse
+
+    private[http4s] trait Parser extends IpParser with Rfc3986Rules { self: PbParser =>
+      import Rfc3986Predicates._
+      def host: Rule1[Host] = rule {
+        `IP-literal` |
+          capture(IPv4Address) ~> { s: String =>
+            fromIPv4(InetAddress.getByName(s))
+          } |
+          `reg-name`
+      }
+
+      def `IP-literal`: Rule1[Host] = rule {
+        "[" ~ (
+          capture(IPv6Address) ~> { s: String =>
+            fromIPv6(InetAddress.getByName(s))
+          } |
+            IPvFuture
+        ) ~ "]"
+      }
+
+      def IPvFuture: Rule1[Host] = rule {
+        capture("v" ~ oneOrMore(HEXDIG) ~ "." ~ oneOrMore(unreserved | `sub-delims` | ':')) ~> {
+          s: String =>
+            fromIPvFuture(s)
+        }
+      }
+
+      def `reg-name`: Rule1[Host] = rule {
+        run(sb.setLength(0)) ~
+          zeroOrMore(unreserved ~ appendSB() | `pct-encoded` | `sub-delims` ~ appendSB()) ~
+          run(push(fromName(urlDecode(sb.toString))))
+      }
+    }
+
+    implicit val http4sInstancesForHost: Show[Host] with HttpCodec[Host] with Eq[Host] =
+      new Show[Host] with HttpCodec[Host] with Eq[Host] {
+        def show(s: Host): String = s.toString
+
+        def parse(s: String): ParseResult[Host] = Host.parse(s)
+
+        def render(writer: Writer, host: Host): writer.type = host.render(writer)
+
+        def eqv(a: Host, b: Host): Boolean = a == b
+      }
+  }
+
   /** The fragment identifier component of a [[org.http4s.Uri]] allows indirect
     * identification of a secondary resource by reference to a primary resource
     * and additional identifying information.
@@ -416,7 +514,7 @@ object Uri extends UriFunctions {
 
   final case class Authority(
       userInfo: Option[UserInfo] = None,
-      host: Host = RegName("localhost"),
+      host: Host = Host.localhost,
       port: Option[Port] = None)
       extends Renderable {
 
@@ -438,29 +536,6 @@ object Uri extends UriFunctions {
     def withPort(port: Port): Authority = withPortOption(Some(port))
     def withoutPort: Authority = withPortOption(None)
   }
-
-  sealed trait Host extends Renderable {
-    final def value: String = this match {
-      case RegName(h) => h.toString
-      case IPv4(a) => a.toString
-      case IPv6(a) => a.toString
-    }
-
-    override def render(writer: Writer): writer.type = this match {
-      case RegName(n) => writer << n
-      case IPv4(a) => writer << a
-      case IPv6(a) => writer << '[' << a << ']'
-      case _ => writer
-    }
-  }
-
-  final case class RegName(host: CaseInsensitiveString) extends Host
-  final case class IPv4(address: CaseInsensitiveString) extends Host
-  final case class IPv6(address: CaseInsensitiveString) extends Host
-
-  object RegName { def apply(name: String): RegName = new RegName(name.ci) }
-  object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
-  object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
 }
 
 trait UriFunctions {

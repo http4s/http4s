@@ -6,7 +6,7 @@ import cats.syntax.option._
 import fs2._
 import java.nio.file.Paths
 import org.http4s.HttpService
-import org.http4s.Uri.{Authority, RegName, Scheme}
+import org.http4s.Uri.{Authority, Scheme}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.{Host, Location}
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
@@ -32,10 +32,7 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
           val baseUri = request.uri.copy(
             scheme = Scheme.https.some,
             authority = Some(
-              Authority(
-                request.uri.authority.flatMap(_.userInfo),
-                RegName(host),
-                port = securePort.some)))
+              Authority(request.uri.authority.flatMap(_.userInfo), host, port = securePort.some)))
           MovedPermanently(Location(baseUri.withPath(request.uri.path)))
         case _ =>
           BadRequest()

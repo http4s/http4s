@@ -25,9 +25,8 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
 
   def Asterisk: Rule1[Uri] = rule {
     "*" ~ push(
-      org.http4s.Uri(
-        authority = Some(org.http4s.Uri.Authority(host = org.http4s.Uri.RegName("*"))),
-        path = ""))
+      org.http4s
+        .Uri(authority = Some(org.http4s.Uri.Authority(host = org.http4s.Uri.Host.`*`)), path = ""))
   }
   // scalastyle:on public.methods.have.type
 }

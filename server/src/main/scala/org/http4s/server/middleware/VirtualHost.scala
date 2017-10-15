@@ -4,6 +4,7 @@ package middleware
 
 import cats._
 import cats.data.{Kleisli, OptionT}
+import java.util.Locale
 import org.http4s.Status.{BadRequest, NotFound}
 import org.http4s.headers.Host
 
@@ -29,10 +30,10 @@ object VirtualHost {
   def exact[F[_]](
       service: HttpService[F],
       requestHost: String,
-      port: Option[Int] = None): HostService[F] =
+      port: Option[Uri.Port] = None): HostService[F] =
     HostService(
       service,
-      h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
+      h => h.host.value.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
 
   /** Create a [[HostService]] that will match based on the host string allowing
     * for wildcard matching of the lowercase host string and port, if the port is
@@ -41,7 +42,7 @@ object VirtualHost {
   def wildcard[F[_]](
       service: HttpService[F],
       wildcardHost: String,
-      port: Option[Int] = None): HostService[F] =
+      port: Option[Uri.Port] = None): HostService[F] =
     regex(service, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
   /** Create a [[HostService]] that uses a regular expression to match the host
@@ -51,11 +52,13 @@ object VirtualHost {
   def regex[F[_]](
       service: HttpService[F],
       hostRegex: String,
-      port: Option[Int] = None): HostService[F] = {
+      port: Option[Uri.Port] = None): HostService[F] = {
     val r = hostRegex.r
     HostService(
       service,
-      h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
+      h =>
+        r.findFirstIn(h.host.value.toLowerCase(Locale.ROOT))
+          .nonEmpty && (port.isEmpty || port == h.port))
   }
 
   def apply[F[_]](first: HostService[F], rest: HostService[F]*)(
@@ -69,11 +72,14 @@ object VirtualHost {
           val host: Host = h.port match {
             case Some(_) => h
             case None =>
-              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) Uri.Port.https else Uri.Port.http)))
+              h.copy(
+                port =
+                  req.uri.port.orElse(req.isSecure.map(if (_) Uri.Port.https else Uri.Port.http)))
           }
           (first +: rest).toVector
             .collectFirst { case HostService(s, p) if p(host) => s(req) }
-            .getOrElse(OptionT.liftF(Response[F](NotFound).withBody(s"Host '$host' not found.")))
+            .getOrElse(
+              OptionT.liftF(Response[F](NotFound).withBody(s"Host '${host.value}' not found.")))
         }
     }
 }

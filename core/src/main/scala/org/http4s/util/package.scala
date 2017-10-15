@@ -2,7 +2,9 @@ package org.http4s
 
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
+import java.net.{Inet6Address, InetAddress}
 import java.nio.{ByteBuffer, CharBuffer}
+import java.util.Arrays
 import scala.concurrent.ExecutionContextExecutor
 import scala.util.control.NonFatal
 import scodec.bits.ByteVector
@@ -72,5 +74,66 @@ package object util {
       i += 1
     }
     h
+  }
+
+  /** A port of Guava's */
+  // https://github.com/google/guava/blob/6ded67ff124f1be4f318dbbeae136d0c995faf37/guava/src/com/google/common/net/InetAddresses.java#L341
+  def toAddrString(ip: InetAddress): String = {
+    def fromBytes(b1: Byte, b2: Byte, b3: Byte, b4: Byte) =
+      b1 << 24 | (b2 & 0xFF) << 16 | (b3 & 0xFF) << 8 | (b4 & 0xFF)
+
+    def compressLongestRunOfZeroes(hextets: Array[Int]) = {
+      var bestRunStart = -1
+      var bestRunLength = -1
+      var runStart = -1
+      for (i <- 0 to hextets.length) {
+        if (i < hextets.length && hextets(i) == 0) {
+          if (runStart < 0) {
+            runStart = i
+          }
+        } else if (runStart >= 0) {
+          val runLength = i - runStart
+          if (runLength > bestRunLength) {
+            bestRunStart = runStart
+            bestRunLength = runLength
+          }
+          runStart = -1
+        }
+      }
+      if (bestRunLength >= 2)
+        Arrays.fill(hextets, bestRunStart, bestRunStart + bestRunLength, -1)
+    }
+
+    def hextetsToIPv6String(hextets: Array[Int]) = {
+      val buf = new StringBuilder(39)
+      var lastWasNumber = false
+      for (i <- 0 until hextets.length) {
+        val thisIsNumber = hextets(i) >= 0
+        if (thisIsNumber) {
+          if (lastWasNumber) {
+            buf.append(':')
+          }
+          buf.append(Integer.toHexString(hextets(i)))
+        } else {
+          if (i == 0 || lastWasNumber) {
+            buf.append("::")
+          }
+        }
+        lastWasNumber = thisIsNumber
+      }
+      buf.toString
+    }
+
+    ip match {
+      case ipv6: Inet6Address =>
+        val bytes = ipv6.getAddress
+        val hextets = new Array[Int](8)
+        for (i <- 0 until hextets.length)
+          hextets(i) = fromBytes(0: Byte, 0: Byte, bytes(2 * i), bytes(2 * i + 1))
+        compressLongestRunOfZeroes(hextets)
+        hextetsToIPv6String(hextets)
+      case _ =>
+        ip.getHostAddress
+    }
   }
 }

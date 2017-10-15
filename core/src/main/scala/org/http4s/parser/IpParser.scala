@@ -6,7 +6,7 @@ import org.http4s.internal.parboiled2.CharPredicate.{Digit, HexDigit}
 
 private[http4s] trait IpParser { this: Parser =>
 
-  def IpV6Address: Rule0 = rule {
+  def IPv6Address: Rule0 = rule {
     6.times(H16 ~ ":") ~ LS32 |
       "::" ~ 5.times(H16 ~ ":") ~ LS32 |
       optional(H16) ~ "::" ~ 4.times(H16 ~ ":") ~ LS32 |
@@ -20,9 +20,9 @@ private[http4s] trait IpParser { this: Parser =>
 
   def H16 = rule { (1 to 4).times(HexDigit) }
 
-  def LS32 = rule { (H16 ~ ":" ~ H16) | IpV4Address }
+  def LS32 = rule { (H16 ~ ":" ~ H16) | IPv4Address }
 
-  def IpV4Address = rule { 3.times(DecOctet ~ ".") ~ DecOctet }
+  def IPv4Address = rule { 3.times(DecOctet ~ ".") ~ DecOctet }
 
   def DecOctet = rule {
     "1" ~ Digit ~ Digit |

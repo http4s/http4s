@@ -7,6 +7,7 @@ import cats.implicits._
 import java.nio.charset.StandardCharsets
 import javax.crypto
 import org.http4s.headers.Authorization
+import org.http4s.parser.Rfc3986Predicates
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
 import scala.collection.mutable.ListBuffer
@@ -100,7 +101,7 @@ package object oauth1 {
   }
 
   private[oauth1] def encode(str: String): String =
-    UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlCodingUtils.Unreserved)
+    UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = Rfc3986Predicates.unreserved)
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
       implicit F: Monad[F],

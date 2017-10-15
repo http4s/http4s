@@ -10,6 +10,7 @@ import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.EntityEncoder._
+import org.http4s.syntax.all._
 import org.specs2.Specification
 import scodec.bits.ByteVector
 
@@ -28,7 +29,7 @@ class MultipartSpec extends Specification {
 
   val url = Uri(
     scheme = Some(Scheme.https),
-    authority = Some(Authority(host = RegName("example.com"))),
+    authority = Some(Authority(host = host"example.com")),
     path = "/path/to/some/where")
 
   def toBV(entityBody: EntityBody[IO]): ByteVector = ByteVector(entityBody.runLog.unsafeRunSync())
