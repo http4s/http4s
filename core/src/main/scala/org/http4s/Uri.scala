@@ -8,8 +8,9 @@ import macrocompat.bundle
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2.{Parser => PbParser, Rule1}
 import org.http4s.parser._
+import org.http4s.parser.Rfc3986Predicates._
 import org.http4s.util._
-import org.http4s.util.UrlCodingUtils.{fragmentEncode, hostEncode, pathEncode, urlDecode, urlEncode}
+import org.http4s.util.UrlCodingUtils.{pathEncode, urlDecode, urlEncode}
 import scala.language.experimental.macros
 import scala.math.Ordered
 import scala.reflect.macros.whitebox.Context
@@ -169,7 +170,6 @@ object Uri extends UriFunctions {
       }.parse
 
     private[http4s] trait Parser { self: PbParser =>
-      import Rfc3986Predicates._
       def scheme = rule {
         "https" ~ push(https) |
           "http" ~ push(http) |
@@ -307,9 +307,13 @@ object Uri extends UriFunctions {
         def parse(s: String): ParseResult[UserInfo] =
           UserInfo.parse(s)
 
+        private val allowedCharsUsername = unreserved ++ `sub-delims`
+        private val allowedCharsPassword = allowedCharsUsername ++ ":"
+
         def render(writer: Writer, userInfo: UserInfo): writer.type = {
-          writer << urlEncode(userInfo.username)
-          userInfo.password.foreach(p => writer << ":" << urlEncode(p))
+          writer << urlEncode(userInfo.username, toSkip = allowedCharsUsername)
+          userInfo.password.foreach(p =>
+            writer << ":" << urlEncode(p, toSkip = allowedCharsPassword))
           writer
         }
 
@@ -334,12 +338,13 @@ object Uri extends UriFunctions {
   }
 
   object Host {
+    private val allowedChars = unreserved ++ `sub-delims`
     private def fromName(name: String) = new Host {
       def inetAddress =
         try Right(InetAddress.getByName(name))
         catch { case e: UnknownHostException => Left(e) }
       def value = name
-      def render(w: Writer): w.type = w << hostEncode(value)
+      def render(w: Writer): w.type = w << urlEncode(value, toSkip = allowedChars)
     }
 
     private def fromIPv4(address: InetAddress) = new Host {
@@ -507,8 +512,9 @@ object Uri extends UriFunctions {
         def parse(s: String): ParseResult[Fragment] =
           Fragment.parse(s)
 
+        private val allowedChars = unreserved ++ `sub-delims` ++ ":@/?"
         def render(writer: Writer, fragment: Fragment): writer.type =
-          writer << fragmentEncode(fragment.value)
+          writer << urlEncode(fragment.value, toSkip = allowedChars)
 
         def compare(x: Fragment, y: Fragment) =
           x.compareTo(y)

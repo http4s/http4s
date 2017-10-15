@@ -62,18 +62,6 @@ private[http4s] object UrlCodingUtils {
   def pathEncode(s: String, charset: Charset = UTF_8): String =
     UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInPath)
 
-  private val SkipEncodeInHost =
-    unreserved ++ `sub-delims`
-
-  def hostEncode(s: String, charset: Charset = UTF_8): String =
-    UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInHost)
-
-  private val SkipEncodeInFragment =
-    toSkip -- "#"
-
-  def fragmentEncode(s: String, charset: Charset = UTF_8): String =
-    UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInFragment)
-
   /**
     * Percent-decodes a string.
     *
