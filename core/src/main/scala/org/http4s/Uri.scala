@@ -9,7 +9,7 @@ import org.http4s.Uri._
 import org.http4s.internal.parboiled2.{Parser => PbParser, Rule1}
 import org.http4s.parser._
 import org.http4s.util._
-import org.http4s.util.UrlCodingUtils.{hostEncode, pathEncode, urlDecode, urlEncode}
+import org.http4s.util.UrlCodingUtils.{fragmentEncode, hostEncode, pathEncode, urlDecode, urlEncode}
 import scala.language.experimental.macros
 import scala.math.Ordered
 import scala.reflect.macros.whitebox.Context
@@ -508,7 +508,7 @@ object Uri extends UriFunctions {
           Fragment.parse(s)
 
         def render(writer: Writer, fragment: Fragment): writer.type =
-          writer << urlEncode(fragment.value)
+          writer << fragmentEncode(fragment.value)
 
         def compare(x: Fragment, y: Fragment) =
           x.compareTo(y)
