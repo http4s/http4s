@@ -232,6 +232,7 @@ Now let's make a client for the service above:
 ```tut:silent
 import org.http4s.client.blaze._
 import fs2.Task
+import io.circe.generic.auto._
 
 val httpClient = PooledHttp1Client()
 // Decode the Hello response
