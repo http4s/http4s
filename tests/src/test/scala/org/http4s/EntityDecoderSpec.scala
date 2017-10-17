@@ -2,6 +2,7 @@ package org.http4s
 
 import cats._
 import cats.effect._
+import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
@@ -241,12 +242,12 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
     }
 
-    "composing EntityDecoders with orElse" >> {
+    "composing EntityDecoders with <+>" >> {
       "A message with a MediaType that is not supported by any of the decoders" +
         " will be attempted by the last decoder" in {
         val reqMediaType = MediaType.`application/atom+xml`
         val req = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
-        decoder1.orElse(decoder2).decode(req, strict = false) must returnRight(2)
+        (decoder1 <+> decoder2).decode(req, strict = false) must returnRight(2)
       }
       "A catch all decoder will always attempt to decode a message" in {
         val reqSomeOtherMediaType =
@@ -256,28 +257,23 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           msg =>
             DecodeResult.success(3)
         }
-        decoder1
-          .orElse(catchAllDecoder)
+        (decoder1 <+> catchAllDecoder)
           .decode(reqSomeOtherMediaType, strict = true) must returnRight(3)
-        catchAllDecoder
-          .orElse(decoder1)
+        (catchAllDecoder <+> decoder1)
           .decode(reqSomeOtherMediaType, strict = true) must returnRight(3)
-        catchAllDecoder.orElse(decoder1).decode(reqNoMediaType, strict = true) must returnRight(3)
+        (catchAllDecoder <+> decoder1).decode(reqNoMediaType, strict = true) must returnRight(3)
       }
       "if decode is called with strict, will produce a MediaTypeMissing or MediaTypeMismatch " +
         "with ALL supported media types of the composite decoder" in {
         val reqMediaType = MediaType.`text/x-h`
         val expectedMediaRanges = failDecoder.consumes ++ decoder1.consumes ++ decoder2.consumes
         val reqSomeOtherMediaType = Request[IO](headers = Headers(`Content-Type`(reqMediaType)))
-        decoder1
-          .orElse(decoder2)
-          .orElse(failDecoder)
+        (decoder1 <+> decoder2 <+> failDecoder)
           .decode(reqSomeOtherMediaType, strict = true) must returnLeft(
           MediaTypeMismatch(reqMediaType, expectedMediaRanges))
-        decoder1
-          .orElse(decoder2)
-          .orElse(failDecoder)
-          .decode(Request(), strict = true) must returnLeft(MediaTypeMissing(expectedMediaRanges))
+
+        (decoder1 <+> decoder2 <+> failDecoder).decode(Request(), strict = true) must returnLeft(
+          MediaTypeMissing(expectedMediaRanges))
       }
     }
   }
