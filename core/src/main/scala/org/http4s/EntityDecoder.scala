@@ -52,7 +52,7 @@ trait EntityDecoder[F[_], T] { self =>
     * @param other backup [[EntityDecoder]]
     */
   def orElse[T2 >: T](other: EntityDecoder[F, T2])(implicit F: Functor[F]): EntityDecoder[F, T2] =
-    new EntityDecoder.OrDec(widen[T2], other)
+    widen[T2] <+> other
 
   /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaType]] */
   def matchesMediaType(mediaType: MediaType): Boolean =
@@ -73,6 +73,39 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[F[_], T](implicit ev: EntityDecoder[F, T]): EntityDecoder[F, T] = ev
+
+  implicit def semigroupKForEntityDecoder[F[_]: Functor]: SemigroupK[EntityDecoder[F, ?]] =
+    new SemigroupK[EntityDecoder[F, ?]] {
+      override def combineK[T](
+          a: EntityDecoder[F, T],
+          b: EntityDecoder[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
+
+        override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+          msg.headers.get(`Content-Type`) match {
+            case Some(contentType) =>
+              if (a.matchesMediaType(contentType.mediaType)) {
+                a.decode(msg, strict)
+              } else
+                b.decode(msg, strict).leftMap {
+                  case MediaTypeMismatch(actual, expected) =>
+                    MediaTypeMismatch(actual, expected ++ a.consumes)
+                  case other => other
+                }
+
+            case None =>
+              if (a.matchesMediaType(UndefinedMediaType)) {
+                a.decode(msg, strict)
+              } else
+                b.decode(msg, strict).leftMap {
+                  case MediaTypeMissing(expected) =>
+                    MediaTypeMissing(expected ++ a.consumes)
+                  case other => other
+                }
+          }
+
+        override def consumes: Set[MediaRange] = a.consumes ++ b.consumes
+      }
+    }
 
   /** Create a new [[EntityDecoder]]
     *
@@ -99,34 +132,6 @@ object EntityDecoder extends EntityDecoderInstances {
       }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
-  }
-
-  private class OrDec[F[_]: Functor, T](a: EntityDecoder[F, T], b: EntityDecoder[F, T])
-      extends EntityDecoder[F, T] {
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-      msg.headers.get(`Content-Type`) match {
-        case Some(contentType) =>
-          if (a.matchesMediaType(contentType.mediaType)) {
-            a.decode(msg, strict)
-          } else
-            b.decode(msg, strict).leftMap {
-              case MediaTypeMismatch(actual, expected) =>
-                MediaTypeMismatch(actual, expected ++ a.consumes)
-              case other => other
-            }
-
-        case None =>
-          if (a.matchesMediaType(UndefinedMediaType)) {
-            a.decode(msg, strict)
-          } else
-            b.decode(msg, strict).leftMap {
-              case MediaTypeMissing(expected) =>
-                MediaTypeMissing(expected ++ a.consumes)
-              case other => other
-            }
-      }
-
-    override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
