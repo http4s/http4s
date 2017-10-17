@@ -213,7 +213,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@5f7aedcb
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$13@2dd8c5b9
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -330,6 +330,7 @@ val blazeServer = builder.run
 
 <pre><code class="language-scala">import org.http4s.client.blaze._
 import fs2.Task
+import io.circe.generic.auto._
 
 val httpClient = PooledHttp1Client()
 // Decode the Hello response
