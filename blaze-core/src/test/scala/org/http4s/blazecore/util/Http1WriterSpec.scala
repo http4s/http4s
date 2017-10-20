@@ -74,7 +74,7 @@ class Http1WriterSpec extends Http4sSpec {
 
     "execute cleanup" in {
       var clean = false
-      val p = chunk(messageBuffer).covary[Task].onFinalize[Task]( Task.delay(clean = true) )
+      val p = chunk(messageBuffer).covary[Task].onFinalize[Task]( Task.delay({clean = true}) )
       writeEntityBody(p.covary[Task])(builder) must_== "Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message
       clean must_== true
     }
@@ -200,7 +200,7 @@ class Http1WriterSpec extends Http4sSpec {
     "execute cleanup" in {
       var clean = false
       val p = chunk(messageBuffer).onFinalize[Task] {
-        Task.delay(clean = true)
+        Task.delay({clean = true})
       }
       writeEntityBody(p)(builder) must_==
         """Content-Type: text/plain

@@ -40,7 +40,7 @@ class DefaultHeadSpec extends Http4sSpec {
       var cleanedUp = false
       val service = DefaultHead(HttpService {
         case GET -> _ =>
-          val body: EntityBody = eval_(Task.delay(cleanedUp = true))
+          val body: EntityBody = eval_(Task.delay({cleanedUp = true}))
           Ok(body)
       })
       service.orNotFound(Request(Method.HEAD)).flatMap(_.as[String]).unsafeRun
