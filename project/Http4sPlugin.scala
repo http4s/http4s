@@ -59,7 +59,7 @@ object Http4sPlugin extends AutoPlugin {
   ) ++ signingSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.4"),
 
     scalacOptions in Compile ++= Seq(
       "-Yno-adapted-args", // Curiously missing from RigPlugin
