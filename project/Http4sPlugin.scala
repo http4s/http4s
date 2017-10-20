@@ -63,7 +63,7 @@ object Http4sPlugin extends AutoPlugin {
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
     scalazVersionRewriter := scalazVersionRewriters.scalazStream_0_8,
 
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.3"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.4"),
 
     // Curiously missing from RigPlugin
     scalacOptions in Compile ++= Seq(
