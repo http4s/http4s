@@ -6,7 +6,7 @@ branches:
     - /^release-/
 jdk: oraclejdk8
 scala:
-- 2.12.3
+- 2.12.4
 - 2.11.11
 - 2.10.6
 env:

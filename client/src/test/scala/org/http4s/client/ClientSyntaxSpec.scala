@@ -39,7 +39,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
   def assertDisposes(f: Client => Task[Unit]) = {
     var disposed = false
     val disposingClient = Client(
-      route.map(r => DisposableResponse(r.orNotFound, Task.delay(disposed = true))),
+      route.map(r => DisposableResponse(r.orNotFound, Task.delay { disposed = true })),
       Task.now(()))
     f(disposingClient).unsafePerformSyncAttempt
     disposed must beTrue
