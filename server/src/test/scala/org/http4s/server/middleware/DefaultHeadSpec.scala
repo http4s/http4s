@@ -43,7 +43,7 @@ class DefaultHeadSpec extends Http4sSpec {
       var cleanedUp = false
       val service = DefaultHead[IO](HttpService[IO] {
         case GET -> _ =>
-          val body: EntityBody[IO] = eval_(IO(cleanedUp = true))
+          val body: EntityBody[IO] = eval_(IO({cleanedUp = true}))
           Ok(body)
       })
       service.orNotFound(Request[IO](Method.HEAD)).flatMap(_.as[String]).unsafeRunSync()

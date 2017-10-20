@@ -14,7 +14,7 @@ class ToIOOps[F[_], A](val fa: F[A])(implicit val F: Effect[F]) {
     val read: IO[A] = IO(result.get)
     F.runAsync(fa) {
       case Left(e) => IO.raiseError(e)
-      case Right(a) => IO(result = Some(a))
+      case Right(a) => IO({result = Some(a)})
     } >> read
   }
 }
