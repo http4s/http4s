@@ -4,7 +4,6 @@ branches:
   only:
     - master
     - /^release-/
-env:
 matrix:
   include:
   - jdk: oraclejdk8
