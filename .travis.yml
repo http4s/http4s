@@ -4,6 +4,10 @@ branches:
   only:
     - master
     - /^release-/
+global:
+  - HUGO_VERSION=0.26
+  - LOGBACK_ROOT_LEVEL=WARN
+  - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
 matrix:
   include:
   - jdk: oraclejdk8
@@ -12,10 +16,6 @@ matrix:
     scala: 2.11.11
   - jdk: oraclejdk9
     scala: 2.12.4
-  global:
-  - HUGO_VERSION=0.26
-  - LOGBACK_ROOT_LEVEL=WARN
-  - LOGBACK_EXCEPTION_PATTERN=%xThrowable{3}
 notifications:
   webhooks:
     urls:
