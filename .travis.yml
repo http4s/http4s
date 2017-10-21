@@ -4,11 +4,14 @@ branches:
   only:
     - master
     - /^release-/
-jdk: oraclejdk8
-scala:
-- 2.12.4
-- 2.11.11
-env:
+matrix:
+  include:
+  - jdk: oraclejdk8
+    scala: 2.12.4
+  - jdk: oraclejdk8
+    scala: 2.11.11
+  - jdk: oraclejdk9
+    scala: 2.12.4
   global:
   - HUGO_VERSION=0.26
   - LOGBACK_ROOT_LEVEL=WARN
