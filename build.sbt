@@ -76,7 +76,12 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
-  .dependsOn(core, testing % "test->test", server % "test->compile", theDsl % "test->compile", scalaXml % "test->compile")
+  .dependsOn(
+    core,
+    testing % "test->test",
+    server % "test->compile",
+    theDsl % "test->compile",
+    scalaXml % "test->compile")
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -197,7 +202,7 @@ lazy val json4sJackson = libraryProject("json4s-jackson")
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
-    libraryDependencies ++= scalaVersion (VersionNumber(_).numbers match {
+    libraryDependencies ++= scalaVersion(VersionNumber(_).numbers match {
       case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
       case _ => Seq.empty
     }).value
@@ -265,11 +270,12 @@ lazy val docs = http4sProject("docs")
       // unused params warnings are disabled due to undefined functions in the doc
       _.filterNot(_ == "-Ywarn-unused:params") :+ "-Xfatal-warnings"
     },
-    scalacOptions in (Compile,doc) ++= {
+    scalacOptions in (Compile, doc) ++= {
       scmInfo.value match {
         case Some(s) =>
           val isMaster = git.gitCurrentBranch.value == "master"
-          val isSnapshot = git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
+          val isSnapshot =
+            git.gitCurrentTags.value.map(git.gitTagToVersionNumber.value).flatten.isEmpty
           val gitHeadCommit = git.gitHeadCommit.value
           val v = version.value
           val path =
@@ -282,13 +288,15 @@ lazy val docs = http4sProject("docs")
 
           Seq(
             "-implicits",
-            "-doc-source-url", path,
-            "-sourcepath", (baseDirectory in ThisBuild).value.getAbsolutePath
+            "-doc-source-url",
+            path,
+            "-sourcepath",
+            (baseDirectory in ThisBuild).value.getAbsolutePath
           )
         case _ => Seq.empty
       }
     },
-    scalacOptions in (Compile,doc) -= "-Ywarn-unused:imports",
+    scalacOptions in (Compile, doc) -= "-Ywarn-unused:imports",
     makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
     baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
@@ -302,13 +310,14 @@ lazy val docs = http4sProject("docs")
     siteMappings ++= {
       val docsPrefix = extractDocsPrefix(version.value)
       for ((f, d) <- (mappings in (ScalaUnidoc, packageDoc)).value)
-      yield (f, s"$docsPrefix/api/$d")
+        yield (f, s"$docsPrefix/api/$d")
     },
     includeFilter in ghpagesCleanSite := {
       new FileFilter {
         val docsPrefix = extractDocsPrefix(version.value)
         def accept(f: File) =
-          f.getCanonicalPath.startsWith((ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
+          f.getCanonicalPath.startsWith(
+            (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
     }
   )
@@ -328,10 +337,9 @@ lazy val website = http4sProject("website")
     excludeFilter in ghpagesCleanSite :=
       new FileFilter {
         val v = ghpagesRepository.value.getCanonicalPath + "/v"
-        def accept(f: File) = {
+        def accept(f: File) =
           f.getCanonicalPath.startsWith(v) &&
-          f.getCanonicalPath.charAt(v.size).isDigit
-        }
+            f.getCanonicalPath.charAt(v.size).isDigit
       }
   )
 
@@ -356,12 +364,12 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
     macroParadiseSetting,
-    javaOptions in run ++= ((managedClasspath in Runtime) map { attList =>
+    javaOptions in run ++= (managedClasspath in Runtime).map { attList =>
       for {
         file <- attList.map(_.data)
         path = file.getAbsolutePath if path.contains("jetty.alpn")
       } yield { s"-Xbootclasspath/p:${path}" }
-    }).value
+    }.value
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -411,20 +419,22 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
-def http4sProject(name: String) = Project(name, file(name))
-  .settings(commonSettings)
-  .settings(
-    moduleName := s"http4s-$name",
-    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"showtimes", "failtrace"),
-    initCommands()
-  )
+def http4sProject(name: String) =
+  Project(name, file(name))
+    .settings(commonSettings)
+    .settings(
+      moduleName := s"http4s-$name",
+      testOptions in Test += Tests.Argument(TestFrameworks.Specs2, "showtimes", "failtrace"),
+      initCommands()
+    )
 
 def libraryProject(name: String) = http4sProject(name)
 
-def exampleProject(name: String) = http4sProject(name)
-  .in(file(name.replace("examples-", "examples/")))
-  .enablePlugins(PrivateProjectPlugin)
-  .dependsOn(examples)
+def exampleProject(name: String) =
+  http4sProject(name)
+    .in(file(name.replace("examples-", "examples/")))
+    .enablePlugins(PrivateProjectPlugin)
+    .dependsOn(examples)
 
 lazy val commonSettings = Seq(
   http4sJvmTarget := scalaVersion.map {
@@ -438,8 +448,10 @@ lazy val commonSettings = Seq(
   ),
   scalacOptions in (Compile, doc) += "-no-link-warnings",
   javacOptions ++= Seq(
-    "-source", http4sJvmTarget.value,
-    "-target", http4sJvmTarget.value,
+    "-source",
+    http4sJvmTarget.value,
+    "-target",
+    http4sJvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
   ),
@@ -457,23 +469,24 @@ lazy val commonSettings = Seq(
   // https://github.com/scoverage/sbt-scoverage/issues/153
   // this code was copied from https://github.com/mongodb/mongo-spark
   pomPostProcess := { (node: xml.Node) =>
-    new RuleTransformer(
-      new RewriteRule {
-        override def transform(node: xml.Node): Seq[xml.Node] = node match {
-          case e: xml.Elem
-              if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
-          case _ => Seq(node)
-        }
-      }).transform(node).head
+    new RuleTransformer(new RewriteRule {
+      override def transform(node: xml.Node): Seq[xml.Node] = node match {
+        case e: xml.Elem
+            if e.label == "dependency" && e.child.exists(
+              child => child.label == "groupId" && child.text == "org.scoverage") =>
+          Nil
+        case _ => Seq(node)
+      }
+    }).transform(node).head
   },
   coursierVerbosity := 0,
   ivyLoggingLevel := UpdateLogging.Quiet, // This doesn't seem to work? We see this in MiMa
   git.remoteRepo := "git@github.com:http4s/http4s.git",
   includeFilter in Hugo := (
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-    "*.js" | "*.swf" | "*.json" | "*.md" |
-    "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-    "CNAME" | "_config.yml"
+      "*.js" | "*.swf" | "*.json" | "*.md" |
+      "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
+      "CNAME" | "_config.yml"
   )
 )
 
@@ -489,4 +502,3 @@ def initCommands(additionalImports: String*) =
 // Everything is driven through release steps and the http4s* variables
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";release with-defaults")
-
