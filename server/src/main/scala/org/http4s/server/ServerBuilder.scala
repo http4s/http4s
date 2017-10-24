@@ -7,7 +7,7 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
