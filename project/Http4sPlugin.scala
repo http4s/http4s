@@ -82,7 +82,7 @@ object Http4sPlugin extends AutoPlugin {
 
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.4" cross CrossVersion.binary),
 
-    scalafmtVersion := "1.2.0",
+    scalafmtVersion := "1.3.0",
     scalafmt in Test := {
       (scalafmt in Compile).value
       (scalafmt in Test).value
