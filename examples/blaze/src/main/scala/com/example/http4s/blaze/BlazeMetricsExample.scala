@@ -9,7 +9,7 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.metrics._
 import org.http4s.server.{HttpMiddleware, Router}
 import org.http4s.util.StreamApp
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
 
 object BlazeMetricsExample extends BlazeMetricsExampleApp[IO]
 

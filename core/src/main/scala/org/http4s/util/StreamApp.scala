@@ -6,7 +6,6 @@ import cats.implicits._
 import fs2._
 import fs2.async.Ref
 import fs2.async.mutable.Signal
-import org.http4s.util.StreamApp.ExitCode
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 
@@ -78,14 +77,4 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
 
   def main(args: Array[String]): Unit =
     sys.exit(doMain(args.toList).unsafeRunSync.code.toInt)
-}
-
-object StreamApp {
-  final case class ExitCode(code: Byte)
-
-  object ExitCode {
-    def fromInt(code: Int): ExitCode = ExitCode(code.toByte)
-    val success: ExitCode = ExitCode(0)
-    val error: ExitCode = ExitCode(1)
-  }
 }

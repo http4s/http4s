@@ -9,7 +9,7 @@ import org.http4s.server.HttpMiddleware
 import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.metrics._
 import org.http4s.util.StreamApp
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
 
 object JettyExample extends JettyExampleApp[IO]
 

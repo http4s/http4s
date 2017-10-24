@@ -12,7 +12,7 @@ import org.http4s.headers.{Host, Location}
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.StreamApp
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
 import scala.concurrent.ExecutionContext
 
 abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
