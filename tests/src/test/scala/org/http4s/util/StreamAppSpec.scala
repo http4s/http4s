@@ -6,7 +6,6 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.async.mutable.Signal
-import org.http4s.util.ExitCode
 import scala.concurrent.duration._
 
 class StreamAppSpec extends Http4sSpec {
