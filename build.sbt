@@ -465,4 +465,4 @@ def initCommands(additionalImports: String*) =
 
 // Everything is driven through release steps and the http4s* variables
 // This won't actually release unless on Travis.
-addCommandAlias("ci", ";release with-defaults")
+addCommandAlias("ci", ";clean ;release with-defaults")
