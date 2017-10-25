@@ -142,6 +142,10 @@
                         <a class="class" href="ChunkWriter.html" title="Writer that will result in a ByteVector"></a>
                         <a href="ChunkWriter.html" title="Writer that will result in a ByteVector">ChunkWriter</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="ExitCode$.html" title=""></a>
+                        <a class="class" href="ExitCode.html" title=""></a>
+                        <a href="ExitCode.html" title="">ExitCode</a>
+                      </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="trait" href="NonEmptyListSyntax.html" title=""></a>
                         <a href="NonEmptyListSyntax.html" title="">NonEmptyListSyntax</a>
@@ -154,7 +158,7 @@
                         <a class="trait" href="Renderer.html" title="A type class that describes how to efficiently render a type"></a>
                         <a href="Renderer.html" title="A type class that describes how to efficiently render a type">Renderer</a>
                       </li><li class="current-entities indented3">
-                        <a class="object" href="StreamApp$.html" title=""></a>
+                        <span class="separator"></span>
                         <a class="class" href="" title=""></a>
                         <a href="" title="">StreamApp</a>
                       </li><li class="current-entities indented3">
@@ -192,16 +196,14 @@
           <div id="content">
             <body class="class type">
       <div id="definition">
-        <a href="StreamApp$.html" title="See companion object"><div class="big-circle class-companion-object">c</div></a>
+        <div class="big-circle class">c</div>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.util">util</a></p>
-        <h1><a href="StreamApp$.html" title="See companion object">StreamApp</a><span class="permalink">
+        <h1>StreamApp<span class="permalink">
       <a href="../../../org/http4s/util/StreamApp.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"><div>
-            Companion <a href="StreamApp$.html" title="See companion object">object StreamApp</a>
-          </div></span></h3>
+        <h3><span class="morelinks"></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -299,9 +301,9 @@
         <div class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="org.http4s.util.StreamApp#stream" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,org.http4s.util.StreamApp.ExitCode]"></a><a id="stream(List[String],F[Unit]):Stream[F,ExitCode]"></a>
+      <a id="stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,org.http4s.util.ExitCode]"></a><a id="stream(List[String],F[Unit]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/StreamApp.html#stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,org.http4s.util.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/util/StreamApp.html#stream(args:List[String],requestShutdown:F[Unit]):fs2.Stream[F,org.http4s.util.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -310,7 +312,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stream</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="requestShutdown">requestShutdown: <span class="extype" name="org.http4s.util.StreamApp.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.util.StreamApp.F">F</span>, <a href="StreamApp$$ExitCode.html" class="extype" name="org.http4s.util.StreamApp.ExitCode">ExitCode</a>]</span>
+        <span class="name">stream</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="requestShutdown">requestShutdown: <span class="extype" name="org.http4s.util.StreamApp.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.util.StreamApp.F">F</span>, <a href="ExitCode.html" class="extype" name="org.http4s.util.ExitCode">ExitCode</a>]</span>
       </span>
       
       <p class="shortcomment cmt">An application stream that should never emit or emit a single ExitCode</p>
