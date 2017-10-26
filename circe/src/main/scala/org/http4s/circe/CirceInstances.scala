@@ -14,13 +14,13 @@ import org.http4s.headers.`Content-Type`
 import scodec.bits.ByteVector
 
 trait CirceInstances {
-  def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
+  def jsonDecoderIncremental[F[_]: Effect]: EntityDecoder[F, Json] =
     jawn.jawnDecoder[F, Json]
 
-  def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
+  def jsonDecoderByteBuffer[F[_]: Effect]: EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.`application/json`)(jsonDecoderByteBufferImpl[F])
 
-  private def jsonDecoderByteBufferImpl[F[_]: Sync](msg: Message[F]): DecodeResult[F, Json] =
+  private def jsonDecoderByteBufferImpl[F[_]: Effect](msg: Message[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(msg).flatMap { chunk =>
       val bb = ByteBuffer.wrap(chunk.toBytes.values)
       if (bb.hasRemaining) {
@@ -36,9 +36,9 @@ trait CirceInstances {
       }
     }
 
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json]
+  implicit def jsonDecoder[F[_]: Effect]: EntityDecoder[F, Json]
 
-  def jsonDecoderAdaptive[F[_]: Sync](cutoff: Long): EntityDecoder[F, Json] =
+  def jsonDecoderAdaptive[F[_]: Effect](cutoff: Long): EntityDecoder[F, Json] =
     EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
@@ -47,7 +47,7 @@ trait CirceInstances {
       }
     }
 
-  def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_]: Effect, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -89,7 +89,7 @@ trait CirceInstances {
       Uri.fromString(str).leftMap(_ => "Uri")
     }
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[F[_]: Effect](self: Message[F]) {
     def decodeJson[A](implicit decoder: Decoder[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }
@@ -99,10 +99,10 @@ object CirceInstances {
   def withPrinter(p: Printer): CirceInstances =
     new CirceInstances {
       val defaultPrinter: Printer = p
-      def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] = defaultJsonDecoder
+      def jsonDecoder[F[_]: Effect]: EntityDecoder[F, Json] = defaultJsonDecoder
     }
 
   // default cutoff value is based on benchmarks results
-  def defaultJsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
+  def defaultJsonDecoder[F[_]: Effect]: EntityDecoder[F, Json] =
     jsonDecoderAdaptive(cutoff = 100000)
 }

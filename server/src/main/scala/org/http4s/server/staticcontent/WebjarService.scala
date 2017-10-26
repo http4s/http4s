@@ -3,7 +3,7 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.Sync
+import cats.effect.Effect
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -51,7 +51,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpService
     */
-  def apply[F[_]: Sync](config: Config[F]): HttpService[F] = Kleisli {
+  def apply[F[_]: Effect](config: Config[F]): HttpService[F] = Kleisli {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       OptionT
@@ -86,7 +86,7 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Sync](config: Config[F], request: Request[F])(
+  private def serveWebjarAsset[F[_]: Effect](config: Config[F], request: Request[F])(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
       .fromResource(webjarAsset.pathInJar, Some(request))

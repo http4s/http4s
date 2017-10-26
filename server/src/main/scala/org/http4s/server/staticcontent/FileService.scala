@@ -42,7 +42,7 @@ object FileService {
   }
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Sync[F]): HttpService[F] =
+  private[staticcontent] def apply[F[_]](config: Config[F])(implicit F: Effect[F]): HttpService[F] =
     Kleisli {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         getFile(s"${config.systemPath}/${getSubPath(request.pathInfo, config.pathPrefix)}")

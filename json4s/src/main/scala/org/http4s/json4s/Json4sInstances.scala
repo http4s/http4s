@@ -14,10 +14,10 @@ object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLo
 trait Json4sInstances[J] {
   import CustomParser.facade
 
-  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JValue] =
+  implicit def jsonDecoder[F[_]: Effect]: EntityDecoder[F, JValue] =
     jawn.jawnDecoder
 
-  def jsonOf[F[_]: Sync, A](implicit reader: Reader[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_]: Effect, A](implicit reader: Reader[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
       try DecodeResult.success(reader.read(json))
       catch {
@@ -32,7 +32,7 @@ trait Json4sInstances[J] {
     * Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
     * idiomatic http4s, than [[jsonOf]].
     */
-  def jsonExtract[F[_]: Sync, A](
+  def jsonExtract[F[_]: Effect, A](
       implicit formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
@@ -77,7 +77,7 @@ trait Json4sInstances[J] {
         JString(uri.toString)
     }
 
-  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
+  implicit class MessageSyntax[F[_]: Effect](self: Message[F]) {
     def decodeJson[A](implicit decoder: Reader[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }
