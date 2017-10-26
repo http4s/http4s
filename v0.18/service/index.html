@@ -99,6 +99,8 @@ libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-blaze-server&quot; % http4sVersion,
   &quot;org.http4s&quot; %% &quot;http4s-blaze-client&quot; % http4sVersion
 )
+
+scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)
 </code></pre>
 
 <p>This tutorial is compiled as part of the build using <a href="https://github.com/tpolecat/tut">tut</a>.  Each page
@@ -142,7 +144,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$55907/1074444634@b236356)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$56049/1983689538@28d5f739)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -180,7 +182,7 @@ val tweetService = HttpService[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$55907/1074444634@f0b31b7)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$56049/1983689538@365c3dbf)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -195,7 +197,9 @@ matched against the longest base paths first. The <code>BlazeBuilder</code> is i
 with chained methods, each returning a new builder.</p>
 
 <p>Multiple <code>HttpService</code>s can be combined with the <code>combineK</code> method (or its alias
-<code>&lt;+&gt;</code>) by importing <code>cats.implicits._</code> and <code>org.http4s.implicits._</code>.</p>
+<code>&lt;+&gt;</code>) by importing <code>cats.implicits._</code> and <code>org.http4s.implicits._</code>. Please ensure partial unification is enabled in your <code>build.sbt</code>.</p>
+
+<p><code>scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</code></p>
 
 <pre><code class="language-scala">import cats.implicits._
 // import cats.implicits._
@@ -207,10 +211,10 @@ import org.http4s.implicits._
 // import org.http4s.implicits._
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.instances.KleisliInstances$$anon$1$$Lambda$55921/1385928381@128b310b)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(org.http4s.instances.KleisliInstances$$anon$1$$Lambda$56063/1633373119@13dd602b)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1157135238
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1176439842
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
