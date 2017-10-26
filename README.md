@@ -13,6 +13,12 @@ val service = HttpService {
 
 Learn more at [http4s.org](http://http4s.org/).
 
+If you run into any difficulties please enable partial unification in your `build.sbt`
+
+```scala
+scalacOptions ++= Seq("-Ypartial-unification")
+```
+
 ## Code of Conduct
 
 http4s is proud to be a [Typelevel](http://typelevel.org/) incubator

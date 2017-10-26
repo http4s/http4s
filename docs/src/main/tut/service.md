@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion
 )
+
+scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [tut].  Each page
@@ -107,7 +109,9 @@ matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpService`s can be combined with the `combineK` method (or its alias
-`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`.
+`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`. 
+
+`scalacOptions ++= Seq("-Ypartial-unification")`
 
 ```tut:book
 import cats.implicits._
