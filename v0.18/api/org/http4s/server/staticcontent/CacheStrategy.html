@@ -259,9 +259,9 @@ the response has already been cached, needs caching, or to let it pass through.
         <div class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="org.http4s.server.staticcontent.CacheStrategy#cache" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="cache(uriPath:String,resp:org.http4s.Response[F])(implicitF:cats.effect.Sync[F]):F[org.http4s.Response[F]]"></a><a id="cache(String,Response[F])(Sync[F]):F[Response[F]]"></a>
+      <a id="cache(uriPath:String,resp:org.http4s.Response[F])(implicitF:cats.effect.Effect[F]):F[org.http4s.Response[F]]"></a><a id="cache(String,Response[F])(Effect[F]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/staticcontent/CacheStrategy.html#cache(uriPath:String,resp:org.http4s.Response[F])(implicitF:cats.effect.Sync[F]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/staticcontent/CacheStrategy.html#cache(uriPath:String,resp:org.http4s.Response[F])(implicitF:cats.effect.Effect[F]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -270,7 +270,7 @@ the response has already been cached, needs caching, or to let it pass through.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">cache</span><span class="params">(<span name="uriPath">uriPath: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="resp">resp: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>]]</span>
+        <span class="name">cache</span><span class="params">(<span name="uriPath">uriPath: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="resp">resp: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.staticcontent.CacheStrategy.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Performs the caching operations</p>
