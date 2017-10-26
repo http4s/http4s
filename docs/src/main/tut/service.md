@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion
 )
+
+scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [tut].  Each page
