@@ -20,21 +20,23 @@ package org.http4s
 
 import org.http4s.syntax.string._
 import org.http4s.util._
+import cats.Eq
 
 final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
   override def render(writer: Writer): writer.type = writer.append(coding.toString)
 }
 
-object TransferCoding extends Registry {
-  type Key = CaseInsensitiveString
-  type Value = TransferCoding
+object TransferCoding {
+  implicit class CI2TransferCoding(val ci: CaseInsensitiveString) extends AnyVal {
+    def toTransferCoding: TransferCoding = TransferCoding(ci)
+  }
 
-  implicit def fromKey(k: CaseInsensitiveString): TransferCoding = new TransferCoding(k)
+  implicit val eq: Eq[TransferCoding] = Eq.fromUniversalEquals
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-2
-  val chunked = registerKey("chunked".ci)
-  val compress = registerKey("compress".ci)
-  val deflate = registerKey("deflate".ci)
-  val gzip = registerKey("gzip".ci)
-  val identity = registerKey("identity".ci)
+  val chunked = TransferCoding("chunked".ci)
+  val compress = TransferCoding("compress".ci)
+  val deflate = TransferCoding("deflate".ci)
+  val gzip = TransferCoding("gzip".ci)
+  val identity = TransferCoding("identity".ci)
 }

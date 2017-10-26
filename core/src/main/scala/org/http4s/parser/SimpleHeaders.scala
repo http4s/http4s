@@ -21,6 +21,7 @@ package parser
 import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
+import org.http4s.TransferCoding._
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
@@ -172,11 +173,11 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`Transfer-Encoding`](value) {
       def entry = rule {
         oneOrMore(Token).separatedBy(ListSep) ~> { vals: Seq[String] =>
-          if (vals.tail.isEmpty) `Transfer-Encoding`(TransferCoding.fromKey(vals.head.ci))
+          if (vals.tail.isEmpty) `Transfer-Encoding`(vals.head.ci.toTransferCoding)
           else
             `Transfer-Encoding`(
-              TransferCoding.fromKey(vals.head.ci),
-              vals.tail.map(s => TransferCoding.fromKey(s.ci)): _*)
+              vals.head.ci.toTransferCoding,
+              vals.tail.map(s => s.ci.toTransferCoding): _*)
         }
       }
     }.parse

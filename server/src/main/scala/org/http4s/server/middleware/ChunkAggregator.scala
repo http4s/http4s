@@ -5,7 +5,9 @@ package middleware
 import cats.Functor
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.Effect
-import cats.implicits._
+import cats.syntax.eq._
+import cats.syntax.functor._
+import cats.syntax.flatMap._
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import org.http4s.EntityEncoder.chunkEncoder
@@ -33,7 +35,7 @@ object ChunkAggregator {
         // leaving the remaining values unchanged
         case e: `Transfer-Encoding` =>
           NonEmptyList
-            .fromList(e.values.filterNot(_ == TransferCoding.chunked))
+            .fromList(e.values.filterNot(_ === TransferCoding.chunked))
             .map(`Transfer-Encoding`.apply)
             .toList
         case header =>
