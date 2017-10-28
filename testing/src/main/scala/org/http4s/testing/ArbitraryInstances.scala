@@ -529,6 +529,13 @@ trait ArbitraryInstances {
   implicit val cogenScheme: Cogen[Scheme] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
+  implicit val arbitraryTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
+    Gen.oneOf(TransferCoding.chunked, TransferCoding.compress, TransferCoding.deflate, TransferCoding.gzip, TransferCoding.identity)
+  }
+
+  implicit val cogenTransferCoding: Cogen[TransferCoding] =
+    Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
+
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {
     val genSegmentNzNc =

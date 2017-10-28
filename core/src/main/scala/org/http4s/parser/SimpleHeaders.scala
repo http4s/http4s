@@ -169,7 +169,7 @@ private[parser] trait SimpleHeaders {
     }.parse
 
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
-    TransferCoding.parse(value).map(`Transfer-Encoding`.apply)
+    TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {

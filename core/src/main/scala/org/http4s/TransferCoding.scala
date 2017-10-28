@@ -40,7 +40,7 @@ object TransferCoding {
   /**
     * Parse a list of Transfer Coding entries
     */
-  def parse(s: String): ParseResult[NonEmptyList[TransferCoding]] =
+  def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
     new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
     with Rfc2616BasicRules {
       private def codingRule = rule {
