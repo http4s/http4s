@@ -18,25 +18,52 @@
  */
 package org.http4s
 
-import org.http4s.syntax.string._
+import cats.{Order, Show}
+import cats.data.NonEmptyList
 import org.http4s.util._
-import cats.Eq
+import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 
-final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
+sealed abstract case class TransferCoding private (coding: String) extends Renderable {
   override def render(writer: Writer): writer.type = writer.append(coding.toString)
 }
 
 object TransferCoding {
-  implicit class CI2TransferCoding(val ci: CaseInsensitiveString) extends AnyVal {
-    def toTransferCoding: TransferCoding = TransferCoding(ci)
-  }
+  private class TransferCodingImpl(coding: String) extends TransferCoding(coding)
 
-  implicit val eq: Eq[TransferCoding] = Eq.fromUniversalEquals
+  // https://www.iana.org/assignments/http-parameters/http-parameters.xml#transfer-coding
+  val chunked: TransferCoding = new TransferCodingImpl("chunked")
+  val compress: TransferCoding = new TransferCodingImpl("compress")
+  val deflate: TransferCoding = new TransferCodingImpl("deflate")
+  val gzip: TransferCoding = new TransferCodingImpl("gzip")
+  val identity: TransferCoding = new TransferCodingImpl("identity")
 
-  // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-2
-  val chunked = TransferCoding("chunked".ci)
-  val compress = TransferCoding("compress".ci)
-  val deflate = TransferCoding("deflate".ci)
-  val gzip = TransferCoding("gzip".ci)
-  val identity = TransferCoding("identity".ci)
+  /**
+    * Parse a list of Transfer Coding entries
+    */
+  def parse(s: String): ParseResult[NonEmptyList[TransferCoding]] =
+    new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
+    with Rfc2616BasicRules {
+      private def codingRule = rule {
+        "chunked" ~ push(chunked) |
+          "compress" ~ push(compress) |
+          "deflate" ~ push(deflate) |
+          "gzip" ~ push(gzip) |
+          "identity" ~ push(identity)
+      }
+
+      def main = rule {
+        oneOrMore(codingRule).separatedBy(ListSep) ~> { codes: Seq[TransferCoding] =>
+          NonEmptyList.of(codes.head, codes.tail: _*)
+        }
+      }
+    }.parse
+
+  implicit val http4sInstancesForTransferCoding: Show[TransferCoding] with Order[TransferCoding] =
+    new Show[TransferCoding] with Order[TransferCoding] {
+      override def show(s: TransferCoding): String = s.coding
+
+      override def compare(x: TransferCoding, y: TransferCoding): Int =
+        x.coding.compareTo(y.coding)
+    }
+
 }

@@ -21,7 +21,6 @@ package parser
 import cats.data.NonEmptyList
 import java.net.InetAddress
 import java.nio.charset.StandardCharsets
-import org.http4s.TransferCoding._
 import org.http4s.headers._
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.internal.parboiled2.Rule1
@@ -170,17 +169,7 @@ private[parser] trait SimpleHeaders {
     }.parse
 
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
-    new Http4sHeaderParser[`Transfer-Encoding`](value) {
-      def entry = rule {
-        oneOrMore(Token).separatedBy(ListSep) ~> { vals: Seq[String] =>
-          if (vals.tail.isEmpty) `Transfer-Encoding`(vals.head.ci.toTransferCoding)
-          else
-            `Transfer-Encoding`(
-              vals.head.ci.toTransferCoding,
-              vals.tail.map(s => s.ci.toTransferCoding): _*)
-        }
-      }
-    }.parse
+    TransferCoding.parse(value).map(`Transfer-Encoding`.apply)
 
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {
