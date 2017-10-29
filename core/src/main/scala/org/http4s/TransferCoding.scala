@@ -20,10 +20,16 @@ package org.http4s
 
 import cats.{Order, Show}
 import cats.data.NonEmptyList
-import org.http4s.util._
+import org.http4s.util.{Renderable, Writer}
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
+import org.http4s.internal.parboiled2.{Parser => PbParser}
 
-sealed abstract case class TransferCoding private (coding: String) extends Renderable {
+sealed abstract case class TransferCoding private (coding: String)
+    extends Comparable[TransferCoding]
+    with Renderable {
+  override def compareTo(other: TransferCoding): Int =
+    coding.compareToIgnoreCase(other.coding)
+
   override def render(writer: Writer): writer.type = writer.append(coding.toString)
 }
 
@@ -38,19 +44,19 @@ object TransferCoding {
   val identity: TransferCoding = new TransferCodingImpl("identity")
 
   /**
+    * Parse a Transfer Coding
+    */
+  def parse(s: String): ParseResult[TransferCoding] =
+    new Http4sParser[TransferCoding](s, "Invalid Transfer Coding") with TransferCodingParser {
+      def main = codingRule
+    }.parse
+
+  /**
     * Parse a list of Transfer Coding entries
     */
   def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
     new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
-    with Rfc2616BasicRules {
-      private def codingRule = rule {
-        "chunked" ~ push(chunked) |
-          "compress" ~ push(compress) |
-          "deflate" ~ push(deflate) |
-          "gzip" ~ push(gzip) |
-          "identity" ~ push(identity)
-      }
-
+    with Rfc2616BasicRules with TransferCodingParser {
       def main = rule {
         oneOrMore(codingRule).separatedBy(ListSep) ~> { codes: Seq[TransferCoding] =>
           NonEmptyList.of(codes.head, codes.tail: _*)
@@ -58,12 +64,29 @@ object TransferCoding {
       }
     }.parse
 
-  implicit val http4sInstancesForTransferCoding: Show[TransferCoding] with Order[TransferCoding] =
-    new Show[TransferCoding] with Order[TransferCoding] {
+  private trait TransferCodingParser { self: PbParser =>
+    def codingRule = rule {
+      "chunked" ~ push(chunked) |
+        "compress" ~ push(compress) |
+        "deflate" ~ push(deflate) |
+        "gzip" ~ push(gzip) |
+        "identity" ~ push(identity)
+    }
+  }
+
+  implicit val http4sInstancesForTransferCoding
+    : Show[TransferCoding] with HttpCodec[TransferCoding] with Order[TransferCoding] =
+    new Show[TransferCoding] with HttpCodec[TransferCoding] with Order[TransferCoding] {
       override def show(s: TransferCoding): String = s.coding
 
+      override def parse(s: String): ParseResult[TransferCoding] =
+        TransferCoding.parse(s)
+
+      override def render(writer: Writer, coding: TransferCoding): writer.type =
+        writer << coding.coding
+
       override def compare(x: TransferCoding, y: TransferCoding): Int =
-        x.coding.compareTo(y.coding)
+        x.compareTo(y)
     }
 
 }

@@ -530,7 +530,12 @@ trait ArbitraryInstances {
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
   implicit val arbitraryTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
-    Gen.oneOf(TransferCoding.chunked, TransferCoding.compress, TransferCoding.deflate, TransferCoding.gzip, TransferCoding.identity)
+    Gen.oneOf(
+      TransferCoding.chunked,
+      TransferCoding.compress,
+      TransferCoding.deflate,
+      TransferCoding.gzip,
+      TransferCoding.identity)
   }
 
   implicit val cogenTransferCoding: Cogen[TransferCoding] =
