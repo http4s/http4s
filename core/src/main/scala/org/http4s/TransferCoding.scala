@@ -18,23 +18,75 @@
  */
 package org.http4s
 
-import org.http4s.syntax.string._
-import org.http4s.util._
+import cats.{Order, Show}
+import cats.data.NonEmptyList
+import org.http4s.util.{Renderable, Writer}
+import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
+import org.http4s.internal.parboiled2.{Parser => PbParser}
 
-final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
+sealed abstract case class TransferCoding private (coding: String)
+    extends Comparable[TransferCoding]
+    with Renderable {
+  override def compareTo(other: TransferCoding): Int =
+    coding.compareToIgnoreCase(other.coding)
+
   override def render(writer: Writer): writer.type = writer.append(coding.toString)
 }
 
-object TransferCoding extends Registry {
-  type Key = CaseInsensitiveString
-  type Value = TransferCoding
+object TransferCoding {
+  private class TransferCodingImpl(coding: String) extends TransferCoding(coding)
 
-  implicit def fromKey(k: CaseInsensitiveString): TransferCoding = new TransferCoding(k)
+  // https://www.iana.org/assignments/http-parameters/http-parameters.xml#transfer-coding
+  val chunked: TransferCoding = new TransferCodingImpl("chunked")
+  val compress: TransferCoding = new TransferCodingImpl("compress")
+  val deflate: TransferCoding = new TransferCodingImpl("deflate")
+  val gzip: TransferCoding = new TransferCodingImpl("gzip")
+  val identity: TransferCoding = new TransferCodingImpl("identity")
 
-  // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-2
-  val chunked = registerKey("chunked".ci)
-  val compress = registerKey("compress".ci)
-  val deflate = registerKey("deflate".ci)
-  val gzip = registerKey("gzip".ci)
-  val identity = registerKey("identity".ci)
+  /**
+    * Parse a Transfer Coding
+    */
+  def parse(s: String): ParseResult[TransferCoding] =
+    new Http4sParser[TransferCoding](s, "Invalid Transfer Coding") with TransferCodingParser {
+      def main = codingRule
+    }.parse
+
+  /**
+    * Parse a list of Transfer Coding entries
+    */
+  def parseList(s: String): ParseResult[NonEmptyList[TransferCoding]] =
+    new Http4sParser[NonEmptyList[TransferCoding]](s, "Invalid Transfer Coding")
+    with Rfc2616BasicRules with TransferCodingParser {
+      def main = rule {
+        oneOrMore(codingRule).separatedBy(ListSep) ~> { codes: Seq[TransferCoding] =>
+          NonEmptyList.of(codes.head, codes.tail: _*)
+        }
+      }
+    }.parse
+
+  private trait TransferCodingParser { self: PbParser =>
+    def codingRule = rule {
+      "chunked" ~ push(chunked) |
+        "compress" ~ push(compress) |
+        "deflate" ~ push(deflate) |
+        "gzip" ~ push(gzip) |
+        "identity" ~ push(identity)
+    }
+  }
+
+  implicit val http4sInstancesForTransferCoding
+    : Show[TransferCoding] with HttpCodec[TransferCoding] with Order[TransferCoding] =
+    new Show[TransferCoding] with HttpCodec[TransferCoding] with Order[TransferCoding] {
+      override def show(s: TransferCoding): String = s.coding
+
+      override def parse(s: String): ParseResult[TransferCoding] =
+        TransferCoding.parse(s)
+
+      override def render(writer: Writer, coding: TransferCoding): writer.type =
+        writer << coding.coding
+
+      override def compare(x: TransferCoding, y: TransferCoding): Int =
+        x.compareTo(y)
+    }
+
 }

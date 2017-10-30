@@ -169,17 +169,7 @@ private[parser] trait SimpleHeaders {
     }.parse
 
   def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] =
-    new Http4sHeaderParser[`Transfer-Encoding`](value) {
-      def entry = rule {
-        oneOrMore(Token).separatedBy(ListSep) ~> { vals: Seq[String] =>
-          if (vals.tail.isEmpty) `Transfer-Encoding`(TransferCoding.fromKey(vals.head.ci))
-          else
-            `Transfer-Encoding`(
-              TransferCoding.fromKey(vals.head.ci),
-              vals.tail.map(s => TransferCoding.fromKey(s.ci)): _*)
-        }
-      }
-    }.parse
+    TransferCoding.parseList(value).map(`Transfer-Encoding`.apply)
 
   def USER_AGENT(value: String): ParseResult[`User-Agent`] =
     new Http4sHeaderParser[`User-Agent`](value) {
