@@ -1,11 +1,12 @@
 package org.http4s
 
-import cats.kernel.laws._
+import cats.implicits._
+import cats.kernel.laws.discipline.OrderTests
 
 class QValueSpec extends Http4sSpec {
   import QValue._
 
-  checkAll("QValue", OrderLaws[QValue].order)
+  checkAll("QValue", OrderTests[QValue].order)
 
   "sort by descending q-value" in {
     prop { (x: QValue, y: QValue) =>

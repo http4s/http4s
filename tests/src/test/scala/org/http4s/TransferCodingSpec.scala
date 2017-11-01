@@ -1,7 +1,8 @@
 package org.http4s
 
 import cats.data.NonEmptyList
-import cats.kernel.laws.OrderLaws
+import cats.implicits._
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.testing.HttpCodecTests
 
 class TransferCodingSpec extends Http4sSpec {
@@ -25,6 +26,6 @@ class TransferCodingSpec extends Http4sSpec {
     }
   }
 
-  checkAll("order", OrderLaws[TransferCoding].order)
+  checkAll("order", OrderTests[TransferCoding].order)
   checkAll("httpCodec", HttpCodecTests[TransferCoding].httpCodec)
 }
