@@ -50,6 +50,9 @@ package object util {
   @deprecated("Moved to org.http4s.syntax.StringSyntax", "0.16")
   type CaseInsensitiveStringSyntax = org.http4s.syntax.StringSyntax
 
+  @deprecated("Moved to org.http4s.syntax.NonEmptyListSyntax", "0.18.0-M5")
+  type NonEmptyListSyntax = org.http4s.syntax.NonEmptyListSyntax
+
   @deprecated(
     "Moved to org.http4s.execution.trampoline, is now merely a ExecutionContextExecutor.",
     "0.18.0-M2")

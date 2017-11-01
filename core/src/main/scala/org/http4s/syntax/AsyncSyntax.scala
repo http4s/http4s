@@ -9,7 +9,7 @@ trait AsyncSyntax {
     new AsyncOps[F, A](async)
 }
 
-final class AsyncOps[F[_], A](self: Async[F]) {
+final class AsyncOps[F[_], A](val self: Async[F]) extends AnyVal {
   def fromFuture(future: Eval[Future[A]])(implicit ec: ExecutionContext): F[A] =
     self.async { cb =>
       import scala.util.{Failure, Success}
