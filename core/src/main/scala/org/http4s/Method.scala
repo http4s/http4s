@@ -147,8 +147,9 @@ object Method extends MethodInstances {
 }
 
 trait MethodInstances {
-  implicit val MethodInstances = new Show[Method] with Eq[Method] {
-    override def show(f: Method): String = f.toString
-    override def eqv(a1: Method, a2: Method): Boolean = a1 == a2
-  }
+  implicit val http4sEqForMethod: Eq[Method] =
+    Eq.fromUniversalEquals
+
+  implicit val http4sShowForMethod: Show[Method] =
+    Show.fromToString
 }

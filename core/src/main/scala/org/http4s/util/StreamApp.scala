@@ -21,7 +21,7 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
       halted: Signal[IO, Boolean]): F[Unit] =
     F.delay {
       sys.addShutdownHook {
-        val hook = requestShutdown.set(true).runAsync(_ => IO.unit) >>
+        val hook = requestShutdown.set(true).runAsync(_ => IO.unit) *>
           halted.discrete
             .takeWhile(_ == false)
             .run
@@ -65,13 +65,13 @@ abstract class StreamApp[F[_]](implicit F: Effect[F]) {
       } yield exitCode
     runStreamLast.runAsync {
       case Left(t) =>
-        IO(logger.error(t)("Error running stream")) >>
-          halted.set(true) >>
+        IO(logger.error(t)("Error running stream")) *>
+          halted.set(true) *>
           exitCodeRef.setSyncPure(ExitCode.error)
       case Right(exitCode) =>
-        halted.set(true) >>
+        halted.set(true) *>
           exitCodeRef.setSyncPure(exitCode.getOrElse(ExitCode.success))
-    } >>
+    } *>
       exitCodeRef.get
   }
 

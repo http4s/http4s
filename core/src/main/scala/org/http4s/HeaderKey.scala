@@ -55,7 +55,7 @@ object HeaderKey {
         if (hs.nonEmpty) {
           matchHeader(hs.head) match {
             case Some(header) =>
-              loop(hs.tail, acc.concat(header.values.widen[HeaderT#Value]))
+              loop(hs.tail, acc.concatNel(header.values.widen[HeaderT#Value]))
             case None =>
               loop(hs.tail, acc)
           }
