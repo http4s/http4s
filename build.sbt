@@ -489,7 +489,6 @@ lazy val commonSettings = Seq(
       "CNAME" | "_config.yml"
   ),
   // Temporary
-  resolvers += Resolver.sonatypeRepo("snapshots"),
   dependencyOverrides ++= "org.typelevel" %% "cats-effect" % "0.5" +: Seq(
     "cats-core",
     "cats-kernel",
