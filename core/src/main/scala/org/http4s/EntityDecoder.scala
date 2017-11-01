@@ -149,7 +149,7 @@ trait EntityDecoderInstances {
   def error[F[_], T](t: Throwable)(implicit F: Effect[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(msg.body.run >> F.raiseError(t))
+        DecodeResult(msg.body.run *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 

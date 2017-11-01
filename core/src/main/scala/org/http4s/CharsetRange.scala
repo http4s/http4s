@@ -46,8 +46,9 @@ object CharsetRange extends CharsetRangeInstances {
 }
 
 trait CharsetRangeInstances {
-  implicit val CharacterSetEqual: Eq[CharsetRange] =
+  implicit val http4sEqForCharsetRange: Eq[CharsetRange] =
     Eq.fromUniversalEquals
-  implicit val CharsetShow: Show[Charset] =
+
+  implicit val http4sShowForCharsetRange: Show[Charset] =
     Show.fromToString
 }

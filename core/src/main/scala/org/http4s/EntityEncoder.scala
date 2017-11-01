@@ -2,7 +2,6 @@ package org.http4s
 
 import cats._
 import cats.effect.{Async, Sync}
-import cats.functor._
 import cats.implicits._
 import fs2._
 import fs2.Stream._
