@@ -487,15 +487,7 @@ lazy val commonSettings = Seq(
       "*.js" | "*.swf" | "*.json" | "*.md" |
       "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
       "CNAME" | "_config.yml"
-  ),
-  // Temporary
-  dependencyOverrides ++= "org.typelevel" %% "cats-effect" % "0.5" +: Seq(
-    "cats-core",
-    "cats-kernel",
-    "cats-kernel-laws",
-    "cats-laws",
-    "cats-macros"
-  ).map("org.typelevel" %% _ % "1.0.0-RC1")
+  )
 )
 
 def initCommands(additionalImports: String*) =
