@@ -266,9 +266,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.37"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.9"
-  lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % "0.4"
+  lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % "0.5"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
-  lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "1.0.0-MF"
+  lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "1.0.0-RC1"
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.9.0-M1"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
@@ -276,7 +276,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.8"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.0-M7"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.0-SNAPSHOT"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.2.4"
   lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.0"
