@@ -103,7 +103,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
       Ok("get")
 
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Ok(eval(IO.shift >> IO("chu")) ++ eval(IO.shift >> IO("nk")))
+      Ok(eval(IO.shift *> IO("chu")) ++ eval(IO.shift *> IO("nk")))
 
     case req if req.method == Method.POST && req.pathInfo == "/post" =>
       Ok("post")

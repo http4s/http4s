@@ -64,7 +64,7 @@ object BlazeClient {
               }
 
             case Left(e) =>
-              invalidate(next.connection) >> F.raiseError(e)
+              invalidate(next.connection) *> F.raiseError(e)
           }
         }
         manager.borrow(key).flatMap(loop)
