@@ -2,6 +2,8 @@ package org.http4s
 
 import cats.Eq
 import cats.effect.IO
+import cats.effect.laws.discipline.arbitrary.catsEffectLawsArbitraryForIO
+import cats.effect.laws.util.TestContext
 import cats.implicits._
 import cats.laws.discipline.ContravariantTests
 import cats.laws.discipline.eq._
@@ -10,6 +12,7 @@ import java.io._
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 import org.http4s.headers._
+import org.scalacheck.Arbitrary
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
@@ -122,9 +125,7 @@ class EntityEncoderSpec extends Http4sSpec {
   }
 
   {
-    import org.scalacheck._, Arbitrary.arbitrary
-    implicit def arbitraryIO[A](implicit A: Arbitrary[A]): Arbitrary[IO[A]] =
-      Arbitrary(arbitrary[A].map(IO.apply(_)))
+    implicit val ec = TestContext()
     implicit def entityEq: Eq[IO[Entity[IO]]] =
       Eq.by[IO[Entity[IO]], (Option[Long], Vector[Byte])](
         _.flatMap {
