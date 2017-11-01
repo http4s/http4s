@@ -7,7 +7,6 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.nio.charset.StandardCharsets
-import org.http4s.instances.kleisli._
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.Method._
 import org.http4s.Status._

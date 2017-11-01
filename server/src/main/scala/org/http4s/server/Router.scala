@@ -4,7 +4,6 @@ package server
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import org.http4s.instances.kleisli._
 
 object Router {
 
