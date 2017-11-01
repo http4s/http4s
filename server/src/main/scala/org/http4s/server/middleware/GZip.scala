@@ -105,7 +105,7 @@ object GZip {
       val chunkArray = segment.toChunk.toArray
       gen.crc.update(chunkArray)
       gen.inputLength = gen.inputLength + chunkArray.length
-      Pull.output(segment) >> stream.pull.uncons.flatMap(trailerStep(gen))
+      Pull.output(segment) *> stream.pull.uncons.flatMap(trailerStep(gen))
   }
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] =
