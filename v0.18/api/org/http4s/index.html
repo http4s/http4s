@@ -900,10 +900,10 @@ for keys with the same label and same types.</p></div></div>
       </span>
       
       
-    </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="AuthedService[F[_],T]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]"></a><a id="AuthedService[F[_],T]:AuthedService[F,T]"></a>
+    </li><li name="org.http4s.AuthedService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]"></a><a id="AuthedService[T,F[_]]:AuthedService[T,F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#AuthedService[F[_],T]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/index.html#AuthedService[T,F[_]]=cats.data.Kleisli[[β$1$]cats.data.OptionT[F,β$1$],org.http4s.AuthedRequest[F,T],org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -912,10 +912,13 @@ for keys with the same label and same types.</p></div></div>
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">AuthedService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="T">T</span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>]]</span>
+        <span class="name">AuthedService</span><span class="tparams">[<span name="T">T</span>, <span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$1$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$1$">β$1$</span>], <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>, <span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.AuthedService.F">F</span>]]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">We need to change the order of type parameters to make partial unification
+trigger.</p><div class="fullcomment"><div class="comment cmt"><p>We need to change the order of type parameters to make partial unification
+trigger. See https://github.com/http4s/http4s/issues/1506
+</p></div></div>
     </li><li name="org.http4s.BasicCredentials" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BasicCredentialsextendsProductwithSerializable"></a><a id="BasicCredentials:BasicCredentials"></a>
       <span class="permalink">
