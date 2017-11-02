@@ -737,11 +737,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed abstract </span>
-        <span class="kind">case class</span>
+        <span class="modifier"></span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">TransferCoding</span><span class="result"> extends <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">TransferCoding</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       </h4>
 
@@ -750,7 +750,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>], <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>], <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>], <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -776,12 +776,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.TransferCoding"><span>TransferCoding</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="java.lang.Comparable"><span>Comparable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.TransferCoding"><span>TransferCoding</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="scala.math.Ordered"><span>Ordered</span></li><li class="in" name="java.lang.Comparable"><span>Comparable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
                   </span>
-                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                  <ol id="implicits"> <li class="in" name="scala.math.Ordered.orderingToOrdered" data-hidden="false"><span>by orderingToOrdered</span></li><li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -883,6 +883,38 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="scala.math.Ordered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&lt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less" class="name">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&lt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less$eq" class="name">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
@@ -899,6 +931,38 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.math.Ordered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&gt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater" class="name">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&gt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater$eq" class="name">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -955,10 +1019,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.TransferCoding#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="compareTo(other:org.http4s.TransferCoding):Int"></a><a id="compareTo(TransferCoding):Int"></a>
+    </li><li name="org.http4s.TransferCoding#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compare(other:org.http4s.TransferCoding):Int"></a><a id="compare(TransferCoding):Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/TransferCoding.html#compareTo(other:org.http4s.TransferCoding):Int" title="Permalink">
+      <a href="../../org/http4s/TransferCoding.html#compare(other:org.http4s.TransferCoding):Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -967,10 +1031,26 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">compareTo</span><span class="params">(<span name="other">other: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">compare</span><span class="params">(<span name="other">other: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> → Comparable</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> → Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compareTo(that:A):Int"></a><a id="compareTo(TransferCoding):Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#compareTo(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((TransferCoding)⇒Boolean,⇒Any):TransferCoding"></a>
       <span class="permalink">
@@ -1067,6 +1147,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.TransferCoding#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(o:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#equals(o:Any):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="o">o: <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -1131,6 +1227,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.TransferCoding#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#hashCode():Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -1249,7 +1361,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.util.Renderable#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.TransferCoding#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
       <a href="../../org/http4s/TransferCoding.html#toString():String" title="Permalink">
@@ -1264,7 +1376,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1357,22 +1469,139 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               </ol>
             </div>
 
-        
+        <div class="values members">
+              <h3>Shadowed Implicit Value Members</h3>
+              <ol><li name="scala.math.Ordered.orderingToOrdered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&lt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less" class="implicit shadowed">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(transferCoding: Ordered[TransferCoding]).&lt;(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&lt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less$eq" class="implicit shadowed">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(transferCoding: Ordered[TransferCoding]).&lt;=(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&gt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater" class="implicit shadowed">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(transferCoding: Ordered[TransferCoding]).&gt;(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(TransferCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#&gt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater$eq" class="implicit shadowed">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(transferCoding: Ordered[TransferCoding]).&gt;=(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compare(that:A):Int"></a><a id="compare(TransferCoding):Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#compare(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit shadowed">compare</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(transferCoding: Ordered[TransferCoding]).compare(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compareTo(that:A):Int"></a><a id="compareTo(TransferCoding):Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/TransferCoding.html#compareTo(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit shadowed">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(transferCoding: Ordered[TransferCoding]).compareTo(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
+    </li></ol>
+            </div>
 
         
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
-            </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
-            </div><div class="parent" name="org.http4s.util.Renderable">
+        <div class="parent" name="org.http4s.util.Renderable">
               <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
+            </div><div class="parent" name="scala.math.Ordered">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>]</h3>
             </div><div class="parent" name="java.lang.Comparable">
               <h3>Inherited from <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
@@ -1380,7 +1609,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></h3>
             </div>
-        <div class="conversion" name="scala.Predef.any2stringadd">
+        <div class="conversion" name="scala.math.Ordered.orderingToOrdered">
+              <h3>Inherited by implicit conversion orderingToOrdered from
+                <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>]
+              </h3>
+            </div><div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
                 <a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>]
               </h3>
