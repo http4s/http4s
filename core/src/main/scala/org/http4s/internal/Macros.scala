@@ -10,11 +10,11 @@ private[http4s] object Macros {
     s
   }
 
-  def scheme(c: Context)(): c.Expr[Scheme] = {
+  def scheme(c: Context)(): c.Expr[Uri.Scheme] = {
     import c.universe._
     val s = literalString(c)
-    Scheme.parse(s) match {
-      case Right(_) => c.Expr(q"""org.http4s.HttpCodec[org.http4s.Scheme].parseOrThrow($s)""")
+    Uri.Scheme.parse(s) match {
+      case Right(_) => c.Expr(q"""org.http4s.HttpCodec[org.http4s.Uri.Scheme].parseOrThrow($s)""")
       case Left(e) => throw e
     }
   }

@@ -512,10 +512,10 @@ trait ArbitraryInstances {
     oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
   val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
-  implicit val arbitraryScheme: Arbitrary[Scheme] = Arbitrary {
+  implicit val arbitraryScheme: Arbitrary[Uri.Scheme] = Arbitrary {
     frequency(
-      5 -> Scheme.http,
-      5 -> Scheme.https,
+      5 -> Uri.Scheme.http,
+      5 -> Uri.Scheme.https,
       1 -> scheme"HTTP",
       1 -> scheme"HTTPS",
       3 -> (for {
@@ -528,11 +528,11 @@ trait ArbitraryInstances {
             1 -> const('.')
           )
         )
-      } yield HttpCodec[Scheme].parseOrThrow(tail.mkString(head.toString, "", "")))
+      } yield HttpCodec[Uri.Scheme].parseOrThrow(tail.mkString(head.toString, "", "")))
     )
   }
 
-  implicit val cogenScheme: Cogen[Scheme] =
+  implicit val cogenScheme: Cogen[Uri.Scheme] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
   implicit val arbitraryTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
@@ -559,7 +559,7 @@ trait ArbitraryInstances {
     val genPathRootless = genSegmentNz |+| genPathAbEmpty
     val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
-    val genScheme = oneOf(Scheme.http, Scheme.https)
+    val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
     val genPath =
       oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
     val genFragment: Gen[Uri.Fragment] =
