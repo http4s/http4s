@@ -30,7 +30,9 @@ trait MessageFailure extends RuntimeException {
   * @param details Contains any relevant details omitted from the sanitized
   *                version of the error.  This may freely echo a Request.
   */
-final case class ParseFailure(sanitized: String, details: String) extends MessageFailure {
+final case class ParseFailure(sanitized: String, details: String)
+    extends MessageFailure
+    with NoStackTrace {
   def message: String =
     if (sanitized.isEmpty) details
     else if (details.isEmpty) sanitized
