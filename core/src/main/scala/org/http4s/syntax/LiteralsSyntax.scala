@@ -9,5 +9,5 @@ trait LiteralsSyntax {
 }
 
 class LiteralsOps(val sc: StringContext) extends AnyVal {
-  def scheme(): Scheme = macro Macros.scheme
+  def scheme(): Uri.Scheme = macro Macros.scheme
 }

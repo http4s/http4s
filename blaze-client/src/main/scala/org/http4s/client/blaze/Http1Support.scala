@@ -7,7 +7,6 @@ import cats.implicits._
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLContext
-import org.http4s.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.pipeline.{Command, LeafBuilder}
 import org.http4s.blaze.pipeline.stages.SSLStage
@@ -57,7 +56,7 @@ final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Ef
     val t = new Http1Connection(requestKey, config)
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {
-      case RequestKey(Scheme.https, auth) =>
+      case RequestKey(Uri.Scheme.https, auth) =>
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port.getOrElse(443))
         eng.setUseClientMode(true)
 
@@ -76,7 +75,7 @@ final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Ef
   private def getAddress(requestKey: RequestKey): Either[Throwable, InetSocketAddress] =
     requestKey match {
       case RequestKey(s, auth) =>
-        val port = auth.port.getOrElse { if (s == Scheme.https) 443 else 80 }
+        val port = auth.port.getOrElse { if (s == Uri.Scheme.https) 443 else 80 }
         val host = auth.host.value
         Either.catchNonFatal(new InetSocketAddress(host, port))
     }
