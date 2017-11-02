@@ -20,14 +20,27 @@ package org.http4s
 
 import cats.{Order, Show}
 import cats.data.NonEmptyList
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util._
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 
-sealed abstract case class TransferCoding private (coding: String)
-    extends Comparable[TransferCoding]
-    with Renderable {
-  override def compareTo(other: TransferCoding): Int =
+class TransferCoding private (val coding: String) extends Ordered[TransferCoding] with Renderable {
+  override def equals(o: Any) = o match {
+    case that: TransferCoding => this.coding.equalsIgnoreCase(that.coding)
+    case _ => false
+  }
+
+  private[this] var hash = 0
+  override def hashCode(): Int = {
+    if (hash == 0) {
+      hash = hashLower(coding)
+    }
+    hash
+  }
+
+  override def toString = s"TransferCoding($coding)"
+
+  override def compare(other: TransferCoding): Int =
     coding.compareToIgnoreCase(other.coding)
 
   override def render(writer: Writer): writer.type = writer.append(coding.toString)

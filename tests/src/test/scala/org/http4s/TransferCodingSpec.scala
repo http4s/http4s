@@ -4,14 +4,29 @@ import cats.data.NonEmptyList
 import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.testing.HttpCodecTests
+import org.http4s.util.Renderer
 
 class TransferCodingSpec extends Http4sSpec {
-  "compareTo" should {
+  "equals" should {
+    "be consistent with equalsIgnoreCase of the codings" in prop {
+      (a: TransferCoding, b: TransferCoding) =>
+        (a == b) must_== a.coding.equalsIgnoreCase(b.coding)
+    }
+  }
+
+  "compare" should {
     "be consistent with coding.compareToIgnoreCase" in {
       prop { (a: TransferCoding, b: TransferCoding) =>
-        a.coding.compareToIgnoreCase(b.coding) must_== a.compareTo(b)
+        a.coding.compareToIgnoreCase(b.coding) must_== a.compare(b)
       }
     }
+  }
+
+  "hashCode" should {
+    "be consistent with equality" in
+      prop { (a: TransferCoding, b: TransferCoding) =>
+        (a == b) ==> (a.## must_== b.##)
+      }
   }
 
   "parse" should {
@@ -26,6 +41,12 @@ class TransferCodingSpec extends Http4sSpec {
     }
   }
 
-  checkAll("order", OrderTests[TransferCoding].order)
-  checkAll("httpCodec", HttpCodecTests[TransferCoding].httpCodec)
+  "render" should {
+    "return coding" in prop { s: TransferCoding =>
+      Renderer.renderString(s) must_== s.coding
+    }
+  }
+
+  checkAll("Order[TransferCoding]", OrderTests[TransferCoding].order)
+  checkAll("HttpCodec[TransferCoding]", HttpCodecTests[TransferCoding].httpCodec)
 }
