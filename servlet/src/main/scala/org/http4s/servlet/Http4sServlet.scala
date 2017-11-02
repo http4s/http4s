@@ -97,7 +97,7 @@ class Http4sServlet[F[_]](
       bodyWriter: BodyWriter[F]): F[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
     // TODO: This can probably be handled nicer with Effect
-    val response = F.shift(executionContext) >> F
+    val response = F.shift(executionContext) *> F
       .delay(
         try serviceFn(request)
           .getOrElse(Response.notFound)

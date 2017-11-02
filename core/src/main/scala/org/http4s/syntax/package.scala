@@ -9,5 +9,6 @@ package object syntax {
   object effectResponse extends EffectResponseSyntax
   object kleisli extends KleisliSyntax
   object literals extends LiteralsSyntax
+  object nonEmptyList extends NonEmptyListSyntax
   object string extends StringSyntax
 }

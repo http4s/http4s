@@ -1,6 +1,7 @@
 package org.http4s
 
-import cats.kernel.laws.OrderLaws
+import cats.implicits._
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.testing.HttpCodecTests
 import org.http4s.util.Renderer
@@ -56,6 +57,6 @@ class SchemeSpec extends Http4sSpec {
     }
   }
 
-  checkAll("order", OrderLaws[Scheme].order)
+  checkAll("order", OrderTests[Scheme].order)
   checkAll("httpCodec", HttpCodecTests[Scheme].httpCodec)
 }

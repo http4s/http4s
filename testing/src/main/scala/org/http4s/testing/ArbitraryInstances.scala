@@ -3,8 +3,11 @@ package testing
 
 import cats._
 import cats.data.NonEmptyList
+import cats.effect.{Effect, IO}
+import cats.effect.laws.discipline.arbitrary._
+import cats.effect.laws.util.TestContext
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2.Stream
+import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
@@ -12,11 +15,14 @@ import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
-import org.scalacheck.{Arbitrary, Cogen, Gen}
+import org.scalacheck._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
+import org.scalacheck.rng.Seed
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.util.Try
 
 trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -570,17 +576,41 @@ trait ArbitraryInstances {
 
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
-  implicit def arbitraryEntityBody[F[_]] = Gen.sized { size =>
+  implicit def genEntityBody[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized { size =>
     Gen.listOfN(size, arbitrary[Byte]).map(Stream.emits)
   }
+
+  // Borrowed from cats-effect tests for the time being
+  def cogenFuture[A](implicit ec: TestContext, cg: Cogen[Try[A]]): Cogen[Future[A]] =
+    Cogen { (seed: Seed, fa: Future[A]) =>
+      ec.tick()
+
+      fa.value match {
+        case None => seed
+        case Some(ta) => cg.perturb(seed, ta)
+      }
+    }
+
+  implicit def cogenEntityBody[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[EntityBody[F]] =
+    catsEffectLawsCogenForIO(cogenFuture[Vector[Byte]]).contramap { stream =>
+      var bytes: Vector[Byte] = null
+      val readBytes = IO(bytes)
+      F.runAsync(stream.runLog) {
+        case Right(bs) => IO { bytes = bs }
+        case Left(t) => IO.raiseError(t)
+      } *> readBytes
+    }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
       for {
-        body <- arbitraryEntityBody
+        body <- genEntityBody
         length <- Gen.oneOf(Some(size.toLong), None)
       } yield Entity(body, length)
     })
+
+  implicit def cogenEntity[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Entity[F]] =
+    Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def arbitraryEntityEncoder[F[_], A](
       implicit CA: Cogen[A],
@@ -594,5 +624,4 @@ trait ArbitraryInstances {
 object ArbitraryInstances extends ArbitraryInstances {
   // This were introduced after .0 and need to be kept out of the
   // trait.  We can move them back into the trait in the next .0.
-
 }

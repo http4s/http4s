@@ -6,7 +6,6 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.instances.kleisli._
 
 class CORSSpec extends Http4sSpec {
 

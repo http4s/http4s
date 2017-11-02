@@ -127,7 +127,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
       IO(os.write(Array(byte)))
     }.run
     val flushOutputStream: IO[Unit] = IO(os.flush())
-    (writeBody >> flushOutputStream).unsafeRunSync()
+    (writeBody *> flushOutputStream).unsafeRunSync()
   }
 
   private def collectBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync().toArray

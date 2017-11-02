@@ -1,6 +1,7 @@
 package org.http4s
 
-import cats.kernel.laws._
+import cats.implicits._
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.Status._
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
@@ -31,7 +32,7 @@ class StatusSpec extends Http4sSpec {
   "codes from 400 to 499 are client errors" in responseClassTest(400 to 499, ClientError)
   "codes from 500 to 599 are server errors" in responseClassTest(500 to 599, ServerError)
 
-  checkAll("Status", OrderLaws[Status].order)
+  checkAll("Status", OrderTests[Status].order)
 
   "status is not equal if code is not equal" in {
     prop { (s1: Status, s2: Status) =>

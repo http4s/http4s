@@ -7,5 +7,6 @@ trait AllSyntax
     with EffectResponseSyntax
     with EffectRequestSyntax
     with KleisliSyntax
+    with NonEmptyListSyntax
     with StringSyntax
     with LiteralsSyntax

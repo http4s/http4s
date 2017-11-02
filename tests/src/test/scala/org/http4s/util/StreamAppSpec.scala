@@ -53,7 +53,7 @@ class StreamAppSpec extends Http4sSpec {
 
       val testApp = new TestStreamApp(
         shutdown =>
-          eval(requestShutdown.set(shutdown)) >>
+          eval(requestShutdown.set(shutdown)) *>
             // run forever, emit nothing
             eval_(IO.async[Nothing] { _ =>
               }))

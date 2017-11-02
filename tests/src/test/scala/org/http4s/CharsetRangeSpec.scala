@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.kernel.laws._
+import cats.kernel.laws.discipline.EqTests
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Prop.forAll
 
@@ -27,5 +27,5 @@ class CharsetRangeSpec extends Http4sSpec {
     }
   }
 
-  checkAll("CharsetRange", OrderLaws[CharsetRange].eqv)
+  checkAll("CharsetRange", EqTests[CharsetRange].eqv)
 }

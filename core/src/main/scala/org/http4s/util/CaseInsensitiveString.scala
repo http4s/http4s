@@ -52,21 +52,17 @@ object CaseInsensitiveString extends CaseInsensitiveStringInstances {
 }
 
 private[http4s] sealed trait CaseInsensitiveStringInstances {
-  implicit val http4sInstancesForCaseInsensitiveString: Monoid[CaseInsensitiveString] with Order[
-    CaseInsensitiveString] with Show[CaseInsensitiveString] =
-    new Monoid[CaseInsensitiveString] with Order[CaseInsensitiveString]
-    with Show[CaseInsensitiveString] {
-      def empty: CaseInsensitiveString =
-        CaseInsensitiveString.empty
-      def combine(f1: CaseInsensitiveString, f2: CaseInsensitiveString) =
-        CaseInsensitiveString(f1.value + f2.value)
+  implicit val http4sMonoidForCaseInsensitiveString: Monoid[CaseInsensitiveString] =
+    new Monoid[CaseInsensitiveString] {
+      override def empty = CaseInsensitiveString.empty
 
-      def compare(x: CaseInsensitiveString, y: CaseInsensitiveString): Int =
-        x.value.compare(y.value)
-      override def eqv(x: CaseInsensitiveString, y: CaseInsensitiveString): Boolean =
-        x == y
-
-      override def show(x: CaseInsensitiveString): String =
-        x.toString
+      override def combine(x: CaseInsensitiveString, y: CaseInsensitiveString) =
+        CaseInsensitiveString(x.value + y.value)
     }
+
+  implicit val http4sOrderForCaseInsensitiveString: Order[CaseInsensitiveString] =
+    Order.fromOrdering
+
+  implicit val http4sShowForCaseInsensitiveString: Show[CaseInsensitiveString] =
+    Show.fromToString
 }

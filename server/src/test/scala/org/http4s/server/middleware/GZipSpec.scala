@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.instances.kleisli._
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 

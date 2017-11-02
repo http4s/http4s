@@ -41,14 +41,14 @@ private[http4s] object MultipartDecoder {
               Part(Headers(part.headers.toList ::: headers.toList), EmptyBody),
               lastWasLeft = true)(s)
           } else {
-            Pull.output1(part) >> go(Part(headers, EmptyBody), lastWasLeft = true)(s)
+            Pull.output1(part) *> go(Part(headers, EmptyBody), lastWasLeft = true)(s)
           }
         case Some((Right(bv), s)) =>
           go(
             part.copy(body = part.body.append(Stream.chunk(ByteVectorChunk(bv)))),
             lastWasLeft = false)(s)
         case None =>
-          Pull.output1(part) >> Pull.pure(None)
+          Pull.output1(part) *> Pull.pure(None)
       }
 
     s.pull.uncons1.flatMap {

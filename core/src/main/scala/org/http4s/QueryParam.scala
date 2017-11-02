@@ -2,7 +2,6 @@ package org.http4s
 
 import cats._
 import cats.data._
-import cats.functor.Contravariant
 import cats.implicits._
 
 final case class QueryParameterKey(value: String) extends AnyVal

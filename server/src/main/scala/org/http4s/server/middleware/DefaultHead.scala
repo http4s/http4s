@@ -5,7 +5,6 @@ package middleware
 import cats._
 import cats.data.Kleisli
 import cats.implicits._
-import org.http4s.instances.kleisli._
 
 /** Handles HEAD requests as a GET without a body.
   *

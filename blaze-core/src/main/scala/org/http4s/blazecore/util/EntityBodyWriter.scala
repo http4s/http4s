@@ -51,7 +51,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
   def writeEntityBody(p: EntityBody[F]): F[Boolean] = {
     val writeBody: F[Unit] = (p to writeSink).run
     val writeBodyEnd: F[Boolean] = F.fromFuture(writeEnd(Chunk.empty))
-    writeBody >> writeBodyEnd
+    writeBody *> writeBodyEnd
   }
 
   /** Writes each of the body chunks, if the write fails it returns
