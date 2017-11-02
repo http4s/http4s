@@ -194,13 +194,13 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
     if (creds.username == "username" && creds.password == "password") F.pure(Some(creds.username))
     else F.pure(None)
 
-  // An AuthedService[F, A] is a Service[F, (A, Request[F]), Response[F]] for some
+  // An AuthedService[A, F] is a Service[F, (A, Request[F]), Response[F]] for some
   // user type A.  `BasicAuth` is an auth middleware, which binds an
   // AuthedService to an authentication store.
   val basicAuth: AuthMiddleware[F, String] = BasicAuth(realm, authStore)
 
   def authService: HttpService[F] =
-    basicAuth(AuthedService[F, String] {
+    basicAuth(AuthedService[String, F] {
       // AuthedServices look like Services, but the user is extracted with `as`.
       case GET -> Root / "protected" as user =>
         Ok(s"This page is protected using HTTP authentication; logged in as $user")

@@ -11,15 +11,15 @@ object AuthedService {
     * `apply` instead.
     */
   @deprecated("Use liftF with an OptionT[F, Response[F]] instead", "0.18")
-  def lift[F[_]: Functor, T](f: AuthedRequest[F, T] => F[Response[F]]): AuthedService[F, T] =
+  def lift[F[_]: Functor, T](f: AuthedRequest[F, T] => F[Response[F]]): AuthedService[T, F] =
     Kleisli(f.andThen(OptionT.liftF(_)))
 
   /** Lifts a partial function to an `AuthedService`.  Responds with
     * [[org.http4s.Response.notFoundFor]], which generates a 404, for any request
     * where `pf` is not defined.
     */
-  def apply[F[_], T](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
-      implicit F: Applicative[F]): AuthedService[F, T] =
+  def apply[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
+      implicit F: Applicative[F]): AuthedService[T, F] =
     Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
   /**
@@ -28,7 +28,7 @@ object AuthedService {
     * @tparam T - ignored.
     * @return
     */
-  def empty[F[_]: Applicative, T]: AuthedService[F, T] =
+  def empty[T, F[_]: Applicative]: AuthedService[T, F] =
     Kleisli.lift(OptionT.none)
 
 }
