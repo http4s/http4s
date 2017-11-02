@@ -121,7 +121,7 @@ assert(docs == docs2)
 
 val template = UriTemplate(
   authority = Some(Uri.Authority(host = Uri.RegName(&quot;http4s.org&quot;))),
-  scheme = Some(Scheme.http),
+  scheme = Some(Uri.Scheme.http),
   path = List(PathElm(&quot;docs&quot;), PathElm(&quot;0.15&quot;))
 )
 // template: org.http4s.UriTemplate = http://http4s.org/docs/0.15
