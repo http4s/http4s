@@ -39,11 +39,14 @@ trait MessageOps[F[_]] extends Any {
   final def withType(t: MediaType)(implicit F: Functor[F]): Self =
     putHeaders(`Content-Type`(t))
 
-  final def withContentType(contentType: Option[`Content-Type`])(implicit F: Functor[F]): Self =
-    contentType match {
-      case Some(t) => putHeaders(t)
-      case None => filterHeaders(_.is(`Content-Type`))
-    }
+  final def withContentType(contentType: `Content-Type`)(implicit F: Functor[F]): Self =
+    putHeaders(contentType)
+
+  final def withoutContentType(implicit F: Functor[F]): Self = filterHeaders(_.is(`Content-Type`))
+
+  final def withContentTypeOption(contentTypeO: Option[`Content-Type`])(
+      implicit F: Functor[F]): Self =
+    contentTypeO.fold(withoutContentType)(withContentType)
 
   final def removeHeader(key: HeaderKey)(implicit F: Functor[F]): Self = filterHeaders(_.isNot(key))
 
