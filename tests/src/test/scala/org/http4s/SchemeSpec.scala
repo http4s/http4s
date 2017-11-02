@@ -16,10 +16,10 @@ class SchemeSpec extends Http4sSpec {
     }
   }
 
-  "compareTo" should {
+  "compare" should {
     "be consistent with value.compareToIgnoreCase" in {
       prop { (a: Scheme, b: Scheme) =>
-        a.value.compareToIgnoreCase(b.value) must_== a.compareTo(b)
+        a.value.compareToIgnoreCase(b.value) must_== a.compare(b)
       }
     }
   }
@@ -58,6 +58,6 @@ class SchemeSpec extends Http4sSpec {
     }
   }
 
-  checkAll("order", OrderTests[Scheme].order)
-  checkAll("httpCodec", HttpCodecTests[Scheme].httpCodec)
+  checkAll("Order[Scheme]", OrderTests[Scheme].order)
+  checkAll("HttpCodec[Scheme]", HttpCodecTests[Scheme].httpCodec)
 }
