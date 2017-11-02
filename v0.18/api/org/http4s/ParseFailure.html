@@ -450,7 +450,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="Credentials.html" title="">Credentials</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="DecodeFailure.html" title="Indicates a problem decoding a Message."></a>
+                        <a class="trait" href="DecodeFailure.html" title="Indicates a problem decoding a Message."></a>
                         <a href="DecodeFailure.html" title="Indicates a problem decoding a Message.">DecodeFailure</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
@@ -574,11 +574,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a href="Message.html" title="Represents a HTTP Message.">Message</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="MessageBodyFailure.html" title="Indicates a problem decoding a Message body."></a>
+                        <a class="trait" href="MessageBodyFailure.html" title="Indicates a problem decoding a Message body."></a>
                         <a href="MessageBodyFailure.html" title="Indicates a problem decoding a Message body.">MessageBodyFailure</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
-                        <a class="class" href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message."></a>
+                        <a class="trait" href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message."></a>
                         <a href="MessageFailure.html" title="Indicates a failure to handle an HTTP Message.">MessageFailure</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
@@ -593,17 +593,13 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="MethodInstances.html" title=""></a>
                         <a href="MethodInstances.html" title="">MethodInstances</a>
                       </li><li class="current-entities indented2">
-                        <a class="object" href="ParseFailure$.html" title="TODO parameterization /** Generic description of a failure to parse an HTTP Message */ final case class GenericParsingFailure(sanitized: String, details: String, response: HttpVersion =&gt; F[Response[F]]) extends ParsingFailure { def message: String = ParseFailure(sanitized, details).message"></a>
+                        <a class="object" href="ParseFailure$.html" title=""></a>
                         <a class="class" href="" title="Indicates an error parsing an HTTP Message."></a>
                         <a href="" title="Indicates an error parsing an HTTP Message.">ParseFailure</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="ParseResult$.html" title=""></a>
                         <a href="ParseResult$.html" title="">ParseResult</a>
-                      </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message."></a>
-                        <a href="ParsingFailure.html" title="Indicates an error parsing an HTTP Message.">ParsingFailure</a>
                       </li><li class="current-entities indented2">
                         <a class="object" href="QValue$.html" title=""></a>
                         <a class="class" href="QValue.html" title="A Quality Value."></a>
@@ -749,7 +745,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ParseFailure</span><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="ParsingFailure.html" class="extype" name="org.http4s.ParsingFailure">ParsingFailure</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">ParseFailure</span><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -761,7 +757,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="ParsingFailure.html" class="extype" name="org.http4s.ParsingFailure">ParsingFailure</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a>, <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a>, <span class="extype" name="java.lang.RuntimeException">RuntimeException</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a>, <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a>, <span class="extype" name="java.lang.RuntimeException">RuntimeException</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -787,7 +783,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.ParseFailure"><span>ParseFailure</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.ParsingFailure"><span>ParsingFailure</span></li><li class="in" name="scala.util.control.NoStackTrace"><span>NoStackTrace</span></li><li class="in" name="org.http4s.MessageFailure"><span>MessageFailure</span></li><li class="in" name="java.lang.RuntimeException"><span>RuntimeException</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.ParseFailure"><span>ParseFailure</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.util.control.NoStackTrace"><span>NoStackTrace</span></li><li class="in" name="org.http4s.MessageFailure"><span>MessageFailure</span></li><li class="in" name="java.lang.RuntimeException"><span>RuntimeException</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -963,6 +959,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.ParseFailure#cause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cause:Option[Throwable]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ParseFailure.html#cause:Option[Throwable]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cause</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Throwable">Throwable</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ParseFailure">ParseFailure</a> → <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -1160,7 +1172,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="java.lang.Throwable#getCause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.MessageFailure#getCause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getCause():Throwable"></a>
       <span class="permalink">
       <a href="../../org/http4s/ParseFailure.html#getCause():Throwable" title="Permalink">
@@ -1168,14 +1180,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">getCause</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a> → Throwable</dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -1619,8 +1631,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
-            </div><div class="parent" name="org.http4s.ParsingFailure">
-              <h3>Inherited from <a href="ParsingFailure.html" class="extype" name="org.http4s.ParsingFailure">ParsingFailure</a></h3>
             </div><div class="parent" name="scala.util.control.NoStackTrace">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a></h3>
             </div><div class="parent" name="org.http4s.MessageFailure">
