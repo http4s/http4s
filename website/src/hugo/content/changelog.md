@@ -76,6 +76,8 @@ it.
 
 # v0.18.0-M3 (2017-10-04)
 * Merges only.
+* There is a classpath difference in log4s version between blaze and http4s in this
+  milestone that will be remedied in M6. We believe these warnings are safe.
 
 # v0.17.4 (2017-10-04)
 * Fix reading of request body in non-blocking servlet backend. It was previously
