@@ -8,6 +8,36 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0-M5 (2017-11-02)
+* Introduced an `HttpCodec` type class that represents a type that can round
+  trip to and from a `String`.  `Uri.Scheme` and `TransferCoding` are the first
+  implementors, with more to follow.  Added an `HttpCodecLaws` to http4s-testing.
+* `Uri.Scheme` is now its own type instead of a type alias.
+* `TransferCoding` is no longer a case class. Its `coding` member is now a
+  `String`, not a `CaseInsensitiveString`. Its companion is no longer a
+  `Registry`.
+* Introduced `org.http4s.syntax.literals`, which contains a `StringContext` forAll
+  safely constructing a `Uri.Scheme`.  More will follow.
+* `org.http4s.util.StreamApp.ExitCode` moved to `org.http4s.util.ExitCode`
+* Changed `AuthService[F[_], T]` to `AuthService[T, F[_]]` to support
+  partial unification when combining services as a `SemigroupK`.
+* Unseal the `MessageFailure` hierarchy. Previous versions of http4s had a
+  `GenericParsingFailure`, `GenericDecodeFailure`, and
+  `GenericMessageBodyFailure`. This was not compatible with the parameterized
+  effect introduced in v0.18. Now, `MessageFailure` is unsealed, so users
+  wanting precise control over the default `toHttpResponse` can implement their
+  own failure conditions.
+* `MessageFailure` now has an `Option[Throwable]` cause.
+* Removed `KleisliInstances`. The `SemigroupK[Kleisli[F, A, ?]]` is now provided
+  by cats.  Users should no longer need to import `org.http4s.implicits._` to
+  get `<+>` composition of `HttpService`s
+* `NonEmptyList` extensions moved from `org.http4s.util.nonEmptyList` to
+  `org.http4s.syntax.nonEmptyList`.
+* Dependency upgrades:
+  * cats-1.0.0-RC1
+  * fs2-0.10.0-M8
+  * fs2-reactive-streams-0.2.5
+
 # v0.18.0-M4 (2017-10-12)
 * Syntax for building requests moved from `org.http4s.client._` to
   `org.http4s.client.dsl.Http4sClientDsl[F]`, with concrete type `IO`
