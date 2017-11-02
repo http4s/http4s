@@ -13,8 +13,7 @@ http client usage, where you can start a connection before the body is fully
 materialized. You don't have to load the full body into memory to submit the
 request either. Taking a look at `Request[F]` and `Response[F]`, both have a body of
 type `EntityBody[F]`, which is simply an alias to `Stream[F, Byte]`. To
-understand `Stream`, take a look at the [streams-tutorial] or a youtube video on an
-[introduction-to-functional-streams].
+understand `Stream`, take a look at the [streams-tutorial] or a youtube video [introduction-to-functional-streams].
 
 The `EntityDecoder` and `EntityEncoder` help with the streaming nature of the
 data in a http body, and they also have additional logic to deal with media
