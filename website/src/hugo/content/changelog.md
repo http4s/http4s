@@ -33,6 +33,8 @@ it.
   get `<+>` composition of `HttpService`s
 * `NonEmptyList` extensions moved from `org.http4s.util.nonEmptyList` to
   `org.http4s.syntax.nonEmptyList`.
+* There is a classpath difference in log4s version between blaze and http4s in this
+  milestone that will be remedied in M6. We believe these warnings are safe.
 * Dependency upgrades:
   * cats-1.0.0-RC1
   * fs2-0.10.0-M8
@@ -61,6 +63,8 @@ it.
 * Adds `EntityEncoderLaws` for `EntityEncoder`.
 * Adds `EntityCodecLaws`.  "EntityCodec" is not a type in http4s, but these
   laws relate an `EntityEncoder[F, A]` to an `EntityDecoder[F, A]`.
+* There is a classpath difference in log4s version between blaze and http4s in this
+  milestone that will be remedied in M6. We believe these warnings are safe.
 
 # v0.17.5 (2017-10-12)
 * Merges only.
@@ -150,6 +154,8 @@ it.
 * Upgraded dependencies:
     * jawn-fs2-0.12.0-M2
     * log4s-1.4.0
+* There is a classpath difference in log4s version between blaze and http4s in this
+  milestone that will be remedied in M6. We believe these warnings are safe.
 
 # v0.17.3 (2017-10-02)
 * Shift execution of HttpService to the `ExecutionContext` provided by the
