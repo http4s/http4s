@@ -125,19 +125,25 @@ class EntityEncoderSpec extends Http4sSpec {
   }
 
   {
-    implicit val ec = TestContext()
+    implicit val ec: TestContext = TestContext()
+
+    implicit val throwableEq: Eq[Throwable] =
+      Eq.fromUniversalEquals
+
     implicit def entityEq: Eq[IO[Entity[IO]]] =
-      Eq.by[IO[Entity[IO]], (Option[Long], Vector[Byte])](
+      Eq.by[IO[Entity[IO]], Either[Throwable, (Option[Long], Vector[Byte])]](
         _.flatMap {
           case Entity(body, length) =>
             body.runLog.map { bytes =>
               (length, bytes)
             }
-        }.unsafeRunTimed(1.second).getOrElse(throw new TimeoutException)
+        }.attempt.unsafeRunTimed(1.second).getOrElse(throw new TimeoutException)
       )
+
     implicit def entityEncoderEq[A: Arbitrary]: Eq[EntityEncoder[IO, A]] =
       Eq.by[EntityEncoder[IO, A], (Headers, A => IO[Entity[IO]])](enc =>
         (enc.headers, enc.toEntity))
+
     checkAll(
       "Contravariant[EntityEncoder[F, ?]]",
       ContravariantTests[EntityEncoder[IO, ?]].contravariant[Int, Int, Int])

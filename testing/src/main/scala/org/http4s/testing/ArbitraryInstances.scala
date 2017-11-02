@@ -7,7 +7,7 @@ import cats.effect.{Effect, IO}
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2.Stream
+import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
@@ -576,13 +576,13 @@ trait ArbitraryInstances {
 
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
-  implicit def arbitraryEntityBody[F[_]] = Gen.sized { size =>
+  implicit def genEntityBody[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized { size =>
     Gen.listOfN(size, arbitrary[Byte]).map(Stream.emits)
   }
 
   // Borrowed from cats-effect tests for the time being
-  def cogenFuture[A](implicit ec: TestContext, cg: Cogen[Try[A]]): Cogen[Future[A]] = {
-    Cogen { (seed: Seed, fa: Future[A] ) =>
+  def cogenFuture[A](implicit ec: TestContext, cg: Cogen[Try[A]]): Cogen[Future[A]] =
+    Cogen { (seed: Seed, fa: Future[A]) =>
       ec.tick()
 
       fa.value match {
@@ -590,7 +590,6 @@ trait ArbitraryInstances {
         case Some(ta) => cg.perturb(seed, ta)
       }
     }
-  }
 
   implicit def cogenEntityBody[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[EntityBody[F]] =
     catsEffectLawsCogenForIO(cogenFuture[Vector[Byte]]).contramap { stream =>
@@ -605,7 +604,7 @@ trait ArbitraryInstances {
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
       for {
-        body <- arbitraryEntityBody
+        body <- genEntityBody
         length <- Gen.oneOf(Some(size.toLong), None)
       } yield Entity(body, length)
     })
@@ -625,5 +624,4 @@ trait ArbitraryInstances {
 object ArbitraryInstances extends ArbitraryInstances {
   // This were introduced after .0 and need to be kept out of the
   // trait.  We can move them back into the trait in the next .0.
-
 }
