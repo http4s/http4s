@@ -60,7 +60,8 @@ class HeadersSpec extends Http4sSpec {
       val h1 = `Accept-Encoding`(ContentCoding("foo".ci)).toRaw
       val h2 = `Accept-Encoding`(ContentCoding("bar".ci)).toRaw
       val hs = Headers(clength.toRaw) ++ Headers(h1) ++ Headers(h2)
-      hs.get(`Accept-Encoding`) must beSome(`Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci)))
+      hs.get(`Accept-Encoding`) must beSome(
+        `Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci)))
       hs.exists(_ == clength) must_== true
     }
 
