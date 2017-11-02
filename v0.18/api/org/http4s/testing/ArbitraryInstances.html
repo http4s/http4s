@@ -589,22 +589,6 @@
       </span>
       
       
-    </li><li name="org.http4s.testing.ArbitraryInstances#arbitraryEntityBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="arbitraryEntityBody[F[_]]:org.scalacheck.Gen[fs2.Stream[fs2.Pure,Byte]]"></a><a id="arbitraryEntityBody[F[_]]:Gen[Stream[Pure,Byte]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/testing/ArbitraryInstances.html#arbitraryEntityBody[F[_]]:org.scalacheck.Gen[fs2.Stream[fs2.Pure,Byte]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">arbitraryEntityBody</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="fs2.Pure">Pure</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.testing.ArbitraryInstances#arbitraryEntityEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="arbitraryEntityEncoder[F[_],A](implicitCA:org.scalacheck.Cogen[A],implicitAF:org.scalacheck.Arbitrary[F[org.http4s.Entity[F]]]):org.scalacheck.Arbitrary[org.http4s.EntityEncoder[F,A]]"></a><a id="arbitraryEntityEncoder[F[_],A](Cogen[A],Arbitrary[F[Entity[F]]]):Arbitrary[EntityEncoder[F,A]]"></a>
       <span class="permalink">
@@ -1157,6 +1141,54 @@
       </span>
       
       
+    </li><li name="org.http4s.testing.ArbitraryInstances#cogenEntity" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="cogenEntity[F[_]](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext):org.scalacheck.Cogen[org.http4s.Entity[F]]"></a><a id="cogenEntity[F[_]](Effect[F],TestContext):Cogen[Entity[F]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances.html#cogenEntity[F[_]](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext):org.scalacheck.Cogen[org.http4s.Entity[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cogenEntity</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenEntity.F">F</span>]</span>, <span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../Entity.html" class="extype" name="org.http4s.Entity">Entity</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenEntity.F">F</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.testing.ArbitraryInstances#cogenEntityBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="cogenEntityBody[F[_]](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext):org.scalacheck.Cogen[org.http4s.EntityBody[F]]"></a><a id="cogenEntityBody[F[_]](Effect[F],TestContext):Cogen[EntityBody[F]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances.html#cogenEntityBody[F[_]](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext):org.scalacheck.Cogen[org.http4s.EntityBody[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cogenEntityBody</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenEntityBody.F">F</span>]</span>, <span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenEntityBody.F">F</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.testing.ArbitraryInstances#cogenFuture" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="cogenFuture[A](implicitec:cats.effect.laws.util.TestContext,implicitcg:org.scalacheck.Cogen[scala.util.Try[A]]):org.scalacheck.Cogen[scala.concurrent.Future[A]]"></a><a id="cogenFuture[A](TestContext,Cogen[Try[A]]):Cogen[Future[A]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances.html#cogenFuture[A](implicitec:cats.effect.laws.util.TestContext,implicitcg:org.scalacheck.Cogen[scala.util.Try[A]]):org.scalacheck.Cogen[scala.concurrent.Future[A]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cogenFuture</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>, <span name="cg">cg: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/util/Try.html#scala.util.Try" class="extype" name="scala.util.Try">Try</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenFuture.A">A</span>]]</span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenFuture.A">A</span>]]</span>
+      </span>
+      
+      
     </li><li name="org.http4s.testing.ArbitraryInstances#cogenHttpVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="cogenHttpVersion:org.scalacheck.Cogen[org.http4s.HttpVersion]"></a><a id="cogenHttpVersion:Cogen[HttpVersion]"></a>
       <span class="permalink">
@@ -1471,6 +1503,22 @@
       </span>
       <span class="symbol">
         <span class="name">genCustomStatus</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../Status.html" class="extype" name="org.http4s.Status">Status</a>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.testing.ArbitraryInstances#genEntityBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="genEntityBody[F[_]]:org.scalacheck.Gen[fs2.Stream[fs2.Pure,Byte]]"></a><a id="genEntityBody[F[_]]:Gen[Stream[Pure,Byte]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances.html#genEntityBody[F[_]]:org.scalacheck.Gen[fs2.Stream[fs2.Pure,Byte]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genEntityBody</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="fs2.Pure">Pure</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
       </span>
       
       
