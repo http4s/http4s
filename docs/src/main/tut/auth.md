@@ -9,7 +9,7 @@ A [service] is a `Kleisli[F, Request, Response]`, the composable version of
 object which identifies which user did the request. To store the `User` object
 along with the `Request`, there's `AuthedRequest[F, User]`, which is equivalent to
 `(User, Request[F])`. So the service has the signature `AuthedRequest[F, User] =>
-F[Response[F]]`, or `AuthedService[F, User]`. So we'll need a `Request[F] => User`
+F[Response[F]]`, or `AuthedService[User, F]`. So we'll need a `Request[F] => User`
 function, or more likely, a `Request[F] => F[User]`, because the `User` will
 come from a database. We can convert that into an `AuthMiddleware` and apply it.
 Or in code, using `cats.effect.IO` as the effect type:
@@ -25,7 +25,7 @@ case class User(id: Long, name: String)
 
 val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ => OptionT.liftF(IO(???)))
 val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
-val authedService: AuthedService[IO, User] =
+val authedService: AuthedService[User, IO] =
   AuthedService {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
@@ -48,7 +48,7 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```tut:book
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
-val onFailure: AuthedService[IO, String] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
+val onFailure: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
 val service: HttpService[IO] = middleware(authedService)

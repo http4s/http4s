@@ -16,10 +16,10 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
         Kleisli.pure(Left("Unauthorized"))
 
-      val onAuthFailure: AuthedService[IO, String] =
+      val onAuthFailure: AuthedService[String, IO] =
         Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 
-      val authedService: AuthedService[IO, User] =
+      val authedService: AuthedService[User, IO] =
         AuthedService {
           case _ => Ok()
         }
@@ -39,10 +39,10 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
         Kleisli.pure(Right(userId))
 
-      val onAuthFailure: AuthedService[IO, String] =
+      val onAuthFailure: AuthedService[String, IO] =
         Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 
-      val authedService: AuthedService[IO, User] =
+      val authedService: AuthedService[User, IO] =
         AuthedService {
           case GET -> Root as user => Ok(user.toString)
         }
@@ -61,10 +61,10 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val authUser: Kleisli[IO, Request[IO], Either[String, User]] =
         Kleisli.pure(Right(userId))
 
-      val onAuthFailure: AuthedService[IO, String] =
+      val onAuthFailure: AuthedService[String, IO] =
         Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 
-      val authedService: AuthedService[IO, User] =
+      val authedService: AuthedService[User, IO] =
         AuthedService {
           case POST -> Root as _ => Ok()
         }
