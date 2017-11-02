@@ -86,6 +86,42 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-0-m5-2017-11-02">v0.18.0-M5 (2017-11-02)</h1>
+
+<ul>
+<li>Introduced an <code>HttpCodec</code> type class that represents a type that can round
+trip to and from a <code>String</code>.  <code>Uri.Scheme</code> and <code>TransferCoding</code> are the first
+implementors, with more to follow.  Added an <code>HttpCodecLaws</code> to http4s-testing.</li>
+<li><code>Uri.Scheme</code> is now its own type instead of a type alias.</li>
+<li><code>TransferCoding</code> is no longer a case class. Its <code>coding</code> member is now a
+<code>String</code>, not a <code>CaseInsensitiveString</code>. Its companion is no longer a
+<code>Registry</code>.</li>
+<li>Introduced <code>org.http4s.syntax.literals</code>, which contains a <code>StringContext</code> forAll
+safely constructing a <code>Uri.Scheme</code>.  More will follow.</li>
+<li><code>org.http4s.util.StreamApp.ExitCode</code> moved to <code>org.http4s.util.ExitCode</code></li>
+<li>Changed <code>AuthService[F[_], T]</code> to <code>AuthService[T, F[_]]</code> to support
+partial unification when combining services as a <code>SemigroupK</code>.</li>
+<li>Unseal the <code>MessageFailure</code> hierarchy. Previous versions of http4s had a
+<code>GenericParsingFailure</code>, <code>GenericDecodeFailure</code>, and
+<code>GenericMessageBodyFailure</code>. This was not compatible with the parameterized
+effect introduced in v0.18. Now, <code>MessageFailure</code> is unsealed, so users
+wanting precise control over the default <code>toHttpResponse</code> can implement their
+own failure conditions.</li>
+<li><code>MessageFailure</code> now has an <code>Option[Throwable]</code> cause.</li>
+<li>Removed <code>KleisliInstances</code>. The <code>SemigroupK[Kleisli[F, A, ?]]</code> is now provided
+by cats.  Users should no longer need to import <code>org.http4s.implicits._</code> to
+get <code>&lt;+&gt;</code> composition of <code>HttpService</code>s</li>
+<li><code>NonEmptyList</code> extensions moved from <code>org.http4s.util.nonEmptyList</code> to
+<code>org.http4s.syntax.nonEmptyList</code>.</li>
+<li>Dependency upgrades:
+
+<ul>
+<li>cats-1.0.0-RC1</li>
+<li>fs2-0.10.0-M8</li>
+<li>fs2-reactive-streams-0.2.5</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-0-m4-2017-10-12">v0.18.0-M4 (2017-10-12)</h1>
 
 <ul>
