@@ -96,7 +96,7 @@ If you're working with [twirl] templates, there's a bridge for that too:
 
 - scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
 
-[introduction-to-functional-streams]: https://github.com/functional-streams-for-scala/fs2
+[introduction-to-functional-streams]: https://youtu.be/cahvyadYfX8
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
 [EntityDecoder]: ../api/org/http4s/EntityDecoder$
 [MediaType]: ../api/org/http4s/MediaType$
