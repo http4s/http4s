@@ -1295,9 +1295,9 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
 </p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
 </p></div><dl class="paramcmts block"><dt class="tparam">V</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withContentType(contentType:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Option[Content-Type])(Functor[F]):Self"></a>
+      <a id="withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Content-Type)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/MessageOps.html#withContentType(contentType:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/MessageOps.html#withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1306,7 +1306,23 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.MessageOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.MessageOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.MessageOps#withContentTypeOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentTypeOption(Option[Content-Type])(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MessageOps.html#withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContentTypeOption</span><span class="params">(<span name="contentTypeO">contentTypeO: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.MessageOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
       </span>
       
       
@@ -1342,6 +1358,22 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       </span>
       
       <p class="shortcomment cmt">Added the <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">org.http4s.headers.Content-Type</a> header to the response</p>
+    </li><li name="org.http4s.MessageOps#withoutContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withoutContentType(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withoutContentType(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/MessageOps.html#withoutContentType(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withoutContentType</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.MessageOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+      </span>
+      
+      
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(MessageOps[F],B)"></a>
       <span class="permalink">

@@ -2117,9 +2117,9 @@ or <code>Content-Length</code>. Most use cases are better served by <a href="#wi
 which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> to maintain the headers.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withContentType(contentType:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Option[Content-Type])(Functor[F]):Self"></a>
+      <a id="withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Content-Type)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Request.html#withContentType(contentType:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/Request.html#withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2128,7 +2128,23 @@ which uses an <a href="EntityEncoder.html" class="extype" name="org.http4s.Entit
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.MessageOps#withContentTypeOption" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentTypeOption(Option[Content-Type])(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#withContentTypeOption(contentTypeO:Option[org.http4s.headers.Content-Type])(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContentTypeOption</span><span class="params">(<span name="contentTypeO">contentTypeO: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -2263,6 +2279,22 @@ that make no sense with an empty body.
       </span>
       
       
+    </li><li name="org.http4s.MessageOps#withoutContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withoutContentType(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withoutContentType(Functor[F]):Self"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Request.html#withoutContentType(implicitF:cats.Functor[F]):MessageOps.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withoutContentType</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.Request.F">F</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request[F]" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(Request[F],B)"></a>
       <span class="permalink">

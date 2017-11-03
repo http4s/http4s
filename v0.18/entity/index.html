@@ -126,6 +126,9 @@ determine which of the chained decoders are to be used.</p>
 <pre><code class="language-scala">scala&gt; import org.http4s._
 import org.http4s._
 
+scala&gt; import org.http4s.headers.`Content-Type`
+import org.http4s.headers.Content$minusType
+
 scala&gt; import org.http4s.dsl.io._
 import org.http4s.dsl.io._
 
@@ -144,25 +147,25 @@ defined class Audio
 scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
-scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(Some(MediaType.`audio/ogg`)))
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$540308571
+scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(`Content-Type`(MediaType.`audio/ogg`)))
+response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1626025067
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@73168c62
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@58a19f85
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@5a5fc71b
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@42f775ce
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@4a4ae101
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@a0b6710
 
 scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
 Audio()
