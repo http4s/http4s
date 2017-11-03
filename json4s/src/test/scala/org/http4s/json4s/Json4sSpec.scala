@@ -86,14 +86,14 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     "decode json from a message" in {
       val req = Request[IO]()
         .withBody("42")
-        .map(_.withContentType(Some(MediaType.`application/json`)))
+        .map(_.withContentType(`Content-Type`(MediaType.`application/json`)))
       req.flatMap(_.decodeJson[Option[Int]]) must returnValue(Some(42))
     }
 
     "fail on invalid json" in {
       val req = Request[IO]()
         .withBody("not a number")
-        .map(_.withContentType(Some(MediaType.`application/json`)))
+        .map(_.withContentType(`Content-Type`(MediaType.`application/json`)))
       req.flatMap(_.decodeJson[Int]).attempt.unsafeRunSync must beLeft
     }
   }

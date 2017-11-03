@@ -333,7 +333,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "Use an charset defined by the Content-Type header" in {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
-        .map(_.withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`)))))
+        .map(_.withContentType(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
         .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`US-ASCII`)) must returnValue(
         str)
     }
@@ -341,7 +341,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "Use the default if the Content-Type header does not define one" in {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
-        .map(_.withContentType(Some(`Content-Type`(MediaType.`text/plain`, None))))
+        .map(_.withContentType(`Content-Type`(MediaType.`text/plain`, None)))
         .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`UTF-8`)) must returnValue(str)
     }
   }

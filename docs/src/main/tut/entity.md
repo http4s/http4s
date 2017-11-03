@@ -46,6 +46,7 @@ determine which of the chained decoders are to be used.
 
 ```tut
 import org.http4s._
+import org.http4s.headers.`Content-Type`
 import org.http4s.dsl.io._
 import cats._, cats.effect._, cats.implicits._, cats.data._
 
@@ -53,7 +54,7 @@ sealed trait Resp
 case class Audio(body: String) extends Resp
 case class Video(body: String) extends Resp
 
-val response = Ok("").map(_.withContentType(Some(MediaType.`audio/ogg`)))
+val response = Ok("").map(_.withContentType(`Content-Type`(MediaType.`audio/ogg`)))
 val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =>
   EitherT {
     msg.as[String].map(s => Audio(s).asRight[DecodeFailure])
