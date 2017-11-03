@@ -90,8 +90,8 @@ streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don&rsquo;t have to load the full body into memory to submit the
 request either. Taking a look at <code>Request[F]</code> and <code>Response[F]</code>, both have a body of
-type <code>EntityBody[F]</code>, which is simply an alias to <code>Stream[F, ByteVector]</code>. To
-understand <code>Stream</code>, take a look at the <a href="https://gist.github.com/djspiewak/d93a9c4983f63721c41c">streams-tutorial</a>.</p>
+type <code>EntityBody[F]</code>, which is simply an alias to <code>Stream[F, Byte]</code>. To
+understand <code>Stream</code>, take a look at the <a href="https://youtu.be/cahvyadYfX8">introduction-to-functional-streams</a>.</p>
 
 <p>The <code>EntityDecoder</code> and <code>EntityEncoder</code> help with the streaming nature of the
 data in a http body, and they also have additional logic to deal with media
@@ -145,24 +145,24 @@ scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
 scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(Some(MediaType.`audio/ogg`)))
-response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1733793378
+response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$540308571
 
 scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@b9cf381
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$3@73168c62
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@61f12c6e
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$3@5a5fc71b
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@6e9a6a3a
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@4a4ae101
 
 scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
 Audio()
