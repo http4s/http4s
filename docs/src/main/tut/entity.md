@@ -12,8 +12,8 @@ streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don't have to load the full body into memory to submit the
 request either. Taking a look at `Request[F]` and `Response[F]`, both have a body of
-type `EntityBody[F]`, which is simply an alias to `Stream[F, ByteVector]`. To
-understand `Stream`, take a look at the [streams-tutorial].
+type `EntityBody[F]`, which is simply an alias to `Stream[F, Byte]`. To
+understand `Stream`, take a look at the [introduction-to-functional-streams].
 
 The `EntityDecoder` and `EntityEncoder` help with the streaming nature of the
 data in a http body, and they also have additional logic to deal with media
@@ -96,7 +96,7 @@ If you're working with [twirl] templates, there's a bridge for that too:
 
 - scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
 
-[streams-tutorial]: https://gist.github.com/djspiewak/d93a9c4983f63721c41c
+[introduction-to-functional-streams]: https://youtu.be/cahvyadYfX8
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
 [EntityDecoder]: ../api/org/http4s/EntityDecoder$
 [MediaType]: ../api/org/http4s/MediaType$
