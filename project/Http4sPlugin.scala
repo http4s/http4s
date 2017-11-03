@@ -265,7 +265,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.37"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.9"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.10"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % "0.5"
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "1.0.0-RC1"
@@ -308,5 +308,5 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.23"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.12"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.13"
 }
