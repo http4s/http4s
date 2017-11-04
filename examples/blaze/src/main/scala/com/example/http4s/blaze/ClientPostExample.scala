@@ -8,6 +8,6 @@ import org.http4s.dsl.io._
 
 object ClientPostExample extends App with Http4sClientDsl[IO] {
   val req = POST(uri("https://duckduckgo.com/"), UrlForm("q" -> "http4s"))
-  val responseBody = client[IO].expect[String](req)
+  val responseBody = client[IO].flatMap(_.expect[String](req))
   println(responseBody.unsafeRunSync())
 }

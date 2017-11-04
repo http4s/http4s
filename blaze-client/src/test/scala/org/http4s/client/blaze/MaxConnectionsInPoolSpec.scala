@@ -16,9 +16,9 @@ class MaxConnectionsInPoolSpec extends Http4sSpec {
 
   private val timeout = 30.seconds
 
-  private val failClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 0)
-  private val successClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1)
-  private val client = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 3)
+  private val failClient = Http1Client[IO](maxConnectionsPerRequestKey = _ => 0).unsafeRunSync
+  private val successClient = Http1Client[IO](maxConnectionsPerRequestKey = _ => 1).unsafeRunSync
+  private val client = Http1Client[IO](maxConnectionsPerRequestKey = _ => 3).unsafeRunSync
 
   val jettyServ = new JettyScaffold(5)
   var addresses = Vector.empty[InetSocketAddress]

@@ -2,12 +2,14 @@ package org.http4s
 package client
 
 import cats.effect._
+import fs2.Stream
 
 package object blaze {
 
-  /** Default blaze client
-    *
-    * This client will create a new connection for every request.
-    */
-  def defaultClient[F[_]: Effect]: Client[F] = SimpleHttp1Client(BlazeClientConfig.defaultConfig)
+  def defaultClient[F[_]: Effect]: F[Client[F]] = Http1Client()
+
+  def defaultClientStream[F[_]: Effect]: Stream[F, Client[F]] = Http1Client.stream()
+
+  @deprecated("Use Http1Client instead", "0.18.0-M6")
+  type PooledHttp1Client = Http1Client.type
 }
