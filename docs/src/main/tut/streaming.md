@@ -93,7 +93,7 @@ object twstream {
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 
   // Remember, this `Client` needs to be cleanly shutdown
-  val client = PooledHttp1Client[IO]()
+  val client = Http1Client[IO]().unsafeRunSync
 
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.

@@ -236,7 +236,7 @@ import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._
 
-val httpClient = PooledHttp1Client[IO]()
+val httpClient = Http1Client[IO]().unsafeRunSync
 // Decode the Hello response
 def helloClient(name: String): IO[Hello] = {
   // Encode a User request

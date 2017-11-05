@@ -50,7 +50,7 @@ speaks HTTP 1.x.
 ```tut:book
 import org.http4s.client.blaze._
 
-val httpClient = PooledHttp1Client[IO]()
+val httpClient = Http1Client[IO]().unsafeRunSync
 ```
 
 ### Describing a call
