@@ -388,6 +388,13 @@ trait ArbitraryInstances {
         headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload)
     }
 
+  implicit val arbitraryTransferEncoding: Arbitrary[`Transfer-Encoding`] =
+    Arbitrary {
+      for {
+        codings <- arbitrary[NonEmptyList[TransferCoding]]
+      } yield `Transfer-Encoding`(codings)
+    }
+
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
