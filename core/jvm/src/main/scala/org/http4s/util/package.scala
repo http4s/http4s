@@ -6,7 +6,7 @@ import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.StandardCharsets
 import scala.concurrent.ExecutionContextExecutor
 
-package object util {
+package object util extends PlatformUtil {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt

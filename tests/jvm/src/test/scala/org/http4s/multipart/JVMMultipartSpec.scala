@@ -9,7 +9,6 @@ import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.Headers._
 import org.http4s.Uri._
-import org.http4s.util._
 import org.http4s.EntityEncoder._
 import org.specs2.Specification
 
@@ -27,7 +26,7 @@ class JVMMultipartSpec extends Specification {
      """
 
   val url = Uri(
-    scheme = Some(CaseInsensitiveString("https")),
+    scheme = Some(Scheme.https),
     authority = Some(Authority(host = RegName("example.com"))),
     path = "/path/to/some/where")
 
