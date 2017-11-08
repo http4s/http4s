@@ -20,8 +20,10 @@ object AuthedService {
     */
   def apply[T, F[_]](pf: PartialFunction[AuthedRequest[F, T], F[Response[F]]])(
       implicit F: Applicative[F]): AuthedService[T, F] =
-    Kleisli(req => pf.andThen(OptionT.liftF(_))
-      .applyOrElse(req, Function.const(OptionT.pure(Response[F](Status.Unauthorized)))))
+    Kleisli(
+      req =>
+        pf.andThen(OptionT.liftF(_))
+          .applyOrElse(req, Function.const(OptionT.pure(Response[F](Status.Unauthorized)))))
 
   /**
     * The empty service (all requests fallthrough).
