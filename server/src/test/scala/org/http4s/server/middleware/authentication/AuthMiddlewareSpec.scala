@@ -5,6 +5,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.AuthMiddleware
+import cats.syntax.semigroupk._
 
 class AuthMiddlewareSpec extends Http4sSpec {
 
@@ -76,6 +77,94 @@ class AuthMiddlewareSpec extends Http4sSpec {
       service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Ok)
       service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(NotFound)
     }
+
+    "return 404 for an unmatched but authenticated route" in {
+      val userId: User = 42
+
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.pure(userId)
+
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val middleware = AuthMiddleware(authUser)
+
+      val service = middleware(authedService)
+
+      service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Ok)
+      service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(NotFound)
+    }
+
+    "return 401 for a matched, but unauthenticated route" in {
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.lift(OptionT.none)
+
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val middleware = AuthMiddleware(authUser)
+
+      val service = middleware(authedService)
+
+      service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Unauthorized)
+      service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(Unauthorized)
+    }
+
+    "compose authedServices and not fall through" in {
+      val userId: User = 42
+
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.pure(userId)
+
+
+      val authedService1: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val authedService2: AuthedService[User, IO] =
+        AuthedService {
+          case GET -> Root as _ => Ok()
+        }
+
+
+      val middleware = AuthMiddleware(authUser)
+
+      val service = middleware(authedService1 <+> authedService2)
+
+      service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(Ok)
+      service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Ok)
+    }
+
+    "consume the entire request for an unauthenticated route for service composition" in {
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.lift(OptionT.none)
+
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val regularService: HttpService[IO] = HttpService[IO] {
+        case GET -> Root => Ok()
+      }
+
+      val middleware = AuthMiddleware(authUser)
+
+      val service = middleware(authedService)
+
+      (service <+> regularService).orNotFound(Request[IO](method = Method.POST)) must returnStatus(Unauthorized)
+      (service <+> regularService).orNotFound(Request[IO](method = Method.GET)) must returnStatus(Unauthorized)
+    }
+
+
   }
 
 }
