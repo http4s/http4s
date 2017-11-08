@@ -4,6 +4,10 @@ menu: main
 weight: 1
 ---
 
+**Note**: To run examples, please make sure that the flag `-Ypartial-unification`  
+is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt.)
+
+
 Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
