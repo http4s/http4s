@@ -74,7 +74,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val service = middleWare(authedService)
 
       service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Ok)
-      service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(NotFound)
+      service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(Unauthorized)
     }
   }
 
