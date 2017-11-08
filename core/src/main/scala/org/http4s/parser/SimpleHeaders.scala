@@ -68,7 +68,7 @@ private[parser] trait SimpleHeaders {
     new Http4sHeaderParser[`Content-Encoding`](value) {
       def entry = rule {
         Token ~ EOL ~> { s: String =>
-          `Content-Encoding`(ContentCoding.getOrElseCreate(s.ci))
+          `Content-Encoding`(ContentCoding.standard.getOrElse(s, ContentCoding(s)))
         }
       }
     }.parse

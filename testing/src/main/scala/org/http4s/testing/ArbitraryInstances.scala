@@ -204,8 +204,9 @@ trait ArbitraryInstances {
         }
       } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail: _*)
     }
+
   def genContentCodingNoQuality: Gen[ContentCoding] =
-    oneOf(ContentCoding.registered.toSeq)
+    oneOf(ContentCoding.standard.values.toSeq)
 
   implicit val arbitraryContentCoding: Arbitrary[ContentCoding] =
     Arbitrary {
@@ -214,6 +215,9 @@ trait ArbitraryInstances {
         q <- arbitrary[QValue]
       } yield cc.withQValue(q)
     }
+
+  implicit val cogenContentCoding: Cogen[ContentCoding] =
+    Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
 
   implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
     Arbitrary {

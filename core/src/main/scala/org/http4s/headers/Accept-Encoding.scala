@@ -2,8 +2,8 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.syntax.eq._
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.syntax.string._
 
 object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Encoding`] =
@@ -21,10 +21,10 @@ final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding])
 
   def qValue(coding: ContentCoding): QValue = {
     def specific = values.toList.collectFirst {
-      case cc: ContentCoding if cc.coding != "*".ci && cc.matches(coding) => cc.qValue
+      case cc: ContentCoding if cc =!= ContentCoding.`*` && cc.matches(coding) => cc.qValue
     }
     def splatted = values.toList.collectFirst {
-      case cc: ContentCoding if cc.coding == "*".ci => cc.qValue
+      case cc: ContentCoding if cc === ContentCoding.`*` => cc.qValue
     }
     specific.orElse(splatted).getOrElse(QValue.Zero)
   }

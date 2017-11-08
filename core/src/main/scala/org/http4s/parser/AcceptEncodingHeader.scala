@@ -19,10 +19,8 @@ package org.http4s
 package parser
 
 import org.http4s.internal.parboiled2._
-import org.http4s.ContentCoding._
-import org.http4s.QValue.QValueParser
+import org.http4s.ContentCoding.ContentCodingParser
 import org.http4s.headers.`Accept-Encoding`
-import org.http4s.util.CaseInsensitiveString
 
 private[parser] trait AcceptEncodingHeader {
   def ACCEPT_ENCODING(value: String): ParseResult[`Accept-Encoding`] =
@@ -30,7 +28,7 @@ private[parser] trait AcceptEncodingHeader {
 
   private class AcceptEncodingParser(input: ParserInput)
       extends Http4sHeaderParser[`Accept-Encoding`](input)
-      with QValueParser {
+      with ContentCodingParser {
 
     def entry: Rule1[`Accept-Encoding`] = rule {
       oneOrMore(EncodingRangeDecl).separatedBy(ListSep) ~ EOL ~> { xs: Seq[ContentCoding] =>
@@ -38,18 +36,5 @@ private[parser] trait AcceptEncodingHeader {
       }
     }
 
-    def EncodingRangeDecl: Rule1[ContentCoding] = rule {
-      (EncodingRangeDef ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
-        if (q == org.http4s.QValue.One) coding
-        else coding.withQValue(q)
-      }
-    }
-
-    def EncodingRangeDef: Rule1[ContentCoding] = rule {
-      "*" ~ push(`*`) | Token ~> { s: String =>
-        val cis = CaseInsensitiveString(s)
-        org.http4s.ContentCoding.getOrElseCreate(cis)
-      }
-    }
   }
 }
