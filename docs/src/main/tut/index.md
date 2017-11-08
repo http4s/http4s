@@ -5,7 +5,8 @@ weight: 1
 ---
 
 **Note**: To run examples, please make sure that the flag `-Ypartial-unification`  
-is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt.)
+is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unification"` in sbt).
+This is enabled by default in the giter8 template.
 
 
 Getting started with http4s is easy.  Let's materialize an http4s
