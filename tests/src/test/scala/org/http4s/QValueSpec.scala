@@ -7,8 +7,8 @@ import org.http4s.testing.HttpCodecTests
 class QValueSpec extends Http4sSpec {
   import QValue._
 
-  checkAll("QValue", OrderTests[QValue].order)
-  checkAll("HttpCodec", HttpCodecTests[QValue].httpCodec)
+  checkAll("Order[QValue]", OrderTests[QValue].order)
+  checkAll("HttpCodec[QValue]", HttpCodecTests[QValue].httpCodec)
 
   "sort by descending q-value" in {
     prop { (x: QValue, y: QValue) =>
