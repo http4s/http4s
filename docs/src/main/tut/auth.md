@@ -136,10 +136,9 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
 
 ### Using tsec-http4s for Authentication and Authorization
 The [TSec] project provides an authentication and authorization module
- for the http4s project 0.18-M4+. Docs specific to http4s are located [here].
+ for the http4s project 0.18-M4+. Docs specific to http4s are located [Here](https://jmcardon.github.io/tsec/docs/http4s-auth.html).
 
 [service]: ../service
 [SPA]: https://en.wikipedia.org/wiki/Single-page_application
 [ADT]: http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html
 [TSec]: https://jmcardon.github.io/tsec/
-[here]: https://jmcardon.github.io/tsec/docs/http4s-auth.html
