@@ -232,6 +232,13 @@ trait ArbitraryInstances {
       } yield `Accept-Encoding`(contentCodingsWithQ.head, contentCodingsWithQ.tail: _*)
     }
 
+  implicit val arbitraryContentEncoding: Arbitrary[`Content-Encoding`] =
+    Arbitrary {
+      for {
+        contentCoding <- genContentCodingNoQuality
+      } yield `Content-Encoding`(contentCoding)
+    }
+
   def genLanguageTagNoQuality: Gen[LanguageTag] =
     frequency(
       3 -> (for {
