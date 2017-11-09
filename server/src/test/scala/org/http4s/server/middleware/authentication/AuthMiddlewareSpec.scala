@@ -78,7 +78,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
       service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(NotFound)
     }
 
-    "return 404 for an unmatched but authenticated route" in {
+    "return 200 for a matched and authenticated route" in {
       val userId: User = 42
 
       val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
@@ -94,6 +94,23 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val service = middleware(authedService)
 
       service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Ok)
+    }
+
+    "return 404 for an unmatched but authenticated route" in {
+      val userId: User = 42
+
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.pure(userId)
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val middleware = AuthMiddleware(authUser)
+
+      val service = middleware(authedService)
+
       service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(NotFound)
     }
 
@@ -111,6 +128,21 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val service = middleware(authedService)
 
       service.orNotFound(Request[IO](method = Method.POST)) must returnStatus(Unauthorized)
+    }
+
+    "return 401 for an unmatched, unauthenticated route" in {
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.lift(OptionT.none)
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val middleware = AuthMiddleware(authUser)
+
+      val service = middleware(authedService)
+
       service.orNotFound(Request[IO](method = Method.GET)) must returnStatus(Unauthorized)
     }
 
