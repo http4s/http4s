@@ -4,13 +4,15 @@ weight: 120
 title: Authentication
 ---
 
-A [service] is a `Kleisli[F, Request, Response]`, the composable version of
-`Request[F] => F[Response[F]]`. A service with authentication also requires some kind of `User`
-object which identifies which user did the request. To store the `User` object
-along with the `Request`, there's `AuthedRequest[F, User]`, which is equivalent to
+## Built in
+
+A [service] is a `Kleisli[OptionT[F, ?], Request[F], Response[F]]`, the composable version of
+`Request[F] => OptionT[F, Response[F]]`. A service with authentication also requires some kind of `User`
+object which identifies which user did the request. To reference the `User` object
+along with the `Request[F]`, there's `AuthedRequest[F, User]`, which is equivalent to
 `(User, Request[F])`. So the service has the signature `AuthedRequest[F, User] =>
-F[Response[F]]`, or `AuthedService[User, F]`. So we'll need a `Request[F] => User`
-function, or more likely, a `Request[F] => F[User]`, because the `User` will
+OptionT[F, Response[F]]`, or `AuthedService[User, F]`. So we'll need a `Request[F] => Option[User]`
+function, or more likely, a `Request[F] => OptionT[F, User]`, because the `User` can
 come from a database. We can convert that into an `AuthMiddleware` and apply it.
 Or in code, using `cats.effect.IO` as the effect type:
 
@@ -132,6 +134,11 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
 })
 ```
 
+### Using tsec-http4s for Authentication and Authorization
+The [TSec] project provides an authentication and authorization module
+ for the http4s project 0.18-M4+. Docs specific to http4s are located [Here](https://jmcardon.github.io/tsec/docs/http4s-auth.html).
+
 [service]: ../service
 [SPA]: https://en.wikipedia.org/wiki/Single-page_application
 [ADT]: http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html
+[TSec]: https://jmcardon.github.io/tsec/
