@@ -1,15 +1,11 @@
 package org.http4s
 package client
 
-import cats.effect._
-import fs2.Stream
+import cats.effect.Effect
 
 package object blaze {
 
-  def defaultClient[F[_]: Effect]: F[Client[F]] = Http1Client()
+  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M6")
+  def defaultClient[F[_]: Effect]: Client[F] = PooledHttp1Client()
 
-  def defaultClientStream[F[_]: Effect]: Stream[F, Client[F]] = Http1Client.stream()
-
-  @deprecated("Use Http1Client instead", "0.18.0-M6")
-  type PooledHttp1Client = Http1Client.type
 }
