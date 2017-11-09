@@ -56,6 +56,31 @@ package object util {
     breakBigChunks() pipe go() onComplete flush()
   }
 
+  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
+  private val Digits: Array[Char] = Array('0', '1', '2', '3', '4', '5', '6',
+    '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
+
+  /** Encode a string to a Hexadecimal string representation
+    * Adapted from apache commons Hex.encodeHex
+    */
+  def encodeHex(data: Array[Byte]): Array[Char] = {
+    val l = data.length
+    val out = new Array[Char](l << 1)
+    // two characters form the hex value.
+    var i = 0
+    var j = 0
+    while (i < l) {
+      out(j) = Digits((0xF0 & data(i)) >>> 4)
+      j += 1
+      out(j) = Digits(0x0F & data(i))
+      j += 1
+      i += 1
+    }
+    out
+  }
+
+
+
   /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */
   def bug(message: String): AssertionError =
     new AssertionError(s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
