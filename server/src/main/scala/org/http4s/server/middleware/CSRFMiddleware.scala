@@ -73,7 +73,7 @@ final class CSRFMiddleware private[middleware] (
         (for {
           c1 <- CSRFMiddleware.cookieFromHeaders(r, cookieName)
           c2 <- OptionT(
-            Task.point(r.headers.get(CaseInsensitiveString(headerName))))
+            Task.now(r.headers.get(CaseInsensitiveString(headerName))))
           raw1 <- extractRaw(c1.content)
           raw2 <- extractRaw(c2.value)
           response <- if (CSRFMiddleware.isEqual(raw1, raw2)) {
@@ -142,7 +142,7 @@ object CSRFMiddleware {
       request: Request,
       headerName: String): OptionT[Task, Cookie] =
     OptionT(
-      Task.point(
+      Task.now(
         HCookie
           .from(request.headers)
           .flatMap(_.values.find(_.name == headerName))))
