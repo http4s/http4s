@@ -7,7 +7,7 @@ import org.http4s.util.threads.newDaemonPoolExecutionContext
 
 class BlazeHttp1ClientSpec
     extends ClientRouteTestBattery(
-      "Blaze PooledHttp1Client",
+      "Blaze Http1Client",
       Http1Client[IO](
         BlazeClientConfig.defaultConfig.copy(
           executionContext = newDaemonPoolExecutionContext(
