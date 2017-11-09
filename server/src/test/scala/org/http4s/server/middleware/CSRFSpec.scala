@@ -93,7 +93,7 @@ class CSRFSpec extends Http4sSpec {
               .addCookie(Cookie(csrf.cookieName, token))
               .putHeaders(Header(csrf.headerName, token))
           )
-          c <- Task.point(
+          c <- Task.now(
             HCookie
               .from(res.orNotFound.headers)
               .map(_.cookie)
