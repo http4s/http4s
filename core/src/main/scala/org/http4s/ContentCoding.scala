@@ -22,17 +22,18 @@ import cats.{Order, Show}
 import cats.syntax.eq._
 import cats.instances.tuple._
 import cats.instances.string._
+import org.http4s.QValue.QValueParser
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Http4sParser
 import org.http4s.util._
-import org.http4s.QValue.QValueParser
+
 import scala.util.hashing.MurmurHash3
 
-class ContentCoding(val coding: String, override val qValue: QValue = QValue.One)
+class ContentCoding private (val coding: String, override val qValue: QValue = QValue.One)
     extends HasQValue
     with Ordered[ContentCoding]
     with Renderable {
-  def withQValue(q: QValue): ContentCoding = ContentCoding(coding, q)
+  def withQValue(q: QValue): ContentCoding = new ContentCoding(coding, q)
 
   @deprecated("Use `Accept-Encoding`.isSatisfiedBy(encoding)", "0.16.1")
   def satisfies(encoding: ContentCoding): Boolean = encoding.satisfiedBy(this)
@@ -46,7 +47,8 @@ class ContentCoding(val coding: String, override val qValue: QValue = QValue.One
     (this === ContentCoding.`*` || this.coding.equalsIgnoreCase(encoding.coding))
 
   override def equals(o: Any) = o match {
-    case that: ContentCoding => this.coding.equalsIgnoreCase(that.coding) && this.qValue === that.qValue
+    case that: ContentCoding =>
+      this.coding.equalsIgnoreCase(that.coding) && this.qValue === that.qValue
     case _ => false
   }
 
@@ -63,22 +65,26 @@ class ContentCoding(val coding: String, override val qValue: QValue = QValue.One
   override def compare(other: ContentCoding): Int =
     ContentCoding.order.compare(this, other)
 
-  override def render(writer: Writer): writer.type = writer << coding.toLowerCase << qValue
+  override def render(writer: Writer): writer.type =
+    ContentCoding.http4sInstancesForContentCoding.render(writer, this)
 }
 
 object ContentCoding {
-  def apply(coding: String): ContentCoding = new ContentCoding(coding)
-  def apply(coding: String, qValue: QValue): ContentCoding = new ContentCoding(coding, qValue)
+  def unsafeFromString(coding: String): ContentCoding =
+    fromString(coding).valueOr(throw _)
 
-  val `*` : ContentCoding = ContentCoding("*")
+  def fromString(coding: String): ParseResult[ContentCoding] =
+    parse(coding)
+
+  val `*` : ContentCoding = new ContentCoding("*")
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
-  val compress = ContentCoding("compress")
-  val deflate = ContentCoding("deflate")
-  val exi = ContentCoding("exi")
-  val gzip = ContentCoding("gzip")
-  val identity = ContentCoding("identity")
-  val `pack200-gzip` = ContentCoding("pack200-gzip")
+  val compress = new ContentCoding("compress")
+  val deflate = new ContentCoding("deflate")
+  val exi = new ContentCoding("exi")
+  val gzip = new ContentCoding("gzip")
+  val identity = new ContentCoding("identity")
+  val `pack200-gzip` = new ContentCoding("pack200-gzip")
 
   // Legacy encodings defined by RFC2616 3.5.
   val `x-compress` = compress
@@ -99,14 +105,14 @@ object ContentCoding {
 
     def EncodingRangeDecl: Rule1[ContentCoding] = rule {
       (EncodingRangeDef ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
-        if (q == org.http4s.QValue.One) coding
+        if (q === org.http4s.QValue.One) coding
         else coding.withQValue(q)
       }
     }
 
     def EncodingRangeDef: Rule1[ContentCoding] = rule {
       "*" ~ push(ContentCoding.`*`) | Token ~> { s: String =>
-        ContentCoding.standard.getOrElse(s, ContentCoding(s))
+        ContentCoding.standard.getOrElse(s, new ContentCoding(s))
       }
     }
   }

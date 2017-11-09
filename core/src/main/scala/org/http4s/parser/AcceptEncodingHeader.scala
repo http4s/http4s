@@ -18,9 +18,9 @@
 package org.http4s
 package parser
 
-import org.http4s.internal.parboiled2._
 import org.http4s.ContentCoding.ContentCodingParser
 import org.http4s.headers.`Accept-Encoding`
+import org.http4s.internal.parboiled2._
 
 private[parser] trait AcceptEncodingHeader {
   def ACCEPT_ENCODING(value: String): ParseResult[`Accept-Encoding`] =

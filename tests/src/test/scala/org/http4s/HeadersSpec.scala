@@ -57,11 +57,12 @@ class HeadersSpec extends Http4sSpec {
     }
 
     "Work with Raw headers (++)" in {
-      val h1 = `Accept-Encoding`(ContentCoding("foo")).toRaw
-      val h2 = `Accept-Encoding`(ContentCoding("bar")).toRaw
+      val foo = ContentCoding.unsafeFromString("foo")
+      val bar = ContentCoding.unsafeFromString("bar")
+      val h1 = `Accept-Encoding`(foo).toRaw
+      val h2 = `Accept-Encoding`(bar).toRaw
       val hs = Headers(clength.toRaw) ++ Headers(h1) ++ Headers(h2)
-      hs.get(`Accept-Encoding`) must beSome(
-        `Accept-Encoding`(ContentCoding("foo"), ContentCoding("bar")))
+      hs.get(`Accept-Encoding`) must beSome(`Accept-Encoding`(foo, bar))
       hs.exists(_ == clength) must_== true
     }
 

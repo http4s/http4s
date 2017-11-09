@@ -1,7 +1,7 @@
 package org.http4s
 
-import cats.kernel.laws.discipline.OrderTests
 import cats.implicits._
+import cats.kernel.laws.discipline.OrderTests
 import org.http4s.testing.HttpCodecTests
 import org.http4s.util.Renderer
 
@@ -21,7 +21,8 @@ class ContentCodingSpec extends Http4sSpec {
     }
     "be consistent with qValue.compareTo for same coding" in {
       prop { (a: ContentCoding, b: ContentCoding) =>
-        (a.coding.toLowerCase == b.coding.toLowerCase) must_==(a.qValue.compareTo(b.qValue) == a.compare(b))
+        (a.coding.toLowerCase == b.coding.toLowerCase) must_== (a.qValue.compareTo(b.qValue) == a
+          .compare(b))
       }
     }
   }
@@ -44,13 +45,33 @@ class ContentCodingSpec extends Http4sSpec {
       }
   }
 
+  "parses" should {
+    "parse plain coding" in {
+      ContentCoding.parse("gzip") must_== ParseResult.success(ContentCoding.gzip)
+    }
+    "parse custom codings" in {
+      ContentCoding.parse("mycoding") must_== ContentCoding.fromString("mycoding")
+    }
+    "parse with quality" in {
+      ContentCoding.parse("gzip;q=0.8") must_== QValue
+        .fromDouble(0.8)
+        .map(qv => ContentCoding.gzip.withQValue(qv))
+    }
+    "fail on empty" in {
+      ContentCoding.parse("") must beLeft
+      ContentCoding.parse(";q=0.8") must beLeft
+    }
+    "parse *" in {
+      ContentCoding.parse("*") must_== ParseResult.success(ContentCoding.`*`)
+    }
+  }
+
   "render" should {
     "return coding and quality" in
       prop { s: ContentCoding =>
-        Renderer.renderString(s) must_== s"${s.coding}${Renderer.renderString(s.qValue)}"
+        Renderer.renderString(s) must_== s"${s.coding.toLowerCase}${Renderer.renderString(s.qValue)}"
       }
   }
-
 
   checkAll("Order[ContentCoding]", OrderTests[ContentCoding].order)
   checkAll("HttpCodec[ContentCoding]", HttpCodecTests[ContentCoding].httpCodec)
