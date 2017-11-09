@@ -224,7 +224,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     }
 
     "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Stream.fail(SadTrombone)).run)
+      assertDisposes(_.streaming(req)(_ => Stream.raiseError(SadTrombone)).run)
     }
 
     "toService disposes of the response on success" in {
@@ -242,7 +242,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     "toHttpService disposes of the response if the body is run, even if it fails" in {
       assertDisposes(
         _.toHttpService.orNotFound
-          .flatMapF(_.body.flatMap(_ => Stream.fail(SadTrombone)).run)
+          .flatMapF(_.body.flatMap(_ => Stream.raiseError(SadTrombone)).run)
           .run(req))
     }
 

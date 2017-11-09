@@ -64,8 +64,8 @@ class Http1WriterSpec extends Http4sSpec {
     }
 
     "Write a body that fails and falls back" in {
-      val p = eval(IO.raiseError(Failed)).onError { _ =>
-        chunk(messageBuffer)
+      val p = Stream.eval[IO, Byte](IO.raiseError(Failed)).handleErrorWith { _ =>
+        Stream.chunk(messageBuffer).covary[IO]
       }
       writeEntityBody(p)(builder) must_== "Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message
     }
@@ -169,8 +169,8 @@ class Http1WriterSpec extends Http4sSpec {
     "Elide empty chunks" in {
       // n.b. We don't do anything special here.  This is a feature of
       // fs2, but it's important enough we should check it here.
-      val p: Stream[IO, Byte] = chunk(Chunk.empty) ++ chunk(messageBuffer)
-      writeEntityBody(p.covary[IO])(builder) must_==
+      val p: Stream[IO, Byte] = (Stream.chunk(Chunk.empty[Byte]) ++ Stream.chunk(messageBuffer)).covary[IO]
+      writeEntityBody(p)(builder) must_==
         """Content-Type: text/plain
           |Transfer-Encoding: chunked
           |
@@ -182,7 +182,7 @@ class Http1WriterSpec extends Http4sSpec {
     }
 
     "Write a body that fails and falls back" in {
-      val p = eval(IO.raiseError(Failed)).onError { _ =>
+      val p = Stream.eval[IO, Byte](IO.raiseError(Failed)).handleErrorWith { _ =>
         chunk(messageBuffer)
       }
       writeEntityBody(p)(builder) must_==
@@ -211,7 +211,7 @@ class Http1WriterSpec extends Http4sSpec {
       clean must_== true
 
       clean = false
-      val p2 = eval(IO.raiseError(new RuntimeException("asdf"))).onFinalize(IO { clean = true; () })
+      val p2 = Stream.eval[IO, Byte](IO.raiseError(new RuntimeException("asdf"))).onFinalize(IO { clean = true; () })
       writeEntityBody(p2)(builder)
       clean must_== true
     }
@@ -260,7 +260,7 @@ class Http1WriterSpec extends Http4sSpec {
 
       {
         var clean = false
-        val p = eval(IO.raiseError(Failed)).onFinalize(IO { clean = true; () })
+        val p = Stream.eval[IO, Byte](IO.raiseError(Failed)).onFinalize(IO { clean = true; () })
 
         new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync must beLeft
         clean must_== true
