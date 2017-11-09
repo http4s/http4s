@@ -7,6 +7,7 @@ import scalaz.stream.Process._
 import org.http4s.Uri.uri
 import org.http4s.dsl._
 import org.http4s.headers.{`Set-Cookie` => HCookie}
+import org.http4s.internal.compatibility._
 
 class CSRFSpec extends Http4sSpec {
 
