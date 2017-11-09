@@ -18,6 +18,9 @@ import scala.concurrent.duration.Duration
   * before a timeout.  Does not include time to acquire the the
   * connection, but does include time to read the response
   * @param userAgent optional custom user agent header
+  * @param maxTotalConnections maximum connections the client will have at any specific time
+  * @param maxWaitQueueLimit maximum number requests waiting for a connection at any specific time
+  * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
   * @param sslContext optional custom `SSLContext` to use to replace
   * the default, `SSLContext.getDefault`.
   * @param checkEndpointIdentification require endpoint identification
@@ -39,6 +42,10 @@ final case class BlazeClientConfig( // HTTP properties
     idleTimeout: Duration,
     requestTimeout: Duration,
     userAgent: Option[`User-Agent`],
+    // pool options
+    maxTotalConnections: Int,
+    maxWaitQueueLimit: Int,
+    maxConnectionsPerRequestKey: RequestKey => Int,
     // security options
     sslContext: Option[SSLContext],
     @deprecatedName('endpointAuthentication) checkEndpointIdentification: Boolean,
@@ -64,6 +71,9 @@ object BlazeClientConfig {
       idleTimeout = bits.DefaultTimeout,
       requestTimeout = Duration.Inf,
       userAgent = bits.DefaultUserAgent,
+      maxTotalConnections = bits.DefaultMaxTotalConnections,
+      maxWaitQueueLimit = bits.DefaultMaxWaitQueueLimit,
+      maxConnectionsPerRequestKey = _ => bits.DefaultMaxTotalConnections,
       sslContext = None,
       checkEndpointIdentification = true,
       maxResponseLineSize = 4 * 1024,

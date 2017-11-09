@@ -9,7 +9,7 @@ class BlazeHttp1ClientSpec
     extends ClientRouteTestBattery(
       "Blaze PooledHttp1Client",
       Http1Client[IO](
-        config = BlazeClientConfig.defaultConfig.copy(
+        BlazeClientConfig.defaultConfig.copy(
           executionContext = newDaemonPoolExecutionContext(
             "blaze-pooled-http1-client-spec",
             timeout = true))).unsafeRunSync
