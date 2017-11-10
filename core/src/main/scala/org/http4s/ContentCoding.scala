@@ -26,7 +26,6 @@ import org.http4s.QValue.QValueParser
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Http4sParser
 import org.http4s.util._
-
 import scala.util.hashing.MurmurHash3
 
 class ContentCoding private (val coding: String, override val qValue: QValue = QValue.One)
@@ -63,7 +62,7 @@ class ContentCoding private (val coding: String, override val qValue: QValue = Q
   override def toString = s"ContentCoding(${coding.toLowerCase}, $qValue)"
 
   override def compare(other: ContentCoding): Int =
-    ContentCoding.order.compare(this, other)
+    ContentCoding.http4sOrderForContentCoding.compare(this, other)
 
   override def render(writer: Writer): writer.type =
     ContentCoding.http4sInstancesForContentCoding.render(writer, this)
@@ -90,11 +89,11 @@ object ContentCoding {
   val `x-compress` = compress
   val `x-gzip` = gzip
 
-  def standard: Map[String, ContentCoding] =
+  val standard: Map[String, ContentCoding] =
     List(`*`, compress, deflate, exi, gzip, identity, `pack200-gzip`).map(c => c.coding -> c).toMap
 
   /**
-    * Parse a Transfer Coding
+    * Parse a Content Coding
     */
   def parse(s: String): ParseResult[ContentCoding] =
     new Http4sParser[ContentCoding](s, "Invalid Content Coding") with ContentCodingParser {
@@ -129,6 +128,7 @@ object ContentCoding {
 
     }
 
-  implicit val order: Order[ContentCoding] = Order.by(c => (c.coding.toLowerCase, c.qValue))
+  implicit val http4sOrderForContentCoding: Order[ContentCoding] =
+    Order.by(c => (c.coding.toLowerCase, c.qValue))
 
 }
