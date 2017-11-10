@@ -737,11 +737,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
+        <span class="modifier"></span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ContentCoding</span><span class="params">(<span name="coding">coding: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="qValue">qValue: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a> = <span class="symbol"><span class="name"><a href="QValue$.html">QValue.One</a></span></span></span>)</span><span class="result"> extends <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">ContentCoding</span><span class="result"> extends <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       </h4>
 
@@ -750,7 +750,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>], <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>], <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -776,12 +776,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.ContentCoding"><span>ContentCoding</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.HasQValue"><span>HasQValue</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.ContentCoding"><span>ContentCoding</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="scala.math.Ordered"><span>Ordered</span></li><li class="in" name="java.lang.Comparable"><span>Comparable</span></li><li class="in" name="org.http4s.HasQValue"><span>HasQValue</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
                   </span>
-                  <ol id="implicits"> <li class="in" name="org.http4s.ContentCoding.fromValue" data-hidden="false"><span>by fromValue</span></li><li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                  <ol id="implicits"> <li class="in" name="scala.math.Ordered.orderingToOrdered" data-hidden="false"><span>by orderingToOrdered</span></li><li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -799,26 +799,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.ContentCoding#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(coding:org.http4s.util.CaseInsensitiveString,qValue:org.http4s.QValue):org.http4s.ContentCoding"></a><a id="&lt;init&gt;:ContentCoding"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#&lt;init&gt;(coding:org.http4s.util.CaseInsensitiveString,qValue:org.http4s.QValue):org.http4s.ContentCoding" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ContentCoding</span><span class="params">(<span name="coding">coding: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="qValue">qValue: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a> = <span class="symbol"><span class="name"><a href="QValue$.html">QValue.One</a></span></span></span>)</span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -902,8 +883,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(CaseInsensitiveString):Boolean"></a>
+    </li><li name="scala.math.Ordered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(ContentCoding):Boolean"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#&lt;(that:A):Boolean" title="Permalink">
         <i class="material-icons"></i>
@@ -914,16 +895,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less" class="implicit">&lt;</span><span class="params">(<span name="that">that: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $less" class="name">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(CaseInsensitiveString):Boolean"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(ContentCoding):Boolean"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#&lt;=(that:A):Boolean" title="Permalink">
         <i class="material-icons"></i>
@@ -934,14 +911,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$eq" class="implicit">&lt;=</span><span class="params">(<span name="that">that: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $less$eq" class="name">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
@@ -958,8 +931,8 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(CaseInsensitiveString):Boolean"></a>
+    </li><li name="scala.math.Ordered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(ContentCoding):Boolean"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#&gt;(that:A):Boolean" title="Permalink">
         <i class="material-icons"></i>
@@ -970,16 +943,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $greater" class="implicit">&gt;</span><span class="params">(<span name="that">that: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $greater" class="name">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(CaseInsensitiveString):Boolean"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(ContentCoding):Boolean"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#&gt;=(that:A):Boolean" title="Permalink">
         <i class="material-icons"></i>
@@ -990,14 +959,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $greater$eq" class="implicit">&gt;=</span><span class="params">(<span name="that">that: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span title="gt4s: $greater$eq" class="name">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -1014,46 +979,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#charAt" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="charAt(n:Int):Char"></a><a id="charAt(Int):Char"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#charAt(n:Int):Char" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">charAt</span><span class="params">(<span name="n">n: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → CharSequence</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#chars" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="chars():java.util.stream.IntStream"></a><a id="chars():IntStream"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#chars():java.util.stream.IntStream" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">chars</span><span class="params">()</span><span class="result">: <span class="extype" name="java.util.stream.IntStream">IntStream</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>CharSequence</dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -1078,30 +1003,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#codePoints" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="codePoints():java.util.stream.IntStream"></a><a id="codePoints():IntStream"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#codePoints():java.util.stream.IntStream" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">codePoints</span><span class="params">()</span><span class="result">: <span class="extype" name="java.util.stream.IntStream">IntStream</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>CharSequence</dd></dl></div>
     </li><li name="org.http4s.ContentCoding#coding" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="coding:org.http4s.util.CaseInsensitiveString"></a><a id="coding:CaseInsensitiveString"></a>
+      <a id="coding:String"></a>
       <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#coding:org.http4s.util.CaseInsensitiveString" title="Permalink">
+      <a href="../../org/http4s/ContentCoding.html#coding:String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1110,14 +1015,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">coding</span><span class="result">: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
+        <span class="name">coding</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
       
-    </li><li name="org.http4s.ContentCoding.fromValue#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="compare(other:org.http4s.util.CaseInsensitiveString):Int"></a><a id="compare(CaseInsensitiveString):Int"></a>
+    </li><li name="org.http4s.ContentCoding#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compare(other:org.http4s.ContentCoding):Int"></a><a id="compare(ContentCoding):Int"></a>
       <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#compare(other:org.http4s.util.CaseInsensitiveString):Int" title="Permalink">
+      <a href="../../org/http4s/ContentCoding.html#compare(other:org.http4s.ContentCoding):Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1126,16 +1031,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">compare</span><span class="params">(<span name="other">other: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">compare</span><span class="params">(<span name="other">other: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → Ordered</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="compareTo(that:A):Int"></a><a id="compareTo(CaseInsensitiveString):Int"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compareTo(that:A):Int"></a><a id="compareTo(ContentCoding):Int"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#compareTo(that:A):Int" title="Permalink">
         <i class="material-icons"></i>
@@ -1146,14 +1047,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">compareTo</span><span class="params">(<span name="that">that: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((ContentCoding)⇒Boolean,⇒Any):ContentCoding"></a>
       <span class="permalink">
@@ -1250,10 +1147,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(obj:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
+    </li><li name="org.http4s.ContentCoding#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(o:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#equals(obj:Any):Boolean" title="Permalink">
+      <a href="../../org/http4s/ContentCoding.html#equals(o:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1262,14 +1159,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">equals</span><span class="params">(<span name="obj">obj: <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="o">o: <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -1334,7 +1227,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.ContentCoding#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#hashCode():Int" title="Permalink">
@@ -1346,14 +1239,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
@@ -1370,26 +1259,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#length" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="length():Int"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#length():Int" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">length</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → CharSequence</dd></dl></div>
     </li><li name="org.http4s.ContentCoding#matches" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="matches(encoding:org.http4s.ContentCoding):Boolean"></a><a id="matches(ContentCoding):Boolean"></a>
       <span class="permalink">
@@ -1508,26 +1377,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <p class="shortcomment cmt">Generates a String rendering of this object</p><div class="fullcomment"><div class="comment cmt"><p>Generates a String rendering of this object</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#subSequence" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="subSequence(start:Int,end:Int):org.http4s.util.CaseInsensitiveString"></a><a id="subSequence(Int,Int):CaseInsensitiveString"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#subSequence(start:Int,end:Int):org.http4s.util.CaseInsensitiveString" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">subSequence</span><span class="params">(<span name="start">start: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="end">end: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → CharSequence</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1544,7 +1393,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.util.Renderable#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.ContentCoding#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
       <a href="../../org/http4s/ContentCoding.html#toString():String" title="Permalink">
@@ -1559,27 +1408,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → Any</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding.fromValue#value" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="value:String"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#value:String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">value</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
-            
-          </dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -1690,10 +1519,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div class="values members">
               <h3>Shadowed Implicit Value Members</h3>
-              <ol><li name="org.http4s.ContentCoding.fromValue#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toString():String"></a>
+              <ol><li name="scala.math.Ordered.orderingToOrdered#&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;(that:A):Boolean"></a><a id="&lt;(ContentCoding):Boolean"></a>
       <span class="permalink">
-      <a href="../../org/http4s/ContentCoding.html#toString():String" title="Permalink">
+      <a href="../../org/http4s/ContentCoding.html#&lt;(that:A):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1702,14 +1531,114 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit shadowed">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span title="gt4s: $less" class="implicit shadowed">&lt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
             This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
-            <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> performed by method fromValue in <a href="ContentCoding$.html" class="extype" name="org.http4s.ContentCoding">org.http4s.ContentCoding</a>.
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
             
-          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: CaseInsensitiveString).toString()</pre></div></dd><dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> → CharSequence → AnyRef → Any</dd></dl></div>
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: Ordered[ContentCoding]).&lt;(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&lt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&lt;=(that:A):Boolean"></a><a id="&lt;=(ContentCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContentCoding.html#&lt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $less$eq" class="implicit shadowed">&lt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: Ordered[ContentCoding]).&lt;=(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;(that:A):Boolean"></a><a id="&gt;(ContentCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContentCoding.html#&gt;(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater" class="implicit shadowed">&gt;</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: Ordered[ContentCoding]).&gt;(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#&gt;=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&gt;=(that:A):Boolean"></a><a id="&gt;=(ContentCoding):Boolean"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContentCoding.html#&gt;=(that:A):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $greater$eq" class="implicit shadowed">&gt;=</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: Ordered[ContentCoding]).&gt;=(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#compare" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compare(that:A):Int"></a><a id="compare(ContentCoding):Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContentCoding.html#compare(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit shadowed">compare</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: Ordered[ContentCoding]).compare(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered</dd></dl></div>
+    </li><li name="scala.math.Ordered.orderingToOrdered#compareTo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compareTo(that:A):Int"></a><a id="compareTo(ContentCoding):Int"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/ContentCoding.html#compareTo(that:A):Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="implicit shadowed">compareTo</span><span class="params">(<span name="that">that: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to
+            <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] performed by method orderingToOrdered in scala.math.Ordered.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(contentCoding: Ordered[ContentCoding]).compareTo(that)</pre></div></dd><dt>Definition Classes</dt><dd>Ordered → Comparable</dd></dl></div>
     </li></ol>
             </div>
 
@@ -1758,16 +1687,12 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></h3>
-            </div><div class="parent" name="java.io.Serializable">
-              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
-            </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
-            </div><div class="parent" name="org.http4s.util.Renderable">
+        <div class="parent" name="org.http4s.util.Renderable">
               <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
+            </div><div class="parent" name="scala.math.Ordered">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>]</h3>
+            </div><div class="parent" name="java.lang.Comparable">
+              <h3>Inherited from <span class="extype" name="java.lang.Comparable">Comparable</span>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>]</h3>
             </div><div class="parent" name="org.http4s.HasQValue">
               <h3>Inherited from <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></h3>
             </div><div class="parent" name="scala.AnyRef">
@@ -1775,9 +1700,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></h3>
             </div>
-        <div class="conversion" name="org.http4s.ContentCoding.fromValue">
-              <h3>Inherited by implicit conversion fromValue from
-                <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>
+        <div class="conversion" name="scala.math.Ordered.orderingToOrdered">
+              <h3>Inherited by implicit conversion orderingToOrdered from
+                <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> to <a href="http://www.scala-lang.org/api/2.12.4/scala/math/Ordered.html#scala.math.Ordered" class="extype" name="scala.math.Ordered">Ordered</a>[<a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
