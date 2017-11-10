@@ -3,7 +3,7 @@ resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 addSbtPlugin("com.earldouglas"    %  "xsbt-web-plugin"       % "3.0.1")
 addSbtPlugin("org.scalastyle"     %% "scalastyle-sbt-plugin" % "0.8.0")
 addSbtPlugin("com.typesafe"       %  "sbt-mima-plugin"       % "0.1.14")
-addSbtPlugin("com.typesafe.sbt"   %  "sbt-twirl"             % "1.3.12")
+addSbtPlugin("com.typesafe.sbt"   %  "sbt-twirl"             % "1.3.13")
 addSbtPlugin("io.gatling"         %  "gatling-sbt"           % "2.1.5")
 addSbtPlugin("io.get-coursier"    %  "sbt-coursier"          % "1.0.0-RC1")
 addSbtPlugin("io.spray"           %  "sbt-revolver"          % "0.8.0")
