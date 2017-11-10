@@ -13,6 +13,7 @@ class CSRFSpec extends Http4sSpec {
 
   val dummyService: HttpService = HttpService {
     case GET -> Root =>
+      Thread.sleep(1) //Fix so clock doesn't compute the same nonce, to emulate a real service
       Ok()
   }
 
