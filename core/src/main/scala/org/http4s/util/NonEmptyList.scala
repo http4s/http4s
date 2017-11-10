@@ -170,6 +170,13 @@ final class NonEmptyList[+A] private[util] (val head: A, val tail: List[A]) {
 
   def length: Int =
     1 + tail.length
+
+  def find(p: A => Boolean): Option[A] =
+    if (p(head)) {
+      Some(head)
+    } else {
+      tail.find(p)
+    }
 }
 
 object NonEmptyList extends NonEmptyListInstances with NonEmptyListFunctions {
