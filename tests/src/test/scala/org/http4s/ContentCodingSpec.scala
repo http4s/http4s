@@ -16,13 +16,11 @@ class ContentCodingSpec extends Http4sSpec {
   "compare" should {
     "be consistent with coding.compareToIgnoreCase for same quality" in {
       prop { (a: ContentCoding, b: ContentCoding) =>
-        (a.qValue == b.qValue) ==> (a.coding.compareToIgnoreCase(b.coding) must_== a.compare(b))
-      }
-    }
-    "be consistent with qValue.compareTo for same coding" in {
-      prop { (a: ContentCoding, b: ContentCoding) =>
-        (a.coding.toLowerCase == b.coding.toLowerCase) must_== (a.qValue.compareTo(b.qValue) == a
-          .compare(b))
+        ((a.coding, a.qValue), (b.coding, b.qValue)) match {
+          case ((ac, aq), (bc, bq)) if ac == bc => aq.compareTo(bq) must_== a.compare(b)
+          case ((ac, _), (bc, _)) if ac.compareToIgnoreCase(bc) > 0 => a.compare(b) must be_>(0)
+          case _ => a.compare(b) must be_<(0)
+        }
       }
     }
   }
