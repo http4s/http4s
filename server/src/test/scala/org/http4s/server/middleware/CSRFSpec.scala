@@ -36,9 +36,9 @@ class CSRFSpec extends Http4sSpec {
               .addCookie(Cookie(csrf.cookieName, token))
               .putHeaders(Header(csrf.headerName, token))
           )
-        } yield res).unsafeValue()
+        } yield res).unsafeValue().get
 
-        response.map(_.status) must beSome(Status.Ok)
+        response.status must_== Status.Ok
       }
 
       "not validate for token missing in cookie" in {
@@ -48,9 +48,9 @@ class CSRFSpec extends Http4sSpec {
             dummyRequest
               .putHeaders(Header(csrf.headerName, token))
           )
-        } yield res).unsafeValue()
+        } yield res).unsafeValue().get
 
-        response.map(_.status) must beSome(Status.Unauthorized)
+        response.status must_== Status.Unauthorized
       }
 
       "not validate for token missing in header" in {
@@ -60,15 +60,15 @@ class CSRFSpec extends Http4sSpec {
             dummyRequest
               .addCookie(Cookie(csrf.cookieName, token))
           )
-        } yield res).unsafeValue()
+        } yield res).unsafeValue().get
 
-        response.map(_.status) must beSome(Status.Unauthorized)
+        response.status must_== Status.Unauthorized
       }
 
       "not validate if token is missing in both" in {
-        val response = csrf.validate(dummyService).orNotFound(dummyRequest).unsafeValue()
+        val response = csrf.validate(dummyService).orNotFound(dummyRequest).unsafeValue().get
 
-        response.map(_.status) must beSome(Status.Unauthorized)
+        response.status must_== Status.Unauthorized
       }
 
       "not validate for different tokens" in {
@@ -80,9 +80,9 @@ class CSRFSpec extends Http4sSpec {
               .addCookie(Cookie(csrf.cookieName, token1))
               .putHeaders(Header(csrf.headerName, token2))
           )
-        } yield res).unsafeValue()
+        } yield res).unsafeValue().get
 
-        response.map(_.status) must beSome(Status.Unauthorized)
+        response.status must_== Status.Unauthorized
       }
 
       "not return the same token to mitigate BREACH" in {
