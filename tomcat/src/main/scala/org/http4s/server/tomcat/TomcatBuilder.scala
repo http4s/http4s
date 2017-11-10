@@ -4,22 +4,21 @@ package tomcat
 
 import java.net.InetSocketAddress
 import java.util.EnumSet
-import javax.servlet.{Filter, DispatcherType, ServletContext, ServletContainerInitializer}
-import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
-
+import javax.servlet.http.HttpServlet
+import javax.servlet.{Filter, DispatcherType, ServletContext, ServletContainerInitializer}
+import org.apache.catalina.startup.Tomcat
+import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.catalina.util.ServerInfo
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.util.threads.DefaultPool
-
+import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
-import org.apache.catalina.startup.Tomcat
-import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
-
 
 sealed class TomcatBuilder private (
   socketAddress: InetSocketAddress,
@@ -37,6 +36,8 @@ sealed class TomcatBuilder private (
   with SSLKeyStoreSupport
 {
   type Self = TomcatBuilder
+
+  private[this] val logger = getLogger
 
   private def copy(
     socketAddress: InetSocketAddress = socketAddress,
@@ -161,7 +162,7 @@ sealed class TomcatBuilder private (
 
     tomcat.start()
 
-    new Server {
+    val server = new Server {
       override def shutdown: Task[Unit] =
         Task.delay {
           tomcat.stop()
@@ -182,8 +183,15 @@ sealed class TomcatBuilder private (
         val host = socketAddress.getHostString
         val port = tomcat.getConnector.getLocalPort
         new InetSocketAddress(host, port)
-      }      
+      }
     }
+
+    val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+      case Array(_, version) => version
+      case _ => ServerInfo.getServerInfo // well, we tried
+    }
+    logger.info(s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${Server.baseUri(server.address, sslBits.isDefined)}")
+    server
   }
 }
 

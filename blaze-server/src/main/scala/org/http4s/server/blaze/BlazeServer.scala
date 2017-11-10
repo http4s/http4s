@@ -3,24 +3,22 @@ package server
 package blaze
 
 import java.io.FileInputStream
-import java.security.KeyStore
-import java.security.Security
-import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext, SSLEngine}
-import java.util.concurrent.ExecutorService
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-
+import java.security.KeyStore
+import java.security.Security
+import java.util.concurrent.ExecutorService
+import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext, SSLEngine}
 import org.http4s.blaze.channel
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
+import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
+import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.util.threads.DefaultPool
-
 import org.log4s.getLogger
-
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
@@ -190,7 +188,7 @@ class BlazeBuilder(
     // if we have a Failure, it will be caught by the Task
     val serverChannel = factory.bind(address, pipelineFactory).get
 
-    new Server {
+    val server = new Server {
       override def shutdown: Task[Unit] = Task.delay {
         serverChannel.close()
         factory.closeGroup()
@@ -207,6 +205,9 @@ class BlazeBuilder(
       override def toString: String =
         s"BlazeServer($address)"
     }
+
+    logger.info(s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${Server.baseUri(address, sslBits.isDefined)}")
+    server
   }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
