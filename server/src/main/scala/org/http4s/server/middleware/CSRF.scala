@@ -15,7 +15,7 @@ import org.http4s._
 import fs2.Task
 import fs2.interop.cats._
 
-final class CSRFMiddleware private[middleware] (
+final class CSRF private[middleware] (
     val headerName: String = "X-Csrf-Token",
     val cookieName: String = "csrf-token",
     key: SecretKey,
@@ -28,7 +28,7 @@ final class CSRFMiddleware private[middleware] (
   private[middleware] def signToken(token: String): Task[String] = {
     val joined = token + "-" + clock.millis()
     Task.delay {
-      val mac = Mac.getInstance(CSRFMiddleware.SigningAlgo)
+      val mac = Mac.getInstance(CSRF.SigningAlgo)
       mac.init(key)
       val out = mac.doFinal(joined.getBytes(StandardCharsets.UTF_8))
       joined + "-" + Base64.getEncoder.encodeToString(out)
@@ -37,7 +37,7 @@ final class CSRFMiddleware private[middleware] (
 
   /** Generate a new token **/
   private[middleware] def generateToken: Task[String] =
-    signToken(CSRFMiddleware.genTokenString)
+    signToken(CSRF.genTokenString)
 
   /** Decode our CSRF token and extract the original token string to sign
     */
@@ -45,7 +45,7 @@ final class CSRFMiddleware private[middleware] (
     token.split("-") match {
       case Array(raw, nonce, signed) =>
         OptionT[Task, String](Task.delay {
-          val mac = Mac.getInstance(CSRFMiddleware.SigningAlgo)
+          val mac = Mac.getInstance(CSRF.SigningAlgo)
           mac.init(key)
           val out =
             mac.doFinal((raw + "-" + nonce).getBytes(StandardCharsets.UTF_8))
@@ -72,12 +72,12 @@ final class CSRFMiddleware private[middleware] (
     service =>
       Kleisli[Task, Request, MaybeResponse] { r =>
         (for {
-          c1 <- CSRFMiddleware.cookieFromHeaders(r, cookieName)
+          c1 <- CSRF.cookieFromHeaders(r, cookieName)
           c2 <- OptionT(
             Task.now(r.headers.get(CaseInsensitiveString(headerName))))
           raw1 <- extractRaw(c1.content)
           raw2 <- extractRaw(c2.value)
-          response <- if (CSRFMiddleware.isEqual(raw1, raw2)) {
+          response <- if (CSRF.isEqual(raw1, raw2)) {
             OptionT[Task, MaybeResponse](service(r).map(Some(_)))
           } else {
             OptionT.none[Task, MaybeResponse]
@@ -103,26 +103,26 @@ final class CSRFMiddleware private[middleware] (
 
 }
 
-object CSRFMiddleware {
+object CSRF {
 
   /** Default method for constructing CSRF middleware **/
   def apply(headerName: String = "X-Csrf-Token",
             cookieName: String = "csrf-token",
             key: SecretKey,
-            clock: Clock = Clock.systemUTC()): CSRFMiddleware =
-    new CSRFMiddleware(headerName, cookieName, key, clock)
+            clock: Clock = Clock.systemUTC()): CSRF =
+    new CSRF(headerName, cookieName, key, clock)
 
   /** Sugar for instantiating a middleware by generating a key **/
   def withGeneratedKey(headerName: String = "X-Csrf-Token",
                        cookieName: String = "csrf-token",
-                       clock: Clock = Clock.systemUTC()): Task[CSRFMiddleware] =
+                       clock: Clock = Clock.systemUTC()): Task[CSRF] =
     generateSigningKey().map(apply(headerName, cookieName, _, clock))
 
   /** Sugar for pre-loading a key **/
   def withKeyBytes(keyBytes: Array[Byte],
                    headerName: String = "X-Csrf-Token",
                    cookieName: String = "csrf-token",
-                   clock: Clock = Clock.systemUTC()): Task[CSRFMiddleware] =
+                   clock: Clock = Clock.systemUTC()): Task[CSRF] =
     buildSigningKey(keyBytes).map(apply(headerName, cookieName, _, clock))
 
   /** An instance of SecureRandom to generate

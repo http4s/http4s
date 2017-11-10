@@ -17,14 +17,14 @@ class CSRFSpec extends Http4sSpec {
 
   val dummyRequest = Request()
 
-  CSRFMiddleware.withGeneratedKey().map { csrf =>
-    "CSRFMiddleware" should {
+  CSRF.withGeneratedKey().map { csrf =>
+    "CSRF" should {
 
       "not validate different tokens" in {
         val equalCheck = for {
           t1 <- csrf.generateToken
           t2 <- csrf.generateToken
-        } yield CSRFMiddleware.isEqual(t1, t2)
+        } yield CSRF.isEqual(t1, t2)
 
         equalCheck.unsafeValue() must beSome(false)
       }
