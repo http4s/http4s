@@ -25,7 +25,7 @@ class TransferCodingSpec extends Http4sSpec {
   "hashCode" should {
     "be consistent with equality" in
       prop { (a: TransferCoding, b: TransferCoding) =>
-        (a == b) ==> (a.## must_== b.##)
+        a == b must_== (a.## == b.##)
       }
   }
 
