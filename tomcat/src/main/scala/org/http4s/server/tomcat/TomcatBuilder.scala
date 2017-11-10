@@ -9,10 +9,13 @@ import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 import org.apache.catalina.startup.Tomcat
+import org.apache.catalina.util.ServerInfo
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+import org.log4s.getLogger
 import scala.collection.JavaConverters._
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -24,11 +27,13 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     private val servletIo: ServletIo[F],
     sslBits: Option[KeyStoreBits],
     mounts: Vector[Mount[F]],
-    private val serviceErrorHandler: ServiceErrorHandler[F]
+    private val serviceErrorHandler: ServiceErrorHandler[F],
+    banner: immutable.Seq[String]
 ) extends ServletContainer[F]
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F] {
+  private[this] val logger = getLogger
 
   private val F = Effect[F]
   type Self = TomcatBuilder[F]
@@ -41,7 +46,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       servletIo: ServletIo[F] = servletIo,
       sslBits: Option[KeyStoreBits] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
-      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
+      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
+      banner: immutable.Seq[String] = banner
   ): Self =
     new TomcatBuilder(
       socketAddress,
@@ -51,7 +57,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       servletIo,
       sslBits,
       mounts,
-      serviceErrorHandler)
+      serviceErrorHandler,
+      banner)
 
   override def withSSL(
       keyStore: StoreInfo,
@@ -134,6 +141,9 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
 
+  def withBanner(banner: immutable.Seq[String]): Self =
+    copy(banner = banner)
+
   override def start: F[Server[F]] = F.delay {
     val tomcat = new Tomcat
 
@@ -173,7 +183,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
     tomcat.start()
 
-    new Server[F] {
+    val server = new Server[F] {
       override def shutdown: F[Unit] =
         F.delay {
           tomcat.stop()
@@ -194,7 +204,19 @@ sealed class TomcatBuilder[F[_]: Effect] private (
         val port = tomcat.getConnector.getLocalPort
         new InetSocketAddress(host, port)
       }
+
+      lazy val isSecure: Boolean = sslBits.isDefined
     }
+
+    banner.foreach(logger.info(_))
+    val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+      case Array(_, version) => version
+      case _ => ServerInfo.getServerInfo // well, we tried
+    }
+    logger.info(
+      s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
+
+    server
   }
 }
 
@@ -209,7 +231,8 @@ object TomcatBuilder {
       servletIo = ServletContainer.DefaultServletIo[F],
       sslBits = None,
       mounts = Vector.empty,
-      serviceErrorHandler = DefaultServiceErrorHandler
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      banner = ServerBuilder.DefaultBanner
     )
 }
 
