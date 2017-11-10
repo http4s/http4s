@@ -122,7 +122,11 @@ sealed class TomcatBuilder private (
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
-    val context = tomcat.addContext("", getClass.getResource("/").getPath)
+    val docBase = getClass.getResource("/") match {
+      case null => null 
+      case resource => resource.getPath
+    }
+    val context = tomcat.addContext("", docBase)
 
     val conn = tomcat.getConnector()
 
