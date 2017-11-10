@@ -269,7 +269,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.1" // YourKit hack
-  lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.3.6"
+  lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.4.0"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.5"
@@ -288,5 +288,5 @@ object Http4sPlugin extends AutoPlugin {
   def scalazStream(szv: String)             = "org.scalaz.stream"      %% "scalaz-stream"             % "0.8.6" forScalaz szv
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.23"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.12"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.13"
 }
