@@ -211,8 +211,8 @@
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="CSRF$.html" title=""></a>
-                        <a class="class" href="CSRF.html" title=""></a>
-                        <a href="CSRF.html" title="">CSRF</a>
+                        <a class="class" href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks."></a>
+                        <a href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks.">CSRF</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="ChunkAggregator$.html" title=""></a>
@@ -385,7 +385,7 @@ for serious static content serving.
 You can give an instance of this class to the CORS middleware,
 to specify its behavoir
 </p></div></div>
-    </li><li name="org.http4s.server.middleware.CSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.middleware.CSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="CSRFextendsAnyRef"></a><a id="CSRF:CSRF"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/middleware/index.html#CSRFextendsAnyRef" title="Permalink">
@@ -397,10 +397,17 @@ to specify its behavoir
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="CSRF.html"><span class="name">CSRF</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a title="Middleware to avoid Cross-site request forgery attacks." href="CSRF.html"><span class="name">CSRF</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Middleware to avoid Cross-site request forgery attacks.</p><div class="fullcomment"><div class="comment cmt"><p>Middleware to avoid Cross-site request forgery attacks.
+More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)</p><p>This middleware is modeled after the double submit cookie pattern:
+https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#DoubleSubmit_Cookie</p><p>When a user authenticates, <code>embedNew</code> is used to send a random CSRF value as a cookie.  (Alterntively,
+an authenticating service can be wrapped in <code>withNewToken</code>).  Services protected by the <code>validaed</code>
+middleware then check that the value is prsent in both the header <code>headerName</code> and the cookie <code>cookieName</code>.
+Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
+custom header, resulting in a <code>403 Forbidden</code> response.
+</p></div></div>
     </li></ol>
             </div>
 
