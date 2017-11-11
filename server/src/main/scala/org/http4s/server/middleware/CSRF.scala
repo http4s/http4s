@@ -22,12 +22,12 @@ import org.http4s._
   * This middleware is modeled after the double submit cookie pattern:
   * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie
   *
-  * The idea in the first place, is, on authentication, to use the `embedNew` method or
-  * `withNewToken` middleware in your request. i.e, your user logs in, then they are sent, on top of their credentials
+  * The idea in the first place is, on authentication, to use the `embedNew` method or
+  * `withNewToken` middleware in your request. i.e, when your user logs in they are sent, on top of their credentials
   * token, the CSRF value in the cookie.
   *
-  * Then, on every authenticated endpoint, that's either modifying sensitive data via POST or retrieving
-  * sensitive data via GET, to send the value stored in the csrf cookie in the header specified by the name in
+  * Then, on every authenticated endpoint that's either modifying sensitive data via POST or retrieving
+  * sensitive data via GET, send the value stored in the csrf cookie in the header specified by the name in
   * `headerName`. An attacker, due to the Same-Origin policy, will be unable to reproduce this value in a custom header,
   * thus it will forbid his request
   *
