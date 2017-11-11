@@ -24,7 +24,7 @@ import org.http4s.util.{CaseInsensitiveString, encodeHex}
   * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alternatively,
   * an authenticating service can be wrapped in `withNewToken`).  Services protected by the `validated`
   * middleware then check that the value is prsent in both the header `headerName` and the cookie `cookieName`.
-  * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a 
+  * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
   * custom header, resulting in a `403 Forbidden` response.
   *
   * @param headerName your CSRF header name
