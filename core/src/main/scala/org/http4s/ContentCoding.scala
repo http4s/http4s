@@ -22,6 +22,7 @@ import cats.{Order, Show}
 import cats.syntax.eq._
 import cats.instances.tuple._
 import cats.instances.string._
+import cats.instances.int._
 import org.http4s.QValue.QValueParser
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.Http4sParser
@@ -129,6 +130,6 @@ object ContentCoding {
     }
 
   implicit val http4sOrderForContentCoding: Order[ContentCoding] =
-    Order.by(c => (c.coding.toLowerCase, c.qValue))
+    Order.by(c => (c.coding.toLowerCase, c.qValue.thousandths))
 
 }
