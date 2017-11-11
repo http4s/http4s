@@ -16,6 +16,23 @@ import scalaz.concurrent.Task
 import scalaz.syntax.std.boolean._
 import scalaz.{Kleisli, OptionT}
 
+/** Middleware to avoid Cross-site request forgery attacks.
+  * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
+  *
+  * This middleware is modeled after the double submit cookie pattern:
+  * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#DoubleSubmit_Cookie
+  *
+  * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alterntively,
+  * an authenticating service can be wrapped in `withNewToken`).  Services protected by the `validaed`
+  * middleware then check that the value is prsent in both the header `headerName` and the cookie `cookieName`.
+  * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
+  * custom header, resulting in a `403 Forbidden` response.
+  *
+  * @param headerName your CSRF header name
+  * @param cookieName the CSRF cookie name
+  * @param key the CSRF signing key
+  * @param clock clock used as a nonce
+  */
 final class CSRF private[middleware] (
     val headerName: String = "X-Csrf-Token",
     val cookieName: String = "csrf-token",
