@@ -1,20 +1,19 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
+import cats.Applicative
+import cats.data.{Kleisli, OptionT}
+import cats.effect.Sync
+import cats.syntax.all._
 import java.nio.charset.StandardCharsets
 import java.security.{MessageDigest, SecureRandom}
 import java.time.Clock
 import java.util.Base64
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
-
-import cats.Applicative
-import cats.data.{Kleisli, OptionT}
-import cats.effect.Sync
-import cats.syntax.all._
 import org.http4s.headers.{Cookie => HCookie}
-import org.http4s.server.HttpMiddleware
 import org.http4s.util.{CaseInsensitiveString, encodeHex}
-import org.http4s._
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
