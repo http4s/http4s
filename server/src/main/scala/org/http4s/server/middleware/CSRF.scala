@@ -24,20 +24,24 @@ import org.http4s.util.{CaseInsensitiveString, encodeHex}
   * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alternatively,
   * an authenticating service can be wrapped in `withNewToken`).
   *
-  * For requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the `validated` method in the
+  * By default, for requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the `validated` method in the
   * middleware will check that the csrf token is present in both the header `headerName` and the cookie `cookieName`.
   * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
   * custom header, resulting in a `401 Unauthorized` response.
   *
-  * Requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
+  * By default, requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
   * or will receive a refreshed token based off of the previous token to mitigate the BREACH vulnerability. If a request
   * contains an invalid token, regardless of whether it is a safe method, this middleware will fail it with
   * `401 Unauthorized`. In this situation, your user(s) should clear their cookies for your page, to receive a new
   * token.
   *
+  * The default can be overridden by modifying the `predicate` in `validate`. It will, by default, check if the method is safe.
+  * Thus, you can provide some whitelisting capability for certain kinds of requests.
+  *
   * We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
   * not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
-  * user data). If you choose to not to, this middleware cannot protect you.
+  * user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.
+  * Every time you mutate in a GET, a puppy dies. Think of the puppies. Don't be that guy.
   *
   *
   * @param headerName your CSRF header name
@@ -88,7 +92,7 @@ final class CSRF[F[_]] private[middleware] (
     }
 
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data),
-    * embed a new token if not present, or regenrate the current one to mitigate
+    * embed a new token if not present, or regenerate the current one to mitigate
     * BREACH
     */
   private[middleware] def validateOrEmbed(
@@ -119,26 +123,31 @@ final class CSRF[F[_]] private[middleware] (
     } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
       .getOrElse(Response[F](Status.Unauthorized))
 
-  /** Check method safety, then apply the correct csrf policy **/
-  private[middleware] def filter(r: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
-    if (r.method.isSafe) {
+  /** Check predicate, then apply the correct csrf policy **/
+  private[middleware] def filter(
+      predicate: Request[F] => Boolean,
+      r: Request[F],
+      service: HttpService[F]): OptionT[F, Response[F]] =
+    if (predicate(r)) {
       validateOrEmbed(r, service)
     } else {
       OptionT.liftF(checkCSRF(r, service))
     }
 
   /** Constructs a middleware that will check for the csrf token
-    * presence on both the proper cookie, and header values.
+    * presence on both the proper cookie, and header values,
+    * if the predicate is not satisfied
     *
     * If it is a valid token, it will then embed a new one,
     * to effectively randomize the complete token while
     * avoiding the generation of a new secure random Id, to guard
     * against [BREACH](http://breachattack.com/)
     *
+    *
     */
-  def validate: HttpMiddleware[F] = { service =>
+  def validate(predicate: Request[F] => Boolean = _.method.isSafe): HttpMiddleware[F] = { service =>
     Kleisli { r: Request[F] =>
-      filter(r, service)
+      filter(predicate, r, service)
     }
   }
 
@@ -177,19 +186,20 @@ object CSRF {
       clock: Clock = Clock.systemUTC()): F[CSRF[F]] =
     buildSigningKey(keyBytes).map(apply(headerName, cookieName, _, clock))
 
+  val SigningAlgo: String = "HmacSHA1"
+  val SHA1ByteLen: Int = 20
+  val CSRFTokenLength: Int = 32
+
   /** An instance of SecureRandom to generate
     * tokens, properly seeded:
     * https://tersesystems.com/blog/2015/12/17/the-right-way-to-use-securerandom/
     */
-  private val CachedRandom = {
+  private val InitialSeedArraySize: Int = 20
+  private val CachedRandom: SecureRandom = {
     val r = new SecureRandom()
-    r.nextBytes(new Array[Byte](20))
+    r.nextBytes(new Array[Byte](InitialSeedArraySize))
     r
   }
-
-  val SigningAlgo = "HmacSHA1"
-  val SHA1ByteLen = 20
-  val CSRFTokenLength = 32
 
   private[middleware] def cookieFromHeaders[F[_]: Applicative](
       request: Request[F],

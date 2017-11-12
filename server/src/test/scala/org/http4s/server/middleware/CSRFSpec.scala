@@ -22,7 +22,7 @@ class CSRFSpec extends Http4sSpec {
   "CSRF" should {
     "pass through and embed a new token for a safe, fresh request" in {
       val response =
-        csrf.validate(dummyService)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
+        csrf.validate()(dummyService)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
 
       response.status must_== Status.Ok
       response.cookies.exists(_.name == csrf.cookieName) must_== true
@@ -31,7 +31,7 @@ class CSRFSpec extends Http4sSpec {
     "fail a request with an invalid cookie, despite it being a safe method" in {
       val response =
         csrf
-          .validate(dummyService)(passThroughRequest.addCookie(Cookie(csrf.cookieName, "MOOSE")))
+          .validate()(dummyService)(passThroughRequest.addCookie(Cookie(csrf.cookieName, "MOOSE")))
           .getOrElse(orElse)
           .unsafeRunSync()
 
@@ -49,7 +49,7 @@ class CSRFSpec extends Http4sSpec {
     "validate for the correct csrf token" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate(dummyService)(
+        res <- csrf.validate()(dummyService)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token))
             .addCookie(csrf.cookieName, token)
@@ -59,7 +59,7 @@ class CSRFSpec extends Http4sSpec {
 
     "not validate if token is missing in both" in {
       csrf
-        .validate(dummyService)(dummyRequest)
+        .validate()(dummyService)(dummyRequest)
         .getOrElse(orElse)
         .unsafeRunSync()
         .status must_== Status.Unauthorized
@@ -68,7 +68,7 @@ class CSRFSpec extends Http4sSpec {
     "not validate for token missing in header" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate(dummyService)(
+        res <- csrf.validate()(dummyService)(
           dummyRequest.addCookie(csrf.cookieName, token)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
@@ -77,7 +77,7 @@ class CSRFSpec extends Http4sSpec {
     "not validate for token missing in cookie" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate(dummyService)(
+        res <- csrf.validate()(dummyService)(
           dummyRequest.putHeaders(Header(csrf.headerName, token))
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
@@ -87,7 +87,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token1 <- OptionT.liftF(csrf.generateToken)
         token2 <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate(dummyService)(
+        res <- csrf.validate()(dummyService)(
           dummyRequest
             .withHeaders(Headers(Header(csrf.headerName, token1)))
             .addCookie(csrf.cookieName, token2)
@@ -98,7 +98,7 @@ class CSRFSpec extends Http4sSpec {
     "not return the same token to mitigate BREACH" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate(dummyService)(
+        res <- csrf.validate()(dummyService)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token))
             .addCookie(csrf.cookieName, token)
@@ -111,7 +111,7 @@ class CSRFSpec extends Http4sSpec {
       val response = (for {
         token1 <- OptionT.liftF(csrf.generateToken)
         token2 <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate(dummyService)(
+        res <- csrf.validate()(dummyService)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token1))
             .addCookie(csrf.cookieName, token2)
