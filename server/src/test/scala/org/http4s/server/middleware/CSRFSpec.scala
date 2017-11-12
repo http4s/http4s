@@ -8,15 +8,36 @@ import org.http4s.dsl.io._
 class CSRFSpec extends Http4sSpec {
   val dummyService: HttpService[IO] = HttpService[IO] {
     case GET -> Root =>
+      Ok()
+    case POST -> Root =>
       Thread.sleep(1) //Necessary to advance the clock
       Ok()
   }
 
-  val dummyRequest: Request[IO] = Request[IO]()
-  val orElse: Response[IO] = Response[IO](Status.Forbidden)
+  val dummyRequest: Request[IO] = Request[IO](method = Method.POST)
+  val passThroughRequest: Request[IO] = Request[IO]()
+  val orElse: Response[IO] = Response[IO](Status.NotFound)
 
   val csrf = CSRF.withGeneratedKey[IO]().unsafeRunSync()
   "CSRF" should {
+    "pass through and embed a new token for a safe, fresh request" in {
+      val response =
+        csrf.validate(dummyService)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
+
+      response.status must_== Status.Ok
+      response.cookies.exists(_.name == csrf.cookieName) must_== true
+    }
+
+    "fail a request with an invalid cookie, despite it being a safe method" in {
+      val response =
+        csrf
+          .validate(dummyService)(passThroughRequest.addCookie(Cookie(csrf.cookieName, "MOOSE")))
+          .getOrElse(orElse)
+          .unsafeRunSync()
+
+      response.status must_== Status.Unauthorized // Must fail
+      !response.cookies.exists(_.name == csrf.cookieName) must_== true //Must not embed a new token
+    }
 
     "not validate different tokens" in {
       (for {
@@ -41,7 +62,7 @@ class CSRFSpec extends Http4sSpec {
         .validate(dummyService)(dummyRequest)
         .getOrElse(orElse)
         .unsafeRunSync()
-        .status must_== Status.Forbidden
+        .status must_== Status.Unauthorized
     }
 
     "not validate for token missing in header" in {
@@ -50,7 +71,7 @@ class CSRFSpec extends Http4sSpec {
         res <- csrf.validate(dummyService)(
           dummyRequest.addCookie(csrf.cookieName, token)
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Forbidden
+      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
     }
 
     "not validate for token missing in cookie" in {
@@ -59,7 +80,7 @@ class CSRFSpec extends Http4sSpec {
         res <- csrf.validate(dummyService)(
           dummyRequest.putHeaders(Header(csrf.headerName, token))
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Forbidden
+      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
     }
 
     "not validate for different tokens" in {
@@ -71,7 +92,7 @@ class CSRFSpec extends Http4sSpec {
             .withHeaders(Headers(Header(csrf.headerName, token1)))
             .addCookie(csrf.cookieName, token2)
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Forbidden
+      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
     }
 
     "not return the same token to mitigate BREACH" in {
@@ -97,7 +118,7 @@ class CSRFSpec extends Http4sSpec {
         )
       } yield res).getOrElse(Response.notFound).unsafeRunSync()
 
-      response.status must_== Status.Forbidden
+      response.status must_== Status.Unauthorized
       !response.cookies.exists(_.name == csrf.cookieName) must_== true
     }
   }

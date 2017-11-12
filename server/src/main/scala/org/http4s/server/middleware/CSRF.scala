@@ -74,6 +74,48 @@ final class CSRF[F[_]] private[middleware] (
         OptionT.none
     }
 
+  /** To be only used on safe methods: if the method is safe (i.e doesn't modify data),
+    * embed a new token if not present, or regenrate the current one to mitigate
+    * BREACH
+    */
+  private[middleware] def validateOrEmbed(
+      r: Request[F],
+      service: HttpService[F]): OptionT[F, Response[F]] =
+    CSRF.cookieFromHeaders(r, cookieName) match {
+      case Some(c) =>
+        OptionT.liftF(
+          (for {
+            raw <- extractRaw(c.content)
+            res <- service(r)
+            newToken <- OptionT.liftF(signToken(raw))
+          } yield res.addCookie(Cookie(name = cookieName, content = newToken)))
+            .getOrElse(Response[F](Status.Unauthorized)))
+      case None =>
+        service(r).semiflatMap(embedNew)
+    }
+
+  /** Filter an action that will check
+    *
+    * @return
+    */
+  private[middleware] def checkCSRF(r: Request[F], service: HttpService[F]): F[Response[F]] =
+    (for {
+      c1 <- OptionT.fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
+      c2 <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)))
+      raw1 <- extractRaw(c1.content)
+      raw2 <- extractRaw(c2.value)
+      response <- if (CSRF.isEqual(raw1, raw2)) service(r) else OptionT.none
+      newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
+    } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
+      .getOrElse(Response[F](Status.Unauthorized))
+
+  private[middleware] def filter(r: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
+    if (r.method.isSafe) {
+      validateOrEmbed(r, service)
+    } else {
+      OptionT.liftF(checkCSRF(r, service))
+    }
+
   /** Constructs a middleware that will check for the csrf token
     * presence on both the proper cookie, and header values.
     *
@@ -85,15 +127,8 @@ final class CSRF[F[_]] private[middleware] (
     */
   def validate: HttpMiddleware[F] = { service =>
     Kleisli { r: Request[F] =>
-      for {
-        c1 <- CSRF.cookieFromHeaders(r, cookieName)
-        c2 <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)))
-        raw1 <- extractRaw(c1.content)
-        raw2 <- extractRaw(c2.value)
-        response <- if (CSRF.isEqual(raw1, raw2)) service(r) else OptionT.none
-        newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-      } yield response.addCookie(Cookie(name = cookieName, content = newToken))
-    }.mapF(f => OptionT.liftF(f.getOrElse(Response[F](Status.Forbidden))))
+      filter(r, service)
+    }
   }
 
   /** Embed a token into a response **/
@@ -147,11 +182,10 @@ object CSRF {
 
   private[middleware] def cookieFromHeaders[F[_]: Applicative](
       request: Request[F],
-      headerName: String): OptionT[F, Cookie] =
-    OptionT.fromOption[F](
-      HCookie
-        .from(request.headers)
-        .flatMap(_.values.find(_.name == headerName)))
+      cookieName: String): Option[Cookie] =
+    HCookie
+      .from(request.headers)
+      .flatMap(_.values.find(_.name == cookieName))
 
   /** A Constant-time string equality **/
   def isEqual(s1: String, s2: String): Boolean =
