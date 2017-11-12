@@ -135,21 +135,24 @@ class CSRFSpec extends Http4sSpec {
       }
 
       "not return the same token to mitigate BREACH" in {
-        val (response, originalToken) = (for {
+        val (response, originalToken, originalRaw, newToken, newRaw) = (for {
           token <- csrf.generateToken
-          res <- csrf.validate()(dummyService).apply(
+          raw1 <- csrf.extractRaw(token).getOrElse("Invalid1")
+          res <- csrf.validate()(dummyService).orNotFound(
             dummyRequest
               .addCookie(Cookie(csrf.cookieName, token))
               .putHeaders(Header(csrf.headerName, token))
           )
           c <- Task.now(
             HCookie
-              .from(res.orNotFound.headers)
+              .from(res.headers)
               .map(_.cookie)
-              .find(_.name == csrf.cookieName))
-        } yield (c, token)).unsafeValue().get
-        response.isDefined must_== true
-        response.map(_.content) must_!= Some(originalToken)
+              .find(_.name == csrf.cookieName).getOrElse(Cookie("", "invalid")))
+          raw2 <- csrf.extractRaw(c.content).getOrElse("Invalid2")
+        } yield (res, token, raw1, c.content, raw2)).unsafeValue().get
+        response.status must_== Status.Ok //Response must have passed through
+        originalToken must_!= newToken //Tokens must slightly differ
+        originalRaw must_== newRaw //Tokens must have same raw value
       }
 
       "not return a token for a failed CSRF check" in {
