@@ -33,11 +33,10 @@ import scalaz.{Kleisli, OptionT}
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
-final class CSRF private[middleware] (
-    val headerName: String = "X-Csrf-Token",
-    val cookieName: String = "csrf-token",
-    key: SecretKey,
-    clock: Clock = Clock.systemUTC()) {
+final class CSRF private[middleware] (val headerName: String = "X-Csrf-Token",
+                                      val cookieName: String = "csrf-token",
+                                      key: SecretKey,
+                                      clock: Clock = Clock.systemUTC()) {
 
   /** Sign our token using the current time in milliseconds as a nonce
     * Signing and generating a token is potentially a unsafe operation
@@ -75,6 +74,53 @@ final class CSRF private[middleware] (
         OptionT.none
     }
 
+  /** Handle safe methods **/
+  private[middleware] def validateOrEmbed(
+      r: Request,
+      service: HttpService): Task[MaybeResponse] =
+    CSRF.cookieFromHeader(r, cookieName) match {
+      case Some(c) =>
+        (for {
+          raw <- extractRaw(c.content)
+          response <- OptionT[Task, MaybeResponse](
+            service.run(r).map(Some.apply))
+          newToken <- OptionT[Task, String](signToken(raw).map(Some.apply))
+        } yield
+          response.cata(_.addCookie(Cookie(cookieName, newToken)),
+                        Response(Status.NotFound)))
+          .getOrElse(Response(Status.Unauthorized))
+      case None =>
+        service.run(r).flatMap(embedNew)
+    }
+
+  private[middleware] def checkCSRF(r: Request,
+                                    service: HttpService): Task[MaybeResponse] =
+    (for {
+      c1 <- CSRF.liftedCookieFromHeader(r, cookieName)
+      c2 <- OptionT(Task.now(r.headers.get(CaseInsensitiveString(headerName))))
+      raw1 <- extractRaw(c1.content)
+      raw2 <- extractRaw(c2.value)
+      response <- if (CSRF.isEqual(raw1, raw2)) {
+        OptionT[Task, MaybeResponse](service(r).map(Some(_)))
+      } else {
+        OptionT.none[Task, MaybeResponse]
+      }
+      newToken <- OptionT[Task, String](signToken(raw1).map(Some(_)))
+    } yield
+      response.cata(_.addCookie(Cookie(cookieName, newToken)),
+                    Response(Status.NotFound)))
+      .getOrElse(Response(Status.Unauthorized))
+
+  private[middleware] def filter(predicate: Request => Boolean,
+                                 r: Request,
+                                 service: HttpService) = {
+    if (predicate(r)) {
+      validateOrEmbed(r, service)
+    } else {
+      checkCSRF(r, service)
+    }
+  }
+
   /** Constructs a middleware that will check for the csrf token
     * presence on both the proper cookie, and header values.
     *
@@ -84,26 +130,11 @@ final class CSRF private[middleware] (
     * against [BREACH](http://breachattack.com/)
     *
     */
-  def validate: Middleware[Request, MaybeResponse, Request, MaybeResponse] = {
-    service =>
-      Kleisli[Task, Request, MaybeResponse] { r =>
-        (for {
-          c1 <- CSRF.cookieFromHeaders(r, cookieName)
-          c2 <- OptionT(
-            Task.now(r.headers.get(CaseInsensitiveString(headerName))))
-          raw1 <- extractRaw(c1.content)
-          raw2 <- extractRaw(c2.value)
-          response <- if (CSRF.isEqual(raw1, raw2)) {
-            OptionT[Task, MaybeResponse](service(r).map(Some(_)))
-          } else {
-            OptionT.none[Task, MaybeResponse]
-          }
-          newToken <- OptionT[Task, String](signToken(raw1).map(Some(_)))
-        } yield
-          response.cata(_.addCookie(Cookie(cookieName, newToken)),
-                        Response(Status.NotFound)))
-          .getOrElse(Response(Status.Unauthorized))
-      }
+  def validate(predicate: Request => Boolean = _.method.isSafe)
+    : Middleware[Request, MaybeResponse, Request, MaybeResponse] = { service =>
+    Kleisli[Task, Request, MaybeResponse] { r =>
+      filter(predicate, r, service)
+    }
   }
 
   /** Embed a token into a response **/
@@ -155,14 +186,22 @@ object CSRF {
   val SHA1ByteLen = 20
   val CSRFTokenLength = 32
 
-  private[middleware] def cookieFromHeaders(
+  private[middleware] def liftedCookieFromHeader(
       request: Request,
-      headerName: String): OptionT[Task, Cookie] =
+      cookieName: String): OptionT[Task, Cookie] =
     OptionT(
       Task.now(
         HCookie
           .from(request.headers)
-          .flatMap(_.values.find(_.name == headerName))))
+          .flatMap(_.values.find(_.name == cookieName))))
+
+  private[middleware] def cookieFromHeader(
+      request: Request,
+      cookieName: String
+  ): Option[Cookie] =
+    HCookie
+      .from(request.headers)
+      .flatMap(_.values.find(_.name == cookieName))
 
   /** A Constant-time string equality **/
   def isEqual(s1: String, s2: String): Boolean =
