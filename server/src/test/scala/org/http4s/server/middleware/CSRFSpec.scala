@@ -157,8 +157,9 @@ class CSRFSpec extends Http4sSpec {
         }
 
         "not return the same token to mitigate BREACH" in {
-          val (response, originalToken) = (for {
+          val (response, responseCookie, originalToken, rawEquals) = (for {
             token <- csrf.generateToken
+            raw1 <- csrf.extractRaw(token).getOrElse("Invalid1")
             res <- csrf
               .validate()(dummyService)
               .apply(
@@ -170,10 +171,13 @@ class CSRFSpec extends Http4sSpec {
               HCookie
                 .from(res.orNotFound.headers)
                 .map(_.cookie)
-                .find(_.name == csrf.cookieName))
-          } yield (c, token)).unsafePerformSync
-          response.isDefined must_== true
-          response.map(_.content) must_!= Some(originalToken)
+                .find(_.name == csrf.cookieName)
+                .getOrElse(Cookie("", "invalid")))
+            raw2 <- csrf.extractRaw(c.content).getOrElse("Invalid2")
+          } yield (res, c, token, raw1 == raw2)).unsafePerformSync
+          response.orNotFound.status must_== Status.Ok
+          responseCookie.content must_!= originalToken
+          rawEquals must_== true
         }
 
         "not return a token for a failed CSRF check" in {
