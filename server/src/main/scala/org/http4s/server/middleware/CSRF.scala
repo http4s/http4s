@@ -41,7 +41,6 @@ import org.http4s.util.{CaseInsensitiveString, encodeHex}
   * We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
   * not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
   * user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.
-  * Every time you mutate in a GET, a puppy dies. Think of the puppies. Don't be that guy.
   *
   *
   * @param headerName your CSRF header name
