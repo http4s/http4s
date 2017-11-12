@@ -39,6 +39,26 @@ class CSRFSpec extends Http4sSpec {
       !response.cookies.exists(_.name == csrf.cookieName) must_== true //Must not embed a new token
     }
 
+    "pass through and embed a slightly different token for a safe request" in {
+      val (oldToken, oldRaw, response, newToken, newRaw) =
+        (for {
+          oldToken <- csrf.generateToken
+          raw1 <- csrf.extractRaw(oldToken).getOrElse("Invalid1")
+          response <- csrf
+            .validate()(dummyService)(passThroughRequest.addCookie(csrf.cookieName, oldToken))
+            .getOrElse(orElse)
+          newCookie <- IO.pure(
+            response.cookies
+              .find(_.name == csrf.cookieName)
+              .getOrElse(Cookie("invalid", "Invalid2")))
+          raw2 <- csrf.extractRaw(newCookie.content).getOrElse("Invalid1")
+        } yield (oldToken, raw1, response, newCookie, raw2)).unsafeRunSync()
+
+      response.status must_== Status.Ok
+      oldToken must_!= newToken.content
+      oldRaw must_== newRaw
+    }
+
     "not validate different tokens" in {
       (for {
         t1 <- csrf.generateToken
@@ -98,13 +118,15 @@ class CSRFSpec extends Http4sSpec {
     "not return the same token to mitigate BREACH" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
+        raw1 <- csrf.extractRaw(token)
         res <- csrf.validate()(dummyService)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token))
             .addCookie(csrf.cookieName, token)
         )
         r <- OptionT.fromOption[IO](res.cookies.find(_.name == csrf.cookieName).map(_.content))
-      } yield r == token).value.unsafeRunSync() must beSome(false)
+        raw2 <- csrf.extractRaw(r)
+      } yield r != token && raw1 == raw2).value.unsafeRunSync() must beSome(true)
     }
 
     "not return a token for a failed CSRF check" in {
