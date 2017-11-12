@@ -22,10 +22,23 @@ import org.http4s.util.{CaseInsensitiveString, encodeHex}
   * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie
   *
   * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alternatively,
-  * an authenticating service can be wrapped in `withNewToken`).  Services protected by the `validated`
-  * middleware then check that the value is prsent in both the header `headerName` and the cookie `cookieName`.
+  * an authenticating service can be wrapped in `withNewToken`).
+  *
+  * For requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the `validated` method in the
+  * middleware will check that the csrf token is present in both the header `headerName` and the cookie `cookieName`.
   * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
-  * custom header, resulting in a `403 Forbidden` response.
+  * custom header, resulting in a `401 Unauthorized` response.
+  *
+  * Requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
+  * or will receive a refreshed token based off of the previous token to mitigate the BREACH vulnerability. If a request
+  * contains an invalid token, regardless of whether it is a safe method, this middleware will fail it with
+  * `401 Unauthorized`. In this situation, your user(s) should clear their cookies for your page, to receive a new
+  * token.
+  *
+  * We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
+  * not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
+  * user data). If you choose to not to, this middleware cannot protect you.
+  *
   *
   * @param headerName your CSRF header name
   * @param cookieName the CSRF cookie name
@@ -94,10 +107,7 @@ final class CSRF[F[_]] private[middleware] (
         service(r).semiflatMap(embedNew)
     }
 
-  /** Filter an action that will check
-    *
-    * @return
-    */
+  /** Check for CSRF validity for an unsafe action. **/
   private[middleware] def checkCSRF(r: Request[F], service: HttpService[F]): F[Response[F]] =
     (for {
       c1 <- OptionT.fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
@@ -109,6 +119,7 @@ final class CSRF[F[_]] private[middleware] (
     } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
       .getOrElse(Response[F](Status.Unauthorized))
 
+  /** Check method safety, then apply the correct csrf policy **/
   private[middleware] def filter(r: Request[F], service: HttpService[F]): OptionT[F, Response[F]] =
     if (r.method.isSafe) {
       validateOrEmbed(r, service)
