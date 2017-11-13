@@ -29,7 +29,9 @@ package object http4s { // scalastyle:ignore
 
   /**
     * A [[Kleisli]] that produces an effect to compute an [[OptionT[F]]]] from a
-    * [[Request[F]]].  An HttpService can be run on any supported http4s
+    * [[Request[F]]]. In case an [[OptionT.none]] is computed the server backend
+    * should respond with a 404.
+    * An HttpService can be run on any supported http4s
     * server backend, such as Blaze, Jetty, or Tomcat.
     */
   type HttpService[F[_]] = Kleisli[OptionT[F, ?], Request[F], Response[F]]
