@@ -14,9 +14,8 @@ object HttpService extends Serializable {
   def lift[F[_]: Functor](f: Request[F] => F[Response[F]]): HttpService[F] =
     Kleisli(f.andThen(OptionT.liftF(_)))
 
-  /** Lifts a partial function to an `HttpService`. Responds with
-    * [[org.http4s.Response.notFoundFor]], which generates a 404, for any request
-    * where `pf` is not defined.
+  /** Lifts a partial function to an `HttpService`.
+    * Responds with `OptionT.none` for any request where `pf` is not defined.
     */
   def apply[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(
       implicit F: Applicative[F]): HttpService[F] =
