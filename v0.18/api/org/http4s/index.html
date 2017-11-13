@@ -1452,7 +1452,9 @@ equally, their values are equal.
       
       <p class="shortcomment cmt">A <span class="extype" name="Kleisli">Kleisli</span> that produces an effect to compute an <span class="extype" name="OptionT[F">OptionT[F</span>]] from a
 <span class="extype" name="Request[F">Request[F</span>].</p><div class="fullcomment"><div class="comment cmt"><p>A <span class="extype" name="Kleisli">Kleisli</span> that produces an effect to compute an <span class="extype" name="OptionT[F">OptionT[F</span>]] from a
-<span class="extype" name="Request[F">Request[F</span>].  An HttpService can be run on any supported http4s
+<span class="extype" name="Request[F">Request[F</span>]. In case an <span class="extype" name="OptionT.none">OptionT.none</span> is computed the server backend
+should respond with a 404.
+An HttpService can be run on any supported http4s
 server backend, such as Blaze, Jetty, or Tomcat.
 </p></div></div>
     </li><li name="org.http4s.HttpVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
