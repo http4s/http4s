@@ -162,7 +162,7 @@
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
-                        <a class="object" href="CSRF$.html" title=""></a>
+                        <a class="object" href="" title=""></a>
                         <a class="class" href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks."></a>
                         <a href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks.">CSRF</a>
                       </li><li class="current-entities indented4">
@@ -219,8 +219,8 @@
                         <a href="UrlFormLifter$.html" title="Middleware for lifting application/x-www-form-urlencoded bodies into the request query params.">UrlFormLifter</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="" title="Middleware for virtual host mapping"></a>
-                        <a href="" title="Middleware for virtual host mapping">VirtualHost</a>
+                        <a class="object" href="VirtualHost$.html" title="Middleware for virtual host mapping"></a>
+                        <a href="VirtualHost$.html" title="Middleware for virtual host mapping">VirtualHost</a>
                       </li>
               </ul>
             </div>
@@ -228,14 +228,16 @@
           <div id="content">
             <body class="object value">
       <div id="definition">
-        <div class="big-circle object">o</div>
+        <a href="CSRF.html" title="See companion class"><div class="big-circle object-companion-class">o</div></a>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.server">server</a>.<a href="index.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
-        <h1>VirtualHost<span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html" title="Permalink">
+        <h1><a href="CSRF.html" title="See companion class">CSRF</a><span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="CSRF.html" title="See companion class">class CSRF</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -244,14 +246,12 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">VirtualHost</span>
+        <span class="name">CSRF</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Middleware for virtual host mapping</p><p>The <code>VirtualHost</code> middleware allows multiple services to be mapped
-based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">org.http4s.headers.Host</a> header of the <a href="../../Request.html" class="extype" name="org.http4s.Request">org.http4s.Request</a>.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/VirtualHost.scala" target="_blank">VirtualHost.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -281,7 +281,7 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.middleware.VirtualHost"><span>VirtualHost</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.middleware.CSRF"><span>CSRF</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -301,29 +301,7 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.middleware.VirtualHost.HostService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HostService[F[_]]extendsProductwithSerializable"></a><a id="HostService[F[_]]:HostService[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#HostService[F[_]]extendsProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="Specification of the virtual host service and predicate." href="VirtualHost$$HostService.html"><span class="name">HostService</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Specification of the virtual host service and predicate.</p><div class="fullcomment"><div class="comment cmt"><p>Specification of the virtual host service and predicate.</p><p>The predicate receives the the Host header information with the port
-filled in, if possible, using the request Uri or knowledge of the
-security of the underlying transport protocol.
-</p></div></div>
-    </li></ol>
-            </div>
+        
 
         
 
@@ -333,7 +311,7 @@ security of the underlying transport protocol.
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -349,7 +327,7 @@ security of the underlying transport protocol.
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -365,7 +343,7 @@ security of the underlying transport protocol.
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -378,10 +356,58 @@ security of the underlying transport protocol.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.VirtualHost#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](first:org.http4s.server.middleware.VirtualHost.HostService[F],rest:org.http4s.server.middleware.VirtualHost.HostService[F]*)(implicitF:cats.Monad[F],implicitW:org.http4s.EntityEncoder[F,String]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](HostService[F],HostService[F]*)(Monad[F],EntityEncoder[F,String]):HttpService[F]"></a>
+    </li><li name="org.http4s.server.middleware.CSRF#CSRFTokenLength" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CSRFTokenLength:Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#apply[F[_]](first:org.http4s.server.middleware.VirtualHost.HostService[F],rest:org.http4s.server.middleware.VirtualHost.HostService[F]*)(implicitF:cats.Monad[F],implicitW:org.http4s.EntityEncoder[F,String]):org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#CSRFTokenLength:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">CSRFTokenLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.CSRF#SHA1ByteLen" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SHA1ByteLen:Int"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#SHA1ByteLen:Int" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SHA1ByteLen</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.CSRF#SigningAlgo" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SigningAlgo:String"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#SigningAlgo:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SigningAlgo</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.CSRF#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply[F[_]](headerName:String,cookieName:String,key:javax.crypto.SecretKey,clock:java.time.Clock)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.server.middleware.CSRF[F]"></a><a id="apply[F[_]](String,String,SecretKey,Clock)(Sync[F]):CSRF[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#apply[F[_]](headerName:String,cookieName:String,key:javax.crypto.SecretKey,clock:java.time.Clock)(implicitevidence$1:cats.effect.Sync[F]):org.http4s.server.middleware.CSRF[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -390,14 +416,14 @@ security of the underlying transport protocol.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="first">first: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.apply.F">F</span>]</span>, <span name="rest">rest: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.apply.F">F</span>]*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.apply.F">F</span>]</span>, <span name="W">W: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.apply.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;X-Csrf-Token&quot;</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="key">key: <span class="extype" name="javax.crypto.SecretKey">SecretKey</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.F">F</span>]</span>)</span><span class="result">: <a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.F">F</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Default method for constructing CSRF middleware *</p>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -410,10 +436,31 @@ security of the underlying transport protocol.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#buildSigningKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="buildSigningKey[F[_]](array:Array[Byte])(implicitF:cats.effect.Sync[F]):F[javax.crypto.SecretKey]"></a><a id="buildSigningKey[F[_]](Array[Byte])(Sync[F]):F[SecretKey]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#buildSigningKey[F[_]](array:Array[Byte])(implicitF:cats.effect.Sync[F]):F[javax.crypto.SecretKey]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">buildSigningKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="array">array: <a href="http://www.scala-lang.org/api/2.12.4/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.buildSigningKey.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.buildSigningKey.F">F</span>[<span class="extype" name="javax.crypto.SecretKey">SecretKey</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Build a new HMACSHA1 Key for our CSRF Middleware
+from key bytes.</p><div class="fullcomment"><div class="comment cmt"><p>Build a new HMACSHA1 Key for our CSRF Middleware
+from key bytes. This operation is unsafe, in that
+any amount less than 20 bytes will throw an exception when loaded
+into <code>Mac</code>, and any value above will be truncated (not good for entropy).</p><p>Use for loading a key from a config file, after having generated
+one safely</p></div></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -437,7 +484,7 @@ security of the underlying transport protocol.
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -453,7 +500,7 @@ security of the underlying transport protocol.
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -466,30 +513,10 @@ security of the underlying transport protocol.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.VirtualHost#exact" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="exact[F[_]](service:org.http4s.HttpService[F],requestHost:String,port:Option[Int]):org.http4s.server.middleware.VirtualHost.HostService[F]"></a><a id="exact[F[_]](HttpService[F],String,Option[Int]):HostService[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#exact[F[_]](service:org.http4s.HttpService[F],requestHost:String,port:Option[Int]):org.http4s.server.middleware.VirtualHost.HostService[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">exact</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.F">F</span>]</span>, <span name="requestHost">requestHost: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.exact.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that will match based on the exact host string
-(discounting case) and port, if the port is given.</p><div class="fullcomment"><div class="comment cmt"><p>Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that will match based on the exact host string
-(discounting case) and port, if the port is given. If the port is not
-given, it is ignored.
-</p></div></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -508,10 +535,26 @@ given, it is ignored.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#generateSigningKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="generateSigningKey[F[_]]()(implicitF:cats.effect.Sync[F]):F[javax.crypto.SecretKey]"></a><a id="generateSigningKey[F[_]]()(Sync[F]):F[SecretKey]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#generateSigningKey[F[_]]()(implicitF:cats.effect.Sync[F]):F[javax.crypto.SecretKey]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">generateSigningKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.generateSigningKey.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.generateSigningKey.F">F</span>[<span class="extype" name="javax.crypto.SecretKey">SecretKey</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Generate a signing Key for the CSRF token *</p>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -530,7 +573,7 @@ given, it is ignored.
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -546,10 +589,26 @@ given, it is ignored.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#isEqual" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="isEqual(s1:String,s2:String):Boolean"></a><a id="isEqual(String,String):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#isEqual(s1:String,s2:String):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isEqual</span><span class="params">(<span name="s1">s1: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="s2">s2: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A Constant-time string equality *</p>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -565,7 +624,7 @@ given, it is ignored.
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -581,7 +640,7 @@ given, it is ignored.
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -600,7 +659,7 @@ given, it is ignored.
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -616,31 +675,10 @@ given, it is ignored.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.VirtualHost#regex" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="regex[F[_]](service:org.http4s.HttpService[F],hostRegex:String,port:Option[Int]):org.http4s.server.middleware.VirtualHost.HostService[F]"></a><a id="regex[F[_]](HttpService[F],String,Option[Int]):HostService[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#regex[F[_]](service:org.http4s.HttpService[F],hostRegex:String,port:Option[Int]):org.http4s.server.middleware.VirtualHost.HostService[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">regex</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.F">F</span>]</span>, <span name="hostRegex">hostRegex: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.regex.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that uses a regular expression to match the host
-string (which will be provided in lower case form) and port, if the port
-is given.</p><div class="fullcomment"><div class="comment cmt"><p>Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that uses a regular expression to match the host
-string (which will be provided in lower case form) and port, if the port
-is given. If the port is not given, it is ignored.
-</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -656,7 +694,7 @@ is given. If the port is not given, it is ignored.
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -672,7 +710,7 @@ is given. If the port is not given, it is ignored.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -694,7 +732,7 @@ is given. If the port is not given, it is ignored.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -716,7 +754,7 @@ is given. If the port is not given, it is ignored.
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -737,10 +775,10 @@ is given. If the port is not given, it is ignored.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.middleware.VirtualHost#wildcard" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="wildcard[F[_]](service:org.http4s.HttpService[F],wildcardHost:String,port:Option[Int]):org.http4s.server.middleware.VirtualHost.HostService[F]"></a><a id="wildcard[F[_]](HttpService[F],String,Option[Int]):HostService[F]"></a>
+    </li><li name="org.http4s.server.middleware.CSRF#withGeneratedKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withGeneratedKey[F[_]](headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$2:cats.effect.Sync[F]):F[org.http4s.server.middleware.CSRF[F]]"></a><a id="withGeneratedKey[F[_]](String,String,Clock)(Sync[F]):F[CSRF[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$.html#wildcard[F[_]](service:org.http4s.HttpService[F],wildcardHost:String,port:Option[Int]):org.http4s.server.middleware.VirtualHost.HostService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#withGeneratedKey[F[_]](headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$2:cats.effect.Sync[F]):F[org.http4s.server.middleware.CSRF[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -749,15 +787,26 @@ is given. If the port is not given, it is ignored.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wildcard</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.F">F</span>]</span>, <span name="wildcardHost">wildcardHost: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.wildcard.F">F</span>]</span>
+        <span class="name">withGeneratedKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;X-Csrf-Token&quot;</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>[<a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that will match based on the host string allowing
-for wildcard matching of the lowercase host string and port, if the port is
-given.</p><div class="fullcomment"><div class="comment cmt"><p>Create a <a href="VirtualHost$$HostService.html" class="extype" name="org.http4s.server.middleware.VirtualHost.HostService">HostService</a> that will match based on the host string allowing
-for wildcard matching of the lowercase host string and port, if the port is
-given. If the port is not given, it is ignored.
-</p></div></div>
+      <p class="shortcomment cmt">Sugar for instantiating a middleware by generating a key *</p>
+    </li><li name="org.http4s.server.middleware.CSRF#withKeyBytes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withKeyBytes[F[_]](keyBytes:Array[Byte],headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$3:cats.effect.Sync[F]):F[org.http4s.server.middleware.CSRF[F]]"></a><a id="withKeyBytes[F[_]](Array[Byte],String,String,Clock)(Sync[F]):F[CSRF[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#withKeyBytes[F[_]](keyBytes:Array[Byte],headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$3:cats.effect.Sync[F]):F[org.http4s.server.middleware.CSRF[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withKeyBytes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="keyBytes">keyBytes: <a href="http://www.scala-lang.org/api/2.12.4/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>, <span name="headerName">headerName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;X-Csrf-Token&quot;</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>[<a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Sugar for pre-loading a key *</p>
     </li>
               </ol>
             </div>

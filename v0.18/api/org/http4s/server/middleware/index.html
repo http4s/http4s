@@ -210,6 +210,10 @@
                         <a class="class" href="CORSConfig.html" title="CORS middleware config options."></a>
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="CSRF$.html" title=""></a>
+                        <a class="class" href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks."></a>
+                        <a href="CSRF.html" title="Middleware to avoid Cross-site request forgery attacks.">CSRF</a>
+                      </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="ChunkAggregator$.html" title=""></a>
                         <a href="ChunkAggregator$.html" title="">ChunkAggregator</a>
@@ -397,6 +401,35 @@ for serious static content serving.
 You can give an instance of this class to the CORS middleware,
 to specify its behavoir
 </p></div></div>
+    </li><li name="org.http4s.server.middleware.CSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="CSRF[F[_]]extendsAnyRef"></a><a id="CSRF[F[_]]:CSRF[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/index.html#CSRF[F[_]]extendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="Middleware to avoid Cross-site request forgery attacks." href="CSRF.html"><span class="name">CSRF</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Middleware to avoid Cross-site request forgery attacks.</p><div class="fullcomment"><div class="comment cmt"><p>Middleware to avoid Cross-site request forgery attacks.
+More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)</p><p>This middleware is modeled after the double submit cookie pattern:
+https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie</p><p>When a user authenticates, <code>embedNew</code> is used to send a random CSRF value as a cookie.  (Alternatively,
+an authenticating service can be wrapped in <code>withNewToken</code>).</p><p>By default, for requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the <code>validated</code> method in the
+middleware will check that the csrf token is present in both the header <code>headerName</code> and the cookie <code>cookieName</code>.
+Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
+custom header, resulting in a <code>401 Unauthorized</code> response.</p><p>By default, requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
+or will receive a refreshed token based off of the previous token to mitigate the BREACH vulnerability. If a request
+contains an invalid token, regardless of whether it is a safe method, this middleware will fail it with
+<code>401 Unauthorized</code>. In this situation, your user(s) should clear their cookies for your page, to receive a new
+token.</p><p>The default can be overridden by modifying the <code>predicate</code> in <code>validate</code>. It will, by default, check if the method is safe.
+Thus, you can provide some whitelisting capability for certain kinds of requests.</p><p>We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
+not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering
+user data). Please do not use the CSRF protection from this middleware as a safety net for bad design.</p></div></div>
     </li></ol>
             </div>
 
@@ -437,6 +470,22 @@ uri = &quot;/foo/&quot; to match the route.
       </span>
       <span class="symbol">
         <a title="" href="CORS$.html"><span class="name">CORS</span></a>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.CSRF" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CSRF"></a><a id="CSRF:CSRF"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/index.html#CSRF" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CSRF$.html"><span class="name">CSRF</span></a>
       </span>
       
       
