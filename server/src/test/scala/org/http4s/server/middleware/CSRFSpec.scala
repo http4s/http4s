@@ -1,6 +1,7 @@
 package org.http4s.server.middleware
 
 import java.time.{Clock, Instant, ZoneId}
+import java.util.concurrent.atomic.AtomicLong
 
 import cats.data.OptionT
 import cats.effect.IO
@@ -16,18 +17,14 @@ class CSRFSpec extends Http4sSpec {
     * before the clock at least traverses a millisecond.
     */
   val testClock: Clock = new Clock { self =>
-    private var clockTick = Instant.now()
+    private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)
 
     def withZone(zone: ZoneId): Clock = this
 
     def getZone: ZoneId = ZoneId.systemDefault()
 
-    def instant(): Instant = {
-      self.synchronized {
-        clockTick = clockTick.plusMillis(1)
-      }
-      clockTick
-    }
+    def instant(): Instant =
+      Instant.ofEpochMilli(clockTick.incrementAndGet())
   }
 
   val dummyService: HttpService[IO] = HttpService[IO] {
