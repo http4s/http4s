@@ -251,7 +251,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/72861649e2337e1e0af054e33931d45d12ea41c4/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e4fc0cff486c7ca5f5dcd58b5174bef9dca9da28/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -588,6 +588,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#filter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="filter(predicate:org.http4s.Request=&gt;Boolean,r:org.http4s.Request,service:org.http4s.HttpService):fs2.Task[org.http4s.MaybeResponse]"></a><a id="filter((Request)⇒Boolean,Request,HttpService):Task[MaybeResponse]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#filter(predicate:org.http4s.Request=&gt;Boolean,r:org.http4s.Request,service:org.http4s.HttpService):fs2.Task[org.http4s.MaybeResponse]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">filter</span><span class="params">(<span name="predicate">predicate: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="service">service: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <span class="extype" name="fs2.Task">Task</span>[<a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
@@ -790,9 +806,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.CSRF#validate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="validate:org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="validate:Middleware[Request,MaybeResponse,Request,MaybeResponse]"></a>
+      <a id="validate(predicate:org.http4s.Request=&gt;Boolean):org.http4s.server.HttpMiddleware"></a><a id="validate((Request)⇒Boolean):HttpMiddleware"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#validate:org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#validate(predicate:org.http4s.Request=&gt;Boolean):org.http4s.server.HttpMiddleware" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -801,7 +817,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">validate</span><span class="result">: <a href="../index.html#Middleware[A,B,C,D]=org.http4s.Service[A,B]=&gt;org.http4s.Service[C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
+        <span class="name">validate</span><span class="params">(<span name="predicate">predicate: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="../../Request.html#method:org.http4s.Method">_.method.isSafe</a></span></span></span>)</span><span class="result">: <a href="../index.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.server.HttpMiddleware">HttpMiddleware</a></span>
       </span>
       
       <p class="shortcomment cmt">Constructs a middleware that will check for the csrf token
@@ -879,9 +895,9 @@ against [BREACH](http://breachattack.com/)</p></div></div>
               
         </dd></dl></div>
     </li><li name="org.http4s.server.middleware.CSRF#withNewToken" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withNewToken:org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="withNewToken:Middleware[Request,MaybeResponse,Request,MaybeResponse]"></a>
+      <a id="withNewToken:org.http4s.server.HttpMiddleware"></a><a id="withNewToken:HttpMiddleware"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#withNewToken:org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#withNewToken:org.http4s.server.HttpMiddleware" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -890,7 +906,7 @@ against [BREACH](http://breachattack.com/)</p></div></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withNewToken</span><span class="result">: <a href="../index.html#Middleware[A,B,C,D]=org.http4s.Service[A,B]=&gt;org.http4s.Service[C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
+        <span class="name">withNewToken</span><span class="result">: <a href="../index.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.server.HttpMiddleware">HttpMiddleware</a></span>
       </span>
       
       <p class="shortcomment cmt">Middleware to embed a csrf token into routes that do not have one.</p><div class="fullcomment"><div class="comment cmt"><p>Middleware to embed a csrf token into routes that do not have one. *</p></div></div>
