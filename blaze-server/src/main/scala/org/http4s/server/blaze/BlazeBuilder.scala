@@ -8,6 +8,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
+import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
@@ -248,8 +249,8 @@ class BlazeBuilder[F[_]](
     }
 
     banner.foreach(logger.info(_))
-    logger.info(s"http4s v${BuildInfo.version} on blaze started at ${server.baseUri}")
-
+    logger.info(
+      s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
     server
   }
 

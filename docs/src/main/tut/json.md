@@ -189,11 +189,6 @@ Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
 POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
-Note the argument to `as` is in parentheses instead of square
-brackets, as it's a function call instead of a type.  We are
-_implicitly_ summoning a `Decoder[A]`, but _explicitly_ declaring that
-`A` is encoded as JSON.
-
 ## Putting it all together
 
 ### A Hello world service

@@ -3,22 +3,22 @@ package server
 package jetty
 
 import cats.effect._
-import java.util
 import java.net.InetSocketAddress
+import java.util
 import javax.net.ssl.SSLContext
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
-import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
+import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
-import scala.collection.immutable
 import scala.concurrent.ExecutionContext
+import scala.collection.immutable
 import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]: Effect] private (
@@ -37,10 +37,10 @@ sealed class JettyBuilder[F[_]: Effect] private (
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F] {
 
-  private[this] val logger = getLogger
-
   private val F = Effect[F]
   type Self = JettyBuilder[F]
+
+  private[this] val logger = getLogger
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
@@ -228,7 +228,6 @@ sealed class JettyBuilder[F[_]: Effect] private (
     banner.foreach(logger.info(_))
     logger.info(
       s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-
     server
   }
 }

@@ -3,10 +3,10 @@ package server
 package tomcat
 
 import cats.effect._
-import java.util
 import java.net.InetSocketAddress
-import javax.servlet.{DispatcherType, Filter}
+import java.util
 import javax.servlet.http.HttpServlet
+import javax.servlet.{DispatcherType, Filter}
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
@@ -33,10 +33,11 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F] {
-  private[this] val logger = getLogger
 
   private val F = Effect[F]
   type Self = TomcatBuilder[F]
+
+  private[this] val logger = getLogger
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
@@ -147,7 +148,11 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   override def start: F[Server[F]] = F.delay {
     val tomcat = new Tomcat
 
-    tomcat.addContext("", getClass.getResource("/").getPath)
+    val docBase = getClass.getResource("/") match {
+      case null => null
+      case resource => resource.getPath
+    }
+    tomcat.addContext("", docBase)
 
     val conn = tomcat.getConnector()
 
@@ -215,7 +220,6 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     }
     logger.info(
       s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${server.baseUri}")
-
     server
   }
 }
