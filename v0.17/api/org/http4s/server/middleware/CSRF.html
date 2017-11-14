@@ -163,8 +163,8 @@
                         <a href="CORSConfig.html" title="CORS middleware config options.">CORSConfig</a>
                       </li><li class="current-entities indented4">
                         <a class="object" href="CSRF$.html" title=""></a>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">CSRF</a>
+                        <a class="class" href="" title="Middleware to avoid Cross-site request forgery attacks."></a>
+                        <a href="" title="Middleware to avoid Cross-site request forgery attacks.">CSRF</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="ChunkAggregator$.html" title=""></a>
@@ -251,7 +251,14 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/e4fc0cff486c7ca5f5dcd58b5174bef9dca9da28/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Middleware to avoid Cross-site request forgery attacks.
+More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)</p><p>This middleware is modeled after the double submit cookie pattern:
+https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#DoubleSubmit_Cookie</p><p>When a user authenticates, <code>embedNew</code> is used to send a random CSRF value as a cookie.  (Alterntively,
+an authenticating service can be wrapped in <code>withNewToken</code>).  Services protected by the <code>validaed</code>
+middleware then check that the value is prsent in both the header <code>headerName</code> and the cookie <code>cookieName</code>.
+Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
+custom header, resulting in a <code>403 Forbidden</code> response.
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/6f1de316fbe1953d5b25bfced2bbe24babc40b6c/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -588,22 +595,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.CSRF#filter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="filter(predicate:org.http4s.Request=&gt;Boolean,r:org.http4s.Request,service:org.http4s.HttpService):fs2.Task[org.http4s.MaybeResponse]"></a><a id="filter((Request)⇒Boolean,Request,HttpService):Task[MaybeResponse]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#filter(predicate:org.http4s.Request=&gt;Boolean,r:org.http4s.Request,service:org.http4s.HttpService):fs2.Task[org.http4s.MaybeResponse]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">filter</span><span class="params">(<span name="predicate">predicate: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="service">service: <a href="../../index.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.MaybeResponse]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <span class="extype" name="fs2.Task">Task</span>[<a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
