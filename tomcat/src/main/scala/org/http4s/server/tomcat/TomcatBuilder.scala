@@ -3,15 +3,17 @@ package server
 package tomcat
 
 import cats.effect._
-import java.util
 import java.net.InetSocketAddress
-import javax.servlet.{DispatcherType, Filter}
+import java.util
 import javax.servlet.http.HttpServlet
-import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
+import javax.servlet.{DispatcherType, Filter}
 import org.apache.catalina.startup.Tomcat
+import org.apache.catalina.util.ServerInfo
+import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -32,6 +34,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
   private val F = Effect[F]
   type Self = TomcatBuilder[F]
+
+  private[this] val logger = getLogger
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
@@ -137,7 +141,11 @@ sealed class TomcatBuilder[F[_]: Effect] private (
   override def start: F[Server[F]] = F.delay {
     val tomcat = new Tomcat
 
-    tomcat.addContext("", getClass.getResource("/").getPath)
+    val docBase = getClass.getResource("/") match {
+      case null => null
+      case resource => resource.getPath
+    }
+    tomcat.addContext("", docBase)
 
     val conn = tomcat.getConnector()
 
@@ -173,7 +181,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
     tomcat.start()
 
-    new Server[F] {
+    val server = new Server[F] {
       override def shutdown: F[Unit] =
         F.delay {
           tomcat.stop()
@@ -195,6 +203,14 @@ sealed class TomcatBuilder[F[_]: Effect] private (
         new InetSocketAddress(host, port)
       }
     }
+
+    val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+      case Array(_, version) => version
+      case _ => ServerInfo.getServerInfo // well, we tried
+    }
+    logger.info(s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${Server
+      .baseUri(server.address, sslBits.isDefined)}")
+    server
   }
 }
 

@@ -8,6 +8,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
+import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
@@ -219,7 +220,7 @@ class BlazeBuilder[F[_]](
     // if we have a Failure, it will be caught by the effect
     val serverChannel = factory.bind(address, pipelineFactory).get
 
-    new Server[F] {
+    val server = new Server[F] {
       override def shutdown: F[Unit] = F.delay {
         serverChannel.close()
         factory.closeGroup()
@@ -236,6 +237,11 @@ class BlazeBuilder[F[_]](
       override def toString: String =
         s"BlazeServer($address)"
     }
+
+    logger.info(
+      s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${Server
+        .baseUri(address, sslBits.isDefined)}")
+    server
   }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
