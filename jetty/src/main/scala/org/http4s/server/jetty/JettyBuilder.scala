@@ -18,6 +18,7 @@ import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
+import scala.collection.immutable
 import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]: Effect] private (
@@ -28,7 +29,8 @@ sealed class JettyBuilder[F[_]: Effect] private (
     private val servletIo: ServletIo[F],
     sslBits: Option[SSLConfig],
     mounts: Vector[Mount[F]],
-    private val serviceErrorHandler: ServiceErrorHandler[F]
+    private val serviceErrorHandler: ServiceErrorHandler[F],
+    banner: immutable.Seq[String]
 ) extends ServletContainer[F]
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
@@ -48,7 +50,8 @@ sealed class JettyBuilder[F[_]: Effect] private (
       servletIo: ServletIo[F] = servletIo,
       sslBits: Option[SSLConfig] = sslBits,
       mounts: Vector[Mount[F]] = mounts,
-      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler
+      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
+      banner: immutable.Seq[String] = banner
   ): Self =
     new JettyBuilder(
       socketAddress,
@@ -58,7 +61,8 @@ sealed class JettyBuilder[F[_]: Effect] private (
       servletIo,
       sslBits,
       mounts,
-      serviceErrorHandler)
+      serviceErrorHandler,
+      banner)
 
   override def withSSL(
       keyStore: StoreInfo,
@@ -126,6 +130,9 @@ sealed class JettyBuilder[F[_]: Effect] private (
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
+
+  def withBanner(banner: immutable.Seq[String]): Self =
+    copy(banner = banner)
 
   private def getConnector(jetty: JServer): ServerConnector = {
     def serverConnector(sslContextFactory: SslContextFactory) = {
@@ -214,11 +221,13 @@ sealed class JettyBuilder[F[_]: Effect] private (
         val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
         new InetSocketAddress(host, port)
       }
+
+      lazy val isSecure: Boolean = sslBits.isDefined
     }
 
-    logger.info(s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${Server
-      .baseUri(server.address, sslBits.isDefined)}")
-
+    banner.foreach(logger.info(_))
+    logger.info(
+      s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
     server
   }
 }
@@ -232,7 +241,8 @@ object JettyBuilder {
     servletIo = ServletContainer.DefaultServletIo,
     sslBits = None,
     mounts = Vector.empty,
-    serviceErrorHandler = DefaultServiceErrorHandler
+    serviceErrorHandler = DefaultServiceErrorHandler,
+    banner = ServerBuilder.DefaultBanner
   )
 }
 
