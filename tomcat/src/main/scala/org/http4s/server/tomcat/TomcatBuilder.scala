@@ -2,18 +2,20 @@ package org.http4s
 package server
 package tomcat
 
+import fs2.Task
 import java.net.InetSocketAddress
 import java.util.EnumSet
+import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
-import javax.servlet.{DispatcherType, Filter}
-
-import fs2.Task
+import javax.servlet.{Filter, DispatcherType, ServletContext, ServletContainerInitializer}
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
-import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
+import org.apache.catalina.util.ServerInfo
+import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-
+import org.http4s.servlet.{ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -33,6 +35,8 @@ sealed class TomcatBuilder private (
   with IdleTimeoutSupport
   with SSLKeyStoreSupport {
   type Self = TomcatBuilder
+
+  private[this] val logger = getLogger
 
   private def copy(
     socketAddress: InetSocketAddress = socketAddress,
@@ -118,7 +122,11 @@ sealed class TomcatBuilder private (
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
-    val context = tomcat.addContext("", getClass.getResource("/").getPath)
+    val docBase = getClass.getResource("/") match {
+      case null => null 
+      case resource => resource.getPath
+    }
+    val context = tomcat.addContext("", docBase)
 
     val conn = tomcat.getConnector()
 
@@ -153,7 +161,7 @@ sealed class TomcatBuilder private (
 
     tomcat.start()
 
-    new Server {
+    val server = new Server {
       override def shutdown: Task[Unit] =
         Task.delay {
           tomcat.stop()
@@ -174,8 +182,15 @@ sealed class TomcatBuilder private (
         val host = socketAddress.getHostString
         val port = tomcat.getConnector.getLocalPort
         new InetSocketAddress(host, port)
-      }      
+      }
     }
+
+    val tomcatVersion = ServerInfo.getServerInfo.split("/") match {
+      case Array(_, version) => version
+      case _ => ServerInfo.getServerInfo // well, we tried
+    }
+    logger.info(s"http4s v${BuildInfo.version} on Tomcat v${tomcatVersion} started at ${Server.baseUri(server.address, sslBits.isDefined)}")
+    server
   }
 }
 

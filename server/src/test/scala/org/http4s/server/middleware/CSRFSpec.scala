@@ -1,14 +1,18 @@
 package org.http4s.server.middleware
 
-import java.time.{Clock, Instant, ZoneId}
-import java.util.concurrent.atomic.AtomicLong
-import org.http4s._
-import org.http4s.dsl._
-import org.http4s.headers.{`Set-Cookie` => HCookie}
+import cats.implicits._
 import fs2.Task
 import fs2.interop.cats._
+import java.time.{Clock, Instant, ZoneId}
+import java.util.concurrent.atomic.AtomicLong
+import org.http4s.Uri.uri
+import org.http4s._
+import org.http4s._
+import org.http4s.dsl._
+import org.http4s.dsl._
+import org.http4s.headers.{`Set-Cookie` => HCookie}
+import org.http4s.headers.{`Set-Cookie` => HCookie}
 import org.http4s.implicits._
-import cats.implicits._
 
 class CSRFSpec extends Http4sSpec {
 
@@ -179,5 +183,4 @@ class CSRFSpec extends Http4sSpec {
       }
     }
   }.unsafeValue()
-
 }

@@ -1,20 +1,36 @@
 package org.http4s.server.middleware
 
+import cats.data.{Kleisli, OptionT}
+import fs2.Task
+import fs2.interop.cats._
 import java.nio.charset.StandardCharsets
 import java.security.{MessageDigest, SecureRandom}
 import java.time.Clock
 import java.util.Base64
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
-
-import cats.data.{Kleisli, OptionT}
+import org.http4s._
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.server.{HttpMiddleware, Middleware}
 import org.http4s.util.{CaseInsensitiveString, encodeHex}
-import org.http4s._
-import fs2.Task
-import fs2.interop.cats._
 
+/** Middleware to avoid Cross-site request forgery attacks.
+  * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
+  *
+  * This middleware is modeled after the double submit cookie pattern:
+  * https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#DoubleSubmit_Cookie
+  *
+  * When a user authenticates, `embedNew` is used to send a random CSRF value as a cookie.  (Alterntively,
+  * an authenticating service can be wrapped in `withNewToken`).  Services protected by the `validaed`
+  * middleware then check that the value is prsent in both the header `headerName` and the cookie `cookieName`.
+  * Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
+  * custom header, resulting in a `403 Forbidden` response.
+  *
+  * @param headerName your CSRF header name
+  * @param cookieName the CSRF cookie name
+  * @param key the CSRF signing key
+  * @param clock clock used as a nonce
+  */
 final class CSRF private[middleware] (val headerName: String = "X-Csrf-Token",
                                       val cookieName: String = "csrf-token",
                                       key: SecretKey,
@@ -94,7 +110,7 @@ final class CSRF private[middleware] (val headerName: String = "X-Csrf-Token",
                     Response(Status.NotFound)))
       .getOrElse(Response(Status.Unauthorized))
 
-  def filter(predicate: Request => Boolean, r: Request, service: HttpService): Task[MaybeResponse] =
+  private[middleware] def filter(predicate: Request => Boolean, r: Request, service: HttpService): Task[MaybeResponse] =
     if (predicate(r)) {
       validateOrEmbed(r, service)
     } else {

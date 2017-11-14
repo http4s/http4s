@@ -2,13 +2,13 @@ package org.http4s
 package server
 package jetty
 
+import fs2.Task
 import java.net.InetSocketAddress
 import java.util
+import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 import javax.servlet.http.HttpServlet
 import javax.servlet.{DispatcherType, Filter}
-
-import fs2.Task
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer, _}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
@@ -17,7 +17,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
-
+import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -37,6 +37,8 @@ sealed class JettyBuilder private(
     with SSLKeyStoreSupport
     with SSLContextSupport {
   type Self = JettyBuilder
+
+  private[this] val logger = getLogger
 
   private def copy(
     socketAddress: InetSocketAddress = socketAddress,
@@ -184,7 +186,7 @@ sealed class JettyBuilder private(
 
     jetty.start()
 
-    new Server {
+    val server = new Server {
       override def shutdown: Task[Unit] =
         Task.delay {
           jetty.stop()
@@ -205,6 +207,10 @@ sealed class JettyBuilder private(
         new InetSocketAddress(host, port)
       }
     }
+
+    logger.info(s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${Server.baseUri(server.address, sslBits.isDefined)}")
+
+    server
   }
 }
 
