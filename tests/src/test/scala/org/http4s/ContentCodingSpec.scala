@@ -59,8 +59,18 @@ class ContentCodingSpec extends Http4sSpec {
       ContentCoding.parse("") must beLeft
       ContentCoding.parse(";q=0.8") must beLeft
     }
+    "fail on non token" in {
+      ContentCoding.parse("\\\\") must beLeft
+    }
     "parse *" in {
       ContentCoding.parse("*") must_== ParseResult.success(ContentCoding.`*`)
+    }
+    "parse tokens starting with *" in {
+      // Strange content coding but valid
+      ContentCoding.parse("*fahon") must_== ParseResult.success(
+        ContentCoding.unsafeFromString("*fahon"))
+      ContentCoding.parse("*fahon;q=0.1") must_== ParseResult.success(
+        ContentCoding.unsafeFromString("*fahon").withQValue(q(0.1)))
     }
   }
 

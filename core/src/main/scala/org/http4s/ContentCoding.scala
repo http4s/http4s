@@ -103,14 +103,14 @@ object ContentCoding {
   private[http4s] trait ContentCodingParser extends QValueParser { self: PbParser =>
 
     def EncodingRangeDecl: Rule1[ContentCoding] = rule {
-      (EncodingRangeDef ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
+      (ContentCodingToken ~ QualityValue) ~> { (coding: ContentCoding, q: QValue) =>
         if (q === org.http4s.QValue.One) coding
         else coding.withQValue(q)
       }
     }
 
-    def EncodingRangeDef: Rule1[ContentCoding] = rule {
-      "*" ~ push(ContentCoding.`*`) | Token ~> { s: String =>
+    private def ContentCodingToken: Rule1[ContentCoding] = rule {
+      Token ~> { s: String =>
         ContentCoding.standard.getOrElse(s, new ContentCoding(s))
       }
     }

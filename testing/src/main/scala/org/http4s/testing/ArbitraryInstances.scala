@@ -208,7 +208,7 @@ trait ArbitraryInstances {
   def genContentCodingNoQuality: Gen[ContentCoding] =
     Gen.frequency(
       (10, oneOf(ContentCoding.standard.values.toSeq)),
-      (2, genToken.filter(!_.startsWith("*")).map(ContentCoding.unsafeFromString))
+      (2, genToken.map(ContentCoding.unsafeFromString))
     )
 
   implicit val arbitraryContentCoding: Arbitrary[ContentCoding] =
