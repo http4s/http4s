@@ -915,6 +915,22 @@ reference to the server when it has started.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#withBanner" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBanner(banner:scala.collection.immutable.Seq[String]):JettyBuilder.this.Self"></a><a id="withBanner(Seq[String]):Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withBanner(banner:scala.collection.immutable.Seq[String]):JettyBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withBanner</span><span class="params">(<span name="banner">banner: <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/Seq.html#scala.collection.immutable.Seq" class="extype" name="scala.collection.immutable.Seq">Seq</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Set the banner to display when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Set the banner to display when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):JettyBuilder.this.Self"></a><a id="withExecutionContext(ExecutionContext):Self"></a>
       <span class="permalink">
@@ -1016,6 +1032,22 @@ parsing a request or handling a context timeout.
       <p class="shortcomment cmt">Sets the servlet I/O mode for reads and writes within the servlet.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the servlet I/O mode for reads and writes within the servlet.
 Not to be confused with the server connectors.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="../../servlet/ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">org.http4s.servlet.ServletIo</a></p></span></dd></dl></div>
+    </li><li name="org.http4s.server.ServerBuilder#withoutBanner" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withoutBanner:ServerBuilder.this.Self"></a><a id="withoutBanner:Self"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#withoutBanner:ServerBuilder.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withoutBanner</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder[F]" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Disable the banner when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Disable the banner when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(JettyBuilder[F],B)"></a>
       <span class="permalink">
