@@ -1,16 +1,36 @@
 package org.http4s.server.middleware
 
+import java.time.{Clock, Instant, ZoneId}
+import java.util.concurrent.atomic.AtomicLong
+
 import cats.data.OptionT
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
 
 class CSRFSpec extends Http4sSpec {
+
+  /** Create a clock that always ticks forward once per millis() call.
+    *
+    * This is to emulate scenarios where we want to mitigate BREACH where, in
+    * a real world service, a huge number of requests wouldn't be processed
+    * before the clock at least traverses a millisecond.
+    */
+  val testClock: Clock = new Clock { self =>
+    private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)
+
+    def withZone(zone: ZoneId): Clock = this
+
+    def getZone: ZoneId = ZoneId.systemDefault()
+
+    def instant(): Instant =
+      Instant.ofEpochMilli(clockTick.incrementAndGet())
+  }
+
   val dummyService: HttpService[IO] = HttpService[IO] {
     case GET -> Root =>
       Ok()
     case POST -> Root =>
-      Thread.sleep(1) //Necessary to advance the clock
       Ok()
   }
 
@@ -18,7 +38,7 @@ class CSRFSpec extends Http4sSpec {
   val passThroughRequest: Request[IO] = Request[IO]()
   val orElse: Response[IO] = Response[IO](Status.NotFound)
 
-  val csrf = CSRF.withGeneratedKey[IO]().unsafeRunSync()
+  val csrf = CSRF.withGeneratedKey[IO](clock = testClock).unsafeRunSync()
   "CSRF" should {
     "pass through and embed a new token for a safe, fresh request" in {
       val response =
