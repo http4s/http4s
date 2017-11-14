@@ -1,5 +1,8 @@
 package org.http4s
 
+import cats.kernel.laws.discipline.EqTests
+import org.http4s.testing.HttpCodecTests
+
 class MediaRangeSpec extends Http4sSpec {
 
   "MediaRange" should {
@@ -36,5 +39,9 @@ class MediaRangeSpec extends Http4sSpec {
       raw.parsed must beAnInstanceOf[headers.Accept]
       Header("Accept", raw.parsed.value).parsed must_== raw.parsed
     }
+
   }
+
+  checkAll("Eq[MediaRange]", EqTests[MediaRange].eqv)
+  checkAll("HttpCodec[MediaRange]", HttpCodecTests[MediaRange].httpCodec)
 }

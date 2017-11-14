@@ -19,7 +19,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
       parse("image/*").values.head must be_==~(`image/*`)
 
       // Parse the rest
-      foreach(MediaRange.snapshot.values) { m =>
+      foreach(MediaRange.standard.values) { m =>
         val r = parse(m.renderString).values.head
         r must be_===(MediaRangeAndQValue(m))
       }
@@ -53,7 +53,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
       // Go through all of them
       {
-        val samples = MediaRange.snapshot.values.map(MediaRangeAndQValue(_))
+        val samples = MediaRange.standard.values.map(MediaRangeAndQValue(_))
         foreach(samples.sliding(4).toArray) { sample =>
           val h = Accept(sample.head, sample.tail.toSeq: _*)
           parse(h.value) must be_===(h)
@@ -62,7 +62,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
       // Go through all of them with q and extensions
       {
-        val samples = MediaRange.snapshot.values.map(_.withExtensions(ext).withQValue(q(0.2)))
+        val samples = MediaRange.standard.values.map(_.withExtensions(ext).withQValue(q(0.2)))
         foreach(samples.sliding(4).toArray) { sample =>
           val h = Accept(sample.head, sample.tail.toSeq: _*)
           parse(h.value) must be_===(h)

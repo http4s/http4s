@@ -253,6 +253,37 @@ trait ArbitraryInstances {
   implicit val cogenContentCoding: Cogen[ContentCoding] =
     Cogen[String].contramap(_.coding)
 
+  // MediaRange exepects the quoted pair without quotes
+  val genUnquotedPair = genQuotedPair.map { c =>
+    c.substring(1, c.length - 1)
+  }
+
+  val genMediaRangeExtension: Gen[(String, String)] =
+    for {
+      token <- genToken
+      value <- oneOf(genUnquotedPair, genQDText)
+    } yield (token, value)
+
+  val genMediaRangeExtensions: Gen[Map[String, String]] =
+    Gen.listOf(genMediaRangeExtension).map(_.toMap)
+
+  val genMediaRange: Gen[MediaRange] =
+    for {
+      `type` <- genToken
+      extensions <- genMediaRangeExtensions
+    } yield new MediaRange(`type`, extensions)
+
+  implicit val arbitraryMediaRange: Arbitrary[MediaRange] =
+    Arbitrary {
+      for {
+        `type` <- genToken
+        extensions <- genMediaRangeExtensions
+      } yield new MediaRange(`type`, extensions)
+    }
+
+  implicit val cogenMediaRange: Cogen[MediaRange] =
+    Cogen[(String, Map[String, String])].contramap(m => (m.mainType, m.extensions))
+
   implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
     Arbitrary {
       for {

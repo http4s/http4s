@@ -18,8 +18,15 @@
  */
 package org.http4s
 
+import cats.{Eq, Show}
+import cats.instances.char._
+import cats.instances.map._
+import cats.instances.string._
+import cats.syntax.eq._
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.headers.MediaRangeAndQValue
+import org.http4s.internal.parboiled2.{Parser => PbParser, _}
+import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
 import org.http4s.util.{Registry, Renderable, Writer}
 import scala.annotation.tailrec
 
@@ -36,30 +43,30 @@ sealed class MediaRange private[http4s] (
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
-    (mainType.charAt(0) == '*' || mainType == mediaType.mainType)
+    (mainType.charAt(0) === '*' || mainType === mediaType.mainType)
 
   final def satisfies(mediaRange: MediaRange): Boolean = mediaRange.satisfiedBy(this)
 
-  def isApplication: Boolean = mainType == "application"
-  def isAudio: Boolean = mainType == "audio"
-  def isImage: Boolean = mainType == "image"
-  def isMessage: Boolean = mainType == "message"
-  def isMultipart: Boolean = mainType == "multipart"
-  def isText: Boolean = mainType == "text"
-  def isVideo: Boolean = mainType == "video"
+  def isApplication: Boolean = mainType === "application"
+  def isAudio: Boolean = mainType === "audio"
+  def isImage: Boolean = mainType === "image"
+  def isMessage: Boolean = mainType === "message"
+  def isMultipart: Boolean = mainType === "multipart"
+  def isText: Boolean = mainType === "text"
+  def isVideo: Boolean = mainType === "video"
 
   def withQValue(q: QValue): MediaRangeAndQValue = MediaRangeAndQValue(this, q)
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, ext)
 
-  override def toString: String = "MediaRange(" + renderString + ')'
+  override def toString: String = s"MediaRange($renderString)"
 
   override def equals(obj: Any): Boolean = obj match {
     case _: MediaType => false
     case x: MediaRange =>
       (this eq x) ||
-        mainType == x.mainType &&
-          extensions == x.extensions
+        mainType === x.mainType &&
+          extensions === x.extensions
     case _ =>
       false
   }
@@ -71,27 +78,76 @@ sealed class MediaRange private[http4s] (
   }
 }
 
-object MediaRange extends Registry {
-  type Key = String
-  type Value = MediaRange
+object MediaRange {
+  val `*/*` = new MediaRange("*")
+  val `application/*` = new MediaRange("application")
+  val `audio/*` = new MediaRange("audio")
+  val `image/*` = new MediaRange("image")
+  val `message/*` = new MediaRange("message")
+  val `multipart/*` = new MediaRange("multipart")
+  val `text/*` = new MediaRange("text")
+  val `video/*` = new MediaRange("video")
 
-  implicit def fromKey(k: String): MediaRange = {
-    val parts = k.split('/')
-    if (parts.length < 2) new MediaRange(parts(0))
-    else if (parts(1) != "*") throw new IllegalArgumentException(k + " is not a valid media-type")
-    else new MediaRange(parts(0))
+  val standard: Map[String, MediaRange] =
+    List(
+      `*/*`,
+      `application/*`,
+      `audio/*`,
+      `image/*`,
+      `message/*`,
+      `multipart/*`,
+      `text/*`,
+      `video/*`).map(x => (x.mainType, x)).toMap
+
+  /**
+    * Parse a MediaRange
+    */
+  def parse(s: String): ParseResult[MediaRange] =
+    new Http4sParser[MediaRange](s, "Invalid Media Range") with MediaRangeParser {
+      def main = MediaRangeFull
+    }.parse
+
+  private[http4s] trait MediaRangeParser extends Rfc2616BasicRules { self: PbParser =>
+    def MediaRangeFull: Rule1[MediaRange] = rule {
+      MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
+        (mr: MediaRange, ext: Option[Seq[(String, String)]]) =>
+          ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+      }
+    }
+    def MediaRangeDef: Rule1[MediaRange] = rule {
+      (("*/*" ~ push("*") ~ push("*")) |
+        (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
+        ("*" ~ push("*") ~ push("*"))) ~> (getMediaRange(_, _))
+    }
+
+    def MediaTypeExtension: Rule1[(String, String)] = rule {
+      ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
+        (s: String, s2: Option[String]) =>
+          (s, s2.getOrElse(""))
+      }
+    }
+
+    private def getMediaRange(mainType: String, subType: String): MediaRange =
+      if (subType === "*")
+        MediaRange.standard.getOrElse(mainType.toLowerCase, new MediaRange(mainType))
+      else MediaType.getOrElseCreate((mainType.toLowerCase, subType.toLowerCase))
   }
 
-  implicit def fromValue(v: MediaRange): String = v.mainType.toLowerCase
+  implicit val http4sInstancesForMediaRange
+    : Show[MediaRange] with HttpCodec[MediaRange] with Eq[MediaRange] =
+    new Show[MediaRange] with HttpCodec[MediaRange] with Eq[MediaRange] {
+      override def show(s: MediaRange): String = s.toString
 
-  val `*/*` = registerKey("*")
-  val `application/*` = registerKey("application")
-  val `audio/*` = registerKey("audio")
-  val `image/*` = registerKey("image")
-  val `message/*` = registerKey("message")
-  val `multipart/*` = registerKey("multipart")
-  val `text/*` = registerKey("text")
-  val `video/*` = registerKey("video")
+      override def parse(s: String): ParseResult[MediaRange] =
+        MediaRange.parse(s)
+
+      override def render(writer: Writer, range: MediaRange): writer.type =
+        range.render(writer)
+
+      override def eqv(x: MediaRange, y: MediaRange): Boolean =
+        x.equals(y)
+    }
+
 }
 
 sealed class MediaType(
