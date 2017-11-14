@@ -1,7 +1,11 @@
 package org.http4s.server.middleware
 
+import java.time.{Clock, Instant, ZoneId}
+import java.util.concurrent.atomic.AtomicLong
+
 import org.http4s._
-import scalaz._, Scalaz._
+
+import scalaz._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import org.http4s.Uri.uri
@@ -11,12 +15,21 @@ import org.http4s.internal.compatibility._
 
 class CSRFSpec extends Http4sSpec {
 
+  val testClock: Clock = new Clock { self =>
+    private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)
+
+    def withZone(zone: ZoneId): Clock = this
+
+    def getZone: ZoneId = ZoneId.systemDefault()
+
+    def instant(): Instant =
+      Instant.ofEpochMilli(clockTick.incrementAndGet())
+  }
+
   val dummyService: HttpService = HttpService {
     case GET -> Root =>
-      Thread.sleep(1) //Fix so clock doesn't compute the same nonce, to emulate a real service
       Ok()
     case POST -> Root =>
-      Thread.sleep(1) //Fix so clock doesn't compute the same nonce, to emulate a real service
       Ok()
   }
 
@@ -24,7 +37,7 @@ class CSRFSpec extends Http4sSpec {
   val passThrough = Request()
 
   CSRF
-    .withGeneratedKey()
+    .withGeneratedKey(clock = testClock)
     .map { csrf =>
       "CSRF" should {
 
