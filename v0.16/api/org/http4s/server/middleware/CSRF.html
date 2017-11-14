@@ -242,7 +242,7 @@ an authenticating service can be wrapped in <code>withNewToken</code>).  Service
 middleware then check that the value is prsent in both the header <code>headerName</code> and the cookie <code>cookieName</code>.
 Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
 custom header, resulting in a <code>403 Forbidden</code> response.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/db20319ff8d3d6dd9413f351171b610597d97c57/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/63f7b2d3254c94b95312069580b873015d7916b8/server/src/main/scala/org/http4s/server/middleware/CSRF.scala" target="_blank">CSRF.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -781,9 +781,9 @@ custom header, resulting in a <code>403 Forbidden</code> response.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.CSRF#validate" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="validate:org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="validate:Middleware[Request,MaybeResponse,Request,MaybeResponse]"></a>
+      <a id="validate(predicate:org.http4s.Request=&gt;Boolean):org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]"></a><a id="validate((Request)⇒Boolean):Middleware[Request,MaybeResponse,Request,MaybeResponse]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF.html#validate:org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF.html#validate(predicate:org.http4s.Request=&gt;Boolean):org.http4s.server.Middleware[org.http4s.Request,org.http4s.MaybeResponse,org.http4s.Request,org.http4s.MaybeResponse]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -792,7 +792,7 @@ custom header, resulting in a <code>403 Forbidden</code> response.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">validate</span><span class="result">: <a href="../index.html#Middleware[A,B,C,D]=org.http4s.Service[A,B]=&gt;org.http4s.Service[C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
+        <span class="name">validate</span><span class="params">(<span name="predicate">predicate: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol"><span class="name"><a href="../../Request.html#method:org.http4s.Method">_.method.isSafe</a></span></span></span>)</span><span class="result">: <a href="../index.html#Middleware[A,B,C,D]=org.http4s.Service[A,B]=&gt;org.http4s.Service[C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../MaybeResponse.html" class="extype" name="org.http4s.MaybeResponse">MaybeResponse</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Constructs a middleware that will check for the csrf token
