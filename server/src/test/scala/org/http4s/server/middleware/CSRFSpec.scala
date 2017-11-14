@@ -1,5 +1,7 @@
 package org.http4s.server.middleware
 
+import java.time.{Clock, Instant, ZoneId}
+import java.util.concurrent.atomic.AtomicLong
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.headers.{`Set-Cookie` => HCookie}
@@ -10,19 +12,28 @@ import cats.implicits._
 
 class CSRFSpec extends Http4sSpec {
 
+  val testClock: Clock = new Clock { self =>
+    private lazy val clockTick = new AtomicLong(Instant.now().toEpochMilli)
+
+    def withZone(zone: ZoneId): Clock = this
+
+    def getZone: ZoneId = ZoneId.systemDefault()
+
+    def instant(): Instant =
+      Instant.ofEpochMilli(clockTick.incrementAndGet())
+  }
+
   val dummyService: HttpService = HttpService {
     case POST -> Root =>
-      Thread.sleep(1) //Fix so clock doesn't compute the same nonce, to emulate a real service
       Ok()
     case GET -> Root =>
-      Thread.sleep(1) //Fix so clock doesn't compute the same nonce, to emulate a real service
       Ok()
   }
 
   val dummyRequest = Request(method = Method.POST)
   val passThrough = Request()
 
-  CSRF.withGeneratedKey().map { csrf =>
+  CSRF.withGeneratedKey(clock = testClock).map { csrf =>
     "CSRF" should {
 
       "pass through and embed a new token for a safe, fresh request" in {
