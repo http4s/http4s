@@ -4,6 +4,7 @@ import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.testing.HttpCodecTests
 import org.http4s.util.Renderer
+import scala.math.signum
 
 class ContentCodingSpec extends Http4sSpec {
   "equals" should {
@@ -17,7 +18,8 @@ class ContentCodingSpec extends Http4sSpec {
     "be consistent with coding.compareToIgnoreCase for same quality" in {
       prop { (a: ContentCoding, b: ContentCoding) =>
         ((a.coding, a.qValue), (b.coding, b.qValue)) match {
-          case ((ac, aq), (bc, bq)) if ac == bc => aq.compareTo(bq) must_== a.compare(b)
+          case ((ac, aq), (bc, bq)) if ac == bc =>
+            signum(aq.compareTo(bq)) must_== signum(a.compare(b))
           case ((ac, _), (bc, _)) if ac.compareToIgnoreCase(bc) > 0 => a.compare(b) must be_>(0)
           case _ => a.compare(b) must be_<(0)
         }
@@ -57,8 +59,18 @@ class ContentCodingSpec extends Http4sSpec {
       ContentCoding.parse("") must beLeft
       ContentCoding.parse(";q=0.8") must beLeft
     }
+    "fail on non token" in {
+      ContentCoding.parse("\\\\") must beLeft
+    }
     "parse *" in {
       ContentCoding.parse("*") must_== ParseResult.success(ContentCoding.`*`)
+    }
+    "parse tokens starting with *" in {
+      // Strange content coding but valid
+      ContentCoding.parse("*fahon") must_== ParseResult.success(
+        ContentCoding.unsafeFromString("*fahon"))
+      ContentCoding.parse("*fahon;q=0.1") must_== ParseResult.success(
+        ContentCoding.unsafeFromString("*fahon").withQValue(q(0.1)))
     }
   }
 

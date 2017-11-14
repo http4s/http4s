@@ -208,7 +208,7 @@ trait ArbitraryInstances {
   def genContentCodingNoQuality: Gen[ContentCoding] =
     Gen.frequency(
       (10, oneOf(ContentCoding.standard.values.toSeq)),
-      (2, Gen.alphaStr.filter(_.nonEmpty).map(ContentCoding.unsafeFromString))
+      (2, genToken.map(ContentCoding.unsafeFromString))
     )
 
   implicit val arbitraryContentCoding: Arbitrary[ContentCoding] =
@@ -220,7 +220,7 @@ trait ArbitraryInstances {
     }
 
   implicit val cogenContentCoding: Cogen[ContentCoding] =
-    Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
+    Cogen[String].contramap(_.coding)
 
   implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
     Arbitrary {
