@@ -125,12 +125,18 @@ object StaticFile {
     def readAllFromFileHandle[F[_]](chunkSize: Int, start: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
       _readAllFromFileHandle0(chunkSize, start, end)(h)
 
-    def _readAllFromFileHandle0[F[_]](chunkSize: Int, offset: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] =
-      for {
-        res  <- Pull.eval(h.read(math.min(chunkSize, (end - offset).toInt), offset))
-        next <- res.filter(_.nonEmpty)
-          .fold[Pull[F, Byte, Unit]](Pull.done)(o => Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
-      } yield next
+    def _readAllFromFileHandle0[F[_]](chunkSize: Int, offset: Long, end: Long)(h: FileHandle[F]): Pull[F, Byte, Unit] = {
+      val bytesLeft = end - offset
+      if (bytesLeft <= 0L) Pull.done
+      else {
+        val bufferSize = if (bytesLeft > Int.MaxValue) chunkSize else math.min(chunkSize, bytesLeft.toInt)
+        for {
+          res  <- Pull.eval(h.read(bufferSize, offset))
+          next <- res.filter(_.nonEmpty).fold[Pull[F, Byte, Unit]](Pull.done)(o =>
+            Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
+        } yield next
+      }
+    }
 
     def readAll[F[_]: Suspendable](path: Path, chunkSize: Int): Stream[F, Byte] =
       pulls.fromPath[F](path, List(StandardOpenOption.READ)).flatMap(readAllFromFileHandle(chunkSize, start, end)).close
