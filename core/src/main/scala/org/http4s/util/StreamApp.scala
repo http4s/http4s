@@ -9,6 +9,7 @@ import fs2.async.mutable.Signal
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 
+@deprecated("This has been moved into fs2, use fs2.StreamApp instead", "0.18.0-M6")
 abstract class StreamApp[F[_]](implicit F: Effect[F]) {
   private[this] val logger = getLogger
 
