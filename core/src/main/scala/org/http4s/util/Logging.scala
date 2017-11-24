@@ -1,7 +1,10 @@
 package org.http4s.util
 
+import cats._
 import cats.implicits._
+import cats.data.Kleisli
 import cats.effect.{Effect, Sync}
+import org.http4s.Method.NoBody
 import org.http4s._
 //import org.http4s.Method._
 import org.log4s.Logger
@@ -12,72 +15,104 @@ import scala.concurrent.ExecutionContext
 
 object Logging {
 
-//  trait Logger[F[_], A <: Message[F]] {
-//    // If this is false using anything from the body will cause the program to fail
-//    def cacheBody: Boolean
-//    def messageString(implicit F: Sync[F]): A => F[String]
-//
-//    final def logEvent(implicit F: Sync[F]) = logger.
-//
-//    final def logEffect(a: A)(implicit F: Effect[F]): F[A] = {
-//      if (cacheBody){
-//        for {
-//          queue <- fs2.async.unboundedQueue[F, Byte]
-//          complete <- F.delay(a.body
-//            .observe(queue.enqueue)
-//              .onFinalize(
-//                logRequest(a.withBodyStream(
-//                  queue.size.get.flatMap(s => queue.dequeue.take(s))
-//                ))
-//              ))
-//        } yield ()
-//      }
-//      else logEffect(a).as(a)
-//    }
-//  }
-//
-//  object Logger {
-//
-//    def apply[F[_], A](cacheBody: Boolean, logMessage: A => String): Logger[F, A] = new Logger[F, A] {
-//      override def cacheBody: Boolean = cacheBody
-//      override def logRequest: A => String = logMessage
-//    }
-//
-//  }
 
   def logMessage[F[_], A <: Message[F]](
-                                         f: A => F[String],
-                                         a: A,
-                                         logger: Logger,
-                                         logLevel: LogLevel
-                                       )(implicit F: Sync[F]): F[Unit] = {
-    f(a).flatMap(s => F.delay(logger(logLevel)(s)))
-  }
+                                        f: Kleisli[F, A, String],
+                                        cacheBody: A => Boolean = {_: A => true},
+                                        forceBody: A => Boolean = {_: A => false},
+                                        logLevel: A => LogLevel = {_: A => org.log4s.Trace},
+                                        a: A,
+                                        logger: Logger)
+                                      (implicit F: Effect[F], ec: ExecutionContext): F[a.Self] = {
 
-  def logRequest[F[_]](
-                        f: Request[F] => F[String],
-                        cacheBody: Boolean = true,
-                        r: Request[F],
-                        logger: Logger,
-                        logLevel: LogLevel
-                      )(implicit F: Effect[F], ec: ExecutionContext): F[Request[F]] = {
-    r.method match {
-      case _ if !cacheBody =>
-        logMessage(f,r,logger, logLevel).as(r)
-      case _ =>
+    if (!cacheBody(a)){
+      f(a).flatMap(s => F.delay(logger(logLevel(a))(s))).as(a.withBodyStream(a.body)) // Useless conversion for a.Self
+    } else if (forceBody(a)) {
+      for {
+        immutableBody <- a.body.runLog
+        newMessage = a.withBodyStream(Stream.emits(immutableBody))
+        messageString <- f(newMessage)
+        _ <- F.delay(logger(logLevel(a))(messageString))
+      } yield newMessage
+    } else {
         for {
           bodyVec <- fs2.async.refOf(Vector.empty[Byte])
           concealedRequest <- F.delay{
             val newBody = Stream.eval(bodyVec.get).flatMap(v => Stream.emits(v).covary[F])
-            val loggedRequest = r.withBodyStream(newBody)
-            r.withBodyStream(
-              r.body
+            val loggedMessage = a.withBodyStream(newBody)
+            a.withBodyStream(
+              a.body
                 .observe(_.chunks.flatMap(c => Stream.eval_(bodyVec.modify(_ ++ c.toVector))))
-                .onFinalize(logMessage(f, loggedRequest, logger, logLevel))
+                .onFinalize(f(loggedMessage).flatMap(s => F.delay(logger(logLevel(a))(s)))) // Does Not Log On Empty EntityBody
             )
           }
         } yield concealedRequest
-    }
+      }
   }
+
+  def requestLogger[F[_]: Effect](r: Request[F], l: Logger)(implicit ec: ExecutionContext): F[Request[F]] = {
+    def forceBody(r: Request[F]): Boolean = r.method match {
+      case _: NoBody => true
+      case _ => false
+    }
+    def cacheBody(r: Request[F]): Boolean = true
+
+    logMessage(
+      Kleisli(logRequest[F]),
+      cacheBody,
+      forceBody,
+      _ => org.log4s.Trace,
+      r,
+      l
+    )
+  }
+
+  def logRequest[F[_]: Sync](r: Request[F]): F[String] = {
+    val headers = r.headers.redactSensitive()
+    def withBody(body: String) =
+      show"Request: path- ${r.pathInfo} method-${r.method.name} uri-${r.uri.renderString} headers- $headers body-$body"
+    writeMessageBodyString(r).map(withBody)
+  }
+
+  def responseLogger[F[_]: Effect](r: Response[F], l: Logger)(implicit ec: ExecutionContext): F[Response[F]] = {
+    def forceBody(r: Response[F]): Boolean = !r.status.isEntityAllowed
+    def cacheBody(r: Request[F]): Boolean = true
+
+    logMessage(
+      Kleisli(logRequest[F]),
+      cacheBody,
+      forceBody,
+      _ => org.log4s.Trace,
+      r,
+      l
+    )
+  }
+
+  def logResponse[F[_]: Sync](r: Response[F]): F[String] = {
+    val headers = r.headers.redactSensitive()
+    def withBody(body: String) =
+      show"Response: status- ${r.status.code} headers-${r.headers} body-$body"
+    writeMessageBodyString(r).map(withBody)
+  }
+
+
+  def writeMessageBodyString[F[_]: Sync](m: Message[F]) : F[String] = {
+    if (isText(m)){
+      m.bodyAsText(m.charset.getOrElse(Charset.`UTF-8`))
+    } else {
+      m.body.map(_.toHexString)
+    }
+  }.runFoldMonoidSync
+
+  def isText[F[_]](message: Message[F]): Boolean = {
+    val isBinary = message.contentType.exists(_.mediaType.binary)
+    val isJson = message.contentType.exists(mT =>
+      mT.mediaType == MediaType.`application/json` || mT.mediaType == MediaType.`application/hal+json`
+    )
+
+    !isBinary || isJson
+  }
+
+
 
 }
