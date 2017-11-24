@@ -27,15 +27,15 @@ object RequestLogger {
         OptionT(
           Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> service(req).value)
       else
-        OptionT.liftF(async.unboundedQueue[F, Byte]).flatMap { queue =>
+        OptionT.liftF(async.refOf[F, Vector[Byte]](Vector.empty[Byte])).flatMap { vec =>
           val newBody =
             Stream
-              .eval(queue.size.get)
-              .flatMap(size => queue.dequeue.take(size.toLong))
+              .eval(vec.get)
+              .flatMap(Stream.emits(_).covary[F])
 
           val changedRequest = req.withBodyStream(
             req.body
-              .observe(queue.enqueue)
+              .observe(_.chunks.flatMap(c => Stream.eval_(vec.modify(_ ++ c.toVector))))
               .onFinalize(
                 Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                   logHeaders,

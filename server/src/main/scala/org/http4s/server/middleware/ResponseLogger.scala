@@ -29,14 +29,14 @@ object ResponseLogger {
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
             logger) *> F.delay(response)
         else
-          async.unboundedQueue[F, Byte].map { queue =>
+          async.refOf[F, Vector[Byte]](Vector.empty[Byte]).map { vec =>
             val newBody = Stream
-              .eval(queue.size.get)
-              .flatMap(size => queue.dequeue.take(size.toLong))
+              .eval(vec.get)
+              .flatMap(v => Stream.emits(v).covary[F])
 
             response.copy(
               body = response.body
-                .observe(queue.enqueue)
+                .observe(_.chunks.flatMap(c => Stream.eval_(vec.modify(_ ++ c.toVector))))
                 .onFinalize {
                   Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
                     logHeaders,
