@@ -355,9 +355,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.middleware.GZip#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](service:org.http4s.HttpService[F],bufferSize:Int,level:Int)(implicitevidence$1:cats.Functor[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](HttpService[F],Int,Int)(Functor[F]):HttpService[F]"></a>
+      <a id="apply[F[_]](service:org.http4s.HttpService[F],bufferSize:Int,level:Int,isZippable:org.http4s.Response[F]=&gt;Boolean)(implicitevidence$1:cats.Functor[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](HttpService[F],Int,Int,(Response[F])⇒Boolean)(Functor[F]):HttpService[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/GZip$.html#apply[F[_]](service:org.http4s.HttpService[F],bufferSize:Int,level:Int)(implicitevidence$1:cats.Functor[F]):org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/GZip$.html#apply[F[_]](service:org.http4s.HttpService[F],bufferSize:Int,level:Int,isZippable:org.http4s.Response[F]=&gt;Boolean)(implicitevidence$1:cats.Functor[F]):org.http4s.HttpService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -366,7 +366,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">32 * 1024</span></span>, <span name="level">level: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">Deflater.DEFAULT_COMPRESSION</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">32 * 1024</span></span>, <span name="level">level: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">Deflater.DEFAULT_COMPRESSION</span></span>, <span name="isZippable">isZippable: (<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="defval" name='<span class="name"><a href="#defaultIsZippable[F[_]](resp:org.http4s.Response[F]):Boolean">defaultIsZippable[F](_: Response[F])</a></span>'>...</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>)</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.GZip.apply.F">F</span>]</span>
       </span>
       
       
@@ -410,6 +410,22 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.GZip#defaultIsZippable" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="defaultIsZippable[F[_]](resp:org.http4s.Response[F]):Boolean"></a><a id="defaultIsZippable[F[_]](Response[F]):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/GZip$.html#defaultIsZippable[F[_]](resp:org.http4s.Response[F]):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultIsZippable</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="resp">resp: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.GZip.defaultIsZippable.F">F</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
