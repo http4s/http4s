@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.11.8" // Also supports 2.10.x and 2.12.x
+scalaVersion := "2.12.4" // Also supports 2.11.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-blaze-server" % http4sVersion,
   "org.http4s" %% "http4s-blaze-client" % http4sVersion
 )
+
+scalacOptions ++= Seq("-Ypartial-unification")
 ```
 
 This tutorial is compiled as part of the build using [tut].  Each page
@@ -107,7 +109,9 @@ matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpService`s can be combined with the `combineK` method (or its alias
-`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`.
+`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`. 
+
+`scalacOptions ++= Seq("-Ypartial-unification")`
 
 ```tut:book
 import cats.implicits._
@@ -160,7 +164,7 @@ process and gracefully shut down your server when a SIGTERM is received.
 import fs2.Stream
 import org.http4s.server.blaze._
 import org.http4s.util.StreamApp
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
 
 object Main extends StreamApp[IO] {
   override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =

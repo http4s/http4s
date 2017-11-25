@@ -6,7 +6,6 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import fs2.async.mutable.Signal
-import org.http4s.util.StreamApp.ExitCode
 import scala.concurrent.duration._
 
 class StreamAppSpec extends Http4sSpec {
@@ -54,7 +53,7 @@ class StreamAppSpec extends Http4sSpec {
 
       val testApp = new TestStreamApp(
         shutdown =>
-          eval(requestShutdown.set(shutdown)) >>
+          eval(requestShutdown.set(shutdown)) *>
             // run forever, emit nothing
             eval_(IO.async[Nothing] { _ =>
               }))

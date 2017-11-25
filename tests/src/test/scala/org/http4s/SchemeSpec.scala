@@ -1,6 +1,8 @@
 package org.http4s
 
-import cats.kernel.laws.OrderLaws
+import cats.implicits._
+import cats.kernel.laws.discipline.OrderTests
+import org.http4s.Uri.Scheme
 import org.http4s.internal.parboiled2.CharPredicate
 import org.http4s.testing.HttpCodecTests
 import org.http4s.util.Renderer
@@ -14,10 +16,10 @@ class SchemeSpec extends Http4sSpec {
     }
   }
 
-  "compareTo" should {
+  "compare" should {
     "be consistent with value.compareToIgnoreCase" in {
       prop { (a: Scheme, b: Scheme) =>
-        a.value.compareToIgnoreCase(b.value) must_== a.compareTo(b)
+        a.value.compareToIgnoreCase(b.value) must_== a.compare(b)
       }
     }
   }
@@ -56,6 +58,6 @@ class SchemeSpec extends Http4sSpec {
     }
   }
 
-  checkAll("order", OrderLaws[Scheme].order)
-  checkAll("httpCodec", HttpCodecTests[Scheme].httpCodec)
+  checkAll("Order[Scheme]", OrderTests[Scheme].order)
+  checkAll("HttpCodec[Scheme]", HttpCodecTests[Scheme].httpCodec)
 }

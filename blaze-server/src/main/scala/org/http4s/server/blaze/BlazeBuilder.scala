@@ -8,6 +8,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
+import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
@@ -16,6 +17,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -32,7 +34,8 @@ class BlazeBuilder[F[_]](
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
-    serviceErrorHandler: ServiceErrorHandler[F]
+    serviceErrorHandler: ServiceErrorHandler[F],
+    banner: immutable.Seq[String]
 )(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
@@ -56,7 +59,9 @@ class BlazeBuilder[F[_]](
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
       serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
-      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler): Self =
+      serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
+      banner: immutable.Seq[String] = banner
+  ): Self =
     new BlazeBuilder(
       socketAddress,
       executionContext,
@@ -70,7 +75,8 @@ class BlazeBuilder[F[_]](
       maxRequestLineLen,
       maxHeadersLen,
       serviceMounts,
-      serviceErrorHandler
+      serviceErrorHandler,
+      banner
     )
 
   /** Configure HTTP parser length limits
@@ -137,6 +143,9 @@ class BlazeBuilder[F[_]](
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
+
+  def withBanner(banner: immutable.Seq[String]): Self =
+    copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
     val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
@@ -219,7 +228,7 @@ class BlazeBuilder[F[_]](
     // if we have a Failure, it will be caught by the effect
     val serverChannel = factory.bind(address, pipelineFactory).get
 
-    new Server[F] {
+    val server = new Server[F] {
       override def shutdown: F[Unit] = F.delay {
         serverChannel.close()
         factory.closeGroup()
@@ -233,9 +242,16 @@ class BlazeBuilder[F[_]](
       val address: InetSocketAddress =
         serverChannel.socketAddress
 
+      val isSecure = sslBits.isDefined
+
       override def toString: String =
         s"BlazeServer($address)"
     }
+
+    banner.foreach(logger.info(_))
+    logger.info(
+      s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
+    server
   }
 
   private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map {
@@ -289,7 +305,8 @@ object BlazeBuilder {
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
       serviceMounts = Vector.empty,
-      serviceErrorHandler = DefaultServiceErrorHandler
+      serviceErrorHandler = DefaultServiceErrorHandler,
+      banner = ServerBuilder.DefaultBanner
     )
 }
 

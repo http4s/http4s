@@ -8,6 +8,7 @@ import org.http4s.server.HttpMiddleware
 import org.http4s.server.metrics._
 import org.http4s.server.tomcat.TomcatBuilder
 import org.http4s.util.StreamApp
+import org.http4s.util.ExitCode
 
 object TomcatExample extends TomcatExampleApp[IO]
 
@@ -15,7 +16,7 @@ class TomcatExampleApp[F[_]: Effect] extends StreamApp[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, StreamApp.ExitCode] =
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       TomcatBuilder[F]
         .bindHttp(8080)

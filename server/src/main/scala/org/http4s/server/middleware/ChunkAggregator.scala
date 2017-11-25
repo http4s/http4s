@@ -4,8 +4,10 @@ package middleware
 
 import cats.Functor
 import cats.data.{NonEmptyList, OptionT}
-import cats.effect.Sync
-import cats.implicits._
+import cats.effect.Effect
+import cats.syntax.eq._
+import cats.syntax.functor._
+import cats.syntax.flatMap._
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import org.http4s.EntityEncoder.chunkEncoder
@@ -13,7 +15,7 @@ import org.http4s.headers._
 import scodec.bits.ByteVector
 
 object ChunkAggregator {
-  def apply[F[_]](service: HttpService[F])(implicit F: Sync[F]): HttpService[F] =
+  def apply[F[_]](service: HttpService[F])(implicit F: Effect[F]): HttpService[F] =
     service.flatMapF { response =>
       OptionT.liftF(response.body.runFold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap {
         fullBody =>
@@ -33,7 +35,7 @@ object ChunkAggregator {
         // leaving the remaining values unchanged
         case e: `Transfer-Encoding` =>
           NonEmptyList
-            .fromList(e.values.filterNot(_ == TransferCoding.chunked))
+            .fromList(e.values.filterNot(_ === TransferCoding.chunked))
             .map(`Transfer-Encoding`.apply)
             .toList
         case header =>

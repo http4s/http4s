@@ -151,7 +151,7 @@ object StaticFile {
         next <- res
           .filter(_.nonEmpty)
           .fold[Pull[F, Byte, Unit]](Pull.done)(o =>
-            Pull.output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
+            Pull.output(o) *> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
       } yield next
 
     def readAll(path: Path, chunkSize: Int): Stream[F, Byte] =

@@ -29,12 +29,18 @@ package object http4s { // scalastyle:ignore
 
   /**
     * A [[Kleisli]] that produces an effect to compute an [[OptionT[F]]]] from a
-    * [[Request[F]]].  An HttpService can be run on any supported http4s
+    * [[Request[F]]]. In case an [[OptionT.none]] is computed the server backend
+    * should respond with a 404.
+    * An HttpService can be run on any supported http4s
     * server backend, such as Blaze, Jetty, or Tomcat.
     */
   type HttpService[F[_]] = Kleisli[OptionT[F, ?], Request[F], Response[F]]
 
-  type AuthedService[F[_], T] = Kleisli[OptionT[F, ?], AuthedRequest[F, T], Response[F]]
+  /**
+    * We need to change the order of type parameters to make partial unification
+    * trigger. See https://github.com/http4s/http4s/issues/1506
+    */
+  type AuthedService[T, F[_]] = Kleisli[OptionT[F, ?], AuthedRequest[F, T], Response[F]]
 
   type Callback[A] = Either[Throwable, A] => Unit
 

@@ -2,7 +2,6 @@ package org.http4s
 
 import cats._
 import cats.effect.{Async, Sync}
-import cats.functor._
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -238,5 +237,5 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def serverSentEventEncoder[F[_]: Applicative]: EntityEncoder[F, EventStream[F]] =
     entityBodyEncoder[F]
       .contramap[EventStream[F]] { _.through(ServerSentEvent.encoder) }
-      .withContentType(MediaType.`text/event-stream`)
+      .withContentType(`Content-Type`(MediaType.`text/event-stream`))
 }

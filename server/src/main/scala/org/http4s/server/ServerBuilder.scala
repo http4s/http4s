@@ -7,7 +7,8 @@ import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
+import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
@@ -54,6 +55,12 @@ trait ServerBuilder[F[_]] {
     */
   final def serve(implicit F: Async[F]): Stream[F, ExitCode] =
     Stream.bracket(start)((_: Server[F]) => Stream.eval_(F.async[Unit](_ => ())), _.shutdown)
+
+  /** Set the banner to display when the server starts up */
+  def withBanner(banner: immutable.Seq[String]): Self
+
+  /** Disable the banner when the server starts up */
+  final def withoutBanner: Self = withBanner(immutable.Seq.empty)
 }
 
 object ServerBuilder {
@@ -62,6 +69,12 @@ object ServerBuilder {
   val DefaultHost = LoopbackAddress
   val DefaultHttpPort = 8080
   val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
+  val DefaultBanner =
+    """|  _   _   _        _ _     
+       | | |_| |_| |_ _ __| | | ___
+       | | ' \  _|  _| '_ \_  _(_-<
+       | |_||_\__|\__| .__/ |_|/__/
+       |             |_|""".stripMargin.split("\n").toList
 }
 
 trait IdleTimeoutSupport[F[_]] { this: ServerBuilder[F] =>

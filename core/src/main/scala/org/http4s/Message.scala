@@ -8,7 +8,7 @@ import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
-import org.http4s.util.nonEmptyList._
+import org.http4s.syntax.nonEmptyList._
 import org.log4s.getLogger
 
 /**

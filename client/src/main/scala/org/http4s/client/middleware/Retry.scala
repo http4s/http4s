@@ -3,7 +3,7 @@ package client
 package middleware
 
 import cats.data.Kleisli
-import cats.effect.Async
+import cats.effect.Effect
 import cats.implicits._
 import fs2._
 import java.time.Instant
@@ -20,7 +20,7 @@ object Retry {
   private[this] val logger = getLogger
 
   def apply[F[_]](policy: RetryPolicy[F])(client: Client[F])(
-      implicit F: Async[F],
+      implicit F: Effect[F],
       scheduler: Scheduler,
       executionContext: ExecutionContext): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
@@ -53,7 +53,7 @@ object Retry {
         attempts: Int,
         duration: FiniteDuration,
         retryHeader: Option[`Retry-After`])(
-        implicit F: Async[F],
+        implicit F: Effect[F],
         executionContext: ExecutionContext): F[DisposableResponse[F]] = {
       val headerDuration = retryHeader
         .map { h =>
@@ -64,7 +64,7 @@ object Retry {
         }
         .getOrElse(0L)
       val sleepDuration = Math.max(headerDuration, duration.length).seconds
-      scheduler.sleep_[F](sleepDuration).run >> prepareLoop(req.withEmptyBody, attempts + 1)
+      scheduler.sleep_[F](sleepDuration).run *> prepareLoop(req.withEmptyBody, attempts + 1)
     }
 
     client.copy(open = Kleisli(prepareLoop(_, 1)))

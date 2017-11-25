@@ -52,14 +52,16 @@ package object server {
     def apply[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, ?], Request[F], T]): AuthMiddleware[F, T] =
       service => {
-        service.compose(Kleisli((req: Request[F]) => authUser(req).map(AuthedRequest(_, req))))
+        Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r)))
+          .andThen(service.mapF(o => OptionT.liftF(o.fold(Response[F](Status.NotFound))(identity))))
+          .mapF(o => OptionT.liftF(o.fold(Response[F](Status.Unauthorized))(identity)))
       }
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],
-        onFailure: AuthedService[F, Err]
+        onFailure: AuthedService[Err, F]
     )(implicit F: Monad[F], C: Choice[Kleisli[OptionT[F, ?], ?, ?]]): AuthMiddleware[F, T] = {
-      service: AuthedService[F, T] =>
+      service: AuthedService[T, F] =>
         C.choice(onFailure, service)
           .local { authed: AuthedRequest[F, Either[Err, T]] =>
             authed.authInfo.bimap(

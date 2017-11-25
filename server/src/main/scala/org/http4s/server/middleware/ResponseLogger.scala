@@ -27,7 +27,7 @@ object ResponseLogger {
       service(req).semiflatMap { response =>
         if (!logBody)
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-            logger) >> F.delay(response)
+            logger) *> F.delay(response)
         else
           async.unboundedQueue[F, Byte].map { queue =>
             val newBody = Stream

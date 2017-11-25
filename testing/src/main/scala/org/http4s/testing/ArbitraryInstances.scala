@@ -3,8 +3,11 @@ package testing
 
 import cats._
 import cats.data.NonEmptyList
+import cats.effect.{Effect, IO}
+import cats.effect.laws.discipline.arbitrary._
+import cats.effect.laws.util.TestContext
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2.Stream
+import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.util.Locale
@@ -12,11 +15,14 @@ import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
 import org.http4s.util.CaseInsensitiveString
-import org.scalacheck.{Arbitrary, Cogen, Gen}
+import org.scalacheck._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
+import org.scalacheck.rng.Seed
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.util.Try
 
 trait ArbitraryInstances {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -198,8 +204,12 @@ trait ArbitraryInstances {
         }
       } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail: _*)
     }
+
   def genContentCodingNoQuality: Gen[ContentCoding] =
-    oneOf(ContentCoding.registered.toSeq)
+    Gen.frequency(
+      (10, oneOf(ContentCoding.standard.values.toSeq)),
+      (2, genToken.map(ContentCoding.unsafeFromString))
+    )
 
   implicit val arbitraryContentCoding: Arbitrary[ContentCoding] =
     Arbitrary {
@@ -208,6 +218,9 @@ trait ArbitraryInstances {
         q <- arbitrary[QValue]
       } yield cc.withQValue(q)
     }
+
+  implicit val cogenContentCoding: Cogen[ContentCoding] =
+    Cogen[String].contramap(_.coding)
 
   implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
     Arbitrary {
@@ -220,6 +233,13 @@ trait ArbitraryInstances {
           case (coding, q) => coding.withQValue(q)
         }
       } yield `Accept-Encoding`(contentCodingsWithQ.head, contentCodingsWithQ.tail: _*)
+    }
+
+  implicit val arbitraryContentEncoding: Arbitrary[`Content-Encoding`] =
+    Arbitrary {
+      for {
+        contentCoding <- genContentCodingNoQuality
+      } yield `Content-Encoding`(contentCoding)
     }
 
   def genLanguageTagNoQuality: Gen[LanguageTag] =
@@ -382,6 +402,13 @@ trait ArbitraryInstances {
         headers.`Strict-Transport-Security`.unsafeFromDuration(age, includeSubDomains, preload)
     }
 
+  implicit val arbitraryTransferEncoding: Arbitrary[`Transfer-Encoding`] =
+    Arbitrary {
+      for {
+        codings <- arbitrary[NonEmptyList[TransferCoding]]
+      } yield `Transfer-Encoding`(codings)
+    }
+
   implicit val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {
       for {
@@ -506,10 +533,10 @@ trait ArbitraryInstances {
     oneOf(alphaChar, numChar, const('-'), const('.'), const('_'), const('~'))
   val genSubDelims: Gen[Char] = oneOf(Seq('!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '='))
 
-  implicit val arbitraryScheme: Arbitrary[Scheme] = Arbitrary {
+  implicit val arbitraryScheme: Arbitrary[Uri.Scheme] = Arbitrary {
     frequency(
-      5 -> Scheme.http,
-      5 -> Scheme.https,
+      5 -> Uri.Scheme.http,
+      5 -> Uri.Scheme.https,
       1 -> scheme"HTTP",
       1 -> scheme"HTTPS",
       3 -> (for {
@@ -522,12 +549,24 @@ trait ArbitraryInstances {
             1 -> const('.')
           )
         )
-      } yield HttpCodec[Scheme].parseOrThrow(tail.mkString(head.toString, "", "")))
+      } yield HttpCodec[Uri.Scheme].parseOrThrow(tail.mkString(head.toString, "", "")))
     )
   }
 
-  implicit val cogenScheme: Cogen[Scheme] =
+  implicit val cogenScheme: Cogen[Uri.Scheme] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
+
+  implicit val arbitraryTransferCoding: Arbitrary[TransferCoding] = Arbitrary {
+    Gen.oneOf(
+      TransferCoding.chunked,
+      TransferCoding.compress,
+      TransferCoding.deflate,
+      TransferCoding.gzip,
+      TransferCoding.identity)
+  }
+
+  implicit val cogenTransferCoding: Cogen[TransferCoding] =
+    Cogen[String].contramap(_.coding.toLowerCase(Locale.ROOT))
 
   /** https://tools.ietf.org/html/rfc3986 */
   implicit val arbitraryUri: Arbitrary[Uri] = Arbitrary {
@@ -541,7 +580,7 @@ trait ArbitraryInstances {
     val genPathRootless = genSegmentNz |+| genPathAbEmpty
     val genPathNoScheme = genSegmentNzNc |+| genPathAbEmpty
     val genPathAbsolute = const("/") |+| opt(genPathRootless)
-    val genScheme = oneOf(Scheme.http, Scheme.https)
+    val genScheme = oneOf(Uri.Scheme.http, Uri.Scheme.https)
     val genPath =
       oneOf(genPathAbEmpty, genPathAbsolute, genPathNoScheme, genPathRootless, genPathEmpty)
     val genFragment: Gen[Uri.Fragment] =
@@ -558,17 +597,41 @@ trait ArbitraryInstances {
 
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
-  implicit def arbitraryEntityBody[F[_]] = Gen.sized { size =>
+  implicit def genEntityBody[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized { size =>
     Gen.listOfN(size, arbitrary[Byte]).map(Stream.emits)
   }
+
+  // Borrowed from cats-effect tests for the time being
+  def cogenFuture[A](implicit ec: TestContext, cg: Cogen[Try[A]]): Cogen[Future[A]] =
+    Cogen { (seed: Seed, fa: Future[A]) =>
+      ec.tick()
+
+      fa.value match {
+        case None => seed
+        case Some(ta) => cg.perturb(seed, ta)
+      }
+    }
+
+  implicit def cogenEntityBody[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[EntityBody[F]] =
+    catsEffectLawsCogenForIO(cogenFuture[Vector[Byte]]).contramap { stream =>
+      var bytes: Vector[Byte] = null
+      val readBytes = IO(bytes)
+      F.runAsync(stream.runLog) {
+        case Right(bs) => IO { bytes = bs }
+        case Left(t) => IO.raiseError(t)
+      } *> readBytes
+    }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
       for {
-        body <- arbitraryEntityBody
+        body <- genEntityBody
         length <- Gen.oneOf(Some(size.toLong), None)
       } yield Entity(body, length)
     })
+
+  implicit def cogenEntity[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Entity[F]] =
+    Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def arbitraryEntityEncoder[F[_], A](
       implicit CA: Cogen[A],
@@ -582,5 +645,4 @@ trait ArbitraryInstances {
 object ArbitraryInstances extends ArbitraryInstances {
   // This were introduced after .0 and need to be kept out of the
   // trait.  We can move them back into the trait in the next .0.
-
 }

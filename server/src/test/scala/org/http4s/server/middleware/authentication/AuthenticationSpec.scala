@@ -14,7 +14,7 @@ import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
 
-  def nukeService(launchTheNukes: => Unit) = AuthedService[IO, String] {
+  def nukeService(launchTheNukes: => Unit) = AuthedService[String, IO] {
     case GET -> Root / "launch-the-nukes" as user =>
       for {
         _ <- IO(launchTheNukes)
@@ -36,7 +36,7 @@ class AuthenticationSpec extends Http4sSpec {
     else None
   }
 
-  val service = AuthedService[IO, String] {
+  val service = AuthedService[String, IO] {
     case GET -> Root as user => Ok(user)
     case req as _ => Response.notFoundFor(req)
   }

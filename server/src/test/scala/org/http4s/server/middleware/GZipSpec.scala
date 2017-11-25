@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
 import org.http4s.dsl.io._
 import org.http4s.headers._
-import org.http4s.instances.kleisli._
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
 
@@ -25,6 +24,28 @@ class GZipSpec extends Http4sSpec {
       val resp = service.orNotFound(req).unsafeRunSync()
       resp.status must_== (Status.Ok)
       resp.headers.get(`Content-Encoding`) must beNone
+    }
+
+    "encodes random content-type if given isZippable is true" in {
+      val response = "Response string"
+      val service: HttpService[IO] = HttpService[IO] {
+        case GET -> Root =>
+          Ok(response, Header("Content-Type", "random-type; charset=utf-8"))
+      }
+
+      val gzipService: HttpService[IO] = GZip(service, isZippable = (_) => true)
+
+      val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/"))
+        .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
+      val actual: IO[Array[Byte]] =
+        gzipService.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
+
+      val byteStream = new ByteArrayOutputStream(response.length)
+      val gZIPStream = new GZIPOutputStream(byteStream)
+      gZIPStream.write(response.getBytes)
+      gZIPStream.close()
+
+      actual must returnValue(byteStream.toByteArray)
     }
 
     checkAll(

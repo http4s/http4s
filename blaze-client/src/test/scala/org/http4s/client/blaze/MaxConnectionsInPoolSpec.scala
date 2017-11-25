@@ -38,7 +38,7 @@ class MaxConnectionsInPoolSpec extends Http4sSpec {
             IO(os.write(Array(byte)))
           }.run
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody >> IO(Thread.sleep(Random.nextInt(1000).toLong)) >> flushOutputStream)
+          (writeBody *> IO(Thread.sleep(Random.nextInt(1000).toLong)) *> flushOutputStream)
             .unsafeRunSync()
 
         case None => srv.sendError(404)

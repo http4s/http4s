@@ -2,7 +2,9 @@ package org.http4s
 
 import cats._
 import macrocompat.bundle
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.internal.parboiled2.{Parser => PbParser}
+import org.http4s.util.Writer
+import org.http4s.parser.{AdditionalRules, Http4sParser}
 import scala.language.experimental.macros
 import scala.reflect.macros.whitebox.Context
 
@@ -13,13 +15,12 @@ import scala.reflect.macros.whitebox.Context
   * @param thousandths between 0 (for q=0) and 1000 (for q=1)
   * @see [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9 RFC 2616, Section 3.9]]
   */
-final class QValue private[QValue] (val thousandths: Int)
-    extends AnyVal
-    with Ordered[QValue]
-    with Renderable {
+final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] {
   def toDouble: Double = 0.001 * thousandths
 
   def isAcceptable: Boolean = thousandths > 0
+
+  override def toString = s"QValue(${0.001 * thousandths})"
 
   override def compare(that: QValue): Int = thousandths - that.thousandths
 
@@ -81,6 +82,17 @@ object QValue extends QValueInstances with QValueFunctions {
       case _: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number")
     }
 
+  def parse(s: String): ParseResult[QValue] =
+    new Http4sParser[QValue](s, "Invalid q-value") with QValueParser {
+      def main = QualityValue
+    }.parse
+
+  private[http4s] trait QValueParser extends AdditionalRules { self: PbParser =>
+    def QualityValue = rule { // QValue is already taken
+      ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
+    }
+  }
+
   /** Exists to support compile-time verified literals. Do not call directly. */
   def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
@@ -106,6 +118,10 @@ object QValue extends QValueInstances with QValueFunctions {
 trait QValueInstances {
   implicit val qValueOrder = Order.fromOrdering[QValue]
   implicit val qValueShow = Show.fromToString[QValue]
+  implicit val qValueHttpCodec = new HttpCodec[QValue] {
+    def parse(s: String): ParseResult[QValue] = QValue.parse(s)
+    def render(writer: Writer, q: QValue): writer.type = q.render(writer)
+  }
 }
 
 trait QValueFunctions {

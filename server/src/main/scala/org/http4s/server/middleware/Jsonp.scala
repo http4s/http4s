@@ -57,7 +57,7 @@ object Jsonp {
     resp
       .copy(body = jsonpBody)
       .transformHeaders(_ ++ newLengthHeaderOption)
-      .withContentType(Some(`Content-Type`(MediaType.`application/javascript`)))
+      .withContentType(`Content-Type`(MediaType.`application/javascript`))
   }
 
   private def beginJsonp(callback: String) =

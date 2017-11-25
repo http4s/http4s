@@ -12,7 +12,7 @@ import org.http4s.syntax.string._
 
 private[parser] trait Rfc3986Parser
     extends Parser
-    with Scheme.Parser
+    with Uri.Scheme.Parser
     with IpParser
     with StringBuilding {
   // scalastyle:off public.methods.have.type

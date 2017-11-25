@@ -8,7 +8,7 @@ import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.middleware.HSTS
 import org.http4s.util.StreamApp
-import org.http4s.util.StreamApp.ExitCode
+import org.http4s.util.ExitCode
 
 abstract class SslExample[F[_]: Effect] extends StreamApp[F] {
   // TODO: Reference server.jks from something other than one child down.

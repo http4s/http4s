@@ -1,7 +1,6 @@
 package org.http4s
 
 import org.http4s.headers._
-import org.http4s.util.nonEmptyList._
 
 class HeadersSpec extends Http4sSpec {
 
@@ -53,16 +52,17 @@ class HeadersSpec extends Http4sSpec {
       val h1 = `Set-Cookie`(org.http4s.Cookie("foo1", "bar1")).toRaw
       val h2 = `Set-Cookie`(org.http4s.Cookie("foo2", "bar2")).toRaw
       val hs = Headers(clength) ++ Headers(h1) ++ Headers(h2)
-      hs.filter(_.parsed match { case `Set-Cookie`(_) => true; case _ => false }).size must_== 2
+      hs.count(_.parsed match { case `Set-Cookie`(_) => true; case _ => false }) must_== 2
       hs.exists(_ == clength) must_== true
     }
 
     "Work with Raw headers (++)" in {
-      val h1 = `Accept-Encoding`(ContentCoding("foo".ci)).toRaw
-      val h2 = `Accept-Encoding`(ContentCoding("bar".ci)).toRaw
+      val foo = ContentCoding.unsafeFromString("foo")
+      val bar = ContentCoding.unsafeFromString("bar")
+      val h1 = `Accept-Encoding`(foo).toRaw
+      val h2 = `Accept-Encoding`(bar).toRaw
       val hs = Headers(clength.toRaw) ++ Headers(h1) ++ Headers(h2)
-      hs.get(`Accept-Encoding`) must_== Some(
-        `Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci)))
+      hs.get(`Accept-Encoding`) must beSome(`Accept-Encoding`(foo, bar))
       hs.exists(_ == clength) must_== true
     }
 

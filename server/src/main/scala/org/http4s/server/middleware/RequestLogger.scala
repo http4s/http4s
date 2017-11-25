@@ -25,7 +25,7 @@ object RequestLogger {
     Kleisli { req =>
       if (!logBody)
         OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) >> service(req).value)
+          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> service(req).value)
       else
         OptionT.liftF(async.unboundedQueue[F, Byte]).flatMap { queue =>
           val newBody =

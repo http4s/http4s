@@ -263,7 +263,7 @@ object Client {
               if (killed.get) {
                 Pull.fail(new IOException(reason))
               } else {
-                Pull.output(segment) >> go(killed, stream)
+                Pull.output(segment) *> go(killed, stream)
               }
             case None => Pull.done
           }
