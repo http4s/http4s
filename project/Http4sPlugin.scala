@@ -44,6 +44,7 @@ object Http4sPlugin extends AutoPlugin {
       sys.env.get("TRAVIS") == Some("true") &&
         sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
         sys.env.get("TRAVIS_REPO_SLUG") == Some("http4s/http4s") &&
+        sys.env.get("TRAVIS_JDK_VERSION") == Some("oraclejdk8") &&
         (sys.env.get("TRAVIS_BRANCH") match {
            case Some("master") => true
            case Some(branch) if branch.startsWith("release-") => true
