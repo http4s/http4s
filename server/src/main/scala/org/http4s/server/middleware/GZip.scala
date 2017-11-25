@@ -20,14 +20,22 @@ object GZip {
   def apply[F[_]: Functor](
       service: HttpService[F],
       bufferSize: Int = 32 * 1024,
-      level: Int = Deflater.DEFAULT_COMPRESSION): HttpService[F] =
+      level: Int = Deflater.DEFAULT_COMPRESSION,
+      isZippable: Response[F] => Boolean = defaultIsZippable[F](_: Response[F])): HttpService[F] =
     Kleisli { req =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          service.map(zipOrPass(_, bufferSize, level)).apply(req)
+          service.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
         case _ => service(req)
       }
     }
+
+  def defaultIsZippable[F[_]](resp: Response[F]): Boolean = {
+    val contentType = resp.headers.get(`Content-Type`)
+    resp.headers.get(`Content-Encoding`).isEmpty &&
+    (contentType.isEmpty || contentType.get.mediaType.compressible ||
+    (contentType.get.mediaType eq MediaType.`application/octet-stream`))
+  }
 
   private def satisfiedByGzip(acceptEncoding: `Accept-Encoding`) =
     acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(
@@ -36,18 +44,12 @@ object GZip {
   private def zipOrPass[F[_]: Functor](
       response: Response[F],
       bufferSize: Int,
-      level: Int): Response[F] =
+      level: Int,
+      isZippable: Response[F] => Boolean): Response[F] =
     response match {
       case resp if isZippable(resp) => zipResponse(bufferSize, level, resp)
       case resp => resp // Don't touch it, Content-Encoding already set
     }
-
-  private def isZippable[F[_]](resp: Response[F]): Boolean = {
-    val contentType = resp.headers.get(`Content-Type`)
-    resp.headers.get(`Content-Encoding`).isEmpty &&
-    (contentType.isEmpty || contentType.get.mediaType.compressible ||
-    (contentType.get.mediaType eq MediaType.`application/octet-stream`))
-  }
 
   private def zipResponse[F[_]: Functor](
       bufferSize: Int,
