@@ -29,16 +29,16 @@ object ResponseLogger {
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
             logger) *> F.delay(response)
         else
-          async.refOf[F, Vector[Chunk[Byte]]](Vector.empty[Chunk[Byte]]).map { vec =>
+          async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map { vec =>
             val newBody = Stream
               .eval(vec.get)
               .flatMap(v => Stream.emits(v).covary[F])
-              .flatMap(c => Stream.chunk(c).covary[F])
+              .flatMap(c => Stream.segment(c).covary[F])
 
             response.copy(
               body = response.body
                 // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.chunks.flatMap(c => Stream.eval_(vec.modify(_ :+ c))))
+                .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
                 .onFinalize {
                   Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
                     logHeaders,
