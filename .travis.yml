@@ -11,7 +11,7 @@ scala:
 - 2.10.6
 env:
   matrix:
-  - SCALAZ_VERSION=7.2.16
+  - SCALAZ_VERSION=7.2.17
   - SCALAZ_VERSION=7.1.13
   global:
   - HUGO_VERSION=0.26
