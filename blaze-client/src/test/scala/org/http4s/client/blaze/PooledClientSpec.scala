@@ -100,16 +100,14 @@ class PooledClientSpec extends Http4sSpec {
       failTimeClient
         .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         .attempt
-        .map(_.toOption)
         .unsafeToFuture()
 
       val resp = failTimeClient
         .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         .attempt
-        .map(_.toOption)
+        .map(_.right.exists(_.nonEmpty))
         .unsafeToFuture()
-      val f = resp.map(_.exists(_.length > 0))
-      Await.result(f, 60 seconds) must beFalse
+      Await.result(resp, 60 seconds) must beFalse
     }
   }
 
@@ -121,16 +119,14 @@ class PooledClientSpec extends Http4sSpec {
       successTimeClient
         .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         .attempt
-        .map(_.toOption)
         .unsafeToFuture()
 
       val resp = successTimeClient
         .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         .attempt
-        .map(_.toOption)
+        .map(_.right.exists(_.nonEmpty))
         .unsafeToFuture()
-      val f = resp.map(_.exists(_.length > 0))
-      Await.result(f, 60 seconds) must beTrue
+      Await.result(resp, 60 seconds) must beTrue
     }
   }
 
