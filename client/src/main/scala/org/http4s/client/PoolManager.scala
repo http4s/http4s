@@ -1,6 +1,10 @@
 package org.http4s
 package client
 
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeoutException
+
 import cats.effect._
 import fs2.async
 import org.log4s.getLogger
@@ -15,10 +19,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
     maxTotal: Int,
     maxWaitQueueLimit: Int,
     maxConnectionsPerRequestKey: RequestKey => Int,
+    waitExpiryTime: RequestKey => Int,
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
-  private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
+  private sealed case class Waiting(
+      key: RequestKey,
+      callback: Callback[NextConnection],
+      at: Instant)
 
   private[this] val logger = getLogger
 
@@ -26,7 +34,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private var curTotal = 0
   private val allocated = mutable.Map.empty[RequestKey, Int]
   private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[A]]
-  private val waitQueue = mutable.Queue.empty[Waiting]
+  private var waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
     s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
@@ -65,6 +73,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def numConnectionsCheckHolds(key: RequestKey): Boolean =
     curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
 
+  private def isExpired(k: RequestKey, t: Instant): Boolean =
+    waitExpiryTime(k) != -1 && t
+      .plus(waitExpiryTime(k).toLong, ChronoUnit.SECONDS)
+      .isBefore(Instant.now())
+
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
     * then builds the connection with the given callback and completes the callback.
@@ -94,7 +107,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def addToWaitQueue(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (waitQueue.length <= maxWaitQueueLimit) {
-      waitQueue.enqueue(Waiting(key, callback))
+      waitQueue.enqueue(Waiting(key, callback, Instant.now()))
     } else {
       logger.error(s"Max wait length reached, not scheduling.")
       callback(Left(new Exception("Wait queue is full")))
@@ -176,9 +189,14 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def releaseRecyclable(key: RequestKey, connection: A): Unit =
     waitQueue.dequeueFirst(_.key == key) match {
-      case Some(Waiting(_, callback)) =>
-        logger.debug(s"Fulfilling waiting connection request: $stats")
-        callback(Right(NextConnection(connection, fresh = false)))
+      case Some(Waiting(k, callback, at)) =>
+        if (isExpired(k, at)) {
+          logger.debug(s"Request expired")
+          callback(Left(new TimeoutException("In wait queue for too long, timing out request.")))
+        } else {
+          logger.debug(s"Fulfilling waiting connection request: $stats")
+          callback(Right(NextConnection(connection, fresh = false)))
+        }
 
       case None if waitQueue.isEmpty =>
         logger.debug(s"Returning idle connection to pool: $stats")
@@ -186,7 +204,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
       case None =>
         findFirstAllowedWaiter match {
-          case Some(Waiting(k, cb)) =>
+          case Some(Waiting(k, cb, _)) =>
             // This is the first waiter not blocked on the request key limit.
             // close the undesired connection and wait for another
             connection.shutdown()
@@ -210,7 +228,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
 
     findFirstAllowedWaiter match {
-      case Some(Waiting(k, callback)) =>
+      case Some(Waiting(k, callback, _)) =>
         logger.debug(s"Connection returned could not be recycled, new connection needed: $stats")
         createConnection(k, callback)
 
@@ -259,10 +277,17 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
   }
 
-  private def findFirstAllowedWaiter =
+  private def findFirstAllowedWaiter = {
+    val (expired, rest) = waitQueue.span(w => isExpired(w.key, w.at))
+    expired.foreach(
+      _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
+    logger.debug(s"expired requests: ${expired.length}")
+    waitQueue = rest
+    logger.debug(s"Dropped expired requests: $stats")
     waitQueue.dequeueFirst { waiter =>
       allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
     }
+  }
 
   /**
     * This invalidates a Connection. This is what is exposed externally, and

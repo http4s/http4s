@@ -3,6 +3,7 @@ package org.http4s.client.blaze
 import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+
 import cats.effect._
 import cats.implicits._
 import org.http4s._
@@ -12,13 +13,20 @@ import scala.util.Random
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.JettyScaffold
 
-class MaxConnectionsInPoolSpec extends Http4sSpec {
+import scala.concurrent.Await
+
+class PooledClientSpec extends Http4sSpec {
 
   private val timeout = 30.seconds
 
   private val failClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 0)
   private val successClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1)
   private val client = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 3)
+
+  private val failTimeClient =
+    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 0)
+  private val successTimeClient =
+    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 20)
 
   val jettyServ = new JettyScaffold(5)
   var addresses = Vector.empty[InetSocketAddress]
@@ -84,9 +92,53 @@ class MaxConnectionsInPoolSpec extends Http4sSpec {
     }
   }
 
+  "Blaze Pooled Http1 Client with zero expiry time" should {
+    "timeout" in {
+      val address = addresses(0)
+      val name = address.getHostName
+      val port = address.getPort
+      failTimeClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .map(_.toOption)
+        .unsafeToFuture()
+
+      val resp = failTimeClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .map(_.toOption)
+        .unsafeToFuture()
+      val f = resp.map(_.exists(_.length > 0))
+      Await.result(f, 60 seconds) must beFalse
+    }
+  }
+
+  "Blaze Pooled Http1 Client with more expiry time" should {
+    "be successful" in {
+      val address = addresses(0)
+      val name = address.getHostName
+      val port = address.getPort
+      successTimeClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .map(_.toOption)
+        .unsafeToFuture()
+
+      val resp = successTimeClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .map(_.toOption)
+        .unsafeToFuture()
+      val f = resp.map(_.exists(_.length > 0))
+      Await.result(f, 60 seconds) must beTrue
+    }
+  }
+
   step {
     failClient.shutdown.unsafeRunSync()
     successClient.shutdown.unsafeRunSync()
+    failTimeClient.shutdown.unsafeRunSync()
+    successTimeClient.shutdown.unsafeRunSync()
     client.shutdown.unsafeRunSync()
     jettyServ.stopServers()
   }

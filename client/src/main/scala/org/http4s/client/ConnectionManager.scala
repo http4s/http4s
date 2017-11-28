@@ -59,11 +59,13 @@ object ConnectionManager {
       maxTotal: Int,
       maxWaitQueueLimit: Int,
       maxConnectionsPerRequestKey: RequestKey => Int,
+      waitExpiryTime: RequestKey => Int,
       executionContext: ExecutionContext): ConnectionManager[F, A] =
     new PoolManager[F, A](
       builder,
       maxTotal,
       maxWaitQueueLimit,
       maxConnectionsPerRequestKey,
+      waitExpiryTime,
       executionContext)
 }
