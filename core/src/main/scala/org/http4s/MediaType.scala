@@ -260,6 +260,7 @@ object MediaType extends Registry {
   val `application/postscript` = app("postscript", compressible, binary, "ai", "eps", "ps")
   val `application/rss+xml` = app("rss+xml", compressible, notBinary, "rss")
   val `application/soap+xml` = app("soap+xml", compressible, notBinary)
+  val `application/vnd.api+json` = app("vnd.api+json", compressible, binary) // we treat JSON as binary, since it's encoding is not variable but defined by RFC4627
   val `application/vnd.google-earth.kml+xml` =
     app("vnd.google-earth.kml+xml", compressible, notBinary, "kml")
   val `application/vnd.google-earth.kmz` =
