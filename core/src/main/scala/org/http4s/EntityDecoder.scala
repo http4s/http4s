@@ -133,7 +133,7 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   // We use map and widen however we could instead get all our nice methods from this
-  implicit def entityDecoderFunctor[M[_[_]], F[_]]: Functor[EntityDecoder[M, F, ?]] = new Functor[EntityDecoder[M, F, ?]]{
+  implicit def entityDecoderFunctor[M[_[_]], F[_]: Functor]: Functor[EntityDecoder[M, F, ?]] = new Functor[EntityDecoder[M, F, ?]]{
     override def map[A, B](fa: EntityDecoder[M, F, A])(f: A => B): EntityDecoder[M, F, B] = fa.map(f)
   }
 

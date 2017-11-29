@@ -163,6 +163,9 @@ object Message {
       def withoutContentType: M[F] = mess.withoutContentType(m)
       def withContentTypeOption(contentTypeO: Option[`Content-Type`]): M[F] = mess.withContentTypeOption(m)(contentTypeO)
       def removeHeader(key: HeaderKey): M[F] = mess.removeHeader(m)(key)
+
+      def attemptAs[T](implicit decoder: EntityDecoder[M, F, T]): DecodeResult[F, T] = mess.attemptAs[T](m)(decoder)
+      def as[T](implicit F: Functor[F], decoder: EntityDecoder[M, F, T]): F[T] = mess.as[T](m)(F, decoder)
     }
   }
 

@@ -5,6 +5,7 @@ import cats.data.EitherT
 import cats.effect.IO
 import org.http4s.headers._
 import org.specs2.matcher._
+import org.http4s.Message.messSyntax._
 
 /** This might be useful in a testkit spinoff.  Let's see what they do for us. */
 // TODO these akas might be all wrong.
@@ -19,28 +20,28 @@ trait Http4sMatchers extends Matchers with IOMatchers {
       r.unsafeRunSync.aka("the returned")
     }
 
-  def haveBody[A: EntityDecoder[IO, ?]](a: ValueCheck[A]): Matcher[Message[IO]] =
-    returnValue(a) ^^ { m: Message[IO] =>
+  def haveBody[M[_[_]], A: EntityDecoder[M, IO, ?]](a: ValueCheck[A])(implicit M: Message[M, IO]): Matcher[M[IO]] =
+    returnValue(a) ^^ { m: M[IO] =>
       m.as[A].aka("the message body")
     }
 
-  def returnBody[A: EntityDecoder[IO, ?]](a: ValueCheck[A]): Matcher[IO[Message[IO]]] =
-    returnValue(a) ^^ { m: IO[Message[IO]] =>
+  def returnBody[M[_[_]], A: EntityDecoder[M, IO, ?]](a: ValueCheck[A])(implicit M: Message[M, IO]): Matcher[IO[M[IO]]] =
+    returnValue(a) ^^ { m: IO[M[IO]] =>
       m.flatMap(_.as[A]).aka("the returned message body")
     }
 
-  def haveHeaders(a: Headers): Matcher[Message[IO]] =
-    be(a) ^^ { m: Message[IO] =>
+  def haveHeaders[M[_[_]]](a: Headers)(implicit M: Message[M, IO]): Matcher[M[IO]] =
+    be(a) ^^ { m: M[IO] =>
       m.headers.aka("the headers")
     }
 
-  def haveMediaType(mt: MediaType): Matcher[Message[IO]] =
-    beSome(mt) ^^ { m: Message[IO] =>
+  def haveMediaType[M[_[_]]](mt: MediaType)(implicit M: Message[M, IO]): Matcher[M[IO]] =
+    beSome(mt) ^^ { m: M[IO] =>
       m.headers.get(`Content-Type`).map(_.mediaType).aka("the media type header")
     }
 
-  def haveContentCoding(c: ContentCoding): Matcher[Message[IO]] =
-    beSome(c) ^^ { m: Message[IO] =>
+  def haveContentCoding[M[_[_]]](c: ContentCoding)(implicit M: Message[M, IO]): Matcher[M[IO]] =
+    beSome(c) ^^ { m: M[IO] =>
       m.headers.get(`Content-Encoding`).map(_.contentCoding).aka("the content encoding header")
     }
 
