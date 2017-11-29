@@ -132,6 +132,11 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
 
+  // We use map and widen however we could instead get all our nice methods from this
+  implicit def entityDecoderFunctor[M[_[_]], F[_]]: Functor[EntityDecoder[M, F, ?]] = new Functor[EntityDecoder[M, F, ?]]{
+    override def map[A, B](fa: EntityDecoder[M, F, A])(f: A => B): EntityDecoder[M, F, B] = fa.map(f)
+  }
+
   /** Helper method which simply gathers the body into a single ByteVector */
   def collectBinary[M[_[_]], F[_]: Effect](msg: M[F])(implicit mess: Message[M, F]): DecodeResult[F, Chunk[Byte]] =
     DecodeResult.success(msg.body.chunks.runFoldMonoid)
