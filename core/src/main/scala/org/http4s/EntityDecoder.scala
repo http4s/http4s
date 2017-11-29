@@ -11,6 +11,7 @@ import org.http4s.multipart.{Multipart, MultipartDecoder}
 import org.http4s.util.chunk._
 import scala.annotation.implicitNotFound
 import scala.util.control.NonFatal
+import Mess.messSyntax._
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -24,7 +25,7 @@ import scala.util.control.NonFatal
 trait EntityDecoder[F[_], T] { self =>
 
   /** Attempt to decode the body of the [[Message]] */
-  def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T]
+  def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit mess: Mess[M, F]): DecodeResult[F, T]
 
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
@@ -33,13 +34,13 @@ trait EntityDecoder[F[_], T] { self =>
   def map[T2](f: T => T2)(implicit F: Functor[F]): EntityDecoder[F, T2] = new EntityDecoder[F, T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
+    override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit mess: Mess[M, F]): DecodeResult[F, T2] =
       self.decode(msg, strict).map(f)
   }
 
   def flatMapR[T2](f: T => DecodeResult[F, T2])(implicit F: Monad[F]): EntityDecoder[F, T2] =
     new EntityDecoder[F, T2] {
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
+      override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit mess: Mess[M, F]): DecodeResult[F, T2] =
         self.decode(msg, strict).flatMap(f)
 
       override def consumes: Set[MediaRange] = self.consumes
@@ -81,7 +82,7 @@ object EntityDecoder extends EntityDecoderInstances {
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
       f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+    override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit mess: Mess[M, F]): DecodeResult[F, T] =
       try {
         if (strict) {
           msg.headers.get(`Content-Type`) match {
@@ -103,7 +104,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
   private class OrDec[F[_]: Functor, T](a: EntityDecoder[F, T], b: EntityDecoder[F, T])
       extends EntityDecoder[F, T] {
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+    override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit mess: Mess[M, F]): DecodeResult[F, T] =
       msg.headers.get(`Content-Type`) match {
         case Some(contentType) =>
           if (a.matchesMediaType(contentType.mediaType)) {
@@ -148,7 +149,7 @@ trait EntityDecoderInstances {
   /** Provides a mechanism to fail decoding */
   def error[F[_], T](t: Throwable)(implicit F: Effect[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+      override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit mess: Mess[M, F]): DecodeResult[F, T] =
         DecodeResult(msg.body.run *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
