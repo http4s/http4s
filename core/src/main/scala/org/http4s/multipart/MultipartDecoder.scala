@@ -10,8 +10,8 @@ import Message.messSyntax._
 
 private[http4s] object MultipartDecoder {
 
-  def decoder[M[_[_]], F[_]: Effect](implicit M: Message[M, F]): EntityDecoder[M, F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
+  def decoder[M[_[_]], F[_]: Effect](implicit M: Message[M, F]): EntityDecoder[F, Multipart[F]] =
+    EntityDecoder.decodeBy[M, F, Multipart[F]](MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>
           DecodeResult {

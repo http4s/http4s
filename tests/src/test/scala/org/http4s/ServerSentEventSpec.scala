@@ -4,6 +4,7 @@ import cats.effect.IO
 import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.headers._
+import Message.messSyntax._
 
 class ServerSentEventSpec extends Http4sSpec {
   import ServerSentEvent._

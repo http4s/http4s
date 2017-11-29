@@ -1,5 +1,5 @@
 package org.http4s
-package client
+package client.oauth1
 
 import cats._
 import cats.data.NonEmptyList
@@ -10,12 +10,14 @@ import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
 import scala.collection.mutable.ListBuffer
+import Message.messInstances._
+import Message.messSyntax._
 
 /** Basic OAuth1 message signing support
   *
   * This feature is not considered stable.
   */
-package object oauth1 {
+object oauth1 {
 
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
@@ -30,7 +32,7 @@ package object oauth1 {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(implicit F: Monad[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
+      token: Option[Token])(implicit F: Monad[F], W: EntityDecoder[Response, F, UrlForm]): F[Request[F]] =
     getUserParams(req).map {
       case (req, params) =>
         val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
@@ -104,13 +106,13 @@ package object oauth1 {
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
       implicit F: Monad[F],
-      W: EntityDecoder[F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
+      W: EntityDecoder[Request, F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
     val qparams = req.uri.query.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
       case Some(t)
           if (req.method == Method.POST || req.method == Method.PUT) &&
-            t.mediaType == MediaType.`application/x-www-form-urlencoded` =>
+            t.mediaType == MediaType.`application/x-www-form-urlencoded` => {
         req.as[UrlForm].flatMap { urlform =>
           val bodyparams = urlform.values.toSeq
             .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.map((k, _)) }
@@ -118,7 +120,7 @@ package object oauth1 {
           implicit val charset = req.charset.getOrElse(Charset.`UTF-8`)
           req.withBody(urlform).map(_ -> (qparams ++ bodyparams))
         }
-
+      }
       case _ => F.pure(req -> qparams)
     }
   }

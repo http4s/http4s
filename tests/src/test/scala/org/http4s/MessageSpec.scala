@@ -5,6 +5,7 @@ import cats.effect.IO
 import fs2.Pure
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers.{Authorization, `Content-Type`, `X-Forwarded-For`}
+import Message.messSyntax._
 
 class MessageSpec extends Http4sSpec {
 
@@ -14,27 +15,27 @@ class MessageSpec extends Http4sSpec {
       val remote = InetSocketAddress.createUnresolved("www.remote.com", 45444)
 
       "get remote connection info when present" in {
-        val r = Request().withAttribute(
+        val r = Request[IO]().withAttribute(
           Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.server must beSome(local)
         r.remote must beSome(remote)
       }
 
       "not contain remote connection info when not present" in {
-        val r = Request()
+        val r = Request[IO]()
         r.server must beNone
         r.remote must beNone
       }
 
       "be utilized to determine the address of server and remote" in {
-        val r = Request().withAttribute(
+        val r = Request[IO]().withAttribute(
           Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverAddr must_== local.getHostString
         r.remoteAddr must beSome(remote.getHostString)
       }
 
       "be utilized to determine the port of server and remote" in {
-        val r = Request().withAttribute(
+        val r = Request[IO]().withAttribute(
           Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverPort must_== local.getPort
         r.remotePort must beSome(remote.getPort)
@@ -43,14 +44,14 @@ class MessageSpec extends Http4sSpec {
       "be utilized to determine the from value (first X-Forwarded-For if present)" in {
         val forwardedValues =
           NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
-        val r = Request()
+        val r = Request[IO]()
           .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
           .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.from must_== forwardedValues.head
       }
 
       "be utilized to determine the from value (remote value if X-Forwarded-For is not present)" in {
-        val r = Request()
+        val r = Request[IO]()
           .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.from must_== Option(remote.getAddress)
       }
@@ -132,7 +133,7 @@ class MessageSpec extends Http4sSpec {
   "Response" >> {
     "toString" should {
       "redact a `Set-Cookie` header" in {
-        val resp = Response().putHeaders(headers.`Set-Cookie`(Cookie("token", "value")))
+        val resp = Response[IO]().putHeaders(headers.`Set-Cookie`(Cookie("token", "value")))
         resp.toString must_== ("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
       }
     }

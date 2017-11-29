@@ -7,6 +7,7 @@ import org.http4s.Status.NotModified
 import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
 import org.http4s.util.chunk._
 import org.specs2.matcher.MatchResult
+import Message.messSyntax._
 
 class StaticFileSpec extends Http4sSpec {
 

@@ -5,6 +5,7 @@ import org.http4s.Charset._
 import org.http4s.Http4s._
 import org.http4s.headers._
 import org.specs2.mutable.Specification
+import Message.messSyntax._
 
 class ResponderSpec extends Specification {
 
@@ -52,7 +53,7 @@ class ResponderSpec extends Specification {
         resp.putHeaders(Connection("close".ci), `Content-Length`.unsafeFromLong(10), Host("foo"))
       (wHeader.headers.toList must have).length(3)
 
-      val newHeaders = wHeader.replaceAllHeaders(Date(HttpDate.now))
+      val newHeaders = wHeader.replaceAllHeadersWith(Date(HttpDate.now))
       (newHeaders.headers.toList must have).length(1)
       newHeaders.headers.get(Connection) must beNone
     }
@@ -82,17 +83,17 @@ class ResponderSpec extends Specification {
     }
 
     "Set cookie from Cookie" in {
-      resp.addCookie(Cookie("foo", "bar")).cookies must_== List(org.http4s.Cookie("foo", "bar"))
+      resp.addCookie(org.http4s.Cookie("foo", "bar")).cookies must_== List(org.http4s.Cookie("foo", "bar"))
     }
 
     "Set multiple cookies" in {
-      resp.addCookie(Cookie("foo", "bar")).addCookie(Cookie("baz", "quux")).cookies must_== List(
+      resp.addCookie(org.http4s.Cookie("foo", "bar")).addCookie(org.http4s.Cookie("baz", "quux")).cookies must_== List(
         org.http4s.Cookie("foo", "bar"),
         org.http4s.Cookie("baz", "quux"))
     }
 
     "Remove cookie" in {
-      val cookie = Cookie("foo", "bar")
+      val cookie = org.http4s.Cookie("foo", "bar")
       resp.removeCookie(cookie).cookies must_== List(
         org.http4s.Cookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
       )

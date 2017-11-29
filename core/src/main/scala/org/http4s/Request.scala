@@ -9,7 +9,6 @@ import cats.implicits._
 
 import org.http4s.headers.{Authorization, Host, `X-Forwarded-For`}
 import org.http4s.server.ServerSoftware
-import Message.messInstances._
 import Message.messSyntax._
 
 /** Representation of an incoming HTTP message
@@ -202,6 +201,26 @@ object Request {
       body = body,
       attributes = attributes
     ) {}
+
+  implicit def requestInstance[F[_]]: Message[Request, F] = new Message[Request, F] {
+    override def httpVersion(m: Request[F]): HttpVersion = m.httpVersion
+    override def headers(m: Request[F]): Headers = m.headers
+    override def body(m: Request[F]): EntityBody[F] = m.body
+    override def attributes(m: Request[F]): AttributeMap = m.attributes
+    override def change(m: Request[F])(
+      body: EntityBody[F],
+      headers: Headers,
+      attributes: AttributeMap
+    ): Request[F] =
+      Request[F](
+        method = m.method,
+        uri = m.uri,
+        httpVersion = m.httpVersion,
+        headers = headers,
+        body = body,
+        attributes = attributes
+      )
+  }
 
   final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 

@@ -1,9 +1,9 @@
 package org.http4s
 
-import cats.{Monad}
+import cats.Monad
 import fs2.{Pure, Stream, text}
-import org.http4s.headers._
-import Message.messInstances._
+import org.http4s.headers.{`Set-Cookie`, `Content-Type`}
+import Message.messSyntax._
 
 /** Representation of the HTTP response to send back to the client
   *
@@ -42,7 +42,7 @@ final case class Response[F[_]](
 
   /** Add a Set-Cookie header for the provided [[Cookie]] */
   def addCookie(cookie: Cookie): Response[F] =
-    responseInstance[F].putHeaders(this)(`Set-Cookie`(cookie))
+    this.putHeaders(`Set-Cookie`(cookie))
 
   /** Add a Set-Cookie header with the provided values */
   def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Response[F] =
@@ -50,11 +50,11 @@ final case class Response[F[_]](
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(cookie: Cookie): Response[F] =
-    responseInstance[F].putHeaders(this)(cookie.clearCookie)
+    this.putHeaders(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   def removeCookie(name: String): Response[F] =
-    responseInstance[F].putHeaders(this)(Cookie(name, "").clearCookie)
+    this.putHeaders(Cookie(name, "").clearCookie)
 }
 
 object Response {
@@ -69,5 +69,24 @@ object Response {
 
   def notFoundFor[F[_]: Monad](request: Request[F])(
     implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    responseInstance[F].withBody(Response(Status.NotFound))(s"${request.pathInfo} not found")
+    Response[F](Status.NotFound).withBody(s"${request.pathInfo} not found")
+
+
+  implicit def responseInstance[F[_]]: Message[Response, F] = new Message[Response, F] {
+    override def httpVersion(m: Response[F]): HttpVersion = m.httpVersion
+    override def headers(m: Response[F]): Headers = m.headers
+    override def body(m: Response[F]): EntityBody[F] = m.body
+    override def attributes(m: Response[F]): AttributeMap = m.attributes
+    override def change(m: Response[F])(
+      body: EntityBody[F],
+      headers: Headers,
+      attributes: AttributeMap
+    ): Response[F] = Response[F](
+      m.status,
+      m.httpVersion,
+      headers,
+      body,
+      attributes
+    )
+  }
 }

@@ -57,7 +57,7 @@ class MultipartSpec extends Specification {
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[Request, IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
@@ -74,7 +74,7 @@ class MultipartSpec extends Specification {
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[Request, IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
@@ -97,7 +97,7 @@ class MultipartSpec extends Specification {
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[Request, IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
@@ -134,7 +134,7 @@ Content-Type: application/pdf
       body = Stream.emit(body).through(text.utf8Encode),
       headers = header)
 
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[Request, IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight
@@ -161,7 +161,7 @@ I am a big moose
       uri = url,
       body = Stream.emit(body).through(text.utf8Encode),
       headers = header)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[Request, IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight

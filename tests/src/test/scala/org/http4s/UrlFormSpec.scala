@@ -3,6 +3,7 @@ package org.http4s
 import cats._
 import cats.data._
 import cats.effect.IO
+import Message.messSyntax._
 
 class UrlFormSpec extends Http4sSpec {
 //  // TODO: arbitrary charsets would be nice
@@ -23,7 +24,7 @@ class UrlFormSpec extends Http4sSpec {
         .success(Request[IO]()
           .withBody(urlForm)(Monad[IO], UrlForm.entityEncoder(Applicative[IO], charset)))
         .flatMap { req =>
-          UrlForm.entityDecoder[IO].decode(req, strict = false)
+          UrlForm.entityDecoder[Request, IO].decode(req, strict = false)
         } must returnRight(urlForm)
     }
 

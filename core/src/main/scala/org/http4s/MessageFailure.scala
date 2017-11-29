@@ -3,7 +3,6 @@ package org.http4s
 import cats._
 import cats.implicits._
 import scala.util.control.{NoStackTrace, NonFatal}
-import Message.messInstances._
 import Message.messSyntax._
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
