@@ -7,7 +7,7 @@ import fs2.text._
 import org.http4s.headers._
 import org.log4s.getLogger
 
-sealed trait Mess[M[_[_]], F[_]] { self =>
+sealed trait Message[M[_[_]], F[_]] { self =>
 
   def httpVersion(m: M[F]): HttpVersion
 
@@ -38,7 +38,7 @@ sealed trait Mess[M[_[_]], F[_]] { self =>
               .fromLong(l) match {
               case Right(header) => (header :: w.headers.toList).pure[F]
               case Left(_) => F.pure {
-                Mess.logger.warn(s"Attempt to provide a negative content length of $l")
+                Message.logger.warn(s"Attempt to provide a negative content length of $l")
                 w.headers.toList
               }
             }
@@ -46,6 +46,7 @@ sealed trait Mess[M[_[_]], F[_]] { self =>
         }
       headersF.map(newHeaders => change(m)(body(m), newHeaders ++ headers(m), attributes(m)))
     }
+
 
   def withBodyStream(m: M[F])(body: EntityBody[F]) : M[F] =
     change(m)(body, headers(m), attributes(m))
@@ -80,7 +81,7 @@ sealed trait Mess[M[_[_]], F[_]] { self =>
   }
 
   def trailerHeaders(m: M[F])(implicit F: Applicative[F]): F[Headers] =
-    attributes(m).get(Mess.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
+    attributes(m).get(Message.Keys.TrailerHeaders[F]).getOrElse(Headers.empty.pure[F])
 
   def filterHeaders(m: M[F])(f: Header => Boolean): M[F] =
     transformHeaders(m)(_.filter(f))
@@ -115,22 +116,33 @@ sealed trait Mess[M[_[_]], F[_]] { self =>
   def attemptAs[T](m: M[F])(implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
     decoder.decode(m, strict = false)(self)
 
+  /** Decode the [[Message]] to the specified type
+    *
+    * If no valid [[Status]] has been described, allow Ok
+    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
+    * @tparam T type of the result
+    * @return the effect which will generate the T
+    */
+  final def as[T](m: M[F])(implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
+    attemptAs(m).fold(throw _, identity)
+
 }
 
 
-object Mess {
+object Message {
   private[http4s] val logger = getLogger
 
-  def apply[M[_[_]], F[_]](implicit mess: Mess[M, F]): Mess[M, F] = mess
+  def apply[M[_[_]], F[_]](implicit mess: Message[M, F]): Message[M, F] = mess
 
   object messSyntax {
-    implicit class messOps[M[_[_]], F[_]](m: M[F])(implicit mess: Mess[M, F]){
+    implicit class messOps[M[_[_]], F[_]](m: M[F])(implicit mess: Message[M, F]){
       def httpVersion: HttpVersion = mess.httpVersion(m)
       def headers: Headers = mess.headers(m)
       def body: EntityBody[F] = mess.body(m)
       def attributes: AttributeMap = mess.attributes(m)
       def change(body: EntityBody[F], headers: Headers, attributes: AttributeMap): M[F] =
         mess.change(m)(body, headers, attributes)
+      def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): F[M[F]] = mess.withBody(m)(b)(F, w)
       def withBodyStream(body: EntityBody[F]): M[F] = mess.withBodyStream(m)(body)
       def contentType: Option[`Content-Type`] = mess.contentType(m)
       def charset: Option[Charset] = mess.charset(m)
@@ -155,16 +167,7 @@ object Mess {
 
   object messInstances {
 
-    implicit def messageInstance[F[_]]: Mess[Message, F] = new Mess[Message, F] {
-      override def httpVersion(m: Message[F]): HttpVersion = ???
-      override def headers(m: Message[F]): Headers = ???
-      override def body(m: Message[F]): EntityBody[F] = ???
-      override def attributes(m: Message[F]): AttributeMap = ???
-      override def change(m: Message[F])(
-        body: EntityBody[F], headers: Headers, attributes: AttributeMap): Message[F] = ???
-    }
-
-    implicit def requestInstance[F[_]]: Mess[Request, F] = new Mess[Request, F] {
+    implicit def requestInstance[F[_]]: Message[Request, F] = new Message[Request, F] {
       override def httpVersion(m: Request[F]): HttpVersion = m.httpVersion
       override def headers(m: Request[F]): Headers = m.headers
       override def body(m: Request[F]): EntityBody[F] = m.body
@@ -184,7 +187,7 @@ object Mess {
         )
     }
 
-    implicit def responseInstance[F[_]]: Mess[Response, F] = new Mess[Response, F] {
+    implicit def responseInstance[F[_]]: Message[Response, F] = new Message[Response, F] {
       override def httpVersion(m: Response[F]): HttpVersion = m.httpVersion
       override def headers(m: Response[F]): Headers = m.headers
       override def body(m: Response[F]): EntityBody[F] = m.body

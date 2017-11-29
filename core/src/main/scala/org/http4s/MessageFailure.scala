@@ -3,6 +3,8 @@ package org.http4s
 import cats._
 import cats.implicits._
 import scala.util.control.{NoStackTrace, NonFatal}
+import Message.messInstances._
+import Message.messSyntax._
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 trait MessageFailure extends RuntimeException {
@@ -79,9 +81,11 @@ final case class MalformedMessageBodyFailure(details: String, cause: Option[Thro
   def message: String =
     s"Malformed message body: $details"
 
-  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] =
+  def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] = {
+    implicit val m = responseInstance[F]
     Response[F](Status.BadRequest, httpVersion)
       .withBody(s"The request body was malformed.")(F, EntityEncoder.stringEncoder[F])
+  }
 }
 
 /** Indicates a semantic error decoding the body of an HTTP [[Message]]. */
