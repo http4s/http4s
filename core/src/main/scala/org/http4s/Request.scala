@@ -4,9 +4,10 @@ import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 
 import cats.data.NonEmptyList
-import cats.{Functor, Monad}
+import cats.Monad
 import cats.implicits._
-import org.http4s.headers.{Authorization, Cookie, Host, `X-Forwarded-For`}
+
+import org.http4s.headers.{Authorization, Host, `X-Forwarded-For`}
 import org.http4s.server.ServerSoftware
 import Message.messInstances._
 import Message.messSyntax._
@@ -50,26 +51,6 @@ abstract case class Request[F[_]](
       attributes = attributes
     )
 
-//  @deprecated(
-//    message = "Copy method is unsafe for setting path info. Use with... methods instead",
-//    "0.17.0-M3")
-//  def copy(
-//            method: Method = this.method,
-//            uri: Uri = this.uri,
-//            httpVersion: HttpVersion = this.httpVersion,
-//            headers: Headers = this.headers,
-//            body: EntityBody[F] = this.body,
-//            attributes: AttributeMap = this.attributes
-//          ): Request[F] =
-//    requestCopy(
-//      method = method,
-//      uri = uri,
-//      httpVersion = httpVersion,
-//      headers = headers,
-//      body = body,
-//      attributes = attributes
-//    )
-
   def withMethod(method: Method) = requestCopy(method = method)
   def withUri(uri: Uri) =
     requestCopy(uri = uri, attributes = attributes -- Request.Keys.PathInfoCaret)
@@ -87,7 +68,7 @@ abstract case class Request[F[_]](
     uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String)(implicit F: Functor[F]): Request[F] =
+  def withPathInfo(pi: String): Request[F] =
     withUri(uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
@@ -167,7 +148,7 @@ abstract case class Request[F[_]](
     * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
     *               [[MediaType]] is not supported by the provided decoder
     */
-  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
+  def decodeWith[A](decoder: EntityDecoder[Request, F, A], strict: Boolean)(f: A => F[Response[F]])(
     implicit F: Monad[F]): F[Response[F]] =
     decoder.decode(this, strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
@@ -180,7 +161,7 @@ abstract case class Request[F[_]](
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
   final def decode[A](
-                       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+                       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[Request, F, A]): F[Response[F]] =
     decodeWith(decoder, strict = false)(f)
 
   /** Helper method for decoding [[Request]]s
@@ -190,19 +171,16 @@ abstract case class Request[F[_]](
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
   final def decodeStrict[A](
-                             f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
+                             f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[Request, F, A]): F[Response[F]] =
     decodeWith(decoder, true)(f)
 
 
-
-
   /** Add a Cookie header for the provided [[Cookie]] */
-  final def addCookie(cookie: Cookie)(implicit F: Functor[F]): Request[F] =
+  final def addCookie(cookie: Cookie): Request[F] =
     this.putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
 
   /** Add a Cookie header with the provided values */
-  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
-    implicit F: Functor[F]): Request[F] =
+  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None): Request[F] =
     addCookie(Cookie(name, content, expires))
 }
 

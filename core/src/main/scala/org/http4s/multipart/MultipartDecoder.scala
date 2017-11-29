@@ -6,10 +6,11 @@ import cats.implicits._
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import scodec.bits.ByteVector
+import Message.messSyntax._
 
 private[http4s] object MultipartDecoder {
 
-  def decoder[F[_]: Effect]: EntityDecoder[F, Multipart[F]] =
+  def decoder[M[_[_]], F[_]: Effect](implicit M: Message[M, F]): EntityDecoder[M, F, Multipart[F]] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
         case Some(boundary) =>

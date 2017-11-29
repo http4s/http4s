@@ -7,6 +7,7 @@ import org.http4s.headers._
 import org.http4s.parser._
 import org.http4s.util._
 import scala.io.Codec
+import Message.messSyntax._
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -92,9 +93,9 @@ object UrlForm {
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[F[_]](
-      implicit F: Effect[F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+  implicit def entityDecoder[M[_[_]], F[_]](
+      implicit F: Effect[F], M: Message[M, F],
+      defaultCharset: Charset = DefaultCharset): EntityDecoder[M, F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder

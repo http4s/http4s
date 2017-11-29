@@ -15,6 +15,8 @@ import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
 import scodec.bits.ByteVector
+import Message.messInstances._
+import Message.messSyntax._
 
 object StaticFile {
   private[this] val logger = getLogger

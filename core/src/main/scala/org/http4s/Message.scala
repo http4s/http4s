@@ -113,8 +113,10 @@ sealed trait Message[M[_[_]], F[_]] { self =>
     * @tparam T type of the result
     * @return the effect which will generate the `DecodeResult[T]`
     */
-  def attemptAs[T](m: M[F])(implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): DecodeResult[F, T] =
-    decoder.decode(m, strict = false)(self)
+  def attemptAs[T](m: M[F])(implicit decoder: EntityDecoder[M, F, T]): DecodeResult[F, T] = {
+    decoder.decode(m, strict = false)
+  }
+
 
   /** Decode the [[Message]] to the specified type
     *
@@ -123,7 +125,7 @@ sealed trait Message[M[_[_]], F[_]] { self =>
     * @tparam T type of the result
     * @return the effect which will generate the T
     */
-  final def as[T](m: M[F])(implicit F: FlatMap[F], decoder: EntityDecoder[F, T]): F[T] =
+  final def as[T](m: M[F])(implicit F: Functor[F], decoder: EntityDecoder[M, F, T]): F[T] =
     attemptAs(m).fold(throw _, identity)
 
 }

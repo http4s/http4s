@@ -82,7 +82,6 @@ final case class MalformedMessageBodyFailure(details: String, cause: Option[Thro
     s"Malformed message body: $details"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] = {
-    implicit val m = responseInstance[F]
     Response[F](Status.BadRequest, httpVersion)
       .withBody(s"The request body was malformed.")(F, EntityEncoder.stringEncoder[F])
   }
