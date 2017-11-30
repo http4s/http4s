@@ -7,12 +7,11 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import cats.effect._
 import cats.implicits._
 import org.http4s._
-
-import scala.concurrent.duration._
-import scala.util.Random
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.JettyScaffold
 
+import scala.concurrent.duration._
+import scala.util.Random
 import scala.concurrent.Await
 
 class PooledClientSpec extends Http4sSpec {
@@ -24,9 +23,9 @@ class PooledClientSpec extends Http4sSpec {
   private val client = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 3)
 
   private val failTimeClient =
-    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 0)
+    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 0 seconds)
   private val successTimeClient =
-    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 20)
+    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 20 seconds)
 
   val jettyServ = new JettyScaffold(5)
   var addresses = Vector.empty[InetSocketAddress]

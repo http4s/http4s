@@ -4,11 +4,13 @@ package blaze
 
 import cats.effect._
 
+import scala.concurrent.duration.Duration
+
 /** Create a HTTP1 client which will attempt to recycle connections */
 object PooledHttp1Client {
   private val DefaultMaxTotalConnections = 10
   private val DefaultMaxWaitQueueLimit = 256
-  private val DefaultWaitExpiryTime = -1
+  private val DefaultWaitExpiryTime = Duration.Inf
 
   /** Construct a new PooledHttp1Client
     *
@@ -22,7 +24,7 @@ object PooledHttp1Client {
       maxTotalConnections: Int = DefaultMaxTotalConnections,
       maxWaitQueueLimit: Int = DefaultMaxWaitQueueLimit,
       maxConnectionsPerRequestKey: RequestKey => Int = _ => DefaultMaxTotalConnections,
-      waitExpiryTime: RequestKey => Int = _ => DefaultWaitExpiryTime,
+      waitExpiryTime: RequestKey => Duration = _ => DefaultWaitExpiryTime,
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
 
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)

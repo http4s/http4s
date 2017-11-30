@@ -12,6 +12,7 @@ import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 import scala.util.Random
 
 private final class PoolManager[F[_], A <: Connection[F]](
@@ -19,7 +20,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     maxTotal: Int,
     maxWaitQueueLimit: Int,
     maxConnectionsPerRequestKey: RequestKey => Int,
-    waitExpiryTime: RequestKey => Int,
+    waitExpiryTime: RequestKey => Duration,
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
@@ -74,8 +75,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
 
   private def isExpired(k: RequestKey, t: Instant): Boolean =
-    waitExpiryTime(k) != -1 && t
-      .plus(waitExpiryTime(k).toLong, ChronoUnit.SECONDS)
+    waitExpiryTime(k).isFinite() && t
+      .plus(waitExpiryTime(k).toSeconds, ChronoUnit.SECONDS)
       .isBefore(Instant.now())
 
   /**
