@@ -18,6 +18,7 @@ import org.http4s.util.{StringWriter, Writer}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import scodec.bits.ByteVector
+import org.http4s.Message.messSyntax._
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
 trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
@@ -49,11 +50,11 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     }
 
   /** Get the proper body encoder based on the message headers */
-  final protected def getEncoder(
-      msg: Message[F],
+  final protected def getEncoder[M[_[_]]](
+      msg: M[F],
       rr: StringWriter,
       minor: Int,
-      closeOnFinish: Boolean): Http1Writer[F] = {
+      closeOnFinish: Boolean)(implicit M: Message[M, F]): Http1Writer[F] = {
     val headers = msg.headers
     getEncoder(
       Connection.from(headers),
