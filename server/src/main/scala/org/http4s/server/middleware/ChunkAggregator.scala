@@ -13,6 +13,7 @@ import fs2.interop.scodec.ByteVectorChunk
 import org.http4s.EntityEncoder.chunkEncoder
 import org.http4s.headers._
 import scodec.bits.ByteVector
+import Message.messSyntax._
 
 object ChunkAggregator {
   def apply[F[_]](service: HttpService[F])(implicit F: Effect[F]): HttpService[F] =

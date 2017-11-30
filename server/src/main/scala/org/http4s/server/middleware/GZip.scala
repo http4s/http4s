@@ -11,6 +11,7 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.zip.{CRC32, Deflater}
 import org.http4s.headers._
 import org.log4s.getLogger
+import Message.messSyntax._
 
 object GZip {
   private[this] val logger = getLogger

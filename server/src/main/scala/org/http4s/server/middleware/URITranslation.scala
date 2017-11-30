@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats.Functor
+import Message.messSyntax._
 
 object URITranslation {
   def translateRoot[F[_]: Functor](prefix: String)(service: HttpService[F]): HttpService[F] = {
@@ -16,7 +17,7 @@ object URITranslation {
       val oldCaret = req.attributes
         .get(Request.Keys.PathInfoCaret)
         .getOrElse(0)
-      req.withAttribute(Request.Keys.PathInfoCaret(oldCaret + newCaret))
+      req.withAttributeEntry(Request.Keys.PathInfoCaret(oldCaret + newCaret))
     }
   }
 }

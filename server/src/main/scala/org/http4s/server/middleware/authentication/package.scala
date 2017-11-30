@@ -5,6 +5,7 @@ package middleware
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import org.http4s.headers._
+import Message.messSyntax._
 
 package object authentication {
   def challenged[F[_], A](
@@ -18,7 +19,7 @@ package object authentication {
           case Right(authedRequest) =>
             service(authedRequest)
           case Left(challenge) =>
-            OptionT.some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge)))
+            OptionT.some(Response[F](Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge)))
         }
     }
 }

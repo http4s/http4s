@@ -8,6 +8,7 @@ import cats.implicits._
 import fs2._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import Message.messSyntax._
 
 object Timeout {
 

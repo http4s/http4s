@@ -5,6 +5,7 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.Status.{Accepted, Ok}
 import org.http4s.server.middleware.PushSupport._
+import Message.messSyntax._
 
 object MockRoute extends Http4s {
 

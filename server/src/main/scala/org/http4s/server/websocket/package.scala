@@ -6,6 +6,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.websocket.Websocket
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
+import Message.messSyntax._
 
 package object websocket {
   private[this] object Keys {
@@ -43,7 +44,7 @@ package object websocket {
       read: Stream[F, WebSocketFrame],
       write: Sink[F, WebSocketFrame],
       status: F[Response[F]])(implicit F: Functor[F]): F[Response[F]] =
-    status.map(_.withAttribute(AttributeEntry(websocketKey[F], Websocket(read, write))))
+    status.map(_.withAttributeEntry(AttributeEntry(websocketKey[F], Websocket(read, write))))
 
   def WS[F[_]](read: Stream[F, WebSocketFrame], write: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],

@@ -23,10 +23,10 @@ object RequestLogger {
   )(service: HttpService[F])(
       implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
     Kleisli { req =>
-      if (!logBody)
+      if (!logBody) {
         OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> service(req).value)
-      else
+          Logger.logMessage[Request, F](req)(logHeaders, logBody)(logger) *> service(req).value)
+      } else {
         OptionT
           .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
           .flatMap { vec =>
@@ -37,10 +37,10 @@ object RequestLogger {
 
             val changedRequest = req.withBodyStream(
               req.body
-              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
                 .onFinalize(
-                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                  Logger.logMessage[Request, F](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
                     redactHeadersWhen)(logger)
@@ -49,5 +49,6 @@ object RequestLogger {
 
             service(changedRequest)
           }
+      }
     }
 }

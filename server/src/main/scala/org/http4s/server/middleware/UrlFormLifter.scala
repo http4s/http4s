@@ -4,6 +4,7 @@ package middleware
 
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
+import Message.messSyntax._
 
 /** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
   * request query params.

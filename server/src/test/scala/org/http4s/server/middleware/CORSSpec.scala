@@ -6,12 +6,13 @@ import cats.effect._
 import cats.implicits._
 import org.http4s.dsl.io._
 import org.http4s.headers._
+import Message.messSyntax._
 
 class CORSSpec extends Http4sSpec {
 
   val service = HttpService[IO] {
-    case req if req.pathInfo == "/foo" => Response(Ok).withBody("foo")
-    case req if req.pathInfo == "/bar" => Response(Unauthorized).withBody("bar")
+    case req if req.pathInfo == "/foo" => Response[IO](Ok).withBody("foo")
+    case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withBody("bar")
   }
 
   val cors1 = CORS(service)
@@ -32,7 +33,7 @@ class CORSSpec extends Http4sSpec {
     hs.get(hk).fold(false)(_.value === expected)
 
   def buildRequest(path: String, method: Method = GET) =
-    Request[IO](uri = Uri(path = path), method = method).replaceAllHeaders(
+    Request[IO](uri = Uri(path = path), method = method).replaceAllHeadersWith(
       Header("Origin", "http://allowed.com/"),
       Header("Access-Control-Request-Method", "GET"))
 
@@ -130,7 +131,7 @@ class CORSSpec extends Http4sSpec {
     }
 
     "Respond with 403 when origin is not valid" in {
-      val req = buildRequest("/bar").replaceAllHeaders(Header("Origin", "http://blah.com/"))
+      val req = buildRequest("/bar").replaceAllHeadersWith(Header("Origin", "http://blah.com/"))
       cors2.orNotFound(req).map(resp => resp.status.code == 403).unsafeRunSync()
     }
 

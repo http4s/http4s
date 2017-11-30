@@ -9,6 +9,7 @@ import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
+import Message.messSyntax._
 
 /**
   * Simple middleware for logging responses as they are processed
@@ -25,10 +26,10 @@ object ResponseLogger {
       ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
     Kleisli { req =>
       service(req).semiflatMap { response =>
-        if (!logBody)
-          Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
+        if (!logBody) {
+          Logger.logMessage[Response, F](response)(logHeaders, logBody, redactHeadersWhen)(
             logger) *> F.delay(response)
-        else
+        } else {
           async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
             vec =>
               val newBody = Stream
@@ -38,16 +39,17 @@ object ResponseLogger {
 
               response.copy(
                 body = response.body
-                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                  // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                   .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
                   .onFinalize {
-                    Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
+                    Logger.logMessage[Response, F](response.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
                       redactHeadersWhen)(logger)
                   }
               )
           }
+        }
       }
     }
 }

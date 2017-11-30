@@ -5,6 +5,7 @@ package middleware
 import cats.effect._
 import fs2.Stream._
 import org.http4s.dsl.io._
+import Message.messSyntax._
 
 class DefaultHeadSpec extends Http4sSpec {
   val service = DefaultHead[IO](HttpService[IO] {

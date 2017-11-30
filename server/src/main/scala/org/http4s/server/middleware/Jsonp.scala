@@ -9,6 +9,7 @@ import fs2._
 import java.nio.charset.StandardCharsets
 import org.http4s.headers._
 import org.log4s.getLogger
+import Message.messSyntax._
 
 /** Middleware to support wrapping json responses in jsonp.
   *

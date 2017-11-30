@@ -11,6 +11,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.scalacheck._
 import org.specs2.matcher.MatchResult
+import Message.messSyntax._
 
 class ChunkAggregatorSpec extends Http4sSpec {
 

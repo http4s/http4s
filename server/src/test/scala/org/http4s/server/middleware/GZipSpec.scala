@@ -11,6 +11,7 @@ import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.scalacheck.Properties
 import org.scalacheck.Prop.forAll
+import Message.messSyntax._
 
 class GZipSpec extends Http4sSpec {
 

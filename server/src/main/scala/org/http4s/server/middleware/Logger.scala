@@ -7,6 +7,7 @@ import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.{Logger => SLogger}
 import scodec.bits.ByteVector
+import Message.messSyntax._
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -23,11 +24,11 @@ object Logger {
       )
     )
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
+  def logMessage[M[_[_]], F[_]](message: M[F])(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      logger: SLogger)(implicit F: Effect[F]): F[Unit] = {
+      logger: SLogger)(implicit F: Effect[F], M: Message[M, F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)

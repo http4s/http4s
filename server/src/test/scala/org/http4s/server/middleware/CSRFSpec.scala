@@ -7,6 +7,7 @@ import cats.data.OptionT
 import cats.effect.IO
 import org.http4s._
 import org.http4s.dsl.io._
+import Message.messSyntax._
 
 class CSRFSpec extends Http4sSpec {
 

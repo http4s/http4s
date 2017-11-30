@@ -6,19 +6,20 @@ import cats.effect._
 import org.http4s.Method._
 import org.http4s.headers.Host
 import org.http4s.Status.{BadRequest, NotFound, Ok}
+import Message.messSyntax._
 
 class VirtualHostSpec extends Http4sSpec {
 
   val default = HttpService[IO] {
-    case _ => Response(Ok).withBody("default")
+    case _ => Response[IO](Ok).withBody("default")
   }
 
   val servicea = HttpService[IO] {
-    case _ => Response(Ok).withBody("servicea")
+    case _ => Response[IO](Ok).withBody("servicea")
   }
 
   val serviceb = HttpService[IO] {
-    case _ => Response(Ok).withBody("serviceb")
+    case _ => Response[IO](Ok).withBody("serviceb")
   }
 
   "VirtualHost" >> {
@@ -40,28 +41,28 @@ class VirtualHostSpec extends Http4sSpec {
 
       "honor the Host header host" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-          .replaceAllHeaders(Host("servicea"))
+          .replaceAllHeadersWith(Host("servicea"))
 
         virtualServices.orNotFound(req) must returnBody("servicea")
       }
 
       "honor the Host header port" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-          .replaceAllHeaders(Host("serviceb", Some(80)))
+          .replaceAllHeadersWith(Host("serviceb", Some(80)))
 
         virtualServices.orNotFound(req) must returnBody("serviceb")
       }
 
       "ignore the Host header port if not specified" in {
         val good = Request[IO](GET, uri("/numbers/1"))
-          .replaceAllHeaders(Host("servicea", Some(80)))
+          .replaceAllHeadersWith(Host("servicea", Some(80)))
 
         virtualServices.orNotFound(good) must returnBody("servicea")
       }
 
       "result in a 404 if the hosts fail to match" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-          .replaceAllHeaders(Host("serviceb", Some(8000)))
+          .replaceAllHeadersWith(Host("serviceb", Some(8000)))
 
         virtualServices.orNotFound(req) must returnStatus(NotFound)
       }
@@ -76,14 +77,14 @@ class VirtualHostSpec extends Http4sSpec {
 
       "match an exact route" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-          .replaceAllHeaders(Host("servicea", Some(80)))
+          .replaceAllHeadersWith(Host("servicea", Some(80)))
 
         virtualServices.orNotFound(req) must returnBody("servicea")
       }
 
       "allow for a dash in the service" in {
         val req = Request[IO](GET, uri("/numbers/1"))
-          .replaceAllHeaders(Host("foo.foo-service", Some(80)))
+          .replaceAllHeadersWith(Host("foo.foo-service", Some(80)))
 
         virtualServices.orNotFound(req) must returnBody("default")
       }
@@ -91,9 +92,9 @@ class VirtualHostSpec extends Http4sSpec {
       "match a route with a wildcard route" in {
         val req = Request[IO](GET, uri("/numbers/1"))
         val reqs = Seq(
-          req.replaceAllHeaders(Host("a.service", Some(80))),
-          req.replaceAllHeaders(Host("A.service", Some(80))),
-          req.replaceAllHeaders(Host("b.service", Some(80))))
+          req.replaceAllHeadersWith(Host("a.service", Some(80))),
+          req.replaceAllHeadersWith(Host("A.service", Some(80))),
+          req.replaceAllHeadersWith(Host("b.service", Some(80))))
 
         forall(reqs) { req =>
           virtualServices.orNotFound(req) must returnBody("serviceb")
@@ -103,8 +104,8 @@ class VirtualHostSpec extends Http4sSpec {
       "not match a route with an abscent wildcard" in {
         val req = Request[IO](GET, uri("/numbers/1"))
         val reqs = Seq(
-          req.replaceAllHeaders(Host(".service", Some(80))),
-          req.replaceAllHeaders(Host("service", Some(80))))
+          req.replaceAllHeadersWith(Host(".service", Some(80))),
+          req.replaceAllHeadersWith(Host("service", Some(80))))
 
         forall(reqs) { req =>
           virtualServices.orNotFound(req) must returnStatus(NotFound)

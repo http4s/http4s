@@ -6,6 +6,7 @@ import cats._
 import cats.data.{Kleisli, OptionT}
 import org.http4s.Status.{BadRequest, NotFound}
 import org.http4s.headers.Host
+import Message.messSyntax._
 
 /** Middleware for virtual host mapping
   *

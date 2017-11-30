@@ -8,6 +8,7 @@ import java.io.File
 import org.http4s.headers.Range.SubRange
 import org.http4s.headers._
 import scala.concurrent.ExecutionContext
+import Message.messSyntax._
 
 object FileService {
   type PathCollector[F[_]] = (File, Config[F], Request[F]) => OptionT[F, Response[F]]
