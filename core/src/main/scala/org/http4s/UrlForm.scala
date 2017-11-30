@@ -93,15 +93,20 @@ object UrlForm {
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  implicit def entityDecoder[M[_[_]], F[_]](
-      implicit F: Effect[F], M: Message[M, F],
-      defaultCharset: Charset = DefaultCharset): EntityDecoder[M, F, UrlForm] =
-    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`) { m =>
-      DecodeResult(
-        EntityDecoder
-          .decodeString(m)
-          .map(decodeString(m.charset.getOrElse(defaultCharset)))
-      )
+  implicit def entityDecoder[F[_]](
+      implicit F: Effect[F],
+      defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
+    new EntityDecoder[F, UrlForm] {
+      override def consumes: Set[MediaRange] = Set(MediaType.`application/x-www-form-urlencoded`)
+
+      override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit M: Message[M, F]): DecodeResult[F, UrlForm] =
+        org.http4s.EntityDecoder.decodeGeneric(msg, strict)({ m =>
+          DecodeResult(
+            EntityDecoder
+              .decodeString(m)
+              .map(decodeString(m.charset.getOrElse(defaultCharset)))
+          )
+        }, consumes)
     }
 
   implicit val eqInstance: Eq[UrlForm] = Eq.instance { (x: UrlForm, y: UrlForm) =>

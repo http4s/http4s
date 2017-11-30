@@ -14,7 +14,6 @@ import org.http4s.util.chunk._
 import scala.annotation.implicitNotFound
 import scala.util.control.NonFatal
 import Message.messSyntax._
-import org.http4s.websocket.WebsocketBits.Binary
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -193,7 +192,7 @@ trait EntityDecoderInstances {
 
   }
 
-  implicit def byteArrayDecoder[M[_[_]], F[_]: Effect](implicit M: Message[M, F]): EntityDecoder[F, Array[Byte]] =
+  implicit def byteArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.toArray)
 
   implicit def text[F[_]: Effect](
@@ -205,7 +204,7 @@ trait EntityDecoderInstances {
     override def consumes: Set[MediaRange] = Set(MediaRange.`text/*`)
   }
 
-  implicit def charArrayDecoder[M[_[_]], F[_]: Effect](implicit M: Message[M, F]): EntityDecoder[F, Array[Char]] =
+  implicit def charArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?

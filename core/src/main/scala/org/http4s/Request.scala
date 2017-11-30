@@ -147,7 +147,7 @@ abstract case class Request[F[_]](
     * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
     *               [[MediaType]] is not supported by the provided decoder
     */
-  def decodeWith[A](decoder: EntityDecoder[Request, F, A], strict: Boolean)(f: A => F[Response[F]])(
+  def decodeWith[A](decoder: EntityDecoder[F, A], strict: Boolean)(f: A => F[Response[F]])(
     implicit F: Monad[F]): F[Response[F]] =
     decoder.decode(this, strict).fold(_.toHttpResponse[F](httpVersion), f).flatten
 
@@ -160,7 +160,7 @@ abstract case class Request[F[_]](
     * If decoding fails, an `UnprocessableEntity` [[Response]] is generated.
     */
   final def decode[A](
-                       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[Request, F, A]): F[Response[F]] =
+                       f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, strict = false)(f)
 
   /** Helper method for decoding [[Request]]s
@@ -170,7 +170,7 @@ abstract case class Request[F[_]](
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
   final def decodeStrict[A](
-                             f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[Request, F, A]): F[Response[F]] =
+                             f: A => F[Response[F]])(implicit F: Monad[F], decoder: EntityDecoder[F, A]): F[Response[F]] =
     decodeWith(decoder, true)(f)
 
 

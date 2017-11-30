@@ -20,6 +20,8 @@ final case class Response[F[_]](
                                  body: EntityBody[F] = EmptyBody,
                                  attributes: AttributeMap = AttributeMap.empty) {
 
+  import Response._
+
   /** Change the status of this response object
     *
     * @param status value to replace on the response object

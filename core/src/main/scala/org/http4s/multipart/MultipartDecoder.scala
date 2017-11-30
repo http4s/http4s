@@ -10,27 +10,38 @@ import Message.messSyntax._
 
 private[http4s] object MultipartDecoder {
 
-  def decoder[M[_[_]], F[_]: Effect](implicit M: Message[M, F]): EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy[M, F, Multipart[F]](MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
-        case Some(boundary) =>
-          DecodeResult {
-            msg.body
-              .through(MultipartParser.parse(Boundary(boundary)))
-              .through(gatherParts)
-              .runLog
-              .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
-              .handleError {
-                case e: InvalidMessageBodyFailure => Left(e)
-                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-              }
-          }
-        case None =>
-          DecodeResult.failure(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
-      }
+  def decoder[F[_]: Effect]: EntityDecoder[F, Multipart[F]] =
+    new EntityDecoder[F, Multipart[F]] {
+      override def consumes: Set[MediaRange] = Set(MediaRange.`multipart/*`)
+
+      override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit M: Message[M, F]): DecodeResult[F, Multipart[F]] =
+        org.http4s.EntityDecoder.decodeGeneric(msg, strict)(
+          { msg =>
+            msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
+              case Some(boundary) =>
+                DecodeResult {
+                  msg.body
+                    .through(MultipartParser.parse(Boundary(boundary)))
+                    .through(gatherParts)
+                    .runLog
+                    .map[Either[DecodeFailure, Multipart[F]]](parts =>
+                    Right(Multipart(parts, Boundary(boundary))))
+                    .handleError {
+                      case e: InvalidMessageBodyFailure => Left(e)
+                      case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
+                    }
+                }
+              case None =>
+                DecodeResult.failure(
+                  InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
+            }
+          },
+          consumes
+        )
+
     }
+
+
 
   def gatherParts[F[_]]: Pipe[F, Either[Headers, ByteVector], Part[F]] = s => {
     def go(part: Part[F], lastWasLeft: Boolean)(s: Stream[F, Either[Headers, ByteVector]])

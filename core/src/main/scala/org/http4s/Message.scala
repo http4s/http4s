@@ -119,8 +119,8 @@ trait Message[M[_[_]], F[_]] {
     * @tparam T type of the result
     * @return the effect which will generate the `DecodeResult[T]`
     */
-  def attemptAs[T](m: M[F])(implicit decoder: EntityDecoder[M, F, T]): DecodeResult[F, T] = {
-    decoder.decode(m, strict = false)
+  def attemptAs[T](m: M[F])(implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] = {
+    decoder.decode(m, strict = false)(this)
   }
 
 
@@ -131,7 +131,7 @@ trait Message[M[_[_]], F[_]] {
     * @tparam T type of the result
     * @return the effect which will generate the T
     */
-  final def as[T](m: M[F])(implicit F: Functor[F], decoder: EntityDecoder[M, F, T]): F[T] =
+  final def as[T](m: M[F])(implicit F: Functor[F], decoder: EntityDecoder[F, T]): F[T] =
     attemptAs(m).fold(throw _, identity)
 
 }
@@ -172,8 +172,8 @@ object Message {
       def withContentTypeOption(contentTypeO: Option[`Content-Type`]): M[F] = mess.withContentTypeOption(m)(contentTypeO)
       def removeHeader(key: HeaderKey): M[F] = mess.removeHeader(m)(key)
 
-      def attemptAs[T](implicit decoder: EntityDecoder[M, F, T]): DecodeResult[F, T] = mess.attemptAs[T](m)(decoder)
-      def as[T](implicit F: Functor[F], decoder: EntityDecoder[M, F, T]): F[T] = mess.as[T](m)(F, decoder)
+      def attemptAs[T](implicit decoder: EntityDecoder[F, T]): DecodeResult[F, T] = mess.attemptAs[T](m)(decoder)
+      def as[T](implicit F: Functor[F], decoder: EntityDecoder[F, T]): F[T] = mess.as[T](m)(F, decoder)
     }
   }
 
