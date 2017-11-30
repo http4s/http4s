@@ -7,6 +7,7 @@ import fs2.Stream
 import fs2.text.utf8Encode
 import org.http4s.Status.Ok
 import scala.xml.Elem
+import Message.messSyntax._
 
 class ScalaXmlSpec extends Http4sSpec {
 

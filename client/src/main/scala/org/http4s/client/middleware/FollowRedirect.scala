@@ -9,6 +9,7 @@ import fs2._
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
+import Message.messSyntax._
 
 /**
   * Client middleware to follow redirect responses.

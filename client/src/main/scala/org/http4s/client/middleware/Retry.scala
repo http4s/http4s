@@ -14,6 +14,7 @@ import org.log4s.getLogger
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
+import Message.messSyntax._
 
 object Retry {
 

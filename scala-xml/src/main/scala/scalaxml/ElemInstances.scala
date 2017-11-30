@@ -8,6 +8,7 @@ import javax.xml.parsers.SAXParserFactory
 import org.http4s.headers.`Content-Type`
 import scala.util.control.NonFatal
 import scala.xml._
+import Message.messSyntax._
 
 trait ElemInstances {
   protected def saxFactory: SAXParserFactory
@@ -28,19 +29,28 @@ trait ElemInstances {
     */
   implicit def xml[F[_]](implicit F: Effect[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
-    decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`) { msg =>
-      collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
-        val source = new InputSource(
-          new StringReader(
-            new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
-        val saxParser = saxFactory.newSAXParser()
-        try DecodeResult.success(F.pure(XML.loadXML(source, saxParser)))
-        catch {
-          case e: SAXParseException =>
-            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
-          case NonFatal(e) => DecodeResult(F.raiseError(e))
-        }
-      }
+    new EntityDecoder[F, Elem] {
+      override def consumes: Set[MediaRange] = Set(
+        MediaType.`text/xml`,
+        MediaType.`text/html`,
+        MediaType.`application/xml`
+      )
+
+      override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit M: Message[M, F]): DecodeResult[F, Elem] =
+        decodeGeneric(msg, strict)({ msg =>
+          collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
+            val source = new InputSource(
+              new StringReader(
+                new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
+            val saxParser = saxFactory.newSAXParser()
+            try DecodeResult.success(F.pure(XML.loadXML(source, saxParser)))
+            catch {
+              case e: SAXParseException =>
+                DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
+              case NonFatal(e) => DecodeResult(F.raiseError(e))
+            }
+          }
+        }, consumes)
     }
   }
 }

@@ -12,7 +12,6 @@ import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
-import Message.messInstances._
 import Message.messSyntax._
 
 /**
@@ -123,7 +122,7 @@ final case class Client[F[_]](
     * status code is returned.  The underlying HTTP connection is closed at the
     * completion of the decoding.
     */
-  def expect[A](req: Request[F])(implicit d: EntityDecoder[Response, F, A]): F[A] = {
+  def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
@@ -136,7 +135,7 @@ final case class Client[F[_]](
     }
   }
 
-  def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
     req.flatMap(expect(_)(d))
 
   /**
@@ -144,7 +143,7 @@ final case class Client[F[_]](
     * success.  On failure, the status code is returned.  The underlying HTTP
     * connection is closed at the completion of the decoding.
     */
-  def expect[A](uri: Uri)(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
     expect(Request[F](Method.GET, uri))(d)
 
   /**
@@ -152,7 +151,7 @@ final case class Client[F[_]](
     * response on success.  On failure, the status code is returned.  The
     * underlying HTTP connection is closed at the completion of the decoding.
     */
-  def expect[A](s: String)(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
 
   /**
@@ -160,7 +159,7 @@ final case class Client[F[_]](
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
-  def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[Response, F, A]): F[A] = {
+  def fetchAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
@@ -175,7 +174,7 @@ final case class Client[F[_]](
     * The underlying HTTP connection is closed at the completion of the
     * decoding.
     */
-  def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def fetchAs[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
     req.flatMap(fetchAs(_)(d))
 
   /** Submits a request and returns the response status */
@@ -197,7 +196,7 @@ final case class Client[F[_]](
     req.flatMap(successful)
 
   @deprecated("Use expect", "0.14")
-  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def prepAs[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
     fetchAs(req)(d)
 
   /** Submits a GET request, and provides a callback to process the response.
@@ -224,15 +223,15 @@ final case class Client[F[_]](
     * connection is closed at the completion of the decoding.
     */
   @deprecated("Use expect", "0.14")
-  def getAs[A](uri: Uri)(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def getAs[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
     fetchAs(Request[F](Method.GET, uri))(d)
 
   @deprecated("Use expect", "0.14")
-  def getAs[A](s: String)(implicit d: EntityDecoder[Response, F, A]): F[A] =
+  def getAs[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
     Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
 
   @deprecated("Use expect", "0.14")
-  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[Response, F, T]): F[T] =
+  def prepAs[T](req: F[Request[F]])(implicit d: EntityDecoder[F, T]): F[T] =
     fetchAs(req)
 
   /** Shuts this client down, and blocks until complete. */

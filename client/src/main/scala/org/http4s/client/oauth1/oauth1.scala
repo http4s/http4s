@@ -10,7 +10,6 @@ import org.http4s.headers.Authorization
 import org.http4s.syntax.string._
 import org.http4s.util.UrlCodingUtils
 import scala.collection.mutable.ListBuffer
-import Message.messInstances._
 import Message.messSyntax._
 
 /** Basic OAuth1 message signing support
@@ -32,7 +31,7 @@ object oauth1 {
       consumer: Consumer,
       callback: Option[Uri],
       verifier: Option[String],
-      token: Option[Token])(implicit F: Monad[F], W: EntityDecoder[Response, F, UrlForm]): F[Request[F]] =
+      token: Option[Token])(implicit F: Monad[F], W: EntityDecoder[F, UrlForm]): F[Request[F]] =
     getUserParams(req).map {
       case (req, params) =>
         val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
@@ -106,7 +105,7 @@ object oauth1 {
 
   private[oauth1] def getUserParams[F[_]](req: Request[F])(
       implicit F: Monad[F],
-      W: EntityDecoder[Request, F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
+      W: EntityDecoder[F, UrlForm]): F[(Request[F], Seq[(String, String)])] = {
     val qparams = req.uri.query.map { case (k, ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
