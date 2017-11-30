@@ -9,8 +9,15 @@ import jawnfs2._
 import Message.messSyntax._
 
 trait JawnInstances {
-  def jawnDecoder[M[_[_]], F[_]: Effect, J: Facade](implicit M: Message[M, F]): EntityDecoder[M, F, J] =
-    EntityDecoder.decodeBy(MediaType.`application/json`)(jawnDecoderImpl[M, F, J])
+  def jawnDecoder[F[_]: Effect, J: Facade]: EntityDecoder[F, J] =
+    new EntityDecoder[F, J] {
+      override def consumes: Set[MediaRange] = Set(MediaType.`application/json`)
+
+      override def decode[M[_[_]]](msg: M[F], strict: Boolean)(implicit M: Message[M, F]): DecodeResult[F, J] =
+        org.http4s.EntityDecoder.decodeGeneric(msg, strict)(
+          msg => jawnDecoderImpl(msg), consumes
+        )
+    }
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[M[_[_]], F[_]: Effect, J: Facade](

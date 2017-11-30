@@ -11,6 +11,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
 import scala.concurrent.ExecutionContext
+import Message.messSyntax._
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
@@ -45,28 +46,39 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     val nonMatchingDecoder: EntityDecoder[IO, String] =
-      EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
-        DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+      new EntityDecoder[IO, String] {
+        override def consumes: Set[MediaRange] = Set(MediaType.`application/soap+xml`)
+        override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, String] =
+          org.http4s.EntityDecoder.decodeGeneric(msg, strict)(_ =>
+            DecodeResult.failure[IO, String](MalformedMessageBodyFailure("Nope.")), consumes)
       }
 
-    val decoder1: EntityDecoder[IO, Int] =
-      EntityDecoder.decodeBy(MediaType.`application/gnutar`) { _ =>
-        DecodeResult.success(1)
-      }
+    val decoder1: EntityDecoder[IO, Int] = new EntityDecoder[IO, Int] {
+      override def consumes: Set[MediaRange] = Set(MediaType.`application/gnutar`)
+      override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, Int] =
+        org.http4s.EntityDecoder.decodeGeneric(msg, strict)(_ => DecodeResult.success(1), consumes)
+    }
 
     val decoder2: EntityDecoder[IO, Int] =
-      EntityDecoder.decodeBy(MediaType.`application/excel`) { _ =>
-        DecodeResult.success(2)
+      new EntityDecoder[IO, Int] {
+        override def consumes: Set[MediaRange] = Set(MediaType.`application/excel`)
+        override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, Int] =
+          org.http4s.EntityDecoder.decodeGeneric(msg, strict)(_ => DecodeResult.success(2), consumes)
       }
 
     val failDecoder: EntityDecoder[IO, Int] =
-      EntityDecoder.decodeBy(MediaType.`application/soap+xml`) { _ =>
-        DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+      new EntityDecoder[IO, Int] {
+        override def consumes: Set[MediaRange] = Set(MediaType.`application/soap+xml`)
+        override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, Int] =
+          org.http4s.EntityDecoder.decodeGeneric(msg, strict)(_ =>
+            DecodeResult.failure(MalformedMessageBodyFailure("Nope.")), consumes)
       }
 
     "Check the validity of a message body" in {
-      val decoder = EntityDecoder.decodeBy[IO, String](MediaType.`text/plain`) { _ =>
-        DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
+      val decoder = new EntityDecoder[IO, String] {
+        override def consumes: Set[MediaRange] = Set(MediaType.`text/plain`)
+        override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, String] =
+          org.http4s.EntityDecoder.decodeGeneric(msg, strict)(_ => DecodeResult.failure(InvalidMessageBodyFailure("Nope.")), consumes)
       }
 
       decoder
@@ -163,10 +175,12 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val reqSomeOtherMediaType =
           Request[IO](headers = Headers(`Content-Type`(MediaType.`text/x-h`)))
         val reqNoMediaType = Request[IO]()
-        val catchAllDecoder: EntityDecoder[IO, Int] = EntityDecoder.decodeBy(MediaRange.`*/*`) {
-          msg =>
-            DecodeResult.success(3)
+        val catchAllDecoder: EntityDecoder[IO, Int] = new EntityDecoder[IO, Int] {
+          override def consumes: Set[MediaRange] = Set(MediaRange.`*/*`)
+          override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, Int] =
+            org.http4s.EntityDecoder.decodeGeneric(msg, strict)({_ => DecodeResult.success(3)}, consumes)
         }
+
         decoder1
           .orElse(catchAllDecoder)
           .decode(reqSomeOtherMediaType, strict = true) must returnRight(3)
@@ -188,7 +202,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         decoder1
           .orElse(decoder2)
           .orElse(failDecoder)
-          .decode(Request(), strict = true) must returnLeft(MediaTypeMissing(expectedMediaRanges))
+          .decode(Request[IO](), strict = true) must returnLeft(MediaTypeMissing(expectedMediaRanges))
       }
     }
   }
@@ -197,8 +211,11 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     val request = Request[IO]().withBody("whatever")
 
     "invoke the function with  the right on a success" in {
-      val happyDecoder: EntityDecoder[IO, String] =
-        EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
+      val happyDecoder: EntityDecoder[IO, String] = new EntityDecoder[IO, String]{
+        override def consumes: Set[MediaRange] = Set(MediaRange.`*/*`)
+        override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, String] =
+          org.http4s.EntityDecoder.decodeGeneric(msg, strict)(_ => DecodeResult.success(IO.pure("hooray")), consumes)
+      }
       IO.async[String] { cb =>
         request
           .flatMap(_.decodeWith(happyDecoder, strict = false) { s =>
@@ -211,8 +228,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
-      val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
-        DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
+      val grumpyDecoder : EntityDecoder[IO, String] = new EntityDecoder[IO, String] {
+        override def consumes: Set[MediaRange] = Set(MediaRange.`*/*`)
+
+        override def decode[M[_[_]]](msg: M[IO], strict: Boolean)(implicit M: Message[M, IO]): DecodeResult[IO, String] =
+          org.http4s.EntityDecoder.decodeGeneric(msg,strict)(_ =>
+          DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))), consumes)
+      }
+
       request.flatMap(_.decodeWith(grumpyDecoder, strict = false) { _ =>
         IO.pure(Response())
       }) must returnValue(haveStatus(Status.BadRequest))
@@ -223,7 +246,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     val server: Request[IO] => IO[Response[IO]] = { req =>
       req
-        .decode[UrlForm](form => Response(Ok).withBody(form))
+        .decode[UrlForm](form => Response[IO](Ok).withBody(form))
         .attempt
         .map((e: Either[Throwable, Response[IO]]) => e.right.getOrElse(Response(Status.BadRequest)))
     }
@@ -235,7 +258,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           "Age" -> Seq("23"),
           "Name" -> Seq("Jonathan Doe")
         ))
-      val resp: IO[Response[IO]] = Request()
+      val resp: IO[Response[IO]] = Request[IO]()
         .withBody(urlForm)(Monad[IO], UrlForm.entityEncoder(Applicative[IO], Charset.`UTF-8`))
         .flatMap(server)
       resp must returnValue(haveStatus(Ok))
@@ -275,7 +298,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) { req =>
           req.decodeWith(textFile(tmpFile), strict = false) { _ =>
-            Response(Ok).withBody("Hello")
+            Response[IO](Ok).withBody("Hello")
           }
         }.unsafeRunSync
 
@@ -294,7 +317,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val response = mockServe(Request()) {
           case req =>
             req.decodeWith(binFile(tmpFile), strict = false) { _ =>
-              Response(Ok).withBody("Hello")
+              Response[IO](Ok).withBody("Hello")
             }
         }.unsafeRunSync
 
@@ -334,7 +357,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
         .map(_.withContentType(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
-        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`US-ASCII`)) must returnValue(
+        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`US-ASCII`, Response.responseInstance[IO])) must returnValue(
         str)
     }
 
@@ -342,7 +365,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
         .map(_.withContentType(`Content-Type`(MediaType.`text/plain`, None)))
-        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`UTF-8`)) must returnValue(str)
+        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`UTF-8`, Response.responseInstance[IO])) must returnValue(str)
     }
   }
 

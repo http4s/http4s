@@ -15,8 +15,9 @@ class MessageSpec extends Http4sSpec {
       val remote = InetSocketAddress.createUnresolved("www.remote.com", 45444)
 
       "get remote connection info when present" in {
-        val r = Request[IO]().withAttribute(
-          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+        val r = Request[IO]().withAttributeEntry(
+          Request.Keys.ConnectionInfo(Request.Connection(local, remote, false))
+        )
         r.server must beSome(local)
         r.remote must beSome(remote)
       }
@@ -28,14 +29,14 @@ class MessageSpec extends Http4sSpec {
       }
 
       "be utilized to determine the address of server and remote" in {
-        val r = Request[IO]().withAttribute(
+        val r = Request[IO]().withAttributeEntry(
           Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverAddr must_== local.getHostString
         r.remoteAddr must beSome(remote.getHostString)
       }
 
       "be utilized to determine the port of server and remote" in {
-        val r = Request[IO]().withAttribute(
+        val r = Request[IO]().withAttributeEntry(
           Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverPort must_== local.getPort
         r.remotePort must beSome(remote.getPort)
@@ -46,13 +47,13 @@ class MessageSpec extends Http4sSpec {
           NonEmptyList.of(Some(InetAddress.getLocalHost), Some(InetAddress.getLoopbackAddress))
         val r = Request[IO]()
           .withHeaders(Headers(`X-Forwarded-For`(forwardedValues)))
-          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+          .withAttributeEntry(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.from must_== forwardedValues.head
       }
 
       "be utilized to determine the from value (remote value if X-Forwarded-For is not present)" in {
         val r = Request[IO]()
-          .withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
+          .withAttributeEntry(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.from must_== Option(remote.getAddress)
       }
 

@@ -2,6 +2,7 @@ package org.http4s
 package jawn
 
 import cats.effect.IO
+import org.http4s.Message.messSyntax._
 
 trait JawnDecodeSupportSpec[J] extends Http4sSpec with JawnInstances {
   def testJsonDecoder(decoder: EntityDecoder[IO, J]) =

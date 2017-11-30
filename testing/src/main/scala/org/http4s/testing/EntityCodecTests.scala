@@ -13,7 +13,7 @@ import org.scalacheck.{Arbitrary, Prop, Shrink}
 trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] with ToIOSyntax {
   implicit def effect: Effect[F]
   implicit def encoder: EntityEncoder[F, A]
-  implicit def decoder: EntityDecoder[Request, F, A]
+  implicit def decoder: EntityDecoder[F, A]
 
   def entityCodecRoundTrip(a: A): IsEq[IO[Either[DecodeFailure, A]]] =
     (for {
@@ -27,7 +27,7 @@ object EntityCodecLaws {
   def apply[F[_], A](
       implicit effectF: Effect[F],
       entityEncoderFA: EntityEncoder[F, A],
-      entityDecoderFA: EntityDecoder[Request, F, A]): EntityCodecLaws[F, A] = new EntityCodecLaws[F, A] {
+      entityDecoderFA: EntityDecoder[F, A]): EntityCodecLaws[F, A] = new EntityCodecLaws[F, A] {
     val effect = effectF
     val encoder = entityEncoderFA
     val decoder = entityDecoderFA
@@ -58,7 +58,7 @@ object EntityCodecTests {
   def apply[F[_], A](
       implicit effectF: Effect[F],
       entityEncoderFA: EntityEncoder[F, A],
-      entityDecoderFA: EntityDecoder[Request, F, A]
+      entityDecoderFA: EntityDecoder[F, A]
   ): EntityCodecTests[F, A] = new EntityCodecTests[F, A] {
     val laws: EntityCodecLaws[F, A] = EntityCodecLaws[F, A]
   }

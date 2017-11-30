@@ -20,12 +20,12 @@ trait Http4sMatchers extends Matchers with IOMatchers {
       r.unsafeRunSync.aka("the returned")
     }
 
-  def haveBody[M[_[_]], A: EntityDecoder[M, IO, ?]](a: ValueCheck[A])(implicit M: Message[M, IO]): Matcher[M[IO]] =
+  def haveBody[M[_[_]], A: EntityDecoder[IO, ?]](a: ValueCheck[A])(implicit M: Message[M, IO]): Matcher[M[IO]] =
     returnValue(a) ^^ { m: M[IO] =>
       m.as[A].aka("the message body")
     }
 
-  def returnBody[M[_[_]], A: EntityDecoder[M, IO, ?]](a: ValueCheck[A])(implicit M: Message[M, IO]): Matcher[IO[M[IO]]] =
+  def returnBody[M[_[_]], A: EntityDecoder[IO, ?]](a: ValueCheck[A])(implicit M: Message[M, IO]): Matcher[IO[M[IO]]] =
     returnValue(a) ^^ { m: IO[M[IO]] =>
       m.flatMap(_.as[A]).aka("the returned message body")
     }
