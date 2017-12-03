@@ -45,6 +45,56 @@ trait EntityDecoder[F[_], T] { self =>
       override def consumes: Set[MediaRange] = self.consumes
     }
 
+  def recover(f: DecodeFailure => T)(implicit F: Functor[F]): EntityDecoder[F, T] =
+    new EntityDecoder[F, T] {
+      override def consumes: Set[MediaRange] = self.consumes
+
+      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+        self.decode(msg, strict).recover(PartialFunction(f))
+    }
+
+  def recoverWith(f: DecodeFailure => DecodeResult[F, T])(
+      implicit F: Monad[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
+    override def consumes: Set[MediaRange] = self.consumes
+
+    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+      self.decode(msg, strict).leftFlatMap(f)
+  }
+
+  def transform[T2](s: T => T2, f: DecodeFailure => DecodeFailure)(
+      implicit F: Functor[F]): EntityDecoder[F, T2] =
+    transform {
+      case Left(e) => Left(f(e))
+      case Right(r) => Right(s(r))
+    }
+
+  def transform[T2](t: Either[DecodeFailure, T] => Either[DecodeFailure, T2])(
+      implicit F: Functor[F]): EntityDecoder[F, T2] =
+    new EntityDecoder[F, T2] {
+      override def consumes: Set[MediaRange] = self.consumes
+
+      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
+        self.decode(msg, strict).transform(t)
+    }
+
+  def transformWith[T2](s: T => DecodeResult[F, T2], f: DecodeFailure => DecodeResult[F, T2])(
+      implicit F: Monad[F]): EntityDecoder[F, T2] =
+    transformWith {
+      case Left(e) => f(e)
+      case Right(r) => s(r)
+    }
+
+  def transformWith[T2](f: Either[DecodeFailure, T] => DecodeResult[F, T2])(
+      implicit F: Monad[F]): EntityDecoder[F, T2] =
+    new EntityDecoder[F, T2] {
+      override def consumes: Set[MediaRange] = self.consumes
+
+      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T2] =
+        DecodeResult(
+          F.flatMap(self.decode(msg, strict).value)(r => f(r).value)
+        )
+    }
+
   /** Combine two [[EntityDecoder]]'s
     *
     * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
