@@ -29,7 +29,7 @@ private[http4s] class CachingStaticWriter[F[_]](
 
   private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
     if (bodyBuffer == null) bodyBuffer = b
-    else bodyBuffer = (bodyBuffer ++ b).toChunk
+    else bodyBuffer = Chunk.bytes(bodyBuffer.toBytes.values ++ b.toBytes.values)
     bodyBuffer
   }
 
