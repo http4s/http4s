@@ -263,7 +263,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.10.4"
   def jawnStreamz(scalazVersion: String)    = "org.http4s"             %% "jawn-streamz"              % "0.10.1" forScalaz scalazVersion
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.7.v20170914"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.8.v20171121"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.3"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
