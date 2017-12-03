@@ -44,6 +44,94 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .value must returnValue(Left(MalformedMessageBodyFailure("bummer")))
     }
 
+    "recover from failure" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+            .recover(_ => "SAVED")
+            .decode(r, strict = false)
+        } must returnRight("SAVED")
+    }
+
+    "recoverWith success from failure" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+            .recoverWith(_ => DecodeResult.success("SAVED"))
+            .decode(r, strict = false)
+        } must returnRight("SAVED")
+    }
+
+    "recoverWith failure from failure" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+            .recoverWith(_ =>
+              DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")))
+            .decode(r, strict = false)
+        }
+        .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
+    }
+
+    "transform from success" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .transform(_ => Right("TRANSFORMED"))
+            .decode(r, strict = false)
+        } must returnRight("TRANSFORMED")
+    }
+
+    "transform from failure" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+            .transform(identity, _ => MalformedMessageBodyFailure("double bummer"))
+            .decode(r, strict = false)
+        }
+        .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
+    }
+
+    "transformWith from success" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .transformWith(_ => DecodeResult.success[IO, String]("TRANSFORMED"))
+            .decode(r, strict = false)
+        } must returnRight("TRANSFORMED")
+    }
+
+    "transform from failure" in {
+      DecodeResult
+        .success(req)
+        .flatMap { r =>
+          EntityDecoder
+            .text[IO]
+            .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
+            .transformWith(
+              s => DecodeResult.success(s),
+              _ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")))
+            .decode(r, strict = false)
+        }
+        .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
+    }
+
     val nonMatchingDecoder: EntityDecoder[IO, String] =
       EntityDecoder.decodeBy(MediaRange.`video/*`) { _ =>
         DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
