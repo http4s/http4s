@@ -45,7 +45,7 @@ trait EntityDecoder[F[_], T] { self =>
       override def consumes: Set[MediaRange] = self.consumes
     }
 
-  def recover(f: DecodeFailure => T)(implicit F: Functor[F]): EntityDecoder[F, T] =
+  def handleError(f: DecodeFailure => T)(implicit F: Functor[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def consumes: Set[MediaRange] = self.consumes
 
@@ -53,7 +53,7 @@ trait EntityDecoder[F[_], T] { self =>
         self.decode(msg, strict).recover(PartialFunction(f))
     }
 
-  def recoverWith(f: DecodeFailure => DecodeResult[F, T])(
+  def handleErrorWith(f: DecodeFailure => DecodeResult[F, T])(
       implicit F: Monad[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
     override def consumes: Set[MediaRange] = self.consumes
 

@@ -44,26 +44,26 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .value must returnValue(Left(MalformedMessageBodyFailure("bummer")))
     }
 
-    "recover from failure" in {
+    "handleError from failure" in {
       DecodeResult
         .success(req)
         .flatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-            .recover(_ => "SAVED")
+            .handleError(_ => "SAVED")
             .decode(r, strict = false)
         } must returnRight("SAVED")
     }
 
-    "recoverWith success from failure" in {
+    "handleErrorWith success from failure" in {
       DecodeResult
         .success(req)
         .flatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-            .recoverWith(_ => DecodeResult.success("SAVED"))
+            .handleErrorWith(_ => DecodeResult.success("SAVED"))
             .decode(r, strict = false)
         } must returnRight("SAVED")
     }
@@ -75,7 +75,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-            .recoverWith(_ =>
+            .handleErrorWith(_ =>
               DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")))
             .decode(r, strict = false)
         }
