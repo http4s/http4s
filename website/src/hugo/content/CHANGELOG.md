@@ -1,3 +1,13 @@
+# v0.16.6 (2017-12-03)
+* Add a CSRF server middleware
+* Fix `NullPointerException` when starting a Tomcat server related to `docBase`
+* Log version info and server address on server startup
+* Dependency upgrades:
+  * jetty-9.4.8.v20171121
+  * log4s-1.4.0
+  * scalaz-7.2.17
+  * twirl-1.3.13
+
 # v0.16.5 (2017-10-11)
 * Correctly implement sanitization of dot segments in static file paths
   according to RFC 3986 5.2.4. Most importantly, this fixes an issue where `...`
