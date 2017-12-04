@@ -45,20 +45,15 @@ trait EntityDecoder[F[_], T] { self =>
       override def consumes: Set[MediaRange] = self.consumes
     }
 
-  def handleError(f: DecodeFailure => T)(implicit F: Functor[F]): EntityDecoder[F, T] =
-    new EntityDecoder[F, T] {
-      override def consumes: Set[MediaRange] = self.consumes
-
-      override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-        self.decode(msg, strict).recover(PartialFunction(f))
-    }
+  def handleError(f: DecodeFailure => T)(implicit F: Functor[F]): EntityDecoder[F, T] = transform {
+    case r @ Right(_) => r
+    case Left(e) => Right(f(e))
+  }
 
   def handleErrorWith(f: DecodeFailure => DecodeResult[F, T])(
-      implicit F: Monad[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-    override def consumes: Set[MediaRange] = self.consumes
-
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-      self.decode(msg, strict).leftFlatMap(f)
+      implicit F: Monad[F]): EntityDecoder[F, T] = transformWith {
+    case Right(r) => DecodeResult.success(r)
+    case Left(e) => f(e)
   }
 
   def transform[T2](s: T => T2, f: DecodeFailure => DecodeFailure)(
