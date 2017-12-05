@@ -39,7 +39,7 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
 
       logger.warn(msg)
 
-      val reducedChunk = chunk.take(size - bodyBytesWritten).toChunk
+      val reducedChunk = Chunk.bytes(chunk.take(size - bodyBytesWritten).toArray)
       writeBodyChunk(reducedChunk, flush = true) *> Future.failed(new IllegalArgumentException(msg))
     } else {
       val b = chunk.toByteBuffer
