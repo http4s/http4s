@@ -46,17 +46,17 @@ trait EntityDecoder[F[_], T] { self =>
     }
 
   def handleError(f: DecodeFailure => T)(implicit F: Functor[F]): EntityDecoder[F, T] = transform {
-    case r @ Right(_) => r
     case Left(e) => Right(f(e))
+    case r @ Right(_) => r
   }
 
   def handleErrorWith(f: DecodeFailure => DecodeResult[F, T])(
       implicit F: Monad[F]): EntityDecoder[F, T] = transformWith {
-    case Right(r) => DecodeResult.success(r)
     case Left(e) => f(e)
+    case Right(r) => DecodeResult.success(r)
   }
 
-  def transform[T2](s: T => T2, f: DecodeFailure => DecodeFailure)(
+  def bimap[T2](f: DecodeFailure => DecodeFailure, s: T => T2)(
       implicit F: Functor[F]): EntityDecoder[F, T2] =
     transform {
       case Left(e) => Left(f(e))
@@ -72,7 +72,7 @@ trait EntityDecoder[F[_], T] { self =>
         self.decode(msg, strict).transform(t)
     }
 
-  def transformWith[T2](s: T => DecodeResult[F, T2], f: DecodeFailure => DecodeResult[F, T2])(
+  def biflatMap[T2](f: DecodeFailure => DecodeResult[F, T2], s: T => DecodeResult[F, T2])(
       implicit F: Monad[F]): EntityDecoder[F, T2] =
     transformWith {
       case Left(e) => f(e)

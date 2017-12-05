@@ -93,14 +93,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         } must returnRight("TRANSFORMED")
     }
 
-    "transform from failure" in {
+    "bimap from failure" in {
       DecodeResult
         .success(req)
         .flatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-            .transform(identity, _ => MalformedMessageBodyFailure("double bummer"))
+            .bimap(_ => MalformedMessageBodyFailure("double bummer"), identity)
             .decode(r, strict = false)
         }
         .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
@@ -117,16 +117,17 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         } must returnRight("TRANSFORMED")
     }
 
-    "transform from failure" in {
+    "biflatMap from failure" in {
       DecodeResult
         .success(req)
         .flatMap { r =>
           EntityDecoder
             .text[IO]
             .flatMapR(_ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("bummer")))
-            .transformWith(
-              s => DecodeResult.success(s),
-              _ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")))
+            .biflatMap(
+              _ => DecodeResult.failure[IO, String](MalformedMessageBodyFailure("double bummer")),
+              s => DecodeResult.success(s)
+            )
             .decode(r, strict = false)
         }
         .value must returnValue(Left(MalformedMessageBodyFailure("double bummer")))
