@@ -960,6 +960,38 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.EntityDecoder#biflatMap" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="biflatMap[T2](f:org.http4s.DecodeFailure=&gt;org.http4s.DecodeResult[F,T2],s:T=&gt;org.http4s.DecodeResult[F,T2])(implicitF:cats.Monad[F]):org.http4s.EntityDecoder[F,T2]"></a><a id="biflatMap[T2]((DecodeFailure)⇒DecodeResult[F,T2],(T)⇒DecodeResult[F,T2])(Monad[F]):EntityDecoder[F,T2]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder.html#biflatMap[T2](f:org.http4s.DecodeFailure=&gt;org.http4s.DecodeResult[F,T2],s:T=&gt;org.http4s.DecodeResult[F,T2])(implicitF:cats.Monad[F]):org.http4s.EntityDecoder[F,T2]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">biflatMap</span><span class="tparams">[<span name="T2">T2</span>]</span><span class="params">(<span name="f">f: (<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>) ⇒ <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.biflatMap.T2">T2</span>]</span>, <span name="s">s: (<span class="extype" name="org.http4s.EntityDecoder.T">T</span>) ⇒ <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.biflatMap.T2">T2</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.biflatMap.T2">T2</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.EntityDecoder#bimap" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="bimap[T2](f:org.http4s.DecodeFailure=&gt;org.http4s.DecodeFailure,s:T=&gt;T2)(implicitF:cats.Functor[F]):org.http4s.EntityDecoder[F,T2]"></a><a id="bimap[T2]((DecodeFailure)⇒DecodeFailure,(T)⇒T2)(Functor[F]):EntityDecoder[F,T2]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder.html#bimap[T2](f:org.http4s.DecodeFailure=&gt;org.http4s.DecodeFailure,s:T=&gt;T2)(implicitF:cats.Functor[F]):org.http4s.EntityDecoder[F,T2]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bimap</span><span class="tparams">[<span name="T2">T2</span>]</span><span class="params">(<span name="f">f: (<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>) ⇒ <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>, <span name="s">s: (<span class="extype" name="org.http4s.EntityDecoder.T">T</span>) ⇒ <span class="extype" name="org.http4s.EntityDecoder.bimap.T2">T2</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.bimap.T2">T2</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -1176,6 +1208,38 @@ a streaming decoder by having the value of A be some kind of streaming construct
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.EntityDecoder#handleError" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="handleError(f:org.http4s.DecodeFailure=&gt;T)(implicitF:cats.Functor[F]):org.http4s.EntityDecoder[F,T]"></a><a id="handleError((DecodeFailure)⇒T)(Functor[F]):EntityDecoder[F,T]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder.html#handleError(f:org.http4s.DecodeFailure=&gt;T)(implicitF:cats.Functor[F]):org.http4s.EntityDecoder[F,T]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">handleError</span><span class="params">(<span name="f">f: (<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>) ⇒ <span class="extype" name="org.http4s.EntityDecoder.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.EntityDecoder#handleErrorWith" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="handleErrorWith(f:org.http4s.DecodeFailure=&gt;org.http4s.DecodeResult[F,T])(implicitF:cats.Monad[F]):org.http4s.EntityDecoder[F,T]"></a><a id="handleErrorWith((DecodeFailure)⇒DecodeResult[F,T])(Monad[F]):EntityDecoder[F,T]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder.html#handleErrorWith(f:org.http4s.DecodeFailure=&gt;org.http4s.DecodeResult[F,T])(implicitF:cats.Monad[F]):org.http4s.EntityDecoder[F,T]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">handleErrorWith</span><span class="params">(<span name="f">f: (<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>) ⇒ <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
@@ -1346,6 +1410,38 @@ and if not, defer to the second <a href="" class="extype" name="org.http4s.Entit
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.EntityDecoder#transform" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="transform[T2](t:Either[org.http4s.DecodeFailure,T]=&gt;Either[org.http4s.DecodeFailure,T2])(implicitF:cats.Functor[F]):org.http4s.EntityDecoder[F,T2]"></a><a id="transform[T2]((Either[DecodeFailure,T])⇒Either[DecodeFailure,T2])(Functor[F]):EntityDecoder[F,T2]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder.html#transform[T2](t:Either[org.http4s.DecodeFailure,T]=&gt;Either[org.http4s.DecodeFailure,T2])(implicitF:cats.Functor[F]):org.http4s.EntityDecoder[F,T2]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transform</span><span class="tparams">[<span name="T2">T2</span>]</span><span class="params">(<span name="t">t: (<span class="extype" name="scala.Either">Either</span>[<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <span class="extype" name="org.http4s.EntityDecoder.T">T</span>]) ⇒ <span class="extype" name="scala.Either">Either</span>[<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <span class="extype" name="org.http4s.EntityDecoder.transform.T2">T2</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.transform.T2">T2</span>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.EntityDecoder#transformWith" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="transformWith[T2](f:Either[org.http4s.DecodeFailure,T]=&gt;org.http4s.DecodeResult[F,T2])(implicitF:cats.Monad[F]):org.http4s.EntityDecoder[F,T2]"></a><a id="transformWith[T2]((Either[DecodeFailure,T])⇒DecodeResult[F,T2])(Monad[F]):EntityDecoder[F,T2]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/EntityDecoder.html#transformWith[T2](f:Either[org.http4s.DecodeFailure,T]=&gt;org.http4s.DecodeResult[F,T2])(implicitF:cats.Monad[F]):org.http4s.EntityDecoder[F,T2]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transformWith</span><span class="tparams">[<span name="T2">T2</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="scala.Either">Either</span>[<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <span class="extype" name="org.http4s.EntityDecoder.T">T</span>]) ⇒ <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.transformWith.T2">T2</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.F">F</span>, <span class="extype" name="org.http4s.EntityDecoder.transformWith.T2">T2</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
