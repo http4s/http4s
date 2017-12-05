@@ -1,3 +1,8 @@
+# v0.17.6 (2017-12-05)
+* Fix `StaticFile` to serve files larger than `Int.MaxValue` bytes
+* Dependency upgrades:
+  * tomcat-8.5.24
+
 # v0.16.6 (2017-12-04)
 * Add a CSRF server middleware
 * Fix `NullPointerException` when starting a Tomcat server related to `docBase`
