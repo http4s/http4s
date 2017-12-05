@@ -97,17 +97,17 @@ import scalaz.stream.time
 
 // scalaz-stream's `time` module needs an implicit `ScheduledExecutorService`
 implicit val S = scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@60408944[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
+// S: java.util.concurrent.ScheduledExecutorService = java.util.concurrent.ScheduledThreadPoolExecutor@4d68b0dc[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0]
 
 // An infinite stream of the periodic elapsed time
 val seconds = time.awakeEvery(1.second)
-// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@79e74861,scalaz.stream.Process$$$Lambda$29473/466996146@65427bb7,scalaz.stream.Process$Await$$$Lambda$29474/430850165@55513277)
+// seconds: scalaz.stream.Process[scalaz.concurrent.Task,scala.concurrent.duration.Duration] = Await(scalaz.concurrent.Task@4d7c8835,scalaz.stream.Process$$$Lambda$29490/506187107@1c7f5a74,scalaz.stream.Process$Await$$$Lambda$29491/1911230405@711b2c49)
 
 val service = HttpService {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$29478/895551455@6ffacb59)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$29495/224418426@5bc277d7)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -139,7 +139,7 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.16.5&quot;,
+  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.16.6&quot;,
   &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.8.0&quot;
 )
 </code></pre>
