@@ -2,12 +2,12 @@ package org.http4s
 package server
 
 import cats.effect._
+import fs2.StreamApp.ExitCode
 import fs2._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.util.ExitCode
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._

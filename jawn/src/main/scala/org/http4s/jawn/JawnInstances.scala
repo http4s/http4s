@@ -1,10 +1,11 @@
 package org.http4s
 package jawn
 
-import cats.effect._
-import cats.implicits._
-import fs2.Stream
 import _root_.jawn.{AsyncParser, Facade, ParseException}
+import cats.effect._
+import cats.syntax.either._
+import cats.syntax.functor._
+import fs2.Stream
 import jawnfs2._
 
 trait JawnInstances {
@@ -18,10 +19,11 @@ trait JawnInstances {
       msg.body.chunks
         .parseJson(AsyncParser.SingleValue)
         .map(Either.right)
-        .onError[Either[DecodeFailure, J]] {
+        .handleErrorWith[Either[DecodeFailure, J]] {
           case pe: ParseException =>
             Stream.emit(Left(MalformedMessageBodyFailure("Invalid JSON", Some(pe))))
-          case e => Stream.fail(e)
+          case e =>
+            Stream.raiseError(e)
         }
         .runLast
         .map(_.getOrElse(Left(MalformedMessageBodyFailure("Invalid JSON: empty body"))))

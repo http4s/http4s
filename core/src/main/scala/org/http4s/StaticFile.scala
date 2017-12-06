@@ -72,7 +72,7 @@ object StaticFile {
           // These chunks wrap a mutable array, and we might be buffering
           // or processing them concurrently later.  Convert to something
           // immutable here for safety.
-            .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)))
+            .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)).toSegment)
         )
       } else {
         urlConn.getInputStream.close()
@@ -151,12 +151,12 @@ object StaticFile {
         next <- res
           .filter(_.nonEmpty)
           .fold[Pull[F, Byte, Unit]](Pull.done)(o =>
-            Pull.output(o) *> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
+            Pull.output(o.toSegment) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
       } yield next
 
     def readAll(path: Path, chunkSize: Int): Stream[F, Byte] =
       pulls
-        .fromPath(path, List(StandardOpenOption.READ))
+        .fromPath[F](path, List(StandardOpenOption.READ))
         .flatMap(h => readAllFromFileHandle(chunkSize, start, end)(h.resource))
         .stream
 

@@ -2,13 +2,12 @@ package com.example.http4s
 package ssl
 
 import cats.effect._
-import fs2.{Scheduler, Stream}
+import fs2.StreamApp.ExitCode
+import fs2._
 import java.nio.file.Paths
-import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.middleware.HSTS
-import org.http4s.util.StreamApp
-import org.http4s.util.ExitCode
+import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 
 abstract class SslExample[F[_]: Effect] extends StreamApp[F] {
   // TODO: Reference server.jks from something other than one child down.
