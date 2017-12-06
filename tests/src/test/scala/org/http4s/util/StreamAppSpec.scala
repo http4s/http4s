@@ -4,7 +4,6 @@ package util
 import cats.effect.IO
 import cats.implicits._
 import fs2._
-import fs2.Stream._
 import fs2.async.mutable.Signal
 import scala.concurrent.duration._
 
@@ -25,13 +24,13 @@ class StreamAppSpec extends Http4sSpec {
     }
 
     "Terminate server on a failed stream" in {
-      val testApp = new TestStreamApp(_ => fail(new Throwable("Bad Initial Process")))
+      val testApp = new TestStreamApp(_ => Stream.raiseError(new Throwable("Bad Initial Process")))
       testApp.doMain(List.empty) should returnValue(ExitCode.error)
       testApp.cleanedUp.get should returnValue(true)
     }
 
     "Terminate server on a valid stream" in {
-      val testApp = new TestStreamApp(_ => emit(ExitCode.success))
+      val testApp = new TestStreamApp(_ => Stream.emit(ExitCode.success))
       testApp.doMain(List.empty) should returnValue(ExitCode.success)
       testApp.cleanedUp.get should returnValue(true)
     }
@@ -43,7 +42,7 @@ class StreamAppSpec extends Http4sSpec {
     }
 
     "Terminate server with a specific exit code" in {
-      val testApp = new TestStreamApp(_ => emit(ExitCode(42)))
+      val testApp = new TestStreamApp(_ => Stream.emit(ExitCode(42)))
       testApp.doMain(List.empty) should returnValue(ExitCode(42))
       testApp.cleanedUp.get should returnValue(true)
     }
@@ -53,9 +52,9 @@ class StreamAppSpec extends Http4sSpec {
 
       val testApp = new TestStreamApp(
         shutdown =>
-          eval(requestShutdown.set(shutdown)) *>
+          Stream.eval(requestShutdown.set(shutdown)) *>
             // run forever, emit nothing
-            eval_(IO.async[Nothing] { _ =>
+            Stream.eval_(IO.async[Nothing] { _ =>
               }))
 
       (for {

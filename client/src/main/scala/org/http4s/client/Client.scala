@@ -261,7 +261,7 @@ object Client {
           stream.pull.uncons.flatMap {
             case Some((segment, stream)) =>
               if (killed.get) {
-                Pull.fail(new IOException(reason))
+                Pull.raiseError(new IOException(reason))
               } else {
                 Pull.output(segment) *> go(killed, stream)
               }

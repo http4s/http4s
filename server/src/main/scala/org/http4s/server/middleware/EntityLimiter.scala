@@ -20,7 +20,7 @@ object EntityLimiter {
     _.pull
       .take(n)
       .flatMap {
-        case Some(_) => Pull.fail(EntityTooLarge(n))
+        case Some(_) => Pull.raiseError(EntityTooLarge(n))
         case None => Pull.done
       }
       .stream

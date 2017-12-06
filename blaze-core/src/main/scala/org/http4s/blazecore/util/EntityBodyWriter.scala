@@ -5,7 +5,6 @@ package util
 import cats.effect._
 import cats.implicits._
 import fs2._
-import fs2.Stream._
 import org.http4s.syntax.async._
 import scala.concurrent._
 
@@ -63,7 +62,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     val writeStream: Stream[F, Unit] =
       s.chunks.evalMap(chunk => F.fromFuture(writeBodyChunk(chunk, flush = false)))
     val errorStream: Throwable => Stream[F, Unit] = e =>
-      Stream.eval(F.fromFuture(exceptionFlush())).flatMap(_ => fail(e))
-    writeStream.onError(errorStream)
+      Stream.eval(F.fromFuture(exceptionFlush())).flatMap(_ => Stream.raiseError(e))
+    writeStream.handleErrorWith(errorStream)
   }
 }
