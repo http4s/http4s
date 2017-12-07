@@ -922,9 +922,9 @@ Not to be confused with the server connectors.
               
         </dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serve(implicitF:cats.effect.Async[F]):fs2.Stream[F,org.http4s.util.ExitCode]"></a><a id="serve(Async[F]):Stream[F,ExitCode]"></a>
+      <a id="serve(implicitF:cats.effect.Async[F]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve(Async[F]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/ServletContainer.html#serve(implicitF:cats.effect.Async[F]):fs2.Stream[F,org.http4s.util.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/servlet/ServletContainer.html#serve(implicitF:cats.effect.Async[F]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -933,7 +933,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <a href="../util/ExitCode.html" class="extype" name="org.http4s.util.ExitCode">ExitCode</a>]</span>
+        <span class="name">serve</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.servlet.ServletContainer.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server

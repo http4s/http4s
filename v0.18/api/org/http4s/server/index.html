@@ -900,9 +900,9 @@ middlewares for composing common functionality into services.
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 2016-12-31)</i> Use SSLConfig</p></dd></dl></div>
     </li><li name="org.http4s.server.ServerApp" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ServerApp[F[_]]extendsStreamApp[F]"></a><a id="ServerApp[F[_]]:ServerApp[F]"></a>
+      <a id="ServerApp[F[_]]extendsorg.http4s.util.StreamApp[F]"></a><a id="ServerApp[F[_]]:ServerApp[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/index.html#ServerApp[F[_]]extendsStreamApp[F]" title="Permalink">
+      <a href="../../../org/http4s/server/index.html#ServerApp[F[_]]extendsorg.http4s.util.StreamApp[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -911,7 +911,7 @@ middlewares for composing common functionality into services.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Starts a server and gracefully terminates at shutdown." href="ServerApp.html"><span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with .serve. Use Stream.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</span>
+        <a title="Starts a server and gracefully terminates at shutdown." href="ServerApp.html"><span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with .serve. Use Stream.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../util/index.html#StreamApp[F[_]]=fs2.StreamApp[F]" class="extmbr" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Starts a server and gracefully terminates at shutdown.</p><div class="fullcomment"><div class="comment cmt"><p>Starts a server and gracefully terminates at shutdown.  The server

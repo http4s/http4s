@@ -314,7 +314,7 @@ for serious static content serving.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with .serve. Use Stream.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with .serve. Use Stream.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../util/index.html#StreamApp[F[_]]=fs2.StreamApp[F]" class="extmbr" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</span>
       </span>
       </h4>
 
@@ -331,7 +331,7 @@ respectively.
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>], <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="fs2.StreamApp">StreamApp</span>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>], <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -357,7 +357,7 @@ respectively.
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.server.ServerApp"><span>ServerApp</span></li><li class="in" name="org.http4s.util.StreamApp"><span>StreamApp</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.server.ServerApp"><span>ServerApp</span></li><li class="in" name="fs2.StreamApp"><span>StreamApp</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -766,7 +766,7 @@ respectively.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.util.StreamApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="fs2.StreamApp#main" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="main(args:Array[String]):Unit"></a><a id="main(Array[String]):Unit"></a>
       <span class="permalink">
       <a href="../../../org/http4s/server/ServerApp.html#main(args:Array[String]):Unit" title="Permalink">
@@ -781,7 +781,7 @@ respectively.
         <span class="name">main</span><span class="params">(<span name="args">args: <a href="http://www.scala-lang.org/api/2.12.4/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>StreamApp</dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -870,7 +870,7 @@ respectively.
         <span class="name">stream</span><span class="params">(<span name="args">args: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="requestShutdown">requestShutdown: <span class="extype" name="org.http4s.server.ServerApp.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Nothing" class="extype" name="scala.collection.immutable.List">Nothing</a>]</span>
       </span>
       
-      <p class="shortcomment cmt">An application stream that should never emit or emit a single ExitCode</p><div class="fullcomment"><div class="comment cmt"><p>An application stream that should never emit or emit a single ExitCode</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.ServerApp">ServerApp</a> → <a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.ServerApp">ServerApp</a> → StreamApp</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1001,8 +1001,8 @@ respectively.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.util.StreamApp">
-              <h3>Inherited from <a href="../util/StreamApp.html" class="extype" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</h3>
+        <div class="parent" name="fs2.StreamApp">
+              <h3>Inherited from <span class="extype" name="fs2.StreamApp">StreamApp</span>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
