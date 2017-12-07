@@ -197,7 +197,8 @@ final case class ChunkWriter(
 ) extends Writer {
 
   override def append(s: String): this.type = {
-    toChunk = (toChunk ++ Chunk.bytes(s.getBytes(charset))).toChunk
+    // This smells wrong
+    toChunk = (toChunk.toSegment ++ Segment.array(s.getBytes(charset))).force.toChunk
     this
   }
 

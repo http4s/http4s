@@ -6,6 +6,7 @@ import cats.data.OptionT
 import cats.effect._
 import cats.implicits._
 import fs2._
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -23,7 +24,38 @@ object Timeout {
   private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(
       implicit executionContext: ExecutionContext): HttpService[F] =
     service.mapF { resp =>
-      OptionT(async.race(resp.value, timeoutResponse.map(_.some)).map(_.merge))
+      OptionT(fs2AsyncRace(resp.value, timeoutResponse.map(_.some)).map(_.merge))
+    }
+
+  /**
+    * Returns an effect that, when run, races evaluation of `fa` and `fb`,
+    * and returns the result of whichever completes first. The losing effect
+    * continues to execute in the background though its result will be sent
+    * nowhere.
+    *
+    * Internalized from fs2 for now
+    */
+  private def fs2AsyncRace[F[_], A, B](fa: F[A], fb: F[B])(
+      implicit F: Effect[F],
+      ec: ExecutionContext): F[Either[A, B]] =
+    async.promise[F, Either[Throwable, Either[A, B]]].flatMap { p =>
+      def go: F[Unit] = F.delay {
+        val refToP = new AtomicReference(p)
+        val won = new AtomicBoolean(false)
+        val win = (res: Either[Throwable, Either[A, B]]) => {
+          // important for GC: we don't reference the promise directly, and the
+          // winner destroys any references behind it!
+          if (won.compareAndSet(false, true)) {
+            val action = refToP.getAndSet(null).complete(res)
+            async.unsafeRunAsync(action)(_ => IO.unit)
+          }
+        }
+
+        async.unsafeRunAsync(fa.map(Left.apply))(res => IO(win(res)))
+        async.unsafeRunAsync(fb.map(Right.apply))(res => IO(win(res)))
+      }
+
+      go *> p.get.flatMap(F.fromEither)
     }
 
   /** Transform the service to return a timeout response [[Status]]

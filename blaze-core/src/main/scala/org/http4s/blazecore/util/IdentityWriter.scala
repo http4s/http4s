@@ -12,7 +12,7 @@ import org.http4s.util.chunk._
 import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
 
-private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer])(
+private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer])(
     implicit protected val F: Effect[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
@@ -20,10 +20,10 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
   private[this] val logger = getLogger
   private[this] var headers: ByteBuffer = null
 
-  private var bodyBytesWritten = 0L
+  private var bodyBytesWritten = 0
 
-  private def willOverflow(count: Long) =
-    if (size < 0L) false
+  private def willOverflow(count: Int) =
+    if (size < 0) false
     else count + bodyBytesWritten > size
 
   def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
@@ -32,14 +32,14 @@ private[http4s] class IdentityWriter[F[_]](size: Long, out: TailStage[ByteBuffer
   }
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
-    if (willOverflow(chunk.size.toLong)) {
+    if (willOverflow(chunk.size)) {
       // never write past what we have promised using the Content-Length header
       val msg =
         s"Will not write more bytes than what was indicated by the Content-Length header ($size)"
 
       logger.warn(msg)
 
-      val reducedChunk = chunk.take(size - bodyBytesWritten).toChunk
+      val reducedChunk = chunk.take(size - bodyBytesWritten)
       writeBodyChunk(reducedChunk, flush = true) *> Future.failed(new IllegalArgumentException(msg))
     } else {
       val b = chunk.toByteBuffer

@@ -4,12 +4,11 @@ package jetty
 import cats.effect._
 import com.codahale.metrics.MetricRegistry
 import fs2._
+import fs2.StreamApp.ExitCode
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.metrics._
-import org.http4s.util.StreamApp
-import org.http4s.util.ExitCode
 
 object JettyExample extends JettyExampleApp[IO]
 

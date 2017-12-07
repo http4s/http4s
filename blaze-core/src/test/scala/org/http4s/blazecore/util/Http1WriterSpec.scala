@@ -64,7 +64,7 @@ class Http1WriterSpec extends Http4sSpec {
     }
 
     "Write a body that fails and falls back" in {
-      val p = eval(IO.raiseError(Failed)).onError { _ =>
+      val p = eval(IO.raiseError(Failed)).handleErrorWith { _ =>
         chunk(messageBuffer)
       }
       writeEntityBody(p)(builder) must_== "Content-Type: text/plain\r\nContent-Length: 12\r\n\r\n" + message
@@ -182,7 +182,7 @@ class Http1WriterSpec extends Http4sSpec {
     }
 
     "Write a body that fails and falls back" in {
-      val p = eval(IO.raiseError(Failed)).onError { _ =>
+      val p = eval(IO.raiseError(Failed)).handleErrorWith { _ =>
         chunk(messageBuffer)
       }
       writeEntityBody(p)(builder) must_==

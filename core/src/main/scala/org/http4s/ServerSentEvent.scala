@@ -59,7 +59,7 @@ object ServerSentEvent {
           case s =>
             val data = if (s.endsWith("\n")) s.dropRight(1) else s
             val sse = ServerSentEvent(data, eventType, id, retry)
-            Pull.output1(sse) *> go(new StringBuilder, None, None, None, stream)
+            Pull.output1(sse) >> go(new StringBuilder, None, None, None, stream)
         }
 
       def handleLine(

@@ -75,7 +75,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
       rr: StringWriter,
       minor: Int,
       closeOnFinish: Boolean): Http1Writer[F] = lengthHeader match {
-    case Some(h) if bodyEncoding.map(!_.hasChunked).getOrElse(true) || minor == 0 =>
+    case Some(h) if bodyEncoding.forall(!_.hasChunked) || minor == 0 =>
       // HTTP 1.1: we have a length and no chunked encoding
       // HTTP 1.0: we have a length
 
@@ -93,7 +93,8 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
                "Connection: keep-alive\r\n\r\n"
              else "\r\n")
 
-      new IdentityWriter[F](h.length, this)
+      // FIXME: This cast to int is bad, but needs refactoring of IdentityWriter to change
+      new IdentityWriter[F](h.length.toInt, this)
 
     case _ => // No Length designated for body or Transfer-Encoding included for HTTP 1.1
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
