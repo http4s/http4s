@@ -21,8 +21,8 @@ trait CirceInstances {
     EntityDecoder.decodeBy(MediaType.`application/json`)(jsonDecoderByteBufferImpl[F])
 
   private def jsonDecoderByteBufferImpl[F[_]: Effect](msg: Message[F]): DecodeResult[F, Json] =
-    EntityDecoder.collectBinary(msg).flatMap { chunk =>
-      val bb = ByteBuffer.wrap(chunk.force.toArray)
+    EntityDecoder.collectBinary(msg).flatMap { segment =>
+      val bb = ByteBuffer.wrap(segment.force.toArray)
       if (bb.hasRemaining) {
         parseByteBuffer(bb) match {
           case Right(json) =>

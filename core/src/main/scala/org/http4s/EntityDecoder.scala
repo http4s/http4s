@@ -202,7 +202,7 @@ trait EntityDecoderInstances {
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
   implicit def binaryChunk[F[_]: Effect]: EntityDecoder[F, Chunk[Byte]] =
-    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F]).map(_.force.toChunk)
+    binary[F].map(_.force.toChunk)
 
   implicit def byteArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.force.toArray)
