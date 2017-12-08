@@ -6,13 +6,13 @@ import java.nio.ByteBuffer
 
 trait ChunkInstances {
 
-  implicit def http4sMonoidForChunk[A]: Monoid[Chunk[A]] =
-    new Monoid[Chunk[A]] {
-      // This smells
-      override def combine(x: Chunk[A], y: Chunk[A]): Chunk[A] =
-        (x.toSegment ++ y.toSegment).force.toChunk
+  //Maybe this belongs in fs2?
+  implicit def http4sMonoidForChunk[A]: Monoid[Segment[A, Unit]] =
+    new Monoid[Segment[A, Unit]] {
+      def empty: Segment[A, Unit] = Segment.empty[A]
 
-      override def empty: Chunk[A] = Chunk.empty
+      def combine(x: Segment[A, Unit], y: Segment[A, Unit]): Segment[A, Unit] =
+        x ++ y
     }
 
 }

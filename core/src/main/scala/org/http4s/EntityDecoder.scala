@@ -175,8 +175,8 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary[F[_]: Effect](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
-    DecodeResult.success(msg.body.chunks.runFoldMonoid)
+  def collectBinary[F[_]: Effect](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
+    DecodeResult.success(msg.body.segments.runFoldMonoid)
 
   /** Decodes a message to a String */
   def decodeString[F[_]: Effect](msg: Message[F])(
@@ -198,17 +198,20 @@ trait EntityDecoderInstances {
       override def consumes: Set[MediaRange] = Set.empty
     }
 
-  implicit def binary[F[_]: Effect]: EntityDecoder[F, Chunk[Byte]] =
+  implicit def binary[F[_]: Effect]: EntityDecoder[F, Segment[Byte, Unit]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
+  implicit def binaryChunk[F[_]: Effect]: EntityDecoder[F, Chunk[Byte]] =
+    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F]).map(_.force.toChunk)
+
   implicit def byteArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Byte]] =
-    binary.map(_.toArray)
+    binary.map(_.force.toArray)
 
   implicit def text[F[_]: Effect](
       implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs =>
-        new String(bs.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
+        new String(bs.force.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
   implicit def charArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)

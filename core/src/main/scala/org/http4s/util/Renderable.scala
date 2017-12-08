@@ -188,17 +188,17 @@ object StringWriter {
   private val InitialCapacity = 64
 }
 
-/** [[Writer]] that will result in a `ByteVector`
-  * @param bv initial ByteVector`
+/** [[Writer]] that will result in a `Segment`
+  * @param bv initial `ByteVector`
   */
 final case class ChunkWriter(
-    var toChunk: Chunk[Byte] = Chunk.empty,
+    var toByteSegment: Segment[Byte, Unit] = Segment.empty[Byte],
     charset: Charset = StandardCharsets.UTF_8
 ) extends Writer {
 
   override def append(s: String): this.type = {
     // This smells wrong
-    toChunk = (toChunk.toSegment ++ Segment.array(s.getBytes(charset))).force.toChunk
+    toByteSegment = toByteSegment ++ Segment.array(s.getBytes(charset))
     this
   }
 

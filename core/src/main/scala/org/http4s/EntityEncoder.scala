@@ -70,7 +70,7 @@ object EntityEncoder extends EntityEncoderInstances {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte])(
+  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte])( //Fishy but I'm wondering wat to do
       implicit F: Applicative[F]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
@@ -147,6 +147,9 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       implicit F: Applicative[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
+
+  implicit def segmentEncoder[F[_]: Applicative]: EntityEncoder[F, Segment[Byte, Unit]] =
+    chunkEncoder[F].contramap[Segment[Byte, Unit]](_.force.toChunk) //TODO: Seems fishy
 
   implicit def chunkEncoder[F[_]: Applicative]: EntityEncoder[F, Chunk[Byte]] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)

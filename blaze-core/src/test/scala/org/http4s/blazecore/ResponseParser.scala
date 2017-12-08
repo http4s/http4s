@@ -34,15 +34,15 @@ class ResponseParser extends Http1ClientParser {
     parseHeaders(buffer)
 
     if (!headersComplete()) sys.error("Headers didn't complete!")
-
     val body = new ListBuffer[ByteBuffer]
     while (!this.contentComplete() && buffer.hasRemaining) {
       body += parseContent(buffer)
     }
 
     val bp = {
-      val bytes = body.toList.foldMap[Chunk[Byte]](bb => ByteVectorChunk(ByteVector.view(bb)))
-      new String(bytes.toBytes.values, StandardCharsets.ISO_8859_1)
+      val bytes = body.toList.foldMap[Segment[Byte, Unit]](bb =>
+        Segment.chunk(ByteVectorChunk(ByteVector.view(bb))))
+      new String(bytes.force.toArray, StandardCharsets.ISO_8859_1)
     }
 
     val headers = this.headers.result.map { case (k, v) => Header(k, v): Header }.toSet
