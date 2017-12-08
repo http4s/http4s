@@ -9,11 +9,11 @@ import fs2.Stream
 import jawnfs2._
 
 trait JawnInstances {
-  def jawnDecoder[F[_]: Effect, J: Facade]: EntityDecoder[F, J] =
+  def jawnDecoder[F[_]: Sync, J: Facade]: EntityDecoder[F, J] =
     EntityDecoder.decodeBy(MediaType.`application/json`)(jawnDecoderImpl[F, J])
 
   // some decoders may reuse it and avoid extra content negotiation
-  private[http4s] def jawnDecoderImpl[F[_]: Effect, J: Facade](
+  private[http4s] def jawnDecoderImpl[F[_]: Sync, J: Facade](
       msg: Message[F]): DecodeResult[F, J] =
     DecodeResult {
       msg.body.chunks

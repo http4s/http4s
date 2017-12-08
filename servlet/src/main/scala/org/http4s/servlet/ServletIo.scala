@@ -15,8 +15,8 @@ import scala.annotation.tailrec
 /**
   * Determines the mode of I/O used for reading request bodies and writing response bodies.
   */
-sealed abstract class ServletIo[F[_]: Effect] {
-  protected[servlet] val F = Effect[F]
+sealed abstract class ServletIo[F[_]: Async] {
+  protected[servlet] val F = Async[F]
 
   protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F]
 
@@ -30,7 +30,7 @@ sealed abstract class ServletIo[F[_]: Effect] {
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
   */
-final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
+final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
@@ -56,7 +56,7 @@ final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends Servlet
   * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
   * operationally annoying.
   */
-final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
+final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
   private[this] val logger = getLogger
 
   private[this] def rightSome[A](a: A) = Right(Some(a))

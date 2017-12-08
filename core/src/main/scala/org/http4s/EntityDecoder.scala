@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats._
-import cats.effect.Effect
+import cats.effect.Sync
 import cats.implicits._
 import fs2._
 import fs2.io._
@@ -175,11 +175,11 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary[F[_]: Effect](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
+  def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
     DecodeResult.success(msg.body.segments.runFoldMonoid)
 
   /** Decodes a message to a String */
-  def decodeString[F[_]: Effect](msg: Message[F])(
+  def decodeString[F[_]: Sync](msg: Message[F])(
       implicit defaultCharset: Charset = DefaultCharset): F[String] =
     msg.bodyAsText.runFoldMonoid
 }
@@ -191,49 +191,49 @@ trait EntityDecoderInstances {
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
-  def error[F[_], T](t: Throwable)(implicit F: Effect[F]): EntityDecoder[F, T] =
+  def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
         DecodeResult(msg.body.run *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
-  implicit def binary[F[_]: Effect]: EntityDecoder[F, Segment[Byte, Unit]] =
+  implicit def binary[F[_]: Sync]: EntityDecoder[F, Segment[Byte, Unit]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
-  implicit def binaryChunk[F[_]: Effect]: EntityDecoder[F, Chunk[Byte]] =
+  implicit def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
     binary[F].map(_.force.toChunk)
 
-  implicit def byteArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Byte]] =
+  implicit def byteArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Byte]] =
     binary.map(_.force.toArray)
 
-  implicit def text[F[_]: Effect](
+  implicit def text[F[_]: Sync](
       implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs =>
         new String(bs.force.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
-  implicit def charArrayDecoder[F[_]: Effect]: EntityDecoder[F, Array[Char]] =
+  implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
-  def binFile[F[_]](file: File)(implicit F: Effect[F]): EntityDecoder[F, File] =
+  def binFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val sink = writeOutputStream[F](F.delay(new FileOutputStream(file)))
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-  def textFile[F[_]](file: File)(implicit F: Effect[F]): EntityDecoder[F, File] =
+  def textFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val sink = writeOutputStream[F](F.delay(new PrintStream(new FileOutputStream(file))))
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-  implicit def multipart[F[_]: Effect]: EntityDecoder[F, Multipart[F]] =
+  implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
     MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */
-  implicit def void[F[_]: Effect]: EntityDecoder[F, Unit] =
+  implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       DecodeResult.success(msg.body.drain.run)
     }
