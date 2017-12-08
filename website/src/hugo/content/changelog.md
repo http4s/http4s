@@ -25,7 +25,11 @@ it.
   middleware.
 * Add constant for `application/vnd.api+json` MediaType.
 * Limit memory consumption in `GZip` middleware
-* Add `handleError`, `transform`, and `bimap` to `EntityDecoder`.
+* Add `handleError`, `handleErrorWith`, `bimap`, `biflatMap`,
+  `transform`, and `transformWith` to `EntityDecoder`.
+* `org.http4s.util.StreamApp` and `org.http4s.util.ExitCode` are
+  deprecated in favor of `fs2.StreamApp` and `fs2.StreamApp.ExitCode`,
+  based on what was in http4s.
 * Dependency upgrades:
   * fs2-0.10.0-M9
   * fs2-reactive-streams-0.2.6
