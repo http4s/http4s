@@ -86,6 +86,40 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-0-m6-2017-12-08">v0.18.0-M6 (2017-12-08)</h1>
+
+<ul>
+<li>Tested on Java 9.</li>
+<li><code>Message.withContentType</code> now takes a <code>Content-Type</code> instead of an
+<code>Option[`Content-Type`]</code>.  <code>withContentTypeOption</code> takes an <code>Option</code>,
+and <code>withoutContentType</code> clears it.</li>
+<li><code>QValue</code> has an <code>HttpCodec</code> instance</li>
+<li><code>AuthMiddleware</code> never falls through.  See
+<a href="https://github.com/http4s/http4s/pull/1530">#1530</a> for more.</li>
+<li><code>ContentCoding</code> is no longer a <code>Registry</code>, but has an <code>HttpCodec</code>
+instance.</li>
+<li>Render a banner on server startup.  Customize by calling
+<code>withBanner(List[String])</code> or <code>withoutBanner</code> on the
+<code>ServerBuilder</code>.</li>
+<li>Parameterize <code>isZippable</code> as a predicate of the <code>Response</code> in <code>GZip</code>
+middleware.</li>
+<li>Add constant for <code>application/vnd.api+json</code> MediaType.</li>
+<li>Limit memory consumption in <code>GZip</code> middleware</li>
+<li>Add <code>handleError</code>, <code>handleErrorWith</code>, <code>bimap</code>, <code>biflatMap</code>,
+<code>transform</code>, and <code>transformWith</code> to <code>EntityDecoder</code>.</li>
+<li><code>org.http4s.util.StreamApp</code> and <code>org.http4s.util.ExitCode</code> are
+deprecated in favor of <code>fs2.StreamApp</code> and <code>fs2.StreamApp.ExitCode</code>,
+based on what was in http4s.</li>
+<li>Dependency upgrades:
+
+<ul>
+<li>fs2-0.10.0-M9</li>
+<li>fs2-reactive-streams-0.2.6</li>
+<li>jawn-fs2-0.12.0-M4</li>
+<li>specs2-4.0.2</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-17-6-2017-12-05">v0.17.6 (2017-12-05)</h1>
 
 <ul>
