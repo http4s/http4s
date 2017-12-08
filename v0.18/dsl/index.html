@@ -136,7 +136,7 @@ anything.  The right hand side of the request must return a
   case _ =&gt;
     IO(Response(Status.Ok))
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@6244ce94)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@63f4b4e2)
 </code></pre>
 
 <h2 id="testing-the-service">Testing the Service</h2>
@@ -149,7 +149,7 @@ and experiment directly in the REPL.</p>
 getRoot: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
 
 scala&gt; val io = service.orNotFound.run(getRoot)
-io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1103266918
+io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1423902135
 </code></pre>
 
 <p>Where is our <code>Response[F]</code>?  It hasn&rsquo;t been created yet.  We wrapped it
@@ -253,7 +253,7 @@ res5: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Cont
 <p><code>Cookie</code> can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc</p>
 
 <pre><code class="language-scala">scala&gt; Ok(&quot;Ok response.&quot;).map(_.addCookie(Cookie(&quot;foo&quot;, &quot;bar&quot;, expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
-res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Fri, 08 Dec 2017 03:57:29 GMT; Secure; HttpOnly)
+res6: org.http4s.Headers = Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 12, Set-Cookie: foo=bar; Expires=Fri, 08 Dec 2017 15:46:46 GMT; Secure; HttpOnly)
 </code></pre>
 
 <p>To request a cookie to be removed on the client, you need to set the cookie value
@@ -319,10 +319,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
      |   println(&quot;I run when the future is constructed.&quot;)
      |   &quot;Greetings from the future!&quot;
      | })
-I run when the future is constructed.
-io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1133635063
+io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1270488831
 
 scala&gt; io.unsafeRunSync
+I run when the future is constructed.
 res11: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 26))
 </code></pre>
 
@@ -333,7 +333,7 @@ of course prefer to operate in [F]s:</p>
      |   println(&quot;I run when the IO is run.&quot;)
      |   &quot;Mission accomplished!&quot;
      | })
-io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1555151873
+io: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = IO$1542931406
 
 scala&gt; io.unsafeRunSync
 I run when the IO is run.
@@ -366,10 +366,10 @@ for one second:</p>
 <p>We can see it for ourselves in the REPL:</p>
 
 <pre><code class="language-scala">scala&gt; val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s =&gt; {IO{println(s); s}})).run
-dripOutIO: cats.effect.IO[Unit] = IO$1017439001
+dripOutIO: cats.effect.IO[Unit] = IO$1788335329
 
 scala&gt; dripOutIO.unsafeRunSync
-132587266 nanoseconds217902224 nanoseconds318497559 nanoseconds417800424 nanoseconds517835658 nanoseconds617728882 nanoseconds717727718 nanoseconds818060287 nanoseconds917819569 nanoseconds1017844194 nanoseconds
+131561257 nanoseconds217436866 nanoseconds318016886 nanoseconds417490432 nanoseconds517504561 nanoseconds617316946 nanoseconds717318809 nanoseconds817425650 nanoseconds917516722 nanoseconds1017362241 nanoseconds
 </code></pre>
 
 <p>When wrapped in a <code>Response[F]</code>, http4s will flush each chunk of a
@@ -396,7 +396,7 @@ other side the path. Naturally, <code>_</code> is a valid matcher too, so any ca
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case _ -&gt; Root / &quot;api&quot; =&gt; Forbidden()
      | }
-res15: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@44f5c799)
+res15: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@34caf93e)
 </code></pre>
 
 <p>To also block all subcalls <code>/api/...</code>, you&rsquo;ll need <code>/:</code>, which is right
@@ -405,7 +405,7 @@ associative, and matches everything after, and not just the next element:</p>
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case _ -&gt; &quot;api&quot; /: _ =&gt; Forbidden()
      | }
-res16: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@462d9a4d)
+res16: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@bb305a4)
 </code></pre>
 
 <p>For matching more than one <code>Method</code>, there&rsquo;s <code>|</code>:</p>
@@ -413,7 +413,7 @@ res16: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case (GET | POST) -&gt; Root / &quot;api&quot;  =&gt; ???
      | }
-res17: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@642d81e)
+res17: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@611beb2)
 </code></pre>
 
 <p>Honorable mention: <code>~</code>, for matching file extensions.</p>
@@ -421,7 +421,7 @@ res17: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$
 <pre><code class="language-scala">scala&gt; HttpService[IO] {
      |   case GET -&gt; Root / file ~ &quot;json&quot; =&gt; Ok(s&quot;&quot;&quot;{&quot;response&quot;: &quot;You asked for $file&quot;}&quot;&quot;&quot;)
      | }
-res18: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@2a501a6d)
+res18: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@5d38dc36)
 </code></pre>
 
 <h3 id="handling-path-parameters">Handling path parameters</h3>
@@ -437,7 +437,7 @@ val usersService = HttpService[IO] {
   case GET -&gt; Root / &quot;users&quot; / IntVar(userId) =&gt;
     Ok(getUserName(userId))
 }
-// usersService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@38d437c2)
+// usersService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@7665009c)
 </code></pre>
 
 <p>If you want to extract a variable of type <code>T</code>, you can provide a custom extractor
@@ -470,7 +470,7 @@ val dailyWeatherService = HttpService[IO] {
   case GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; / LocalDateVar(localDate) =&gt;
     Ok(getTemperatureForecast(localDate).map(s&quot;The temperature on $localDate will be: &quot; + _))
 }
-// dailyWeatherService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@3d6353b3)
+// dailyWeatherService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@5c4a96e4)
 
 println(GET(Uri.uri(&quot;/weather/temperature/2016-11-05&quot;)).flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
 // Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
@@ -499,7 +499,7 @@ object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String](&quot;c
 
 implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
   QueryParamDecoder[Int].map(Year.of)
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@34f6cbd1
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = org.http4s.QueryParamDecoder$$anon$8@138f418c
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year](&quot;year&quot;)
 // defined object YearQueryParamMatcher
@@ -511,7 +511,7 @@ val averageTemperatureService = HttpService[IO] {
   case GET -&gt; Root / &quot;weather&quot; / &quot;temperature&quot; :? CountryQueryParamMatcher(country) +&amp; YearQueryParamMatcher(year)  =&gt;
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s&quot;Average temperature for $country in $year was: &quot; + _))
 }
-// averageTemperatureService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57112/668614856@582a2922)
+// averageTemperatureService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$57146/837878252@730b6c44)
 </code></pre>
 
         </div>
