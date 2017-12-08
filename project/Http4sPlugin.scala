@@ -81,7 +81,7 @@ object Http4sPlugin extends AutoPlugin {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
 
-    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.4" cross CrossVersion.binary),
+    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.5" cross CrossVersion.binary),
 
     scalafmtVersion := "1.3.0",
     scalafmt in Test := {
@@ -304,7 +304,7 @@ object Http4sPlugin extends AutoPlugin {
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
   lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.1"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.2"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.24"

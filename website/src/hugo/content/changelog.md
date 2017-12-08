@@ -8,6 +8,30 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0-M6 (2017-12-08)
+* Tested on Java 9.
+* `Message.withContentType` now takes a `Content-Type` instead of an
+  ``Option[`Content-Type`]``.  `withContentTypeOption` takes an `Option`,
+  and `withoutContentType` clears it.
+* `QValue` has an `HttpCodec` instance
+* `AuthMiddleware` never falls through.  See
+  [#1530](https://github.com/http4s/http4s/pull/1530) for more.
+* `ContentCoding` is no longer a `Registry`, but has an `HttpCodec`
+  instance.
+* Render a banner on server startup.  Customize by calling
+  `withBanner(List[String])` or `withoutBanner` on the
+  `ServerBuilder`.
+* Parameterize `isZippable` as a predicate of the `Response` in `GZip`
+  middleware.
+* Add constant for `application/vnd.api+json` MediaType.
+* Limit memory consumption in `GZip` middleware
+* Add `handleError`, `transform`, and `bimap` to `EntityDecoder`.
+* Dependency upgrades:
+  * fs2-0.10.0-M9
+  * fs2-reactive-streams-0.2.6
+  * jawn-fs2-0.12.0-M4
+  * specs2-4.0.2
+
 # v0.17.6 (2017-12-05)
 * Fix `StaticFile` to serve files larger than `Int.MaxValue` bytes
 * Dependency upgrades:
