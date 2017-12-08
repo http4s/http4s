@@ -8,6 +8,21 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.17.6 (2017-12-05)
+* Fix `StaticFile` to serve files larger than `Int.MaxValue` bytes
+* Dependency upgrades:
+  * tomcat-8.5.24
+
+# v0.16.6 (2017-12-04)
+* Add a CSRF server middleware
+* Fix `NullPointerException` when starting a Tomcat server related to `docBase`
+* Log version info and server address on server startup
+* Dependency upgrades:
+  * jetty-9.4.8.v20171121
+  * log4s-1.4.0
+  * scalaz-7.2.17
+  * twirl-1.3.13
+
 # v0.18.0-M5 (2017-11-02)
 * Introduced an `HttpCodec` type class that represents a type that can round
   trip to and from a `String`.  `Uri.Scheme` and `TransferCoding` are the first
