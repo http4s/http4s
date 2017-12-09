@@ -7,7 +7,7 @@ import java.nio.ByteBuffer
 trait ChunkInstances {
 
   //Maybe this belongs in fs2?
-  implicit def http4sMonoidForChunk[A]: Monoid[Segment[A, Unit]] =
+  implicit def http4sMonoidForSegment[A]: Monoid[Segment[A, Unit]] =
     new Monoid[Segment[A, Unit]] {
       def empty: Segment[A, Unit] = Segment.empty[A]
 
