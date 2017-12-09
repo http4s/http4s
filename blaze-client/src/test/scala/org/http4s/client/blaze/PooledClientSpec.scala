@@ -23,9 +23,13 @@ class PooledClientSpec extends Http4sSpec {
   private val client = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 3)
 
   private val failTimeClient =
-    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 0 seconds)
+    PooledHttp1Client[IO](
+      maxConnectionsPerRequestKey = _ => 1,
+      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 2 seconds))
   private val successTimeClient =
-    PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1, waitExpiryTime = _ => 20 seconds)
+    PooledHttp1Client[IO](
+      maxConnectionsPerRequestKey = _ => 1,
+      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 20 seconds))
 
   val jettyServ = new JettyScaffold(5)
   var addresses = Vector.empty[InetSocketAddress]
@@ -91,7 +95,7 @@ class PooledClientSpec extends Http4sSpec {
     }
   }
 
-  "Blaze Pooled Http1 Client with zero expiry time" should {
+  "Blaze Pooled Http1 Client with less expiry time" should {
     "timeout" in {
       val address = addresses(0)
       val name = address.getHostName

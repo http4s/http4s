@@ -2,7 +2,6 @@ package org.http4s
 package client
 
 import java.time.Instant
-import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeoutException
 
 import cats.effect._
@@ -12,7 +11,7 @@ import org.log4s.getLogger
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.util.Random
 
 private final class PoolManager[F[_], A <: Connection[F]](
@@ -20,7 +19,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     maxTotal: Int,
     maxWaitQueueLimit: Int,
     maxConnectionsPerRequestKey: RequestKey => Int,
-    waitExpiryTime: RequestKey => Duration,
+    responseHeaderTimeout: Duration,
+    requestTimeout: Duration,
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
@@ -74,10 +74,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def numConnectionsCheckHolds(key: RequestKey): Boolean =
     curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
 
-  private def isExpired(k: RequestKey, t: Instant): Boolean =
-    waitExpiryTime(k).isFinite() && t
-      .plus(waitExpiryTime(k).toSeconds, ChronoUnit.SECONDS)
-      .isBefore(Instant.now())
+  private def isExpired(t: Instant): Boolean = {
+    val elapsed = Instant.now().getEpochSecond - t.getEpochSecond
+    (requestTimeout.isFinite() && elapsed >= requestTimeout.toSeconds) || (responseHeaderTimeout
+      .isFinite() && elapsed >= responseHeaderTimeout.toSeconds)
+  }
 
   /**
     * This method is the core method for creating a connection which increments allocated synchronously
@@ -190,8 +191,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
   private def releaseRecyclable(key: RequestKey, connection: A): Unit =
     waitQueue.dequeueFirst(_.key == key) match {
-      case Some(Waiting(k, callback, at)) =>
-        if (isExpired(k, at)) {
+      case Some(Waiting(_, callback, at)) =>
+        if (isExpired(at)) {
           logger.debug(s"Request expired")
           callback(Left(new TimeoutException("In wait queue for too long, timing out request.")))
         } else {
@@ -279,7 +280,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   }
 
   private def findFirstAllowedWaiter = {
-    val (expired, rest) = waitQueue.span(w => isExpired(w.key, w.at))
+    val (expired, rest) = waitQueue.span(w => isExpired(w.at))
     expired.foreach(
       _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
     logger.debug(s"expired requests: ${expired.length}")
