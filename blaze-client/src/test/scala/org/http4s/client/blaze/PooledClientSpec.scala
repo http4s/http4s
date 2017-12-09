@@ -25,7 +25,7 @@ class PooledClientSpec extends Http4sSpec {
   private val failTimeClient =
     PooledHttp1Client[IO](
       maxConnectionsPerRequestKey = _ => 1,
-      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 2 seconds))
+      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 1 seconds))
   private val successTimeClient =
     PooledHttp1Client[IO](
       maxConnectionsPerRequestKey = _ => 1,
@@ -100,6 +100,11 @@ class PooledClientSpec extends Http4sSpec {
       val address = addresses(0)
       val name = address.getHostName
       val port = address.getPort
+      failTimeClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .unsafeToFuture()
+
       failTimeClient
         .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
         .attempt
