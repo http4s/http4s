@@ -76,9 +76,9 @@ object Metrics {
                   else resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
                 }
               }
-              .onError { cause =>
+              .handleErrorWith { cause =>
                 abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
-                Stream.fail(cause)
+                Stream.raiseError(cause)
               }
           r.map(resp => resp.copy(body = capture(resp.body)))
         }

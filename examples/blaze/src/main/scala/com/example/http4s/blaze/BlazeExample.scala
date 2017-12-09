@@ -2,10 +2,9 @@ package com.example.http4s.blaze
 
 import cats.effect._
 import com.example.http4s.ExampleService
-import fs2.Scheduler
+import fs2._
+import fs2.StreamApp.ExitCode
 import org.http4s.server.blaze.BlazeBuilder
-import org.http4s.util.StreamApp
-import org.http4s.util.ExitCode
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object BlazeExample extends BlazeExampleApp[IO]

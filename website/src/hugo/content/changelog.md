@@ -8,6 +8,49 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0-M6 (2017-12-08)
+* Tested on Java 9.
+* `Message.withContentType` now takes a `Content-Type` instead of an
+  ``Option[`Content-Type`]``.  `withContentTypeOption` takes an `Option`,
+  and `withoutContentType` clears it.
+* `QValue` has an `HttpCodec` instance
+* `AuthMiddleware` never falls through.  See
+  [#1530](https://github.com/http4s/http4s/pull/1530) for more.
+* `ContentCoding` is no longer a `Registry`, but has an `HttpCodec`
+  instance.
+* Render a banner on server startup.  Customize by calling
+  `withBanner(List[String])` or `withoutBanner` on the
+  `ServerBuilder`.
+* Parameterize `isZippable` as a predicate of the `Response` in `GZip`
+  middleware.
+* Add constant for `application/vnd.api+json` MediaType.
+* Limit memory consumption in `GZip` middleware
+* Add `handleError`, `handleErrorWith`, `bimap`, `biflatMap`,
+  `transform`, and `transformWith` to `EntityDecoder`.
+* `org.http4s.util.StreamApp` and `org.http4s.util.ExitCode` are
+  deprecated in favor of `fs2.StreamApp` and `fs2.StreamApp.ExitCode`,
+  based on what was in http4s.
+* Dependency upgrades:
+  * fs2-0.10.0-M9
+  * fs2-reactive-streams-0.2.6
+  * jawn-fs2-0.12.0-M4
+  * specs2-4.0.2
+
+# v0.17.6 (2017-12-05)
+* Fix `StaticFile` to serve files larger than `Int.MaxValue` bytes
+* Dependency upgrades:
+  * tomcat-8.5.24
+
+# v0.16.6 (2017-12-04)
+* Add a CSRF server middleware
+* Fix `NullPointerException` when starting a Tomcat server related to `docBase`
+* Log version info and server address on server startup
+* Dependency upgrades:
+  * jetty-9.4.8.v20171121
+  * log4s-1.4.0
+  * scalaz-7.2.17
+  * twirl-1.3.13
+
 # v0.18.0-M5 (2017-11-02)
 * Introduced an `HttpCodec` type class that represents a type that can round
   trip to and from a `String`.  `Uri.Scheme` and `TransferCoding` are the first

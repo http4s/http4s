@@ -150,21 +150,20 @@ server.shutdown.unsafeRunSync()
 ### Running your service as an `App`
 
 Every `ServerBuilder[F]` has a `.serve` method that returns a
-`Stream[F, Nothing]`.  This stream runs forever without emitting
-any output.  When this process is run with `.unsafeRun` on the
+`Stream[F, ExitCode]`.  This stream runs forever without emitting
+any output.  When this process is run with `.unsafeRunSync` on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.
 
-As a convenience, http4s provides an `org.http4s.util.StreamApp[F[_]]` trait
+As a convenience, fs2 provides an `fs2.StreamApp[F[_]]` trait
 with an abstract `main` method that returns a `Stream`.  A `StreamApp`
 runs the process and adds a JVM shutdown hook to interrupt the infinite
 process and gracefully shut down your server when a SIGTERM is received.
 
 ```tut:book
-import fs2.Stream
+import fs2.{Stream, StreamApp}
+import fs2.StreamApp.ExitCode
 import org.http4s.server.blaze._
-import org.http4s.util.StreamApp
-import org.http4s.util.ExitCode
 
 object Main extends StreamApp[IO] {
   override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =

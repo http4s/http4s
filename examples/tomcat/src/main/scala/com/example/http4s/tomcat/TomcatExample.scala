@@ -4,11 +4,10 @@ import cats.effect._
 import com.codahale.metrics.MetricRegistry
 import com.example.http4s.ExampleService
 import fs2._
+import fs2.StreamApp.ExitCode
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.metrics._
 import org.http4s.server.tomcat.TomcatBuilder
-import org.http4s.util.StreamApp
-import org.http4s.util.ExitCode
 
 object TomcatExample extends TomcatExampleApp[IO]
 

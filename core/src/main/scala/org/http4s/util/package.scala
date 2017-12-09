@@ -24,7 +24,7 @@ package object util {
           if (outputString.isEmpty) Pull.done.as(None)
           else Pull.output1(outputString).as(None)
         case Some((segment, stream)) =>
-          val byteVector = ByteVector(segment.toVector)
+          val byteVector = ByteVector(segment.force.toVector)
           val byteBuffer = byteVector.toByteBuffer
           val charBuffer = CharBuffer.allocate(byteVector.size.toInt * maxCharsPerByte)
           decoder.decode(byteBuffer, charBuffer, false)
@@ -80,6 +80,14 @@ package object util {
     "Moved to org.http4s.execution.trampoline, is now merely a ExecutionContextExecutor.",
     "0.18.0-M2")
   val TrampolineExecutionContext: ExecutionContextExecutor = execution.trampoline
+
+  @deprecated("Use fs2.StreamApp instead", "0.18.0-M6")
+  type StreamApp[F[_]] = fs2.StreamApp[F]
+
+  @deprecated("Use fs2.StreamApp.ExitCode instead", "0.18.0-M6")
+  type ExitCode = fs2.StreamApp.ExitCode
+  @deprecated("Use fs2.StreamApp.ExitCode instead", "0.18.0-M6")
+  val ExitCode = fs2.StreamApp.ExitCode
 
   /* This is nearly identical to the hashCode of java.lang.String, but converting
    * to lower case on the fly to avoid copying `value`'s character storage.

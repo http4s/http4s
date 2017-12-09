@@ -60,7 +60,7 @@ object GZip {
     val trailerGen = new TrailerGen()
     val b = chunk(header) ++
       resp.body
-        .through(trailer(trailerGen))
+        .through(trailer(trailerGen, bufferSize.toLong))
         .through(
           deflate(
             level = level,
@@ -94,20 +94,19 @@ object GZip {
 
   private final class TrailerGen(val crc: CRC32 = new CRC32(), var inputLength: Int = 0)
 
-  private def trailer[F[_]](gen: TrailerGen): Pipe[Pure, Byte, Byte] =
-    _.pull.uncons.flatMap(trailerStep(gen)).stream
+  private def trailer[F[_]](gen: TrailerGen, maxReadLimit: Long): Pipe[Pure, Byte, Byte] =
+    _.pull.unconsLimit(maxReadLimit).flatMap(trailerStep(gen, maxReadLimit)).stream
 
-  private def trailerStep(
-      gen: TrailerGen): (Option[(Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[
-    Pure,
-    Byte,
-    Option[Stream[Pure, Byte]]] = {
+  private def trailerStep(gen: TrailerGen, maxReadLimit: Long): (Option[
+    (Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
     case None => Pull.pure(None)
     case Some((segment, stream)) =>
-      val chunkArray = segment.toChunk.toArray
+      val chunkArray = segment.force.toArray
       gen.crc.update(chunkArray)
       gen.inputLength = gen.inputLength + chunkArray.length
-      Pull.output(segment) *> stream.pull.uncons.flatMap(trailerStep(gen))
+      Pull.output(segment) >> stream.pull
+        .unconsLimit(maxReadLimit)
+        .flatMap(trailerStep(gen, maxReadLimit))
   }
 
   private def trailerFinish(gen: TrailerGen): Chunk[Byte] =

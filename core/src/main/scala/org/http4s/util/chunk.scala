@@ -4,28 +4,17 @@ import cats._
 import fs2._
 import java.nio.ByteBuffer
 
-trait ChunkInstances extends ChunkInstances0 {
+trait ChunkInstances {
 
-  /** Specialization for byte chunks, which is mostly what we want. */
-  implicit val ByteChunkMonoid: Monoid[Chunk[Byte]] =
-    new Monoid[Chunk[Byte]] {
-      def combine(chunk1: Chunk[Byte], chunk2: Chunk[Byte]): Chunk[Byte] =
-        (chunk1 ++ chunk2).toChunk
-
-      val empty: Chunk[Byte] =
-        Chunk.empty
-    }
-}
-
-trait ChunkInstances0 {
-  implicit def ChunkMonoid[A]: Monoid[Chunk[A]] =
+  implicit def http4sMonoidForChunk[A]: Monoid[Chunk[A]] =
     new Monoid[Chunk[A]] {
-      def combine(chunk1: Chunk[A], chunk2: Chunk[A]): Chunk[A] =
-        (chunk1 ++ chunk2).toChunk
+      // This smells
+      override def combine(x: Chunk[A], y: Chunk[A]): Chunk[A] =
+        (x.toSegment ++ y.toSegment).force.toChunk
 
-      def empty: Chunk[A] =
-        Chunk.empty
+      override def empty: Chunk[A] = Chunk.empty
     }
+
 }
 
 class ByteChunkOps(val self: Chunk[Byte]) extends AnyVal {

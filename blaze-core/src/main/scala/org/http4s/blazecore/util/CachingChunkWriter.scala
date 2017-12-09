@@ -20,8 +20,8 @@ private[http4s] class CachingChunkWriter[F[_]](
     extends Http1Writer[F] {
   import ChunkWriter._
 
-  private[this] var pendingHeaders: StringWriter = null
-  private[this] var bodyBuffer: Chunk[Byte] = null
+  private[this] var pendingHeaders: StringWriter = _
+  private[this] var bodyBuffer: Chunk[Byte] = _
 
   override def writeHeaders(headerWriter: StringWriter): Future[Unit] = {
     pendingHeaders = headerWriter
@@ -30,7 +30,7 @@ private[http4s] class CachingChunkWriter[F[_]](
 
   private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
     if (bodyBuffer == null) bodyBuffer = b
-    else bodyBuffer = (bodyBuffer ++ b).toChunk
+    else bodyBuffer = (bodyBuffer.toSegment ++ b.toSegment).force.toChunk
     bodyBuffer
   }
 
