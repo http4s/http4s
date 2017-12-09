@@ -25,13 +25,13 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
     boundary => s"${delimiter(boundary)}$dash"
 
   val start: Boundary => Segment[Byte, Unit] = boundary =>
-    ChunkWriter()
+    SegmentWriter()
       .append(dashBoundary(boundary))
       .append(Boundary.CRLF)
       .toByteSegment
 
   val end: Boundary => Segment[Byte, Unit] = boundary =>
-    ChunkWriter()
+    SegmentWriter()
       .append(closeDelimiter(boundary))
       .toByteSegment
 
@@ -43,7 +43,7 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
 
   val renderHeaders: Headers => Segment[Byte, Unit] = headers =>
     headers
-      .foldLeft(ChunkWriter()) { (chunkWriter, header) =>
+      .foldLeft(SegmentWriter()) { (chunkWriter, header) =>
         chunkWriter
           .append(header)
           .append(Boundary.CRLF)

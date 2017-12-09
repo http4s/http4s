@@ -191,13 +191,12 @@ object StringWriter {
 /** [[Writer]] that will result in a `Segment`
   * @param bv initial `ByteVector`
   */
-final case class ChunkWriter(
+final case class SegmentWriter(
     var toByteSegment: Segment[Byte, Unit] = Segment.empty[Byte],
     charset: Charset = StandardCharsets.UTF_8
 ) extends Writer {
 
   override def append(s: String): this.type = {
-    // This smells wrong
     toByteSegment = toByteSegment ++ Segment.array(s.getBytes(charset))
     this
   }
