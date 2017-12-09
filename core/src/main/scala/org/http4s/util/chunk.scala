@@ -18,8 +18,10 @@ trait ChunkInstances {
 }
 
 class ByteChunkOps(val self: Chunk[Byte]) extends AnyVal {
-  def toByteBuffer: ByteBuffer =
-    ByteBuffer.wrap(self.toArray).asReadOnlyBuffer
+  def toByteBuffer: ByteBuffer = {
+    val byteChunk = self.toBytes //Avoids copying
+    ByteBuffer.wrap(byteChunk.values, byteChunk.offset, byteChunk.length).asReadOnlyBuffer
+  }
 }
 
 trait ByteChunkSyntax {
