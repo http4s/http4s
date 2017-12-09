@@ -149,7 +149,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     stringEncoder[F].contramap(new String(_))
 
   implicit def segmentEncoder[F[_]: Applicative]: EntityEncoder[F, Segment[Byte, Unit]] =
-    chunkEncoder[F].contramap[Segment[Byte, Unit]](_.force.toChunk) //TODO: Seems fishy
+    chunkEncoder[F].contramap[Segment[Byte, Unit]](_.force.toChunk)
 
   implicit def chunkEncoder[F[_]: Applicative]: EntityEncoder[F, Chunk[Byte]] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)

@@ -29,8 +29,9 @@ class DumpingWriter(implicit protected val F: Effect[IO]) extends EntityBodyWrit
     Future.successful(false)
   }
 
-  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = buffer.synchronized{
-    buffer = buffer ++ Segment.chunk(chunk)
-    FutureUnit
-  }
+  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
+    buffer.synchronized {
+      buffer = buffer ++ Segment.chunk(chunk)
+      FutureUnit
+    }
 }
