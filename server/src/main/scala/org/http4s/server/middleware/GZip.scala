@@ -101,9 +101,12 @@ object GZip {
     (Segment[Byte, Unit], Stream[Pure, Byte])]) => Pull[Pure, Byte, Option[Stream[Pure, Byte]]] = {
     case None => Pull.pure(None)
     case Some((segment, stream)) =>
-      val chunkArray = segment.force.toArray
-      gen.crc.update(chunkArray)
-      gen.inputLength = gen.inputLength + chunkArray.length
+      //Avoid copying chunk toARray
+      segment.force.foreachChunk { c =>
+        val byteChunk = c.toBytes
+        gen.crc.update(byteChunk.values, byteChunk.offset, byteChunk.length)
+        gen.inputLength = gen.inputLength + byteChunk.length
+      }
       Pull.output(segment) >> stream.pull
         .unconsLimit(maxReadLimit)
         .flatMap(trailerStep(gen, maxReadLimit))

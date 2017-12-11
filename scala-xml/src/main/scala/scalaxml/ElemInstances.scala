@@ -32,7 +32,7 @@ trait ElemInstances {
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(
           new StringReader(
-            new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
+            new String(arr.force.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
         try DecodeResult.success(F.pure(XML.loadXML(source, saxParser)))
         catch {
