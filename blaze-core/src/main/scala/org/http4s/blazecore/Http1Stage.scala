@@ -243,7 +243,8 @@ object Http1Stage {
 
   private val CachedEmptyBufferThunk = {
     val b = Future.successful(emptyBuffer)
-    () => b
+    () =>
+      b
   }
 
   private val CachedEmptyBody = EmptyBody -> CachedEmptyBufferThunk

@@ -13,8 +13,7 @@ trait JawnInstances {
     EntityDecoder.decodeBy(MediaType.`application/json`)(jawnDecoderImpl[F, J])
 
   // some decoders may reuse it and avoid extra content negotiation
-  private[http4s] def jawnDecoderImpl[F[_]: Sync, J: Facade](
-      msg: Message[F]): DecodeResult[F, J] =
+  private[http4s] def jawnDecoderImpl[F[_]: Sync, J: Facade](msg: Message[F]): DecodeResult[F, J] =
     DecodeResult {
       msg.body.chunks
         .parseJson(AsyncParser.SingleValue)
