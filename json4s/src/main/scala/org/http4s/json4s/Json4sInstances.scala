@@ -3,6 +3,7 @@ package json4s
 
 import cats._
 import cats.effect._
+import cats.syntax.all._
 import _root_.jawn.support.json4s.Parser
 import org.http4s.headers.`Content-Type`
 import org.json4s._
@@ -17,13 +18,15 @@ trait Json4sInstances[J] {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JValue] =
     jawn.jawnDecoder
 
-  def jsonOf[F[_]: Sync, A](implicit reader: Reader[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
-      try DecodeResult.success(reader.read(json))
-      catch {
-        case e: MappingException =>
-          DecodeResult.failure(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
-      }
+      DecodeResult(
+        F.delay(reader.read(json))
+          .map[Either[DecodeFailure, A]](Right(_))
+          .recover {
+            case e: MappingException =>
+              Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+          })
     }
 
   /**

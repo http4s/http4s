@@ -10,7 +10,6 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import org.http4s.util.chunk._
 import scala.annotation.implicitNotFound
-import scala.util.control.NonFatal
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -122,25 +121,21 @@ object EntityDecoder extends EntityDecoderInstances {
   /** Create a new [[EntityDecoder]]
     *
     * The new [[EntityDecoder]] will attempt to decode messages of type `T`
-    * only if the [[Message]] satisfies the provided [[MediaRange]]s
+    * only if the [[Message]] satisfies the provided [[MediaRange]]
+    * note: Sync bound to note that such an `F[_]` may throw
     */
-  def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
+  def decodeBy[F[_]: Sync, T](r1: MediaRange, rs: MediaRange*)(
       f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-      try {
-        if (strict) {
-          msg.headers.get(`Content-Type`) match {
-            case Some(c) if matchesMediaType(c.mediaType) => f(msg)
-            case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
-            case None if matchesMediaType(UndefinedMediaType) => f(msg)
-            case None => DecodeResult.failure(MediaTypeMissing(consumes))
-          }
-        } else {
-          f(msg)
+      if (strict) {
+        msg.headers.get(`Content-Type`) match {
+          case Some(c) if matchesMediaType(c.mediaType) => f(msg)
+          case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+          case None if matchesMediaType(UndefinedMediaType) => f(msg)
+          case None => DecodeResult.failure(MediaTypeMissing(consumes))
         }
-      } catch {
-        case NonFatal(e) =>
-          DecodeResult.failure(MalformedMessageBodyFailure("Error decoding body", Some(e)))
+      } else {
+        f(msg)
       }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
