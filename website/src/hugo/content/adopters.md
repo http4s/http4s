@@ -61,6 +61,17 @@ title: Adopters
 [twitterstorm](https://github.com/ChristopherDavenport/twitterstorm)
 : Twitter Streaming API Processing Example Project 
 
+## Giter8 templates
+
+G8 templates provide a fast way to get started with SBT projects by just running `sbt new <template-name>`.
+
+[http4s.g8](https://github.com/http4s/http4s.g8)
+: Bootstrap Http4s services
+
+[typelevel-stack.g8](https://github.com/gvolpe/typelevel-stack.g8)
+: Typelevel Stack (Http4s / Doobie / Circe / Cats Effect / Fs2)
+
+
 <hr />
 
 <small>
