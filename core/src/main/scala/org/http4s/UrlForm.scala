@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats._
-import cats.effect.Effect
+import cats.effect.Sync
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.headers._
 import org.http4s.parser._
@@ -93,7 +93,7 @@ object UrlForm {
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
   implicit def entityDecoder[F[_]](
-      implicit F: Effect[F],
+      implicit F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`) { m =>
       DecodeResult(

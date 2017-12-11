@@ -26,7 +26,7 @@ trait ElemInstances {
     *
     * @return an XML element
     */
-  implicit def xml[F[_]](implicit F: Effect[F]): EntityDecoder[F, Elem] = {
+  implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`) { msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
