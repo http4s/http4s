@@ -70,7 +70,7 @@ object EntityEncoder extends EntityEncoderInstances {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte])( //Fishy but I'm wondering wat to do
+  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte])(
       implicit F: Applicative[F]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
