@@ -134,10 +134,6 @@
                         <a class="trait" href="ChunkInstances.html" title=""></a>
                         <a href="ChunkInstances.html" title="">ChunkInstances</a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="class" href="" title="Writer that will result in a ByteVector"></a>
-                        <a href="" title="Writer that will result in a ByteVector">ChunkWriter</a>
-                      </li><li class="current-entities indented3">
                         <a class="object" href="Renderable$.html" title=""></a>
                         <a class="trait" href="Renderable.html" title="Mixin that makes a type writable by a Writer without needing a Renderer instance"></a>
                         <a href="Renderable.html" title="Mixin that makes a type writable by a Writer without needing a Renderer instance">Renderable</a>
@@ -145,6 +141,10 @@
                         <a class="object" href="Renderer$.html" title=""></a>
                         <a class="trait" href="Renderer.html" title="A type class that describes how to efficiently render a type"></a>
                         <a href="Renderer.html" title="A type class that describes how to efficiently render a type">Renderer</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="" title="Writer that will result in a Segment"></a>
+                        <a href="" title="Writer that will result in a Segment">SegmentWriter</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="StringWriter$.html" title=""></a>
                         <a class="class" href="StringWriter.html" title="Writer that will result in a String"></a>
@@ -182,8 +182,8 @@
       <div id="definition">
         <div class="big-circle class">c</div>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.util">util</a></p>
-        <h1>ChunkWriter<span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html" title="Permalink">
+        <h1>SegmentWriter<span class="permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -196,12 +196,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ChunkWriter</span><span class="params">(<span name="toChunk">toChunk: <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>] = <span class="symbol">Chunk.empty</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span><span class="result"> extends <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">SegmentWriter</span><span class="params">(<span name="toByteSegment">toByteSegment: <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>] = <span class="symbol">Segment.empty[Byte]</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span><span class="result"> extends <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> that will result in a <code>ByteVector</code></p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> that will result in a <code>Segment</code></p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/util/Renderable.scala" target="_blank">Renderable.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -231,7 +231,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.util.ChunkWriter"><span>ChunkWriter</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.Writer"><span>Writer</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.util.SegmentWriter"><span>SegmentWriter</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.Writer"><span>Writer</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -256,10 +256,10 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.util.ChunkWriter#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(toChunk:fs2.Chunk[Byte],charset:java.nio.charset.Charset):org.http4s.util.ChunkWriter"></a><a id="&lt;init&gt;:ChunkWriter"></a>
+              <ol><li name="org.http4s.util.SegmentWriter#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(toByteSegment:fs2.Segment[Byte,Unit],charset:java.nio.charset.Charset):org.http4s.util.SegmentWriter"></a><a id="&lt;init&gt;:SegmentWriter"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;init&gt;(toChunk:fs2.Chunk[Byte],charset:java.nio.charset.Charset):org.http4s.util.ChunkWriter" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;init&gt;(toByteSegment:fs2.Segment[Byte,Unit],charset:java.nio.charset.Charset):org.http4s.util.SegmentWriter" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -268,7 +268,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ChunkWriter</span><span class="params">(<span name="toChunk">toChunk: <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>] = <span class="symbol">Chunk.empty</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span>
+        <span class="name">SegmentWriter</span><span class="params">(<span name="toByteSegment">toByteSegment: <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>] = <span class="symbol">Segment.empty[Byte]</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span>
       </span>
       
       <p class="shortcomment cmt"></p>
@@ -285,7 +285,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -301,7 +301,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html###():Int" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -317,7 +317,7 @@
     </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="+(other:String):String"></a><a id="+(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#+(other:String):String" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#+(other:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -330,14 +330,14 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(ChunkWriter,B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(SegmentWriter,B)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -346,21 +346,21 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;[T](r:T)(implicitevidence$3:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="&lt;&lt;[T](T)(Renderer[T]):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;[T](r:T)(implicitevidence$3:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="&lt;&lt;[T](T)(Renderer[T]):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;[T](r:T)(implicitevidence$3:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;[T](r:T)(implicitevidence$3:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -369,14 +369,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="r">r: <span class="extype" name="org.http4s.util.Writer.&lt;&lt;.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.&lt;&lt;.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="r">r: <span class="extype" name="org.http4s.util.Writer.&lt;&lt;.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.&lt;&lt;.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(long:Long):Writer.this.type"></a><a id="&lt;&lt;(Long):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(long:Long):Writer.this.type"></a><a id="&lt;&lt;(Long):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(long:Long):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(long:Long):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -385,14 +385,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="long">long: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="long">long: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(int:Int):Writer.this.type"></a><a id="&lt;&lt;(Int):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(int:Int):Writer.this.type"></a><a id="&lt;&lt;(Int):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(int:Int):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(int:Int):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -401,14 +401,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="int">int: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="int">int: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(double:Double):Writer.this.type"></a><a id="&lt;&lt;(Double):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(double:Double):Writer.this.type"></a><a id="&lt;&lt;(Double):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(double:Double):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(double:Double):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -417,14 +417,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="double">double: <a href="http://www.scala-lang.org/api/2.12.4/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="double">double: <a href="http://www.scala-lang.org/api/2.12.4/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(float:Float):Writer.this.type"></a><a id="&lt;&lt;(Float):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(float:Float):Writer.this.type"></a><a id="&lt;&lt;(Float):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(float:Float):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(float:Float):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -433,14 +433,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="float">float: <a href="http://www.scala-lang.org/api/2.12.4/scala/Float.html#scala.Float" class="extype" name="scala.Float">Float</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="float">float: <a href="http://www.scala-lang.org/api/2.12.4/scala/Float.html#scala.Float" class="extype" name="scala.Float">Float</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(char:Char):Writer.this.type"></a><a id="&lt;&lt;(Char):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(char:Char):Writer.this.type"></a><a id="&lt;&lt;(Char):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(char:Char):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(char:Char):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -449,14 +449,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="char">char: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="char">char: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(s:org.http4s.util.CaseInsensitiveString):Writer.this.type"></a><a id="&lt;&lt;(CaseInsensitiveString):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(s:org.http4s.util.CaseInsensitiveString):Writer.this.type"></a><a id="&lt;&lt;(CaseInsensitiveString):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(s:org.http4s.util.CaseInsensitiveString):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(s:org.http4s.util.CaseInsensitiveString):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -465,14 +465,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="s">s: <a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="s">s: <a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;(s:String):Writer.this.type"></a><a id="&lt;&lt;(String):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;(s:String):Writer.this.type"></a><a id="&lt;&lt;(String):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;(s:String):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;(s:String):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -481,14 +481,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less" class="name">&lt;&lt;</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#&lt;&lt;#" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;&lt;#(s:String):Writer.this.type"></a><a id="&lt;&lt;#(String):ChunkWriter.this.type"></a>
+      <a id="&lt;&lt;#(s:String):Writer.this.type"></a><a id="&lt;&lt;#(String):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#&lt;&lt;#(s:String):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#&lt;&lt;#(s:String):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -497,14 +497,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $less$less$hash" class="name">&lt;&lt;#</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span title="gt4s: $less$less$hash" class="name">&lt;&lt;#</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -518,9 +518,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.util.Writer#addSeq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addSeq[T](s:Seq[T],sep:String,start:String,end:String)(implicitevidence$2:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="addSeq[T](Seq[T],String,String,String)(Renderer[T]):ChunkWriter.this.type"></a>
+      <a id="addSeq[T](s:Seq[T],sep:String,start:String,end:String)(implicitevidence$2:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="addSeq[T](Seq[T],String,String,String)(Renderer[T]):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#addSeq[T](s:Seq[T],sep:String,start:String,end:String)(implicitevidence$2:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#addSeq[T](s:Seq[T],sep:String,start:String,end:String)(implicitevidence$2:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -529,14 +529,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addSeq</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.util.Writer.addSeq.T">T</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.addSeq.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">addSeq</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.util.Writer.addSeq.T">T</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.addSeq.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#addStringNel" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addStringNel(s:cats.data.NonEmptyList[String],sep:String,start:String,end:String):Writer.this.type"></a><a id="addStringNel(NonEmptyList[String],String,String,String):ChunkWriter.this.type"></a>
+      <a id="addStringNel(s:cats.data.NonEmptyList[String],sep:String,start:String,end:String):Writer.this.type"></a><a id="addStringNel(NonEmptyList[String],String,String,String):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#addStringNel(s:cats.data.NonEmptyList[String],sep:String,start:String,end:String):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#addStringNel(s:cats.data.NonEmptyList[String],sep:String,start:String,end:String):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -545,14 +545,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addStringNel</span><span class="params">(<span name="s">s: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">addStringNel</span><span class="params">(<span name="s">s: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#addStrings" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addStrings(s:Seq[String],sep:String,start:String,end:String):Writer.this.type"></a><a id="addStrings(Seq[String],String,String,String):ChunkWriter.this.type"></a>
+      <a id="addStrings(s:Seq[String],sep:String,start:String,end:String):Writer.this.type"></a><a id="addStrings(Seq[String],String,String,String):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#addStrings(s:Seq[String],sep:String,start:String,end:String):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#addStrings(s:Seq[String],sep:String,start:String,end:String):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -561,14 +561,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addStrings</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">addStrings</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="sep">sep: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="start">start: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="end">end: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(long:Long):ChunkWriter.this.type"></a><a id="append(Long):ChunkWriter.this.type"></a>
+    </li><li name="org.http4s.util.SegmentWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="append(long:Long):SegmentWriter.this.type"></a><a id="append(Long):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(long:Long):ChunkWriter.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(long:Long):SegmentWriter.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -577,14 +577,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="long">long: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="long">long: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(int:Int):ChunkWriter.this.type"></a><a id="append(Int):ChunkWriter.this.type"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
+    </li><li name="org.http4s.util.SegmentWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="append(int:Int):SegmentWriter.this.type"></a><a id="append(Int):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(int:Int):ChunkWriter.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(int:Int):SegmentWriter.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -593,14 +593,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="int">int: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="int">int: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(double:Double):ChunkWriter.this.type"></a><a id="append(Double):ChunkWriter.this.type"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
+    </li><li name="org.http4s.util.SegmentWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="append(double:Double):SegmentWriter.this.type"></a><a id="append(Double):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(double:Double):ChunkWriter.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(double:Double):SegmentWriter.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -609,14 +609,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="double">double: <a href="http://www.scala-lang.org/api/2.12.4/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="double">double: <a href="http://www.scala-lang.org/api/2.12.4/scala/Double.html#scala.Double" class="extype" name="scala.Double">Double</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(float:Float):ChunkWriter.this.type"></a><a id="append(Float):ChunkWriter.this.type"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
+    </li><li name="org.http4s.util.SegmentWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="append(float:Float):SegmentWriter.this.type"></a><a id="append(Float):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(float:Float):ChunkWriter.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(float:Float):SegmentWriter.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -625,14 +625,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="float">float: <a href="http://www.scala-lang.org/api/2.12.4/scala/Float.html#scala.Float" class="extype" name="scala.Float">Float</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="float">float: <a href="http://www.scala-lang.org/api/2.12.4/scala/Float.html#scala.Float" class="extype" name="scala.Float">Float</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(char:Char):ChunkWriter.this.type"></a><a id="append(Char):ChunkWriter.this.type"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
+    </li><li name="org.http4s.util.SegmentWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="append(char:Char):SegmentWriter.this.type"></a><a id="append(Char):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(char:Char):ChunkWriter.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(char:Char):SegmentWriter.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -641,14 +641,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="char">char: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="char">char: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(s:String):ChunkWriter.this.type"></a><a id="append(String):ChunkWriter.this.type"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
+    </li><li name="org.http4s.util.SegmentWriter#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="append(s:String):SegmentWriter.this.type"></a><a id="append(String):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(s:String):ChunkWriter.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(s:String):SegmentWriter.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -657,14 +657,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> → <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append[T](r:T)(implicitR:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="append[T](T)(Renderer[T]):ChunkWriter.this.type"></a>
+      <a id="append[T](r:T)(implicitR:org.http4s.util.Renderer[T]):Writer.this.type"></a><a id="append[T](T)(Renderer[T]):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append[T](r:T)(implicitR:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append[T](r:T)(implicitR:org.http4s.util.Renderer[T]):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -673,14 +673,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="r">r: <span class="extype" name="org.http4s.util.Writer.append.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="R">R: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.append.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="r">r: <span class="extype" name="org.http4s.util.Writer.append.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="R">R: <a href="Renderer.html" class="extype" name="org.http4s.util.Renderer">Renderer</a>[<span class="extype" name="org.http4s.util.Writer.append.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="org.http4s.util.Writer#append" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="append(ci:org.http4s.util.CaseInsensitiveString):Writer.this.type"></a><a id="append(CaseInsensitiveString):ChunkWriter.this.type"></a>
+      <a id="append(ci:org.http4s.util.CaseInsensitiveString):Writer.this.type"></a><a id="append(CaseInsensitiveString):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#append(ci:org.http4s.util.CaseInsensitiveString):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#append(ci:org.http4s.util.CaseInsensitiveString):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -689,14 +689,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">append</span><span class="params">(<span name="ci">ci: <a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">append</span><span class="params">(<span name="ci">ci: <a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -709,10 +709,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#charset" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.util.SegmentWriter#charset" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="charset:java.nio.charset.Charset"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#charset:java.nio.charset.Charset" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#charset:java.nio.charset.Charset" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -728,7 +728,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#clone():Object" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -750,9 +750,9 @@
               
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((ChunkWriter)⇒Boolean,⇒Any):ChunkWriter"></a>
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((SegmentWriter)⇒Boolean,⇒Any):SegmentWriter"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -761,18 +761,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((ChunkWriter)⇒Boolean):ChunkWriter"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((SegmentWriter)⇒Boolean):SegmentWriter"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -781,18 +781,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):ChunkWriter"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):SegmentWriter"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -801,18 +801,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):ChunkWriter"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):SegmentWriter"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#ensuring(cond:Boolean):A" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -821,18 +821,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -848,7 +848,7 @@
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#finalize():Unit" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -870,7 +870,7 @@
     </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#formatted(fmtstr:String):String" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#formatted(fmtstr:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -883,8 +883,8 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -893,7 +893,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -912,7 +912,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -928,7 +928,7 @@
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -944,7 +944,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#notify():Unit" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -963,7 +963,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -980,9 +980,9 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.util.Writer#quote" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="quote(s:String,escapedChars:scala.collection.immutable.BitSet,escapeChar:Char):Writer.this.type"></a><a id="quote(String,BitSet,Char):ChunkWriter.this.type"></a>
+      <a id="quote(s:String,escapedChars:scala.collection.immutable.BitSet,escapeChar:Char):Writer.this.type"></a><a id="quote(String,BitSet,Char):SegmentWriter.this.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#quote(s:String,escapedChars:scala.collection.immutable.BitSet,escapeChar:Char):Writer.this.type" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#quote(s:String,escapedChars:scala.collection.immutable.BitSet,escapeChar:Char):Writer.this.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -991,14 +991,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">quote</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="escapedChars">escapedChars: <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/BitSet.html#scala.collection.immutable.BitSet" class="extype" name="scala.collection.immutable.BitSet">BitSet</a> = <span class="symbol"><span class="name"><a href="Writer$.html">Writer.HeaderValueDQuote</a></span></span></span>, <span name="escapeChar">escapeChar: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a> = <span class="symbol">'\\'</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>.this.type</span>
+        <span class="name">quote</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="escapedChars">escapedChars: <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/BitSet.html#scala.collection.immutable.BitSet" class="extype" name="scala.collection.immutable.BitSet">BitSet</a> = <span class="symbol"><span class="name"><a href="Writer$.html">Writer.HeaderValueDQuote</a></span></span></span>, <span name="escapeChar">escapeChar: <a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a> = <span class="symbol">'\\'</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>.this.type</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1011,10 +1011,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.util.ChunkWriter#toChunk" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="toChunk:fs2.Chunk[Byte]"></a><a id="toChunk:Chunk[Byte]"></a>
+    </li><li name="org.http4s.util.SegmentWriter#toByteSegment" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="toByteSegment:fs2.Segment[Byte,Unit]"></a><a id="toByteSegment:Segment[Byte,Unit]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#toChunk:fs2.Chunk[Byte]" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#toByteSegment:fs2.Segment[Byte,Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1023,14 +1023,14 @@
         <span class="kind">var</span>
       </span>
       <span class="symbol">
-        <span class="name">toChunk</span><span class="result">: <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>
+        <span class="name">toByteSegment</span><span class="result">: <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#wait():Unit" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1052,7 +1052,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1074,7 +1074,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1096,9 +1096,9 @@
               
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(ChunkWriter,B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(SegmentWriter,B)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/util/ChunkWriter.html#→[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/util/SegmentWriter.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1107,12 +1107,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -1142,19 +1142,19 @@
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.util.ChunkWriter">ChunkWriter</a>]
+                <a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.util.SegmentWriter">SegmentWriter</a>]
               </h3>
             </div>
         </div>

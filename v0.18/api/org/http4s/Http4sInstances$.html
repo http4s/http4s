@@ -948,9 +948,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#binary" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binary[F[_]](implicitevidence$5:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binary[F[_]](Effect[F]):EntityDecoder[F,Chunk[Byte]]"></a>
+      <a id="binary[F[_]](implicitevidence$5:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,fs2.Segment[Byte,Unit]]"></a><a id="binary[F[_]](Effect[F]):EntityDecoder[F,Segment[Byte,Unit]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#binary[F[_]](implicitevidence$5:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#binary[F[_]](implicitevidence$5:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,fs2.Segment[Byte,Unit]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -959,14 +959,30 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>, <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name">binary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>, <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
+    </li><li name="org.http4s.EntityDecoderInstances#binaryChunk" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="binaryChunk[F[_]](implicitevidence$6:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binaryChunk[F[_]](Effect[F]):EntityDecoder[F,Chunk[Byte]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#binaryChunk[F[_]](implicitevidence$6:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">binaryChunk</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binaryChunk.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binaryChunk.F">F</span>, <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#byteArrayDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="byteArrayDecoder[F[_]](implicitevidence$6:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Byte]]"></a><a id="byteArrayDecoder[F[_]](Effect[F]):EntityDecoder[F,Array[Byte]]"></a>
+      <a id="byteArrayDecoder[F[_]](implicitevidence$7:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Byte]]"></a><a id="byteArrayDecoder[F[_]](Effect[F]):EntityDecoder[F,Array[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#byteArrayDecoder[F[_]](implicitevidence$6:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Byte]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#byteArrayDecoder[F[_]](implicitevidence$7:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -980,9 +996,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#byteArrayEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="byteArrayEncoder[F[_]](implicitevidence$4:cats.Applicative[F]):org.http4s.EntityEncoder[F,Array[Byte]]"></a><a id="byteArrayEncoder[F[_]](Applicative[F]):EntityEncoder[F,Array[Byte]]"></a>
+      <a id="byteArrayEncoder[F[_]](implicitevidence$5:cats.Applicative[F]):org.http4s.EntityEncoder[F,Array[Byte]]"></a><a id="byteArrayEncoder[F[_]](Applicative[F]):EntityEncoder[F,Array[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#byteArrayEncoder[F[_]](implicitevidence$4:cats.Applicative[F]):org.http4s.EntityEncoder[F,Array[Byte]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#byteArrayEncoder[F[_]](implicitevidence$5:cats.Applicative[F]):org.http4s.EntityEncoder[F,Array[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -996,9 +1012,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#charArrayDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="charArrayDecoder[F[_]](implicitevidence$8:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Char]]"></a><a id="charArrayDecoder[F[_]](Effect[F]):EntityDecoder[F,Array[Char]]"></a>
+      <a id="charArrayDecoder[F[_]](implicitevidence$9:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Char]]"></a><a id="charArrayDecoder[F[_]](Effect[F]):EntityDecoder[F,Array[Char]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#charArrayDecoder[F[_]](implicitevidence$8:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Char]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#charArrayDecoder[F[_]](implicitevidence$9:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Array[Char]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1028,9 +1044,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#chunkEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="chunkEncoder[F[_]](implicitevidence$3:cats.Applicative[F]):org.http4s.EntityEncoder[F,fs2.Chunk[Byte]]"></a><a id="chunkEncoder[F[_]](Applicative[F]):EntityEncoder[F,Chunk[Byte]]"></a>
+      <a id="chunkEncoder[F[_]](implicitevidence$4:cats.Applicative[F]):org.http4s.EntityEncoder[F,fs2.Chunk[Byte]]"></a><a id="chunkEncoder[F[_]](Applicative[F]):EntityEncoder[F,Chunk[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#chunkEncoder[F[_]](implicitevidence$3:cats.Applicative[F]):org.http4s.EntityEncoder[F,fs2.Chunk[Byte]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#chunkEncoder[F[_]](implicitevidence$4:cats.Applicative[F]):org.http4s.EntityEncoder[F,fs2.Chunk[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1199,9 +1215,9 @@ the content length without running the stream.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#filePathEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="filePathEncoder[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]"></a><a id="filePathEncoder[F[_]](Sync[F]):EntityEncoder[F,Path]"></a>
+      <a id="filePathEncoder[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]"></a><a id="filePathEncoder[F[_]](Sync[F]):EntityEncoder[F,Path]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#filePathEncoder[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#filePathEncoder[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1355,9 +1371,9 @@ the content length without running the stream.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MethodInstances.html" class="extype" name="org.http4s.MethodInstances">MethodInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#inputStreamEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,F[IS]]"></a><a id="inputStreamEncoder[F[_],IS&lt;:InputStream](Sync[F]):EntityEncoder[F,F[IS]]"></a>
+      <a id="inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](implicitevidence$7:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,F[IS]]"></a><a id="inputStreamEncoder[F[_],IS&lt;:InputStream](Sync[F]):EntityEncoder[F,F[IS]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,F[IS]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](implicitevidence$7:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,F[IS]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1387,9 +1403,9 @@ the content length without running the stream.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#multipart" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="multipart[F[_]](implicitevidence$9:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="multipart[F[_]](Effect[F]):EntityDecoder[F,Multipart[F]]"></a>
+      <a id="multipart[F[_]](implicitevidence$10:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="multipart[F[_]](Effect[F]):EntityDecoder[F,Multipart[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#multipart[F[_]](implicitevidence$9:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#multipart[F[_]](implicitevidence$10:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1403,9 +1419,9 @@ the content length without running the stream.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#multipartEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="multipartEncoder[F[_]](implicitevidence$7:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="multipartEncoder[F[_]](Sync[F]):EntityEncoder[F,Multipart[F]]"></a>
+      <a id="multipartEncoder[F[_]](implicitevidence$8:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,org.http4s.multipart.Multipart[F]]"></a><a id="multipartEncoder[F[_]](Sync[F]):EntityEncoder[F,Multipart[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#multipartEncoder[F[_]](implicitevidence$7:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#multipartEncoder[F[_]](implicitevidence$8:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,org.http4s.multipart.Multipart[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1536,10 +1552,26 @@ the content length without running the stream.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
-    </li><li name="org.http4s.EntityEncoderInstances#serverSentEventEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serverSentEventEncoder[F[_]](implicitevidence$8:cats.Applicative[F]):org.http4s.EntityEncoder[F,org.http4s.EventStream[F]]"></a><a id="serverSentEventEncoder[F[_]](Applicative[F]):EntityEncoder[F,EventStream[F]]"></a>
+    </li><li name="org.http4s.EntityEncoderInstances#segmentEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="segmentEncoder[F[_]](implicitevidence$3:cats.Applicative[F]):org.http4s.EntityEncoder[F,fs2.Segment[Byte,Unit]]"></a><a id="segmentEncoder[F[_]](Applicative[F]):EntityEncoder[F,Segment[Byte,Unit]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#serverSentEventEncoder[F[_]](implicitevidence$8:cats.Applicative[F]):org.http4s.EntityEncoder[F,org.http4s.EventStream[F]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#segmentEncoder[F[_]](implicitevidence$3:cats.Applicative[F]):org.http4s.EntityEncoder[F,fs2.Segment[Byte,Unit]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">segmentEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.segmentEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.segmentEncoder.F">F</span>, <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
+    </li><li name="org.http4s.EntityEncoderInstances#serverSentEventEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="serverSentEventEncoder[F[_]](implicitevidence$9:cats.Applicative[F]):org.http4s.EntityEncoder[F,org.http4s.EventStream[F]]"></a><a id="serverSentEventEncoder[F[_]](Applicative[F]):EntityEncoder[F,EventStream[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#serverSentEventEncoder[F[_]](implicitevidence$9:cats.Applicative[F]):org.http4s.EntityEncoder[F,org.http4s.EventStream[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1621,9 +1653,9 @@ advance.  This is for use with chunked transfer encoding.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#text" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="text[F[_]](implicitevidence$7:cats.effect.Effect[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]"></a><a id="text[F[_]](Effect[F],Charset):EntityDecoder[F,String]"></a>
+      <a id="text[F[_]](implicitevidence$8:cats.effect.Effect[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]"></a><a id="text[F[_]](Effect[F],Charset):EntityDecoder[F,String]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#text[F[_]](implicitevidence$7:cats.effect.Effect[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#text[F[_]](implicitevidence$8:cats.effect.Effect[F],implicitdefaultCharset:org.http4s.Charset):org.http4s.EntityDecoder[F,String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1685,9 +1717,9 @@ advance.  This is for use with chunked transfer encoding.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#void" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="void[F[_]](implicitevidence$10:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Unit]"></a><a id="void[F[_]](Effect[F]):EntityDecoder[F,Unit]"></a>
+      <a id="void[F[_]](implicitevidence$11:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Unit]"></a><a id="void[F[_]](Effect[F]):EntityDecoder[F,Unit]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#void[F[_]](implicitevidence$10:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Unit]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#void[F[_]](implicitevidence$11:cats.effect.Effect[F]):org.http4s.EntityDecoder[F,Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>

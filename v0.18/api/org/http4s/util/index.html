@@ -397,10 +397,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="trait" href="ChunkInstances.html" title=""></a>
                         <a href="ChunkInstances.html" title="">ChunkInstances</a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="class" href="ChunkWriter.html" title="Writer that will result in a ByteVector"></a>
-                        <a href="ChunkWriter.html" title="Writer that will result in a ByteVector">ChunkWriter</a>
-                      </li><li class="current-entities indented3">
                         <a class="object" href="Renderable$.html" title=""></a>
                         <a class="trait" href="Renderable.html" title="Mixin that makes a type writable by a Writer without needing a Renderer instance"></a>
                         <a href="Renderable.html" title="Mixin that makes a type writable by a Writer without needing a Renderer instance">Renderable</a>
@@ -408,6 +404,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Renderer$.html" title=""></a>
                         <a class="trait" href="Renderer.html" title="A type class that describes how to efficiently render a type"></a>
                         <a href="Renderer.html" title="A type class that describes how to efficiently render a type">Renderer</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="class" href="SegmentWriter.html" title="Writer that will result in a Segment"></a>
+                        <a href="SegmentWriter.html" title="Writer that will result in a Segment">SegmentWriter</a>
                       </li><li class="current-entities indented3">
                         <a class="object" href="StringWriter$.html" title=""></a>
                         <a class="class" href="StringWriter.html" title="Writer that will result in a String"></a>
@@ -582,22 +582,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.util.ChunkWriter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ChunkWriterextendsWriterwithProductwithSerializable"></a><a id="ChunkWriter:ChunkWriter"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/util/index.html#ChunkWriterextendsWriterwithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="Writer that will result in a ByteVector" href="ChunkWriter.html"><span class="name">ChunkWriter</span></a><span class="params">(<span name="toChunk">toChunk: <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>] = <span class="symbol">Chunk.empty</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span><span class="result"> extends <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      <p class="shortcomment cmt"><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> that will result in a <code>ByteVector</code></p>
     </li><li name="org.http4s.util.Renderable" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="RenderableextendsAny"></a><a id="Renderable:Renderable"></a>
       <span class="permalink">
@@ -630,6 +614,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <p class="shortcomment cmt">A type class that describes how to efficiently render a type</p><div class="fullcomment"><div class="comment cmt"><p>A type class that describes how to efficiently render a type</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>the type which will be rendered</p></dd></dl></div>
+    </li><li name="org.http4s.util.SegmentWriter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SegmentWriterextendsWriterwithProductwithSerializable"></a><a id="SegmentWriter:SegmentWriter"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/util/index.html#SegmentWriterextendsWriterwithProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="Writer that will result in a Segment" href="SegmentWriter.html"><span class="name">SegmentWriter</span></a><span class="params">(<span name="toByteSegment">toByteSegment: <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>] = <span class="symbol">Segment.empty[Byte]</span></span>, <span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">java.nio.charset.Charset</span> = <span class="symbol">StandardCharsets.UTF_8</span></span>)</span><span class="result"> extends <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      <p class="shortcomment cmt"><a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a> that will result in a <code>Segment</code></p>
     </li><li name="org.http4s.util.StringWriter" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="StringWriterextendsWriter"></a><a id="StringWriter:StringWriter"></a>
       <span class="permalink">
