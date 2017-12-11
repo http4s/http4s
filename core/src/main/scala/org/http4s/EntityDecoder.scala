@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats._
-import cats.effect.Effect
+import cats.effect.{Effect, Sync}
 import cats.implicits._
 import fs2._
 import fs2.io._
@@ -10,7 +10,6 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import org.http4s.util.chunk._
 import scala.annotation.implicitNotFound
-import scala.util.control.NonFatal
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -124,24 +123,21 @@ object EntityDecoder extends EntityDecoderInstances {
     * The new [[EntityDecoder]] will attempt to decode messages of type `T`
     * only if the [[Message]] satisfies the provided [[MediaRange]]s
     */
-  def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
-      f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
-    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-      try {
-        if (strict) {
-          msg.headers.get(`Content-Type`) match {
-            case Some(c) if matchesMediaType(c.mediaType) => f(msg)
-            case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
-            case None if matchesMediaType(UndefinedMediaType) => f(msg)
-            case None => DecodeResult.failure(MediaTypeMissing(consumes))
-          }
-        } else {
-          f(msg)
+  def decodeBy[F[_], T](r1: MediaRange, rs: MediaRange*)(f: Message[F] => DecodeResult[F, T])(
+      implicit F: Sync[F]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
+    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] = {
+      val out: DecodeResult[F, T] = if (strict) {
+        msg.headers.get(`Content-Type`) match {
+          case Some(c) if matchesMediaType(c.mediaType) => f(msg)
+          case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+          case None if matchesMediaType(UndefinedMediaType) => f(msg)
+          case None => DecodeResult.failure(MediaTypeMissing(consumes))
         }
-      } catch {
-        case NonFatal(e) =>
-          DecodeResult.failure(MalformedMessageBodyFailure("Error decoding body", Some(e)))
+      } else {
+        f(msg)
       }
+      out
+    }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }

@@ -3,6 +3,7 @@ package scalaxml
 
 import cats._
 import cats.effect._
+import cats.syntax.all._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
 import org.http4s.headers.`Content-Type`
@@ -34,12 +35,14 @@ trait ElemInstances {
           new StringReader(
             new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
-        try DecodeResult.success(F.pure(XML.loadXML(source, saxParser)))
-        catch {
-          case e: SAXParseException =>
-            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
-          case NonFatal(e) => DecodeResult(F.raiseError(e))
-        }
+
+        DecodeResult
+          .success(F.delay(XML.loadXML(source, saxParser)))
+          .handleErrorWith {
+            case e: SAXParseException =>
+              DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
+            case NonFatal(e) => DecodeResult(F.raiseError(e))
+          }
       }
     }
   }

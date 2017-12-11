@@ -166,7 +166,7 @@ object /: {
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] =
     if (!str.isEmpty)
-      Try(cast(str)).toOption
+      Try(cast(str)).toOption //can we do something about this?
     else
       None
 }

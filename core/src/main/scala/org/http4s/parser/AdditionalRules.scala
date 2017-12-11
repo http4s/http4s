@@ -158,7 +158,7 @@ private[http4s] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       min: Int,
       sec: Int,
       wkday: Int): HttpDate =
-    Try {
+    Try { //Sincerely wondering whether this can be removed too
       org.http4s.HttpDate.unsafeFromZonedDateTime(
         ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC))
     }.getOrElse {
