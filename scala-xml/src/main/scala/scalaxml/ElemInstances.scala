@@ -26,13 +26,13 @@ trait ElemInstances {
     *
     * @return an XML element
     */
-  implicit def xml[F[_]](implicit F: Effect[F]): EntityDecoder[F, Elem] = {
+  implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`) { msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(
           new StringReader(
-            new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
+            new String(arr.force.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
         try DecodeResult.success(F.pure(XML.loadXML(source, saxParser)))
         catch {

@@ -35,9 +35,9 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
 
   private def collectResource(path: String, resp: Response[F])(
       implicit F: Effect[F]): F[Response[F]] =
-    resp.body.chunks.runFoldMonoid
+    resp.body.segments.runFoldMonoid
       .map { bytes =>
-        val newResponse: Response[F] = resp.copy(body = chunk(bytes))
+        val newResponse: Response[F] = resp.copy(body = segment(bytes).covary[F])
         cacheMap.put(path, newResponse)
         newResponse
       }

@@ -148,6 +148,9 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
+  implicit def segmentEncoder[F[_]: Applicative]: EntityEncoder[F, Segment[Byte, Unit]] =
+    chunkEncoder[F].contramap[Segment[Byte, Unit]](_.force.toChunk)
+
   implicit def chunkEncoder[F[_]: Applicative]: EntityEncoder[F, Chunk[Byte]] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
 

@@ -7,7 +7,7 @@ import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.http4s.server.{AsyncTimeoutSupport, ServerBuilder}
 
-abstract class ServletContainer[F[_]: Effect] extends ServerBuilder[F] with AsyncTimeoutSupport[F] {
+abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] with AsyncTimeoutSupport[F] {
   type Self <: ServletContainer[F]
 
   /**
@@ -47,7 +47,7 @@ abstract class ServletContainer[F[_]: Effect] extends ServerBuilder[F] with Asyn
 }
 
 object ServletContainer {
-  def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
+  def DefaultServletIo[F[_]: Async]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
   /**
     * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to

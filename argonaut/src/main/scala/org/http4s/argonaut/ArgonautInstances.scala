@@ -4,15 +4,15 @@ package argonaut
 import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}
 import _root_.argonaut.Argonaut._
 import cats.Applicative
-import cats.effect.Effect
+import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
-  implicit def jsonDecoder[F[_]: Effect]: EntityDecoder[F, Json] =
+  implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
     jawn.jawnDecoder
 
-  def jsonOf[F[_]: Effect, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_]: Sync, A](implicit decoder: DecodeJson[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -55,7 +55,7 @@ trait ArgonautInstances {
               .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok))
   )
 
-  implicit class MessageSyntax[F[_]: Effect](self: Message[F]) {
+  implicit class MessageSyntax[F[_]: Sync](self: Message[F]) {
     def decodeJson[A](implicit decoder: DecodeJson[A]): F[A] =
       self.as(implicitly, jsonOf[F, A])
   }

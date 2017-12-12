@@ -115,7 +115,7 @@ class StaticFileSpec extends Http4sSpec {
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for
       // things like CachingChunkWriter that buffer the chunks.
-      new String(s.chunks.runFoldMonoid.unsafeRunSync().toArray, "utf-8") must_== expected
+      new String(s.segments.runFoldMonoid.unsafeRunSync().force.toArray, "utf-8") must_== expected
     }
 
     "Set content-length header from a URL" in {

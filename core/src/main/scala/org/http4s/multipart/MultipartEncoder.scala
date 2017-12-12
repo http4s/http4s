@@ -24,16 +24,16 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
   val closeDelimiter: Boundary => String =
     boundary => s"${delimiter(boundary)}$dash"
 
-  val start: Boundary => Chunk[Byte] = boundary =>
-    ChunkWriter()
+  val start: Boundary => Segment[Byte, Unit] = boundary =>
+    SegmentWriter()
       .append(dashBoundary(boundary))
       .append(Boundary.CRLF)
-      .toChunk
+      .toByteSegment
 
-  val end: Boundary => Chunk[Byte] = boundary =>
-    ChunkWriter()
+  val end: Boundary => Segment[Byte, Unit] = boundary =>
+    SegmentWriter()
       .append(closeDelimiter(boundary))
-      .toChunk
+      .toByteSegment
 
   /**
     * encapsulation := delimiter CRLF body-part
@@ -41,18 +41,18 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
   val encapsulationWithoutBody: Boundary => String = boundary =>
     s"${Boundary.CRLF}${dashBoundary(boundary)}${Boundary.CRLF}"
 
-  val renderHeaders: Headers => Chunk[Byte] = headers =>
+  val renderHeaders: Headers => Segment[Byte, Unit] = headers =>
     headers
-      .foldLeft(ChunkWriter()) { (chunkWriter, header) =>
+      .foldLeft(SegmentWriter()) { (chunkWriter, header) =>
         chunkWriter
           .append(header)
           .append(Boundary.CRLF)
       }
-      .toChunk
+      .toByteSegment
 
-  def renderPart(prelude: Chunk[Byte])(part: Part[F]): Stream[F, Byte] =
-    Stream.chunk(prelude) ++
-      Stream.chunk(renderHeaders(part.headers)) ++
+  def renderPart(prelude: Segment[Byte, Unit])(part: Part[F]): Stream[F, Byte] =
+    Stream.segment(prelude) ++
+      Stream.segment(renderHeaders(part.headers)) ++
       Stream.chunk(Chunk.bytes(Boundary.CRLF.getBytes)) ++
       part.body
 
@@ -60,10 +60,7 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
     parts.tail
       .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
         acc ++
-          renderPart(
-            Chunk.bytes(encapsulationWithoutBody(boundary).getBytes)
-          )(part)
-      } ++
-      Stream.chunk(end(boundary))
+          renderPart(Segment.array(encapsulationWithoutBody(boundary).getBytes))(part)
+      } ++ Stream.segment(end(boundary))
 
 }
