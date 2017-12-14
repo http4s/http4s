@@ -56,6 +56,7 @@ object ParseResult {
   def success[A](a: A): ParseResult[A] =
     Either.right(a)
 
+  //Todo: Possibly deprecate???
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {

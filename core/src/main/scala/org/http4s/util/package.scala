@@ -63,6 +63,7 @@ package object util {
     new AssertionError(
       s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
 
+  // Todo: Possibly deprecate? Cats already has this.
   private[http4s] def tryCatchNonFatal[A](f: => A): Either[Throwable, A] =
     try Right(f)
     catch { case NonFatal(t) => Left(t) }

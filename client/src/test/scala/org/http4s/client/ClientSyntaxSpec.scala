@@ -104,7 +104,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
 
     "fetch disposes of the response on uncaught exception" in {
       assertDisposes(_.fetch(req) { _ =>
-        sys.error("Don't do this at home, kids")
+        sys.error("Don't do this at home, kids") //Todo: Do we really want to allow this?
       })
     }
 

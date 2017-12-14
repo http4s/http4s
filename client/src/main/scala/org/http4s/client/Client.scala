@@ -26,8 +26,7 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
     * HTTP connection when the task finishes.
     */
   def apply[A](f: Response[F] => F[A])(implicit F: MonadError[F, Throwable]): F[A] = {
-    val task = try f(response)
-    catch { case e: Throwable => F.raiseError[A](e) }
+    val task = f(response)
     for {
       result <- task.attempt
       _ <- dispose
