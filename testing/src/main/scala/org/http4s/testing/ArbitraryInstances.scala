@@ -254,34 +254,34 @@ trait ArbitraryInstances {
     Cogen[String].contramap(_.coding)
 
   // MediaRange exepects the quoted pair without quotes
-  val genUnquotedPair = genQuotedPair.map { c =>
+  val http4sGenUnquotedPair = genQuotedPair.map { c =>
     c.substring(1, c.length - 1)
   }
 
-  val genMediaRangeExtension: Gen[(String, String)] =
+  val http4sGenMediaRangeExtension: Gen[(String, String)] =
     for {
       token <- genToken
-      value <- oneOf(genUnquotedPair, genQDText)
+      value <- oneOf(http4sGenUnquotedPair, genQDText)
     } yield (token, value)
 
-  val genMediaRangeExtensions: Gen[Map[String, String]] =
-    Gen.listOf(genMediaRangeExtension).map(_.toMap)
+  val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
+    Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
 
-  val genMediaRange: Gen[MediaRange] =
+  val http4sGenMediaRange: Gen[MediaRange] =
     for {
       `type` <- genToken
-      extensions <- genMediaRangeExtensions
+      extensions <- http4sGenMediaRangeExtensions
     } yield new MediaRange(`type`, extensions)
 
-  implicit val arbitraryMediaRange: Arbitrary[MediaRange] =
+  implicit val http4sArbitraryMediaRange: Arbitrary[MediaRange] =
     Arbitrary {
       for {
         `type` <- genToken
-        extensions <- genMediaRangeExtensions
+        extensions <- http4sGenMediaRangeExtensions
       } yield new MediaRange(`type`, extensions)
     }
 
-  implicit val cogenMediaRange: Cogen[MediaRange] =
+  implicit val http4sCogenMediaRange: Cogen[MediaRange] =
     Cogen[(String, Map[String, String])].contramap(m => (m.mainType, m.extensions))
 
   implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
@@ -432,6 +432,19 @@ trait ArbitraryInstances {
       for {
         date <- genHttpExpireDate
       } yield headers.Expires(date)
+    }
+
+  val http4sGenMediaRangeAndQValue: Gen[MediaRangeAndQValue] =
+    for {
+      mediaRange <- http4sGenMediaRange
+      qValue <- arbitrary[QValue]
+    } yield MediaRangeAndQValue(mediaRange, qValue)
+
+  implicit val http4sArbitraryAcceptHeader: Arbitrary[headers.Accept] =
+    Arbitrary {
+      for {
+        values <- nonEmptyListOf(http4sGenMediaRangeAndQValue)
+      } yield headers.Accept(NonEmptyList.of(values.head, values.tail: _*))
     }
 
   implicit val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =

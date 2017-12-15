@@ -114,6 +114,7 @@ object MediaRange {
           ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
       }
     }
+
     def MediaRangeDef: Rule1[MediaRange] = rule {
       (("*/*" ~ push("*") ~ push("*")) |
         (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |

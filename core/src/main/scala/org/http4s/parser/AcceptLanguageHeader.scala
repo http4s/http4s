@@ -28,7 +28,7 @@ private[parser] trait AcceptLanguageHeader {
 
   private class AcceptLanguageParser(value: String)
       extends Http4sHeaderParser[headers.`Accept-Language`](value)
-      with MediaParser
+      with MediaRange.MediaRangeParser
       with QValueParser {
     def entry: Rule1[headers.`Accept-Language`] = rule {
       oneOrMore(languageTag).separatedBy(ListSep) ~> { tags: Seq[LanguageTag] =>

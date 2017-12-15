@@ -39,7 +39,6 @@ class MediaRangeSpec extends Http4sSpec {
       raw.parsed must beAnInstanceOf[headers.Accept]
       Header("Accept", raw.parsed.value).parsed must_== raw.parsed
     }
-
   }
 
   checkAll("Eq[MediaRange]", EqTests[MediaRange].eqv)
