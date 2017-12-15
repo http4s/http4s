@@ -23,6 +23,7 @@ object CentralRequirementsPlugin extends AutoPlugin {
       Developer("cquiroz"              , "Carlos Quiroz"         , ""                                 , url("https://github.com/cquiroz")),
       Developer("hvesalai"             , "Heikki Vesalainen"     , ""                                 , url("https://github.com/hvesalai")),
       Developer("jedesah"              , "Jean-Rémi Desjardins"  , ""                                 , url("https://github.com/jedesah")),
+      Developer("jmcardon"             , "Jose Cardona"          , ""                                 , url("https://github.com/jmcardon")),      
       Developer("julien-truffaut"      , "Julien Truffaut"       , ""                                 , url("https://github.com/julien-truffaut")),
       Developer("kryptt"               , "Rodolfo Hansen"        , ""                                 , url("https://github.com/kryptt")),
       Developer("reactormonk"          , "Simon Hafner"          , ""                                 , url("https://github.com/reactormonk")),
