@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicReference
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
-import org.http4s.util.{Registry, Renderable, Writer}
+import org.http4s.util.{Renderable, Writer}
 import scala.annotation.tailrec
 
 sealed class MediaRange private[http4s] (
@@ -128,7 +128,10 @@ object MediaRange {
     private def getMediaRange(mainType: String, subType: String): MediaRange =
       if (subType === "*")
         MediaRange.standard.getOrElse(mainType.toLowerCase, new MediaRange(mainType))
-      else MediaType.getOrElseCreate((mainType.toLowerCase, subType.toLowerCase))
+      else
+        MediaType.all.getOrElse(
+          (mainType.toLowerCase, subType.toLowerCase),
+          new MediaType(mainType.toLowerCase, subType.toLowerCase))
   }
 
   implicit val http4sInstancesForMediaRange
@@ -176,8 +179,8 @@ sealed class MediaType(
   override def satisfiedBy(mediaType: MediaRange): Boolean = mediaType match {
     case mediaType: MediaType =>
       (this eq mediaType) ||
-        mainType == mediaType.mainType &&
-          subType == mediaType.subType
+        mainType === mediaType.mainType &&
+          subType === mediaType.subType
 
     case _ => false
   }
@@ -185,20 +188,17 @@ sealed class MediaType(
   override def equals(obj: Any): Boolean = obj match {
     case x: MediaType =>
       (this eq x) ||
-        mainType == x.mainType &&
-          subType == x.subType &&
-          extensions == x.extensions
+        mainType === x.mainType &&
+          subType === x.subType &&
+          extensions === x.extensions
     case _ => false
   }
 
   override def hashCode(): Int = renderString.##
-  override def toString: String = "MediaType(" + renderString + ')'
+  override def toString: String = s"MediaType($renderString)"
 }
 
-object MediaType extends Registry {
-  type Key = (String, String)
-  type Value = MediaType
-
+object MediaType {
   // TODO error handling
   implicit def fromKey(k: (String, String)): MediaType = new MediaType(k._1, k._2)
   implicit def fromValue(v: MediaType): (String, String) =
@@ -220,10 +220,7 @@ object MediaType extends Registry {
     if (!extensionMap.compareAndSet(current, updated)) registerFileExtension(ext, mediaType)
   }
 
-  override protected def register(
-      key: MediaType.Key,
-      mediaType: MediaType.Value): mediaType.type = {
-    super.register(key, mediaType)
+  private def register(mediaType: MediaType): MediaType = {
     mediaType.fileExtensions.foreach(registerFileExtension(_, mediaType))
     mediaType
   }
@@ -238,7 +235,7 @@ object MediaType extends Registry {
 
   def multipart(subType: String, boundary: Option[String] = None): MediaType = {
     val ext = boundary.map(b => Map("boundary" -> b)).getOrElse(Map.empty)
-    new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
+    register(new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext))
   }
 
   private[this] def app(
@@ -246,26 +243,26 @@ object MediaType extends Registry {
       compressible: Boolean,
       binary: Boolean,
       fileExtensions: String*) =
-    registerValue(new MediaType("application", subType, compressible, binary, fileExtensions))
+    register(new MediaType("application", subType, compressible, binary, fileExtensions))
 
   private[this] def aud(subType: String, compressible: Boolean, fileExtensions: String*) =
-    registerValue(new MediaType("audio", subType, compressible, binary, fileExtensions))
+    register(new MediaType("audio", subType, compressible, binary, fileExtensions))
 
   private[this] def img(
       subType: String,
       compressible: Boolean,
       binary: Boolean,
       fileExtensions: String*) =
-    registerValue(new MediaType("image", subType, compressible, binary, fileExtensions))
+    register(new MediaType("image", subType, compressible, binary, fileExtensions))
 
   private[this] def msg(subType: String, fileExtensions: String*) =
-    registerValue(new MediaType("message", subType, compressible, notBinary, fileExtensions))
+    register(new MediaType("message", subType, compressible, notBinary, fileExtensions))
 
   private[this] def txt(subType: String, fileExtensions: String*) =
-    registerValue(new MediaType("text", subType, compressible, notBinary, fileExtensions))
+    register(new MediaType("text", subType, compressible, notBinary, fileExtensions))
 
   private[this] def vid(subType: String, fileExtensions: String*) =
-    registerValue(new MediaType("video", subType, uncompressible, binary, fileExtensions))
+    register(new MediaType("video", subType, uncompressible, binary, fileExtensions))
 
   // scalastyle:off line.size.limit
   val `application/atom+xml` = app("atom+xml", compressible, notBinary, "atom")
@@ -394,6 +391,80 @@ object MediaType extends Registry {
   val `application/xml-dtd` = app("xml-dtd", compressible, notBinary)
   val `application/xml` = app("xml", compressible, notBinary)
   val `application/zip` = app("zip", uncompressible, binary, "zip")
+
+  val allApplication: Map[(String, String), MediaType] = List(
+    `application/atom+xml`,
+    `application/base64`,
+    `application/excel`,
+    `application/font-woff`,
+    `application/gnutar`,
+    `application/gzip`,
+    `application/hal+json`,
+    `application/java-archive`,
+    `application/javascript`,
+    `application/json`,
+    `application/lha`,
+    `application/lzx`,
+    `application/mspowerpoint`,
+    `application/msword`,
+    `application/octet-stream`,
+    `application/pdf`,
+    `application/problem+json`,
+    `application/postscript`,
+    `application/rss+xml`,
+    `application/soap+xml`,
+    `application/vnd.api+json`,
+    `application/vnd.google-earth.kml+xml`,
+    `application/vnd.google-earth.kmz`,
+    `application/vnd.ms-fontobject`,
+    `application/vnd.oasis.opendocument.chart`,
+    `application/vnd.oasis.opendocument.database`,
+    `application/vnd.oasis.opendocument.formula`,
+    `application/vnd.oasis.opendocument.graphics`,
+    `application/vnd.oasis.opendocument.image`,
+    `application/vnd.oasis.opendocument.presentation`,
+    `application/vnd.oasis.opendocument.spreadsheet`,
+    `application/vnd.oasis.opendocument.text`,
+    `application/vnd.oasis.opendocument.text-master`,
+    `application/vnd.oasis.opendocument.text-web`,
+    `application/vnd.openxmlformats-officedocument.presentationml.presentation`,
+    `application/vnd.openxmlformats-officedocument.presentationml.slide`,
+    `application/vnd.openxmlformats-officedocument.presentationml.slideshow`,
+    `application/vnd.openxmlformats-officedocument.presentationml.template`,
+    `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`,
+    `application/vnd.openxmlformats-officedocument.spreadsheetml.template`,
+    `application/vnd.openxmlformats-officedocument.wordprocessingml.document`,
+    `application/vnd.openxmlformats-officedocument.wordprocessingml.template`,
+    `application/x-7z-compressed`,
+    `application/x-ace-compressed`,
+    `application/x-apple-diskimage`,
+    `application/x-arc-compressed`,
+    `application/x-bzip`,
+    `application/x-bzip2`,
+    `application/x-chrome-extension`,
+    `application/x-compress`,
+    `application/x-debian-package`,
+    `application/x-dvi`,
+    `application/x-font-truetype`,
+    `application/x-font-opentype`,
+    `application/x-gtar`,
+    `application/x-gzip`,
+    `application/x-latex`,
+    `application/x-rar-compressed`,
+    `application/x-redhat-package-manager`,
+    `application/x-shockwave-flash`,
+    `application/x-tar`,
+    `application/x-tex`,
+    `application/x-texinfo`,
+    `application/x-vrml`,
+    `application/x-www-form-urlencoded`,
+    `application/x-x509-ca-cert`,
+    `application/x-xpinstall`,
+    `application/xhtml+xml`,
+    `application/xml-dtd`,
+    `application/xml`,
+    `application/zip`
+  ).map(x => (x.mainType, x.subType) -> x).toMap
   // scalastyle:on line.size.limit
 
   val `audio/aiff` = aud("aiff", compressible, "aif", "aifc", "aiff")
@@ -409,6 +480,21 @@ object MediaType extends Registry {
   val `audio/x-realaudio` = aud("x-pn-realaudio", uncompressible, "ra", "ram", "rmm", "rmp")
   val `audio/x-psid` = aud("x-psid", compressible, "sid")
   val `audio/xm` = aud("xm", uncompressible, "xm")
+  val allAudio: Map[(String, String), MediaType] = List(
+    `audio/aiff`,
+    `audio/basic`,
+    `audio/midi`,
+    `audio/mod`,
+    `audio/mpeg`,
+    `audio/ogg`,
+    `audio/voc`,
+    `audio/vorbis`,
+    `audio/voxware`,
+    `audio/wav`,
+    `audio/x-realaudio`,
+    `audio/x-psid`,
+    `audio/xm`
+  ).map(x => (x.mainType, x.subType) -> x).toMap
 
   val `image/gif` = img("gif", uncompressible, binary, "gif")
   val `image/jpeg` = img("jpeg", uncompressible, binary, "jpe", "jpeg", "jpg")
@@ -424,10 +510,30 @@ object MediaType extends Registry {
   val `image/x-rgb` = img("x-rgb", compressible, binary, "rgb")
   val `image/x-xbitmap` = img("x-xbitmap", compressible, binary, "xbm")
   val `image/x-xpixmap` = img("x-xpixmap", compressible, binary, "xpm")
+  val allImage: Map[(String, String), MediaType] = List(
+    `image/gif`,
+    `image/jpeg`,
+    `image/pict`,
+    `image/png`,
+    `image/svg+xml`,
+    `image/tiff`,
+    `image/x-icon`,
+    `image/x-ms-bmp`,
+    `image/x-pcx`,
+    `image/x-pict`,
+    `image/x-quicktime`,
+    `image/x-rgb`,
+    `image/x-xbitmap`,
+    `image/x-xpixmap`
+  ).map(x => (x.mainType, x.subType) -> x).toMap
 
   val `message/http` = msg("http")
   val `message/delivery-status` = msg("delivery-status")
   val `message/rfc822` = msg("rfc822", "eml", "mht", "mhtml", "mime")
+  val allMessage: Map[(String, String), MediaType] = List(
+    `message/http`,
+    `message/delivery-status`,
+    `message/rfc822`).map(x => (x.mainType, x.subType) -> x).toMap
 
   val `multipart/mixed` = multipart("mixed")
   val `multipart/alternative` = multipart("alternative")
@@ -435,6 +541,13 @@ object MediaType extends Registry {
   val `multipart/form-data` = multipart("form-data")
   val `multipart/signed` = multipart("signed")
   val `multipart/encrypted` = multipart("encrypted")
+  val allMultipart: Map[(String, String), MediaType] = List(
+    `multipart/mixed`,
+    `multipart/alternative`,
+    `multipart/related`,
+    `multipart/form-data`,
+    `multipart/signed`,
+    `multipart/encrypted`).map(x => (x.mainType, x.subType) -> x).toMap
 
   val `text/asp` = txt("asp", "asp")
   val `text/cache-manifest` = txt("cache-manifest", "manifest")
@@ -478,6 +591,50 @@ object MediaType extends Registry {
   val `text/x-vcalendar` = txt("x-vcalendar", "vcs")
   val `text/x-vcard` = txt("x-vcard", "vcf", "vcard")
   val `text/xml` = txt("xml", "xml")
+  val allText: Map[(String, String), MediaType] = List(
+    `text/asp`,
+    `text/cache-manifest`,
+    `text/calendar`,
+    `text/css`,
+    `text/csv`,
+    `text/event-stream`,
+    `text/html`,
+    `text/mcf`,
+    `text/plain`,
+    `text/richtext`,
+    `text/tab-separated-values`,
+    `text/uri-list`,
+    `text/vnd.wap.wml`,
+    `text/vnd.wap.wmlscript`,
+    `text/x-asm`,
+    `text/x-c`,
+    `text/x-component`,
+    `text/x-h`,
+    `text/x-java-source`,
+    `text/x-pascal`,
+    `text/x-script`,
+    `text/x-scriptcsh`,
+    `text/x-scriptelisp`,
+    `text/x-scriptksh`,
+    `text/x-scriptlisp`,
+    `text/x-scriptperl`,
+    `text/x-scriptperl-module`,
+    `text/x-scriptphyton`,
+    `text/x-scriptrexx`,
+    `text/x-scriptscheme`,
+    `text/x-scriptsh`,
+    `text/x-scripttcl`,
+    `text/x-scripttcsh`,
+    `text/x-scriptzsh`,
+    `text/x-server-parsed-html`,
+    `text/x-setext`,
+    `text/x-sgml`,
+    `text/x-speech`,
+    `text/x-uuencode`,
+    `text/x-vcalendar`,
+    `text/x-vcard`,
+    `text/xml`
+  ).map(x => (x.mainType, x.subType) -> x).toMap
 
   val `video/avs-video` = vid("avs-video", "avs")
   val `video/divx` = vid("divx", "divx")
@@ -492,4 +649,23 @@ object MediaType extends Registry {
   val `video/x-ms-asf` = vid("x-ms-asf", "asf")
   val `video/x-msvideo` = vid("x-msvideo", "avi")
   val `video/x-sgi-movie` = vid("x-sgi-movie", "movie", "mv")
+  val allVideo: Map[(String, String), MediaType] = List(
+    `video/avs-video`,
+    `video/divx`,
+    `video/gl`,
+    `video/mp4`,
+    `video/mpeg`,
+    `video/ogg`,
+    `video/quicktime`,
+    `video/x-dv`,
+    `video/x-flv`,
+    `video/x-motion-jpeg`,
+    `video/x-ms-asf`,
+    `video/x-msvideo`,
+    `video/x-sgi-movie`
+  ).map(x => (x.mainType, x.subType) -> x).toMap
+
+  val all
+    : Map[(String, String), MediaType] = allApplication ++ allAudio ++ allAudio ++ allImage ++ allMessage ++ allMultipart ++ allText ++ allVideo
+
 }
