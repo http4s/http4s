@@ -63,6 +63,7 @@ trait ArbitraryInstances {
 
   val genText: Gen[String] = oneOf(nonEmptyListOf(oneOf(allowedText)).map(_.mkString), genLws)
 
+  // TODO Fix Rfc2616BasicRules.QuotedString to support the backslash character
   val allowedQDText: List[Char] = allowedText.filterNot(c => c == '"' || c == '\\')
 
   val genQDText: Gen[String] = nonEmptyListOf(oneOf(allowedQDText)).map(_.mkString)
