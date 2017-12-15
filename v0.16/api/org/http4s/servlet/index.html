@@ -469,11 +469,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/de720803335d740f855f2744e1ed184e9465afec/servlet/src/main/scala/org/http4s/servlet/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d34dcaf63575edb84d5970ba93f5857405fb0636/servlet/src/main/scala/org/http4s/servlet/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -549,7 +549,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Use standard blocking reads and writes." href="BlockingServletIo.html"><span class="name">BlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Use standard blocking reads and writes." href="BlockingServletIo.html"><span class="name">BlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Use standard blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use standard blocking reads and writes.</p><p>This is more CPU efficient per request than <a href="NonBlockingServletIo.html" class="extype" name="org.http4s.servlet.NonBlockingServletIo">NonBlockingServletIo</a>, but is likely to
@@ -567,7 +567,7 @@ require a larger request thread pool for the same load.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">BodyWriter</span><span class="result alias"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>
+        <span class="name">BodyWriter</span><span class="result alias"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -615,7 +615,7 @@ require a larger request thread pool for the same load.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Use non-blocking reads and writes." href="NonBlockingServletIo.html"><span class="name">NonBlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Use non-blocking reads and writes." href="NonBlockingServletIo.html"><span class="name">NonBlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Use non-blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.</p><p>This can support more concurrent connections on a smaller request thread pool than <a href="BlockingServletIo.html" class="extype" name="org.http4s.servlet.BlockingServletIo">BlockingServletIo</a>,
@@ -635,7 +635,7 @@ operationally annoying.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="ServletApiVersion.html"><span class="name">ServletApiVersion</span></a><span class="params">(<span name="major">major: <span class="extype" name="scala.Int">Int</span></span>, <span name="minor">minor: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="ServletApiVersion.html" class="extype" name="org.http4s.servlet.ServletApiVersion">ServletApiVersion</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="" href="ServletApiVersion.html"><span class="name">ServletApiVersion</span></a><span class="params">(<span name="major">major: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="minor">minor: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="ServletApiVersion.html" class="extype" name="org.http4s.servlet.ServletApiVersion">ServletApiVersion</a>] with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -667,7 +667,7 @@ operationally annoying.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Determines the mode of I/O used for reading request bodies and writing response bodies." href="ServletIo.html"><span class="name">ServletIo</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a title="Determines the mode of I/O used for reading request bodies and writing response bodies." href="ServletIo.html"><span class="name">ServletIo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">Determines the mode of I/O used for reading request bodies and writing response bodies.</p>
@@ -691,7 +691,7 @@ operationally annoying.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">DefaultChunkSize</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span class="name">DefaultChunkSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -723,7 +723,7 @@ operationally annoying.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="ServletApiVersion$.html"><span class="name">ServletApiVersion</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="" href="ServletApiVersion$.html"><span class="name">ServletApiVersion</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -754,9 +754,9 @@ operationally annoying.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></h3>
             </div>
         
         </div>
