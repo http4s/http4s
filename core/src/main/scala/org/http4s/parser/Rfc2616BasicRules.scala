@@ -61,6 +61,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def CText = rule { !anyOf("()") ~ Text }
 
+  // TODO This parser cannot handle strings terminating on \" which is a border case but still valid quoted pair
   def QuotedString: Rule1[String] = rule {
     "\"" ~ zeroOrMore(QuotedPair | QDText) ~> { chars: Seq[Char] =>
       new String(chars.toArray[scala.Char])

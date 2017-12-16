@@ -32,7 +32,7 @@ class UriParserSpec extends Http4sSpec {
         l <- 0 to 7 - h
         f = List.fill(h)("01ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
-      } yield (f + "::" + b))
+      } yield f + "::" + b)
 
       foreach(v) { s =>
         Either.fromTry(new IpParserImpl(s, StandardCharsets.UTF_8).CaptureIPv6.run()) must beRight(
