@@ -33,7 +33,7 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
     val task: F[A] = try f(response)
     catch {
       case e: Throwable =>
-        logger.info(s"Caught exception in otherwise pure expression $e")
+        logger.error(s"Caught exception in otherwise pure expression $e")
         F.raiseError(e)
     }
 
