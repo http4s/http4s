@@ -4,35 +4,25 @@ weight: 100
 title: Versions
 ---
 
-## Roadmap
+## Release lifecycle
 
-* [`http4s-0.16`](../v0.16/) is the final release series based on [Scalaz] and [scalaz-stream]. We will support this branch with bugfixes, but not new development.
-* [`http4s-0.17`](../v0.17/) is the first release on [Cats] and [FS2].  Scalaz users are encouraged to look at [shims].
-* [`http4s-0.18`](../v0.18/) is the first release on [cats-effect].  This release parameterizes the effect, and is intended to work well with `cats.effect.IO`, `monix.eval.Task`, `scalaz.concurrent.Task`, and any other effect type with a `cats.effect.Effect` instance.
-
-[Scalaz]: https://github.com/scalaz/scalaz
-[scalaz-stream]: https://github.com/scalaz/scalaz-stream
-[Cats]: https://typelevel.org/cats/
-[FS2]: https://github.com/functional-streams-for-scala/fs2
-[cats-effect]: https://github.com/typelevel/cats-effect
-[shims]: https://github.com/djspiewak/shims
-
-## Matrix
-      
+* <span class="badge badge-danger">Snapshots</span> of all branches
+  are published automatically by [Travis CI] to the [Sonatype Snapshot
+  repo].
+* <span class="badge badge-warning">Milestone</span> releases are
+  published for early adopters who need the latest dependencies or new
+  features.  We will try to deprecate responsibly, but no binary
+  compatibility is guaranteed.
 * <span class="badge badge-success">Stable</span> releases are
-  recommended for production use and are maintained with
-  backward, binary compatible bugfixes from the http4s
-  team.
-* <span class="badge badge-warning">Milestone</span> releases
-  are published for early adopters.  API breakage may still occur
-  until the first stable release in that series.
-* <span class="badge badge-secondary">EOL</span> releases are
-  no longer actively maintained, but pull requests with a tale
-  of woe may be considered.
-* Snapshots of all branches are published automatically by [Travis CI]
-  to the [Sonatype Snapshot repo].
+  recommended for production use.  Backward binary compatibility is
+  preserved across the minor version.  Patches will be issued for
+  bugs, or selectively for backports with a working pull request.
+* <span class="badge badge-secondary">EOL</span> releases are no
+  longer supported by the http4s team.  Users will be asked to upgrade
+  in the official support channels.  Patches will be issued only with
+  a working pull request accompanied by a heartbreaking tale of woe.
 
-[Travis CI]: https://travis-ci.org/http4s/http4s
+[Travis CI]: https://travis-ci.org/http4s/http4s 
 [Sonatype Snapshot repo]: https://oss.sonatype.org/content/repositories/snapshots/org/http4s/
 
 <table class="table table-responsive table-hover">
@@ -50,18 +40,28 @@ title: Versions
   </thead>
   <tbody>
     <tr>
-      <td><a href="/v0.18">{{% latestInSeries "0.18" %}}</a></td>
-      <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
+      <td><a href="/v0.19">0.19.0&#8209;SNAPSHOT</a></td>
+      <td class="text-center"><span class="badge badge-danger">Development</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
-      <td>cats&#8209;1.0.0&#8209;RC1</td>
-      <td>fs2&#8209;0.10.0-M8</td>
+      <td>cats&#8209;1</td>
+      <td>fs2&#8209;0.10</td>
+      <td>1.8+</td>
+    </tr>
+    <tr>
+      <td><a href="/v0.18">{{% latestInSeries "0.18" %}}</a></td>
+      <td class="text-center"><span class="badge badge-success">Stable</span></td>
+      <td class="text-center"><i class="fa fa-ban"></i></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
+      <td class="text-center"><i class="fa fa-check"></i></td>
+      <td>cats&#8209;1</td>
+      <td>fs2&#8209;0.10</td>
       <td>1.8+</td>
     </tr>
     <tr>
       <td><a href="/v0.17">{{% latestInSeries "0.17" %}}</a></td>
-      <td class="text-center"><span class="badge badge-success">Stable</span></td>
+      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
