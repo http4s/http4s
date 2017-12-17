@@ -7,7 +7,7 @@ branches:
 jdk: oraclejdk8
 scala:
 - 2.12.4
-- 2.11.11
+- 2.11.12
 env:
   global:
   - HUGO_VERSION=0.26
