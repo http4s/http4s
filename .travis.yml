@@ -7,8 +7,8 @@ branches:
 jdk: oraclejdk8
 scala:
 - 2.12.4
-- 2.11.11
-- 2.10.6
+- 2.11.12
+- 2.10.7
 env:
   matrix:
   - SCALAZ_VERSION=7.2.17
