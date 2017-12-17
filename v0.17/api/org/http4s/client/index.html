@@ -547,11 +547,11 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 <span class="kw">val</span> r: Task[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
 <span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
 <span class="kw">val</span> req1 = r.run
-<span class="kw">val</span> req2 = r.run <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/8006d8dc7815b41002ed586b12db14855d9d3a0b/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+<span class="kw">val</span> req2 = r.run <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/f99c005ec0e96be67b0fa4d3485a45509cf6cac4/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
         </div></div>
         
 
@@ -611,7 +611,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="A Client submits Requests to a server and processes the Response." href="Client.html"><span class="name">Client</span></a><span class="params">(<span name="open">open: <a href="../index.html#Service[A,B]=cats.data.Kleisli[fs2.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>]</span>, <span name="shutdown">shutdown: <span class="extype" name="fs2.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="A Client submits Requests to a server and processes the Response." href="Client.html"><span class="name">Client</span></a><span class="params">(<span name="open">open: <a href="../index.html#Service[A,B]=cats.data.Kleisli[fs2.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>]</span>, <span name="shutdown">shutdown: <span class="extype" name="fs2.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
@@ -631,7 +631,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="Connection.html"><span class="name">Connection</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a title="" href="Connection.html"><span class="name">Connection</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></span>
       </span>
       
       
@@ -663,7 +663,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Type that is responsible for the client lifecycle" href="ConnectionManager.html"><span class="name">ConnectionManager</span></a><span class="tparams">[<span name="A">A &lt;: <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <a title="Type that is responsible for the client lifecycle" href="ConnectionManager.html"><span class="name">ConnectionManager</span></a><span class="tparams">[<span name="A">A &lt;: <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></span>
       </span>
       
       <p class="shortcomment cmt">Type that is responsible for the client lifecycle</p><div class="fullcomment"><div class="comment cmt"><p>Type that is responsible for the client lifecycle</p><p>The <a href="ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a> is a general wrapper around a <a href="#ConnectionBuilder[A&lt;:org.http4s.client.Connection]=org.http4s.client.RequestKey=&gt;fs2.Task[A]" class="extmbr" name="org.http4s.client.ConnectionBuilder">ConnectionBuilder</a>
@@ -683,7 +683,7 @@ must have a mechanism to free resources associated with it.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Contains a Response that needs to be disposed of to free the underlying HTTP connection." href="DisposableResponse.html"><span class="name">DisposableResponse</span></a><span class="params">(<span name="response">response: <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a></span>, <span name="dispose">dispose: <span class="extype" name="fs2.Task">Task</span>[<span class="extype" name="scala.Unit">Unit</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Contains a Response that needs to be disposed of to free the underlying HTTP connection." href="DisposableResponse.html"><span class="name">DisposableResponse</span></a><span class="params">(<span name="response">response: <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a></span>, <span name="dispose">dispose: <span class="extype" name="fs2.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Contains a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> that needs to be disposed of to free the underlying
@@ -716,7 +716,7 @@ HTTP connection.</p>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="package$$NoBodySyntax.html"><span class="name">NoBodySyntax</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="impl/EmptyRequestGenerator.html" class="extype" name="org.http4s.client.impl.EmptyRequestGenerator">EmptyRequestGenerator</a></span>
+        <a title="" href="package$$NoBodySyntax.html"><span class="name">NoBodySyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyVal" class="extype" name="scala.collection.immutable.List">AnyVal</a> with <a href="impl/EmptyRequestGenerator.html" class="extype" name="org.http4s.client.impl.EmptyRequestGenerator">EmptyRequestGenerator</a></span>
       </span>
       
       
@@ -732,7 +732,7 @@ HTTP connection.</p>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Represents a key for requests that can conceivably share a Connection." href="RequestKey.html"><span class="name">RequestKey</span></a><span class="params">(<span name="scheme">scheme: <a href="../Uri$.html#Scheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="authority">authority: <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="Represents a key for requests that can conceivably share a Connection." href="RequestKey.html"><span class="name">RequestKey</span></a><span class="params">(<span name="scheme">scheme: <a href="../Uri$.html#Scheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="authority">authority: <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Represents a key for requests that can conceivably share a <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a>.</p>
@@ -748,7 +748,7 @@ HTTP connection.</p>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="" href="UnexpectedStatus.html"><span class="name">UnexpectedStatus</span></a><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <span class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="" href="UnexpectedStatus.html"><span class="name">UnexpectedStatus</span></a><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="http://www.scala-lang.org/api/2.12.4/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -764,7 +764,7 @@ HTTP connection.</p>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="Syntax classes to generate a request directly from a Method" href="package$$WithBodySyntax.html"><span class="name">WithBodySyntax</span></a><span class="result"> extends <span class="extype" name="scala.AnyVal">AnyVal</span> with <a href="impl/EntityRequestGenerator.html" class="extype" name="org.http4s.client.impl.EntityRequestGenerator">EntityRequestGenerator</a></span>
+        <a title="Syntax classes to generate a request directly from a Method" href="package$$WithBodySyntax.html"><span class="name">WithBodySyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyVal" class="extype" name="scala.collection.immutable.List">AnyVal</a> with <a href="impl/EntityRequestGenerator.html" class="extype" name="org.http4s.client.impl.EntityRequestGenerator">EntityRequestGenerator</a></span>
       </span>
       
       <p class="shortcomment cmt">Syntax classes to generate a request directly from a <a href="../Method.html" class="extype" name="org.http4s.Method">Method</a></p>
@@ -804,7 +804,7 @@ HTTP connection.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="Client$.html"><span class="name">Client</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="" href="Client$.html"><span class="name">Client</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -836,7 +836,7 @@ HTTP connection.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="RequestKey$.html"><span class="name">RequestKey</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <a title="" href="RequestKey$.html"><span class="name">RequestKey</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -851,9 +851,9 @@ HTTP connection.</p>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></h3>
             </div>
         
         </div>
