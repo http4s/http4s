@@ -17,8 +17,8 @@ package object websocket {
   /**
     * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
     * supplied exchange to process and respond to websocket messages.
-    * @param read     The read side of the Exchange represents the stream of messages that should be sent to the client
-    * @param write    The write side of the Exchange is a sink to which the framework will push the websocket messages
+    * @param send     The send side of the Exchange represents the stream of messages that should be sent to the client
+    * @param receive  The receive side of the Exchange is a sink to which the framework will push the websocket messages
     *                 received from the client.
     *                 Once both streams have terminated, the server will initiate a close of the websocket connection.
     *                 As defined in the websocket specification, this means the server
@@ -40,13 +40,13 @@ package object websocket {
     * @param status The status code to return to a client making a non-websocket HTTP request to this route
     */
   def WS[F[_]](
-      read: Stream[F, WebSocketFrame],
-      write: Sink[F, WebSocketFrame],
+      send: Stream[F, WebSocketFrame],
+      receive: Sink[F, WebSocketFrame],
       status: F[Response[F]])(implicit F: Functor[F]): F[Response[F]] =
-    status.map(_.withAttribute(AttributeEntry(websocketKey[F], Websocket(read, write))))
+    status.map(_.withAttribute(AttributeEntry(websocketKey[F], Websocket(send, receive))))
 
-  def WS[F[_]](read: Stream[F, WebSocketFrame], write: Sink[F, WebSocketFrame])(
+  def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],
       W: EntityEncoder[F, String]): F[Response[F]] =
-    WS(read, write, Response[F](Status.NotImplemented).withBody("This is a WebSocket route."))
+    WS(send, receive, Response[F](Status.NotImplemented).withBody("This is a WebSocket route."))
 }
