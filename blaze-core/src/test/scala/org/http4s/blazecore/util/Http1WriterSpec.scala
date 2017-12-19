@@ -2,7 +2,6 @@ package org.http4s
 package blazecore
 package util
 
-import cats.Eval.always
 import cats.effect._
 import fs2._
 import fs2.Stream._
@@ -32,7 +31,7 @@ class Http1WriterSpec extends Http4sSpec {
     val w = builder(tail)
 
     (for {
-      _ <- IO.fromFuture(always(w.writeHeaders(new StringWriter << "Content-Type: text/plain\r\n")))
+      _ <- IO.fromFuture(IO(w.writeHeaders(new StringWriter << "Content-Type: text/plain\r\n")))
       _ <- w.writeEntityBody(p).attempt
     } yield ()).unsafeRunSync()
     head.stageShutdown()

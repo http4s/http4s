@@ -151,7 +151,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
 
           // If we get a pipeline closed, we might still be good. Check response
           val responseTask: F[Response[F]] =
-            receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)f
+            receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
           renderTask
             .productR(responseTask)
