@@ -22,7 +22,6 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
-      "org.typelevel" %% "cats-effect" % "0.6", // temporary to force upgrade: normally get through fs2
       fs2Io,
       fs2Scodec,
       http4sWebsocket,
