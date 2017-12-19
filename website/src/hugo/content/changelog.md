@@ -8,6 +8,29 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0-M7
+* Relax various typeclass constraints from `Effect` to `Sync` or `Async`. [#1587](https://github.com/http4s/http4s/pull/1587)
+* Operate on `Segment` instead of `Chunk` [#1588](https://github.com/http4s/http4s/pull/1588)
+   * `EntityDecoder.collectBinary` and `EntityDecoder.binary` now
+     return `Segment[Byte, Unit]` instead of `Chunk[Byte]`.  
+   * Add `EntityDecoder.binaryChunk`.
+   * Add `EntityEncoder.segmentEncoder`.
+   * `http4sMonoidForChunk` replaced by `http4sMonoidForSegment`.
+* Add new generators for core RFC 2616 types. [#1593](https://github.com/http4s/http4s/pull/1593)
+* Undo obsolete copying of bytes in `StaticFile.fromURL`. [#1202](https://github.com/http4s/http4s/pull/1202)
+* Optimize conversion of `Chunk.Bytes` and `ByteVectorChunk` to `ByteBuffer. [#1602](https://github.com/http4s/http4s/pull/1602)
+* Rename `read` to `send` and `write` to `receive` in websocket model. [#1603](https://github.com/http4s/http4s/pull/1603)
+* Dependency upgrades:
+   * async-http-client-2.0.38
+   * cats-1.0.0.RC2
+   * circe-???
+   * fs2-???
+   * fs2-jawn-???
+   * fs2-reactive-streams-???
+   * scala-2.10.7 and scala-2.11.12
+   
+   
+
 # v0.18.0-M6 (2017-12-08)
 * Tested on Java 9.
 * `Message.withContentType` now takes a `Content-Type` instead of an
