@@ -17,9 +17,8 @@ package object websocket {
   /**
     * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
     * supplied exchange to process and respond to websocket messages.
-    * @param send     The send side of the Exchange represents the stream of messages that should be sent to the client
-    * @param receive  The receive side of the Exchange is a sink to which the framework will push the websocket messages
-    *                 received from the client.
+    * @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
+    * @param receive  The receive side of the Exchange is a sink to which the framework will push the incoming websocket messages
     *                 Once both streams have terminated, the server will initiate a close of the websocket connection.
     *                 As defined in the websocket specification, this means the server
     *                 will send a CloseFrame to the client and wait for a CloseFrame in response before closing the
