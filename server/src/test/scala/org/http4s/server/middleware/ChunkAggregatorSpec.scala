@@ -47,7 +47,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
     }
 
     "handle a none" in {
-      val service: HttpService[IO] = Kleisli.lift(OptionT.none)
+      val service: HttpService[IO] = Kleisli.liftF(OptionT.none)
       ChunkAggregator(service).run(Request()).value must returnValue(None)
     }
 

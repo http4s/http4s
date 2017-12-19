@@ -22,6 +22,6 @@ object HttpService extends Serializable {
     Kleisli(req => pf.andThen(OptionT.liftF(_)).applyOrElse(req, Function.const(OptionT.none)))
 
   def empty[F[_]: Applicative]: HttpService[F] =
-    Kleisli.lift(OptionT.none)
+    Kleisli.liftF(OptionT.none)
 
 }
