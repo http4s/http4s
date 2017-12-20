@@ -115,7 +115,7 @@ class PooledClientSpec extends Http4sSpec {
         .attempt
         .map(_.right.exists(_.nonEmpty))
         .unsafeToFuture()
-      Await.result(resp, 60 seconds) must beFalse
+      Await.result(resp, 6 seconds) must beFalse
     }
   }
 
@@ -134,7 +134,7 @@ class PooledClientSpec extends Http4sSpec {
         .attempt
         .map(_.right.exists(_.nonEmpty))
         .unsafeToFuture()
-      Await.result(resp, 60 seconds) must beTrue
+      Await.result(resp, 6 seconds) must beTrue
     }
   }
 
