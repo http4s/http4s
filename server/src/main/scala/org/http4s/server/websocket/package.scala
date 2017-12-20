@@ -4,15 +4,16 @@ package server
 import cats._
 import cats.implicits._
 import fs2._
-import org.http4s.websocket.Websocket
+import org.http4s.websocket.{WebSocketContext, Websocket}
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
 package object websocket {
   private[this] object Keys {
     val WebSocket: AttributeKey[Any] = AttributeKey[Any]
   }
-  def websocketKey[F[_]]: AttributeKey[Websocket[F]] =
-    Keys.WebSocket.asInstanceOf[AttributeKey[Websocket[F]]]
+
+  def websocketKey[F[_]]: AttributeKey[WebSocketContext[F]] =
+    Keys.WebSocket.asInstanceOf[AttributeKey[WebSocketContext[F]]]
 
   /**
     * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
@@ -37,12 +38,23 @@ package object websocket {
     *                 the case of a normal disconnection such as a Close handshake or due to a connection error. There
     *                 are plans to address this limitation in the future.
     * @param status The status code to return to a client making a non-websocket HTTP request to this route
+    * @param headers Websocket Handshake response headers, such as Sec-WebSocket-Protocol
     */
   def WS[F[_]](
       send: Stream[F, WebSocketFrame],
       receive: Sink[F, WebSocketFrame],
+      status: F[Response[F]],
+      headers: Headers)(implicit F: Functor[F]): F[Response[F]] =
+    status.map(
+      _.withAttribute(
+        AttributeEntry(websocketKey[F], WebSocketContext(Websocket(send, receive), headers))))
+
+  def WS[F[_]](
+      send: Stream[F, WebSocketFrame],
+      receive: Sink[F, WebSocketFrame],
       status: F[Response[F]])(implicit F: Functor[F]): F[Response[F]] =
-    status.map(_.withAttribute(AttributeEntry(websocketKey[F], Websocket(send, receive))))
+    status.map(
+      _.withAttribute(AttributeEntry(websocketKey[F], WebSocketContext(Websocket(send, receive)))))
 
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],

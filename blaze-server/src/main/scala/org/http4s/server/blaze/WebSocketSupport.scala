@@ -52,6 +52,11 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
             hdrs.foreach {
               case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
             }
+
+            val wsContext = ws.get
+            wsContext.headers.foreach(hdr =>
+              sb.append(hdr.name).append(": ").append(hdr.value).append('\r').append('\n'))
+
             sb.append('\r').append('\n')
 
             // write the accept headers and reform the pipeline
@@ -59,7 +64,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage[F](ws.get))
+                val segment = LeafBuilder(new Http4sWSStage[F](wsContext.webSocket))
                   .prepend(new WSFrameAggregator)
                   .prepend(new WebSocketDecoder(false))
 
