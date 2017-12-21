@@ -26,7 +26,7 @@ it.
    * circe-???
    * fs2-0.10.0-M10
    * fs2-jawn-0.12.0-M5
-   * fs2-reactive-streams-???
+   * fs2-reactive-streams-0.2.7
    * scala-2.10.7 and scala-2.11.12
 
 # v0.18.0-M6 (2017-12-08)
