@@ -8,13 +8,13 @@ object DecodeResult {
     EitherT(task)
 
   def success[A](a: Task[A]): DecodeResult[A] =
-    EitherT.right(a)
+    EitherT.rightT(a)
 
   def success[A](a: A): DecodeResult[A] =
     success(Task.now(a))
 
   def failure[A](e: Task[DecodeFailure]): DecodeResult[A] =
-    EitherT.left(e)
+    EitherT.leftT(e)
 
   def failure[A](e: DecodeFailure): DecodeResult[A] =
     failure(Task.now(e))
