@@ -7,9 +7,8 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import org.http4s.websocket.{WebSocketContext, Websocket}
 import org.http4s.{AttributeEntry, Headers, Response, Status}
 
-case class WebSocketBuilder[F[_]](
-    send: Stream[F, WebSocketFrame],
-    receive: Sink[F, WebSocketFrame])(implicit F: Monad[F]) {
+case class WebSocketBuilder[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
+    implicit F: Monad[F]) {
 
   private var onNonWebSocketRequest: F[Response[F]] =
     Response[F](Status.NotImplemented).withBody("This is a WebSocket route.")
