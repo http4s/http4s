@@ -7,7 +7,7 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import org.http4s.websocket.{WebSocketContext, Websocket}
 import org.http4s.{AttributeEntry, Headers, Response, Status}
 
-case class WebSocketResponseBuilder[F[_]](
+case class WebSocketBuilder[F[_]](
     send: Stream[F, WebSocketFrame],
     receive: Sink[F, WebSocketFrame])(implicit F: Monad[F]) {
 
@@ -17,17 +17,17 @@ case class WebSocketResponseBuilder[F[_]](
     Response[F](Status.BadRequest).withBody("WebSocket handshake failed.")
   private var handshakeResponseHeaders: Headers = Headers.empty
 
-  def withFallbackResponse(response: F[Response[F]]): WebSocketResponseBuilder[F] = {
+  def withFallbackResponse(response: F[Response[F]]): WebSocketBuilder[F] = {
     onNonWebSocketRequest = response
     this
   }
 
-  def withHandshakeFailureResponse(response: F[Response[F]]): WebSocketResponseBuilder[F] = {
+  def withHandshakeFailureResponse(response: F[Response[F]]): WebSocketBuilder[F] = {
     onHandshakeFailure = response
     this
   }
 
-  def putHeaders(headers: Headers): WebSocketResponseBuilder[F] = {
+  def putHeaders(headers: Headers): WebSocketBuilder[F] = {
     handshakeResponseHeaders = headers
     this
   }

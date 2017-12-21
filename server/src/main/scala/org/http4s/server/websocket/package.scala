@@ -42,7 +42,7 @@ package object websocket {
       send: Stream[F, WebSocketFrame],
       receive: Sink[F, WebSocketFrame],
       status: F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
-    WebSocketResponseBuilder(send, receive).withFallbackResponse(status).toResponse
+    WebSocketBuilder(send, receive).withFallbackResponse(status).toResponse
 
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],
