@@ -12,7 +12,7 @@ scala:
 env:
   matrix:
   - SCALAZ_VERSION=7.2.18
-  - SCALAZ_VERSION=7.1.13
+  - SCALAZ_VERSION=7.1.16
   global:
   - HUGO_VERSION=0.26
   - LOGBACK_ROOT_LEVEL=WARN
