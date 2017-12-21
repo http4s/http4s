@@ -5,7 +5,6 @@ import java.io.File
 import java.nio.file.Files
 import org.http4s.Status.NotModified
 import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
-import org.http4s.util.chunk._
 import org.specs2.matcher.MatchResult
 
 class StaticFileSpec extends Http4sSpec {
