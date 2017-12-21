@@ -24,7 +24,7 @@ it.
 * Dependency upgrades:
    * async-http-client-2.0.38
    * cats-1.0.0.RC2
-   * circe-???
+   * circe-0.9.0-M3
    * fs2-0.10.0-M10
    * fs2-jawn-0.12.0-M5
    * fs2-reactive-streams-0.2.7
