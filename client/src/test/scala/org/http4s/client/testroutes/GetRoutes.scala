@@ -16,7 +16,7 @@ object GetRoutes {
       SimplePath -> Response[IO](Ok).withBody("simple path"),
       ChunkedPath -> Response[IO](Ok).withBody(
         Stream.emits("chunk".toSeq.map(_.toString)).covary[IO]),
-      DelayedPath -> IO(Thread.sleep(500L)) *> Response[IO](Ok).withBody("delayed path")
+      DelayedPath -> IO(Thread.sleep(1000L)) *> Response[IO](Ok).withBody("delayed path")
     ).mapValues(_.unsafeRunSync())
   }
 }

@@ -25,7 +25,7 @@ class PooledClientSpec extends Http4sSpec {
   private val failTimeClient =
     PooledHttp1Client[IO](
       maxConnectionsPerRequestKey = _ => 1,
-      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 1 seconds))
+      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 2 seconds))
   private val successTimeClient =
     PooledHttp1Client[IO](
       maxConnectionsPerRequestKey = _ => 1,
