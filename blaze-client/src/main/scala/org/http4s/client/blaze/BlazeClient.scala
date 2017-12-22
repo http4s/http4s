@@ -39,7 +39,7 @@ object BlazeClient {
 
         def loop(next: manager.NextConnection): F[DisposableResponse[F]] = {
           // Add the timeout stage to the pipeline
-          val elapsed = (submitTime.toEpochMilli - Instant.now().toEpochMilli).millis
+          val elapsed = (Instant.now.toEpochMilli - submitTime.toEpochMilli).millis
           val ts = new ClientTimeoutStage(
             if (elapsed > config.responseHeaderTimeout) 0.milli
             else config.responseHeaderTimeout - elapsed,
