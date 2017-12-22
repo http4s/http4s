@@ -9,20 +9,13 @@ import scala.concurrent.duration.Duration
 
 /** Config object for the blaze clients
   *
-  * @param responseHeaderTimeout duration between the completion of a request
-  * and the completion of the response header.  Does not include time
-  * to acquire the connection or the time to read the response. If the request stays in the
-  * wait queue longer than this, then it will timeout, otherwise with the current implementation
-  * the timeout resets in that the timeout will again be calculated from the time the request
-  * runs on a connection without taking into account whatever time it spent in the wait queue.
+  * @param responseHeaderTimeout duration between the submission of a
+  * request and the completion of the response header.  Does not
+  * include time to read the response body.
   * @param idleTimeout duration that a connection can wait without
   * traffic being read or written before timeout
-  * @param requestTimeout maximum duration for a request to complete
-  * before a timeout.  Does not include time to acquire the the
-  * connection, but does include time to read the response. If the request stays in the
-  * wait queue longer than this, then it will timeout, otherwise with the current implementation
-  * the timeout resets in that the timeout will again be calculated from the time the request
-  * runs on a connection without taking into account whatever time it spent in the wait queue.
+  * @param requestTimeout maximum duration from the submission of a
+  * request through reading the body before a timeout.
   * @param userAgent optional custom user agent header
   * @param sslContext optional custom `SSLContext` to use to replace
   * the default, `SSLContext.getDefault`.
