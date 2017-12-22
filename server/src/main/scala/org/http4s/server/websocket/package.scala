@@ -38,7 +38,7 @@ package object websocket {
     *                 are plans to address this limitation in the future.
     * @param status The status code to return to a client making a non-websocket HTTP request to this route
     */
-  @deprecated("Use WebSocketBuilder", "0.18")
+  @deprecated("Use WebSocketBuilder", "0.18.0-M7")
   def WS[F[_]](
       send: Stream[F, WebSocketFrame],
       receive: Sink[F, WebSocketFrame],
@@ -50,7 +50,7 @@ package object websocket {
       status,
       Response[F](Status.BadRequest).withBody("WebSocket handshake failed."))
 
-  @deprecated("Use WebSocketBuilder", "0.18")
+  @deprecated("Use WebSocketBuilder", "0.18.0-M7")
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],
       W: EntityEncoder[F, String]): F[Response[F]] =
