@@ -625,9 +625,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
     </li><li name="org.http4s.json4s.Json4sInstances#jsonEncoderOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jsonEncoderOf[F[_],A](implicitevidence$4:cats.Applicative[F],implicitwriter:org.json4s.Writer[A]):org.http4s.EntityEncoder[F,A]"></a><a id="jsonEncoderOf[F[_],A](Applicative[F],Writer[A]):EntityEncoder[F,A]"></a>
+      <a id="jsonEncoderOf[F[_],A](implicitevidence$2:cats.Applicative[F],implicitwriter:org.json4s.Writer[A]):org.http4s.EntityEncoder[F,A]"></a><a id="jsonEncoderOf[F[_],A](Applicative[F],Writer[A]):EntityEncoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/json4s/native/Json4sNativeInstances.html#jsonEncoderOf[F[_],A](implicitevidence$4:cats.Applicative[F],implicitwriter:org.json4s.Writer[A]):org.http4s.EntityEncoder[F,A]" title="Permalink">
+      <a href="../../../../org/http4s/json4s/native/Json4sNativeInstances.html#jsonEncoderOf[F[_],A](implicitevidence$2:cats.Applicative[F],implicitwriter:org.json4s.Writer[A]):org.http4s.EntityEncoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -641,9 +641,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
     </li><li name="org.http4s.json4s.Json4sInstances#jsonExtract" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jsonExtract[F[_],A](implicitevidence$3:cats.effect.Sync[F],implicitformats:org.json4s.Formats,implicitmanifest:Manifest[A]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonExtract[F[_],A](Sync[F],Formats,Manifest[A]):EntityDecoder[F,A]"></a>
+      <a id="jsonExtract[F[_],A](implicitF:cats.effect.Sync[F],implicitformats:org.json4s.Formats,implicitmanifest:Manifest[A]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonExtract[F[_],A](Sync[F],Formats,Manifest[A]):EntityDecoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/json4s/native/Json4sNativeInstances.html#jsonExtract[F[_],A](implicitevidence$3:cats.effect.Sync[F],implicitformats:org.json4s.Formats,implicitmanifest:Manifest[A]):org.http4s.EntityDecoder[F,A]" title="Permalink">
+      <a href="../../../../org/http4s/json4s/native/Json4sNativeInstances.html#jsonExtract[F[_],A](implicitF:cats.effect.Sync[F],implicitformats:org.json4s.Formats,implicitmanifest:Manifest[A]):org.http4s.EntityDecoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -652,11 +652,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">jsonExtract</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.F">F</span>]</span>, <span name="formats">formats: <span class="extype" name="org.json4s.Formats">Formats</span></span>, <span name="manifest">manifest: <span class="extype" name="scala.Predef.Manifest">Manifest</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.A">A</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.A">A</span>]</span>
+        <span class="name">jsonExtract</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.F">F</span>]</span>, <span name="formats">formats: <span class="extype" name="org.json4s.Formats">Formats</span></span>, <span name="manifest">manifest: <span class="extype" name="scala.Predef.Manifest">Manifest</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.A">A</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.A">A</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Uses formats to extract a value from JSON.</p><div class="fullcomment"><div class="comment cmt"><p>Uses formats to extract a value from JSON.</p><p>Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
-idiomatic http4s, than <a href="../Json4sInstances.html#jsonOf[F[_],A](implicitevidence$2:cats.effect.Sync[F],implicitreader:org.json4s.Reader[A]):org.http4s.EntityDecoder[F,A]" class="extmbr" name="org.http4s.json4s.Json4sInstances#jsonOf">jsonOf</a>.
+idiomatic http4s, than <a href="../Json4sInstances.html#jsonOf[F[_],A](implicitreader:org.json4s.Reader[A],implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,A]" class="extmbr" name="org.http4s.json4s.Json4sInstances#jsonOf">jsonOf</a>.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
     </li><li name="org.http4s.json4s.native.Json4sNativeInstances#jsonMethods" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="jsonMethods:org.json4s.JsonMethods[org.json4s.native.Document]"></a><a id="jsonMethods:JsonMethods[Document]"></a>
@@ -675,9 +675,9 @@ idiomatic http4s, than <a href="../Json4sInstances.html#jsonOf[F[_],A](implicite
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.json4s.native.Json4sNativeInstances">Json4sNativeInstances</a> → <a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
     </li><li name="org.http4s.json4s.Json4sInstances#jsonOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jsonOf[F[_],A](implicitevidence$2:cats.effect.Sync[F],implicitreader:org.json4s.Reader[A]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonOf[F[_],A](Sync[F],Reader[A]):EntityDecoder[F,A]"></a>
+      <a id="jsonOf[F[_],A](implicitreader:org.json4s.Reader[A],implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,A]"></a><a id="jsonOf[F[_],A](Reader[A],Sync[F]):EntityDecoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/json4s/native/Json4sNativeInstances.html#jsonOf[F[_],A](implicitevidence$2:cats.effect.Sync[F],implicitreader:org.json4s.Reader[A]):org.http4s.EntityDecoder[F,A]" title="Permalink">
+      <a href="../../../../org/http4s/json4s/native/Json4sNativeInstances.html#jsonOf[F[_],A](implicitreader:org.json4s.Reader[A],implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -686,7 +686,7 @@ idiomatic http4s, than <a href="../Json4sInstances.html#jsonOf[F[_],A](implicite
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">jsonOf</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.F">F</span>]</span>, <span name="reader">reader: <span class="extype" name="org.json4s.Reader">Reader</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.A">A</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.A">A</span>]</span>
+        <span class="name">jsonOf</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="reader">reader: <span class="extype" name="org.json4s.Reader">Reader</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.A">A</span>]</span>, <span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.F">F</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.F">F</span>, <span class="extype" name="org.http4s.json4s.Json4sInstances.jsonOf.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
