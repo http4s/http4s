@@ -124,7 +124,7 @@ object EntityDecoder extends EntityDecoderInstances {
     * only if the [[Message]] satisfies the provided [[MediaRange]]
     * note: Sync bound to note that such an `F[_]` may throw
     */
-  def decodeBy[F[_]: Sync, T](r1: MediaRange, rs: MediaRange*)(
+  def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
       f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
       if (strict) {
