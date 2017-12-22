@@ -2,11 +2,14 @@ package org.http4s
 package client
 package blaze
 
+import java.time.Instant
+
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.http4s.blaze.pipeline.Command
 import org.log4s.getLogger
+import scala.concurrent.duration._
 
 /** Blaze client implementation */
 object BlazeClient {
@@ -25,6 +28,7 @@ object BlazeClient {
     Client(
       Kleisli { req =>
         val key = RequestKey.fromRequest(req)
+        val submitTime = Instant.now()
 
         // If we can't invalidate a connection, it shouldn't tank the subsequent operation,
         // but it should be noisy.
@@ -35,10 +39,11 @@ object BlazeClient {
 
         def loop(next: manager.NextConnection): F[DisposableResponse[F]] = {
           // Add the timeout stage to the pipeline
+          val elapsed = (submitTime.toEpochMilli - Instant.now().toEpochMilli).millis
           val ts = new ClientTimeoutStage(
-            config.responseHeaderTimeout,
+            config.responseHeaderTimeout - elapsed,
             config.idleTimeout,
-            config.requestTimeout,
+            config.requestTimeout - elapsed,
             bits.ClientTickWheel)
           next.connection.spliceBefore(ts)
           ts.initialize()
