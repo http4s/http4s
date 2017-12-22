@@ -2,7 +2,7 @@ package org.http4s.bench
 
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
-import org.http4s.util.chunk._
+import org.http4s.syntax.byteChunk._
 import org.openjdk.jmh.annotations._
 import scodec.bits.ByteVector
 

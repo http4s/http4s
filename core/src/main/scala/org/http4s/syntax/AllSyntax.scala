@@ -4,6 +4,7 @@ package syntax
 trait AllSyntax
     extends AnyRef
     with AsyncSyntax
+    with ByteChunkSyntax
     with EffectResponseSyntax
     with EffectRequestSyntax
     with KleisliSyntax

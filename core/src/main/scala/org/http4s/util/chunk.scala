@@ -1,25 +1,6 @@
 package org.http4s.util
 
-import fs2._
-import fs2.interop.scodec.ByteVectorChunk
-import java.nio.ByteBuffer
+import org.http4s.syntax.ByteChunkSyntax
 
-class ByteChunkOps(val self: Chunk[Byte]) extends AnyVal {
-  def toByteBuffer: ByteBuffer =
-    self match {
-      case bvc: ByteVectorChunk =>
-        bvc.toByteVector.toByteBuffer
-      case bs: Chunk.Bytes =>
-        bs.toByteBuffer
-      case _ =>
-        val byteChunk = self.toBytes //Avoids copying
-        ByteBuffer.wrap(byteChunk.values, byteChunk.offset, byteChunk.length).asReadOnlyBuffer
-    }
-}
-
-trait ByteChunkSyntax {
-  implicit def toByteChunkOps(self: Chunk[Byte]): ByteChunkOps =
-    new ByteChunkOps(self)
-}
-
+@deprecated("Moved to org.http4s.syntax.byteChunk", "0.18.0-M7")
 object chunk extends AnyRef with ByteChunkSyntax
