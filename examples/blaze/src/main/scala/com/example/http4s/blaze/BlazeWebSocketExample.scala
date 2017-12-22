@@ -29,7 +29,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F]
           case f => F.delay(println(s"Unknown type: $f"))
         }
       }
-      WS(toClient, fromClient)
+      WebSocketBuilder[F].build(toClient, fromClient)
 
     case GET -> Root / "wsecho" =>
       val queue = async.unboundedQueue[F, WebSocketFrame]
@@ -41,7 +41,7 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F]
       queue.flatMap { q =>
         val d = q.dequeue.through(echoReply)
         val e = q.enqueue
-        WS(d, e)
+        WebSocketBuilder[F].build(d, e)
       }
   }
 
