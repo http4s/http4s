@@ -15,8 +15,8 @@ object Metrics {
       implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val active_requests = m.counter(s"${prefix}.active-requests")
 
-    val abnormal_termination = m.timer(s"${prefix}.abnormal-termination")
-    val service_failure = m.timer(s"${prefix}.service-error")
+    val abnormal_terminations = m.timer(s"${prefix}.abnormal-terminations")
+    val service_errors = m.timer(s"${prefix}.service-errors")
     val headers_times = m.timer(s"${prefix}.headers-times")
 
     val resp1xx = m.timer(s"${prefix}.1xx-responses")
@@ -77,7 +77,7 @@ object Metrics {
                 }
               }
               .handleErrorWith { cause =>
-                abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
+                abnormal_terminations.update(elapsed, TimeUnit.NANOSECONDS)
                 Stream.raiseError(cause)
               }
           r.map(resp => resp.copy(body = capture(resp.body)))
@@ -85,7 +85,7 @@ object Metrics {
         .leftMap { e =>
           generalMetrics(method, elapsed)
           resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
-          service_failure.update(elapsed, TimeUnit.NANOSECONDS)
+          service_errors.update(elapsed, TimeUnit.NANOSECONDS)
           e
         }
     }
