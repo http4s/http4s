@@ -299,7 +299,18 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] =
-    F.delay(disposeConnection(connection.requestKey, Some(connection)))
+    F.delay(synchronized {
+      decrConnection(connection.requestKey)
+      if (!connection.isClosed) connection.shutdown()
+      findFirstAllowedWaiter match {
+        case Some(Waiting(k, callback, _)) =>
+          logger.debug(s"Invalidated connection, new connection needed: $stats")
+          createConnection(k, callback)
+
+        case None =>
+          logger.debug(s"Invalidated connection, no pending requests. Shrinking pool: $stats")
+      }
+    })
 
   /**
     * Synchronous Immediate Disposal of a Connection and Its Resources.
