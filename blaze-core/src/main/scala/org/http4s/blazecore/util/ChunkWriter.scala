@@ -9,7 +9,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
-import org.http4s.util.chunk._
+import org.http4s.syntax.byteChunk._
 import scala.concurrent._
 
 private[util] object ChunkWriter {
