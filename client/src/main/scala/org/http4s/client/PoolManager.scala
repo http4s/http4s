@@ -162,6 +162,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
                 logger.debug(s"Active connection not found. Creating new one. $stats")
                 createConnection(key, callback)
 
+              case None if maxConnectionsPerRequestKey(key) <= 0 =>
+                callback(Left(NoConnectionAllowedException(key)))
+
               case None if curTotal == maxTotal =>
                 val keys = idleQueues.keys
                 if (keys.nonEmpty) {
@@ -351,3 +354,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
   }
 }
+
+case class NoConnectionAllowedException(key: RequestKey)
+    extends IllegalArgumentException(s"No client connections allowed to $key")

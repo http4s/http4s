@@ -1,18 +1,16 @@
-package org.http4s.client.blaze
-
-import java.net.InetSocketAddress
-import javax.servlet.ServletOutputStream
-import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+package org.http4s.client
+package blaze
 
 import cats.effect._
 import cats.implicits._
+import java.net.InetSocketAddress
+import javax.servlet.ServletOutputStream
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
 import org.http4s.client.testroutes.GetRoutes
-import org.http4s.client.JettyScaffold
-
+import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Random
-import scala.concurrent.Await
 
 class PooledClientSpec extends Http4sSpec {
 
@@ -63,8 +61,15 @@ class PooledClientSpec extends Http4sSpec {
 
   "Blaze Pooled Http1 Client with zero max connections" should {
     "Not make simple https requests" in {
-      val resp = failClient.expect[String](uri("https://httpbin.org/get")).unsafeRunTimed(timeout)
-      resp.map(_.length > 0) must beNone
+      val u = uri("https://httpbin.org/get")
+      val resp = failClient.expect[String](u).attempt.unsafeRunTimed(timeout)
+      resp must_== (Some(
+        Left(
+          NoConnectionAllowedException(
+            RequestKey(
+              u.scheme.get,
+              u.authority.get
+            )))))
     }
   }
 
