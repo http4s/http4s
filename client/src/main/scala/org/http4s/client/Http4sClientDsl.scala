@@ -2,7 +2,7 @@ package org.http4s
 package client
 package dsl
 
-import cats._
+import cats.Applicative
 import org.http4s.Method.{NoBody, PermitsBody}
 import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
 

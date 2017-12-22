@@ -25,51 +25,55 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
     val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey[F])
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
-    if (ws.isDefined) {
-      val hdrs = req.headers.map(h => (h.name.toString, h.value))
-      if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
-        WebsocketHandshake.serverHandshake(hdrs) match {
-          case Left((code, msg)) =>
-            logger.info(s"Invalid handshake $code, $msg")
-            async.unsafeRunAsync {
-              Response[F](Status.BadRequest)
-                .withBody(msg)
-                .map(
-                  _.replaceAllHeaders(
-                    Connection("close".ci),
-                    Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
-                  ))
-            } {
-              case Right(resp) =>
-                IO(super.renderResponse(req, resp, cleanup))
-              case Left(_) =>
-                IO.unit
-            }
+    ws match {
+      case None => super.renderResponse(req, resp, cleanup)
+      case Some(wsContext) =>
+        val hdrs = req.headers.map(h => (h.name.toString, h.value))
+        if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
+          WebsocketHandshake.serverHandshake(hdrs) match {
+            case Left((code, msg)) =>
+              logger.info(s"Invalid handshake $code, $msg")
+              async.unsafeRunAsync {
+                wsContext.failureResponse
+                  .map(
+                    _.replaceAllHeaders(
+                      Connection("close".ci),
+                      Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
+                    ))
+              } {
+                case Right(resp) =>
+                  IO(super.renderResponse(req, resp, cleanup))
+                case Left(_) =>
+                  IO.unit
+              }
 
-          case Right(hdrs) => // Successful handshake
-            val sb = new StringBuilder
-            sb.append("HTTP/1.1 101 Switching Protocols\r\n")
-            hdrs.foreach {
-              case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
-            }
-            sb.append('\r').append('\n')
+            case Right(hdrs) => // Successful handshake
+              val sb = new StringBuilder
+              sb.append("HTTP/1.1 101 Switching Protocols\r\n")
+              hdrs.foreach {
+                case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n')
+              }
 
-            // write the accept headers and reform the pipeline
-            channelWrite(ByteBuffer.wrap(sb.result().getBytes(ISO_8859_1))).onComplete {
-              case Success(_) =>
-                logger.debug("Switching pipeline segments for websocket")
+              wsContext.headers.foreach(hdr =>
+                sb.append(hdr.name).append(": ").append(hdr.value).append('\r').append('\n'))
 
-                val segment = LeafBuilder(new Http4sWSStage[F](ws.get))
-                  .prepend(new WSFrameAggregator)
-                  .prepend(new WebSocketDecoder(false))
+              sb.append('\r').append('\n')
 
-                this.replaceInline(segment)
+              // write the accept headers and reform the pipeline
+              channelWrite(ByteBuffer.wrap(sb.result().getBytes(ISO_8859_1))).onComplete {
+                case Success(_) =>
+                  logger.debug("Switching pipeline segments for websocket")
 
-              case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
-            }(executionContext)
-        }
+                  val segment = LeafBuilder(new Http4sWSStage[F](wsContext.webSocket))
+                    .prepend(new WSFrameAggregator)
+                    .prepend(new WebSocketDecoder(false))
 
-      } else super.renderResponse(req, resp, cleanup)
-    } else super.renderResponse(req, resp, cleanup)
+                  this.replaceInline(segment)
+
+                case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
+              }(executionContext)
+          }
+        } else super.renderResponse(req, resp, cleanup)
+    }
   }
 }

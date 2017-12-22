@@ -42,6 +42,37 @@ trait ArbitraryInstances {
       } yield NonEmptyList(a, list)
     }
 
+  val genChar: Gen[Char] = choose('\u0000', '\u007F')
+
+  val ctlChar: List[Char] = ('\u007F' +: ('\u0000' to '\u001F')).toList
+
+  val lws: List[Char] = " \t".toList
+
+  val genCrLf: Gen[String] = const("\r\n")
+
+  val genRightLws: Gen[String] = nonEmptyListOf(oneOf(lws)).map(_.mkString)
+
+  val genLws: Gen[String] =
+    oneOf(sequence[List[String], String](List(genCrLf, genRightLws)).map(_.mkString), genRightLws)
+
+  val octets: List[Char] = ('\u0000' to '\u00FF').toList
+
+  val genOctet: Gen[Char] = oneOf(octets)
+
+  val allowedText: List[Char] = octets.diff(ctlChar)
+
+  val genText: Gen[String] = oneOf(nonEmptyListOf(oneOf(allowedText)).map(_.mkString), genLws)
+
+  // TODO Fix Rfc2616BasicRules.QuotedString to support the backslash character
+  val allowedQDText: List[Char] = allowedText.filterNot(c => c == '"' || c == '\\')
+
+  val genQDText: Gen[String] = nonEmptyListOf(oneOf(allowedQDText)).map(_.mkString)
+
+  val genQuotedPair: Gen[String] =
+    genChar.map(c => s"\\$c")
+
+  val genQuotedString: Gen[String] = oneOf(genQDText, genQuotedPair).map(s => s"""\"$s\"""")
+
   val genTchar: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
       ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
@@ -222,6 +253,37 @@ trait ArbitraryInstances {
   implicit val cogenContentCoding: Cogen[ContentCoding] =
     Cogen[String].contramap(_.coding)
 
+  // MediaRange exepects the quoted pair without quotes
+  val http4sGenUnquotedPair = genQuotedPair.map { c =>
+    c.substring(1, c.length - 1)
+  }
+
+  val http4sGenMediaRangeExtension: Gen[(String, String)] =
+    for {
+      token <- genToken
+      value <- oneOf(http4sGenUnquotedPair, genQDText)
+    } yield (token, value)
+
+  val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
+    Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
+
+  val http4sGenMediaRange: Gen[MediaRange] =
+    for {
+      `type` <- genToken
+      extensions <- http4sGenMediaRangeExtensions
+    } yield new MediaRange(`type`, extensions)
+
+  implicit val http4sArbitraryMediaRange: Arbitrary[MediaRange] =
+    Arbitrary {
+      for {
+        `type` <- genToken
+        extensions <- http4sGenMediaRangeExtensions
+      } yield new MediaRange(`type`, extensions)
+    }
+
+  implicit val http4sCogenMediaRange: Cogen[MediaRange] =
+    Cogen[(String, Map[String, String])].contramap(m => (m.mainType, m.extensions))
+
   implicit val arbitraryAcceptEncoding: Arbitrary[`Accept-Encoding`] =
     Arbitrary {
       for {
@@ -370,6 +432,19 @@ trait ArbitraryInstances {
       for {
         date <- genHttpExpireDate
       } yield headers.Expires(date)
+    }
+
+  val http4sGenMediaRangeAndQValue: Gen[MediaRangeAndQValue] =
+    for {
+      mediaRange <- http4sGenMediaRange
+      qValue <- arbitrary[QValue]
+    } yield MediaRangeAndQValue(mediaRange, qValue)
+
+  implicit val http4sArbitraryAcceptHeader: Arbitrary[headers.Accept] =
+    Arbitrary {
+      for {
+        values <- nonEmptyListOf(http4sGenMediaRangeAndQValue)
+      } yield headers.Accept(NonEmptyList.of(values.head, values.tail: _*))
     }
 
   implicit val arbitraryRetryAfterHeader: Arbitrary[headers.`Retry-After`] =
