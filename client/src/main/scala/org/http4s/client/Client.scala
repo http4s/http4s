@@ -33,8 +33,7 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
     val task: F[A] = try f(response)
     catch {
       case e: Throwable =>
-        logger.error(e)(
-          """Handled exception in client callback to prevent a connection leak.
+        logger.error(e)("""Handled exception in client callback to prevent a connection leak.
              |The callback should always return an F. If your callback can fail
              |with an exception you can't handle, call `F.raiseError(exception)`.
           """.stripMargin)
