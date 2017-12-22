@@ -12,9 +12,9 @@ object Http1Client {
     *
     * @param config blaze client configuration options
     */
-  def apply[F[_]: Effect](
-      config: BlazeClientConfig = BlazeClientConfig.defaultConfig): F[Client[F]] =
-    Effect[F].delay(mkClient(config))
+  def apply[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
+      implicit F: Effect[F]): F[Client[F]] =
+    F.delay(mkClient(config))
 
   def stream[F[_]: Effect](
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Stream[F, Client[F]] =

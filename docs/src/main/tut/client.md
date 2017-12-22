@@ -43,9 +43,12 @@ val server = builder.unsafeRunSync
 
 ### Creating the client
 
-A good default choice is the `PooledHttp1Client`.  As the name
-implies, the `PooledHttp1Client` maintains a connection pool and
+A good default choice is the `Http1Client`.  The `Http1Client` maintains a connection pool and
 speaks HTTP 1.x.
+
+Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]`
+to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to 
+create the client.
 
 ```tut:book
 import org.http4s.client.blaze._
@@ -117,6 +120,9 @@ it down:
 ```tut:book
 httpClient.shutdownNow()
 ```
+
+If the client is created using `HttpClient.stream[F]()`, it will be shut down when
+the resulting stream finishes.
 
 ```tut:book:invisible
 server.shutdown.unsafeRunSync

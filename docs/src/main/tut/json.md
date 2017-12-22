@@ -236,13 +236,15 @@ import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._
 
-val httpClient = Http1Client[IO]().unsafeRunSync
 // Decode the Hello response
 def helloClient(name: String): IO[Hello] = {
   // Encode a User request
   val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
-  // Decode a Hello response
-  httpClient.expect(req)(jsonOf[IO, Hello])
+  // Create a client
+  Http1Client[IO]().flatMap { httpClient =>
+    // Decode a Hello response
+    httpClient.expect(req)(jsonOf[IO, Hello])
+  }
 }
 ```
 
@@ -255,7 +257,6 @@ helloAlice.unsafeRunSync
 ```
 
 ```tut:invisible
-httpClient.shutdownNow()
 blazeServer.shutdown.unsafeRunSync()
 ```
 
