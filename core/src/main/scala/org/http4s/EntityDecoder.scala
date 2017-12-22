@@ -122,7 +122,7 @@ object EntityDecoder extends EntityDecoderInstances {
     *
     * The new [[EntityDecoder]] will attempt to decode messages of type `T`
     * only if the [[Message]] satisfies the provided [[MediaRange]].
-    * 
+    *
     * Exceptions thrown by `f` are not caught.  Care should be taken
     * that recoverable errors are returned as a
     * `DecodeResult.failure`, or that system errors are raised in `F`.
