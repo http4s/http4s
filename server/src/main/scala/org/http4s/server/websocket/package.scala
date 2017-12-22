@@ -42,12 +42,12 @@ package object websocket {
       send: Stream[F, WebSocketFrame],
       receive: Sink[F, WebSocketFrame],
       status: F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
-    WebSocketBuilder(
+    WebSocketBuilder().build(
       send,
       receive,
       Headers.empty,
       status,
-      Response[F](Status.BadRequest).withBody("WebSocket handshake failed.")).httpResponse
+      Response[F](Status.BadRequest).withBody("WebSocket handshake failed."))
 
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],

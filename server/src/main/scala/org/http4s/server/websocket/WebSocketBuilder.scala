@@ -7,14 +7,13 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import org.http4s.websocket.{WebSocketContext, Websocket}
 import org.http4s.{AttributeEntry, Headers, Response, Status}
 
-case class WebSocketBuilder[F[_]](
-    send: Stream[F, WebSocketFrame],
-    receive: Sink[F, WebSocketFrame],
-    headers: Headers,
-    onNonWebSocketRequest: F[Response[F]],
-    onHandshakeFailure: F[Response[F]])(implicit F: Monad[F]) {
+case class WebSocketBuilder[F[_]]() {
 
-  def httpResponse: F[Response[F]] =
+  def build(send: Stream[F, WebSocketFrame],
+            receive: Sink[F, WebSocketFrame],
+            headers: Headers,
+            onNonWebSocketRequest: F[Response[F]],
+            onHandshakeFailure: F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
     onNonWebSocketRequest.map(
       _.withAttribute(
         AttributeEntry(
@@ -33,7 +32,7 @@ object WebSocketBuilder {
               headers: Headers = Headers.empty,
               onNonWebSocketRequest: F[Response[F]] = defaultNonWebSocketResponse[F],
               onHandshakeFailure: F[Response[F]] = defaultHandshakeFailureResponse[F]
-             ): WebSocketBuilder[F] = WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure)
+             ): F[Response[F]] = WebSocketBuilder().build(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure)
   }
   def apply[F[_]: Monad]: Builder[F] = new Builder[F]
 }
