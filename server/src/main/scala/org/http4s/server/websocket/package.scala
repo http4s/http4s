@@ -47,7 +47,7 @@ package object websocket {
       receive,
       Headers.empty,
       status,
-      Response[F](Status.BadRequest).withBody("WebSocket handshake failed.")).toResponse
+      Response[F](Status.BadRequest).withBody("WebSocket handshake failed.")).httpResponse
 
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],

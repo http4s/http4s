@@ -14,7 +14,7 @@ case class WebSocketBuilder[F[_]](
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]])(implicit F: Monad[F]) {
 
-  def toResponse: F[Response[F]] =
+  def httpResponse: F[Response[F]] =
     onNonWebSocketRequest.map(
       _.withAttribute(
         AttributeEntry(
@@ -23,15 +23,17 @@ case class WebSocketBuilder[F[_]](
 }
 
 object WebSocketBuilder {
-  def apply[F[_]](
-      send: Stream[F, WebSocketFrame],
-      receive: Sink[F, WebSocketFrame],
-      headers: Headers = Headers.empty)(implicit F: Monad[F]): WebSocketBuilder[F] =
-    new WebSocketBuilder(
-      send,
-      receive,
-      headers,
-      Response[F](Status.NotImplemented).withBody("This is a WebSocket route."),
-      Response[F](Status.BadRequest).withBody("WebSocket handshake failed.")
-    )
+
+  def defaultNonWebSocketResponse[F[_]: Monad]: F[Response[F]] = Response[F](Status.NotImplemented).withBody("This is a WebSocket route.")
+  def defaultHandshakeFailureResponse[F[_]: Monad]: F[Response[F]] = Response[F](Status.NotImplemented).withBody("This is a WebSocket route.")
+
+  class Builder[F[_]: Monad]{
+    def apply(send: Stream[F, WebSocketFrame],
+              receive: Sink[F, WebSocketFrame],
+              headers: Headers = Headers.empty,
+              onNonWebSocketRequest: F[Response[F]] = defaultNonWebSocketResponse[F],
+              onHandshakeFailure: F[Response[F]] = defaultHandshakeFailureResponse[F]
+             ): WebSocketBuilder[F] = WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure)
+  }
+  def apply[F[_]: Monad]: Builder[F] = new Builder[F]
 }
