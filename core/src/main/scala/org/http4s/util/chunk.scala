@@ -1,22 +1,8 @@
 package org.http4s.util
 
-import cats._
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.ByteBuffer
-
-trait ChunkInstances {
-
-  //Maybe this belongs in fs2?
-  implicit def http4sMonoidForSegment[A]: Monoid[Segment[A, Unit]] =
-    new Monoid[Segment[A, Unit]] {
-      def empty: Segment[A, Unit] = Segment.empty[A]
-
-      def combine(x: Segment[A, Unit], y: Segment[A, Unit]): Segment[A, Unit] =
-        x ++ y
-    }
-
-}
 
 class ByteChunkOps(val self: Chunk[Byte]) extends AnyVal {
   def toByteBuffer: ByteBuffer =
@@ -36,4 +22,4 @@ trait ByteChunkSyntax {
     new ByteChunkOps(self)
 }
 
-object chunk extends AnyRef with ChunkInstances with ByteChunkSyntax
+object chunk extends AnyRef with ByteChunkSyntax
