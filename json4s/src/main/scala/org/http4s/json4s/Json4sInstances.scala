@@ -3,11 +3,11 @@ package json4s
 
 import cats._
 import cats.effect._
+import cats.syntax.all._
 import _root_.jawn.support.json4s.Parser
 import org.http4s.headers.`Content-Type`
 import org.json4s._
 import org.json4s.JsonAST.JValue
-import scala.util.control.NonFatal
 
 object CustomParser extends Parser(useBigDecimalForDouble = true, useBigIntForLong = true)
 
@@ -17,13 +17,15 @@ trait Json4sInstances[J] {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, JValue] =
     jawn.jawnDecoder
 
-  def jsonOf[F[_]: Sync, A](implicit reader: Reader[A]): EntityDecoder[F, A] =
+  def jsonOf[F[_], A](implicit reader: Reader[A], F: Sync[F]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
-      try DecodeResult.success(reader.read(json))
-      catch {
-        case e: MappingException =>
-          DecodeResult.failure(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
-      }
+      DecodeResult(
+        F.delay(reader.read(json))
+          .map[Either[DecodeFailure, A]](Right(_))
+          .recover {
+            case e: MappingException =>
+              Left(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
+          })
     }
 
   /**
@@ -32,15 +34,14 @@ trait Json4sInstances[J] {
     * Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
     * idiomatic http4s, than [[jsonOf]].
     */
-  def jsonExtract[F[_]: Sync, A](
-      implicit formats: Formats,
+  def jsonExtract[F[_], A](
+      implicit F: Sync[F],
+      formats: Formats,
       manifest: Manifest[A]): EntityDecoder[F, A] =
     jsonDecoder.flatMapR { json =>
-      try DecodeResult.success(json.extract[A])
-      catch {
-        case NonFatal(e) =>
-          DecodeResult.failure(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
-      }
+      DecodeResult(
+        F.delay[Either[DecodeFailure, A]](Right(json.extract[A]))
+          .handleError(e => Left(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))))
     }
 
   protected def jsonMethods: JsonMethods[J]

@@ -12,6 +12,7 @@ import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
+import org.log4s.getLogger
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -21,13 +22,24 @@ import scala.util.control.NoStackTrace
   */
 final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit]) {
 
+  private[this] val logger = getLogger
+
   /**
     * Returns a task to handle the response, safely disposing of the underlying
     * HTTP connection when the task finishes.
     */
   def apply[A](f: Response[F] => F[A])(implicit F: MonadError[F, Throwable]): F[A] = {
-    val task = try f(response)
-    catch { case e: Throwable => F.raiseError[A](e) }
+    //Catch possible user bugs in pure expression
+    val task: F[A] = try f(response)
+    catch {
+      case e: Throwable =>
+        logger.error(e)("""Handled exception in client callback to prevent a connection leak.
+             |The callback should always return an F. If your callback can fail
+             |with an exception you can't handle, call `F.raiseError(exception)`.
+          """.stripMargin)
+        F.raiseError(e)
+    }
+
     for {
       result <- task.attempt
       _ <- dispose

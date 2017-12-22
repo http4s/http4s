@@ -4,7 +4,6 @@ import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.{ByteBuffer, CharBuffer}
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.control.NonFatal
 import scodec.bits.ByteVector
 
 package object util {
@@ -62,10 +61,6 @@ package object util {
   def bug(message: String): AssertionError =
     new AssertionError(
       s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
-
-  private[http4s] def tryCatchNonFatal[A](f: => A): Either[Throwable, A] =
-    try Right(f)
-    catch { case NonFatal(t) => Left(t) }
 
   @deprecated("Moved to org.http4s.syntax.StringOps", "0.16")
   type CaseInsensitiveStringOps = org.http4s.syntax.StringOps

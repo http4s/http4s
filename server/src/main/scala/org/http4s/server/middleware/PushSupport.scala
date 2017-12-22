@@ -37,9 +37,6 @@ object PushSupport {
       }
   }
 
-  private def handleException(t: Throwable): Unit =
-    logger.error(t)("Push resource route failure")
-
   private def locToRequest[F[_]: Functor](push: PushLocation, req: Request[F]): Request[F] =
     req.withPathInfo(push.location)
 
@@ -52,30 +49,27 @@ object PushSupport {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try {
-            route
-              .mapF[OptionT[F, ?], Vector[PushResponse[F]]] {
-                _.semiflatMap { response =>
-                  response.attributes
-                    .get(pushLocationKey)
-                    .map { pushed =>
-                      collectResponse(pushed, req, verify, route).map(
-                        accumulated ++ _ :+ PushResponse(v.location, response))
-                    }
-                    .getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
-                }
+          route
+            .mapF[OptionT[F, ?], Vector[PushResponse[F]]] {
+              _.semiflatMap { response =>
+                response.attributes
+                  .get(pushLocationKey)
+                  .map { pushed =>
+                    collectResponse(pushed, req, verify, route).map(
+                      accumulated ++ _ :+ PushResponse(v.location, response))
+                  }
+                  .getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
               }
-              .apply(newReq)
-              .getOrElse(Vector.empty[PushResponse[F]])
-          } catch { case t: Throwable => handleException(t); facc }
+            }
+            .apply(newReq)
+            .getOrElse(Vector.empty[PushResponse[F]])
         } else {
-          try route
+          route
             .flatMapF { response =>
               OptionT.liftF(facc.map(_ :+ PushResponse(v.location, response)))
             }
             .apply(newReq)
             .getOrElse(Vector.empty[PushResponse[F]])
-          catch { case t: Throwable => handleException(t); facc }
         }
       } else facc
     }
