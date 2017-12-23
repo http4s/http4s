@@ -167,7 +167,7 @@ class PooledClientSpec extends Http4sSpec {
     successClient.shutdown.unsafeRunSync()
     failTimeClient.shutdown.unsafeRunSync()
     successTimeClient.shutdown.unsafeRunSync()
-    drainTestClient.shutdown.unsafeRunSync()    
+    drainTestClient.shutdown.unsafeRunSync()
     client.shutdown.unsafeRunSync()
     jettyServ.stopServers()
   }
