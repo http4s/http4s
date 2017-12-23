@@ -94,32 +94,20 @@ HTTP streaming is provided by both https&rsquo; service support and its client s
 simplicity itself:</p>
 
 <pre><code class="language-scala">import scala.concurrent.duration._
-// import scala.concurrent.duration._
-
 import scala.concurrent.ExecutionContext.Implicits.global
-// import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
-// import cats.effect._
-
 import fs2.Scheduler
-// import fs2.Scheduler
-
 import org.http4s._
-// import org.http4s._
-
 import org.http4s.dsl.io._
-// import org.http4s.dsl.io._
 
 // An infinite stream of the periodic elapsed time
 val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
-// seconds: fs2.Stream[cats.effect.IO,scala.concurrent.duration.FiniteDuration] = Stream(..)
 
 val service = HttpService[IO] {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
-    Ok(seconds.map(_.toString))             // `map` `toString` because there's no `EntityEncoder` for `Duration`
+    Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54642/1204208893@6a06f3bd)
 </code></pre>
 
 <p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
@@ -136,13 +124,7 @@ function, which takes a <code>Request[F]</code> and a <code>Response[F] =&gt; St
 <code>Stream[F, A]</code>. Since an <code>EntityBody[F]</code> is just a <code>Stream[F, Byte]</code>, then, the easiest way
 to consume a stream is just:</p>
 
-<pre><code class="language-scala">scala&gt; client.streaming(req)(resp =&gt; resp.body)
-&lt;console&gt;:27: error: object streaming is not a member of package org.http4s.client
-       client.streaming(req)(resp =&gt; resp.body)
-              ^
-&lt;console&gt;:27: error: not found: value req
-       client.streaming(req)(resp =&gt; resp.body)
-                        ^
+<pre><code class="language-scala">client.streaming(req)(resp =&gt; resp.body)
 </code></pre>
 
 <p>That gives you a <code>Stream[F, Byte]</code>, but you probably want something other than a <code>Byte</code>.
@@ -159,66 +141,69 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 <p>Next, we want <em>streaming</em> JSON. Because http4s is streaming in its bones, it relies on <a href="https://github.com/non/jawn">jawn</a> for
 streaming JSON support. Most popular JSON libraries, including Circe, provide jawn support, as
 the code below shows. What&rsquo;s left is to integrate jawn&rsquo;s streaming parsing with fs2&rsquo;s Stream.
-That&rsquo;s done by <a href="https://github.com/rossabaker/jawn-fs2">jawnfs2</a>, which http4s&rsquo; Circe module depends on transitively.</p>
+That&rsquo;s done by <a href="https://github.com/rossabaker/jawn-fs2">jawn-fs2</a>, which http4s&rsquo; Circe module depends on transitively.</p>
 
 <p>Because Twitter&rsquo;s Streaming APIs literally return a stream of JSON objects, <em>not</em> a JSON array,
-we want to use jawnfs2&rsquo;s <code>parseJsonStream</code>.</p>
+we want to use jawn-fs2&rsquo;s <code>parseJsonStream</code>.</p>
 
 <p>Finally, Twitter&rsquo;s Streaming APIs also require OAuth authentication. So our example is an OAuth
 example as a bonus!</p>
 
 <p>Putting it all together into a small app that will print the JSON objects forever:</p>
 
-<pre><code class="language-scala">object twstream {
-  import org.http4s._
-  import org.http4s.client.blaze._
-  import org.http4s.client.oauth1
-  import cats.effect._
-  import fs2.Stream
-  import fs2.io.stdout
-  import fs2.text.{lines, utf8Encode}
-  import jawnfs2._
-  import io.circe.Json
+<pre><code class="language-scala">import org.http4s._
+import org.http4s.client.blaze._
+import org.http4s.client.oauth1
+import cats.effect._
+import fs2.{Stream, StreamApp}
+import fs2.StreamApp.ExitCode
+import fs2.io.stdout
+import fs2.text.{lines, utf8Encode}
+import jawnfs2._
+import io.circe.Json
 
-  // jawnstreamz needs to know what JSON AST you want
+// Uncomment this line to create an application with a main method that can be run
+// object TWStream extends TWStreamApp[IO]
+
+abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
+
+  // jawn-fs2 needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
-
-  // Remember, this `Client` needs to be cleanly shutdown
-  val client = PooledHttp1Client[IO]()
 
   /* These values are created by a Twitter developer web app.
    * OAuth signing is an effect due to generating a nonce for each `Request`.
    */
-  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request[IO]): IO[Request[IO]] = {
+  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+          (req: Request[F]): F[Request[F]] = {
     val consumer = oauth1.Consumer(consumerKey, consumerSecret)
     val token    = oauth1.Token(accessToken, accessSecret)
     oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
   }
 
-  /* Sign the incoming `Request[IO]`, stream the `Response[IO]`, and `parseJsonStream` the `Response[IO]`.
-   * `sign` returns a `IO`, so we need to `Stream.eval` it to use a for-comprehension.
+  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and 
+   * `parseJsonStream` the `Response[F]`.
+   * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
-  def stream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)(req: Request[IO]): Stream[IO, Json] = for {
-    sr  &lt;- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-    res &lt;- client.streaming(sr)(resp =&gt; resp.body.chunks.parseJsonStream)
-  } yield res
+  def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
+            (req: Request[F]): Stream[F, Json] =
+    for {
+      client &lt;- Http1Client.stream[F]()
+      sr  &lt;- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
+      res &lt;- client.streaming(sr)(resp =&gt; resp.body.chunks.parseJsonStream)
+    } yield res
 
   /* Stream the sample statuses.
    * Plug in your four Twitter API values here.
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
-   * Then we `to` them to fs2's `lines` and the to `stdout` `Sink` to print them.
-   * Finally, when the stream is complete (you hit &lt;crtl-C&gt;), `shutdown` the `client`.
+   * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
-  def runc = {
-    val req = Request[IO](Method.GET, Uri.uri(&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;))
-    val s   = stream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout).onFinalize(client.shutdown).run
+  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+    val req = Request[F](Method.GET, Uri.uri(&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;))
+    val s   = jsonStream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
+    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout) &gt;&gt; Stream.emit(ExitCode.Success)
   }
 
-  // Uncomment To Run App
-  // def main(args: Array[String]): Unit = runc.unsafeRunSync()
 }
-// defined object twstream
 </code></pre>
 
         </div>

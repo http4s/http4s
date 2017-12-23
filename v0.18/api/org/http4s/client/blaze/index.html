@@ -159,8 +159,12 @@
                         <a href="BlazeClientConfig.html" title="Config object for the blaze clients">BlazeClientConfig</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="object" href="PooledHttp1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections"></a>
-                        <a href="PooledHttp1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections">PooledHttp1Client</a>
+                        <a class="object" href="Http1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections"></a>
+                        <a href="Http1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections">Http1Client</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="PooledHttp1Client$.html" title=""></a>
+                        <a href="PooledHttp1Client$.html" title="">PooledHttp1Client</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="SimpleHttp1Client$.html" title="Create HTTP1 clients which will disconnect on completion of one request"></a>
@@ -322,7 +326,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Config object for the blaze clients" href="BlazeClientConfig.html"><span class="name">BlazeClientConfig</span></a><span class="params">(<span name="responseHeaderTimeout">responseHeaderTimeout: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="checkEndpointIdentification">checkEndpointIdentification: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="lenientParser">lenientParser: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Config object for the blaze clients" href="BlazeClientConfig.html"><span class="name">BlazeClientConfig</span></a><span class="params">(<span name="responseHeaderTimeout">responseHeaderTimeout: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/duration/Duration.html#scala.concurrent.duration.Duration" class="extype" name="scala.concurrent.duration.Duration">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="maxTotalConnections">maxTotalConnections: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxWaitQueueLimit">maxWaitQueueLimit: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxConnectionsPerRequestKey">maxConnectionsPerRequestKey: (<a href="../RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="checkEndpointIdentification">checkEndpointIdentification: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="lenientParser">lenientParser: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Config object for the blaze clients
@@ -332,7 +336,7 @@ and the completion of the response header.  Does not include time
 to acquire the connection or the time to read the response.</p></dd><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without
 traffic being read or written before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration for a request to complete
 before a timeout.  Does not include time to acquire the the
-connection, but does include time to read the response</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace
+connection, but does include time to read the response</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">maxTotalConnections</dt><dd class="cmt"><p>maximum connections the client will have at any specific time</p></dd><dt class="param">maxWaitQueueLimit</dt><dd class="cmt"><p>maximum number requests waiting for a connection at any specific time</p></dd><dt class="param">maxConnectionsPerRequestKey</dt><dd class="cmt"><p>Map of RequestKey to number of max connections</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace
 the default, <code>SSLContext.getDefault</code>.</p></dd><dt class="param">checkEndpointIdentification</dt><dd class="cmt"><p>require endpoint identification
 for secure requests according to RFC 2818, Section 3.1.  If the
 certificate presented does not match the hostname of the request,
@@ -347,24 +351,7 @@ not affect checking the validity of the cert via the
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.client.blaze#defaultClient" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="defaultClient[F[_]](implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]"></a><a id="defaultClient[F[_]](Effect[F]):Client[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/index.html#defaultClient[F[_]](implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">defaultClient</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.blaze.defaultClient.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.defaultClient.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Default blaze client</p><div class="fullcomment"><div class="comment cmt"><p>Default blaze client</p><p>This client will create a new connection for every request.
-</p></div></div>
-    </li><li name="org.http4s.client.blaze.BlazeClient" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="org.http4s.client.blaze.BlazeClient" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BlazeClient"></a><a id="BlazeClient:BlazeClient"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/client/blaze/index.html#BlazeClient" title="Permalink">
@@ -396,6 +383,22 @@ not affect checking the validity of the cert via the
       </span>
       
       
+    </li><li name="org.http4s.client.blaze.Http1Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http1Client"></a><a id="Http1Client:Http1Client"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/index.html#Http1Client" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Create a HTTP1 client which will attempt to recycle connections" href="Http1Client$.html"><span class="name">Http1Client</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Create a HTTP1 client which will attempt to recycle connections</p>
     </li><li name="org.http4s.client.blaze.PooledHttp1Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="PooledHttp1Client"></a><a id="PooledHttp1Client:PooledHttp1Client"></a>
       <span class="permalink">
@@ -408,10 +411,10 @@ not affect checking the validity of the cert via the
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="Create a HTTP1 client which will attempt to recycle connections" href="PooledHttp1Client$.html"><span class="name">PooledHttp1Client</span></a>
+        <a title="" href="PooledHttp1Client$.html"><span class="name">PooledHttp1Client</span></a>
       </span>
       
-      <p class="shortcomment cmt">Create a HTTP1 client which will attempt to recycle connections</p>
+      
     </li><li name="org.http4s.client.blaze.SimpleHttp1Client" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SimpleHttp1Client"></a><a id="SimpleHttp1Client:SimpleHttp1Client"></a>
       <span class="permalink">
@@ -434,7 +437,29 @@ not affect checking the validity of the cert via the
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.client.blaze#defaultClient" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="defaultClient[F[_]](implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]"></a><a id="defaultClient[F[_]](Effect[F]):Client[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/index.html#defaultClient[F[_]](implicitevidence$1:cats.effect.Effect[F]):org.http4s.client.Client[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.18.0-M7) Use org.http4s.client.blaze.Http1Client instead">defaultClient</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.blaze.defaultClient.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.defaultClient.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18.0-M7)</i> Use org.http4s.client.blaze.Http1Client instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

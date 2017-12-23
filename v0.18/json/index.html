@@ -229,7 +229,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@47f9661b
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@4177058a
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -296,7 +296,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@6192f478
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@4c70de06
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res10: User = User(Alice)
@@ -350,13 +350,15 @@ val blazeServer = builder.unsafeRunSync
 import cats.effect.IO
 import io.circe.generic.auto._
 
-val httpClient = PooledHttp1Client[IO]()
 // Decode the Hello response
 def helloClient(name: String): IO[Hello] = {
   // Encode a User request
   val req = POST(uri(&quot;http://localhost:8080/hello&quot;), User(name).asJson)
-  // Decode a Hello response
-  httpClient.expect(req)(jsonOf[IO, Hello])
+  // Create a client
+  Http1Client[IO]().flatMap { httpClient =&gt;
+    // Decode a Hello response
+    httpClient.expect(req)(jsonOf[IO, Hello])
+  }
 }
 </code></pre>
 
@@ -364,7 +366,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$301251805
+// helloAlice: cats.effect.IO[Hello] = IO$943901498
 
 helloAlice.unsafeRunSync
 // res20: Hello = Hello(Alice)
