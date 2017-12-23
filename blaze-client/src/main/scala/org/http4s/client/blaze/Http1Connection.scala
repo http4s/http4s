@@ -154,7 +154,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
             receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
 
           renderTask
-            .followedBy(responseTask)
+            .productR(responseTask)
             .handleErrorWith { t =>
               fatalError(t, "Error executing request")
               F.raiseError(t)

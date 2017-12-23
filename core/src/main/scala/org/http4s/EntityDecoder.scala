@@ -8,7 +8,6 @@ import fs2.io._
 import java.io.{File, FileOutputStream, PrintStream}
 import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
-import org.http4s.util.chunk._
 import scala.annotation.implicitNotFound
 
 /** A type that can be used to decode a [[Message]]

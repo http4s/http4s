@@ -29,6 +29,6 @@ object AuthedService {
     * @return
     */
   def empty[T, F[_]: Applicative]: AuthedService[T, F] =
-    Kleisli.lift(OptionT.none)
+    Kleisli.liftF(OptionT.none)
 
 }
