@@ -14,6 +14,8 @@ private[blaze] object bits {
   val DefaultTimeout: Duration = 60.seconds
   val DefaultBufferSize: Int = 8 * 1024
   val DefaultUserAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version))))
+  val DefaultMaxTotalConnections = 10
+  val DefaultMaxWaitQueueLimit = 256
 
   val ClientTickWheel = new TickWheelExecutor()
 

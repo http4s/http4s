@@ -17,24 +17,30 @@ class PooledClientSpec extends Http4sSpec {
 
   private val timeout = 30.seconds
 
-  private val failClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 0)
-  private val successClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1)
-  private val client = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 3)
+  private val failClient = Http1Client[IO](
+    BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = _ => 0)).unsafeRunSync()
+  private val successClient = Http1Client[IO](
+    BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = _ => 1)).unsafeRunSync()
+  private val client = Http1Client[IO](
+    BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = _ => 3)).unsafeRunSync()
 
   private val failTimeClient =
-    PooledHttp1Client[IO](
-      maxConnectionsPerRequestKey = _ => 1,
-      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 2 seconds))
+    Http1Client[IO](
+      BlazeClientConfig.defaultConfig
+        .copy(maxConnectionsPerRequestKey = _ => 1, responseHeaderTimeout = 2 seconds))
+      .unsafeRunSync()
 
   private val successTimeClient =
-    PooledHttp1Client[IO](
-      maxConnectionsPerRequestKey = _ => 1,
-      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 20 seconds))
+    Http1Client[IO](
+      BlazeClientConfig.defaultConfig
+        .copy(maxConnectionsPerRequestKey = _ => 1, responseHeaderTimeout = 20 seconds))
+      .unsafeRunSync()
 
   private val drainTestClient =
-    PooledHttp1Client[IO](
-      maxConnectionsPerRequestKey = _ => 1,
-      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 20 seconds))
+    Http1Client[IO](
+      BlazeClientConfig.defaultConfig
+        .copy(maxConnectionsPerRequestKey = _ => 1, responseHeaderTimeout = 20 seconds))
+      .unsafeRunSync()
 
   val jettyServ = new JettyScaffold(5)
   var addresses = Vector.empty[InetSocketAddress]
