@@ -23,11 +23,14 @@ object Http1Client {
   private[blaze] def mkClient[F[_]: Effect](config: BlazeClientConfig): Client[F] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)
     val pool = ConnectionManager.pool(
-      http1,
-      config.maxTotalConnections,
-      config.maxWaitQueueLimit,
-      config.maxConnectionsPerRequestKey,
-      config.executionContext)
+      builder = http1,
+      maxTotal = config.maxTotalConnections,
+      maxWaitQueueLimit = config.maxWaitQueueLimit,
+      maxConnectionsPerRequestKey = config.maxConnectionsPerRequestKey,
+      responseHeaderTimeout = config.responseHeaderTimeout,
+      requestTimeout = config.requestTimeout,
+      executionContext = config.executionContext
+    )
     BlazeClient(pool, config, pool.shutdown())
   }
 

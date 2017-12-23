@@ -9,14 +9,13 @@ import scala.concurrent.duration.Duration
 
 /** Config object for the blaze clients
   *
-  * @param responseHeaderTimeout duration between the completion of a request
-  * and the completion of the response header.  Does not include time
-  * to acquire the connection or the time to read the response.
+  * @param responseHeaderTimeout duration between the submission of a
+  * request and the completion of the response header.  Does not
+  * include time to read the response body.
   * @param idleTimeout duration that a connection can wait without
   * traffic being read or written before timeout
-  * @param requestTimeout maximum duration for a request to complete
-  * before a timeout.  Does not include time to acquire the the
-  * connection, but does include time to read the response
+  * @param requestTimeout maximum duration from the submission of a
+  * request through reading the body before a timeout.
   * @param userAgent optional custom user agent header
   * @param maxTotalConnections maximum connections the client will have at any specific time
   * @param maxWaitQueueLimit maximum number requests waiting for a connection at any specific time

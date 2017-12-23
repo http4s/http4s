@@ -24,5 +24,4 @@ object PooledHttp1Client {
         maxWaitQueueLimit = maxWaitQueueLimit,
         maxConnectionsPerRequestKey = maxConnectionsPerRequestKey
       ))
-
 }
