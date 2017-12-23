@@ -14,10 +14,10 @@ object Metrics {
   def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(
       implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val generalServiceMetrics = GeneralServiceMetrics(
-      active_requests = m.counter(s"${prefix}.active-requests"),
-      abnormal_terminations = m.timer(s"${prefix}.abnormal-terminations"),
-      service_errors = m.timer(s"${prefix}.service-errors"),
-      headers_times = m.timer(s"${prefix}.headers-times")
+      activeRequests = m.counter(s"${prefix}.active-requests"),
+      abnormalTerminations = m.timer(s"${prefix}.abnormal-terminations"),
+      serviceErrors = m.timer(s"${prefix}.service-errors"),
+      headersTimes = m.timer(s"${prefix}.headers-times")
     )
     val responseTimers = ResponseTimers(
       resp1xx = m.timer(s"${prefix}.1xx-responses"),
@@ -49,7 +49,7 @@ object Metrics {
       req: Request[F]): OptionT[F, Response[F]] = OptionT {
     for {
       now <- Sync[F].delay(System.nanoTime())
-      _ <- Sync[F].delay(serviceMetrics.generalMetrics.active_requests.inc())
+      _ <- Sync[F].delay(serviceMetrics.generalMetrics.activeRequests.inc())
       e <- service(req).value.attempt
       resp <- metricsServiceHandler(req.method, now, serviceMetrics, e)
     } yield resp
@@ -84,17 +84,17 @@ object Metrics {
       .onFinalize {
         for {
           elapsed <- Sync[F].delay(System.nanoTime() - start)
-          _ <- incrementCounts(serviceMetrics.generalMetrics.headers_times, elapsedInit)
+          _ <- incrementCounts(serviceMetrics.generalMetrics.headersTimes, elapsedInit)
           _ <- requestMetrics(
             serviceMetrics.requestTimers,
-            serviceMetrics.generalMetrics.active_requests)(m, elapsed)
+            serviceMetrics.generalMetrics.activeRequests)(m, elapsed)
           _ <- responseMetrics(serviceMetrics.responseTimers, response.status, elapsed)
         } yield ()
       }
       .handleErrorWith(
         e =>
           Stream.eval(
-            incrementCounts(serviceMetrics.generalMetrics.abnormal_terminations, elapsedInit)) *>
+            incrementCounts(serviceMetrics.generalMetrics.abnormalTerminations, elapsedInit)) *>
             Stream.raiseError[Byte](e))
     response.copy(body = newBody)
   }
@@ -103,13 +103,13 @@ object Metrics {
       m: Method,
       elapsed: Long,
       serviceMetrics: ServiceMetrics): F[Unit] =
-    requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.active_requests)(
+    requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.activeRequests)(
       m,
       elapsed) *>
-      incrementCounts(serviceMetrics.generalMetrics.service_errors, elapsed)
+      incrementCounts(serviceMetrics.generalMetrics.serviceErrors, elapsed)
 
   private def handleUnmatched[F[_]: Sync](serviceMetrics: ServiceMetrics): F[Option[Response[F]]] =
-    Sync[F].delay(serviceMetrics.generalMetrics.active_requests.dec()).as(Option.empty[Response[F]])
+    Sync[F].delay(serviceMetrics.generalMetrics.activeRequests.dec()).as(Option.empty[Response[F]])
 
   private def handleMatched[F[_]: Sync](resp: Response[F]): F[Option[Response[F]]] =
     resp.some.pure[F]
@@ -178,10 +178,10 @@ object Metrics {
   )
 
   private case class GeneralServiceMetrics(
-      active_requests: Counter,
-      abnormal_terminations: Timer,
-      service_errors: Timer,
-      headers_times: Timer
+      activeRequests: Counter,
+      abnormalTerminations: Timer,
+      serviceErrors: Timer,
+      headersTimes: Timer
   )
 
   private case class ServiceMetrics(
