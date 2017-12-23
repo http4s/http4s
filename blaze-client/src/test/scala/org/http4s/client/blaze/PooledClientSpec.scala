@@ -7,7 +7,7 @@ import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
-import org.http4s.Http4sSpec.TestScheduler
+import org.http4s.Http4sSpec.TestScheduler.sleep_
 import org.http4s.client.testroutes.GetRoutes
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -25,7 +25,13 @@ class PooledClientSpec extends Http4sSpec {
     PooledHttp1Client[IO](
       maxConnectionsPerRequestKey = _ => 1,
       config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 2 seconds))
+
   private val successTimeClient =
+    PooledHttp1Client[IO](
+      maxConnectionsPerRequestKey = _ => 1,
+      config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 20 seconds))
+
+  private val drainTestClient =
     PooledHttp1Client[IO](
       maxConnectionsPerRequestKey = _ => 1,
       config = BlazeClientConfig.defaultConfig.copy(responseHeaderTimeout = 20 seconds))
@@ -48,9 +54,7 @@ class PooledClientSpec extends Http4sSpec {
             IO(os.write(Array(byte)))
           }.run
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> TestScheduler
-            .sleep_[IO](Random.nextInt(1000).millis)
-            .run *> flushOutputStream)
+          (writeBody *> sleep_[IO](Random.nextInt(1000).millis).run *> flushOutputStream)
             .unsafeRunSync()
 
         case None => srv.sendError(404)
@@ -144,6 +148,26 @@ class PooledClientSpec extends Http4sSpec {
         .unsafeToFuture()
       Await.result(resp, 6 seconds) must beTrue
     }
+
+    "drain waiting connections after shutdown" in {
+      val address = addresses(0)
+      val name = address.getHostName
+      val port = address.getPort
+      drainTestClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .unsafeToFuture()
+
+      val resp = drainTestClient
+        .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+        .attempt
+        .map(_.right.exists(_.nonEmpty))
+        .unsafeToFuture()
+
+      (sleep_[IO](100.millis).run *> drainTestClient.shutdown).unsafeToFuture()
+
+      Await.result(resp, 6 seconds) must beTrue
+    }
   }
 
   step {
@@ -151,6 +175,7 @@ class PooledClientSpec extends Http4sSpec {
     successClient.shutdown.unsafeRunSync()
     failTimeClient.shutdown.unsafeRunSync()
     successTimeClient.shutdown.unsafeRunSync()
+    drainTestClient.shutdown.unsafeRunSync()    
     client.shutdown.unsafeRunSync()
     jettyServ.stopServers()
   }

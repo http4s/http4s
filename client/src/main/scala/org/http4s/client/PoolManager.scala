@@ -38,7 +38,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private var waitQueue = mutable.Queue.empty[Waiting]
 
   private def stats =
-    s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
+    s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit closed=${isClosed}"
 
   def statsForRequestKey(key: RequestKey): String = synchronized {
     s"allocated=${allocated.get(key)} idleQueues.size=${idleQueues.get(key).map(_.size)} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
@@ -265,19 +265,12 @@ private final class PoolManager[F[_], A <: Connection[F]](
     */
   def release(connection: A): F[Unit] = F.delay {
     synchronized {
-      if (!isClosed) {
-        logger.debug(s"Recycling connection: $stats")
-        val key = connection.requestKey
-        if (connection.isRecyclable) {
-          releaseRecyclable(key, connection)
-        } else {
-          releaseNonRecyclable(key, connection)
-        }
-      } else if (!connection.isClosed) {
-        logger.debug(s"Shutting down connection after pool closure: $stats")
-        val key = connection.requestKey
-        connection.shutdown()
-        decrConnection(key)
+      logger.debug(s"Recycling connection: $stats")
+      val key = connection.requestKey
+      if (connection.isRecyclable) {
+        releaseRecyclable(key, connection)
+      } else {
+        releaseNonRecyclable(key, connection)
       }
     }
   }
