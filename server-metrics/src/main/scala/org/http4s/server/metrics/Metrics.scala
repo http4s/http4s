@@ -5,7 +5,7 @@ package metrics
 import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
-import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.{Counter, MetricRegistry, Timer}
 import fs2._
 import java.util.concurrent.TimeUnit
 
@@ -19,11 +19,13 @@ object Metrics {
     val service_errors = m.timer(s"${prefix}.service-errors")
     val headers_times = m.timer(s"${prefix}.headers-times")
 
-    val resp1xx = m.timer(s"${prefix}.1xx-responses")
-    val resp2xx = m.timer(s"${prefix}.2xx-responses")
-    val resp3xx = m.timer(s"${prefix}.3xx-responses")
-    val resp4xx = m.timer(s"${prefix}.4xx-responses")
-    val resp5xx = m.timer(s"${prefix}.5xx-responses")
+    val responseTimers = ResponseTimers(
+      m.timer(s"${prefix}.1xx-responses"),
+      m.timer(s"${prefix}.2xx-responses"),
+      m.timer(s"${prefix}.3xx-responses"),
+      m.timer(s"${prefix}.4xx-responses"),
+      m.timer(s"${prefix}.5xx-responses")
+    )
 
     val get_req = m.timer(s"${prefix}.get-requests")
     val post_req = m.timer(s"${prefix}.post-requests")
@@ -38,23 +40,24 @@ object Metrics {
     val other_req = m.timer(s"${prefix}.other-requests")
     val total_req = m.timer(s"${prefix}.requests")
 
-    def generalMetrics(method: Method, elapsed: Long): Unit = {
-      method match {
-        case Method.GET => get_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.POST => post_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.PUT => put_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.HEAD => head_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.MOVE => move_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.OPTIONS => options_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.TRACE => trace_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.CONNECT => connect_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case Method.DELETE => delete_req.update(elapsed, TimeUnit.NANOSECONDS)
-        case _ => other_req.update(elapsed, TimeUnit.NANOSECONDS)
-      }
+    val requestTimers = RequestTimers(
+      get_req,
+      post_req,
+      put_req,
+      head_req,
+      move_req,
+      options_req,
+      trace_req,
+      connect_req,
+      delete_req,
+      other_req,
+      total_req
+    )
 
-      total_req.update(elapsed, TimeUnit.NANOSECONDS)
-      active_requests.dec()
-    }
+    def generalMetrics(m: Method, elapsed: Long): F[Unit] = requestMetrics[F](
+      requestTimers,
+      active_requests
+    )(m, elapsed)
 
     def onFinish(method: Method, start: Long)(
         r: Either[Throwable, Option[Response[F]]]): Either[Throwable, Option[Response[F]]] = {
@@ -62,19 +65,13 @@ object Metrics {
 
       r.map { r =>
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-          val code = r.fold(Status.NotFound)(_.status).code
+          val code = r.fold(Status.NotFound)(_.status)
 
           def capture(body: EntityBody[F]): EntityBody[F] =
             body
               .onFinalize {
-                F.delay {
-                  generalMetrics(method, elapsed)
-                  if (code < 200) resp1xx.update(elapsed, TimeUnit.NANOSECONDS)
-                  else if (code < 300) resp2xx.update(elapsed, TimeUnit.NANOSECONDS)
-                  else if (code < 400) resp3xx.update(elapsed, TimeUnit.NANOSECONDS)
-                  else if (code < 500) resp4xx.update(elapsed, TimeUnit.NANOSECONDS)
-                  else resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
-                }
+                generalMetrics(method, elapsed) *>
+                responseMetrics(responseTimers, code, elapsed)
               }
               .handleErrorWith { cause =>
                 abnormal_terminations.update(elapsed, TimeUnit.NANOSECONDS)
@@ -84,20 +81,99 @@ object Metrics {
         }
         .leftMap { e =>
           generalMetrics(method, elapsed)
-          resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
+          responseTimers.resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
           service_errors.update(elapsed, TimeUnit.NANOSECONDS)
           e
         }
     }
 
     Kleisli { req =>
-      val now = System.nanoTime()
-      active_requests.inc()
-      OptionT {
-        service(req).value.attempt
-          .flatMap(onFinish(req.method, now)(_)
-            .fold[F[Option[Response[F]]]](F.raiseError, F.pure))
-      }
+
+      for {
+        now <- OptionT.liftF[F, Long](Sync[F].delay(System.nanoTime()))
+        increment <- OptionT.liftF(Sync[F].delay(active_requests.inc()))
+        out <- OptionT {
+          service(req).value.attempt
+            .flatMap(onFinish(req.method, now)(_)
+              .fold[F[Option[Response[F]]]](
+                F.raiseError,
+                _.fold(handleUnmatched(active_requests))(handleMatched)
+              )
+            )
+        }
+      } yield out
     }
   }
+
+  private def handleUnmatched[F[_]: Sync](c: Counter): F[Option[Response[F]]] =
+    Sync[F].delay(c.dec()).as(Option.empty[Response[F]])
+  private def handleMatched[F[_]: Sync](resp: Response[F]): F[Option[Response[F]]] = resp.some.pure[F]
+
+
+
+  def responseTimer(responseTimers: ResponseTimers, status: Status): Timer = {
+    status.code match {
+      case hundreds if hundreds < 200 => responseTimers.resp1xx
+      case twohundreds if twohundreds < 300 => responseTimers.resp2xx
+      case threehundreds if threehundreds < 400 => responseTimers.resp3xx
+      case fourhundreds if fourhundreds < 500 => responseTimers.resp4xx
+      case _ => responseTimers.resp5xx
+    }
+  }
+
+  def responseMetrics[F[_]: Sync](responseTimers: ResponseTimers, s: Status, elapsed: Long): F[Unit] =
+    incrementCounts(responseTimer(responseTimers, s), elapsed)
+
+
+
+  private def incrementCounts[F[_]: Sync](timer: Timer, elapsed: Long): F[Unit] =
+    Sync[F].delay(timer.update(elapsed, TimeUnit.NANOSECONDS))
+
+  private def requestTimer[F[_]: Sync](rt: RequestTimers, method: Method): Timer = method match {
+    case Method.GET => rt.get_req
+    case Method.POST => rt.post_req
+    case Method.PUT => rt.put_req
+    case Method.HEAD => rt.head_req
+    case Method.MOVE => rt.move_req
+    case Method.OPTIONS => rt.options_req
+    case Method.TRACE => rt.trace_req
+    case Method.CONNECT => rt.connect_req
+    case Method.DELETE => rt.delete_req
+    case _ => rt.other_req
+  }
+
+  private def requestMetrics[F[_]: Sync](
+                    rt: RequestTimers,
+                    active_requests: Counter
+                    )(method: Method, elapsed: Long): F[Unit] = {
+    val timer = requestTimer(rt, method)
+    incrementCounts(timer, elapsed) *>
+    incrementCounts(rt.total_req, elapsed) *>
+    Sync[F].delay(active_requests.dec())
+  }
+
+
+  private case class RequestTimers(
+                            get_req: Timer,
+                            post_req: Timer,
+                            put_req: Timer,
+                            head_req: Timer,
+                            move_req: Timer,
+                            options_req: Timer,
+                            trace_req: Timer,
+                            connect_req: Timer,
+                            delete_req: Timer,
+                            other_req: Timer,
+                            total_req: Timer
+                          )
+
+  private case class ResponseTimers(
+                             resp1xx: Timer,
+                             resp2xx: Timer,
+                             resp3xx: Timer,
+                             resp4xx: Timer,
+                             resp5xx: Timer
+                           )
+
+
 }
