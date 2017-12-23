@@ -66,8 +66,8 @@ class PooledClientSpec extends Http4sSpec {
     addresses = jettyServ.addresses
   }
 
-  "Blaze Pooled Http1 Client with zero max connections" should {
-    "Not make simple https requests" in {
+  "Blaze Http1Client" should {
+    "raise error NoConnectionAllowedException if no connections are permitted for key" in {
       val u = uri("https://httpbin.org/get")
       val resp = failClient.expect[String](u).attempt.unsafeRunTimed(timeout)
       resp must_== (Some(
@@ -78,18 +78,14 @@ class PooledClientSpec extends Http4sSpec {
               u.authority.get
             )))))
     }
-  }
 
-  "Blaze Pooled Http1 Client" should {
-    "Make simple https requests" in {
+    "make simple https requests" in {
       val resp =
         successClient.expect[String](uri("https://httpbin.org/get")).unsafeRunTimed(timeout)
       resp.map(_.length > 0) must beSome(true)
     }
-  }
 
-  "Blaze Pooled Http1 Client" should {
-    "Behave and not deadlock" in {
+    "behave and not deadlock" in {
       val hosts = addresses.map { address =>
         val name = address.getHostName
         val port = address.getPort
@@ -105,10 +101,8 @@ class PooledClientSpec extends Http4sSpec {
         }
         .forall(_.contains(true)) must beTrue
     }
-  }
 
-  "Blaze Pooled Http1 Client with less expiry time" should {
-    "timeout" in {
+    "obey request timeout" in {
       val address = addresses(0)
       val name = address.getHostName
       val port = address.getPort
@@ -129,10 +123,8 @@ class PooledClientSpec extends Http4sSpec {
         .unsafeToFuture()
       Await.result(resp, 6 seconds) must beFalse
     }
-  }
 
-  "Blaze Pooled Http1 Client with more expiry time" should {
-    "be successful" in {
+    "unblock waiting connections" in {
       val address = addresses(0)
       val name = address.getHostName
       val port = address.getPort
