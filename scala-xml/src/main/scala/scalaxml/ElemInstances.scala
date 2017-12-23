@@ -40,7 +40,7 @@ trait ElemInstances {
         val saxParser = saxFactory.newSAXParser()
         EitherT(
           F.delay(XML.loadXML(source, saxParser)).attempt
-        ).leftFlatMap{
+        ).leftFlatMap {
           case e: SAXParseException =>
             DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
           case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
