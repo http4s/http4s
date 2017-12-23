@@ -27,31 +27,18 @@ object Metrics {
       m.timer(s"${prefix}.5xx-responses")
     )
 
-    val get_req = m.timer(s"${prefix}.get-requests")
-    val post_req = m.timer(s"${prefix}.post-requests")
-    val put_req = m.timer(s"${prefix}.put-requests")
-    val head_req = m.timer(s"${prefix}.head-requests")
-    val move_req = m.timer(s"${prefix}.move-requests")
-    val options_req = m.timer(s"${prefix}.options-requests")
-
-    val trace_req = m.timer(s"${prefix}.trace-requests")
-    val connect_req = m.timer(s"${prefix}.connect-requests")
-    val delete_req = m.timer(s"${prefix}.delete-requests")
-    val other_req = m.timer(s"${prefix}.other-requests")
-    val total_req = m.timer(s"${prefix}.requests")
-
     val requestTimers = RequestTimers(
-      get_req,
-      post_req,
-      put_req,
-      head_req,
-      move_req,
-      options_req,
-      trace_req,
-      connect_req,
-      delete_req,
-      other_req,
-      total_req
+      m.timer(s"${prefix}.get-requests"),
+      m.timer(s"${prefix}.post-requests"),
+      m.timer(s"${prefix}.put-requests"),
+      m.timer(s"${prefix}.head-requests"),
+      m.timer(s"${prefix}.move-requests"),
+      m.timer(s"${prefix}.options-requests"),
+      m.timer(s"${prefix}.trace-requests"),
+      m.timer(s"${prefix}.connect-requests"),
+      m.timer(s"${prefix}.delete-requests"),
+      m.timer(s"${prefix}.other-requests"),
+      m.timer(s"${prefix}.requests")
     )
 
     def generalMetrics(m: Method, elapsed: Long): F[Unit] = requestMetrics[F](
@@ -62,7 +49,6 @@ object Metrics {
     def onFinish(method: Method, start: Long)(
         r: Either[Throwable, Option[Response[F]]]): Either[Throwable, Option[Response[F]]] = {
       val elapsed = System.nanoTime() - start
-
       r.map { r =>
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
           val code = r.fold(Status.NotFound)(_.status)
@@ -79,7 +65,7 @@ object Metrics {
               }
           r.map(resp => resp.copy(body = capture(resp.body)))
         }
-        .leftMap { e =>
+        .leftMap{ e =>
           generalMetrics(method, elapsed)
           responseTimers.resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
           service_errors.update(elapsed, TimeUnit.NANOSECONDS)
@@ -111,7 +97,7 @@ object Metrics {
 
 
 
-  def responseTimer(responseTimers: ResponseTimers, status: Status): Timer = {
+  private def responseTimer(responseTimers: ResponseTimers, status: Status): Timer = {
     status.code match {
       case hundreds if hundreds < 200 => responseTimers.resp1xx
       case twohundreds if twohundreds < 300 => responseTimers.resp2xx
@@ -121,7 +107,7 @@ object Metrics {
     }
   }
 
-  def responseMetrics[F[_]: Sync](responseTimers: ResponseTimers, s: Status, elapsed: Long): F[Unit] =
+  private def responseMetrics[F[_]: Sync](responseTimers: ResponseTimers, s: Status, elapsed: Long): F[Unit] =
     incrementCounts(responseTimer(responseTimers, s), elapsed)
 
 
