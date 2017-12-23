@@ -54,8 +54,9 @@ class MaxConnectionsInPoolSpec extends Http4sSpec {
 
   "Blaze Pooled Http1 Client with zero max connections" should {
     "Not make simple https requests" in {
-      val resp = failClient.expect[String](uri("https://httpbin.org/get")).unsafeRunTimed(timeout)
-      resp.map(_.length > 0) must beNone
+      val resp = failClient.expect[String](uri("https://httpbin.org/get")).attempt.unsafeRunSync()
+
+      resp must beLeft
     }
   }
 
