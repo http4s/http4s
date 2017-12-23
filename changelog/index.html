@@ -86,6 +86,63 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-0-m7-2017-12-23">v0.18.0-M7 (2017-12-23)</h1>
+
+<ul>
+<li>Relax various typeclass constraints from <code>Effect</code> to <code>Sync</code> or <code>Async</code>. <a href="https://github.com/http4s/http4s/pull/1587">#1587</a></li>
+<li>Operate on <code>Segment</code> instead of <code>Chunk</code> <a href="https://github.com/http4s/http4s/pull/1588">#1588</a>
+
+<ul>
+<li><code>EntityDecoder.collectBinary</code> and <code>EntityDecoder.binary</code> now
+return <code>Segment[Byte, Unit]</code> instead of <code>Chunk[Byte]</code>.<br /></li>
+<li>Add <code>EntityDecoder.binaryChunk</code>.</li>
+<li>Add <code>EntityEncoder.segmentEncoder</code>.</li>
+<li><code>http4sMonoidForChunk</code> replaced by <code>http4sMonoidForSegment</code>.</li>
+</ul></li>
+<li>Add new generators for core RFC 2616 types. <a href="https://github.com/http4s/http4s/pull/1593">#1593</a></li>
+<li>Undo obsolete copying of bytes in <code>StaticFile.fromURL</code>. <a href="https://github.com/http4s/http4s/pull/1202">#1202</a></li>
+<li>Optimize conversion of <code>Chunk.Bytes</code> and <code>ByteVectorChunk</code> to `ByteBuffer. <a href="https://github.com/http4s/http4s/pull/1602">#1602</a></li>
+<li>Rename <code>read</code> to <code>send</code> and <code>write</code> to <code>receive</code> in websocket model. <a href="https://github.com/http4s/http4s/pull/1603">#1603</a></li>
+<li>Remove <code>MediaRange</code> mutable <code>Registry</code> and add <code>HttpCodec[MediaRange]</code> instance <a href="https://github.com/http4s/http4s/pull/1597">#1597</a></li>
+<li>Remove <code>Monoid[Segment[A, Unit]]</code> instance, which is now provided by fs2. <a href="https://github.com/http4s/http4s/pull/1609">#1609</a></li>
+<li>Introduce <code>WebSocketBuilder</code> to build <code>WebSocket</code> responses.  Allows headers (e.g., <code>Sec-WebSocket-Protocol</code>) on a successful handshake, as well as customization of the response to failed handshakes. <a href="https://github.com/http4s/http4s/pull/1607">#1607</a></li>
+<li>Don&rsquo;t catch exceptions thrown by <code>EntityDecoder.decodeBy</code>. Complain loudly in logs about exceptions thrown by <code>HttpService</code> rather than raised in <code>F</code>. <a href="https://github.com/http4s/http4s/pull/1592">#1592</a></li>
+<li>Make <code>abnormal-terminations</code> and <code>service-errors</code> Metrics names plural. <a href="https://github.com/http4s/http4s/pull/1611">#1611</a></li>
+<li>Refactor blaze client creation. <a href="https://github.com/http4s/http4s/pull/1523">#1523</a>
+
+<ul>
+<li><code>Http1Client.apply</code> returns <code>F[Client[F]]</code></li>
+<li><code>Http1Client.stream</code> returns <code>Stream[F, Client[F]]</code>, bracketed to shut down the client.</li>
+<li><code>PooledHttp1Client</code> constructor is deprecated, replaced by the above.</li>
+<li><code>SimpleHttp1Client</code> is deprecated with no direct equivalent.  Use <code>Http1Client</code>.</li>
+</ul></li>
+<li>Improve client timeout and wait queue handling
+
+<ul>
+<li><code>requestTimeout</code> and <code>responseHeadersTimeout</code> begin from the submission of the request.  This includes time spent in the wait queue of the pool. <a href="https://github.com/http4s/http4s/pull/1570">#1570</a></li>
+<li>When a connection is <code>invalidate</code>d, try to unblock a waiting request under the same key.  Previously, the wait queue would only be checked on recycled connections.</li>
+<li>When the connection pool is closed, allow connections in the wait queue to complete.</li>
+</ul></li>
+<li>Changes to Metrics middleware. <a href="https://github.com/http4s/http4s/pull/1612">#1612</a>
+
+<ul>
+<li>Decrement the active requests gauge when no request matches</li>
+<li>Don&rsquo;t count non-matching requests as 4xx in case they&rsquo;re composed with other services.</li>
+<li>Don&rsquo;t count failed requests as 5xx in case they&rsquo;re recovered elsewhere.  They still get recorded as <code>service-error</code>s.</li>
+</ul></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>async-http-client-2.0.38</li>
+<li>cats-1.0.0.RC2</li>
+<li>circe-0.9.0-M3</li>
+<li>fs2-0.10.0-M10</li>
+<li>fs2-jawn-0.12.0-M5</li>
+<li>fs2-reactive-streams-0.2.7</li>
+<li>scala-2.10.7 and scala-2.11.12</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-0-m6-2017-12-08">v0.18.0-M6 (2017-12-08)</h1>
 
 <ul>
