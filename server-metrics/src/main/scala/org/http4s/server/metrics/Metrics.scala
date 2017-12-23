@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 
 object Metrics {
 
-  def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(
+  def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server", )(
       implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val generalServiceMetrics = GeneralServiceMetrics(
       active_requests = m.counter(s"${prefix}.active-requests"),
@@ -46,16 +46,12 @@ object Metrics {
   }
 
   private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, service: HttpService[F])(
-      req: Request[F]): OptionT[F, Response[F]] = {
-    val method = req.method
+      req: Request[F]): OptionT[F, Response[F]] = OptionT {
     for {
-      now <- OptionT.liftF[F, Long](Sync[F].delay(System.nanoTime()))
-      _ <- OptionT.liftF[F, Unit](
-        Sync[F].delay(serviceMetrics.generalMetrics.active_requests.inc()))
-      resp <- OptionT {
-        service(req).value.attempt
-          .flatMap(metricsServiceHandler(method, now, serviceMetrics, _))
-      }
+      now <- Sync[F].delay(System.nanoTime())
+      _ <- Sync[F].delay(serviceMetrics.generalMetrics.active_requests.inc())
+      e <- service(req).value.attempt
+      resp <- metricsServiceHandler(req.method, now, serviceMetrics, e)
     } yield resp
   }
 
@@ -110,17 +106,12 @@ object Metrics {
     requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.active_requests)(
       m,
       elapsed) *>
-      incrementCounts(serviceMetrics.responseTimers.resp5xx, elapsed) *>
       incrementCounts(serviceMetrics.generalMetrics.service_errors, elapsed)
 
   private def handleUnmatched[F[_]: Sync](
       serviceMetrics: ServiceMetrics,
       start: Long): F[Option[Response[F]]] =
-    for {
-      elapsed <- Sync[F].delay(System.nanoTime() - start)
-      _ <- incrementCounts(serviceMetrics.responseTimers.resp4xx, elapsed)
-      _ <- Sync[F].delay(serviceMetrics.generalMetrics.active_requests.dec())
-    } yield Option.empty[Response[F]]
+    Sync[F].delay(serviceMetrics.generalMetrics.active_requests.dec()).as(Option.empty[Response[F]])
 
   private def handleMatched[F[_]: Sync](resp: Response[F]): F[Option[Response[F]]] =
     resp.some.pure[F]
