@@ -2,17 +2,17 @@ package org.http4s
 package server
 
 import cats._
-import cats.implicits._
 import fs2._
-import org.http4s.websocket.Websocket
+import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
 package object websocket {
   private[this] object Keys {
     val WebSocket: AttributeKey[Any] = AttributeKey[Any]
   }
-  def websocketKey[F[_]]: AttributeKey[Websocket[F]] =
-    Keys.WebSocket.asInstanceOf[AttributeKey[Websocket[F]]]
+
+  def websocketKey[F[_]]: AttributeKey[WebSocketContext[F]] =
+    Keys.WebSocket.asInstanceOf[AttributeKey[WebSocketContext[F]]]
 
   /**
     * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
@@ -38,12 +38,19 @@ package object websocket {
     *                 are plans to address this limitation in the future.
     * @param status The status code to return to a client making a non-websocket HTTP request to this route
     */
+  @deprecated("Use WebSocketBuilder", "0.18.0-M7")
   def WS[F[_]](
       send: Stream[F, WebSocketFrame],
       receive: Sink[F, WebSocketFrame],
-      status: F[Response[F]])(implicit F: Functor[F]): F[Response[F]] =
-    status.map(_.withAttribute(AttributeEntry(websocketKey[F], Websocket(send, receive))))
+      status: F[Response[F]])(implicit F: Monad[F]): F[Response[F]] =
+    WebSocketBuilder[F].build(
+      send,
+      receive,
+      Headers.empty,
+      status,
+      Response[F](Status.BadRequest).withBody("WebSocket handshake failed."))
 
+  @deprecated("Use WebSocketBuilder", "0.18.0-M7")
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],
       W: EntityEncoder[F, String]): F[Response[F]] =
