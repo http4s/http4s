@@ -2,7 +2,7 @@ package org.http4s
 package server
 package metrics
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.{EitherT, Kleisli, OptionT}
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import com.codahale.metrics.{Counter, MetricRegistry, Timer}
@@ -13,89 +13,97 @@ object Metrics {
 
   def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(
       implicit F: Effect[F]): HttpMiddleware[F] = { service =>
-    val active_requests = m.counter(s"${prefix}.active-requests")
 
-    val abnormal_terminations = m.timer(s"${prefix}.abnormal-terminations")
-    val service_errors = m.timer(s"${prefix}.service-errors")
-    val headers_times = m.timer(s"${prefix}.headers-times")
-
+    val generalServiceMetrics = GeneralServiceMetrics(
+      active_requests = m.counter(s"${prefix}.active-requests"),
+      abnormal_terminations = m.timer(s"${prefix}.abnormal-terminations"),
+      service_errors = m.timer(s"${prefix}.service-errors"),
+      headers_times = m.timer(s"${prefix}.headers-times")
+    )
     val responseTimers = ResponseTimers(
-      m.timer(s"${prefix}.1xx-responses"),
-      m.timer(s"${prefix}.2xx-responses"),
-      m.timer(s"${prefix}.3xx-responses"),
-      m.timer(s"${prefix}.4xx-responses"),
-      m.timer(s"${prefix}.5xx-responses")
+      resp1xx = m.timer(s"${prefix}.1xx-responses"),
+      resp2xx = m.timer(s"${prefix}.2xx-responses"),
+      resp3xx = m.timer(s"${prefix}.3xx-responses"),
+      resp4xx = m.timer(s"${prefix}.4xx-responses"),
+      resp5xx = m.timer(s"${prefix}.5xx-responses")
     )
-
     val requestTimers = RequestTimers(
-      m.timer(s"${prefix}.get-requests"),
-      m.timer(s"${prefix}.post-requests"),
-      m.timer(s"${prefix}.put-requests"),
-      m.timer(s"${prefix}.head-requests"),
-      m.timer(s"${prefix}.move-requests"),
-      m.timer(s"${prefix}.options-requests"),
-      m.timer(s"${prefix}.trace-requests"),
-      m.timer(s"${prefix}.connect-requests"),
-      m.timer(s"${prefix}.delete-requests"),
-      m.timer(s"${prefix}.other-requests"),
-      m.timer(s"${prefix}.requests")
+      get_req = m.timer(s"${prefix}.get-requests"),
+      post_req = m.timer(s"${prefix}.post-requests"),
+      put_req = m.timer(s"${prefix}.put-requests"),
+      head_req = m.timer(s"${prefix}.head-requests"),
+      move_req = m.timer(s"${prefix}.move-requests"),
+      options_req = m.timer(s"${prefix}.options-requests"),
+      trace_req = m.timer(s"${prefix}.trace-requests"),
+      connect_req = m.timer(s"${prefix}.connect-requests"),
+      delete_req = m.timer(s"${prefix}.delete-requests"),
+      other_req = m.timer(s"${prefix}.other-requests"),
+      total_req = m.timer(s"${prefix}.requests")
     )
 
-    def generalMetrics(m: Method, elapsed: Long): F[Unit] = requestMetrics[F](
-      requestTimers,
-      active_requests
-    )(m, elapsed)
+    val serviceMetrics = ServiceMetrics(generalServiceMetrics, requestTimers, responseTimers)
 
-    def onFinish(method: Method, start: Long)(
-        r: Either[Throwable, Option[Response[F]]]): Either[Throwable, Option[Response[F]]] = {
-      val elapsed = System.nanoTime() - start
-      r.map { r =>
-          headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
-          val code = r.fold(Status.NotFound)(_.status)
-
-          def capture(body: EntityBody[F]): EntityBody[F] =
-            body
-              .onFinalize {
-                generalMetrics(method, elapsed) *>
-                responseMetrics(responseTimers, code, elapsed)
-              }
-              .handleErrorWith { cause =>
-                abnormal_terminations.update(elapsed, TimeUnit.NANOSECONDS)
-                Stream.raiseError(cause)
-              }
-          r.map(resp => resp.copy(body = capture(resp.body)))
-        }
-        .leftMap{ e =>
-          generalMetrics(method, elapsed)
-          responseTimers.resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
-          service_errors.update(elapsed, TimeUnit.NANOSECONDS)
-          e
-        }
-    }
-
-    Kleisli { req =>
-
-      for {
-        now <- OptionT.liftF[F, Long](Sync[F].delay(System.nanoTime()))
-        increment <- OptionT.liftF(Sync[F].delay(active_requests.inc()))
-        out <- OptionT {
-          service(req).value.attempt
-            .flatMap(onFinish(req.method, now)(_)
-              .fold[F[Option[Response[F]]]](
-                F.raiseError,
-                _.fold(handleUnmatched(active_requests))(handleMatched)
-              )
-            )
-        }
-      } yield out
-    }
+    Kleisli(metricsService[F](serviceMetrics, service)(_))
   }
+
+  private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, service: HttpService[F])(req: Request[F]): OptionT[F, Response[F]] = {
+    val method = req.method
+    for {
+      now <- OptionT.liftF[F, Long](Sync[F].delay(System.nanoTime()))
+      _ <- OptionT.liftF[F, Unit](Sync[F].delay(serviceMetrics.generalMetrics.active_requests.inc()))
+      resp <- OptionT{
+        service(req)
+          .value
+          .attempt
+          .flatMap(metricsServiceHandler(method, now, serviceMetrics, _))
+      }
+    } yield resp
+  }
+
+  private def metricsServiceHandler[F[_]: Sync](method: Method,
+                                                start: Long,
+                                                serviceMetrics: ServiceMetrics,
+                                                e: Either[Throwable, Option[Response[F]]]
+                                               ): F[Option[Response[F]]] = {
+    for {
+      elapsed <- EitherT.liftF[F, Throwable, Long](Sync[F].delay(System.nanoTime() - start))
+      respOpt <- EitherT(e.bitraverse[F, Throwable, Option[Response[F]]](
+        manageServiceErrors(method, elapsed, serviceMetrics).as(_),
+        _.map(manageResponse(method, elapsed, serviceMetrics)).pure[F]
+      ))
+    } yield respOpt
+  }.fold(
+    Sync[F].raiseError[Option[Response[F]]],
+    _.fold(handleUnmatched(serviceMetrics.generalMetrics.active_requests))(handleMatched)
+  ).flatten
+
+  private def manageResponse[F[_]: Sync](
+                                   m: Method,
+                                   elapsed: Long,
+                                   serviceMetrics: ServiceMetrics
+                                 )(response: Response[F]): Response[F] = {
+    val newBody = response.body
+      .onFinalize(
+        incrementCounts(serviceMetrics.generalMetrics.headers_times, elapsed) *>
+        requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.active_requests)(m, elapsed) *>
+        responseMetrics(serviceMetrics.responseTimers, response.status, elapsed)
+      )
+      .handleErrorWith(e =>
+        Stream.eval(incrementCounts(serviceMetrics.generalMetrics.abnormal_terminations, elapsed)) *>
+        Stream.raiseError[Byte](e)
+      )
+    response.copy(body = newBody)
+  }
+
+  private def manageServiceErrors[F[_]: Sync](m: Method, elapsed: Long, serviceMetrics: ServiceMetrics): F[Unit] =
+    requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.active_requests)(m, elapsed) *>
+    incrementCounts(serviceMetrics.responseTimers.resp5xx, elapsed) *>
+    incrementCounts(serviceMetrics.generalMetrics.service_errors, elapsed)
+
 
   private def handleUnmatched[F[_]: Sync](c: Counter): F[Option[Response[F]]] =
     Sync[F].delay(c.dec()).as(Option.empty[Response[F]])
   private def handleMatched[F[_]: Sync](resp: Response[F]): F[Option[Response[F]]] = resp.some.pure[F]
-
-
 
   private def responseTimer(responseTimers: ResponseTimers, status: Status): Timer = {
     status.code match {
@@ -109,8 +117,6 @@ object Metrics {
 
   private def responseMetrics[F[_]: Sync](responseTimers: ResponseTimers, s: Status, elapsed: Long): F[Unit] =
     incrementCounts(responseTimer(responseTimers, s), elapsed)
-
-
 
   private def incrementCounts[F[_]: Sync](timer: Timer, elapsed: Long): F[Unit] =
     Sync[F].delay(timer.update(elapsed, TimeUnit.NANOSECONDS))
@@ -160,6 +166,19 @@ object Metrics {
                              resp4xx: Timer,
                              resp5xx: Timer
                            )
+
+  private case class GeneralServiceMetrics(
+                                          active_requests: Counter,
+                                          abnormal_terminations: Timer,
+                                          service_errors: Timer,
+                                          headers_times: Timer
+                                          )
+
+  private case class ServiceMetrics(
+                                   generalMetrics: GeneralServiceMetrics,
+                                   requestTimers: RequestTimers,
+                                   responseTimers: ResponseTimers
+                                   )
 
 
 }
