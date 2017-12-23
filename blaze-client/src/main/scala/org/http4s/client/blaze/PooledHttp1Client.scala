@@ -1,34 +1,28 @@
-package org.http4s
-package client
-package blaze
+package org.http4s.client.blaze
 
-import cats.effect._
+import cats.effect.Effect
+import org.http4s.client.{Client, RequestKey}
 
-/** Create a HTTP1 client which will attempt to recycle connections */
 object PooledHttp1Client {
-  private val DefaultMaxTotalConnections = 10
-  private val DefaultMaxWaitQueueLimit = 256
 
   /** Construct a new PooledHttp1Client
     *
-    * @param maxTotalConnections maximum connections the client will have at any specific time
-    * @param maxWaitQueueLimit maximum number requests waiting for a connection at any specific time
+    * @param maxTotalConnections         maximum connections the client will have at any specific time
+    * @param maxWaitQueueLimit           maximum number requests waiting for a connection at any specific time
     * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
-    * @param config blaze client configuration options
+    * @param config                      blaze client configuration options
     */
+  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M7")
   def apply[F[_]: Effect](
-      maxTotalConnections: Int = DefaultMaxTotalConnections,
-      maxWaitQueueLimit: Int = DefaultMaxWaitQueueLimit,
-      maxConnectionsPerRequestKey: RequestKey => Int = _ => DefaultMaxTotalConnections,
-      config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
+      maxTotalConnections: Int = bits.DefaultMaxTotalConnections,
+      maxWaitQueueLimit: Int = bits.DefaultMaxWaitQueueLimit,
+      maxConnectionsPerRequestKey: RequestKey => Int = _ => bits.DefaultMaxTotalConnections,
+      config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] =
+    Http1Client.mkClient(
+      config.copy(
+        maxTotalConnections = maxTotalConnections,
+        maxWaitQueueLimit = maxWaitQueueLimit,
+        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey
+      ))
 
-    val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)
-    val pool = ConnectionManager.pool(
-      http1,
-      maxTotalConnections,
-      maxWaitQueueLimit,
-      maxConnectionsPerRequestKey,
-      config.executionContext)
-    BlazeClient(pool, config, pool.shutdown())
-  }
 }

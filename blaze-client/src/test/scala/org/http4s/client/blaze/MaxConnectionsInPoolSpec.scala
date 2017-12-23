@@ -6,19 +6,21 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import cats.effect._
 import cats.implicits._
 import org.http4s._
-
 import scala.concurrent.duration._
 import scala.util.Random
 import org.http4s.client.testroutes.GetRoutes
-import org.http4s.client.JettyScaffold
+import org.http4s.client.{Client, JettyScaffold, RequestKey}
 
 class MaxConnectionsInPoolSpec extends Http4sSpec {
 
   private val timeout = 30.seconds
 
-  private val failClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 0)
-  private val successClient = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 1)
-  private val client = PooledHttp1Client[IO](maxConnectionsPerRequestKey = _ => 3)
+  private def mkClient(f: RequestKey => Int): Client[IO] =
+    Http1Client[IO](BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = f)).unsafeRunSync
+
+  private val failClient = mkClient(_ => 0)
+  private val successClient = mkClient(_ => 1)
+  private val client = mkClient(_ => 3)
 
   val jettyServ = new JettyScaffold(5)
   var addresses = Vector.empty[InetSocketAddress]
