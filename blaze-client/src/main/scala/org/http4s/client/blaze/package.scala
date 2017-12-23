@@ -5,7 +5,7 @@ import cats.effect.Effect
 
 package object blaze {
 
-  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M6")
+  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M7")
   def defaultClient[F[_]: Effect]: Client[F] = PooledHttp1Client()
 
 }

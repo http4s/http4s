@@ -12,7 +12,7 @@ object PooledHttp1Client {
     * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
     * @param config                      blaze client configuration options
     */
-  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M6")
+  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M7")
   def apply[F[_]: Effect](
       maxTotalConnections: Int = bits.DefaultMaxTotalConnections,
       maxWaitQueueLimit: Int = bits.DefaultMaxWaitQueueLimit,
