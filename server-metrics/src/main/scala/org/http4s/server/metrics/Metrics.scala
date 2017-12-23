@@ -69,27 +69,31 @@ object Metrics {
       elapsed <- EitherT.liftF[F, Throwable, Long](Sync[F].delay(System.nanoTime() - start))
       respOpt <- EitherT(e.bitraverse[F, Throwable, Option[Response[F]]](
         manageServiceErrors(method, elapsed, serviceMetrics).as(_),
-        _.map(manageResponse(method, elapsed, serviceMetrics)).pure[F]
+        _.map(manageResponse(method, start, elapsed, serviceMetrics)).pure[F]
       ))
     } yield respOpt
   }.fold(
     Sync[F].raiseError[Option[Response[F]]],
-    _.fold(handleUnmatched(serviceMetrics.generalMetrics.active_requests))(handleMatched)
+    _.fold(handleUnmatched(serviceMetrics, start))(handleMatched)
   ).flatten
 
   private def manageResponse[F[_]: Sync](
                                    m: Method,
-                                   elapsed: Long,
+                                   start: Long,
+                                   elapsedInit: Long,
                                    serviceMetrics: ServiceMetrics
                                  )(response: Response[F]): Response[F] = {
     val newBody = response.body
-      .onFinalize(
-        incrementCounts(serviceMetrics.generalMetrics.headers_times, elapsed) *>
-        requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.active_requests)(m, elapsed) *>
-        responseMetrics(serviceMetrics.responseTimers, response.status, elapsed)
-      )
+      .onFinalize {
+        for {
+          elapsed <- Sync[F].delay(System.nanoTime() - start)
+          _ <- incrementCounts(serviceMetrics.generalMetrics.headers_times, elapsedInit)
+          _ <- requestMetrics(serviceMetrics.requestTimers, serviceMetrics.generalMetrics.active_requests)(m, elapsed)
+          _ <- responseMetrics(serviceMetrics.responseTimers, response.status, elapsed)
+        } yield ()
+      }
       .handleErrorWith(e =>
-        Stream.eval(incrementCounts(serviceMetrics.generalMetrics.abnormal_terminations, elapsed)) *>
+        Stream.eval(incrementCounts(serviceMetrics.generalMetrics.abnormal_terminations, elapsedInit)) *>
         Stream.raiseError[Byte](e)
       )
     response.copy(body = newBody)
@@ -101,8 +105,13 @@ object Metrics {
     incrementCounts(serviceMetrics.generalMetrics.service_errors, elapsed)
 
 
-  private def handleUnmatched[F[_]: Sync](c: Counter): F[Option[Response[F]]] =
-    Sync[F].delay(c.dec()).as(Option.empty[Response[F]])
+  private def handleUnmatched[F[_]: Sync](serviceMetrics: ServiceMetrics, start: Long): F[Option[Response[F]]] =
+    for {
+      elapsed <- Sync[F].delay(System.nanoTime() - start)
+      _ <- incrementCounts(serviceMetrics.responseTimers.resp4xx, elapsed)
+      _ <- Sync[F].delay(serviceMetrics.generalMetrics.active_requests.dec())
+    } yield Option.empty[Response[F]]
+
   private def handleMatched[F[_]: Sync](resp: Response[F]): F[Option[Response[F]]] = resp.some.pure[F]
 
   private def responseTimer(responseTimers: ResponseTimers, status: Status): Timer = {
