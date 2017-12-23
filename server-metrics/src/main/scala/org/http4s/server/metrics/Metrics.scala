@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 
 object Metrics {
 
-  def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server", )(
+  def apply[F[_]](m: MetricRegistry, prefix: String = "org.http4s.server")(
       implicit F: Effect[F]): HttpMiddleware[F] = { service =>
     val generalServiceMetrics = GeneralServiceMetrics(
       active_requests = m.counter(s"${prefix}.active-requests"),
@@ -27,17 +27,17 @@ object Metrics {
       resp5xx = m.timer(s"${prefix}.5xx-responses")
     )
     val requestTimers = RequestTimers(
-      get_req = m.timer(s"${prefix}.get-requests"),
-      post_req = m.timer(s"${prefix}.post-requests"),
-      put_req = m.timer(s"${prefix}.put-requests"),
-      head_req = m.timer(s"${prefix}.head-requests"),
-      move_req = m.timer(s"${prefix}.move-requests"),
-      options_req = m.timer(s"${prefix}.options-requests"),
-      trace_req = m.timer(s"${prefix}.trace-requests"),
-      connect_req = m.timer(s"${prefix}.connect-requests"),
-      delete_req = m.timer(s"${prefix}.delete-requests"),
-      other_req = m.timer(s"${prefix}.other-requests"),
-      total_req = m.timer(s"${prefix}.requests")
+      getReq = m.timer(s"${prefix}.get-requests"),
+      postReq = m.timer(s"${prefix}.post-requests"),
+      putReq = m.timer(s"${prefix}.put-requests"),
+      headReq = m.timer(s"${prefix}.head-requests"),
+      moveReq = m.timer(s"${prefix}.move-requests"),
+      optionsReq = m.timer(s"${prefix}.options-requests"),
+      traceReq = m.timer(s"${prefix}.trace-requests"),
+      connectReq = m.timer(s"${prefix}.connect-requests"),
+      deleteReq = m.timer(s"${prefix}.delete-requests"),
+      otherReq = m.timer(s"${prefix}.other-requests"),
+      totalReq = m.timer(s"${prefix}.requests")
     )
 
     val serviceMetrics = ServiceMetrics(generalServiceMetrics, requestTimers, responseTimers)
@@ -70,7 +70,7 @@ object Metrics {
     } yield respOpt
   }.fold(
       Sync[F].raiseError[Option[Response[F]]],
-      _.fold(handleUnmatched(serviceMetrics, start))(handleMatched)
+      _.fold(handleUnmatched(serviceMetrics))(handleMatched)
     )
     .flatten
 
@@ -108,9 +108,7 @@ object Metrics {
       elapsed) *>
       incrementCounts(serviceMetrics.generalMetrics.service_errors, elapsed)
 
-  private def handleUnmatched[F[_]: Sync](
-      serviceMetrics: ServiceMetrics,
-      start: Long): F[Option[Response[F]]] =
+  private def handleUnmatched[F[_]: Sync](serviceMetrics: ServiceMetrics): F[Option[Response[F]]] =
     Sync[F].delay(serviceMetrics.generalMetrics.active_requests.dec()).as(Option.empty[Response[F]])
 
   private def handleMatched[F[_]: Sync](resp: Response[F]): F[Option[Response[F]]] =
@@ -135,16 +133,16 @@ object Metrics {
     Sync[F].delay(timer.update(elapsed, TimeUnit.NANOSECONDS))
 
   private def requestTimer[F[_]: Sync](rt: RequestTimers, method: Method): Timer = method match {
-    case Method.GET => rt.get_req
-    case Method.POST => rt.post_req
-    case Method.PUT => rt.put_req
-    case Method.HEAD => rt.head_req
-    case Method.MOVE => rt.move_req
-    case Method.OPTIONS => rt.options_req
-    case Method.TRACE => rt.trace_req
-    case Method.CONNECT => rt.connect_req
-    case Method.DELETE => rt.delete_req
-    case _ => rt.other_req
+    case Method.GET => rt.getReq
+    case Method.POST => rt.postReq
+    case Method.PUT => rt.putReq
+    case Method.HEAD => rt.headReq
+    case Method.MOVE => rt.moveReq
+    case Method.OPTIONS => rt.optionsReq
+    case Method.TRACE => rt.traceReq
+    case Method.CONNECT => rt.connectReq
+    case Method.DELETE => rt.deleteReq
+    case _ => rt.otherReq
   }
 
   private def requestMetrics[F[_]: Sync](
@@ -153,22 +151,22 @@ object Metrics {
   )(method: Method, elapsed: Long): F[Unit] = {
     val timer = requestTimer(rt, method)
     incrementCounts(timer, elapsed) *>
-      incrementCounts(rt.total_req, elapsed) *>
+      incrementCounts(rt.totalReq, elapsed) *>
       Sync[F].delay(active_requests.dec())
   }
 
   private case class RequestTimers(
-      get_req: Timer,
-      post_req: Timer,
-      put_req: Timer,
-      head_req: Timer,
-      move_req: Timer,
-      options_req: Timer,
-      trace_req: Timer,
-      connect_req: Timer,
-      delete_req: Timer,
-      other_req: Timer,
-      total_req: Timer
+      getReq: Timer,
+      postReq: Timer,
+      putReq: Timer,
+      headReq: Timer,
+      moveReq: Timer,
+      optionsReq: Timer,
+      traceReq: Timer,
+      connectReq: Timer,
+      deleteReq: Timer,
+      otherReq: Timer,
+      totalReq: Timer
   )
 
   private case class ResponseTimers(
