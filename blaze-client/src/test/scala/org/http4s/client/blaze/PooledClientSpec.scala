@@ -7,6 +7,7 @@ import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
+import org.http4s.Http4sSpec.TestScheduler
 import org.http4s.client.testroutes.GetRoutes
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -47,7 +48,9 @@ class PooledClientSpec extends Http4sSpec {
             IO(os.write(Array(byte)))
           }.run
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> IO(Thread.sleep(Random.nextInt(1000).toLong)) *> flushOutputStream)
+          (writeBody *> TestScheduler
+            .sleep_[IO](Random.nextInt(1000).millis)
+            .run *> flushOutputStream)
             .unsafeRunSync()
 
         case None => srv.sendError(404)
