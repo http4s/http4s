@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.0-M7
+# v0.18.0-M7 (2017-12-23)
 * Relax various typeclass constraints from `Effect` to `Sync` or `Async`. [#1587](https://github.com/http4s/http4s/pull/1587)
 * Operate on `Segment` instead of `Chunk` [#1588](https://github.com/http4s/http4s/pull/1588)
    * `EntityDecoder.collectBinary` and `EntityDecoder.binary` now
@@ -34,7 +34,10 @@ it.
    * `requestTimeout` and `responseHeadersTimeout` begin from the submission of the request.  This includes time spent in the wait queue of the pool. [#1570](https://github.com/http4s/http4s/pull/1570)
    * When a connection is `invalidate`d, try to unblock a waiting request under the same key.  Previously, the wait queue would only be checked on recycled connections.
    * When the connection pool is closed, allow connections in the wait queue to complete.
-* Fix Metrics middleware to decrement the active connections when the wrapped service returns `None`. [#1612](https://github.com/http4s/http4s/pull/1612)
+* Changes to Metrics middleware. [#1612](https://github.com/http4s/http4s/pull/1612)
+   * Decrement the active requests gauge when no request matches
+   * Don't count non-matching requests as 4xx in case they're composed with other services.
+   * Don't count failed requests as 5xx in case they're recovered elsewhere.  They still get recorded as `service-error`s.
 * Dependency upgrades:
    * async-http-client-2.0.38
    * cats-1.0.0.RC2
@@ -43,8 +46,6 @@ it.
    * fs2-jawn-0.12.0-M5
    * fs2-reactive-streams-0.2.7
    * scala-2.10.7 and scala-2.11.12
-* Improve 
-
 
 # v0.18.0-M6 (2017-12-08)
 * Tested on Java 9.
