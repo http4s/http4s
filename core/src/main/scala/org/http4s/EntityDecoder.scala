@@ -7,7 +7,7 @@ import fs2._
 import fs2.io._
 import java.io.{File, FileOutputStream, PrintStream}
 import org.http4s.headers.`Content-Type`
-import org.http4s.multipart.{Multipart, MultipartDecoder}
+//import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scala.annotation.implicitNotFound
 
 /** A type that can be used to decode a [[Message]]
@@ -226,8 +226,8 @@ trait EntityDecoderInstances {
       DecodeResult.success(msg.body.to(sink).run).map(_ => file)
     }
 
-  implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
-    MultipartDecoder.decoder
+  // implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
+  //   MultipartDecoder.decoder
 
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =

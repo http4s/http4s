@@ -3,12 +3,11 @@ package blazecore
 
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
-import fs2.interop.scodec.ByteVectorChunk
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.http.http_parser.Http1ClientParser
+import org.http4s.internal.chunk._
 import scala.collection.mutable.ListBuffer
-import scodec.bits.ByteVector
 
 class ResponseParser extends Http1ClientParser {
 
@@ -23,7 +22,7 @@ class ResponseParser extends Http1ClientParser {
   /** Will not mutate the ByteBuffers in the Seq */
   def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header], String) = {
     val b =
-      ByteBuffer.wrap(buffs.map(b => ByteVectorChunk(ByteVector.view(b)).toArray).toArray.flatten)
+      ByteBuffer.wrap(buffs.map(b => Chunk.byteBuffer(b).toArray).toArray.flatten)
     parseResponseBuffer(b)
   }
 
@@ -40,7 +39,7 @@ class ResponseParser extends Http1ClientParser {
 
     val bp = {
       val bytes = body.toList.foldMap[Segment[Byte, Unit]](bb =>
-        Segment.chunk(ByteVectorChunk(ByteVector.view(bb))))
+        Segment.chunk(Chunk.byteBuffer(bb)))
       new String(bytes.force.toArray, StandardCharsets.ISO_8859_1)
     }
 

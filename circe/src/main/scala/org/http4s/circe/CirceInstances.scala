@@ -5,13 +5,12 @@ import cats._
 import cats.effect._
 import cats.implicits._
 import fs2.Chunk
-import fs2.interop.scodec.ByteVectorChunk
 import io.circe.{Decoder, Encoder, Json, Printer}
 import io.circe.jawn._
 import io.circe.jawn.CirceSupportParser.facade
 import java.nio.ByteBuffer
 import org.http4s.headers.`Content-Type`
-import scodec.bits.ByteVector
+import org.http4s.internal.chunk._
 
 trait CirceInstances {
   def jsonDecoderIncremental[F[_]: Sync]: EntityDecoder[F, Json] =
@@ -68,8 +67,7 @@ trait CirceInstances {
       printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
       .contramap[Json] { json =>
-        val bytes = printer.prettyByteBuffer(json)
-        ByteVectorChunk(ByteVector.view(bytes))
+        Chunk.byteBuffer(printer.prettyByteBuffer(json))
       }
       .withContentType(`Content-Type`(MediaType.`application/json`))
 

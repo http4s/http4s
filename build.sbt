@@ -23,13 +23,11 @@ lazy val core = libraryProject("core")
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
       fs2Io,
-      fs2Scodec,
       http4sWebsocket,
       log4s,
       macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
@@ -41,6 +39,7 @@ lazy val testing = libraryProject("testing")
     libraryDependencies ++= Seq(
       catsEffectLaws,
       scalacheck,
+      scodecBits,
       specs2Core
     ),
     macroParadiseSetting
@@ -223,7 +222,9 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
-    libraryDependencies += circeParser
+    libraryDependencies ++= Seq(
+      circeParser
+    )
   )
   .dependsOn(core, circe)
 

@@ -2,7 +2,7 @@ package com.example.http4s
 
 import cats.effect._
 import cats.implicits._
-import fs2.{Pull, Scheduler, Stream}
+import fs2.{Chunk, Pull, Scheduler, Stream}
 import io.circe._
 import org.http4s._
 import org.http4s.circe._
@@ -12,7 +12,6 @@ import org.http4s.scalaxml._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.xml.Elem
-import scodec.bits.ByteVector
 
 /** These are routes that we tend to use for testing purposes
   * and will likely get folded into unit tests later in life */
@@ -108,7 +107,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
       case GET -> Root / "hanging-body" =>
         Ok(
           Stream
-            .eval(F.pure(ByteVector(Seq(' '.toByte))))
+            .eval(F.pure(Chunk.bytes(Array(' '))))
             .evalMap(_ =>
               F.async[Byte] { cb => /* hang */
             }))

@@ -8,6 +8,8 @@
     </encoder>
   </appender>
 
+  <logger name="org.http4s.client" level="DEBUG"/>
+  
   <root level="${LOGBACK_ROOT_LEVEL:-WARN}">
     <appender-ref ref="STDOUT" />
   </root>

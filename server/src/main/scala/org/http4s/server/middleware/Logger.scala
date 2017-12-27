@@ -6,7 +6,6 @@ import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.{Logger => SLogger}
-import scodec.bits.ByteVector
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -44,7 +43,7 @@ object Logger {
     val bodyStream = if (logBody && isText) {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
-      message.body.map(ByteVector.fromByte).map(_.toHex)
+      message.body.fold(new StringBuilder)((sb, b) => sb.append(String.format("%02X", new java.lang.Integer(b & 0xff)))).map(_.toString)
     } else {
       Stream.empty.covary[F]
     }

@@ -4,7 +4,6 @@ package staticcontent
 
 import cats.effect._
 import fs2._
-import fs2.interop.scodec.ByteVectorChunk
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
 import scodec.bits.ByteVector
@@ -21,7 +20,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
       .mkString
       .getBytes(StandardCharsets.UTF_8)
 
-    ByteVectorChunk(ByteVector.view(bytes))
+    Chunk.bytes(bytes)
   }
 
   lazy val testResourceGzipped: Chunk[Byte] = {
@@ -29,7 +28,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
     require(url != null, "Couldn't acquire resource!")
     val bytes = Files.readAllBytes(Paths.get(url.toURI))
 
-    ByteVectorChunk(ByteVector.view(bytes))
+    Chunk.bytes(bytes)
   }
 
   lazy val testWebjarResource: ByteVector = {

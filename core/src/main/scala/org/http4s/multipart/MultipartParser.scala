@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package multipart
 
@@ -154,3 +155,4 @@ object MultipartParser {
     }
   }
 }
+ */
