@@ -12,7 +12,7 @@ import java.security.{KeyStore, Security}
 
 abstract class SslClasspathExample[F[_]: Effect] extends StreamApp[F] {
 
-  def somethingElse(keystorePassword: String, keyManagerPass: String): F[SSLContext] = Sync[F].delay {
+  def loadContextFromClasspath(keystorePassword: String, keyManagerPass: String): F[SSLContext] = Sync[F].delay {
 
     val ksStream = this.getClass.getResourceAsStream("/server.jks")
     val ks = KeyStore.getInstance("JKS")
@@ -37,7 +37,7 @@ abstract class SslClasspathExample[F[_]: Effect] extends StreamApp[F] {
   def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     for {
       scheduler <- Scheduler(corePoolSize = 2)
-      context <- Stream.eval(somethingElse("password", "secure"))
+      context <- Stream.eval(loadContextFromClasspath("password", "secure"))
       exitCode <- builder
         .withSSLContext(context)
         .bindHttp(8443, "0.0.0.0")
