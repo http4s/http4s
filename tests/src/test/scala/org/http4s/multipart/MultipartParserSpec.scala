@@ -62,7 +62,7 @@ object MultipartParserSpec extends Specification {
           unspool(input, chunkSize).through(MultipartParser.parse(boundary))
 
         val (headers, bv) =
-          results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
+          results.compile.toVector.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
             case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
             case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
           }
@@ -103,7 +103,7 @@ object MultipartParserSpec extends Specification {
               |""".stripMargin)
 
       val (headers, bv) =
-        results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
+        results.compile.toVector.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
           case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
         }
@@ -165,7 +165,7 @@ object MultipartParserSpec extends Specification {
       ).through(MultipartParser.parse(boundary))
 
       val (headers, bv) =
-        results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
+        results.compile.toVector.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
           case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
         }
@@ -194,7 +194,7 @@ object MultipartParserSpec extends Specification {
       val results =
         unspool(input, 15).through(MultipartParser.parse(boundary))
 
-      results.runLog.unsafeRunSync() must throwA(
+      results.compile.toVector.unsafeRunSync() must throwA(
         MalformedMessageBodyFailure("Part header was longer than 100-byte limit"))
     }.pendingUntilFixed("Due to Buffering All, Irrelevant")
 
@@ -233,7 +233,7 @@ object MultipartParserSpec extends Specification {
           unspool(end)
       ).through(MultipartParser.parse(boundary))
 
-      val headers = results.runLog.unsafeRunSync().foldLeft(Headers.empty) {
+      val headers = results.compile.toVector.unsafeRunSync().foldLeft(Headers.empty) {
         case (hsAcc, Right(_)) => hsAcc
         case (hsAcc, Left(hs)) => hsAcc ++ hs
       }
@@ -273,7 +273,7 @@ object MultipartParserSpec extends Specification {
       val results = unspool(input).through(MultipartParser.parse(boundary))
 
       val (headers, bv) =
-        results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
+        results.compile.toVector.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
           case ((hsAcc, bvAcc), Left(hs)) => (hsAcc ++ hs, bvAcc)
         }
@@ -306,7 +306,7 @@ object MultipartParserSpec extends Specification {
 
       // Accumulator Bytevector Resets on New Header, so bv represents ByteVector of last Part.
       val (_, bv) =
-        results.runLog.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
+        results.compile.toVector.unsafeRunSync().foldLeft((Headers.empty, ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
           case ((hsAcc, _), Left(hs)) => (hsAcc ++ hs, ByteVector.empty)
         }
@@ -334,7 +334,7 @@ object MultipartParserSpec extends Specification {
       val results = unspool(input).through(MultipartParser.parse(boundaryTest))
 
       val (headers, _) =
-        results.runLog.unsafeRunSync().foldLeft((List.empty[Headers], ByteVector.empty)) {
+        results.compile.toVector.unsafeRunSync().foldLeft((List.empty[Headers], ByteVector.empty)) {
           case ((hsAcc, bvAcc), Right(bv)) => (hsAcc, bvAcc ++ bv)
           case ((hsAcc, bvAcc), Left(hs)) => (hs :: hsAcc, bvAcc)
         }
@@ -365,7 +365,7 @@ object MultipartParserSpec extends Specification {
 
       val results = unspool(input).through(MultipartParser.parse(boundary))
 
-      results.runLog.unsafeRunSync() must throwA[MalformedMessageBodyFailure]
+      results.compile.toVector.unsafeRunSync() must throwA[MalformedMessageBodyFailure]
     }
   }
 }

@@ -2,6 +2,7 @@ package org.http4s.server
 package blaze
 
 import cats.effect._
+import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H, _}
@@ -303,10 +304,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Handle routes that runs the request body for non-chunked" in {
 
       val service = HttpService[IO] {
-        case req =>
-          req.body.run.flatMap { _ =>
-            Response().withBody("foo")
-          }
+        case req => req.body.compile.drain *> Response().withBody("foo")
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -387,7 +385,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val service = HttpService[IO] {
         case req if req.pathInfo == "/foo" =>
           for {
-            _ <- req.body.run
+            _ <- req.body.compile.drain
             hs <- req.trailerHeaders
             resp <- Ok(hs.mkString)
           } yield resp

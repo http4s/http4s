@@ -134,7 +134,7 @@ class EntityEncoderSpec extends Http4sSpec {
       Eq.by[IO[Entity[IO]], Either[Throwable, (Option[Long], Vector[Byte])]](
         _.flatMap {
           case Entity(body, length) =>
-            body.runLog.map { bytes =>
+            body.compile.toVector.map { bytes =>
               (length, bytes)
             }
         }.attempt.unsafeRunTimed(1.second).getOrElse(throw new TimeoutException)

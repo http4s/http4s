@@ -31,7 +31,7 @@ private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: B
     * @return the F which, when run, will send the headers and kill the entity body
     */
   override def writeEntityBody(p: EntityBody[F]): F[Boolean] =
-    p.drain.run.map(_ => close)
+    p.drain.compile.drain.map(_ => close)
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
     Future.successful(close)

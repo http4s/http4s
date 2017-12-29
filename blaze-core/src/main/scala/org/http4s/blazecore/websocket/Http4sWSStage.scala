@@ -90,7 +90,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
       dead <- deadSignal
       in = inputstream.to(ws.receive).onFinalize(onStreamFinalize)
       out = ws.send.onFinalize(onStreamFinalize).to(snk).drain
-      merged <- in.mergeHaltR(out).interruptWhen(dead).onFinalize(sendClose).run
+      merged <- in.mergeHaltR(out).interruptWhen(dead).onFinalize(sendClose).compile.drain
     } yield merged
 
     async.unsafeRunAsync {
