@@ -8,7 +8,6 @@ import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
-import org.http4s.util.chunk._
 import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
 
