@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0-M8 (2018-01-05)
+* Dependency Upgrades:
+   * argonaut-6.2.1
+   * circe-jawn-0.9.0
+   * fs2-io-0.10.0-M11
+   * fs2-reactive-streams-0.2.8
+   * jawn-fs2-0.12.0-M6
+   * cats-laws-1.0.1
+   * cats-effect-laws-0.8
+
 # v0.18.0-M7 (2017-12-23)
 * Relax various typeclass constraints from `Effect` to `Sync` or `Async`. [#1587](https://github.com/http4s/http4s/pull/1587)
 * Operate on `Segment` instead of `Chunk` [#1588](https://github.com/http4s/http4s/pull/1588)
