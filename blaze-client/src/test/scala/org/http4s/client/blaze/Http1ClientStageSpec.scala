@@ -70,7 +70,8 @@ class Http1ClientStageSpec extends Http4sSpec {
         .runRequest(req)
         .unsafeRunSync()
         .body
-        .runLog
+        .compile
+        .toVector
         .unsafeRunSync()
         .toArray)
 
@@ -132,7 +133,7 @@ class Http1ClientStageSpec extends Http4sSpec {
         LeafBuilder(tail).base(h)
 
         // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).unsafeRunSync().body.run.unsafeRunSync()
+        tail.runRequest(FooRequest).unsafeRunSync().body.compile.drain.unsafeRunSync()
 
         val result = tail.runRequest(FooRequest).unsafeRunSync()
         tail.shutdown()
@@ -153,7 +154,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
         val result = tail.runRequest(FooRequest).unsafeRunSync()
 
-        result.body.run.unsafeRunSync() must throwA[InvalidBodyException]
+        result.body.compile.drain.unsafeRunSync() must throwA[InvalidBodyException]
       } finally {
         tail.shutdown()
       }
@@ -260,7 +261,9 @@ class Http1ClientStageSpec extends Http4sSpec {
         tail.isRecyclable must_=== true
 
         // body is empty due to it being HEAD request
-        response.body.runLog.unsafeRunSync().foldLeft(0L)((long, byte) => long + 1L) must_== 0L
+        response.body.compile.toVector
+          .unsafeRunSync()
+          .foldLeft(0L)((long, byte) => long + 1L) must_== 0L
       } finally {
         tail.shutdown()
       }

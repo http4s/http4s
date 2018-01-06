@@ -72,7 +72,8 @@ trait Http4sSpec
       .flatMap { case Entity(body, _) => body }
       .through(utf8Decode)
       .foldMonoid
-      .runLast
+      .compile
+      .last
       .map(_.getOrElse(""))
       .unsafeRunSync
 
@@ -82,7 +83,8 @@ trait Http4sSpec
       .flatMap { case Entity(body, _) => body }
       .bufferAll
       .chunks
-      .runLast
+      .compile
+      .last
       .map(_.getOrElse(Chunk.empty))
       .unsafeRunSync
 

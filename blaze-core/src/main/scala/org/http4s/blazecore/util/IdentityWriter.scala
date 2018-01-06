@@ -8,7 +8,6 @@ import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
-import org.http4s.util.chunk._
 import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -56,16 +55,14 @@ private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer]
   protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val total = bodyBytesWritten + chunk.size
 
-    if (size < 0 || total >= size)
+    if (size < 0 || total >= size) {
       writeBodyChunk(chunk, flush = true).map(Function.const(size < 0)) // require close if infinite
-    else {
+    } else {
       val msg = s"Expected `Content-Length: $size` bytes, but only $total were written."
 
       logger.warn(msg)
 
-      writeBodyChunk(chunk, flush = true).flatMap { _ =>
-        Future.failed(new IllegalStateException(msg))
-      }
+      writeBodyChunk(chunk, flush = true) *> Future.failed(new IllegalStateException(msg))
     }
   }
 }

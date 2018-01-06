@@ -62,5 +62,5 @@ class TimeoutSpec extends Http4sSpec {
   }
 
   private def delay[F[_]: Effect, A](duration: FiniteDuration, fa: F[A]): F[A] =
-    Http4sSpec.TestScheduler.sleep_(duration).run *> fa
+    Http4sSpec.TestScheduler.sleep_(duration).compile.drain *> fa
 }

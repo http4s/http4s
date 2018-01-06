@@ -86,7 +86,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // From ArgonautSpec, which tests similar things:
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync.toArray
+      def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
       val req = Request[IO]().withBody(Json.fromDoubleOrNull(157)).unsafeRunSync
       val body = req
         .decode { json: Json =>

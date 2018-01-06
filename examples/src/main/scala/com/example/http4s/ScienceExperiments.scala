@@ -91,7 +91,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
             case _ =>
               Pull.output1(BadRequest("no data"))
           }
-        parser(req.bodyAsText).stream.runLast.flatMap(_.getOrElse(InternalServerError()))
+        parser(req.bodyAsText).stream.compile.last.flatMap(_.getOrElse(InternalServerError()))
 
       /* TODO
     case req @ POST -> Root / "trailer" =>
@@ -133,7 +133,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
         def empty: ByteVector = ByteVector.empty
       }
       val seq = 1 to Runtime.getRuntime.availableProcessors
-      val f: Int => IO[ByteVector] = _ => req.body.map(ByteVector.fromByte).runLog.map(_.combineAll)
+      val f: Int => IO[ByteVector] = _ => req.body.map(ByteVector.fromByte).compile.toVector.map(_.combineAll)
       val result: Stream[IO, Byte] = Stream.eval(IO.traverse(seq)(f))
         .flatMap(v => Stream.emits(v.combineAll.toSeq))
       Ok(result)

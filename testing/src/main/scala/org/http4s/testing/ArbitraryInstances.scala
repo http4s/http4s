@@ -691,7 +691,7 @@ trait ArbitraryInstances {
     catsEffectLawsCogenForIO(cogenFuture[Vector[Byte]]).contramap { stream =>
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
-      F.runAsync(stream.runLog) {
+      F.runAsync(stream.compile.toVector) {
         case Right(bs) => IO { bytes = bs }
         case Left(t) => IO.raiseError(t)
       } *> readBytes

@@ -57,7 +57,7 @@ class StaticFileSpec extends Http4sSpec {
         // Length is only 1 byte
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(1)
         // get the Body to check the actual size
-        r.map(_.body.runLog.unsafeRunSync.length) must beSome(1)
+        r.map(_.body.compile.toVector.unsafeRunSync.length) must beSome(1)
       }
 
       val tests = List(
@@ -89,7 +89,7 @@ class StaticFileSpec extends Http4sSpec {
         // Length of the body must match
         r.flatMap(_.headers.get(`Content-Length`).map(_.length)) must beSome(fileSize - 1)
         // get the Body to check the actual size
-        val body = r.map(_.body.runLog.unsafeRunSync)
+        val body = r.map(_.body.compile.toVector.unsafeRunSync)
         body.map(_.length) must beSome(fileSize - 1)
         // Verify the context
         body.map(
@@ -110,11 +110,11 @@ class StaticFileSpec extends Http4sSpec {
         .value
         .unsafeRunSync
         .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
-      // Expose problem with readInputStream recycling buffer.  chunks.runLog
+      // Expose problem with readInputStream recycling buffer.  chunks.compile.toVector
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for
       // things like CachingChunkWriter that buffer the chunks.
-      new String(s.segments.runFoldMonoid.unsafeRunSync().force.toArray, "utf-8") must_== expected
+      new String(s.segments.compile.foldMonoid.unsafeRunSync().force.toArray, "utf-8") must_== expected
     }
 
     "Set content-length header from a URL" in {

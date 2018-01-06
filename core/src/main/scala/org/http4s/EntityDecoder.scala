@@ -173,12 +173,12 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Helper method which simply gathers the body into a single ByteVector */
   def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
-    DecodeResult.success(msg.body.segments.runFoldMonoid)
+    DecodeResult.success(msg.body.segments.compile.foldMonoid)
 
   /** Decodes a message to a String */
   def decodeString[F[_]: Sync](msg: Message[F])(
       implicit defaultCharset: Charset = DefaultCharset): F[String] =
-    msg.bodyAsText.runFoldMonoid
+    msg.bodyAsText.compile.foldMonoid
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -191,7 +191,7 @@ trait EntityDecoderInstances {
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(msg.body.run *> F.raiseError(t))
+        DecodeResult(msg.body.compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
@@ -217,13 +217,13 @@ trait EntityDecoderInstances {
   def binFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val sink = writeOutputStream[F](F.delay(new FileOutputStream(file)))
-      DecodeResult.success(msg.body.to(sink).run).map(_ => file)
+      DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
   def textFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val sink = writeOutputStream[F](F.delay(new PrintStream(new FileOutputStream(file))))
-      DecodeResult.success(msg.body.to(sink).run).map(_ => file)
+      DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
@@ -232,6 +232,6 @@ trait EntityDecoderInstances {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.run)
+      DecodeResult.success(msg.body.drain.compile.drain)
     }
 }

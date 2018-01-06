@@ -16,7 +16,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
-    body.runLog.map(_.toArray)
+    body.compile.toVector.map(_.toArray)
 
   def strBody(body: String): Stream[IO, Byte] =
     chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))

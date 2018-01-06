@@ -56,11 +56,14 @@ class PooledClientSpec extends Http4sSpec {
 
           val os: ServletOutputStream = srv.getOutputStream
 
-          val writeBody: IO[Unit] = resp.body.evalMap { byte =>
-            IO(os.write(Array(byte)))
-          }.run
+          val writeBody: IO[Unit] = resp.body
+            .evalMap { byte =>
+              IO(os.write(Array(byte)))
+            }
+            .compile
+            .drain
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> sleep_[IO](Random.nextInt(1000).millis).run *> flushOutputStream)
+          (writeBody *> sleep_[IO](Random.nextInt(1000).millis).compile.drain *> flushOutputStream)
             .unsafeRunSync()
 
         case None => srv.sendError(404)
@@ -162,7 +165,7 @@ class PooledClientSpec extends Http4sSpec {
         .map(_.right.exists(_.nonEmpty))
         .unsafeToFuture()
 
-      (sleep_[IO](100.millis).run *> drainTestClient.shutdown).unsafeToFuture()
+      (sleep_[IO](100.millis).compile.drain *> drainTestClient.shutdown).unsafeToFuture()
 
       Await.result(resp, 6 seconds) must beTrue
     }
