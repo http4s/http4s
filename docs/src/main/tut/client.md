@@ -46,14 +46,13 @@ val server = builder.unsafeRunSync
 A good default choice is the `Http1Client`.  The `Http1Client` maintains a connection pool and
 speaks HTTP 1.x.
 
-Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]`
-to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to 
-create the client.
+Note: we use `Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]` which will safely acquire
+and release resources needed by the client for us.
 
 ```tut:book
 import org.http4s.client.blaze._
 
-val httpClient = Http1Client[IO]().unsafeRunSync
+val httpClient = Http1Client.stream[IO]()
 ```
 
 ### Describing a call
@@ -62,7 +61,7 @@ To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
 ```tut:book
-val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
+val helloJames = httpClient.evalMap(_.expect[String]("http://localhost:8080/hello/James")).compile.last
 ```
 
 Note that we don't have any output yet.  We have a `IO[String]`, to
@@ -84,14 +83,14 @@ import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
 import scala.concurrent.ExecutionContext.Implicits.global
 
-def hello(name: String): IO[String] = {
+def hello(name: String): fs2.Stream[IO, String] = {
   val target = Uri.uri("http://localhost:8080/hello/") / name
-  httpClient.expect[String](target)
+  httpClient.evalMap(_.expect[String](target))
 }
 
-val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
+val people = fs2.Stream("Michael", "Jessica", "Ashley", "Christopher").covary[IO]
 
-val greetingList = fs2.async.parallelTraverse(people)(hello)
+val greetingList = people.flatMap(hello).compile.toVector
 ```
 
 Observe how simply we could combine a single `F[String]` returned
@@ -114,15 +113,12 @@ greetingsStringEffect.unsafeRunSync
 
 ## Cleaning up
 
-Our client consumes system resources. Let's clean up after ourselves by shutting
-it down:
+Our client consumes system resources which are cleaned up given that we used
+`Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]`.
 
-```tut:book
-httpClient.shutdownNow()
-```
-
-If the client is created using `HttpClient.stream[F]()`, it will be shut down when
-the resulting stream finishes.
+If we used `Http1Client[F[_]: Effect]()`, we'd need to either clean it up ourselves through
+`httpClient.shutdown` or `httpClient.shutdownNow()` or acquire and release it ourselves with
+`fs2.Stream.bracket`.
 
 ```tut:book:invisible
 server.shutdown.unsafeRunSync
