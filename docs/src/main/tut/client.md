@@ -137,12 +137,16 @@ Take a look at [json].
 The reusable way to decode/encode a request is to write a custom `EntityDecoder`
 and `EntityEncoder`. For that topic, take a look at [entity].
 
-If you prefer the quick & dirty solution, some of the methods take a `Response[F]
-=> F[A]` argument, which lets you add a function which includes the decoding
-functionality, but ignores the media type.
+If you prefer a more fine-grained approach, some of the methods take a `Response[F]
+=> F[A]` argument, such as `fetch` or `get`, which lets you add a function which includes the
+decoding functionality, but ignores the media type.
 
 ```scala
-TODO: Example here
+client.fetch(req) {
+  case Status.Successful(r) => r.attemptAs[A].leftMap(_.message).value
+  case r => r.as[String]
+    .map(b => Left(s"Request $req failed with status ${r.status.code} and body $b"))
+}
 ```
 
 However, your function has to consume the body before the returned `F` exits.
