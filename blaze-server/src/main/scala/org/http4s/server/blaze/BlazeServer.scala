@@ -192,6 +192,7 @@ class BlazeBuilder(
       override def shutdown: Task[Unit] = Task.delay {
         serverChannel.close()
         factory.closeGroup()
+        serviceExecutor.shutdown()
       }
 
       override def onShutdown(f: => Unit): this.type = {
