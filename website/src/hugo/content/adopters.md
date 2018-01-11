@@ -15,6 +15,9 @@ title: Adopters
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
+[Quantiply](https://www.quantiply.com)
+: Uses http4s to power the critical data APIs.
+
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 
