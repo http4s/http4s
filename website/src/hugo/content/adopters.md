@@ -58,6 +58,9 @@ title: Adopters
 [scala-pet-store](https://github.com/pauljamescleary/scala-pet-store)
 : An implementation of the java pet store using FP techniques in scala
 
+[Smart Backpacker App](https://github.com/SmartBackpacker/core)
+: Backend of the traveler's app using the Typelevel stack
+
 [todo-backend-typelevel](https://github.com/aeons/todo-backend-typelevel)
 : todo-backend implementation using the Typelevel stack
 
