@@ -2,10 +2,10 @@ package org.http4s
 package blazecore
 package websocket
 
-import java.util.concurrent.atomic.AtomicBoolean
 import cats.effect._
 import cats.implicits._
 import fs2._
+import fs2.async.mutable.Signal
 import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.stages.SerializingStage
@@ -17,10 +17,11 @@ import scala.util.{Failure, Success}
 
 class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
+  import Http4sWSStage.unsafeRunSync
 
   def name: String = "Http4s WebSocket Stage"
 
-  private val deadSignal: AtomicBoolean = new AtomicBoolean(false)
+  private val deadSignal: Signal[F, Boolean] = unsafeRunSync[F, Signal[F, Boolean]](async.signalOf[F, Boolean](false))
 
   //////////////////////// Source and Sink generators ////////////////////////
 
@@ -41,7 +42,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
           case Success(ws) =>
             ws match {
               case c @ Close(_) =>
-                deadSignal.set(true)
+                unsafeRunSync[F, Unit](deadSignal.set(true))
                 cb(Right(c)) // With Dead Signal Set, Return callback with the Close Frame
               case Ping(d) =>
                 channelWrite(Pong(d)).onComplete {
@@ -73,7 +74,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
     val onStreamFinalize: F[Unit] =
       for {
         dec <- F.delay(count.decrementAndGet())
-        _ <- if (dec == 0) F.delay(deadSignal.set(true)) else ().pure[F]
+        _ <- if (dec == 0) deadSignal.set(true) else ().pure[F]
       } yield ()
 
     // Effect to send a close to the other endpoint
@@ -83,7 +84,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
       .to(ws.receive)
       .onFinalize(onStreamFinalize)
       .mergeHaltR(ws.send.onFinalize(onStreamFinalize).to(snk).drain)
-      .interruptWhen(Stream.repeatEval(F.delay(deadSignal.get()))) // Check The Status of the deadSignal Atomic Ref
+      .interruptWhen(deadSignal)
       .onFinalize(sendClose)
       .compile
       .drain
@@ -103,7 +104,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
   }
 
   override protected def stageShutdown(): Unit = {
-    deadSignal.set(true)
+    unsafeRunSync[F, Unit](deadSignal.set(true))
     super.stageShutdown()
   }
 }
@@ -111,4 +112,11 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
 object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
+
+  private def unsafeRunSync[F[_], A](fa: F[A])(implicit F: Effect[F], ec: ExecutionContext): A =
+    async.promise[IO, Either[Throwable, A]].flatMap { p =>
+      F.runAsync(F.shift *> fa) { r =>
+        p.complete(r)
+      } *> p.get.rethrow
+    }.unsafeRunSync
 }
