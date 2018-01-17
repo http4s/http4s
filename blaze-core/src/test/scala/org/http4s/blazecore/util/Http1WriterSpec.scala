@@ -265,6 +265,26 @@ class Http1WriterSpec extends Http4sSpec {
         new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync must beLeft
         clean must_== true
       }
+    }
+
+    "Write trailer headers" in {
+      def builderWithTrailer(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
+        new FlushingChunkWriter[IO](
+          tail,
+          IO.pure(Headers(Header("X-Trailer", "trailer header value"))))
+
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+
+      writeEntityBody(p)(builderWithTrailer) must_===
+        """Content-Type: text/plain
+          |Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |X-Trailer: trailer header value
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
 
     }
   }
