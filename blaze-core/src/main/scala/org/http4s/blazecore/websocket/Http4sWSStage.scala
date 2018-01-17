@@ -84,7 +84,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
     val wsStream = inputstream
       .to(ws.receive)
       .onFinalize(onStreamFinalize)
-      .concurrently(ws.send.onFinalize(onStreamFinalize).to(snk))
+      .mergeHaltR(ws.send.onFinalize(onStreamFinalize).to(snk).drain)
       .interruptWhen(deadSignal)
       .onFinalize(sendClose)
       .compile
