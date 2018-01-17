@@ -21,7 +21,8 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
 
   def name: String = "Http4s WebSocket Stage"
 
-  private val deadSignal: Signal[F, Boolean] = unsafeRunSync[F, Signal[F, Boolean]](async.signalOf[F, Boolean](false))
+  private val deadSignal: Signal[F, Boolean] =
+    unsafeRunSync[F, Signal[F, Boolean]](async.signalOf[F, Boolean](false))
 
   //////////////////////// Source and Sink generators ////////////////////////
 
@@ -74,7 +75,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
     val onStreamFinalize: F[Unit] =
       for {
         dec <- F.delay(count.decrementAndGet())
-        _ <- if (dec == 0) deadSignal.set(true) else ().pure[F]
+        _ <- if (dec == 0) deadSignal.set(true) else F.unit
       } yield ()
 
     // Effect to send a close to the other endpoint
@@ -83,7 +84,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
     val wsStream = inputstream
       .to(ws.receive)
       .onFinalize(onStreamFinalize)
-      .mergeHaltR(ws.send.onFinalize(onStreamFinalize).to(snk).drain)
+      .concurrently(ws.send.onFinalize(onStreamFinalize).to(snk))
       .interruptWhen(deadSignal)
       .onFinalize(sendClose)
       .compile
@@ -114,9 +115,12 @@ object Http4sWSStage {
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
 
   private def unsafeRunSync[F[_], A](fa: F[A])(implicit F: Effect[F], ec: ExecutionContext): A =
-    async.promise[IO, Either[Throwable, A]].flatMap { p =>
-      F.runAsync(F.shift *> fa) { r =>
-        p.complete(r)
-      } *> p.get.rethrow
-    }.unsafeRunSync
+    async
+      .promise[IO, Either[Throwable, A]]
+      .flatMap { p =>
+        F.runAsync(F.shift *> fa) { r =>
+          p.complete(r)
+        } *> p.get.rethrow
+      }
+      .unsafeRunSync
 }
