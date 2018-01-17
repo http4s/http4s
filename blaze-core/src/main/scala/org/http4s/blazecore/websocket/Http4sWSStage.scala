@@ -21,7 +21,6 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
 
   private val deadSignal: AtomicReference[Boolean] = new AtomicReference(false)
 
-
   //////////////////////// Source and Sink generators ////////////////////////
 
   def snk: Sink[F, WebSocketFrame] = _.evalMap { frame =>
@@ -40,7 +39,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
         channelRead().onComplete {
           case Success(ws) =>
             ws match {
-              case c@Close(_) =>
+              case c @ Close(_) =>
                 deadSignal.set(true)
                 cb(Right(c)) // With Dead Signal Set, Return callback with the Close Frame
               case Ping(d) =>
