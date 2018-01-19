@@ -128,12 +128,8 @@ final case class Client[F[_]](
   def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
     Stream.eval(req).flatMap(streaming(_)(f))
 
-  /**
-    * Submits a request and decodes the response on success.  On failure, the
-    * status code is returned.  The underlying HTTP connection is closed at the
-    * completion of the decoding.
-    */
-  def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] = {
+  def expectOr[A](req: Request[F])(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)): _*))
@@ -142,12 +138,28 @@ final case class Client[F[_]](
       case Successful(resp) =>
         d.decode(resp, strict = false).fold(throw _, identity)
       case failedResponse =>
-        F.raiseError(UnexpectedStatus(failedResponse.status))
+        onError(failedResponse).flatMap(F.raiseError)
     }
   }
 
+  /**
+    * Submits a request and decodes the response on success.  On failure, the
+    * status code is returned.  The underlying HTTP connection is closed at the
+    * completion of the decoding.
+    */
+  def expect[A](req: Request[F])(implicit d: EntityDecoder[F, A]): F[A] =
+    expectOr(req)(Client.DefaultOnError[F])
+
+  def expectOr[A](req: F[Request[F]])(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[A] =
+    req.flatMap(expectOr(_)(onError))
+
   def expect[A](req: F[Request[F]])(implicit d: EntityDecoder[F, A]): F[A] =
-    req.flatMap(expect(_)(d))
+    expectOr(req)(Client.DefaultOnError[F])
+
+  def expectOr[A](uri: Uri)(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[A] =
+    expectOr(Request[F](Method.GET, uri))(onError)
 
   /**
     * Submits a GET request to the specified URI and decodes the response on
@@ -155,7 +167,11 @@ final case class Client[F[_]](
     * connection is closed at the completion of the decoding.
     */
   def expect[A](uri: Uri)(implicit d: EntityDecoder[F, A]): F[A] =
-    expect(Request[F](Method.GET, uri))(d)
+    expectOr(uri)(Client.DefaultOnError[F])
+
+  def expectOr[A](s: String)(onError: Response[F] => F[Throwable])(
+      implicit d: EntityDecoder[F, A]): F[A] =
+    Uri.fromString(s).fold(F.raiseError, uri => expectOr[A](uri)(onError))
 
   /**
     * Submits a GET request to the URI specified by the String and decodes the
@@ -163,7 +179,7 @@ final case class Client[F[_]](
     * underlying HTTP connection is closed at the completion of the decoding.
     */
   def expect[A](s: String)(implicit d: EntityDecoder[F, A]): F[A] =
-    Uri.fromString(s).fold(F.raiseError, uri => expect[A](uri))
+    expectOr(s)(Client.DefaultOnError[F])
 
   /**
     * Submits a request and decodes the response, regardless of the status code.
@@ -302,6 +318,9 @@ object Client {
 
     Client(disposableService(service), F.delay(isShutdown.set(true)))
   }
+
+  private def DefaultOnError[F[_]](resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
+    F.pure(UnexpectedStatus(resp.status))
 }
 
 final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
