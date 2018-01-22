@@ -41,7 +41,7 @@ private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer]
       val reducedChunk = chunk.take(size - bodyBytesWritten)
       writeBodyChunk(reducedChunk, flush = true) *> Future.failed(new IllegalArgumentException(msg))
     } else {
-      val b = chunk.toByteBuffer
+      val b = chunk.toBytes.toByteBuffer
 
       bodyBytesWritten += b.remaining
 

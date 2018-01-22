@@ -24,8 +24,7 @@ trait JawnInstances {
           case e =>
             Stream.raiseError(e)
         }
-        .compile
-        .last
+        .runLast
         .map(_.getOrElse(Left(MalformedMessageBodyFailure("Invalid JSON: empty body"))))
     }
 }

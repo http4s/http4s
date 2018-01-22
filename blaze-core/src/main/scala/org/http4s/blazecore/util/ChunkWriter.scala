@@ -57,5 +57,5 @@ private[util] object ChunkWriter {
   }
 
   def encodeChunk(chunk: Chunk[Byte], last: List[ByteBuffer]): List[ByteBuffer] =
-    writeLength(chunk.size.toLong) :: chunk.toByteBuffer :: CRLF :: last
+    writeLength(chunk.size.toLong) :: chunk.toBytes.toByteBuffer :: CRLF :: last
 }

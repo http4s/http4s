@@ -20,7 +20,7 @@ class BytesBench {
       Segment.chunk(ByteVectorChunk(ByteVector.view(bs))) ++
       Segment.chunk(ByteVectorChunk(ByteVector.view(bs)))
     s.force.foreachChunk { c =>
-      c.toByteBuffer; ()
+      c.toBytes.toByteBuffer; ()
     }
   }
 
@@ -31,7 +31,7 @@ class BytesBench {
       Segment.chunk(Chunk.bytes(bs.array)) ++
       Segment.chunk(Chunk.bytes(bs.array))
     s.force.foreachChunk { c =>
-      c.toByteBuffer; ()
+      c.toBytes.toByteBuffer; ()
     }
   }
 

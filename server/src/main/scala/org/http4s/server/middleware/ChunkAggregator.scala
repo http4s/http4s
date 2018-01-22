@@ -17,7 +17,7 @@ import scodec.bits.ByteVector
 object ChunkAggregator {
   def apply[F[_]](service: HttpService[F])(implicit F: Effect[F]): HttpService[F] =
     service.flatMapF { response =>
-      OptionT.liftF(response.body.compile.fold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap {
+      OptionT.liftF(response.body.runFold(ByteVector.empty.bufferBy(4096))(_ :+ _).flatMap {
         fullBody =>
           if (fullBody.nonEmpty)
             response

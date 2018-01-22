@@ -87,8 +87,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
       .mergeHaltR(ws.send.onFinalize(onStreamFinalize).to(snk).drain)
       .interruptWhen(deadSignal)
       .onFinalize(sendClose)
-      .compile
-      .drain
+      .run
 
     async.unsafeRunAsync {
       wsStream.attempt.flatMap {

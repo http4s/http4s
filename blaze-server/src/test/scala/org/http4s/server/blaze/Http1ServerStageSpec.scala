@@ -304,7 +304,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Handle routes that runs the request body for non-chunked" in {
 
       val service = HttpService[IO] {
-        case req => req.body.compile.drain *> Response().withBody("foo")
+        case req => req.body.run *> Response().withBody("foo")
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -385,7 +385,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val service = HttpService[IO] {
         case req if req.pathInfo == "/foo" =>
           for {
-            _ <- req.body.compile.drain
+            _ <- req.body.run
             hs <- req.trailerHeaders
             resp <- Ok(hs.mkString)
           } yield resp

@@ -219,7 +219,7 @@ class Http1WriterSpec extends Http4sSpec {
     "write a deflated stream" in {
       val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       val p = s.through(deflate())
-      p.compile.toVector.map(_.toArray) must returnValue(DumpingWriter.dump(s.through(deflate())))
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(s.through(deflate())))
     }
 
     val resource: Stream[IO, Byte] =
@@ -233,13 +233,12 @@ class Http1WriterSpec extends Http4sSpec {
 
     "write a resource" in {
       val p = resource
-      p.compile.toVector.map(_.toArray) must returnValue(DumpingWriter.dump(p))
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
     }
 
     "write a deflated resource" in {
       val p = resource.through(deflate())
-      p.compile.toVector.map(_.toArray) must returnValue(
-        DumpingWriter.dump(resource.through(deflate())))
+      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(resource.through(deflate())))
     }
 
     "must be stack safe" in {

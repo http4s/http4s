@@ -17,7 +17,8 @@ private[http4s] class Http2Writer[F[_]](
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f =
-      if (headers == null) tail.channelWrite(DataFrame(endStream = true, chunk.toByteBuffer))
+      if (headers == null)
+        tail.channelWrite(DataFrame(endStream = true, chunk.toBytes.toByteBuffer))
       else {
         val hs = headers
         headers = null
@@ -25,7 +26,7 @@ private[http4s] class Http2Writer[F[_]](
         else
           tail.channelWrite(
             HeadersFrame(None, endStream = false, hs)
-              :: DataFrame(endStream = true, chunk.toByteBuffer)
+              :: DataFrame(endStream = true, chunk.toBytes.toByteBuffer)
               :: Nil)
       }
 
@@ -35,13 +36,14 @@ private[http4s] class Http2Writer[F[_]](
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (chunk.isEmpty) FutureUnit
     else {
-      if (headers == null) tail.channelWrite(DataFrame(endStream = false, chunk.toByteBuffer))
+      if (headers == null)
+        tail.channelWrite(DataFrame(endStream = false, chunk.toBytes.toByteBuffer))
       else {
         val hs = headers
         headers = null
         tail.channelWrite(
           HeadersFrame(None, endStream = false, hs)
-            :: DataFrame(endStream = false, chunk.toByteBuffer)
+            :: DataFrame(endStream = false, chunk.toBytes.toByteBuffer)
             :: Nil)
       }
     }
