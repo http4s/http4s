@@ -7,10 +7,8 @@ import fs2._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
-
 import fs2.async.immutable.Signal
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -56,12 +54,11 @@ trait ServerBuilder[F[_]] {
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
-  final def serve(implicit F: Effect[F]): Stream[F, ExitCode] =
-    Stream.eval(fs2.async.signalOf[F,Boolean](false)).flatMap(serveWhile)
-
+  final def serve(implicit F: Effect[F], ec: ExecutionContext): Stream[F, ExitCode] =
+    Stream.eval(fs2.async.signalOf[F,Boolean](false)(F, ec)).flatMap(serveWhile(_)(F))
 
   /**
-    * Runs the server a a Stream that emits only when the terminated signal becomes true.
+    * Runs the server as a Stream that emits only when the terminated signal becomes true.
     * Useful for servers with associated lifetime behaviors.
     */
   final def serveWhile(terminateWhenTrue: Signal[F, Boolean])(implicit F: Sync[F]): Stream[F, ExitCode] =
