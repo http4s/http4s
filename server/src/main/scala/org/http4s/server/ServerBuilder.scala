@@ -54,7 +54,9 @@ trait ServerBuilder[F[_]] {
     * that runs for the rest of the JVM's life.
     */
   final def serve(implicit F: Async[F]): Stream[F, ExitCode] =
-    Stream.bracket(start)((_: Server[F]) => Stream.eval_(F.async[Unit](cb => cb(Right(())))), _.shutdown)
+    Stream.bracket(start)(
+      (_: Server[F]) => Stream.eval_(F.async[Unit](cb => cb(Right(())))),
+      _.shutdown)
 
   /** Set the banner to display when the server starts up */
   def withBanner(banner: immutable.Seq[String]): Self
