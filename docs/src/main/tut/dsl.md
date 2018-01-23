@@ -262,7 +262,7 @@ val drip: fs2.Stream[IO, String] =
 We can see it for ourselves in the REPL:
 
 ```tut
-val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s => {IO{println(s); s}})).compile.drain
+val dripOutIO = drip.through(fs2.text.lines).through(_.evalMap(s => {IO{println(s); s}})).run
 dripOutIO.unsafeRunSync
 ```
 

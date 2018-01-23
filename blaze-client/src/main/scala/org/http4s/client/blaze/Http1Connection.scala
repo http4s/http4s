@@ -265,8 +265,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
                 .eval_(F.shift(executionContext) *> F.delay {
                   trailerCleanup(); cleanup(); stageShutdown()
                 })
-                .compile
-                .drain)
+                .run)
           }
         }
         cb(

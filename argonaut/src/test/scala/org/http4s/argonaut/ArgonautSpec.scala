@@ -73,7 +73,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     "handle the optionality of jNumber" in {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
+      def getBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync.toArray
       val req = Request[IO]().withBody(jNumberOrNull(157)).unsafeRunSync
       val body = req
         .decode { json: Json =>

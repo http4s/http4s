@@ -53,7 +53,7 @@ private[http4s] class CachingChunkWriter[F[_]](
         pendingHeaders = null
 
         if (!chunk.isEmpty) {
-          val body = chunk.toByteBuffer
+          val body = chunk.toBytes.toByteBuffer
           h << s"Content-Length: ${body.remaining()}\r\n\r\n"
 
           // Trailers are optional, so dropping because we have no body.

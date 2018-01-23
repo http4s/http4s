@@ -60,8 +60,7 @@ object Logger {
       bodyText
         .map(body => s"$headers $body")
         .map(text => logger.info(text))
-        .compile
-        .drain
+        .run
     }
   }
 }

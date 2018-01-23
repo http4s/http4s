@@ -17,8 +17,7 @@ private[http4s] object MultipartDecoder {
             msg.body
               .through(MultipartParser.parse(Boundary(boundary)))
               .through(gatherParts)
-              .compile
-              .toVector
+              .runLog
               .map[Either[DecodeFailure, Multipart[F]]](parts =>
                 Right(Multipart(parts, Boundary(boundary))))
               .handleError {

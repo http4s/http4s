@@ -15,7 +15,7 @@ trait EntityEncoderLaws[F[_], A] extends ToIOSyntax {
   def accurateContentLengthIfDefined(a: A) =
     (for {
       entity <- encoder.toEntity(a)
-      body <- entity.body.compile.toVector
+      body <- entity.body.runLog
       bodyLength = body.size.toLong
       contentLength = entity.length
     } yield contentLength.fold(true)(_ === bodyLength)).toIO

@@ -208,25 +208,23 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     "streaming returns a stream" in {
       client
         .streaming(req)(_.body.through(fs2.text.utf8Decode))
-        .compile
-        .toVector
+        .runLog
         .unsafeRunSync() must_== Vector("hello")
     }
 
     "streaming returns a stream from a request task" in {
       client
         .streaming(req)(_.body.through(fs2.text.utf8Decode))
-        .compile
-        .toVector
+        .runLog
         .unsafeRunSync() must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {
-      assertDisposes(_.streaming(req)(_.body).compile.drain)
+      assertDisposes(_.streaming(req)(_.body).run)
     }
 
     "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Stream.raiseError(SadTrombone)).compile.drain)
+      assertDisposes(_.streaming(req)(_ => Stream.raiseError(SadTrombone)).run)
     }
 
     "toService disposes of the response on success" in {
@@ -238,13 +236,13 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     }
 
     "toHttpService disposes the response if the body is run" in {
-      assertDisposes(_.toHttpService.orNotFound.flatMapF(_.body.compile.drain).run(req))
+      assertDisposes(_.toHttpService.orNotFound.flatMapF(_.body.run).run(req))
     }
 
     "toHttpService disposes of the response if the body is run, even if it fails" in {
       assertDisposes(
         _.toHttpService.orNotFound
-          .flatMapF(_.body.flatMap(_ => Stream.raiseError(SadTrombone)).compile.drain)
+          .flatMapF(_.body.flatMap(_ => Stream.raiseError(SadTrombone)).run)
           .run(req))
     }
 

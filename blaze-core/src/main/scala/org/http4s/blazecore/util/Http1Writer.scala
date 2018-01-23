@@ -12,7 +12,7 @@ import scala.concurrent._
 private[http4s] trait Http1Writer[F[_]] extends EntityBodyWriter[F] {
   final def write(headerWriter: StringWriter, body: EntityBody[F]): F[Boolean] =
     F.fromFuture(writeHeaders(headerWriter)).attempt.flatMap {
-      case Left(_) => body.drain.compile.drain.map(_ => true)
+      case Left(_) => body.drain.run.map(_ => true)
       case Right(_) => writeEntityBody(body)
     }
 

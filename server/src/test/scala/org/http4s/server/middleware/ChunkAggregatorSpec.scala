@@ -42,7 +42,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
     "handle an empty body" in {
       checkResponse(EmptyBody, Nil) { response =>
         response.contentLength must beNone
-        response.body.compile.toVector.unsafeRunSync() must_=== Vector.empty
+        response.body.runLog.unsafeRunSync() must_=== Vector.empty
       }
     }
 
@@ -61,7 +61,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
               response.headers.get(`Transfer-Encoding`).map(_.values) must_=== NonEmptyList
                 .fromList(transferCodings)
             }
-            response.body.compile.toVector.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
+            response.body.runLog.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
         }
       }
     }
