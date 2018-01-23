@@ -55,16 +55,18 @@ trait ServerBuilder[F[_]] {
     * that runs for the rest of the JVM's life.
     */
   final def serve(implicit F: Effect[F], ec: ExecutionContext): Stream[F, ExitCode] =
-    Stream.eval(fs2.async.signalOf[F,Boolean](false)(F, ec)).flatMap(serveWhile(_)(F))
+    Stream.eval(fs2.async.signalOf[F, Boolean](false)(F, ec)).flatMap(serveWhile(_)(F))
 
   /**
     * Runs the server as a Stream that emits only when the terminated signal becomes true.
     * Useful for servers with associated lifetime behaviors.
     */
-  final def serveWhile(terminateWhenTrue: Signal[F, Boolean])(implicit F: Sync[F]): Stream[F, ExitCode] =
+  final def serveWhile(terminateWhenTrue: Signal[F, Boolean])(
+      implicit F: Sync[F]): Stream[F, ExitCode] =
     Stream.bracket(start)(
-      (_ : Server[F]) => Stream.eval(terminateWhenTrue.discrete.takeWhile(_ == false).compile.drain) >>
-        Stream.emit(StreamApp.ExitCode(0)).covary[F],
+      (_: Server[F]) =>
+        Stream.eval(terminateWhenTrue.discrete.takeWhile(_ == false).compile.drain) >>
+          Stream.emit(StreamApp.ExitCode(0)).covary[F],
       _.shutdown
     )
 
