@@ -52,7 +52,7 @@ Wherever you are in your studies, let's create our first
 `HttpService`.  Start by pasting these imports into your SBT console:
 
 ```tut:book
-import cats.effect._, org.http4s._, org.http4s.dsl.io._
+import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 Using the [http4s-dsl], we can construct an `HttpService` by pattern
