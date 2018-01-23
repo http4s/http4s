@@ -58,7 +58,7 @@ trait ServerBuilder[F[_]] {
   final def serve(implicit F: Effect[F], ec: ExecutionContext): Stream[F, ExitCode] =
     for {
       signal <- Stream.eval(async.signalOf[F, Boolean](false))
-      exitCode <- Stream.eval(async.refOf[F, ExitCode](ExitCode(0)))
+      exitCode <- Stream.eval(async.refOf[F, ExitCode](ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
 
