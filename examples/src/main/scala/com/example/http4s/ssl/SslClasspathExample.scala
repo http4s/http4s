@@ -9,6 +9,7 @@ import fs2.{Scheduler, Stream, StreamApp}
 import org.http4s.server.middleware.HSTS
 import org.http4s.server.{SSLContextSupport, ServerBuilder}
 import java.security.{KeyStore, Security}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 abstract class SslClasspathExample[F[_]: Effect] extends StreamApp[F] {
 

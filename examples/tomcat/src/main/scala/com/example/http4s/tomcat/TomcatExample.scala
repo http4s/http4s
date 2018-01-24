@@ -8,6 +8,7 @@ import fs2.StreamApp.ExitCode
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.metrics._
 import org.http4s.server.tomcat.TomcatBuilder
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object TomcatExample extends TomcatExampleApp[IO]
 

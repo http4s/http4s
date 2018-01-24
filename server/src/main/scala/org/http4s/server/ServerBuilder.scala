@@ -1,12 +1,15 @@
 package org.http4s
 package server
 
+import cats.implicits._
 import cats.effect._
 import fs2.StreamApp.ExitCode
 import fs2._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
+import fs2.async.immutable.Signal
+import fs2.async.Ref
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
@@ -53,10 +56,25 @@ trait ServerBuilder[F[_]] {
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
-  final def serve(implicit F: Async[F]): Stream[F, ExitCode] =
+  final def serve(implicit F: Effect[F], ec: ExecutionContext): Stream[F, ExitCode] =
+    for {
+      signal <- Stream.eval(async.signalOf[F, Boolean](false))
+      exitCode <- Stream.eval(async.refOf[F, ExitCode](ExitCode.Success))
+      serve <- serveWhile(signal, exitCode)
+    } yield serve
+
+  /**
+    * Runs the server as a Stream that emits only when the terminated signal becomes true.
+    * Useful for servers with associated lifetime behaviors.
+    */
+  final def serveWhile(
+      terminateWhenTrue: Signal[F, Boolean],
+      exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
     Stream.bracket(start)(
-      (_: Server[F]) => Stream.eval_(F.async[Unit](cb => cb(Right(())))),
-      _.shutdown)
+      (_: Server[F]) =>
+        terminateWhenTrue.discrete.takeWhile(_ === false).drain ++ Stream.eval(exitWith.get),
+      _.shutdown
+    )
 
   /** Set the banner to display when the server starts up */
   def withBanner(banner: immutable.Seq[String]): Self

@@ -9,6 +9,7 @@ import org.http4s.HttpService
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.metrics._
 import org.http4s.server.{HttpMiddleware, Router}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object BlazeMetricsExample extends BlazeMetricsExampleApp[IO]
 
