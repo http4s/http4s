@@ -764,9 +764,9 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
               
         </dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serve(implicitF:cats.effect.Async[F]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve(Async[F]):Stream[F,ExitCode]"></a>
+      <a id="serve(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve(Effect[F],ExecutionContext):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serve(implicitF:cats.effect.Async[F]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serve(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -775,11 +775,29 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serve</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
 that runs for the rest of the JVM's life.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:fs2.async.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:fs2.async.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.async.immutable.Signal">Signal</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="fs2.async.Ref">Ref</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
+Useful for servers with associated lifetime behaviors.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#start" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="start:F[org.http4s.server.Server[F]]"></a><a id="start:F[Server[F]]"></a>
