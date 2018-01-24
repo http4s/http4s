@@ -1,6 +1,7 @@
 package org.http4s
 package server
 
+import cats.implicits._
 import cats.effect._
 import fs2.StreamApp.ExitCode
 import fs2._
@@ -71,7 +72,7 @@ trait ServerBuilder[F[_]] {
       exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
     Stream.bracket(start)(
       (_: Server[F]) =>
-        terminateWhenTrue.discrete.takeWhile(_ == false).drain ++ Stream.eval(exitWith.get),
+        terminateWhenTrue.discrete.takeWhile(_ === false).drain ++ Stream.eval(exitWith.get),
       _.shutdown
     )
 
