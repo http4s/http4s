@@ -66,12 +66,12 @@ trait ServerBuilder[F[_]] {
     * Runs the server as a Stream that emits only when the terminated signal becomes true.
     * Useful for servers with associated lifetime behaviors.
     */
-  final def serveWhile(terminateWhenTrue: Signal[F, Boolean], exitWith: Ref[F, ExitCode])(
-      implicit F: Sync[F]): Stream[F, ExitCode] =
+  final def serveWhile(
+      terminateWhenTrue: Signal[F, Boolean],
+      exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
     Stream.bracket(start)(
       (_: Server[F]) =>
-        Stream.eval(terminateWhenTrue.discrete.takeWhile(_ == false).compile.drain) >>
-          Stream.eval(exitWith.get),
+        terminateWhenTrue.discrete.takeWhile(_ == false).drain ++ Stream.eval(exitWith.get),
       _.shutdown
     )
 
