@@ -12,9 +12,8 @@ it.
 * Emit Exit Codes On Server Shutdown [#1638](https://github.com/http4s/http4s/pull/1638) [#1637](https://github.com/http4s/http4s/pull/1637)
 * Register Termination Signal and Frame in Http4sWSStage [#1631](https://github.com/http4s/http4s/pull/1631)
 * Trailer Headers Are Now Being Emitted Properly [#1629](https://github.com/http4s/http4s/pull/1629)
-* Dependency Upgrades
+* Dependency Upgrades:
    * alpn-boot-8.1.12.v20180117
-   * async-http-client-2.2.0
    * circe-0.9.1
    * fs2-0.10.0-RC2
    * fs2-reactive-streams-0.3.0
