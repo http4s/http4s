@@ -13,6 +13,7 @@ it.
 * Register Termination Signal and Frame in Http4sWSStage [#1631](https://github.com/http4s/http4s/pull/1631)
 * Trailer Headers Are Now Being Emitted Properly [#1629](https://github.com/http4s/http4s/pull/1629)
 * Dependency Upgrades
+   * circe-0.9.1
    * fs2-0.10.0-RC2
    * fs2-reactive-streams-0.3.0
    * jawn-fs2-0.12.0-M7
