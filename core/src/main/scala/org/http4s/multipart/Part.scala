@@ -11,7 +11,8 @@ import org.http4s.headers.`Content-Disposition`
 
 final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
   def name: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("name"))
-  def filename: Option[String] = headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
+  def filename: Option[String] =
+    headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
 }
 
 object Part {
