@@ -4,35 +4,34 @@ title: Middleware
 weight: 115
 ---
 
-A middleware is a wrapper around a [service] that provides a means of manipulating
-the `Request` sent to service, and/or the `Response` returned by the service. In
-some cases, such as [Authentication], middleware may even prevent the service
-from being called.
+A `Middleware` wraps a [`Service`]. Doing so allows you to change the `Request`
+that is sent to a `Service`, and/or modify the `Response` that is returned by
+that `Service`. In some cases, such as [Authentication], `Middleware` might
+prevent the `Service` from being called.
 
-At its most basic, middleware is simply a function that takes one `Service` as a
-parameter and returns another `Service`. In addition to the `Service`, the middleware
-function can take any additional parameters it needs to perform its task. Let's look
-at a simple example.
+`Middleware` is a function that takes one `Service` and returns a different
+`Service`.
 
-For this, we'll need a dependency on the http4s [dsl].
+1. Add a dependency to SBT on the [dsl] by copying and pasting the following
+   code to the existing `build.sbt` file:
 
 ```scala
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-dsl" % http4sVersion
 )
 ```
-and some imports.
+1. Add the following import statements:
 
 ```tut:silent
-import cats.effect._
+import cats.effect._ // To import the IO type, see cats-effect documentation.
 import cats.implicits._
 import org.http4s._
 import org.http4s.implicits._
 import org.http4s.dsl.io._
 ```
 
-Then, we can create a middleware that adds a header to successful responses from
-the wrapped service like this.
+1. Create a `Middleware` to add a header to each successful response returned by
+wrapped `Service`:
 
 ```tut:book
 def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = cats.data.Kleisli { req: Request[IO] =>
@@ -45,15 +44,15 @@ def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = cats.d
 }
 ```
 
-All we do here is pass the request to the service,
-which returns an `F[Response]`. So, we use `map` to get the request out of the task,
-add the header if the response is a success, and then pass the response on. We could
-just as easily modify the request before we passed it to the service.
+The preceding code passes the `Request` to the `Service`, which returns an
+object of type `IO[Response]`. To add the header, change the `Request` inside
+`IO[Request]` by using the `map` method. But the `Request` is only changed if it
+is successful.
 
-Now, let's create a simple service. As mentioned between [service] and [dsl], because `Service`
-is implemented as a [`Kleisli`], which is just a function at heart, we can test a
-service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`,
-we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
+As mentioned in [service] and [dsl], `Service` is implemented as a [`Kleisli`].
+A [`Kleisli`] is just a function, so we can test a service creating a full-blown
+server. Because an `HttpService[F]` returns a `F[Response[F]]`, and not a
+`Response[F]`, run `unsafeRunSync` on the result of the `Kleisli` function.
 
 ```tut:book
 val service = HttpService[IO] {
@@ -70,7 +69,8 @@ service.orNotFound(goodRequest).unsafeRunSync
 service.orNotFound(badRequest).unsafeRunSync
 ```
 
-Now, we'll wrap the service in our middleware to create a new service, and try it out.
+Wrap the service in our middleware to create a new `Service`, and invoke the
+`unsafeRunSync` function.
 
 ```tut:book
 val wrappedService = myMiddle(service, Header("SomeKey", "SomeValue"));
@@ -79,10 +79,10 @@ wrappedService.orNotFound(goodRequest).unsafeRunSync
 wrappedService.orNotFound(badRequest).unsafeRunSync
 ```
 
-Note that the successful response has your header added to it.
+Note that the successful response has the header added to it.
 
-If you intend to use you middleware in multiple places,  you may want to implement
-it as an `object` and use the `apply` method.
+To reuse the header in multiple places, write an `object` with an apply method,
+so it is reusable.
 
 ```tut:book
 object MyMiddle {
@@ -102,21 +102,23 @@ newService.orNotFound(goodRequest).unsafeRunSync
 newService.orNotFound(badRequest).unsafeRunSync
 ```
 
-It is possible for the wrapped `Service` to have different `Request` and `Response`
-types than the middleware. Authentication is, again, a good example. Authentication
-middleware is an `HttpService` (an alias for `Service[Request, Response]`) that wraps an `
-AuthedService` (an alias for `Service[AuthedRequest[T], Response]`. There is a type
-defined for this in the `http4s.server` package:
+It is possible for the wrapped `Service` to have different `Request` and
+`Response` types than the `Middleware`. `Authentication` is, a good example.
+`Authentication` `Middleware` is an `HttpService` (an alias for `Service[Request,Response]`)
+that wraps an `AuthedService` (an alias for
+`Service[AuthedRequest[T], Response]`. This type is defined in the
+`http4s.server` package:
 
 ```scala
 type AuthMiddleware[F, T] = Middleware[AuthedRequest[F, T], Response[F], Request[F], Response[F]]
 ```
+
 See the [Authentication] documentation for more details.
 
 ## Composing Services with Middleware
-Because middleware returns a `Service`, you can compose services wrapped in
-middleware with other, unwrapped, services, or services wrapped in other middleware.
-You can also wrap a single service in multiple layers of middleware. For example:
+Because `Middleware` returns a `Service`, you can compose services wrapped in
+`Middleware` with other, unwrapped services, or services wrapped in other `Middleware`.
+You can also wrap a single service in multiple layers of `Middleware`. For example:
 
 ```tut:book
 val apiService = HttpService[IO] {
@@ -132,12 +134,12 @@ aggregateService.orNotFound(goodRequest).unsafeRunSync
 aggregateService.orNotFound(apiRequest).unsafeRunSync
 ```
 
-Note that `goodRequest` ran through the `MyMiddle` middleware and the `Result` had
-our header added to it. But, `apiRequest` did not go through the middleware and did
-not have the header added to it's `Result`.
+Note that `goodRequest` ran through the `MyMiddle` `Middleware` and the `Result` had
+our header added to it. But, `apiRequest` did not go through the `Middleware` and did
+not have the header added to its `Result`.
 
 ## Included Middleware
-Http4s includes some middleware Out of the Box in the `org.http4s.server.middleware`
+Http4s includes some `Middleware` Out of the Box in the `org.http4s.server.middleware`
 package. These include:
 
 * [Authentication]
@@ -149,7 +151,7 @@ package. These include:
 
 And a few others.
 
-[service]: ../service
+[`Service`]: ../service
 [dsl]: ../dsl
 [Authentication]: ../auth
 [CORS]: ../cors
