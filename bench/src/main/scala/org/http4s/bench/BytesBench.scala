@@ -1,6 +1,6 @@
 package org.http4s.bench
 
-import fs2._
+import fs2.{Chunk, Segment}
 import fs2.interop.scodec.ByteVectorChunk
 import org.openjdk.jmh.annotations._
 import scodec.bits.ByteVector

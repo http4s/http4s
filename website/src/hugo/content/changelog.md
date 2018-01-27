@@ -8,6 +8,19 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0-M9 (2018-01-26)
+* Emit Exit Codes On Server Shutdown [#1638](https://github.com/http4s/http4s/pull/1638) [#1637](https://github.com/http4s/http4s/pull/1637)
+* Register Termination Signal and Frame in Http4sWSStage [#1631](https://github.com/http4s/http4s/pull/1631)
+* Trailer Headers Are Now Being Emitted Properly [#1629](https://github.com/http4s/http4s/pull/1629)
+* Dependency Upgrades:
+   * alpn-boot-8.1.12.v20180117
+   * circe-0.9.1
+   * fs2-0.10.0-RC2
+   * fs2-reactive-streams-0.3.0
+   * jawn-fs2-0.12.0-M7
+   * metrics-4.0.2
+   * tomcat-9.0.4
+
 # v0.18.0-M8 (2018-01-05)
 * Dependency Upgrades:
    * argonaut-6.2.1
