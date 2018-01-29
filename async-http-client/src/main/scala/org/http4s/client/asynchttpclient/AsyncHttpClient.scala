@@ -9,14 +9,11 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream._
 import fs2._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
-import java.nio.ByteBuffer
+import _root_.io.netty.handler.codec.http.{DefaultHttpHeaders, HttpHeaders}
+import _root_.io.netty.buffer.Unpooled
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.asynchttpclient.request.body.generator.{
-  BodyGenerator,
-  ByteArrayBodyGenerator,
-  ReactiveStreamsBodyGenerator
-}
+import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.http4s.util.threads._
 import org.reactivestreams.Publisher
@@ -94,7 +91,7 @@ object AsyncHttpClient {
         state
       }
 
-      override def onHeadersReceived(headers: HttpResponseHeaders): State = {
+      override def onHeadersReceived(headers: HttpHeaders): State = {
         dr = dr.copy(response = dr.response.copy(headers = getHeaders(headers)))
         state
       }
@@ -108,34 +105,34 @@ object AsyncHttpClient {
     }
 
   private def toAsyncRequest[F[_]: Effect](request: Request[F])(
-      implicit ec: ExecutionContext): AsyncRequest =
+      implicit ec: ExecutionContext): AsyncRequest = {
+    val headers = new DefaultHttpHeaders
+    for (h <- request.headers)
+      headers.add(h.name.toString, h.value)
     new RequestBuilder(request.method.toString)
       .setUrl(request.uri.toString)
-      .setHeaders(
-        request.headers
-          .groupBy(_.name.toString)
-          .mapValues(_.map(_.value).asJavaCollection)
-          .asJava)
+      .setHeaders(headers)
       .setBody(getBodyGenerator(request))
       .build()
+  }
 
   private def getBodyGenerator[F[_]: Effect](req: Request[F])(
       implicit ec: ExecutionContext): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
-      req.body.chunks.map(chunk => ByteBuffer.wrap(chunk.toArray)))
+      req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
     else
       req.contentLength match {
         case Some(len) => new ReactiveStreamsBodyGenerator(publisher, len)
-        case None => new ByteArrayBodyGenerator(Array.empty)
+        case None => EmptyBodyGenerator
       }
   }
 
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
-  private def getHeaders(headers: HttpResponseHeaders): Headers =
-    Headers(headers.getHeaders.iterator.asScala.map { header =>
+  private def getHeaders(headers: HttpHeaders): Headers =
+    Headers(headers.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
 }
