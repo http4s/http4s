@@ -65,7 +65,7 @@ object AsyncHttpClient {
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         // backpressure is handled by requests to the reactive streams subscription
-        StreamSubscriber[F, HttpResponseBodyPart]()
+        StreamSubscriber[F, HttpResponseBodyPart]
           .map { subscriber =>
             val body = subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
             dr = dr.copy(
