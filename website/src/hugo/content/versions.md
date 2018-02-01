@@ -15,12 +15,12 @@ title: Versions
   compatibility is guaranteed.
 * <span class="badge badge-success">Stable</span> releases are
   recommended for production use.  Backward binary compatibility is
-  preserved across the minor version.  Patches will be issued for
-  bugs, or selectively for backports with a working pull request.
+  preserved across the minor version.  Patches will be released for
+  bugs, or selectively for backports deemed low risk and high value.
 * <span class="badge badge-secondary">EOL</span> releases are no
-  longer supported by the http4s team.  Users will be asked to upgrade
-  in the official support channels.  Patches will be issued only with
-  a working pull request accompanied by a heartbreaking tale of woe.
+  longer supported by the http4s team.  Users will be advised to upgrade
+  in the official support channels.  Patches may be released with
+  a working pull request accompanied by a tale of woe.
 
 [Travis CI]: https://travis-ci.org/http4s/http4s 
 [Sonatype Snapshot repo]: https://oss.sonatype.org/content/repositories/snapshots/org/http4s/
@@ -71,7 +71,7 @@ title: Versions
     </tr>
     <tr>
       <td><a href="/v0.16">{{% latestInSeries "0.16" %}}a</a></td>
-      <td class="text-center"><span class="badge badge-success">Stable</span></td>
+      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
@@ -81,7 +81,7 @@ title: Versions
     </tr>
     <tr>
       <td><a href="/v0.16">{{% latestInSeries "0.16" %}}</a></td>
-      <td class="text-center"><span class="badge badge-success">Stable</span></td>
+      <td class="text-center"><span class="badge badge-secondary">EOL</span></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
