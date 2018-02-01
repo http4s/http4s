@@ -83,7 +83,7 @@ object Http4sPlugin extends AutoPlugin {
 
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.5" cross CrossVersion.binary),
 
-    scalafmtVersion := "1.3.0",
+    scalafmtVersion := "1.4.0",
     scalafmt in Test := {
       (scalafmt in Compile).value
       (scalafmt in Test).value
@@ -263,29 +263,31 @@ object Http4sPlugin extends AutoPlugin {
       case (m, None) => m
     }
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
-  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.37"
+  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
+  lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.38"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.11"
-  lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % "0.5"
-  lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % catsLaws.revision
-  lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % "1.0.0-RC1"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.0.1"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.8"
+  lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
+  lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
+  lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.9.0-M2"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.9.1"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.8"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.0-M9"
-  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.2.6"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.0"
+  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.0"
   lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.0"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.0"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.11.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.0-M4"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.0"
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.8.v20171121"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.3"
@@ -295,7 +297,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.4.0"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
-  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "3.2.5"
+  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
@@ -307,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.2"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "8.5.24"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.4"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.13"
 }

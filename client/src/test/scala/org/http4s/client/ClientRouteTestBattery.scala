@@ -123,12 +123,16 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
 
     val os: ServletOutputStream = srv.getOutputStream
 
-    val writeBody: IO[Unit] = resp.body.evalMap { byte =>
-      IO(os.write(Array(byte)))
-    }.run
+    val writeBody: IO[Unit] = resp.body
+      .evalMap { byte =>
+        IO(os.write(Array(byte)))
+      }
+      .compile
+      .drain
     val flushOutputStream: IO[Unit] = IO(os.flush())
     (writeBody *> flushOutputStream).unsafeRunSync()
   }
 
-  private def collectBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync().toArray
+  private def collectBody(body: EntityBody[IO]): Array[Byte] =
+    body.compile.toVector.unsafeRunSync().toArray
 }

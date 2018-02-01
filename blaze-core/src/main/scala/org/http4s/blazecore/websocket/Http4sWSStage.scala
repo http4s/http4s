@@ -3,7 +3,6 @@ package blazecore
 package websocket
 
 import cats.effect._
-import cats.effect.implicits._
 import cats.implicits._
 import fs2._
 import fs2.async.mutable.Signal
@@ -12,15 +11,18 @@ import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.websocket.WebsocketBits._
+
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
 class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
+  import Http4sWSStage.unsafeRunSync
 
   def name: String = "Http4s WebSocket Stage"
 
-  private val deadSignal: F[Signal[F, Boolean]] = async.signalOf[F, Boolean](false)
+  private val deadSignal: Signal[F, Boolean] =
+    unsafeRunSync[F, Signal[F, Boolean]](async.signalOf[F, Boolean](false))
 
   //////////////////////// Source and Sink generators ////////////////////////
 
@@ -40,21 +42,15 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
         channelRead().onComplete {
           case Success(ws) =>
             ws match {
-              case Close(_) =>
-                for {
-                  t <- deadSignal.map(_.set(true))
-                } yield {
-                  t.runAsync(_ => IO.unit).unsafeRunSync()
-                  cb(Left(Command.EOF))
-                }
-
+              case c @ Close(_) =>
+                unsafeRunSync[F, Unit](deadSignal.set(true))
+                cb(Right(c)) // With Dead Signal Set, Return callback with the Close Frame
               case Ping(d) =>
                 channelWrite(Pong(d)).onComplete {
                   case Success(_) => go()
                   case Failure(Command.EOF) => cb(Left(Command.EOF))
                   case Failure(t) => cb(Left(t))
                 }(trampoline)
-
               case Pong(_) => go()
               case f => cb(Right(f))
             }
@@ -62,7 +58,6 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
           case Failure(Command.EOF) => cb(Left(Command.EOF))
           case Failure(e) => cb(Left(e))
         }(trampoline)
-
       go()
     }
     Stream.repeatEval(t)
@@ -80,18 +75,20 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
     val onStreamFinalize: F[Unit] =
       for {
         dec <- F.delay(count.decrementAndGet())
-        _ <- deadSignal.map(signal => if (dec == 0) signal.set(true))
+        _ <- if (dec == 0) deadSignal.set(true) else F.unit
       } yield ()
 
     // Effect to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(sendOutboundCommand(Command.Disconnect))
 
-    val wsStream = for {
-      dead <- deadSignal
-      in = inputstream.to(ws.write).onFinalize(onStreamFinalize)
-      out = ws.read.onFinalize(onStreamFinalize).to(snk).drain
-      merged <- in.mergeHaltR(out).interruptWhen(dead).onFinalize(sendClose).run
-    } yield merged
+    val wsStream = inputstream
+      .to(ws.receive)
+      .onFinalize(onStreamFinalize)
+      .mergeHaltR(ws.send.onFinalize(onStreamFinalize).to(snk).drain)
+      .interruptWhen(deadSignal)
+      .onFinalize(sendClose)
+      .compile
+      .drain
 
     async.unsafeRunAsync {
       wsStream.attempt.flatMap {
@@ -108,7 +105,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
   }
 
   override protected def stageShutdown(): Unit = {
-    deadSignal.map(_.set(true)).runAsync(_ => IO.unit).unsafeRunSync()
+    unsafeRunSync[F, Unit](deadSignal.set(true))
     super.stageShutdown()
   }
 }
@@ -116,4 +113,14 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
 object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
+
+  private def unsafeRunSync[F[_], A](fa: F[A])(implicit F: Effect[F], ec: ExecutionContext): A =
+    async
+      .promise[IO, Either[Throwable, A]]
+      .flatMap { p =>
+        F.runAsync(F.shift *> fa) { r =>
+          p.complete(r)
+        } *> p.get.rethrow
+      }
+      .unsafeRunSync
 }

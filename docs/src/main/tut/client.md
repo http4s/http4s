@@ -43,14 +43,17 @@ val server = builder.unsafeRunSync
 
 ### Creating the client
 
-A good default choice is the `PooledHttp1Client`.  As the name
-implies, the `PooledHttp1Client` maintains a connection pool and
+A good default choice is the `Http1Client`.  The `Http1Client` maintains a connection pool and
 speaks HTTP 1.x.
+
+Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]`
+to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to 
+create the client.
 
 ```tut:book
 import org.http4s.client.blaze._
 
-val httpClient = PooledHttp1Client[IO]()
+val httpClient = Http1Client[IO]().unsafeRunSync
 ```
 
 ### Describing a call
@@ -118,6 +121,9 @@ it down:
 httpClient.shutdownNow()
 ```
 
+If the client is created using `HttpClient.stream[F]()`, it will be shut down when
+the resulting stream finishes.
+
 ```tut:book:invisible
 server.shutdown.unsafeRunSync
 ```
@@ -131,12 +137,16 @@ Take a look at [json].
 The reusable way to decode/encode a request is to write a custom `EntityDecoder`
 and `EntityEncoder`. For that topic, take a look at [entity].
 
-If you prefer the quick & dirty solution, some of the methods take a `Response[F]
-=> F[A]` argument, which lets you add a function which includes the decoding
-functionality, but ignores the media type.
+If you prefer a more fine-grained approach, some of the methods take a `Response[F]
+=> F[A]` argument, such as `fetch` or `get`, which lets you add a function which includes the
+decoding functionality, but ignores the media type.
 
 ```scala
-TODO: Example here
+client.fetch(req) {
+  case Status.Successful(r) => r.attemptAs[A].leftMap(_.message).value
+  case r => r.as[String]
+    .map(b => Left(s"Request $req failed with status ${r.status.code} and body $b"))
+}
 ```
 
 However, your function has to consume the body before the returned `F` exits.

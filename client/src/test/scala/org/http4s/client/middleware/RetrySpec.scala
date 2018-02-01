@@ -68,7 +68,7 @@ class RetrySpec extends Http4sSpec with Tables {
     }
 
     "retry exceptions" in {
-      val failClient = Client[IO](Kleisli.lift(IO.raiseError(new Exception("boom"))), IO.unit)
+      val failClient = Client[IO](Kleisli.liftF(IO.raiseError(new Exception("boom"))), IO.unit)
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
   }

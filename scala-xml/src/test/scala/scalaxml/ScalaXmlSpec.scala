@@ -10,7 +10,7 @@ import scala.xml.Elem
 
 class ScalaXmlSpec extends Http4sSpec {
 
-  def getBody(body: EntityBody[IO]): Array[Byte] = body.runLog.unsafeRunSync.toArray
+  def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
 
   def strBody(body: String): EntityBody[IO] = Stream(body).through(utf8Encode)
 

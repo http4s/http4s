@@ -15,6 +15,9 @@ title: Adopters
 [看录取 Kanluqu](https://www.kanluqu.com)
 : College application resources for Chinese high school students, built entirely upon the Typelevel stack.
 
+[Quantiply](https://www.quantiply.com)
+: Uses http4s to power the critical data APIs.
+
 [Verizon](http://www.verizon.com)
 : Uses http4s extensively in its internal services and [open source projects](http://verizon.github.io).
 
@@ -54,6 +57,9 @@ title: Adopters
 
 [scala-pet-store](https://github.com/pauljamescleary/scala-pet-store)
 : An implementation of the java pet store using FP techniques in scala
+
+[Smart Backpacker App](https://github.com/SmartBackpacker/core)
+: Backend of the traveler's app using the Typelevel stack
 
 [todo-backend-typelevel](https://github.com/aeons/todo-backend-typelevel)
 : todo-backend implementation using the Typelevel stack

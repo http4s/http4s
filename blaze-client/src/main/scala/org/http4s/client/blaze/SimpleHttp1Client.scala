@@ -11,6 +11,7 @@ object SimpleHttp1Client {
     *
     * @param config blaze configuration object
     */
+  @deprecated("Use Http1Client instead", "0.18.0-M7")
   def apply[F[_]: Effect](
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] = {
     val manager: ConnectionManager[F, BlazeConnection[F]] =

@@ -3,9 +3,13 @@ package scalaxml
 
 import cats._
 import cats.effect._
+import cats.implicits._
 import java.io.StringReader
 import javax.xml.parsers.SAXParserFactory
+
+import cats.data.EitherT
 import org.http4s.headers.`Content-Type`
+
 import scala.util.control.NonFatal
 import scala.xml._
 
@@ -34,13 +38,15 @@ trait ElemInstances {
           new StringReader(
             new String(arr.force.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
-        try DecodeResult.success(F.pure(XML.loadXML(source, saxParser)))
-        catch {
+        EitherT(
+          F.delay(XML.loadXML(source, saxParser)).attempt
+        ).leftFlatMap {
           case e: SAXParseException =>
             DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
-          case NonFatal(e) => DecodeResult(F.raiseError(e))
+          case NonFatal(e) => DecodeResult(F.raiseError[Either[DecodeFailure, Elem]](e))
         }
       }
+
     }
   }
 }

@@ -42,12 +42,12 @@ class ChunkAggregatorSpec extends Http4sSpec {
     "handle an empty body" in {
       checkResponse(EmptyBody, Nil) { response =>
         response.contentLength must beNone
-        response.body.runLog.unsafeRunSync() must_=== Vector.empty
+        response.body.compile.toVector.unsafeRunSync() must_=== Vector.empty
       }
     }
 
     "handle a none" in {
-      val service: HttpService[IO] = Kleisli.lift(OptionT.none)
+      val service: HttpService[IO] = Kleisli.liftF(OptionT.none)
       ChunkAggregator(service).run(Request()).value must returnValue(None)
     }
 
@@ -61,7 +61,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
               response.headers.get(`Transfer-Encoding`).map(_.values) must_=== NonEmptyList
                 .fromList(transferCodings)
             }
-            response.body.runLog.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
+            response.body.compile.toVector.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
         }
       }
     }

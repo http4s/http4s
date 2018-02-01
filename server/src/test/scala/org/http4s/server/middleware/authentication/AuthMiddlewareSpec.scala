@@ -116,7 +116,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
     "return 401 for a matched, but unauthenticated route" in {
       val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
-        Kleisli.lift(OptionT.none)
+        Kleisli.liftF(OptionT.none)
 
       val authedService: AuthedService[User, IO] =
         AuthedService {
@@ -132,7 +132,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
     "return 401 for an unmatched, unauthenticated route" in {
       val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
-        Kleisli.lift(OptionT.none)
+        Kleisli.liftF(OptionT.none)
 
       val authedService: AuthedService[User, IO] =
         AuthedService {
@@ -172,7 +172,7 @@ class AuthMiddlewareSpec extends Http4sSpec {
 
     "consume the entire request for an unauthenticated route for service composition" in {
       val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
-        Kleisli.lift(OptionT.none)
+        Kleisli.liftF(OptionT.none)
 
       val authedService: AuthedService[User, IO] =
         AuthedService {

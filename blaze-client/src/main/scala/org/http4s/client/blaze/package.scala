@@ -1,13 +1,11 @@
 package org.http4s
 package client
 
-import cats.effect._
+import cats.effect.Effect
 
 package object blaze {
 
-  /** Default blaze client
-    *
-    * This client will create a new connection for every request.
-    */
-  def defaultClient[F[_]: Effect]: Client[F] = SimpleHttp1Client(BlazeClientConfig.defaultConfig)
+  @deprecated("Use org.http4s.client.blaze.Http1Client instead", "0.18.0-M7")
+  def defaultClient[F[_]: Effect]: Client[F] = PooledHttp1Client()
+
 }

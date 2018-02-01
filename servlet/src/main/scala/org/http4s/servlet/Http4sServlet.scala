@@ -96,18 +96,11 @@ class Http4sServlet[F[_]](
       request: Request[F],
       bodyWriter: BodyWriter[F]): F[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    // TODO: This can probably be handled nicer with Effect
+    // Note: We're catching silly user errors in the lift => flatten.
     val response = F.shift(executionContext) *> F
-      .delay(
-        try serviceFn(request)
-          .getOrElse(Response.notFound)
-          // Handle message failures coming out of the service as failed tasks
-          .recoverWith(serviceErrorHandler(request))
-        catch
-        // Handle message failures _thrown_ by the service, just in case
-        serviceErrorHandler(request)
-      )
+      .delay(serviceFn(request).getOrElse(Response.notFound))
       .flatten
+      .handleErrorWith(serviceErrorHandler(request))
 
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)

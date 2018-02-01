@@ -6,7 +6,6 @@ import cats.effect._
 import cats.implicits._
 import fs2.Stream._
 import java.util.concurrent.ConcurrentHashMap
-import org.http4s.util.chunk._
 import org.log4s.getLogger
 
 /** [[CacheStrategy]] that will cache __all__ [[Response]] bodies in local memory
@@ -35,7 +34,7 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
 
   private def collectResource(path: String, resp: Response[F])(
       implicit F: Effect[F]): F[Response[F]] =
-    resp.body.segments.runFoldMonoid
+    resp.body.segments.compile.foldMonoid
       .map { bytes =>
         val newResponse: Response[F] = resp.copy(body = segment(bytes).covary[F])
         cacheMap.put(path, newResponse)

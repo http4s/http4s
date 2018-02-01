@@ -23,7 +23,8 @@ class MultipartSpec extends Specification {
         encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData
         decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
         decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
-        extract name properly if it is present     $extractNameIfPresent
+        extract name     properly if it is present $extractNameIfPresent
+        extract filename property if it is present $extractFilenameIfPresent
      """
 
   val url = Uri(
@@ -31,14 +32,15 @@ class MultipartSpec extends Specification {
     authority = Some(Authority(host = RegName("example.com"))),
     path = "/path/to/some/where")
 
-  def toBV(entityBody: EntityBody[IO]): ByteVector = ByteVector(entityBody.runLog.unsafeRunSync())
+  def toBV(entityBody: EntityBody[IO]): ByteVector =
+    ByteVector(entityBody.compile.toVector.unsafeRunSync())
 
   implicit def partIOEq: Eq[Part[IO]] = Eq.instance[Part[IO]] {
     case (a, b) =>
       a.headers === b.headers && {
         for {
-          abv <- a.body.runLog.map(ByteVector(_))
-          bbv <- b.body.runLog.map(ByteVector(_))
+          abv <- a.body.compile.toVector.map(ByteVector(_))
+          bbv <- b.body.compile.toVector.map(ByteVector(_))
         } yield abv === bbv
       }.unsafeRunSync()
   }
@@ -172,5 +174,13 @@ I am a big moose
       Headers(`Content-Disposition`("form-data", Map("name" -> "Rich Homie Quan"))),
       Stream.empty.covary[IO])
     part.name must beEqualTo(Some("Rich Homie Quan"))
+  }
+
+  def extractFilenameIfPresent = {
+    val part = Part(
+      Headers(`Content-Disposition`("form-data", Map("name" -> "file", "filename" -> "file.txt"))),
+      Stream.empty.covary[IO]
+    )
+    part.filename must beEqualTo(Some("file.txt"))
   }
 }

@@ -8,9 +8,7 @@ import fs2.io._
 import java.io.{File, FileOutputStream, PrintStream}
 import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
-import org.http4s.util.chunk._
 import scala.annotation.implicitNotFound
-import scala.util.control.NonFatal
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -122,25 +120,24 @@ object EntityDecoder extends EntityDecoderInstances {
   /** Create a new [[EntityDecoder]]
     *
     * The new [[EntityDecoder]] will attempt to decode messages of type `T`
-    * only if the [[Message]] satisfies the provided [[MediaRange]]s
+    * only if the [[Message]] satisfies the provided [[MediaRange]].
+    *
+    * Exceptions thrown by `f` are not caught.  Care should be taken
+    * that recoverable errors are returned as a
+    * `DecodeResult.failure`, or that system errors are raised in `F`.
     */
   def decodeBy[F[_]: Applicative, T](r1: MediaRange, rs: MediaRange*)(
       f: Message[F] => DecodeResult[F, T]): EntityDecoder[F, T] = new EntityDecoder[F, T] {
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-      try {
-        if (strict) {
-          msg.headers.get(`Content-Type`) match {
-            case Some(c) if matchesMediaType(c.mediaType) => f(msg)
-            case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
-            case None if matchesMediaType(UndefinedMediaType) => f(msg)
-            case None => DecodeResult.failure(MediaTypeMissing(consumes))
-          }
-        } else {
-          f(msg)
+      if (strict) {
+        msg.headers.get(`Content-Type`) match {
+          case Some(c) if matchesMediaType(c.mediaType) => f(msg)
+          case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+          case None if matchesMediaType(UndefinedMediaType) => f(msg)
+          case None => DecodeResult.failure(MediaTypeMissing(consumes))
         }
-      } catch {
-        case NonFatal(e) =>
-          DecodeResult.failure(MalformedMessageBodyFailure("Error decoding body", Some(e)))
+      } else {
+        f(msg)
       }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
@@ -176,12 +173,12 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Helper method which simply gathers the body into a single ByteVector */
   def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
-    DecodeResult.success(msg.body.segments.runFoldMonoid)
+    DecodeResult.success(msg.body.segments.compile.foldMonoid)
 
   /** Decodes a message to a String */
   def decodeString[F[_]: Sync](msg: Message[F])(
       implicit defaultCharset: Charset = DefaultCharset): F[String] =
-    msg.bodyAsText.runFoldMonoid
+    msg.bodyAsText.compile.foldMonoid
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -194,7 +191,7 @@ trait EntityDecoderInstances {
   def error[F[_], T](t: Throwable)(implicit F: Sync[F]): EntityDecoder[F, T] =
     new EntityDecoder[F, T] {
       override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
-        DecodeResult(msg.body.run *> F.raiseError(t))
+        DecodeResult(msg.body.compile.drain *> F.raiseError(t))
       override def consumes: Set[MediaRange] = Set.empty
     }
 
@@ -220,13 +217,13 @@ trait EntityDecoderInstances {
   def binFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val sink = writeOutputStream[F](F.delay(new FileOutputStream(file)))
-      DecodeResult.success(msg.body.to(sink).run).map(_ => file)
+      DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
   def textFile[F[_]](file: File)(implicit F: Sync[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val sink = writeOutputStream[F](F.delay(new PrintStream(new FileOutputStream(file))))
-      DecodeResult.success(msg.body.to(sink).run).map(_ => file)
+      DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
   implicit def multipart[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
@@ -235,6 +232,6 @@ trait EntityDecoderInstances {
   /** An entity decoder that ignores the content and returns unit. */
   implicit def void[F[_]: Sync]: EntityDecoder[F, Unit] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      DecodeResult.success(msg.body.drain.run)
+      DecodeResult.success(msg.body.drain.compile.drain)
     }
 }

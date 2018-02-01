@@ -2,7 +2,6 @@ package org.http4s
 package blazecore
 package util
 
-import cats.Eval.always
 import cats.effect._
 import fs2._
 import fs2.Stream._
@@ -32,7 +31,7 @@ class Http1WriterSpec extends Http4sSpec {
     val w = builder(tail)
 
     (for {
-      _ <- IO.fromFuture(always(w.writeHeaders(new StringWriter << "Content-Type: text/plain\r\n")))
+      _ <- IO.fromFuture(IO(w.writeHeaders(new StringWriter << "Content-Type: text/plain\r\n")))
       _ <- w.writeEntityBody(p).attempt
     } yield ()).unsafeRunSync()
     head.stageShutdown()
@@ -220,7 +219,7 @@ class Http1WriterSpec extends Http4sSpec {
     "write a deflated stream" in {
       val s = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
       val p = s.through(deflate())
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(s.through(deflate())))
+      p.compile.toVector.map(_.toArray) must returnValue(DumpingWriter.dump(s.through(deflate())))
     }
 
     val resource: Stream[IO, Byte] =
@@ -234,12 +233,13 @@ class Http1WriterSpec extends Http4sSpec {
 
     "write a resource" in {
       val p = resource
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(p))
+      p.compile.toVector.map(_.toArray) must returnValue(DumpingWriter.dump(p))
     }
 
     "write a deflated resource" in {
       val p = resource.through(deflate())
-      p.runLog.map(_.toArray) must returnValue(DumpingWriter.dump(resource.through(deflate())))
+      p.compile.toVector.map(_.toArray) must returnValue(
+        DumpingWriter.dump(resource.through(deflate())))
     }
 
     "must be stack safe" in {
@@ -265,6 +265,26 @@ class Http1WriterSpec extends Http4sSpec {
         new FailingWriter().writeEntityBody(p).attempt.unsafeRunSync must beLeft
         clean must_== true
       }
+    }
+
+    "Write trailer headers" in {
+      def builderWithTrailer(tail: TailStage[ByteBuffer]): FlushingChunkWriter[IO] =
+        new FlushingChunkWriter[IO](
+          tail,
+          IO.pure(Headers(Header("X-Trailer", "trailer header value"))))
+
+      val p = eval(IO(messageBuffer)).flatMap(chunk(_).covary[IO])
+
+      writeEntityBody(p)(builderWithTrailer) must_===
+        """Content-Type: text/plain
+          |Transfer-Encoding: chunked
+          |
+          |c
+          |Hello world!
+          |0
+          |X-Trailer: trailer header value
+          |
+          |""".stripMargin.replaceAllLiterally("\n", "\r\n")
 
     }
   }

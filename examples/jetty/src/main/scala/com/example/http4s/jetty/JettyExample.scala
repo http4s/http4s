@@ -9,6 +9,7 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.metrics._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object JettyExample extends JettyExampleApp[IO]
 

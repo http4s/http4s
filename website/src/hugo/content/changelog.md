@@ -8,6 +8,75 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.0 (2018-02-01)
+* Add `filename` method to `Part`
+* Dependency upgrades:
+  * fs2-0.10.0
+  * fs2-reactive-streams-0.5.0
+  * jawn-fs2-0.12.0
+	
+# v0.18.0-M9 (2018-01-26)
+* Emit Exit Codes On Server Shutdown [#1638](https://github.com/http4s/http4s/pull/1638) [#1637](https://github.com/http4s/http4s/pull/1637)
+* Register Termination Signal and Frame in Http4sWSStage [#1631](https://github.com/http4s/http4s/pull/1631)
+* Trailer Headers Are Now Being Emitted Properly [#1629](https://github.com/http4s/http4s/pull/1629)
+* Dependency Upgrades:
+   * alpn-boot-8.1.12.v20180117
+   * circe-0.9.1
+   * fs2-0.10.0-RC2
+   * fs2-reactive-streams-0.3.0
+   * jawn-fs2-0.12.0-M7
+   * metrics-4.0.2
+   * tomcat-9.0.4
+
+# v0.18.0-M8 (2018-01-05)
+* Dependency Upgrades:
+   * argonaut-6.2.1
+   * circe-0.9.0
+   * fs2-0.10.0-M11
+   * fs2-reactive-streams-0.2.8
+   * jawn-fs2-0.12.0-M6
+   * cats-1.0.1
+   * cats-effect-0.8
+
+# v0.18.0-M7 (2017-12-23)
+* Relax various typeclass constraints from `Effect` to `Sync` or `Async`. [#1587](https://github.com/http4s/http4s/pull/1587)
+* Operate on `Segment` instead of `Chunk` [#1588](https://github.com/http4s/http4s/pull/1588)
+   * `EntityDecoder.collectBinary` and `EntityDecoder.binary` now
+     return `Segment[Byte, Unit]` instead of `Chunk[Byte]`.  
+   * Add `EntityDecoder.binaryChunk`.
+   * Add `EntityEncoder.segmentEncoder`.
+   * `http4sMonoidForChunk` replaced by `http4sMonoidForSegment`.
+* Add new generators for core RFC 2616 types. [#1593](https://github.com/http4s/http4s/pull/1593)
+* Undo obsolete copying of bytes in `StaticFile.fromURL`. [#1202](https://github.com/http4s/http4s/pull/1202)
+* Optimize conversion of `Chunk.Bytes` and `ByteVectorChunk` to `ByteBuffer. [#1602](https://github.com/http4s/http4s/pull/1602)
+* Rename `read` to `send` and `write` to `receive` in websocket model. [#1603](https://github.com/http4s/http4s/pull/1603)
+* Remove `MediaRange` mutable `Registry` and add `HttpCodec[MediaRange]` instance [#1597](https://github.com/http4s/http4s/pull/1597)
+* Remove `Monoid[Segment[A, Unit]]` instance, which is now provided by fs2. [#1609](https://github.com/http4s/http4s/pull/1609)
+* Introduce `WebSocketBuilder` to build `WebSocket` responses.  Allows headers (e.g., `Sec-WebSocket-Protocol`) on a successful handshake, as well as customization of the response to failed handshakes. [#1607](https://github.com/http4s/http4s/pull/1607)
+* Don't catch exceptions thrown by `EntityDecoder.decodeBy`. Complain loudly in logs about exceptions thrown by `HttpService` rather than raised in `F`. [#1592](https://github.com/http4s/http4s/pull/1592)
+* Make `abnormal-terminations` and `service-errors` Metrics names plural. [#1611](https://github.com/http4s/http4s/pull/1611)
+* Refactor blaze client creation. [#1523](https://github.com/http4s/http4s/pull/1523)
+   * `Http1Client.apply` returns `F[Client[F]]`
+   * `Http1Client.stream` returns `Stream[F, Client[F]]`, bracketed to shut down the client.
+   * `PooledHttp1Client` constructor is deprecated, replaced by the above.
+   * `SimpleHttp1Client` is deprecated with no direct equivalent.  Use `Http1Client`.
+* Improve client timeout and wait queue handling
+   * `requestTimeout` and `responseHeadersTimeout` begin from the submission of the request.  This includes time spent in the wait queue of the pool. [#1570](https://github.com/http4s/http4s/pull/1570)
+   * When a connection is `invalidate`d, try to unblock a waiting request under the same key.  Previously, the wait queue would only be checked on recycled connections.
+   * When the connection pool is closed, allow connections in the wait queue to complete.
+* Changes to Metrics middleware. [#1612](https://github.com/http4s/http4s/pull/1612)
+   * Decrement the active requests gauge when no request matches
+   * Don't count non-matching requests as 4xx in case they're composed with other services.
+   * Don't count failed requests as 5xx in case they're recovered elsewhere.  They still get recorded as `service-error`s.
+* Dependency upgrades:
+   * async-http-client-2.0.38
+   * cats-1.0.0.RC2
+   * circe-0.9.0-M3
+   * fs2-0.10.0-M10
+   * fs2-jawn-0.12.0-M5
+   * fs2-reactive-streams-0.2.7
+   * scala-2.10.7 and scala-2.11.12
+
 # v0.18.0-M6 (2017-12-08)
 * Tested on Java 9.
 * `Message.withContentType` now takes a `Content-Type` instead of an

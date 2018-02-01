@@ -22,6 +22,8 @@ lazy val core = libraryProject("core")
     ),
     buildInfoPackage := organization.value,
     libraryDependencies ++= Seq(
+      cats,
+      catsEffect,
       fs2Io,
       fs2Scodec,
       http4sWebsocket,

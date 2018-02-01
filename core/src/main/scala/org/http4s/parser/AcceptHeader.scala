@@ -27,7 +27,7 @@ private[parser] trait AcceptHeader {
 
   private class AcceptParser(value: String)
       extends Http4sHeaderParser[Accept](value)
-      with MediaParser {
+      with MediaRange.MediaRangeParser {
 
     def entry: Rule1[headers.Accept] = rule {
       oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRangeAndQValue] =>

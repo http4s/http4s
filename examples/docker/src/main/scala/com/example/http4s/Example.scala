@@ -6,6 +6,7 @@ import fs2.StreamApp.ExitCode
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.blaze.BlazeBuilder
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Example extends StreamApp[IO] with Http4sDsl[IO] {
   val service: HttpService[IO] = HttpService[IO] {

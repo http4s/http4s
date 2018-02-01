@@ -1,6 +1,5 @@
 package com.example.http4s
 
-import cats._
 import cats.effect._
 import cats.implicits._
 import fs2.{Scheduler, Stream}
@@ -48,7 +47,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case GET -> Root / "future" =>
         // EntityEncoder allows rendering asynchronous results as well
-        Ok(IO.fromFuture(Eval.always(Future("Hello from the future!"))).to[F])
+        Ok(Future("Hello from the future!"))
 
       case GET -> Root / "streaming" =>
         // It's also easy to stream responses to clients

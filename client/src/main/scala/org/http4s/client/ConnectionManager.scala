@@ -2,7 +2,9 @@ package org.http4s
 package client
 
 import cats.effect._
+
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 
 /** Type that is responsible for the client lifecycle
   *
@@ -59,11 +61,15 @@ object ConnectionManager {
       maxTotal: Int,
       maxWaitQueueLimit: Int,
       maxConnectionsPerRequestKey: RequestKey => Int,
+      responseHeaderTimeout: Duration,
+      requestTimeout: Duration,
       executionContext: ExecutionContext): ConnectionManager[F, A] =
     new PoolManager[F, A](
       builder,
       maxTotal,
       maxWaitQueueLimit,
       maxConnectionsPerRequestKey,
+      responseHeaderTimeout,
+      requestTimeout,
       executionContext)
 }

@@ -8,7 +8,7 @@ object ClientExample {
     import org.http4s.Http4s._
     import org.http4s.client._
 
-    val client: Client[IO] = blaze.SimpleHttp1Client()
+    val client: Client[IO] = blaze.Http1Client[IO]().unsafeRunSync()
 
     val page: IO[String] = client.expect[String](uri("https://www.google.com/"))
 

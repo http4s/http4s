@@ -4,7 +4,6 @@ import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.{ByteBuffer, CharBuffer}
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.control.NonFatal
 import scodec.bits.ByteVector
 
 package object util {
@@ -63,10 +62,6 @@ package object util {
     new AssertionError(
       s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
 
-  private[http4s] def tryCatchNonFatal[A](f: => A): Either[Throwable, A] =
-    try Right(f)
-    catch { case NonFatal(t) => Left(t) }
-
   @deprecated("Moved to org.http4s.syntax.StringOps", "0.16")
   type CaseInsensitiveStringOps = org.http4s.syntax.StringOps
 
@@ -81,12 +76,12 @@ package object util {
     "0.18.0-M2")
   val TrampolineExecutionContext: ExecutionContextExecutor = execution.trampoline
 
-  @deprecated("Use fs2.StreamApp instead", "0.18.0-M6")
+  @deprecated("Use fs2.StreamApp instead", "0.18.0-M7")
   type StreamApp[F[_]] = fs2.StreamApp[F]
 
-  @deprecated("Use fs2.StreamApp.ExitCode instead", "0.18.0-M6")
+  @deprecated("Use fs2.StreamApp.ExitCode instead", "0.18.0-M7")
   type ExitCode = fs2.StreamApp.ExitCode
-  @deprecated("Use fs2.StreamApp.ExitCode instead", "0.18.0-M6")
+  @deprecated("Use fs2.StreamApp.ExitCode instead", "0.18.0-M7")
   val ExitCode = fs2.StreamApp.ExitCode
 
   /* This is nearly identical to the hashCode of java.lang.String, but converting

@@ -5,7 +5,6 @@ import cats.effect.Sync
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.Stream._
-import fs2.interop.scodec.ByteVectorChunk
 import fs2.io._
 import fs2.io.file.{FileHandle, pulls}
 import java.io._
@@ -14,7 +13,6 @@ import java.nio.file.{Path, StandardOpenOption}
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
-import scodec.bits.ByteVector
 
 object StaticFile {
   private[this] val logger = getLogger
@@ -69,10 +67,6 @@ object StaticFile {
         Response(
           headers = headers,
           body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize)
-          // These chunks wrap a mutable array, and we might be buffering
-          // or processing them concurrently later.  Convert to something
-          // immutable here for safety.
-            .mapChunks(c => ByteVectorChunk(ByteVector(c.toArray)).toSegment)
         )
       } else {
         urlConn.getInputStream.close()
