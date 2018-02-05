@@ -13,7 +13,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
     HttpHeaderParser.CONTENT_TYPE(s)
 }
 
-final case class `Content-Type`(mediaType: MediaType, charset: Option[Charset])
+final case class `Content-Type` private (mediaType: MediaType, charset: Option[Charset])
     extends Header.Parsed {
   override def key: `Content-Type`.type = `Content-Type`
   override def renderValue(writer: Writer): writer.type = charset match {

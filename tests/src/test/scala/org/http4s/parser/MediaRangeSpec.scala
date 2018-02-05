@@ -3,10 +3,10 @@ package parser
 
 import org.http4s.MediaRange._
 import org.http4s.MediaType._
+import org.http4s.testing._
 import org.specs2.mutable.Specification
 
 class MediaRangeSpec extends Specification with Http4s {
-
   def ext = Map("foo" -> "bar")
 
   "MediaRanges" should {

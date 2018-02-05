@@ -4,6 +4,7 @@ package dsl
 import cats._
 import cats.effect.IO
 import org.http4s.dsl.io._
+import org.http4s.testing._
 import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
 
 class ResponseGeneratorSpec extends Http4sSpec {
@@ -39,8 +40,8 @@ class ResponseGeneratorSpec extends Http4sSpec {
     )
 
     val resp: IO[Response[IO]] =
-      Ok("foo", `Content-Type`(MediaType.`application/json`))(Monad[IO], w)
-    resp must returnValue(haveMediaType(MediaType.`application/json`))
+      Ok("foo", `Content-Type`(`application/json`))(Monad[IO], w)
+    resp must returnValue(haveMediaType(`application/json`))
   }
 
   "NoContent() does not generate Content-Length" in {

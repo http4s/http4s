@@ -116,7 +116,7 @@ class MessageSpec extends Http4sSpec {
     "decode" should {
       "produce a UnsupportedMediaType in the event of a decode failure" >> {
         "MediaTypeMismatch" in {
-          val req = Request[IO](headers = Headers(`Content-Type`(MediaType.`application/base64`)))
+          val req = Request[IO](headers = Headers(`Content-Type`(MediaType.`application/octet-stream`)))
           val resp = req.decodeWith(EntityDecoder.text, strict = true)(_ => IO.pure(Response()))
           resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }

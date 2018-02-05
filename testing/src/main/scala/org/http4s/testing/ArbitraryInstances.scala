@@ -320,6 +320,14 @@ trait ArbitraryInstances {
       } yield `Content-Encoding`(contentCoding)
     }
 
+  implicit val arbitraryContentType: Arbitrary[`Content-Type`] =
+    Arbitrary {
+      for {
+        mediaType <- arbitrary[MediaType]
+        charset <- arbitrary[Charset]
+      } yield `Content-Type`(mediaType, charset)
+    }
+
   def genLanguageTagNoQuality: Gen[LanguageTag] =
     frequency(
       3 -> (for {

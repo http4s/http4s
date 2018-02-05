@@ -4,6 +4,7 @@ import cats.effect.IO
 import org.http4s.Charset._
 import org.http4s.Http4s._
 import org.http4s.headers._
+import org.http4s.testing._
 import org.specs2.mutable.Specification
 
 class ResponderSpec extends Specification {
@@ -31,9 +32,9 @@ class ResponderSpec extends Specification {
       (c1.headers must have).length(3)
       c1.contentType must beSome(`Content-Type`(MediaType.`text/plain`))
 
-      val c2 = c1.withContentType(`Content-Type`(MediaType.`application/json`, `UTF-8`))
+      val c2 = c1.withContentType(`Content-Type`(`application/json`, `UTF-8`))
 
-      c2.contentType must beSome(`Content-Type`(MediaType.`application/json`, `UTF-8`))
+      c2.contentType must beSome(`Content-Type`(`application/json`, `UTF-8`))
       c2.headers.count(_.is(`Content-Type`)) must_== (1)
       c2.headers.count(_.is(`Content-Length`)) must_== (1)
       c2.headers.count(_.is(Host)) must_== (1)
