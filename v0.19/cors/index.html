@@ -30,13 +30,12 @@
           <a class="nav-link dropdown-toggle" href="http://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
-          <div class="dropdown-menu" aria-labelledby="doc-menu-item"> 
-  <a class="dropdown-item" href="/v0.18/">v0.18 (development)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (stable)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (stable)</a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
+  <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
+  <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
-  <div class="dropdown-divider"></div>    
-  <a class="dropdown-item" href="/v0.15/">v0.15 (EOL)</a>
 </div>
 
         </li>
@@ -107,7 +106,7 @@ import org.http4s.implicits._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$37996/764794519@45ce4274)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$37811/915187469@283ee217)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -122,7 +121,7 @@ service.orNotFound(request).unsafeRunSync
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$38067/872231494@1b03924c)
+// corsService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$37882/1573667118@1e579f63)
 
 corsService.orNotFound(request).unsafeRunSync
 // res1: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
@@ -176,10 +175,10 @@ val methodConfig = CORSConfig(
   allowedMethods = Some(Set(&quot;GET&quot;, &quot;POST&quot;)),
   allowCredentials = true,
   maxAge = 1.day.toSeconds)
-// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$38066/425076678@23d13dd7,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
+// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$37881/1516275213@3b8d57cb,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$38067/872231494@43eb1691)
+// corsMethodSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$37882/1573667118@775943f9)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync
 // res3: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Methods, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
@@ -203,7 +202,7 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Set(yahoo.com, duckduckgo.com),None,Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$38067/872231494@48651ce3)
+// corsOriginSvc: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$37882/1573667118@1fa13db1)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync
 // res6: org.http4s.Response[cats.effect.IO] = Response(status=403, headers=Headers())
