@@ -44,7 +44,7 @@ operation.  We'll teach you what you need to know as we go, or you
 can, uh, fork a task to read these introductions first:
 
 * [Scalaz Task: The Missing Documentation]
-* [Kleisli: Composing monadic functions]
+* [Cats Kleisli Datatype]
 
 ### Defining your service
 
@@ -177,6 +177,6 @@ object Main extends StreamApp[IO] {
 
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
-[Kleisli: Composing monadic functions]: http://eed3si9n.com/learning-scalaz/Composing+monadic+functions.html
+[Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
 [Scalaz Task: The Missing Documentation]: http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/
 [http4s-dsl]: ../dsl
