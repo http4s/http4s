@@ -16,7 +16,7 @@ function, or more likely, a `Request[F] => OptionT[F, User]`, because the `User`
 come from a database. We can convert that into an `AuthMiddleware` and apply it.
 Or in code, using `cats.effect.IO` as the effect type:
 
-```tut:book
+```tut:book:silent
 import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -47,7 +47,7 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 => F[Either[String,User]]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
-```tut:book
+```tut:book:silent
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
 val onFailure: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
@@ -78,7 +78,7 @@ use multiple application instances.
 
 The message is simply the user id.
 
-```tut:book
+```tut:book:silent
 import org.reactormonk.{CryptoBits, PrivateKey}
 import java.time._
 
@@ -101,7 +101,7 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
-```tut:book
+```tut:book:silent
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
@@ -120,7 +120,7 @@ There is no inherent way to set the Authorization header, send the token in any
 way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
-```tut:book
+```tut:book:silent
 import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
