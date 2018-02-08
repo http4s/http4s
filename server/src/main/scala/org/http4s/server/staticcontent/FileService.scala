@@ -60,7 +60,7 @@ object FileService {
         getPartialContentFile(file, config, req)
           .orElse(
             StaticFile
-              .fromFile(file, config.bufferSize, Some(req))
+              .fromFile(file, config.bufferSize, Some(req), StaticFile.calcETag)
               .map(_.putHeaders(AcceptRangeHeader))
           )
           .value
@@ -84,7 +84,7 @@ object FileService {
           val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
           StaticFile
-            .fromFile(file, start, end + 1, config.bufferSize, Some(req))
+            .fromFile(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
             .map { resp =>
               val hs: Headers = resp.headers
                 .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))

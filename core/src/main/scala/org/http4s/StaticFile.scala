@@ -74,17 +74,28 @@ object StaticFile {
       }
     })
 
-  def fromFile[F[_]: Sync](f: File, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromFile(f, DefaultBufferSize, req)
+  def calcETag: File => String = _.length().toString
+
+  def fromFile[F[_]: Sync](
+      f: File,
+      req: Option[Request[F]] = None,
+      etagCalculator: File => String = calcETag): OptionT[F, Response[F]] =
+    fromFile(f, DefaultBufferSize, req, etagCalculator)
 
   def fromFile[F[_]: Sync](
       f: File,
       buffsize: Int,
-      req: Option[Request[F]]): OptionT[F, Response[F]] =
-    fromFile(f, 0, f.length(), buffsize, req)
+      req: Option[Request[F]],
+      etagCalculator: File => String): OptionT[F, Response[F]] =
+    fromFile(f, 0, f.length(), buffsize, req, etagCalculator)
 
-  def fromFile[F[_]](f: File, start: Long, end: Long, buffsize: Int, req: Option[Request[F]])(
-      implicit F: Sync[F]): OptionT[F, Response[F]] =
+  def fromFile[F[_]](
+      f: File,
+      start: Long,
+      end: Long,
+      buffsize: Int,
+      req: Option[Request[F]],
+      etagCalculator: File => String)(implicit F: Sync[F]): OptionT[F, Response[F]] =
     OptionT(F.delay {
       if (f.isFile) {
         require(
@@ -93,15 +104,21 @@ object StaticFile {
 
         val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
+        val etagCalc = ETag(etagCalculator(f))
+
         // See if we need to actually resend the file
         val notModified: Option[Response[F]] =
           for {
             r <- req
             h <- r.headers.get(`If-Modified-Since`)
+            etagHeader <- r.headers.get(ETag)
             lm <- lastModified
             exp = h.date.compareTo(lm) < 0
             _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
-            nm = Response[F](NotModified) if !exp
+            etagExp = etagHeader.value != etagCalc.value
+            _ = logger.trace(
+              s"Expired ETag: $etagExp Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
+            nm = Response[F](NotModified) if !exp && !etagExp
           } yield nm
 
         notModified.orElse {
@@ -112,7 +129,7 @@ object StaticFile {
           val contentType = nameToContentType(f.getName)
           val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
             `Content-Length`.fromLong(contentLength).toList :::
-            contentType.toList
+            contentType.toList ::: List(etagCalc)
 
           val r = Response(
             headers = Headers(hs),
