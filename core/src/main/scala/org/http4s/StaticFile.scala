@@ -74,19 +74,22 @@ object StaticFile {
       }
     })
 
-  def calcETag: File => String = _.length().toString
+  def calcETag[F[_]: Sync]: File => F[String] = f => Sync[F].delay(f.length().toString)
+
+  def fromFile[F[_]: Sync](f: File, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+    fromFile(f, DefaultBufferSize, req, calcETag[F])
 
   def fromFile[F[_]: Sync](
       f: File,
-      req: Option[Request[F]] = None,
-      etagCalculator: File => String = calcETag): OptionT[F, Response[F]] =
+      req: Option[Request[F]],
+      etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, etagCalculator)
 
   def fromFile[F[_]: Sync](
       f: File,
       buffsize: Int,
       req: Option[Request[F]],
-      etagCalculator: File => String): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String]): OptionT[F, Response[F]] =
     fromFile(f, 0, f.length(), buffsize, req, etagCalculator)
 
   def fromFile[F[_]](
@@ -95,46 +98,47 @@ object StaticFile {
       end: Long,
       buffsize: Int,
       req: Option[Request[F]],
-      etagCalculator: File => String)(implicit F: Sync[F]): OptionT[F, Response[F]] =
-    OptionT(F.delay {
-      if (f.isFile) {
-        require(
-          start >= 0 && end >= start && buffsize > 0,
-          s"start: $start, end: $end, buffsize: $buffsize")
+      etagCalculator: File => F[String])(implicit F: Sync[F]): OptionT[F, Response[F]] =
+    OptionT(for {
+      etagCalc <- etagCalculator(f).map(et => ETag(et))
+      res <- F.delay {
+        if (f.isFile) {
+          require(
+            start >= 0 && end >= start && buffsize > 0,
+            s"start: $start, end: $end, buffsize: $buffsize")
 
-        val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
+          val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
-        val etagCalc = ETag(etagCalculator(f))
+          // See if we need to actually resend the file
+          val notModified: Option[Response[F]] = ifModifiedSince(req, lastModified)
 
-        // See if we need to actually resend the file
-        val notModified: Option[Response[F]] = ifModifiedSince(req, lastModified)
+          // Check ETag
+          val etagModified: Option[Response[F]] = ifETagModified(req, etagCalc)
 
-        // Check ETag
-        val etagModified: Option[Response[F]] = ifETagModified(req, etagCalc)
+          notModified.orElse(etagModified).orElse {
+            val (body, contentLength) =
+              if (f.length() < end) (empty.covary[F], 0L)
+              else (fileToBody[F](f, start, end), end - start)
 
-        notModified.orElse(etagModified).orElse {
-          val (body, contentLength) =
-            if (f.length() < end) (empty.covary[F], 0L)
-            else (fileToBody[F](f, start, end), end - start)
+            val contentType = nameToContentType(f.getName)
+            val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
+              `Content-Length`.fromLong(contentLength).toList :::
+              contentType.toList ::: List(etagCalc)
 
-          val contentType = nameToContentType(f.getName)
-          val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
-            `Content-Length`.fromLong(contentLength).toList :::
-            contentType.toList ::: List(etagCalc)
+            val r = Response(
+              headers = Headers(hs),
+              body = body,
+              attributes = AttributeMap.empty.put(staticFileKey, f)
+            )
 
-          val r = Response(
-            headers = Headers(hs),
-            body = body,
-            attributes = AttributeMap.empty.put(staticFileKey, f)
-          )
-
-          logger.trace(s"Static file generated response: $r")
-          Some(r)
+            logger.trace(s"Static file generated response: $r")
+            Some(r)
+          }
+        } else {
+          None
         }
-      } else {
-        None
       }
-    })
+    } yield res)
 
   private def ifETagModified[F[_]](req: Option[Request[F]], etagCalc: ETag) =
     for {

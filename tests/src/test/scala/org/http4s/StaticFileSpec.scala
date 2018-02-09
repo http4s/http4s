@@ -63,7 +63,7 @@ class StaticFileSpec extends Http4sSpec {
         val f = new File(path)
         val r =
           StaticFile
-            .fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None, StaticFile.calcETag)
+            .fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None, StaticFile.calcETag[IO])
             .value
             .unsafeRunSync
 
@@ -101,7 +101,7 @@ class StaticFileSpec extends Http4sSpec {
             fileSize.toLong - 1,
             StaticFile.DefaultBufferSize,
             None,
-            StaticFile.calcETag)
+            StaticFile.calcETag[IO])
           .value
           .unsafeRunSync
 
