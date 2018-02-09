@@ -94,40 +94,20 @@ come from a database. We can convert that into an <code>AuthMiddleware</code> an
 Or in code, using <code>cats.effect.IO</code> as the effect type:</p>
 
 <pre><code class="language-scala">import cats._, cats.effect._, cats.implicits._, cats.data._
-// import cats._
-// import cats.effect._
-// import cats.implicits._
-// import cats.data._
-
 import org.http4s._
-// import org.http4s._
-
 import org.http4s.dsl.io._
-// import org.http4s.dsl.io._
-
 import org.http4s.implicits._
-// import org.http4s.implicits._
-
 import org.http4s.server._
-// import org.http4s.server._
 
 case class User(id: Long, name: String)
-// defined class User
 
 val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ =&gt; OptionT.liftF(IO(???)))
-// authUser: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],User] = Kleisli($$Lambda$41147/2077213397@280a5a0a)
-
 val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
-// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$41148/1847874858@7f996dfd
-
 val authedService: AuthedService[User, IO] =
   AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
-// authedService: org.http4s.AuthedService[User,cats.effect.IO] = Kleisli(org.http4s.AuthedService$$$Lambda$41151/1891373738@5f5515ec)
-
 val service: HttpService[IO] = middleware(authedService)
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(scala.Function1$$Lambda$5710/338466296@35943e9)
 </code></pre>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
@@ -144,16 +124,11 @@ redirect to a login page, or a popup requesting login data. With the upcoming of
 error handling, we recommend an error <a href="http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html">ADT</a> instead of a <code>String</code>.</p>
 
 <pre><code class="language-scala">val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ =&gt; IO(???))
-// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$41156/42634345@d1b1914)
 
 val onFailure: AuthedService[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
-// onFailure: org.http4s.AuthedService[String,cats.effect.IO] = Kleisli($$Lambda$41157/959329890@1765db17)
-
 val middleware = AuthMiddleware(authUser, onFailure)
-// middleware: org.http4s.server.AuthMiddleware[cats.effect.IO,User] = org.http4s.server.package$AuthMiddleware$$$Lambda$41158/1933570180@2bab9e8
 
 val service: HttpService[IO] = middleware(authedService)
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(cats.data.Kleisli$$Lambda$41165/581300385@8a3404a)
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
@@ -178,23 +153,13 @@ use multiple application instances.</p>
 <p>The message is simply the user id.</p>
 
 <pre><code class="language-scala">import org.reactormonk.{CryptoBits, PrivateKey}
-// import org.reactormonk.{CryptoBits, PrivateKey}
-
 import java.time._
-// import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString(&quot;&quot;)))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@1b83bf86)
-
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@1b83bf86))
-
 val clock = Clock.systemUTC
-// clock: java.time.Clock = SystemClock[Z]
 
 def verifyLogin(request: Request[IO]): IO[Either[String,User]] = ??? // gotta figure out how to do the form
-// verifyLogin: (request: org.http4s.Request[cats.effect.IO])cats.effect.IO[Either[String,User]]
-
 val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
   verifyLogin(request: Request[IO]).flatMap(_ match {
     case Left(error) =&gt;
@@ -205,14 +170,11 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =&gt;
     }
   })
 })
-// logIn: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli($$Lambda$41168/764207377@228f3291)
 </code></pre>
 
 <p>Now that the cookie is set, we can retrieve it again in the <code>authUser</code>.</p>
 
 <pre><code class="language-scala">def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id =&gt; IO(???))
-// retrieveUser: cats.data.Kleisli[cats.effect.IO,Long,User]
-
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
     header &lt;- headers.Cookie.from(request.headers).toRight(&quot;Cookie parsing error&quot;)
@@ -222,7 +184,6 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
   } yield message
   message.traverse(retrieveUser.run)
 })
-// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$41169/1976315207@603fbe2f)
 </code></pre>
 
 <h3 id="authorization-header">Authorization Header</h3>
@@ -232,10 +193,7 @@ way that your <a href="https://en.wikipedia.org/wiki/Single-page_application">SP
 function.</p>
 
 <pre><code class="language-scala">import org.http4s.util.string._
-// import org.http4s.util.string._
-
 import org.http4s.headers.Authorization
-// import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
@@ -245,7 +203,6 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request 
   } yield message
   message.traverse(retrieveUser.run)
 })
-// authUser: cats.data.Kleisli[cats.effect.IO,org.http4s.Request[cats.effect.IO],Either[String,User]] = Kleisli($$Lambda$41170/1868099194@1314adea)
 </code></pre>
 
 <h3 id="using-tsec-http4s-for-authentication-and-authorization">Using tsec-http4s for Authentication and Authorization</h3>
