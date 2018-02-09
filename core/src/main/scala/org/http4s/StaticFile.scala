@@ -107,21 +107,12 @@ object StaticFile {
         val etagCalc = ETag(etagCalculator(f))
 
         // See if we need to actually resend the file
-        val notModified: Option[Response[F]] =
-          for {
-            r <- req
-            h <- r.headers.get(`If-Modified-Since`)
-            etagHeader <- r.headers.get(ETag)
-            lm <- lastModified
-            exp = h.date.compareTo(lm) < 0
-            _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
-            etagExp = etagHeader.value != etagCalc.value
-            _ = logger.trace(
-              s"Expired ETag: $etagExp Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
-            nm = Response[F](NotModified) if !exp && !etagExp
-          } yield nm
+        val notModified: Option[Response[F]] = ifModifiedSince(req, lastModified)
 
-        notModified.orElse {
+        // Check ETag
+        val etagModified: Option[Response[F]] = ifETagModified(req, etagCalc)
+
+        notModified.orElse(etagModified).orElse {
           val (body, contentLength) =
             if (f.length() < end) (empty.covary[F], 0L)
             else (fileToBody[F](f, start, end), end - start)
@@ -144,6 +135,26 @@ object StaticFile {
         None
       }
     })
+
+  private def ifETagModified[F[_]](req: Option[Request[F]], etagCalc: ETag) =
+    for {
+      r <- req
+      etagHeader <- r.headers.get(ETag)
+      etagExp = etagHeader.value != etagCalc.value
+      _ = logger.trace(
+        s"Expired ETag: $etagExp Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
+      nm = Response[F](NotModified) if !etagExp
+    } yield nm
+
+  private def ifModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
+    for {
+      r <- req
+      h <- r.headers.get(`If-Modified-Since`)
+      lm <- lastModified
+      exp = h.date.compareTo(lm) < 0
+      _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
+      nm = Response[F](NotModified) if !exp
+    } yield nm
 
   private def fileToBody[F[_]: Sync](
       f: File,

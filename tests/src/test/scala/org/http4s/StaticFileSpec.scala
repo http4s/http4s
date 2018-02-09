@@ -42,7 +42,17 @@ class StaticFileSpec extends Http4sSpec {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
       val request =
-        Request[IO]().putHeaders(ETag("0")).putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
+        Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
+      val response = StaticFile.fromFile[IO](emptyFile, Some(request)).value.unsafeRunSync
+      response must beSome[Response[IO]]
+      response.map(_.status) must beSome(NotModified)
+    }
+
+    "Don't send unmodified files by ETag" in {
+      val emptyFile = File.createTempFile("empty", ".tmp")
+
+      val request =
+        Request[IO]().putHeaders(ETag("0"))
       val response = StaticFile.fromFile[IO](emptyFile, Some(request)).value.unsafeRunSync
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
