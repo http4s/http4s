@@ -7,6 +7,7 @@ import io.circe._
 import io.circe.syntax._
 import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
+import cats.data.NonEmptyList
 import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
@@ -28,6 +29,12 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     Decoder.forProduct1("bar")(Foo.apply)
   implicit val FooEncoder: Encoder[Foo] =
     Encoder.forProduct1("bar")(foo => foo.bar)
+
+  sealed case class Bar(a: Int, b: String)
+  implicit val barDecoder: Decoder[Bar] =
+    Decoder.forProduct2("a", "b")(Bar.apply)
+  implicit val barEncoder: Encoder[Bar] =
+    Encoder.forProduct2("a", "b")(bar => (bar.a, bar.b))
 
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
@@ -115,6 +122,24 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         val result =
           jsonOf[IO, Umlaut].decode(Request[IO]().withBody(json).unsafeRunSync, strict = true)
         result.value.unsafeRunSync must_== Right(Umlaut(wort))
+      }
+    }
+  }
+
+  "accumulatingJsonOf" should {
+    "decode JSON from a Circe decoder" in {
+      val result = accumulatingJsonOf[IO, Foo].decode(
+        Request[IO]().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).unsafeRunSync,
+        strict = true)
+      result.value.unsafeRunSync must_== Right(Foo(42))
+    }
+
+    "return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages" in {
+      val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
+      val result = accumulatingJsonOf[IO, Bar]
+        .decode(Request[IO]().withBody(json).unsafeRunSync, strict = true)
+      result.value.unsafeRunSync must beLike {
+        case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => ok
       }
     }
   }
