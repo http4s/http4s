@@ -76,15 +76,8 @@ object StaticFile {
 
   def calcETag[F[_]: Sync]: File => F[String] =
     f =>
-      Sync[F]
-        .delay(f.isFile)
-        .flatMap { isFile =>
-          if (isFile) {
-            Sync[F].delay(s"${f.lastModified()}${f.length()}")
-          } else {
-            Sync[F].pure("")
-          }
-      }
+      Sync[F].delay(
+        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
   def fromFile[F[_]: Sync](f: File, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, req, calcETag[F])
