@@ -6,31 +6,64 @@ title: Authentication
 
 ## Built in
 
-A [service] is a `Kleisli[OptionT[F, ?], Request[F], Response[F]]`, the composable version of
-`Request[F] => OptionT[F, Response[F]]`. A service with authentication also requires some kind of `User`
-object which identifies which user did the request. To reference the `User` object
-along with the `Request[F]`, there's `AuthedRequest[F, User]`, which is equivalent to
-`(User, Request[F])`. So the service has the signature `AuthedRequest[F, User] =>
-OptionT[F, Response[F]]`, or `AuthedService[User, F]`. So we'll need a `Request[F] => Option[User]`
-function, or more likely, a `Request[F] => OptionT[F, User]`, because the `User` can
-come from a database. We can convert that into an `AuthMiddleware` and apply it.
-Or in code, using `cats.effect.IO` as the effect type:
+For this section, remember that, like mentioned in the [service] section, a service is a
+`Kleisli[OptionT[F, ?], Request[F], Response[F]]`, the composable version of `Request[F] => OptionT[F, Response[F]]`.
 
-```tut:book
+Lets start by defining all the imports we will need in the examples below:
+
+```tut:book:silent
 import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server._
+```
 
+To add authentication to a service, we need some kind of `User` object which identifies the user
+who sent the request. We represent that with `AuthedRequest[F, User]`, which allows you to reference
+such object, and is the equivalent to `(User, Request[F])`. _http4s_ provides you with `AuthedRequest`,
+but you have to provide your own _user_, or _authInfo_ representation. For our purposes here we will
+use the following definition:
+
+```tut:book:silent
 case class User(id: Long, name: String)
+```
 
-val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ => OptionT.liftF(IO(???)))
-val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
+With the request representation defined, we can move on to the `AuthedService[User, F]`, a shortcut to
+`AuthedRequest[F, User] => OptionT[F, Response[F]]`. Notice the similarity to a "normal" service, which
+would be the equivalent to `Request[F] => OptionT[F, Response[F]]` - in other words, we are lifting the
+`Request` into an `AuthedRequest`, and adding authentication information in the mix.
+
+With that we can represent a service that requires authentication, but to actually construct it we need
+to define how to extract the authentication information from the request. For that, we need a function
+with the following signature: `Request[F] => OptionT[F, User]`. Here is an example of how to define it:
+
+```tut:book:silent
+val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+  Kleisli(_ => OptionT.liftF(IO(???)))
+```
+
+It is worth noting that we are still wrapping the user fetch in `F` (`IO` in this case), because actually
+discovering the user might require reading from a database or calling some other service - i.e. performing
+IO operations.
+
+Now we need a middleware that can bridge a "normal" service into an `AuthedService`, which is quite easy to
+get using our function defined above. We use `AuthMiddleware` for that:
+
+```tut:book:silent
+val middleware: AuthMiddleware[IO, User] =
+  AuthMiddleware(authUser)
+```
+
+Finally, we can create our `AuthedService`, and wrap it with our authentication middleware, getting the
+final `HttpService` to be exposed. Notice that we now have access to the user object in the service implementation:
+
+```tut:book:silent
 val authedService: AuthedService[User, IO] =
   AuthedService {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
+
 val service: HttpService[IO] = middleware(authedService)
 ```
 
@@ -47,7 +80,7 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request[F
 => F[Either[String,User]]`. So we'll need to handle that possibility. For advanced
 error handling, we recommend an error [ADT] instead of a `String`.
 
-```tut:book
+```tut:book:silent
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(???))
 
 val onFailure: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
@@ -78,7 +111,7 @@ use multiple application instances.
 
 The message is simply the user id.
 
-```tut:book
+```tut:book:silent
 import org.reactormonk.{CryptoBits, PrivateKey}
 import java.time._
 
@@ -101,7 +134,7 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
 
 Now that the cookie is set, we can retrieve it again in the `authUser`.
 
-```tut:book
+```tut:book:silent
 def retrieveUser: Kleisli[IO, Long, User] = Kleisli(id => IO(???))
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
@@ -120,14 +153,14 @@ There is no inherent way to set the Authorization header, send the token in any
 way that your [SPA] understands. Retrieve the header value in the `authUser`
 function.
 
-```tut:book
+```tut:book:silent
 import org.http4s.util.string._
 import org.http4s.headers.Authorization
 
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =>
   val message = for {
     header <- request.headers.get(Authorization).toRight("Couldn't find an Authorization header")
-    token <- crypto.validateSignedToken(header.value).toRight("Cookie invalid")
+    token <- crypto.validateSignedToken(header.value).toRight("Invalid token")
     message <- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message
   message.traverse(retrieveUser.run)

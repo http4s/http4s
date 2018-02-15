@@ -59,6 +59,26 @@ trait CirceInstances {
         )
     }
 
+  /**
+    * An [[EntityDecoder]] that uses circe's accumulating decoder for decoding the JSON.
+    *
+    * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
+    * a [[DecodingFailures]] exception, from which the errors can be extracted.
+    */
+  def accumulatingJsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonDecoder[F].flatMapR { json =>
+      decoder
+        .accumulating(json.hcursor)
+        .fold(
+          failures =>
+            DecodeResult.failure(
+              InvalidMessageBodyFailure(
+                s"Could not decode JSON: $json",
+                Some(DecodingFailures(failures)))),
+          DecodeResult.success(_)
+        )
+    }
+
   protected def defaultPrinter: Printer
 
   implicit def jsonEncoder[F[_]: EntityEncoder[?[_], String]: Applicative]: EntityEncoder[F, Json] =
