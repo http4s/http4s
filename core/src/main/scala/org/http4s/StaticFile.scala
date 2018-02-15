@@ -74,59 +74,94 @@ object StaticFile {
       }
     })
 
+  def calcETag[F[_]: Sync]: File => F[String] =
+    f =>
+      Sync[F].delay(
+        if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
+
   def fromFile[F[_]: Sync](f: File, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
-    fromFile(f, DefaultBufferSize, req)
+    fromFile(f, DefaultBufferSize, req, calcETag[F])
+
+  def fromFile[F[_]: Sync](
+      f: File,
+      req: Option[Request[F]],
+      etagCalculator: File => F[String]): OptionT[F, Response[F]] =
+    fromFile(f, DefaultBufferSize, req, etagCalculator)
 
   def fromFile[F[_]: Sync](
       f: File,
       buffsize: Int,
-      req: Option[Request[F]]): OptionT[F, Response[F]] =
-    fromFile(f, 0, f.length(), buffsize, req)
+      req: Option[Request[F]],
+      etagCalculator: File => F[String]): OptionT[F, Response[F]] =
+    fromFile(f, 0, f.length(), buffsize, req, etagCalculator)
 
-  def fromFile[F[_]](f: File, start: Long, end: Long, buffsize: Int, req: Option[Request[F]])(
-      implicit F: Sync[F]): OptionT[F, Response[F]] =
-    OptionT(F.delay {
-      if (f.isFile) {
-        require(
-          start >= 0 && end >= start && buffsize > 0,
-          s"start: $start, end: $end, buffsize: $buffsize")
+  def fromFile[F[_]](
+      f: File,
+      start: Long,
+      end: Long,
+      buffsize: Int,
+      req: Option[Request[F]],
+      etagCalculator: File => F[String])(implicit F: Sync[F]): OptionT[F, Response[F]] =
+    OptionT(for {
+      etagCalc <- etagCalculator(f).map(et => ETag(et))
+      res <- F.delay {
+        if (f.isFile) {
+          require(
+            start >= 0 && end >= start && buffsize > 0,
+            s"start: $start, end: $end, buffsize: $buffsize")
 
-        val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
+          val lastModified = HttpDate.fromEpochSecond(f.lastModified / 1000).toOption
 
-        // See if we need to actually resend the file
-        val notModified: Option[Response[F]] =
-          for {
-            r <- req
-            h <- r.headers.get(`If-Modified-Since`)
-            lm <- lastModified
-            exp = h.date.compareTo(lm) < 0
-            _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
-            nm = Response[F](NotModified) if !exp
-          } yield nm
+          // See if we need to actually resend the file
+          val notModified: Option[Response[F]] = ifModifiedSince(req, lastModified)
 
-        notModified.orElse {
-          val (body, contentLength) =
-            if (f.length() < end) (empty.covary[F], 0L)
-            else (fileToBody[F](f, start, end), end - start)
+          // Check ETag
+          val etagModified: Option[Response[F]] = ifETagModified(req, etagCalc)
 
-          val contentType = nameToContentType(f.getName)
-          val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
-            `Content-Length`.fromLong(contentLength).toList :::
-            contentType.toList
+          notModified.orElse(etagModified).orElse {
+            val (body, contentLength) =
+              if (f.length() < end) (empty.covary[F], 0L)
+              else (fileToBody[F](f, start, end), end - start)
 
-          val r = Response(
-            headers = Headers(hs),
-            body = body,
-            attributes = AttributeMap.empty.put(staticFileKey, f)
-          )
+            val contentType = nameToContentType(f.getName)
+            val hs = lastModified.map(lm => `Last-Modified`(lm)).toList :::
+              `Content-Length`.fromLong(contentLength).toList :::
+              contentType.toList ::: List(etagCalc)
 
-          logger.trace(s"Static file generated response: $r")
-          Some(r)
+            val r = Response(
+              headers = Headers(hs),
+              body = body,
+              attributes = AttributeMap.empty.put(staticFileKey, f)
+            )
+
+            logger.trace(s"Static file generated response: $r")
+            Some(r)
+          }
+        } else {
+          None
         }
-      } else {
-        None
       }
-    })
+    } yield res)
+
+  private def ifETagModified[F[_]](req: Option[Request[F]], etagCalc: ETag) =
+    for {
+      r <- req
+      etagHeader <- r.headers.get(ETag)
+      etagExp = etagHeader.value != etagCalc.value
+      _ = logger.trace(
+        s"Expired ETag: $etagExp Previous ETag: ${etagHeader.value}, New ETag: $etagCalc")
+      nm = Response[F](NotModified) if !etagExp
+    } yield nm
+
+  private def ifModifiedSince[F[_]](req: Option[Request[F]], lastModified: Option[HttpDate]) =
+    for {
+      r <- req
+      h <- r.headers.get(`If-Modified-Since`)
+      lm <- lastModified
+      exp = h.date.compareTo(lm) < 0
+      _ = logger.trace(s"Expired: $exp. Request age: ${h.date}, Modified: $lm")
+      nm = Response[F](NotModified) if !exp
+    } yield nm
 
   private def fileToBody[F[_]: Sync](
       f: File,

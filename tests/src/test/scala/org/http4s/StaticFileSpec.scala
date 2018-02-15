@@ -4,7 +4,7 @@ import cats.effect.IO
 import java.io.File
 import java.nio.file.Files
 import org.http4s.Status.NotModified
-import org.http4s.headers.{`Content-Length`, `Content-Type`, `If-Modified-Since`, `Last-Modified`}
+import org.http4s.headers._
 import org.specs2.matcher.MatchResult
 
 class StaticFileSpec extends Http4sSpec {
@@ -41,7 +41,19 @@ class StaticFileSpec extends Http4sSpec {
     "Don't send unmodified files" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      val request = Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
+      val request =
+        Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
+      val response = StaticFile.fromFile[IO](emptyFile, Some(request)).value.unsafeRunSync
+      response must beSome[Response[IO]]
+      response.map(_.status) must beSome(NotModified)
+    }
+
+    "Don't send unmodified files by ETag" in {
+      val emptyFile = File.createTempFile("empty", ".tmp")
+
+      val request =
+        Request[IO]().putHeaders(
+          ETag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}"))
       val response = StaticFile.fromFile[IO](emptyFile, Some(request)).value.unsafeRunSync
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
@@ -51,7 +63,10 @@ class StaticFileSpec extends Http4sSpec {
       def check(path: String): MatchResult[Any] = {
         val f = new File(path)
         val r =
-          StaticFile.fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None).value.unsafeRunSync
+          StaticFile
+            .fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None, StaticFile.calcETag[IO])
+            .value
+            .unsafeRunSync
 
         r must beSome[Response[IO]]
         // Length is only 1 byte
@@ -81,7 +96,13 @@ class StaticFileSpec extends Http4sSpec {
 
       def check(file: File): MatchResult[Any] = {
         val r = StaticFile
-          .fromFile[IO](file, 0, fileSize.toLong - 1, StaticFile.DefaultBufferSize, None)
+          .fromFile[IO](
+            file,
+            0,
+            fileSize.toLong - 1,
+            StaticFile.DefaultBufferSize,
+            None,
+            StaticFile.calcETag[IO])
           .value
           .unsafeRunSync
 
