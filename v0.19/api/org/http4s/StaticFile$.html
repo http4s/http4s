@@ -897,6 +897,22 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.StaticFile#calcETag" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="calcETag[F[_]](implicitevidence$3:cats.effect.Sync[F]):java.io.File=&gt;F[String]"></a><a id="calcETag[F[_]](Sync[F]):(File)⇒F[String]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#calcETag[F[_]](implicitevidence$3:cats.effect.Sync[F]):java.io.File=&gt;F[String]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">calcETag</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>]</span>)</span><span class="result">: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.calcETag.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -976,9 +992,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               
         </dd></dl></div>
     </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Long,Long,Int,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
+      <a id="fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Long,Long,Int,Option[Request[F]],(File)⇒F[String])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,start:Long,end:Long,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitF:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -987,14 +1003,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="end">end: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="buffsize">buffsize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="end">end: <a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="buffsize">buffsize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Int,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
+      <a id="fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$6:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Int,Option[Request[F]],(File)⇒F[String])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,buffsize:Int,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$6:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1003,14 +1019,30 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="buffsize">buffsize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="buffsize">buffsize: <a href="http://www.scala-lang.org/api/2.12.4/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>, <span name="req">req: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
       </span>
       
       
     </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$3:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
+      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$5:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]],(File)⇒F[String])(Sync[F]):OptionT[F,Response[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$3:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]],etagCalculator:java.io.File=&gt;F[String])(implicitevidence$5:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fromFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: <span class="extype" name="java.io.File">File</span></span>, <span name="req">req: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>, <span name="etagCalculator">etagCalculator: (<span class="extype" name="java.io.File">File</span>) ⇒ <span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]</span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.StaticFile.fromFile.F">F</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.StaticFile#fromFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]"></a><a id="fromFile[F[_]](File,Option[Request[F]])(Sync[F]):OptionT[F,Response[F]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/StaticFile$.html#fromFile[F[_]](f:java.io.File,req:Option[org.http4s.Request[F]])(implicitevidence$4:cats.effect.Sync[F]):cats.data.OptionT[F,org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
