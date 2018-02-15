@@ -168,21 +168,7 @@ object Http4sPlugin extends AutoPlugin {
         releaseStepCommand("docs/ghpagesPushSite").when(publishable && primary),
         releaseStepCommand("website/ghpagesPushSite").when(publishable && primary && master),
         setNextVersion.when(publishable && primary && release),
-
-        // Diagnose what's running amok here
-        releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
-        releaseStepCommand(s"git config branch.master.merge"),
-        releaseStepCommand(s"git config branch.master.remote"),
-        releaseStepCommand(s"git remote show origin"),
-
         commitNextVersion.when(publishable && primary && release),
-
-        // Diagnose what's running amok here
-        releaseStepCommand("git rev-parse --abbrev-ref HEAD"),
-        releaseStepCommand(s"git config branch.master.merge"),
-        releaseStepCommand(s"git config branch.master.remote"),
-        releaseStepCommand(s"git remote show origin"),
-
         pushChanges.when(publishable && primary && release),
         // We need a superfluous final step to ensure exit code
         // propagation from failed steps above.
