@@ -83,30 +83,59 @@
 
 <h2 id="built-in">Built in</h2>
 
-<p>A <a href="../service">service</a> is a <code>Kleisli[OptionT[F, ?], Request[F], Response[F]]</code>, the composable version of
-<code>Request[F] =&gt; OptionT[F, Response[F]]</code>. A service with authentication also requires some kind of <code>User</code>
-object which identifies which user did the request. To reference the <code>User</code> object
-along with the <code>Request[F]</code>, there&rsquo;s <code>AuthedRequest[F, User]</code>, which is equivalent to
-<code>(User, Request[F])</code>. So the service has the signature <code>AuthedRequest[F, User] =&gt;
-OptionT[F, Response[F]]</code>, or <code>AuthedService[User, F]</code>. So we&rsquo;ll need a <code>Request[F] =&gt; Option[User]</code>
-function, or more likely, a <code>Request[F] =&gt; OptionT[F, User]</code>, because the <code>User</code> can
-come from a database. We can convert that into an <code>AuthMiddleware</code> and apply it.
-Or in code, using <code>cats.effect.IO</code> as the effect type:</p>
+<p>For this section, remember that, like mentioned in the <a href="../service">service</a> section, a service is a
+<code>Kleisli[OptionT[F, ?], Request[F], Response[F]]</code>, the composable version of <code>Request[F] =&gt; OptionT[F, Response[F]]</code>.</p>
+
+<p>Lets start by defining all the imports we will need in the examples below:</p>
 
 <pre><code class="language-scala">import cats._, cats.effect._, cats.implicits._, cats.data._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.implicits._
 import org.http4s.server._
+</code></pre>
 
-case class User(id: Long, name: String)
+<p>To add authentication to a service, we need some kind of <code>User</code> object which identifies the user
+who sent the request. We represent that with <code>AuthedRequest[F, User]</code>, which allows you to reference
+such object, and is the equivalent to <code>(User, Request[F])</code>. <em>http4s</em> provides you with <code>AuthedRequest</code>,
+but you have to provide your own <em>user</em>, or <em>authInfo</em> representation. For our purposes here we will
+use the following definition:</p>
 
-val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] = Kleisli(_ =&gt; OptionT.liftF(IO(???)))
-val middleware: AuthMiddleware[IO, User] = AuthMiddleware(authUser)
-val authedService: AuthedService[User, IO] =
+<pre><code class="language-scala">case class User(id: Long, name: String)
+</code></pre>
+
+<p>With the request representation defined, we can move on to the <code>AuthedService[User, F]</code>, a shortcut to
+<code>AuthedRequest[F, User] =&gt; OptionT[F, Response[F]]</code>. Notice the similarity to a &ldquo;normal&rdquo; service, which
+would be the equivalent to <code>Request[F] =&gt; OptionT[F, Response[F]]</code> - in other words, we are lifting the
+<code>Request</code> into an <code>AuthedRequest</code>, and adding authentication information in the mix.</p>
+
+<p>With that we can represent a service that requires authentication, but to actually construct it we need
+to define how to extract the authentication information from the request. For that, we need a function
+with the following signature: <code>Request[F] =&gt; OptionT[F, User]</code>. Here is an example of how to define it:</p>
+
+<pre><code class="language-scala">val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+  Kleisli(_ =&gt; OptionT.liftF(IO(???)))
+</code></pre>
+
+<p>It is worth noting that we are still wrapping the user fetch in <code>F</code> (<code>IO</code> in this case), because actually
+discovering the user might require reading from a database or calling some other service - i.e. performing
+IO operations.</p>
+
+<p>Now we need a middleware that can bridge a &ldquo;normal&rdquo; service into an <code>AuthedService</code>, which is quite easy to
+get using our function defined above. We use <code>AuthMiddleware</code> for that:</p>
+
+<pre><code class="language-scala">val middleware: AuthMiddleware[IO, User] =
+  AuthMiddleware(authUser)
+</code></pre>
+
+<p>Finally, we can create our <code>AuthedService</code>, and wrap it with our authentication middleware, getting the
+final <code>HttpService</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
+
+<pre><code class="language-scala">val authedService: AuthedService[User, IO] =
   AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
+
 val service: HttpService[IO] = middleware(authedService)
 </code></pre>
 
@@ -198,7 +227,7 @@ import org.http4s.headers.Authorization
 val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli({ request =&gt;
   val message = for {
     header &lt;- request.headers.get(Authorization).toRight(&quot;Couldn't find an Authorization header&quot;)
-    token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Cookie invalid&quot;)
+    token &lt;- crypto.validateSignedToken(header.value).toRight(&quot;Invalid token&quot;)
     message &lt;- Either.catchOnly[NumberFormatException](token.toLong).leftMap(_.toString)
   } yield message
   message.traverse(retrieveUser.run)
