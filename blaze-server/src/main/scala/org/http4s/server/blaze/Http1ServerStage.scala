@@ -6,7 +6,7 @@ import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
-import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
+import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blaze.util.BufferTools.emptyBuffer
@@ -101,7 +101,7 @@ private[blaze] class Http1ServerStage[F[_]](
         // we have enough to start the request
         runRequest(buff)
       } catch {
-        case t: BadRequest =>
+        case t: BadMessage =>
           badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
         case t: Throwable =>
           internalServerError(
@@ -138,7 +138,7 @@ private[blaze] class Http1ServerStage[F[_]](
               .unsafeRunSync()
         })
       case Left((e, protocol)) =>
-        badMessage(e.details, new BadRequest(e.sanitized), Request[F]().withHttpVersion(protocol))
+        badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))
     }
   }
 

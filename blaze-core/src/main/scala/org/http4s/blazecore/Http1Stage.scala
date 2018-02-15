@@ -8,7 +8,7 @@ import fs2.Stream._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.ByteBuffer
 import java.time.Instant
-import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
+import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer

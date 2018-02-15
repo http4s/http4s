@@ -6,7 +6,9 @@ import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.http.http_parser.Http1ClientParser
+
+import org.http4s.blaze.http.parser.Http1ClientParser
+
 import scala.collection.mutable.ListBuffer
 import scodec.bits.ByteVector
 

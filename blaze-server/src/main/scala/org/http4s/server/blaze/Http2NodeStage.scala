@@ -7,15 +7,16 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.util.Locale
+
 import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
 import org.http4s.Status._
 import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
-import org.http4s.blaze.http.http20.Http2Exception._
+import org.http4s.blaze.http.http2.{DataFrame, HeadersFrame, Http2Exception, StageTools, StreamFrame}
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blazecore.util.{End, Http2Writer}
 import org.http4s.syntax.string._
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -28,10 +29,7 @@ private class Http2NodeStage[F[_]](
     attributes: AttributeMap,
     service: HttpService[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
-    extends TailStage[NodeMsg.Http2Msg] {
-
-  import Http2StageTools._
-  import NodeMsg.{DataFrame, HeadersFrame}
+    extends TailStage[StreamFrame] {
 
   override def name = "Http2NodeStage"
 
@@ -51,14 +49,14 @@ private class Http2NodeStage[F[_]](
         checkAndRunRequest(hs, endStream)
 
       case Success(frame) =>
-        val e = PROTOCOL_ERROR(s"Received invalid frame: $frame", streamId, fatal = true)
+        val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, s"Received invalid frame: $frame")
         shutdownWithCommand(Cmd.Error(e))
 
       case Failure(Cmd.EOF) => shutdownWithCommand(Cmd.Disconnect)
 
       case Failure(t) =>
         logger.error(t)("Unknown error in readHeaders")
-        val e = INTERNAL_ERROR(s"Unknown error", streamId, fatal = true)
+        val e = Http2Exception.INTERNAL_ERROR.rst(streamId, s"Unknown error")
         shutdownWithCommand(Cmd.Error(e))
     }
 
@@ -71,7 +69,7 @@ private class Http2NodeStage[F[_]](
       if (complete) cb(End)
       else
         channelRead(timeout = timeout).onComplete {
-          case Success(DataFrame(last, bytes, _)) =>
+          case Success(DataFrame(last, bytes)) =>
             complete = last
             bytesRead += bytes.remaining()
 
@@ -79,12 +77,12 @@ private class Http2NodeStage[F[_]](
             // https://tools.ietf.org/html/draft-ietf-httpbis-http2-17#section-8.1.2  -> 8.2.1.6
             if (complete && maxlen > 0 && bytesRead != maxlen) {
               val msg = s"Entity too small. Expected $maxlen, received $bytesRead"
-              val e = PROTOCOL_ERROR(msg, fatal = false)
+              val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
               sendOutboundCommand(Cmd.Error(e))
               cb(Either.left(InvalidBodyException(msg)))
             } else if (maxlen > 0 && bytesRead > maxlen) {
-              val msg = s"Entity too large. Exepected $maxlen, received bytesRead"
-              val e = PROTOCOL_ERROR(msg, fatal = false)
+              val msg = s"Entity too large. Expected $maxlen, received bytesRead"
+              val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
               sendOutboundCommand((Cmd.Error(e)))
               cb(Either.left(InvalidBodyException(msg)))
             } else cb(Either.right(Some(Chunk.bytes(bytes.array))))
@@ -96,7 +94,7 @@ private class Http2NodeStage[F[_]](
           case Success(other) => // This should cover it
             val msg = "Received invalid frame while accumulating body: " + other
             logger.info(msg)
-            val e = PROTOCOL_ERROR(msg, fatal = true)
+            val e = Http2Exception.PROTOCOL_ERROR.rst(streamId, msg)
             shutdownWithCommand(Cmd.Error(e))
             cb(Either.left(InvalidBodyException(msg)))
 
@@ -107,7 +105,7 @@ private class Http2NodeStage[F[_]](
 
           case Failure(t) =>
             logger.error(t)("Error in getBody().")
-            val e = INTERNAL_ERROR(streamId, fatal = true)
+            val e = Http2Exception.INTERNAL_ERROR.rst(streamId, "Failed to read body")
             cb(Either.left(e))
             shutdownWithCommand(Cmd.Error(e))
         }
@@ -127,37 +125,37 @@ private class Http2NodeStage[F[_]](
     var pseudoDone = false
 
     hs.foreach {
-      case (Method, v) =>
+      case (StageTools.Method, v) =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (method == null) org.http4s.Method.fromString(v) match {
           case Right(m) => method = m
           case Left(e) => error = s"$error Invalid method: $e "
         } else error += "Multiple ':method' headers defined. "
 
-      case (Scheme, v) =>
+      case (StageTools.Scheme, v) =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (scheme == null) scheme = v
         else error += "Multiple ':scheme' headers defined. "
 
-      case (Path, v) =>
+      case (StageTools.Path, v) =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (path == null) Uri.requestTarget(v) match {
           case Right(p) => path = p
           case Left(e) => error = s"$error Invalid path: $e"
         } else error += "Multiple ':path' headers defined. "
 
-      case (Authority, _) => // NOOP; TODO: we should keep the authority header
+      case (StageTools.Authority, _) => // NOOP; TODO: we should keep the authority header
         if (pseudoDone) error += "Pseudo header in invalid position. "
 
       case h @ (k, _) if k.startsWith(":") => error += s"Invalid pseudo header: $h. "
-      case (k, _) if !validHeaderName(k) => error += s"Invalid header key: $k. "
+      case (k, _) if !StageTools.validHeaderName(k) => error += s"Invalid header key: $k. "
 
       case hs => // Non pseudo headers
         pseudoDone = true
         hs match {
-          case h @ (Connection, _) => error += s"HTTP/2.0 forbids connection specific headers: $h. "
+          case h @ (StageTools.Connection, _) => error += s"HTTP/2.0 forbids connection specific headers: $h. "
 
-          case (ContentLength, v) =>
+          case (StageTools.ContentLength, v) =>
             if (contentLength < 0) try {
               val sz = java.lang.Long.parseLong(v)
               if (sz != 0 && endStream) error += s"Nonzero content length ($sz) for end of stream."
@@ -166,7 +164,7 @@ private class Http2NodeStage[F[_]](
             } catch { case _: NumberFormatException => error += s"Invalid content-length: $v. " } else
               error += "Received multiple content-length headers"
 
-          case (TE, v) =>
+          case (StageTools.TE, v) =>
             if (!v.equalsIgnoreCase("trailers"))
               error += s"HTTP/2.0 forbids TE header values other than 'trailers'. "
           // ignore otherwise
@@ -179,8 +177,9 @@ private class Http2NodeStage[F[_]](
       error += s"Invalid request: missing pseudo headers. Method: $method, Scheme: $scheme, path: $path. "
     }
 
-    if (error.length() > 0) shutdownWithCommand(Cmd.Error(PROTOCOL_ERROR(error, fatal = false)))
-    else {
+    if (error.length() > 0) {
+      shutdownWithCommand(Cmd.Error(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
+    } else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
@@ -206,7 +205,7 @@ private class Http2NodeStage[F[_]](
 
   private def renderResponse(resp: Response[F]): F[Unit] = {
     val hs = new ArrayBuffer[(String, String)](16)
-    hs += ((Status, Integer.toString(resp.status.code)))
+    hs += ((StageTools.Status, Integer.toString(resp.status.code)))
     resp.headers.foreach { h =>
       // Connection related headers must be removed from the message because
       // this information is conveyed by other means.

@@ -297,7 +297,7 @@ object BlazeBuilder {
       executionContext = ExecutionContext.global,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
-      connectorPoolSize = channel.defaultPoolSize,
+      connectorPoolSize = channel.DefaultPoolSize,
       bufferSize = 64 * 1024,
       enableWebSockets = true,
       sslBits = None,

@@ -8,7 +8,6 @@ import fs2._
 import fs2.async.mutable.Signal
 import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
-import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.websocket.WebsocketBits._
 
