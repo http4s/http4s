@@ -61,15 +61,19 @@ bases its codecs on runtime reflection.
 
 ## Sending raw JSON
 
-Let's create a function to produce a simple JSON greeting with circe:
+Let's create a function to produce a simple JSON greeting with circe. First, the imports:
 
-```tut:book
+```tut:book:silent
 import cats.effect._
 import io.circe._
 import io.circe.literal._
 import org.http4s._
 import org.http4s.dsl.io._
+```
 
+Then the actual code:
+
+```tut:book
 def hello(name: String): Json =
   json"""{"hello": $name}"""
 
