@@ -2,6 +2,7 @@ package org.http4s.server.blaze
 
 import org.http4s.blaze.pipeline.MidStage
 import org.http4s.blaze.util.Execution._
+import org.http4s.util
 import org.http4s.websocket.WebsocketBits._
 
 import scala.concurrent.{Promise, Future}
@@ -64,7 +65,10 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
     val msg = msgs.head match {
       case _: Text => Text(arr)
       case _: Binary => Binary(arr)
-      case f => sys.error(s"Shouldn't get here. Wrong type: $f")
+      case f =>
+        val e = util.bug(s"Shouldn't get here. Wrong type: ${f.getClass.getName}")
+        logger.error(e)("Unexpected state.")
+        throw e
     }
 
     p.success(msg)
@@ -72,13 +76,16 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
 
   private def handleHead(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit = {
     if (!queue.isEmpty) {
-      val e = new ProtocolException(s"Invalid state: Received a head frame with accumulated state: ${queue.length} frames")
+      val e = new ProtocolException(
+        s"Invalid state: Received a head frame with accumulated state: ${queue.length} frames")
       logger.error(e)("Invalid state")
       size = 0
       queue.clear()
       p.failure(e)
-    } else if(frame.last) p.success(frame)    // Head frame that is complete
-    else {         // Need to start aggregating
+    } else if (frame.last) {
+      p.success(frame) // Head frame that is complete
+    } else {
+      // Need to start aggregating
       size += frame.length
       queue += frame
       channelRead().onComplete {
