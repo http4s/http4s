@@ -17,6 +17,7 @@ object MultipartParser {
   private val boundaryBytes: Boundary => ByteVector = boundary =>
     ByteVector(boundary.value.getBytes)
   private val startLineBytes: Boundary => ByteVector = boundaryBytes.andThen(DashDashBytes ++ _)
+
   private val endLineBytes: Boundary => ByteVector = startLineBytes.andThen(_ ++ DashDashBytes)
   private val expectedBytes: Boundary => ByteVector = startLineBytes.andThen(CRLFBytes ++ _)
 

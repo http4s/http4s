@@ -1,10 +1,8 @@
 package org.http4s
 
 import fs2._
-import fs2.interop.scodec.ByteVectorChunk
 import java.nio.{ByteBuffer, CharBuffer}
 import scala.concurrent.ExecutionContextExecutor
-import scodec.bits.ByteVector
 
 package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
@@ -23,12 +21,11 @@ package object util {
           if (outputString.isEmpty) Pull.done.as(None)
           else Pull.output1(outputString).as(None)
         case Some((segment, stream)) =>
-          val byteVector = ByteVector(segment.force.toVector)
-          val byteBuffer = byteVector.toByteBuffer
-          val charBuffer = CharBuffer.allocate(byteVector.size.toInt * maxCharsPerByte)
+          val bytes = segment.force.toArray
+          val byteBuffer = ByteBuffer.wrap(bytes)
+          val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
           decoder.decode(byteBuffer, charBuffer, false)
-          val nextByteVector = ByteVector.view(byteBuffer.slice)
-          val nextStream = stream.consChunk(ByteVectorChunk(nextByteVector))
+          val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
           Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
       }
     }

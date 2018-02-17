@@ -4,10 +4,8 @@ package staticcontent
 
 import cats.effect._
 import fs2._
-import fs2.interop.scodec.ByteVectorChunk
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Paths}
-import scodec.bits.ByteVector
 
 private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
 
@@ -21,7 +19,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
       .mkString
       .getBytes(StandardCharsets.UTF_8)
 
-    ByteVectorChunk(ByteVector.view(bytes))
+    Chunk.bytes(bytes)
   }
 
   lazy val testResourceGzipped: Chunk[Byte] = {
@@ -29,39 +27,39 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
     require(url != null, "Couldn't acquire resource!")
     val bytes = Files.readAllBytes(Paths.get(url.toURI))
 
-    ByteVectorChunk(ByteVector.view(bytes))
+    Chunk.bytes(bytes)
   }
 
-  lazy val testWebjarResource: ByteVector = {
+  lazy val testWebjarResource: Chunk[Byte] = {
     val s =
       getClass.getResourceAsStream("/META-INF/resources/webjars/test-lib/1.0.0/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
 
-    ByteVector.view(
+    Chunk.bytes(
       scala.io.Source
         .fromInputStream(s)
         .mkString
         .getBytes(StandardCharsets.UTF_8))
   }
 
-  lazy val testWebjarSubResource: ByteVector = {
+  lazy val testWebjarSubResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream(
       "/META-INF/resources/webjars/test-lib/1.0.0/sub/testresource.txt")
     require(s != null, "Couldn't acquire resource!")
 
-    ByteVector.view(
+    Chunk.bytes(
       scala.io.Source
         .fromInputStream(s)
         .mkString
         .getBytes(StandardCharsets.UTF_8))
   }
 
-  def runReq(req: Request[IO]): (ByteVector, Response[IO]) = {
+  def runReq(req: Request[IO]): (Chunk[Byte], Response[IO]) = {
     val resp = s.orNotFound(req).unsafeRunSync
-    val body = resp.body.chunks.compile.toVector.unsafeRunSync.foldLeft(ByteVector.empty) {
-      (bv, chunk) =>
-        bv ++ ByteVector.view(chunk.toArray)
+    val body = resp.body.chunks.compile.toVector.unsafeRunSync.foldLeft(Segment.empty[Byte]) {
+      (c, chunk) =>
+        c ++ chunk.toSegment
     }
-    (body, resp)
+    (body.force.toChunk, resp)
   }
 }
