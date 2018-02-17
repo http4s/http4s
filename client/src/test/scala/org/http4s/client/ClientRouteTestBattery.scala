@@ -4,6 +4,7 @@ package client
 import cats.effect._
 import cats.implicits._
 import fs2._
+import fs2.io._
 import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
@@ -123,14 +124,12 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
 
     val os: ServletOutputStream = srv.getOutputStream
 
-    val writeBody: IO[Unit] = resp.body
-      .evalMap { byte =>
-        IO(os.write(Array(byte)))
-      }
+    resp.body.through(writeOutputStream[IO](IO.pure(os)))
       .compile
       .drain
-    val flushOutputStream: IO[Unit] = IO(os.flush())
-    (writeBody *> flushOutputStream).unsafeRunSync()
+      .unsafeRunSync()
+
+    os.flush()
   }
 
   private def collectBody(body: EntityBody[IO]): Array[Byte] =
