@@ -23,6 +23,9 @@ title: Adopters
 
 ## Libraries
 
+[Avias](https://github.com/fiadliel/avias)
+: Functional AWS API implementation for Scala
+
 [CouchDB-Scala](https://github.com/beloglazov/couchdb-scala)
 : a purely functional Scala client for CouchDB
 
@@ -34,6 +37,9 @@ title: Adopters
 
 [rho](https://github.com/http4s/rho)
 : A self-documenting DSL built on http4s 
+
+[tsec](https://github.com/jmcardon/tsec)
+: A type-safe, functional, general purpose security and cryptography library
 
 ## Open Source apps
 
