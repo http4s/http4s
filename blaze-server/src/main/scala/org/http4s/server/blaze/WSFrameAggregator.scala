@@ -5,12 +5,11 @@ import org.http4s.blaze.util.Execution._
 import org.http4s.util
 import org.http4s.websocket.WebsocketBits._
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.{Future, Promise}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
 
 import java.net.ProtocolException
-
 
 private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame] {
 
@@ -34,17 +33,19 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
 
     case c: Continuation =>
       if (queue.isEmpty) {
-        val e = new ProtocolException("Invalid state: Received a Continuation frame without accumulated state.")
+        val e = new ProtocolException(
+          "Invalid state: Received a Continuation frame without accumulated state.")
         logger.error(e)("Invalid state")
         p.failure(e)
       } else {
         queue += frame
         size += frame.length
-        if (c.last) compileFrame(p)  // We are finished with the segment, accumulate
-        else channelRead().onComplete {
-          case Success(f) => readLoop(f, p)
-          case Failure(t) => p.failure(t)
-        }(trampoline)
+        if (c.last) compileFrame(p) // We are finished with the segment, accumulate
+        else
+          channelRead().onComplete {
+            case Success(f) => readLoop(f, p)
+            case Failure(t) => p.failure(t)
+          }(trampoline)
       }
 
     case f => p.success(f) // Must be a control frame, send it out
@@ -74,7 +75,7 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
     p.success(msg)
   }
 
-  private def handleHead(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit = {
+  private def handleHead(frame: WebSocketFrame, p: Promise[WebSocketFrame]): Unit =
     if (!queue.isEmpty) {
       val e = new ProtocolException(
         s"Invalid state: Received a head frame with accumulated state: ${queue.length} frames")
@@ -93,7 +94,6 @@ private class WSFrameAggregator extends MidStage[WebSocketFrame, WebSocketFrame]
         case Failure(t) => p.failure(t)
       }(directec)
     }
-  }
 
   // Just forward write requests
   def writeRequest(data: WebSocketFrame): Future[Unit] = channelWrite(data)

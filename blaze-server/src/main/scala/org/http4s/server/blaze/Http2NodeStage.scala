@@ -153,7 +153,8 @@ private class Http2NodeStage[F[_]](
       case hs => // Non pseudo headers
         pseudoDone = true
         hs match {
-          case h @ (HeaderNames.Connection, _) => error += s"HTTP/2.0 forbids connection specific headers: $h. "
+          case h @ (HeaderNames.Connection, _) =>
+            error += s"HTTP/2.0 forbids connection specific headers: $h. "
 
           case (HeaderNames.ContentLength, v) =>
             if (contentLength < 0) try {
