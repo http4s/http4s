@@ -191,7 +191,7 @@ private class Http2NodeStage[F[_]](
                 .getOrElse(Response.notFound)
                 .recoverWith(serviceErrorHandler(req))
                 .handleError(_ => Response(InternalServerError, req.httpVersion))
-                .map(renderResponse)
+                .flatMap(renderResponse)
               catch serviceErrorHandler(req)
             } {
               case Right(_) =>

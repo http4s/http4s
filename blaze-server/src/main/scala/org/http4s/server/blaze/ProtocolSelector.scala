@@ -25,7 +25,6 @@ private[blaze] object ProtocolSelector {
       serviceErrorHandler: ServiceErrorHandler[F]): ALPNServerSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
-
       val newNode = { streamId: Int =>
         LeafBuilder(
           new Http2NodeStage(
@@ -65,7 +64,7 @@ private[blaze] object ProtocolSelector {
           case "h2" | "h2-14" | "h2-15" => true
           case _ => false
         }
-        .getOrElse("http1.1")
+        .getOrElse("undefined")
 
     def select(s: String): LeafBuilder[ByteBuffer] =
       LeafBuilder(s match {

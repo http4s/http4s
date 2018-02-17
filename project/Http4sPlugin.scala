@@ -263,7 +263,18 @@ object Http4sPlugin extends AutoPlugin {
       case (m, None) => m
     }
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
+  def addAlpnPath(attList: Keys.Classpath): Seq[String] = {
+    for {
+      file <- attList.map(_.data)
+      path = file.getAbsolutePath if path.contains("jetty") && path.contains("alpn-boot")
+    } yield {
+      println(s"Adding Alpn classes to boot classpath: $path")
+      "-Xbootclasspath/p:" + path
+    }
+  }
+
+
+  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.38"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M2"

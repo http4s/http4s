@@ -11,9 +11,9 @@ import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](
-                                         tail: TailStage[StreamFrame],
-                                         private var headers: Headers,
-                                         protected val ec: ExecutionContext)(implicit protected val F: Effect[F])
+    tail: TailStage[StreamFrame],
+    private var headers: Headers,
+    protected val ec: ExecutionContext)(implicit protected val F: Effect[F])
     extends EntityBodyWriter[F] {
 
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
