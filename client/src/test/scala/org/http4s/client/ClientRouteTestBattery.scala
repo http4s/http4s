@@ -6,7 +6,6 @@ import cats.implicits._
 import fs2._
 import fs2.io._
 import java.net.InetSocketAddress
-import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.client.testroutes.GetRoutes
 import org.http4s.client.dsl.Http4sClientDsl
@@ -121,15 +120,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     resp.headers.foreach { h =>
       srv.addHeader(h.name.toString, h.value)
     }
-
-    val os: ServletOutputStream = srv.getOutputStream
-
-    resp.body.through(writeOutputStream[IO](IO.pure(os)))
+    resp.body
+      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
       .compile
       .drain
       .unsafeRunSync()
-
-    os.flush()
   }
 
   private def collectBody(body: EntityBody[IO]): Array[Byte] =
