@@ -2,7 +2,13 @@ package org.http4s
 
 import cats._
 import cats.effect._
+import cats.effect.laws.discipline.arbitrary._
+import cats.effect.laws.util.TestContext
+import cats.effect.laws.util.TestInstances._
 import cats.implicits._
+import cats.laws.discipline.SemigroupKTests
+import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.eq._
 import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
@@ -15,6 +21,10 @@ import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
+  implicit val testContext: TestContext = TestContext()
+
+  implicit def entityDecoderEq[A: Eq]: Eq[EntityDecoder[IO, A]] =
+    Eq.by[EntityDecoder[IO, A], (Message[IO], Boolean) => DecodeResult[IO, A]](_.decode)
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)
@@ -439,4 +449,5 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.`application/json`))(json =>
       Chunk.bytes(json.value.getBytes()))
 
+  checkAll("SemigroupK[EntityDecoder[IO, ?]]", SemigroupKTests[EntityDecoder[IO, ?]].semigroupK[String])
 }
