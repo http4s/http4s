@@ -9,6 +9,7 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
+import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.util.Execution._
 import org.http4s.blazecore.Http1Stage
@@ -59,16 +60,24 @@ private[blaze] class Http1ServerStage[F[_]](
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
+
+  // both `parser` and `isClosed` are protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
+  private[this] var isClosed = false
 
   val name = "Http4sServerStage"
 
   logger.trace(s"Http4sStage starting up")
 
   final override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] =
-    parser.doParseContent(buffer)
+    parser.synchronized {
+      parser.doParseContent(buffer)
+    }
 
-  final override protected def contentComplete(): Boolean = parser.contentComplete()
+  final override protected def contentComplete(): Boolean =
+    parser.synchronized {
+      parser.contentComplete()
+    }
 
   // Will act as our loop
   override def stageStartup(): Unit = {
@@ -76,45 +85,53 @@ private[blaze] class Http1ServerStage[F[_]](
     requestLoop()
   }
 
-  private def requestLoop(): Unit = channelRead().onComplete(reqLoopCallback)(trampoline)
-
-  private def reqLoopCallback(buff: Try[ByteBuffer]): Unit = buff match {
-    case Success(buff) =>
-      logger.trace {
-        buff.mark()
-        val sb = new StringBuilder
-        while (buff.hasRemaining) sb.append(buff.get().toChar)
-
-        buff.reset()
-        s"Received request\n${sb.result}"
-      }
-
-      try {
-        if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff)) {
-          requestLoop()
-          return
-        }
-        if (!parser.headersComplete() && !parser.doParseHeaders(buff)) {
-          requestLoop()
-          return
-        }
-        // we have enough to start the request
-        runRequest(buff)
-      } catch {
-        case t: BadRequest =>
-          badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
-        case t: Throwable =>
-          internalServerError(
-            "error in requestLoop()",
-            t,
-            Request[F](),
-            () => Future.successful(emptyBuffer))
-      }
-
+  private val handleReqRead: Try[ByteBuffer] => Unit = {
+    case Success(buff) => reqLoopCallback(buff)
     case Failure(Cmd.EOF) => stageShutdown()
     case Failure(t) => fatalError(t, "Error in requestLoop()")
   }
 
+  private def requestLoop(): Unit = channelRead().onComplete(handleReqRead)(trampoline)
+
+  private def reqLoopCallback(buff: ByteBuffer): Unit = {
+    logRequest(buff)
+    parser.synchronized {
+      if (!isClosed) {
+        try {
+          if (!parser.requestLineComplete() && !parser.doParseRequestLine(buff)) {
+            requestLoop()
+          } else if (!parser.headersComplete() && !parser.doParseHeaders(buff)) {
+            requestLoop()
+          } else {
+            // we have enough to start the request
+            runRequest(buff)
+          }
+        } catch {
+          case t: BadRequest =>
+            badMessage("Error parsing status or headers in requestLoop()", t, Request[F]())
+          case t: Throwable =>
+            internalServerError(
+              "error in requestLoop()",
+              t,
+              Request[F](),
+              () => Future.successful(emptyBuffer))
+        }
+      } else {
+        logger.debug(s"Parser closed. Buffer size: ${buff.remaining}")
+      }
+    }
+  }
+
+  private def logRequest(buffer: ByteBuffer): Unit =
+    logger.trace {
+      val msg = BufferTools
+        .bufferToString(buffer.duplicate())
+        .replace("\r", "\\r")
+        .replace("\n", "\\n\n")
+      s"Received Request:\n$msg"
+    }
+
+  // Only called while holding the monitor of `parser`
   private def runRequest(buffer: ByteBuffer): Unit = {
     val (body, cleanup) = collectBodyFromParser(
       buffer,
@@ -211,12 +228,12 @@ private[blaze] class Http1ServerStage[F[_]](
             bodyCleanup().onComplete {
               case s @ Success(_) => // Serve another request
                 parser.reset()
-                reqLoopCallback(s)
+                handleReqRead(s)
 
               case Failure(EOF) => closeConnection()
 
               case Failure(t) => fatalError(t, "Failure in body cleanup")
-            }(directec)
+            }(trampoline)
           }
 
       case Left(EOF) =>
@@ -236,7 +253,10 @@ private[blaze] class Http1ServerStage[F[_]](
 
   override protected def stageShutdown(): Unit = {
     logger.debug("Shutting down HttpPipeline")
-    parser.shutdownParser()
+    parser.synchronized {
+      isClosed = true
+      parser.shutdownParser()
+    }
     super.stageShutdown()
   }
 
