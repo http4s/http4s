@@ -15,7 +15,7 @@ class HttpServer[F[_]](implicit F: Effect[F]) extends StreamApp[F] {
   override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       for {
-        client   <- Stream.eval(Http1Client[F]())
+        client   <- Http1Client.stream[F]()
         ctx      <- Stream(new Module[F](client))
         exitCode <- BlazeBuilder[F]
                       .bindHttp(8080, "0.0.0.0")
