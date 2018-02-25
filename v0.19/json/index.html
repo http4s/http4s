@@ -135,24 +135,18 @@ bases its codecs on runtime reflection.</p>
 
 <h2 id="sending-raw-json">Sending raw JSON</h2>
 
-<p>Let&rsquo;s create a function to produce a simple JSON greeting with circe:</p>
+<p>Let&rsquo;s create a function to produce a simple JSON greeting with circe. First, the imports:</p>
 
 <pre><code class="language-scala">import cats.effect._
-// import cats.effect._
-
 import io.circe._
-// import io.circe._
-
 import io.circe.literal._
-// import io.circe.literal._
-
 import org.http4s._
-// import org.http4s._
-
 import org.http4s.dsl.io._
-// import org.http4s.dsl.io._
+</code></pre>
 
-def hello(name: String): Json =
+<p>Then the actual code:</p>
+
+<pre><code class="language-scala">def hello(name: String): Json =
   json&quot;&quot;&quot;{&quot;hello&quot;: $name}&quot;&quot;&quot;
 // hello: (name: String)io.circe.Json
 
@@ -228,7 +222,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@624fa68c
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@46d91d7a
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -295,7 +289,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@1ff82825
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@4f018e25
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res10: User = User(Alice)
@@ -365,7 +359,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$1581274067
+// helloAlice: cats.effect.IO[Hello] = IO$1337711516
 
 helloAlice.unsafeRunSync
 // res20: Hello = Hello(Alice)
