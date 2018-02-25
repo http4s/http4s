@@ -120,13 +120,13 @@ trait RequestOps[F[_]] extends Any with MessageOps[F] {
       implicit F: Monad[F]): F[Response[F]]
 
   /** Add a Cookie header for the provided [[Cookie]] */
-  final def addCookie(cookie: Cookie)(implicit F: Functor[F]): Self =
+  final def addCookie(cookie: RequestCookie)(implicit F: Functor[F]): Self =
     putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
 
   /** Add a Cookie header with the provided values */
-  final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
+  final def addCookie(name: String, content: String)(
       implicit F: Functor[F]): Self =
-    addCookie(Cookie(name, content, expires))
+    addCookie(RequestCookie(name, content))
 }
 
 trait ResponseOps[F[_]] extends Any with MessageOps[F] {
@@ -139,19 +139,19 @@ trait ResponseOps[F[_]] extends Any with MessageOps[F] {
   def withStatus(status: Status)(implicit F: Functor[F]): Self
 
   /** Add a Set-Cookie header for the provided [[Cookie]] */
-  final def addCookie(cookie: Cookie)(implicit F: Functor[F]): Self =
+  final def addCookie(cookie: ResponseCookie)(implicit F: Functor[F]): Self =
     putHeaders(`Set-Cookie`(cookie))
 
   /** Add a Set-Cookie header with the provided values */
   final def addCookie(name: String, content: String, expires: Option[HttpDate] = None)(
       implicit F: Functor[F]): Self =
-    addCookie(Cookie(name, content, expires))
+    addCookie(ResponseCookie(name, content, expires))
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
-  final def removeCookie(cookie: Cookie)(implicit F: Functor[F]): Self =
+  final def removeCookie(cookie: ResponseCookie)(implicit F: Functor[F]): Self =
     putHeaders(cookie.clearCookie)
 
   /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   final def removeCookie(name: String)(implicit F: Functor[F]): Self =
-    putHeaders(Cookie(name, "").clearCookie)
+    putHeaders(ResponseCookie(name, "").clearCookie)
 }

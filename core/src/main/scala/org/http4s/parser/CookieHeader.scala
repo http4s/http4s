@@ -33,13 +33,13 @@ private[parser] trait CookieHeader {
   // scalastyle:off public.methods.have.type
   private class SetCookieParser(input: ParserInput) extends BaseCookieParser[`Set-Cookie`](input) {
     def entry: Rule1[`Set-Cookie`] = rule {
-      CookiePair ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(_))
+      CookiePair(ResponseCookie(_, _)) ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(_))
     }
   }
 
   private class CookieParser(input: ParserInput) extends BaseCookieParser[headers.Cookie](input) {
     def entry: Rule1[headers.Cookie] = rule {
-      oneOrMore(CookiePair).separatedBy(";" ~ OptWS) ~ EOI ~> { xs: Seq[Cookie] =>
+      oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ EOI ~> { xs: Seq[RequestCookie] =>
         headers.Cookie(xs.head, xs.tail: _*)
       }
     }
@@ -48,8 +48,8 @@ private[parser] trait CookieHeader {
   private abstract class BaseCookieParser[H <: Header](input: ParserInput)
       extends Http4sHeaderParser[H](input) {
 
-    def CookiePair = rule {
-      Token ~ ch('=') ~ CookieValue ~> (Cookie(_, _))
+    def CookiePair[A](f: (String, String) => A) = rule {
+      Token ~ ch('=') ~ CookieValue ~> (f(_, _))
     }
 
     def CookieValue: Rule1[String] = rule {
@@ -64,27 +64,27 @@ private[parser] trait CookieHeader {
         "\u002d" - "\u003a"
     }
 
-    def CookieAttrs: Rule[Cookie :: HNil, Cookie :: HNil] = rule {
-      "Expires=" ~ HttpDate ~> { (cookie: Cookie, dateTime: HttpDate) =>
+    def CookieAttrs: Rule[ResponseCookie :: HNil, ResponseCookie :: HNil] = rule {
+      "Expires=" ~ HttpDate ~> { (cookie: ResponseCookie, dateTime: HttpDate) =>
         cookie.copy(expires = Some(dateTime))
       } |
-        "Max-Age=" ~ NonNegativeLong ~> { (cookie: Cookie, seconds: Long) =>
+        "Max-Age=" ~ NonNegativeLong ~> { (cookie: ResponseCookie, seconds: Long) =>
           cookie.copy(maxAge = Some(seconds))
         } |
-        "Domain=" ~ DomainName ~> { (cookie: Cookie, domainName: String) =>
+        "Domain=" ~ DomainName ~> { (cookie: ResponseCookie, domainName: String) =>
           cookie.copy(domain = Some(domainName))
         } |
-        "Path=" ~ StringValue ~> { (cookie: Cookie, pathValue: String) =>
+        "Path=" ~ StringValue ~> { (cookie: ResponseCookie, pathValue: String) =>
           cookie.copy(path = Some(pathValue))
         } |
         // TODO: Capture so we can create the rule, but there must be a better way
-        "Secure" ~ MATCH ~> { (cookie: Cookie) =>
+        "Secure" ~ MATCH ~> { (cookie: ResponseCookie) =>
           cookie.copy(secure = true)
         } |
-        "HttpOnly" ~ MATCH ~> { (cookie: Cookie) =>
+        "HttpOnly" ~ MATCH ~> { (cookie: ResponseCookie) =>
           cookie.copy(httpOnly = true)
         } |
-        StringValue ~> { (cookie: Cookie, stringValue: String) =>
+        StringValue ~> { (cookie: ResponseCookie, stringValue: String) =>
           cookie.copy(extension = Some(stringValue))
         }
     }
