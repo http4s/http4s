@@ -449,5 +449,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.`application/json`))(json =>
       Chunk.bytes(json.value.getBytes()))
 
-  checkAll("SemigroupK[EntityDecoder[IO, ?]]", SemigroupKTests[EntityDecoder[IO, ?]].semigroupK[String])
+  checkAll(
+    "SemigroupK[EntityDecoder[IO, ?]]",
+    SemigroupKTests[EntityDecoder[IO, ?]].semigroupK[String])
 }

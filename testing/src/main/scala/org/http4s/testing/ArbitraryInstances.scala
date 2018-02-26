@@ -278,7 +278,8 @@ trait ArbitraryInstances {
     Arbitrary(http4sGenMediaType)
 
   implicit val http4sCogenMediaType: Cogen[MediaType] =
-    Cogen[(String, String, Map[String, String])].contramap(m => (m.mainType, m.subType, m.extensions))
+    Cogen[(String, String, Map[String, String])].contramap(m =>
+      (m.mainType, m.subType, m.extensions))
 
   val http4sGenMediaRange: Gen[MediaRange] =
     for {
@@ -730,18 +731,20 @@ trait ArbitraryInstances {
       hs <- arbitrary[Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 
-  implicit def arbitraryEntityDecoder[F[_], A](implicit 
-    F: Effect[F],
-    ec: TestContext,
-    g: Arbitrary[DecodeResult[F, A]]
-  ) =
-    Arbitrary(for {
-      f <- arbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
-      mrs <- arbitrary[Set[MediaRange]]
-    } yield new EntityDecoder[F, A] {
-      def decode(msg: Message[F], strict: Boolean): DecodeResult[F, A] = f(msg, strict)
-      def consumes = mrs
-    })
+  implicit def arbitraryEntityDecoder[F[_], A](
+      implicit
+      F: Effect[F],
+      ec: TestContext,
+      g: Arbitrary[DecodeResult[F, A]]) =
+    Arbitrary(
+      for {
+        f <- arbitrary[(Message[F], Boolean) => DecodeResult[F, A]]
+        mrs <- arbitrary[Set[MediaRange]]
+      } yield
+        new EntityDecoder[F, A] {
+          def decode(msg: Message[F], strict: Boolean): DecodeResult[F, A] = f(msg, strict)
+          def consumes = mrs
+        })
 
   implicit def cogenMessage[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
@@ -753,12 +756,13 @@ trait ArbitraryInstances {
     Cogen[(CaseInsensitiveString, String)].contramap(h => (h.name, h.value))
 
   implicit def arbitraryDecodeFailure: Arbitrary[DecodeFailure] =
-    Arbitrary(oneOf(
-      genMalformedMessageBodyFailure,
-      genInvalidMessageBodyFailure,
-      genMediaTypeMissing,
-      genMediaTypeMismatch
-    ))
+    Arbitrary(
+      oneOf(
+        genMalformedMessageBodyFailure,
+        genInvalidMessageBodyFailure,
+        genMediaTypeMissing,
+        genMediaTypeMismatch
+      ))
 
   implicit val genMalformedMessageBodyFailure: Gen[MalformedMessageBodyFailure] =
     for {
@@ -785,8 +789,10 @@ trait ArbitraryInstances {
   private[http4s] implicit val cogenDecodeFailure: Cogen[DecodeFailure] =
     Cogen { (seed: Seed, df: DecodeFailure) =>
       df match {
-        case MalformedMessageBodyFailure(d, t) => Cogen[(String, Option[Throwable])].perturb(seed, (d, t))
-        case InvalidMessageBodyFailure(d, t) => Cogen[(String, Option[Throwable])].perturb(seed, (d, t))
+        case MalformedMessageBodyFailure(d, t) =>
+          Cogen[(String, Option[Throwable])].perturb(seed, (d, t))
+        case InvalidMessageBodyFailure(d, t) =>
+          Cogen[(String, Option[Throwable])].perturb(seed, (d, t))
         case MediaTypeMissing(mrs) => Cogen[Set[MediaRange]].perturb(seed, mrs)
         case MediaTypeMismatch(mt, e) => Cogen[(MediaType, Set[MediaRange])].perturb(seed, (mt, e))
         // TODO What if it's not one of these?
@@ -808,14 +814,17 @@ trait ArbitraryInstances {
       httpVersion <- arbitrary[HttpVersion]
       headers <- arbitrary[Headers]
       body <- genEntityBody
-    } yield try { Request(method, uri, httpVersion, headers, body) } catch { case t: Throwable => t.printStackTrace(); throw t }
+    } yield
+      try { Request(method, uri, httpVersion, headers, body) } catch {
+        case t: Throwable => t.printStackTrace(); throw t
+      }
   }
 
   private[http4s] implicit def arbitraryResponse[F[_]]: Arbitrary[Response[F]] = Arbitrary {
     // TODO some statuses don't take bodies
     // TODO some arbitrary headers are mutually exclusive
     // TODO some headers need to be reflective of the body
-    // TODO some things are illegal per HTTP version    
+    // TODO some things are illegal per HTTP version
     for {
       status <- arbitrary[Status]
       httpVersion <- arbitrary[HttpVersion]
