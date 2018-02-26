@@ -100,7 +100,7 @@ final case class InvalidMessageBodyFailure(details: String, cause: Option[Throwa
       .withBody(s"The request body was invalid.")(F, EntityEncoder.stringEncoder[F])
 }
 
-/** Indicates that Message]] came with no supported [[MediaType]]. */
+/** Indicates that a [[Message]] came with no supported [[MediaType]]. */
 sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoStackTrace {
   def expected: Set[MediaRange]
   def cause: Option[Throwable] = None
