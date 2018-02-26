@@ -128,6 +128,13 @@ get using our function defined above. We use <code>AuthMiddleware</code> for tha
   AuthMiddleware(authUser)
 </code></pre>
 
+<p>Note: In the above, the default apply method of <code>AuthMiddleware</code> will consume all requests either unmatched, or
+not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
+a kind of reconnaissance called &ldquo;spidering&rdquo;, useful for white and black hat hackers to enumerate
+your api for possible unprotected points. To allow fallthrough,
+use <code>AuthMiddleware.withFallThrough</code>. Alternatively, to customize the behavior on not authenticated if you do not
+wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
+
 <p>Finally, we can create our <code>AuthedService</code>, and wrap it with our authentication middleware, getting the
 final <code>HttpService</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
 
