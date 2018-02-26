@@ -350,7 +350,7 @@ trait ArbitraryInstances {
   implicit val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary {
       for {
-        long <- arbitrary[Long] if long > 0L
+        long <- Gen.chooseNum(0L, Long.MaxValue)
       } yield `Content-Length`.unsafeFromLong(long)
     }
 
