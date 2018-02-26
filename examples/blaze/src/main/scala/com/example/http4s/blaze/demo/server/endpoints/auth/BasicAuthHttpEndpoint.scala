@@ -7,7 +7,8 @@ import org.http4s.server.AuthMiddleware
 import org.http4s.server.middleware.authentication.BasicAuth
 
 // Use this header --> Authorization: Basic Z3ZvbHBlOjEyMzQ1Ng==
-class BasicAuthHttpEndpoint[F[_]](implicit F: Sync[F], R: AuthRepository[F, BasicCredentials]) extends Http4sDsl[F] {
+class BasicAuthHttpEndpoint[F[_]](implicit F: Sync[F], R: AuthRepository[F, BasicCredentials])
+    extends Http4sDsl[F] {
 
   private val authedService: AuthedService[BasicCredentials, F] = AuthedService {
     case GET -> Root as user =>

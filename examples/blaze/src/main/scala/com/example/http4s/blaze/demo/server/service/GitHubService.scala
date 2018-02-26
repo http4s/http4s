@@ -14,15 +14,16 @@ import org.http4s.{Header, Request, Uri}
 class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
 
   // NEVER make this data public! This is just a demo!
-  private val ClientId     = "959ea01cd3065cad274a"
+  private val ClientId = "959ea01cd3065cad274a"
   private val ClientSecret = "53901db46451977e6331432faa2616ba24bc2550"
 
-  private val RedirectUri  = s"http://localhost:8080/$ApiVersion/login/github"
+  private val RedirectUri = s"http://localhost:8080/$ApiVersion/login/github"
 
   case class AccessTokenResponse(access_token: String)
 
   val authorize: Stream[F, Byte] = {
-    val uri = Uri.uri("https://github.com")
+    val uri = Uri
+      .uri("https://github.com")
       .withPath("/login/oauth/authorize")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("redirect_uri", RedirectUri)
@@ -33,7 +34,8 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
   }
 
   def accessToken(code: String, state: String): F[String] = {
-    val uri = Uri.uri("https://github.com")
+    val uri = Uri
+      .uri("https://github.com")
       .withPath("/login/oauth/access_token")
       .withQueryParam("client_id", ClientId)
       .withQueryParam("client_secret", ClientSecret)
@@ -41,7 +43,8 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
       .withQueryParam("redirect_uri", RedirectUri)
       .withQueryParam("state", state)
 
-    client.expect[AccessTokenResponse](Request[F](uri = uri))(jsonOf[F, AccessTokenResponse])
+    client
+      .expect[AccessTokenResponse](Request[F](uri = uri))(jsonOf[F, AccessTokenResponse])
       .map(_.access_token)
   }
 

@@ -16,8 +16,10 @@ object AuthRepository {
       private val storage = scala.collection.mutable.Set[BasicCredentials](
         BasicCredentials("gvolpe", "123456")
       )
-      override def persist(entity: BasicCredentials): F[Unit] = F.delay(storage.add(entity)) *> F.unit
-      override def find(entity: BasicCredentials): F[Option[BasicCredentials]] = F.delay(storage.find(_ == entity))
+      override def persist(entity: BasicCredentials): F[Unit] =
+        F.delay(storage.add(entity)) *> F.unit
+      override def find(entity: BasicCredentials): F[Option[BasicCredentials]] =
+        F.delay(storage.find(_ == entity))
     }
 
 }

@@ -7,8 +7,8 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.multipart.Part
 
-class MultipartHttpEndpoint[F[_]](fileService: FileService[F])
-                                 (implicit F: Sync[F]) extends Http4sDsl[F] {
+class MultipartHttpEndpoint[F[_]](fileService: FileService[F])(implicit F: Sync[F])
+    extends Http4sDsl[F] {
 
   val service: HttpService[F] = HttpService {
     case GET -> Root / ApiVersion / "multipart" =>
@@ -16,9 +16,8 @@ class MultipartHttpEndpoint[F[_]](fileService: FileService[F])
 
     case req @ POST -> Root / ApiVersion / "multipart" =>
       req.decodeWith(multipart[F], strict = true) { response =>
-        def filterFileTypes(part: Part[F]): Boolean = {
+        def filterFileTypes(part: Part[F]): Boolean =
           part.headers.exists(_.value.contains("filename"))
-        }
 
         val stream = response.parts.filter(filterFileTypes).traverse(fileService.store)
 
@@ -26,4 +25,4 @@ class MultipartHttpEndpoint[F[_]](fileService: FileService[F])
       }
   }
 
-                                 }
+}

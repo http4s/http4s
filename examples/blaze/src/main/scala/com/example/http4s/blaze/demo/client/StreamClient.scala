@@ -15,14 +15,16 @@ class HttpClient[F[_]](implicit F: Effect[F], S: StreamUtils[F]) extends StreamA
 
   implicit val jsonFacade: Facade[Json] = io.circe.jawn.CirceSupportParser.facade
 
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
-    Http1Client.stream[F]().flatMap { client =>
-      val request = Request[F](uri = Uri.uri("http://localhost:8080/v1/dirs?depth=3"))
-      for {
-        response <- client.streaming(request)(_.body.chunks.through(fs2.text.utf8DecodeC))
-        _        <- S.putStr(response)
-      } yield ()
-    }.drain
-  }
+  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
+    Http1Client
+      .stream[F]()
+      .flatMap { client =>
+        val request = Request[F](uri = Uri.uri("http://localhost:8080/v1/dirs?depth=3"))
+        for {
+          response <- client.streaming(request)(_.body.chunks.through(fs2.text.utf8DecodeC))
+          _ <- S.putStr(response)
+        } yield ()
+      }
+      .drain
 
 }

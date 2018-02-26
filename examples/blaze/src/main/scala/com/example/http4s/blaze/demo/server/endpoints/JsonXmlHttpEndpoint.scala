@@ -25,7 +25,7 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   object Person {
     def fromXml(elem: Elem): Person = {
       val name = (elem \\ "name").text
-      val age  = (elem \\ "age").text
+      val age = (elem \\ "age").text
       Person(name, age.toInt)
     }
   }
@@ -33,11 +33,12 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   def personXmlDecoder: EntityDecoder[F, Person] =
     org.http4s.scalaxml.xml[F].map(Person.fromXml)
 
-  implicit def jsonXmlDecoder: EntityDecoder[F, Person] = jsonOf[F, Person] orElse personXmlDecoder
+  implicit def jsonXmlDecoder: EntityDecoder[F, Person] = jsonOf[F, Person].orElse(personXmlDecoder)
 
   val service: HttpService[F] = HttpService {
     case GET -> Root / ApiVersion / "media" =>
-      Ok("Send either json or xml via POST method. Eg: \n{\n  \"name\": \"gvolpe\",\n  \"age\": 30\n}\n or \n <person>\n  <name>gvolpe</name>\n  <age>30</age>\n</person>")
+      Ok(
+        "Send either json or xml via POST method. Eg: \n{\n  \"name\": \"gvolpe\",\n  \"age\": 30\n}\n or \n <person>\n  <name>gvolpe</name>\n  <age>30</age>\n</person>")
 
     case req @ POST -> Root / ApiVersion / "media" =>
       req.as[Person].flatMap { person =>

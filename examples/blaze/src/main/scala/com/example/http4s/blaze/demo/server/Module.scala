@@ -3,7 +3,10 @@ package com.example.http4s.blaze.demo.server
 import cats.effect.Effect
 import cats.syntax.semigroupk._ // For <+>
 import com.example.http4s.blaze.demo.server.endpoints._
-import com.example.http4s.blaze.demo.server.endpoints.auth.{BasicAuthHttpEndpoint, GitHubHttpEndpoint}
+import com.example.http4s.blaze.demo.server.endpoints.auth.{
+  BasicAuthHttpEndpoint,
+  GitHubHttpEndpoint
+}
 import com.example.http4s.blaze.demo.server.service.{FileService, GitHubService}
 import fs2.Scheduler
 import org.http4s.HttpService
@@ -20,9 +23,10 @@ class Module[F[_]](client: Client[F])(implicit F: Effect[F], S: Scheduler) {
 
   private val gitHubService = new GitHubService[F](client)
 
-  def middleware: HttpMiddleware[F] = {
-    {(service: HttpService[F]) => GZip(service)(F)} compose
-      { service => AutoSlash(service)(F) }
+  def middleware: HttpMiddleware[F] = { (service: HttpService[F]) =>
+    GZip(service)(F)
+  }.compose { service =>
+    AutoSlash(service)(F)
   }
 
   val fileHttpEndpoint: HttpService[F] =
@@ -58,8 +62,8 @@ class Module[F[_]](client: Client[F])(implicit F: Effect[F], S: Scheduler) {
   // You'll get 401 (Unauthorized) instead of 404 (Not found). Mount it separately as done in Server.
   val httpServices: HttpService[F] = (
     compressedEndpoints <+> timeoutEndpoints
-    <+> mediaHttpEndpoint <+> multipartHttpEndpoint
-    <+> gitHubHttpEndpoint
+      <+> mediaHttpEndpoint <+> multipartHttpEndpoint
+      <+> gitHubHttpEndpoint
   )
 
 }

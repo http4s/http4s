@@ -1,17 +1,22 @@
 package com.example.http4s.blaze.demo.server.endpoints
 
-import cats.effect.Sync
-import cats.syntax.flatMap._
+import java.util.concurrent.TimeUnit
+
+import cats.effect.Async
+import fs2.Scheduler
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Random
 
-class TimeoutHttpEndpoint[F[_]](implicit F: Sync[F]) extends Http4sDsl[F] {
+class TimeoutHttpEndpoint[F[_]](implicit F: Async[F], S: Scheduler) extends Http4sDsl[F] {
 
   val service: HttpService[F] = HttpService {
     case GET -> Root / ApiVersion / "timeout" =>
-      F.delay(Thread.sleep(Random.nextInt(3) * 1000L)).flatMap(_ => Ok())
+      val randomDuration = FiniteDuration(Random.nextInt(3) * 1000L, TimeUnit.MILLISECONDS)
+      S.effect.delay(Ok("delayed response"), randomDuration)
   }
 
 }

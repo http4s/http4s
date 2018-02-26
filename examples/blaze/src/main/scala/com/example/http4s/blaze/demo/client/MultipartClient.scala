@@ -14,7 +14,9 @@ import org.http4s.{MediaType, Uri}
 
 object MultipartClient extends MultipartHttpClient[IO]
 
-class MultipartHttpClient[F[_]](implicit F: Effect[F], S: StreamUtils[F]) extends StreamApp with Http4sClientDsl[F] {
+class MultipartHttpClient[F[_]](implicit F: Effect[F], S: StreamUtils[F])
+    extends StreamApp
+    with Http4sClientDsl[F] {
 
   private val rick = getClass.getResource("/beerbottle.png")
 
@@ -29,15 +31,14 @@ class MultipartHttpClient[F[_]](implicit F: Effect[F], S: StreamUtils[F]) extend
     POST(Uri.uri("http://localhost:8080/v1/multipart"), multipart)
       .map(_.replaceAllHeaders(multipart.headers))
 
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
       for {
         client <- Http1Client.stream[F]()
-        req    <- Stream.eval(request)
-        value  <- Stream.eval(client.expect[String](req))
-        _      <- S.evalF(println(value))
+        req <- Stream.eval(request)
+        value <- Stream.eval(client.expect[String](req))
+        _ <- S.evalF(println(value))
       } yield ()
     }.drain
-  }
 
 }

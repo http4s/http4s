@@ -36,10 +36,10 @@ class FileService[F[_]](implicit F: Effect[F], S: StreamUtils[F]) {
 
   def store(part: Part[F]): Stream[F, Unit] =
     for {
-      home      <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
-      filename  <- S.evalF(part.filename.getOrElse("sample"))
-      path      <- S.evalF(Paths.get(s"$home/$filename"))
-      _         <- part.body to fs2.io.file.writeAll(path)
+      home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
+      filename <- S.evalF(part.filename.getOrElse("sample"))
+      path <- S.evalF(Paths.get(s"$home/$filename"))
+      _ <- part.body to fs2.io.file.writeAll(path)
     } yield ()
 
 }
