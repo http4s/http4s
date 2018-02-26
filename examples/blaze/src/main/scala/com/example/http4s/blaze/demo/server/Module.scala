@@ -58,8 +58,6 @@ class Module[F[_]](client: Client[F])(implicit F: Effect[F], S: Scheduler) {
   val basicAuthHttpEndpoint: HttpService[F] =
     new BasicAuthHttpEndpoint[F].service
 
-  // NOTE: If you mix services wrapped in `AuthMiddleware[F, ?]` the entire namespace will be protected.
-  // You'll get 401 (Unauthorized) instead of 404 (Not found). Mount it separately as done in Server.
   val httpServices: HttpService[F] = (
     compressedEndpoints <+> timeoutEndpoints
       <+> mediaHttpEndpoint <+> multipartHttpEndpoint
