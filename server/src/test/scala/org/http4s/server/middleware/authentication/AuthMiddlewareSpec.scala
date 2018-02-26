@@ -193,6 +193,36 @@ class AuthMiddlewareSpec extends Http4sSpec {
         Unauthorized)
     }
 
+    "not consume the entire request when using fall through" in {
+
+      val authUser: Kleisli[OptionT[IO, ?], Request[IO], User] =
+        Kleisli.liftF(OptionT.none)
+
+      val authedService: AuthedService[User, IO] =
+        AuthedService {
+          case POST -> Root as _ => Ok()
+        }
+
+      val regularService: HttpService[IO] = HttpService[IO] {
+        case GET -> Root => Ok()
+      }
+
+      val middleware = AuthMiddleware.withFallThrough(authUser)
+
+      val service = middleware(authedService)
+
+      //Unauthenticated
+      (service <+> regularService).orNotFound(Request[IO](method = Method.POST)) must returnStatus(
+        NotFound)
+      //Matched normally
+      (service <+> regularService).orNotFound(Request[IO](method = Method.GET)) must returnStatus(
+        Ok)
+      //Unmatched
+      (service <+> regularService).orNotFound(Request[IO](method = Method.PUT)) must returnStatus(
+        NotFound)
+
+    }
+
   }
 
 }
