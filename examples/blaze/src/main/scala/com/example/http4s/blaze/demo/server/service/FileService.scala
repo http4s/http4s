@@ -1,15 +1,12 @@
 package com.example.http4s.blaze.demo.server.service
 
-import java.io.{File, FileOutputStream, OutputStream}
+import java.io.File
+import java.nio.file.Paths
 
 import cats.effect.Effect
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import org.http4s.multipart.Part
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class FileService[F[_]](implicit F: Effect[F], S: StreamUtils[F]) {
 
@@ -37,15 +34,12 @@ class FileService[F[_]](implicit F: Effect[F], S: StreamUtils[F]) {
     }
   }
 
-  def store(part: Part[F]): Stream[F, Unit] = {
-    val os: F[OutputStream] =
-      for {
-        home      <- F.delay(sys.env.getOrElse("HOME", "/tmp"))
-        filename  <- F.delay(part.filename.getOrElse("sample"))
-        output    <- F.delay(new FileOutputStream(s"$home/$filename"))
-      } yield output
-
-    part.body to fs2.io.writeOutputStreamAsync(os, closeAfterUse = true)
-  }
+  def store(part: Part[F]): Stream[F, Unit] =
+    for {
+      home      <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
+      filename  <- S.evalF(part.filename.getOrElse("sample"))
+      path      <- S.evalF(Paths.get(s"$home/$filename"))
+      _         <- part.body to fs2.io.file.writeAll(path)
+    } yield ()
 
 }

@@ -1,6 +1,7 @@
 package com.example.http4s.blaze.demo.server.endpoints
 
 import cats.effect.Effect
+import cats.syntax.flatMap._
 import io.circe.generic.auto._
 import org.http4s._
 import org.http4s.circe._
@@ -39,7 +40,7 @@ class JsonXmlHttpEndpoint[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
       Ok("Send either json or xml via POST method. Eg: \n{\n  \"name\": \"gvolpe\",\n  \"age\": 30\n}\n or \n <person>\n  <name>gvolpe</name>\n  <age>30</age>\n</person>")
 
     case req @ POST -> Root / ApiVersion / "media" =>
-      req.decode[Person] { person =>
+      req.as[Person].flatMap { person =>
         Ok(s"Successfully decoded person: ${person.name}")
       }
   }
