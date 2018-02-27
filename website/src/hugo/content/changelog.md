@@ -8,6 +8,20 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.1 (2018-02-27)
+* Fix the rendering of trailer headers in blaze [#1629](https://github.com/http4s/http4s/pull/1638)
+* Fix race condition between shutdown and parsing in Http1SeverStage [#1675](https://github.com/http4s/http4s/pull/1675)
+* Don't use filter in `Arbitrary[``Content-Length``]` [#1678](https://github.com/http4s/http4s/pull/1678)
+* Opt-in fallthrough for authenticated services [#1681](https://github.com/http4s/http4s/pull/1681)
+* Dependency upgrades:
+  * cats-effect-0.9
+  * fs2-0.10.2
+  * fs2-reactive-streams-0.5.1
+  * jawn-fs2-0.12.1
+  * specs2-4.0.3
+  * tomcat-9.0.5
+  * twirl-1.3.4
+
 # v0.18.0 (2018-02-01)
 * Add `filename` method to `Part`
 * Dependency upgrades:
