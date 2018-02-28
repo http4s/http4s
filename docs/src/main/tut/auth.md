@@ -55,6 +55,13 @@ val middleware: AuthMiddleware[IO, User] =
   AuthMiddleware(authUser)
 ```
 
+Note: In the above, the default apply method of `AuthMiddleware` will consume all requests either unmatched, or
+not authenticated by returning an empty response with status code 401 (Unauthorized). This mitigates
+a kind of reconnaissance called "spidering", useful for white and black hat hackers to enumerate
+your api for possible unprotected points. To allow fallthrough,
+use `AuthMiddleware.withFallThrough`. Alternatively, to customize the behavior on not authenticated if you do not
+wish to always return 401, use `AuthMiddleware.noSpider` and specify the `onAuthFailure` handler.
+
 Finally, we can create our `AuthedService`, and wrap it with our authentication middleware, getting the
 final `HttpService` to be exposed. Notice that we now have access to the user object in the service implementation:
 
