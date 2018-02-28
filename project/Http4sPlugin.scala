@@ -254,7 +254,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.2"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.11"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.0.1"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.8"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.9"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
@@ -265,7 +265,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.8"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.1"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.2"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
   lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.0"
@@ -292,10 +292,10 @@ object Http4sPlugin extends AutoPlugin {
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.0"
   lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.2"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.3"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.5"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
-  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.13"
+  lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.14"
 }
