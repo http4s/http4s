@@ -42,7 +42,8 @@ object RequestCookieJar {
       def result(): RequestCookieJar = new RequestCookieJar(Vector(coll.toSeq: _*))
     }
 
-  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] =
+  implicit def canBuildFrom
+    : CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] =
     new CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] {
       def apply(
           from: TraversableOnce[RequestCookie]
@@ -63,9 +64,11 @@ class RequestCookieJar(private val headers: Seq[RequestCookie])
   def get(key: String): Option[RequestCookie] = headers.find(_.name == key)
   def apply(key: String): RequestCookie = get(key).getOrElse(default(key))
   def contains(key: String): Boolean = headers.exists(_.name == key)
-  def getOrElse(key: String, default: => String): RequestCookie = get(key).getOrElse(RequestCookie(key, default))
+  def getOrElse(key: String, default: => String): RequestCookie =
+    get(key).getOrElse(RequestCookie(key, default))
   override def seq: RequestCookieJar = this
-  def default(key: String): RequestCookie = throw new NoSuchElementException("Can't find RequestCookie " + key)
+  def default(key: String): RequestCookie =
+    throw new NoSuchElementException("Can't find RequestCookie " + key)
 
   def keySet: Set[String] = headers.map(_.name).toSet
 
@@ -135,7 +138,7 @@ final case class RequestCookie(name: String, content: String) extends Renderable
   override lazy val renderString: String = super.renderString
 
   override def render(writer: Writer): writer.type = {
-    writer.append (name).append ('=').append (content)
+    writer.append(name).append('=').append(content)
     writer
   }
 }

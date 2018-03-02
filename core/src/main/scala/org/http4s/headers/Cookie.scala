@@ -10,8 +10,7 @@ object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
     HttpHeaderParser.COOKIE(s)
 }
 
-final case class Cookie(values: NonEmptyList[RequestCookie])
-    extends Header.RecurringRenderable {
+final case class Cookie(values: NonEmptyList[RequestCookie]) extends Header.RecurringRenderable {
   override def key: Cookie.type = Cookie
   type Value = RequestCookie
   override def renderValue(writer: Writer): writer.type = {

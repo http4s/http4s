@@ -33,14 +33,16 @@ private[parser] trait CookieHeader {
   // scalastyle:off public.methods.have.type
   private class SetCookieParser(input: ParserInput) extends BaseCookieParser[`Set-Cookie`](input) {
     def entry: Rule1[`Set-Cookie`] = rule {
-      CookiePair(ResponseCookie(_, _)) ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(_))
+      CookiePair(ResponseCookie(_, _)) ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(
+        _))
     }
   }
 
   private class CookieParser(input: ParserInput) extends BaseCookieParser[headers.Cookie](input) {
     def entry: Rule1[headers.Cookie] = rule {
-      oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ EOI ~> { xs: Seq[RequestCookie] =>
-        headers.Cookie(xs.head, xs.tail: _*)
+      oneOrMore(CookiePair(RequestCookie)).separatedBy(";" ~ OptWS) ~ EOI ~> {
+        xs: Seq[RequestCookie] =>
+          headers.Cookie(xs.head, xs.tail: _*)
       }
     }
   }

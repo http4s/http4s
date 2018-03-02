@@ -51,7 +51,8 @@ class CSRFSpec extends Http4sSpec {
     "fail a request with an invalid cookie, despite it being a safe method" in {
       val response =
         csrf
-          .validate()(dummyService)(passThroughRequest.addCookie(RequestCookie(csrf.cookieName, "MOOSE")))
+          .validate()(dummyService)(
+            passThroughRequest.addCookie(RequestCookie(csrf.cookieName, "MOOSE")))
           .getOrElse(orElse)
           .unsafeRunSync()
 

@@ -82,11 +82,15 @@ class ResponderSpec extends Specification {
     }
 
     "Set cookie from Cookie" in {
-      resp.addCookie(ResponseCookie("foo", "bar")).cookies must_== List(ResponseCookie("foo", "bar"))
+      resp.addCookie(ResponseCookie("foo", "bar")).cookies must_== List(
+        ResponseCookie("foo", "bar"))
     }
 
     "Set multiple cookies" in {
-      resp.addCookie(ResponseCookie("foo", "bar")).addCookie(ResponseCookie("baz", "quux")).cookies must_== List(
+      resp
+        .addCookie(ResponseCookie("foo", "bar"))
+        .addCookie(ResponseCookie("baz", "quux"))
+        .cookies must_== List(
         ResponseCookie("foo", "bar"),
         ResponseCookie("baz", "quux")
       )

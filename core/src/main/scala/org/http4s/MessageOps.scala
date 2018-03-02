@@ -124,8 +124,7 @@ trait RequestOps[F[_]] extends Any with MessageOps[F] {
     putHeaders(org.http4s.headers.Cookie(NonEmptyList.of(cookie)))
 
   /** Add a Cookie header with the provided values */
-  final def addCookie(name: String, content: String)(
-      implicit F: Functor[F]): Self =
+  final def addCookie(name: String, content: String)(implicit F: Functor[F]): Self =
     addCookie(RequestCookie(name, content))
 }
 
