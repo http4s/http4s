@@ -99,7 +99,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
         case Right(conn) =>
           IO(callback(Right(NextConnection(conn, fresh = true))))
         case Left(error) =>
-          logger.error(error)(s"Error establishing client connection for key $key")
           disposeConnection(key, None)
           IO(callback(Left(error)))
       }
