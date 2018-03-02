@@ -274,7 +274,7 @@ object Http4sPlugin extends AutoPlugin {
   }
 
 
-  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.11.v20170118"
+  lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.38"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M2"
