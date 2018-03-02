@@ -51,7 +51,7 @@ class CSRFSpec extends Http4sSpec {
     "fail a request with an invalid cookie, despite it being a safe method" in {
       val response =
         csrf
-          .validate()(dummyService)(passThroughRequest.addCookie(Cookie(csrf.cookieName, "MOOSE")))
+          .validate()(dummyService)(passThroughRequest.addCookie(RequestCookie(csrf.cookieName, "MOOSE")))
           .getOrElse(orElse)
           .unsafeRunSync()
 
@@ -70,7 +70,7 @@ class CSRFSpec extends Http4sSpec {
           newCookie <- IO.pure(
             response.cookies
               .find(_.name == csrf.cookieName)
-              .getOrElse(Cookie("invalid", "Invalid2")))
+              .getOrElse(ResponseCookie("invalid", "Invalid2")))
           raw2 <- csrf.extractRaw(newCookie.content).getOrElse("Invalid1")
         } yield (oldToken, raw1, response, newCookie, raw2)).unsafeRunSync()
 
