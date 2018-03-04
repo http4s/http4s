@@ -133,7 +133,7 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
       Forbidden(error)
     case Right(user) => {
       val message = crypto.signToken(user.id.toString, clock.millis.toString)
-      Ok("Logged in!").map(_.addCookie(Cookie("authcookie", message)))
+      Ok("Logged in!").map(_.addCookie(ResponseCookie("authcookie", message)))
     }
   })
 })

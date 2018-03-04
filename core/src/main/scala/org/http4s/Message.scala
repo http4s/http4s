@@ -363,7 +363,7 @@ final case class Response[F[_]](
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion. */
-  def cookies: List[Cookie] =
+  def cookies: List[ResponseCookie] =
     `Set-Cookie`.from(headers).map(_.cookie)
 }
 

@@ -158,13 +158,13 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```tut
-Ok("Ok response.").map(_.addCookie(Cookie("foo", "bar"))).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-Ok("Ok response.").map(_.addCookie(Cookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
