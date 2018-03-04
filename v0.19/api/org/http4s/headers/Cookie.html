@@ -514,7 +514,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Cookie</span><span class="params">(<span name="values">values: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="../Cookie.html" class="extype" name="org.http4s.Cookie">http4s.Cookie</a>]</span>)</span><span class="result"> extends <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">Cookie</span><span class="params">(<span name="values">values: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="../RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>]</span>)</span><span class="result"> extends <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -575,9 +575,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.Cookie#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(values:cats.data.NonEmptyList[org.http4s.Cookie]):org.http4s.headers.Cookie"></a><a id="&lt;init&gt;:Cookie"></a>
+      <a id="&lt;init&gt;(values:cats.data.NonEmptyList[org.http4s.RequestCookie]):org.http4s.headers.Cookie"></a><a id="&lt;init&gt;:Cookie"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Cookie.html#&lt;init&gt;(values:cats.data.NonEmptyList[org.http4s.Cookie]):org.http4s.headers.Cookie" title="Permalink">
+      <a href="../../../org/http4s/headers/Cookie.html#&lt;init&gt;(values:cats.data.NonEmptyList[org.http4s.RequestCookie]):org.http4s.headers.Cookie" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -586,7 +586,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Cookie</span><span class="params">(<span name="values">values: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="../Cookie.html" class="extype" name="org.http4s.Cookie">http4s.Cookie</a>]</span>)</span>
+        <span class="name">Cookie</span><span class="params">(<span name="values">values: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="../RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>]</span>)</span>
       </span>
       
       
@@ -596,9 +596,9 @@
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="org.http4s.headers.Cookie.Value" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Value=org.http4s.Cookie"></a><a id="Value:Value"></a>
+      <a id="Value=org.http4s.RequestCookie"></a><a id="Value:Value"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Cookie.html#Value=org.http4s.Cookie" title="Permalink">
+      <a href="../../../org/http4s/headers/Cookie.html#Value=org.http4s.RequestCookie" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -607,7 +607,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">Value</span><span class="result alias"> = <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">http4s.Cookie</a></span>
+        <span class="name">Value</span><span class="result alias"> = <a href="../RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.headers.Cookie">Cookie</a> → <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> → <a href="../Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a></dd></dl></div>
@@ -1205,9 +1205,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="org.http4s.headers.Cookie#values" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="values:cats.data.NonEmptyList[org.http4s.Cookie]"></a><a id="values:NonEmptyList[http4s.Cookie]"></a>
+      <a id="values:cats.data.NonEmptyList[org.http4s.RequestCookie]"></a><a id="values:NonEmptyList[RequestCookie]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/Cookie.html#values:cats.data.NonEmptyList[org.http4s.Cookie]" title="Permalink">
+      <a href="../../../org/http4s/headers/Cookie.html#values:cats.data.NonEmptyList[org.http4s.RequestCookie]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1216,7 +1216,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">values</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="../Cookie.html" class="extype" name="org.http4s.Cookie">http4s.Cookie</a>]</span>
+        <span class="name">values</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<a href="../RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.headers.Cookie">Cookie</a> → <a href="../Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a></dd></dl></div>

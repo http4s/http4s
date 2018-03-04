@@ -457,10 +457,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="ContentCoding.html" title=""></a>
                         <a href="ContentCoding.html" title="">ContentCoding</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="Cookie.html" title=""></a>
-                        <a href="Cookie.html" title="">Cookie</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="Credentials$.html" title=""></a>
                         <a class="class" href="Credentials.html" title=""></a>
                         <a href="Credentials.html" title="">Credentials</a>
@@ -669,6 +665,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Request.html" title="Representation of an incoming HTTP message"></a>
                         <a href="Request.html" title="Representation of an incoming HTTP message">Request</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="class" href="RequestCookie.html" title=""></a>
+                        <a href="RequestCookie.html" title="">RequestCookie</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="RequestCookieJar$.html" title=""></a>
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
@@ -680,6 +680,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="class" href="ResponseCookie.html" title=""></a>
+                        <a href="ResponseCookie.html" title="">ResponseCookie</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="trait" href="ResponseOps.html" title=""></a>
@@ -1042,9 +1046,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.RequestOps#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate])(implicitF:cats.Functor[F]):RequestOps.this.Self"></a><a id="addCookie(String,String,Option[HttpDate])(Functor[F]):Self"></a>
+      <a id="addCookie(name:String,content:String)(implicitF:cats.Functor[F]):RequestOps.this.Self"></a><a id="addCookie(String,String)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/RequestOps.html#addCookie(name:String,content:String,expires:Option[org.http4s.HttpDate])(implicitF:cats.Functor[F]):RequestOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/RequestOps.html#addCookie(name:String,content:String)(implicitF:cats.Functor[F]):RequestOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1053,14 +1057,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.RequestOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.RequestOps.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.RequestOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.RequestOps.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Add a Cookie header with the provided values</p>
     </li><li name="org.http4s.RequestOps#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addCookie(cookie:org.http4s.Cookie)(implicitF:cats.Functor[F]):RequestOps.this.Self"></a><a id="addCookie(Cookie)(Functor[F]):Self"></a>
+      <a id="addCookie(cookie:org.http4s.RequestCookie)(implicitF:cats.Functor[F]):RequestOps.this.Self"></a><a id="addCookie(RequestCookie)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../org/http4s/RequestOps.html#addCookie(cookie:org.http4s.Cookie)(implicitF:cats.Functor[F]):RequestOps.this.Self" title="Permalink">
+      <a href="../../org/http4s/RequestOps.html#addCookie(cookie:org.http4s.RequestCookie)(implicitF:cats.Functor[F]):RequestOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1069,10 +1073,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.RequestOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.RequestOps.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.RequestOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.RequestOps.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Add a Cookie header for the provided <a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></p>
+      <p class="shortcomment cmt">Add a Cookie header for the provided <span class="extype" name="Cookie">Cookie</span></p>
     </li><li name="org.http4s.MessageOps#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="as[T](FlatMap[F],EntityDecoder[F,T]):F[T]"></a>
       <span class="permalink">

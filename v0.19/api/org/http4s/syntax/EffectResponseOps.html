@@ -449,9 +449,9 @@
       
       <p class="shortcomment cmt">Add a Set-Cookie header with the provided values</p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header with the provided values</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>
     </li><li name="org.http4s.ResponseOps#addCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="addCookie(cookie:org.http4s.Cookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="addCookie(Cookie)(Functor[F]):Self"></a>
+      <a id="addCookie(cookie:org.http4s.ResponseCookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="addCookie(ResponseCookie)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/syntax/EffectResponseOps.html#addCookie(cookie:org.http4s.Cookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
+      <a href="../../../org/http4s/syntax/EffectResponseOps.html#addCookie(cookie:org.http4s.ResponseCookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -460,10 +460,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectResponseOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectResponseOps.Self">Self</a></span>
+        <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="../ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectResponseOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectResponseOps.Self">Self</a></span>
       </span>
       
-      <p class="shortcomment cmt">Add a Set-Cookie header for the provided <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header for the provided <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>
+      <p class="shortcomment cmt">Add a Set-Cookie header for the provided <span class="extype" name="Cookie">Cookie</span></p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header for the provided <span class="extype" name="Cookie">Cookie</span></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"></a><a id="as[T](FlatMap[F],EntityDecoder[F,T]):F[T]"></a>
       <span class="permalink">
@@ -703,9 +703,9 @@ The passed headers are assumed to contain no duplicate Singleton headers.
       
       <p class="shortcomment cmt">Add a <a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> which will remove the specified cookie from the client</p><div class="fullcomment"><div class="comment cmt"><p>Add a <a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> which will remove the specified cookie from the client</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>
     </li><li name="org.http4s.ResponseOps#removeCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="removeCookie(cookie:org.http4s.Cookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="removeCookie(Cookie)(Functor[F]):Self"></a>
+      <a id="removeCookie(cookie:org.http4s.ResponseCookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self"></a><a id="removeCookie(ResponseCookie)(Functor[F]):Self"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/syntax/EffectResponseOps.html#removeCookie(cookie:org.http4s.Cookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
+      <a href="../../../org/http4s/syntax/EffectResponseOps.html#removeCookie(cookie:org.http4s.ResponseCookie)(implicitF:cats.Functor[F]):ResponseOps.this.Self" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -714,7 +714,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeCookie</span><span class="params">(<span name="cookie">cookie: <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectResponseOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectResponseOps.Self">Self</a></span>
+        <span class="name">removeCookie</span><span class="params">(<span name="cookie">cookie: <a href="../ResponseCookie.html" class="extype" name="org.http4s.ResponseCookie">ResponseCookie</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectResponseOps.F">F</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectResponseOps.Self">Self</a></span>
       </span>
       
       <p class="shortcomment cmt">Add a <a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> which will remove the specified cookie from the client</p><div class="fullcomment"><div class="comment cmt"><p>Add a <a href="../headers/Set$minusCookie.html" class="extype" name="org.http4s.headers.Set-Cookie">org.http4s.headers.Set-Cookie</a> which will remove the specified cookie from the client</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></dd></dl></div>

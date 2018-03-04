@@ -457,10 +457,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="ContentCoding.html" title=""></a>
                         <a href="ContentCoding.html" title="">ContentCoding</a>
                       </li><li class="current-entities indented2">
-                        <span class="separator"></span>
-                        <a class="class" href="Cookie.html" title=""></a>
-                        <a href="Cookie.html" title="">Cookie</a>
-                      </li><li class="current-entities indented2">
                         <a class="object" href="Credentials$.html" title=""></a>
                         <a class="class" href="Credentials.html" title=""></a>
                         <a href="Credentials.html" title="">Credentials</a>
@@ -669,6 +665,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Request.html" title="Representation of an incoming HTTP message"></a>
                         <a href="Request.html" title="Representation of an incoming HTTP message">Request</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="class" href="RequestCookie.html" title=""></a>
+                        <a href="RequestCookie.html" title="">RequestCookie</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="RequestCookieJar$.html" title=""></a>
                         <a class="class" href="RequestCookieJar.html" title=""></a>
                         <a href="RequestCookieJar.html" title="">RequestCookieJar</a>
@@ -680,6 +680,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="Response$.html" title=""></a>
                         <a class="class" href="Response.html" title="Representation of the HTTP response to send back to the client"></a>
                         <a href="Response.html" title="Representation of the HTTP response to send back to the client">Response</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="class" href="ResponseCookie.html" title=""></a>
+                        <a href="ResponseCookie.html" title="">ResponseCookie</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="trait" href="ResponseOps.html" title=""></a>
@@ -1072,22 +1076,6 @@ trigger. See https://github.com/http4s/http4s/issues/1506
       </span>
       <span class="symbol">
         <a title="" href="ContentCoding.html"><span class="name">ContentCoding</span></a><span class="result"> extends <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a> with <span class="extype" name="scala.Ordered">Ordered</span>[<a href="ContentCoding.html" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.Cookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CookieextendsRenderablewithProductwithSerializable"></a><a id="Cookie:Cookie"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/index.html#CookieextendsRenderablewithProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="Cookie.html"><span class="name">Cookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>] = <span class="symbol">None</span></span>, <span name="domain">domain: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="extension">extension: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       
@@ -2002,10 +1990,26 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
       <p class="shortcomment cmt">Representation of an incoming HTTP message</p><div class="fullcomment"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body.
 </p></div></div>
-    </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RequestCookieJarextendsIterable[org.http4s.Cookie]withIterableLike[org.http4s.Cookie,org.http4s.RequestCookieJar]"></a><a id="RequestCookieJar:RequestCookieJar"></a>
+    </li><li name="org.http4s.RequestCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestCookieextendsRenderablewithProductwithSerializable"></a><a id="RequestCookie:RequestCookie"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#RequestCookieJarextendsIterable[org.http4s.Cookie]withIterableLike[org.http4s.Cookie,org.http4s.RequestCookieJar]" title="Permalink">
+      <a href="../../org/http4s/index.html#RequestCookieextendsRenderablewithProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="RequestCookie.html"><span class="name">RequestCookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.RequestCookieJar" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestCookieJarextendsIterable[org.http4s.RequestCookie]withIterableLike[org.http4s.RequestCookie,org.http4s.RequestCookieJar]"></a><a id="RequestCookieJar:RequestCookieJar"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#RequestCookieJarextendsIterable[org.http4s.RequestCookie]withIterableLike[org.http4s.RequestCookie,org.http4s.RequestCookieJar]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2014,7 +2018,7 @@ status line, headers, and a possible request body.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="RequestCookieJar.html"><span class="name">RequestCookieJar</span></a><span class="result"> extends <span class="extype" name="scala.Iterable">Iterable</span>[<a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>] with <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/IterableLike.html#scala.collection.IterableLike" class="extype" name="scala.collection.IterableLike">IterableLike</a>[<a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>, <a href="RequestCookieJar.html" class="extype" name="org.http4s.RequestCookieJar">RequestCookieJar</a>]</span>
+        <a title="" href="RequestCookieJar.html"><span class="name">RequestCookieJar</span></a><span class="result"> extends <span class="extype" name="scala.Iterable">Iterable</span>[<a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>] with <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/IterableLike.html#scala.collection.IterableLike" class="extype" name="scala.collection.IterableLike">IterableLike</a>[<a href="RequestCookie.html" class="extype" name="org.http4s.RequestCookie">RequestCookie</a>, <a href="RequestCookieJar.html" class="extype" name="org.http4s.RequestCookieJar">RequestCookieJar</a>]</span>
       </span>
       
       
@@ -2053,6 +2057,22 @@ status line, headers, and a possible request body.
 </p><div class="fullcomment"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>EntityBody[F] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
                   backend for additional processing such as java.io.File object</p></dd></dl></div>
+    </li><li name="org.http4s.ResponseCookie" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResponseCookieextendsRenderablewithProductwithSerializable"></a><a id="ResponseCookie:ResponseCookie"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#ResponseCookieextendsRenderablewithProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="ResponseCookie.html"><span class="name">ResponseCookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="HttpDate.html" class="extype" name="org.http4s.HttpDate">HttpDate</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>] = <span class="symbol">None</span></span>, <span name="domain">domain: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="extension">extension: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.ResponseOps" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ResponseOps[F[_]]extendsAnywithMessageOps[F]"></a><a id="ResponseOps[F[_]]:ResponseOps[F]"></a>
       <span class="permalink">
