@@ -17,11 +17,11 @@ case class PrometheusExportService[F[_]](
 
 object PrometheusExportService {
 
-  def apply[F[_]](implicit F: Sync[F]): F[PrometheusExportService] = {
+  def apply[F[_]](implicit F: Sync[F]): F[PrometheusExportService[F]] = {
     for {
       cr <- F.delay(new CollectorRegistry())
       _ <- addDefaults(cr)(F)
-    } yield PrometheusExportService(service(cr), cr)
+    } yield PrometheusExportService[F](service(cr), cr)
   }
 
   def service[F[_]](collectorRegistry: CollectorRegistry)(implicit F: Sync[F]): HttpService[F] = {
