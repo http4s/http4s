@@ -10,16 +10,21 @@ import io.prometheus.client.hotspot._
 import org.http4s.HttpService
 import org.http4s.dsl.Http4sDsl
 
+case class PrometheusExportService[F[_]](
+  service: HttpService[F],
+  cr: CollectorRegistry
+)
+
 object PrometheusExportService {
 
-  def setupMetricsService[F[_]](implicit F: Sync[F]): F[(HttpService[F], CollectorRegistry)] = {
+  def apply[F[_]](implicit F: Sync[F]): F[PrometheusExportService] = {
     for {
       cr <- F.delay(new CollectorRegistry())
       _ <- addDefaults(cr)(F)
-    } yield (service(cr), cr)
+    } yield PrometheusExportService(service(cr), cr)
   }
 
-  private def service[F[_]](collectorRegistry: CollectorRegistry)(implicit F: Sync[F]): HttpService[F] = {
+  def service[F[_]](collectorRegistry: CollectorRegistry)(implicit F: Sync[F]): HttpService[F] = {
     object dsl extends Http4sDsl[F]
     import dsl._
 
