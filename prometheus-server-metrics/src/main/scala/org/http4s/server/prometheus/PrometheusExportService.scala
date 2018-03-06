@@ -11,18 +11,17 @@ import org.http4s.HttpService
 import org.http4s.dsl.Http4sDsl
 
 case class PrometheusExportService[F[_]](
-  service: HttpService[F],
-  cr: CollectorRegistry
+    service: HttpService[F],
+    cr: CollectorRegistry
 )
 
 object PrometheusExportService {
 
-  def apply[F[_]](implicit F: Sync[F]): F[PrometheusExportService[F]] = {
+  def apply[F[_]](implicit F: Sync[F]): F[PrometheusExportService[F]] =
     for {
       cr <- F.delay(new CollectorRegistry())
       _ <- addDefaults(cr)(F)
     } yield PrometheusExportService[F](service(cr), cr)
-  }
 
   def service[F[_]](collectorRegistry: CollectorRegistry)(implicit F: Sync[F]): HttpService[F] = {
     object dsl extends Http4sDsl[F]
@@ -39,7 +38,7 @@ object PrometheusExportService {
     }
   }
 
-  def addDefaults[F[_]](cr: CollectorRegistry)(implicit F: Sync[F]): F[Unit] = {
+  def addDefaults[F[_]](cr: CollectorRegistry)(implicit F: Sync[F]): F[Unit] =
     for {
       _ <- F.delay(cr.register(new StandardExports()))
       _ <- F.delay(cr.register(new MemoryPoolsExports()))
@@ -48,6 +47,5 @@ object PrometheusExportService {
       _ <- F.delay(cr.register(new ClassLoadingExports()))
       result <- F.delay(cr.register(new VersionInfoExports()))
     } yield result
-  }
 
 }
