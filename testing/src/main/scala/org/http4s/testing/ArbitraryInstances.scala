@@ -31,6 +31,7 @@ trait ArbitraryInstances {
 
   implicit val arbitraryCaseInsensitiveString: Arbitrary[CaseInsensitiveString] =
     Arbitrary(arbitrary[String].map(_.ci))
+
   implicit val cogenCaseInsensitiveString: Cogen[CaseInsensitiveString] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
@@ -669,6 +670,9 @@ trait ArbitraryInstances {
       fragment <- Gen.option(genFragment)
     } yield Uri(scheme, authority, path, query, fragment)
   }
+
+  implicit val cogenUri: Cogen[Uri] =
+    Cogen[String].contramap(_.renderString)
 
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42

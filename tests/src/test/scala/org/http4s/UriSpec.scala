@@ -1,6 +1,7 @@
 package org.http4s
 
 import cats.implicits.{catsSyntaxEither => _, _}
+import cats.kernel.laws.discipline.EqTests
 import org.http4s.Uri._
 import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
@@ -823,6 +824,12 @@ http://example.org/a file
   "Uri.equals" should {
     "be false between an empty path and a trailing slash after an authority" in {
       uri("http://example.com") must_!= uri("http://example.com/")
+    }
+  }
+
+  "Eq instance for Uri" should {
+    "be lawful" in {
+      checkAll("Eq[Uri]", EqTests[Uri].eqv)
     }
   }
 
