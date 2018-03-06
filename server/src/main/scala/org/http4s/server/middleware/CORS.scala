@@ -47,10 +47,12 @@ object CORS {
 
       def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(
           resp: Response[F]): Response[F] = {
+       
         val methodBasedHeader =
           if (isPreflight)
             config.allowedHeaders.map(headerFromStrings("Access-Control-Allow-Headers", _))
           else config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
+       
         methodBasedHeader
           .fold(resp)(h => resp.putHeaders(h))
           .putHeaders(
