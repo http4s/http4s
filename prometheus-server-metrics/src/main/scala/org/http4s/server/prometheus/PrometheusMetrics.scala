@@ -16,7 +16,7 @@ object PrometheusMetrics {
     requestTypeTimer: Histogram.Timer,
     headers: Histogram.Timer,
     abnormalTerminations: Counter,
-    serviceErrors: Counter,
+    serviceErrors: Counter
   )
 
   private case class GeneralServicMetrics(
@@ -24,7 +24,7 @@ object PrometheusMetrics {
     totalRequests: Histogram,
     headers: Histogram,
     abnormalTerminations: Counter,
-    serviceErrors: Counter,
+    serviceErrors: Counter
   )
 
   private case class RequestHistograms(
