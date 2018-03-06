@@ -55,7 +55,7 @@ object PrometheusMetrics {
       _ <- Sync[F].delay(serviceMetrics.generalMetrics.activeRequests.inc())
       responseAtt <- service(req).value.attempt
       headersElapsed <- Sync[F].delay(System.nanoTime())
-      _ <- Sync[F].delay(serviceMetrics.generalMetrics.headers.observe((headersElapsed - initialTime).toDouble))
+      _ <- Sync[F].delay(serviceMetrics.generalMetrics.headers.observe(((headersElapsed - initialTime) / 1000000000.0).toDouble))
       respOpt <- metricsServiceHandler[F](req.method, initialTime, serviceMetrics, responseAtt)
     } yield respOpt
   }
@@ -98,7 +98,7 @@ object PrometheusMetrics {
         for {
           terminationTime <- Stream.eval(Sync[F].delay(System.nanoTime))
           _ <- Stream.eval(Sync[F].delay(
-            serviceMetrics.generalMetrics.abnormalTerminations.observe((terminationTime - start).toDouble)
+            serviceMetrics.generalMetrics.abnormalTerminations.observe(SimpleTimer.elapsedSecondsFromNanos(start, terminationTime))
           ))
           result <- Stream.raiseError[Byte](e).covary[F]
         } yield result
@@ -113,21 +113,21 @@ object PrometheusMetrics {
       sm.generalMetrics.totalRequests,
       sm.generalMetrics.activeRequests
     )(m, begin, end)
-    _ <- Sync[F].delay(sm.generalMetrics.serviceErrors.observe((end - begin).toDouble))
+    _ <- Sync[F].delay(sm.generalMetrics.serviceErrors.observe(SimpleTimer.elapsedSecondsFromNanos(begin, end)))
   } yield ()
 
 
 
   private def requestMetrics[F[_]: Sync](rh: RequestHistograms, totalReqs: Histogram, activeReqs: Gauge)(m: Method, begin: Long, end: Long): F[Unit] = Sync[F].delay{
     val histogram = requestHistogram(rh, m)
-    val elapsed = (end - begin).toDouble
+    val elapsed = SimpleTimer.elapsedSecondsFromNanos(begin, end)
     histogram.observe(elapsed)
     totalReqs.observe(elapsed)
     activeReqs.dec()
   }
 
   private def responseMetrics[F[_]: Sync](rh: ResponseHistograms, status: Status, begin: Long, end: Long): F[Unit] = Sync[F].delay{
-    responseHistogram(rh, status).observe((end - begin).toDouble)
+    responseHistogram(rh, status).observe(SimpleTimer.elapsedSecondsFromNanos(begin, end))
   }
 
   private def requestHistogram[F[_]: Sync](rt: RequestHistograms, method: Method): Histogram = method match {
