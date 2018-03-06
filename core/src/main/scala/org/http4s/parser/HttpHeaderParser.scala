@@ -40,7 +40,8 @@ object HttpHeaderParser
     with StrictTransportSecurityHeader
     with ProxyAuthenticateHeader
     with WwwAuthenticateHeader
-    with ZipkinHeader {
+    with ZipkinHeader
+    with LinkHeader {
 
   type HeaderParser = String => ParseResult[Parsed]
 
