@@ -29,16 +29,17 @@ object PrometheusExportService {
 
     HttpService[F] {
       case GET -> Root / "metrics" =>
-        Sync[F].delay {
-          val writer = new StringWriter
-          TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
-          writer.toString
-        }
-        .flatMap(Ok(_))
+        Sync[F]
+          .delay {
+            val writer = new StringWriter
+            TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
+            writer.toString
+          }
+          .flatMap(Ok(_))
     }
   }
 
-  def addDefaults[F[_]: Sync](cr: CollectorRegistry): F[Unit] = Sync[F].delay{
+  def addDefaults[F[_]: Sync](cr: CollectorRegistry): F[Unit] = Sync[F].delay {
     cr.register(new StandardExports())
     cr.register(new MemoryPoolsExports())
     cr.register(new GarbageCollectorExports())
