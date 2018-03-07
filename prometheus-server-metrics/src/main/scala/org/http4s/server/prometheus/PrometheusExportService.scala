@@ -17,35 +17,34 @@ case class PrometheusExportService[F[_]](
 
 object PrometheusExportService {
 
-  def apply[F[_]](implicit F: Sync[F]): F[PrometheusExportService[F]] =
+  def apply[F[_]: Sync]: F[PrometheusExportService[F]] =
     for {
-      cr <- F.delay(new CollectorRegistry())
-      _ <- addDefaults(cr)(F)
+      cr <- new CollectorRegistry().pure[F]
+      _ <- addDefaults(cr)
     } yield PrometheusExportService[F](service(cr), cr)
 
-  def service[F[_]](collectorRegistry: CollectorRegistry)(implicit F: Sync[F]): HttpService[F] = {
+  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpService[F] = {
     object dsl extends Http4sDsl[F]
     import dsl._
 
     HttpService[F] {
       case GET -> Root / "metrics" =>
-        F.delay {
-            val writer = new StringWriter
-            TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
-            writer.toString
-          }
-          .flatMap(Ok(_))
+        Sync[F].delay {
+          val writer = new StringWriter
+          TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
+          writer.toString
+        }
+        .flatMap(Ok(_))
     }
   }
 
-  def addDefaults[F[_]](cr: CollectorRegistry)(implicit F: Sync[F]): F[Unit] =
-    for {
-      _ <- F.delay(cr.register(new StandardExports()))
-      _ <- F.delay(cr.register(new MemoryPoolsExports()))
-      _ <- F.delay(cr.register(new GarbageCollectorExports()))
-      _ <- F.delay(cr.register(new ThreadExports()))
-      _ <- F.delay(cr.register(new ClassLoadingExports()))
-      result <- F.delay(cr.register(new VersionInfoExports()))
-    } yield result
+  def addDefaults[F[_]: Sync](cr: CollectorRegistry): F[Unit] = Sync[F].delay{
+    cr.register(new StandardExports())
+    cr.register(new MemoryPoolsExports())
+    cr.register(new GarbageCollectorExports())
+    cr.register(new ThreadExports())
+    cr.register(new ClassLoadingExports())
+    cr.register(new VersionInfoExports())
+  }
 
 }

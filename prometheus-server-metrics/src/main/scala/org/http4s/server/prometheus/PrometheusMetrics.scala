@@ -172,11 +172,10 @@ object PrometheusMetrics {
     } yield ()
   }
 
-
-
   /**
+  * 
   * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
-  *
+  * 
   * org_http4s_active_request_total - Gauge 
   *
   * org_http4s_response_total{labels=method,code} - Counter
@@ -184,7 +183,7 @@ object PrometheusMetrics {
   * org_http4s_abnormal_terminations_total{labels=termination_type} - Counter
   **/
 
-  def apply[F[_]: Effect](
+  def apply[F[_]: Sync](
       c: CollectorRegistry,
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
