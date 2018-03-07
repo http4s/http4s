@@ -10,17 +10,7 @@ import org.http4s.server.HttpMiddleware
 
 object PrometheusMetrics {
 
-  /**
-  * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
-  *
-  * org_http4s_active_request_total - Gauge 
-  *
-  * org_http4s_response_total{labels=method,code} - Counter
-  * 
-  * org_http4s_abnormal_terminations_total{labels=termination_type} - Counter
-  **/
-
-  private def reportRequestMethod(m: Method): String = m match {
+  private def reportMethod(m: Method): String = m match {
     case Method.GET => "get"
     case Method.PUT => "put"
     case Method.POST => "post"
@@ -33,7 +23,7 @@ object PrometheusMetrics {
     case _ => "other"
   }
 
-  private def reportResponseCode(status: Status): String =
+  private def reportStatus(status: Status): String =
     status.code match {
       case hundreds if hundreds < 200 => "1xx"
       case twohundreds if twohundreds < 300 => "2xx"
@@ -42,16 +32,38 @@ object PrometheusMetrics {
       case _ => "5xx"
     }
 
+  private sealed trait ServingPhase
+  private object ServingPhase {
+    case object HeaderPhase extends ServingPhase
+    case object BodyPhase extends ServingPhase
+    def report(s: ServingPhase): String = s match {
+      case HeaderPhase => "header_phase"
+      case BodyPhase => "body_phase"
+    }
+  }
+
+  private sealed trait AbnormalTermination
+  private object AbnormalTermination {
+    case object Abnormal extends AbnormalTermination
+    case object ServerError extends AbnormalTermination
+    def report(t: AbnormalTermination): String = t match {
+      case Abnormal => "abnormal_termination"
+      case ServerError => "server_error"
+    }
+  }
+
   private case class ServiceMetrics(
     requestDuration: Histogram,
     activeRequests: Gauge,
-    responseCount: Counter,
+    requestCounter: Counter,
     abnormalTerminations: Counter
   )
 
   private def metricsService[F[_]: Sync](
       serviceMetrics: ServiceMetrics,
-      service: HttpService[F]
+      service: HttpService[F],
+      emptyResponseHandler: Option[Status],
+      errorResponseHandler: Throwable => Option[Status] 
   )(
       req: Request[F]
   ): OptionT[F, Response[F]] = OptionT {
@@ -61,66 +73,116 @@ object PrometheusMetrics {
       responseAtt <- service(req).value.attempt
       headersElapsed <- Sync[F].delay(System.nanoTime())
       result <- responseAtt.fold(
-        e => onServiceError(req.method, initialTime, serviceMetrics) *> Sync[F].raiseError[Option[Response[F]]](e),
+        e => onServiceError(req.method, initialTime, headersElapsed, serviceMetrics, errorResponseHandler(e)) *> 
+          Sync[F].raiseError[Option[Response[F]]](e),
         _.fold(
-          onEmpty[F](req.method, initialTime, serviceMetrics).as(Option.empty[Response[F]])
+          onEmpty[F](req.method, initialTime, headersElapsed, serviceMetrics, emptyResponseHandler).as(Option.empty[Response[F]])
         )(
-          onResponse(req.method, initialTime, serviceMetrics)(_).some.pure[F]
+          onResponse(req.method, initialTime, headersElapsed, serviceMetrics)(_).some.pure[F]
         )
       )
     } yield result
   }
 
-  private def onEmpty[F[_]: Sync](m: Method, start: Long, headerTime: Long, serviceMetrics: ServiceMetrics): F[Unit] = ???
+  private def onEmpty[F[_]: Sync](
+    m: Method,
+    start: Long,
+    headerTime: Long,
+    serviceMetrics: ServiceMetrics,
+    emptyResponseHandler: Option[Status]
+  ): F[Unit] = {
+    for {
+      now <- Sync[F].delay(System.nanoTime)
+      _ <- emptyResponseHandler.traverse_(status => 
+        Sync[F].delay {
+          serviceMetrics.requestDuration.labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+
+          serviceMetrics.requestDuration.labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+          
+          serviceMetrics.requestCounter.labels(reportMethod(m), reportStatus(status))
+            .inc()
+        }
+      )
+      _ <- Sync[F].delay(serviceMetrics.activeRequests.dec())
+    } yield ()
+  }
 
   private def onResponse[F[_]: Sync](
     m: Method, 
-    start: Long, 
+    start: Long,
+    headerTime: Long,
     serviceMetrics: ServiceMetrics
   )(
     r: Response[F]
   ): Response[F] = {
     val newBody = r.body
       .onFinalize {
-        for {
-          finalBodyTime <- Sync[F].delay(System.nanoTime)
-          _ <- requestMetrics(
-            serviceMetrics.requestHist,
-            serviceMetrics.generalMetrics.totalRequests,
-            serviceMetrics.generalMetrics.activeRequests
-          )(m, start, finalBodyTime)
-          _ <- responseMetrics(
-            serviceMetrics.responseHist,
-            r.status,
-            start,
-            finalBodyTime
-          )
-        } yield ()
+        Sync[F].delay{
+          val now = System.nanoTime
+          serviceMetrics.requestDuration.labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+          
+          serviceMetrics.requestDuration.labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+          
+          serviceMetrics.requestCounter.labels(reportMethod(m), reportStatus(r.status))
+            .inc()
+          
+          serviceMetrics.activeRequests.dec()
+        }    
       }
       .handleErrorWith(e =>
-        for {
-          terminationTime <- Stream.eval(Sync[F].delay(System.nanoTime))
-          _ <- Stream.eval(
-            Sync[F].delay(
-              serviceMetrics.generalMetrics.abnormalTerminations
-                .observe(SimpleTimer.elapsedSecondsFromNanos(start, terminationTime))
-            ))
-          result <- Stream.raiseError[Byte](e).covary[F]
-        } yield result)
+        Stream.eval(Sync[F].delay{
+          serviceMetrics.abnormalTerminations.labels(AbnormalTermination.report(AbnormalTermination.Abnormal))
+        }) *> Stream.raiseError[Byte](e).covary[F]
+      )
     r.copy(body = newBody)
   }
 
-  private def onServiceError[F[_]: Sync](m: Method, begin: Long, sm: ServiceMetrics): F[Unit] =
+  private def onServiceError[F[_]: Sync](
+    m: Method, 
+    start: Long,
+    headerTime: Long,
+    serviceMetrics: ServiceMetrics,
+    errorResponseHandler: Option[Status]
+  ): F[Unit] = {
     for {
-      end <- Sync[F].delay(System.nanoTime)
-      _ <- requestMetrics(
-        sm.requestHist,
-        sm.generalMetrics.totalRequests,
-        sm.generalMetrics.activeRequests
-      )(m, begin, end)
-      _ <- Sync[F].delay(
-        sm.generalMetrics.serviceErrors.observe(SimpleTimer.elapsedSecondsFromNanos(begin, end)))
+      now <- Sync[F].delay(System.nanoTime)
+      _ <- errorResponseHandler.traverse_(status => 
+        Sync[F].delay {
+          serviceMetrics.requestDuration.labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+
+          serviceMetrics.requestDuration.labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+          
+          serviceMetrics.requestCounter.labels(reportMethod(m), reportStatus(status))
+            .inc()
+
+          serviceMetrics.abnormalTerminations.labels(AbnormalTermination.report(AbnormalTermination.ServerError))
+          .inc()
+          
+        }
+      )
+      _ <- Sync[F].delay{
+        serviceMetrics.activeRequests.dec()
+      }
     } yield ()
+  }
+
+
+
+  /**
+  * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
+  *
+  * org_http4s_active_request_total - Gauge 
+  *
+  * org_http4s_response_total{labels=method,code} - Counter
+  * 
+  * org_http4s_abnormal_terminations_total{labels=termination_type} - Counter
+  **/
 
   def apply[F[_]: Effect](
       c: CollectorRegistry,
@@ -133,21 +195,29 @@ object PrometheusMetrics {
       ServiceMetrics(
         requestDuration = Histogram
         .build()
-        .name(prefix + "_" + "requests")
-        .help("Request Duration.")
-        .labelNames("method", "code")
+        .name(prefix + "_" + "response_duration_seconds")
+        .help("Response Duration")
+        .labelNames("method", "serving_phase")
         .register(c),
         activeRequests = Gauge
         .build()
-        .name(prefix + "_" + "active_requests")
+        .name(prefix + "_" + "active_requests_count")
         .help("Total Active Requests.")
         .register(c),
-        responseCount = ???,
-        abnormalTerminations = ???
+        requestCounter = Counter.build()
+          .name(prefix + "_" + "request_total")
+          .help("Total Responses.")
+          .labelNames("method","code")
+          .register(c),
+        abnormalTerminations = Counter.build()
+          .name(prefix + "_" + "abnormal_terminations_total")
+          .help("Total Abnormal Terminations.")
+          .labelNames("termination_type")
+          .register(c)
       )
 
     { service: HttpService[F] =>
-      Kleisli(metricsService[F](serviceMetrics, service)(_))
+      Kleisli(metricsService[F](serviceMetrics, service, emptyResponseHandler, errorResponseHandler)(_))
     }
   }
 
