@@ -3,7 +3,8 @@ package server
 package middleware
 
 import cats._
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
+import cats.implicits._
 
 /** Removes a trailing slash from [[Request]] path
   *
@@ -12,14 +13,13 @@ import cats.data.{Kleisli, OptionT}
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply[F[_]: Monad](service: HttpService[F]): HttpService[F] =
-    Kleisli { req =>
-      service(req).orElse {
-        val pi = req.pathInfo
-        if (pi.isEmpty || pi.charAt(pi.length - 1) != '/')
-          OptionT.none
-        else
-          service.apply(req.withPathInfo(pi.substring(0, pi.length - 1)))
-      }
+  def apply[F[_], G[_]: Functor, B](service: Kleisli[F, Request[G], B])(
+      implicit M: MonoidK[F]): Kleisli[F, Request[G], B] =
+    service <+> Kleisli { req =>
+      val pi = req.pathInfo
+      if (pi.isEmpty || pi.charAt(pi.length - 1) != '/')
+        M.empty
+      else
+        service.apply(req.withPathInfo(pi.substring(0, pi.length - 1)))
     }
 }

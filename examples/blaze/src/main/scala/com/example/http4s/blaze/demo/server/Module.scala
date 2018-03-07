@@ -24,9 +24,9 @@ class Module[F[_]](client: Client[F])(implicit F: Effect[F], S: Scheduler) {
   private val gitHubService = new GitHubService[F](client)
 
   def middleware: HttpMiddleware[F] = { (service: HttpService[F]) =>
-    GZip(service)(F)
+    GZip(service)
   }.compose { service =>
-    AutoSlash(service)(F)
+    AutoSlash(service)
   }
 
   val fileHttpEndpoint: HttpService[F] =
