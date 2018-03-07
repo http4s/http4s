@@ -6,7 +6,6 @@ import cats.effect._
 import cats.implicits._
 import fs2.Stream
 import org.http4s._
-import org.http4s.server.HttpMiddleware
 
 object PrometheusMetrics {
 
@@ -189,7 +188,7 @@ object PrometheusMetrics {
     *
     * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
     *
-    * org_http4s_active_request_total - Gauge
+    * org_http4s_active_request_count - Gauge
     *
     * org_http4s_response_total{labels=method,code} - Counter
     *
@@ -200,38 +199,37 @@ object PrometheusMetrics {
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = e => Status.InternalServerError.some
-  ): F[HttpMiddleware[F]] = Sync[F].delay {
-
-    val serviceMetrics =
-      ServiceMetrics(
-        requestDuration = Histogram
-          .build()
-          .name(prefix + "_" + "response_duration_seconds")
-          .help("Response Duration")
-          .labelNames("method", "serving_phase")
-          .register(c),
-        activeRequests = Gauge
-          .build()
-          .name(prefix + "_" + "active_requests_count")
-          .help("Total Active Requests.")
-          .register(c),
-        requestCounter = Counter
-          .build()
-          .name(prefix + "_" + "request_total")
-          .help("Total Responses.")
-          .labelNames("method", "code")
-          .register(c),
-        abnormalTerminations = Counter
-          .build()
-          .name(prefix + "_" + "abnormal_terminations_total")
-          .help("Total Abnormal Terminations.")
-          .labelNames("termination_type")
-          .register(c)
-      )
-
-    { service: HttpService[F] =>
+  ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
+    Sync[F].delay {
+      val serviceMetrics =
+        ServiceMetrics(
+          requestDuration = Histogram
+            .build()
+            .name(prefix + "_" + "response_duration_seconds")
+            .help("Response Duration")
+            .labelNames("method", "serving_phase")
+            .register(c),
+          activeRequests = Gauge
+            .build()
+            .name(prefix + "_" + "active_requests_count")
+            .help("Total Active Requests.")
+            .register(c),
+          requestCounter = Counter
+            .build()
+            .name(prefix + "_" + "response_total")
+            .help("Total Responses.")
+            .labelNames("method", "code")
+            .register(c),
+          abnormalTerminations = Counter
+            .build()
+            .name(prefix + "_" + "abnormal_terminations_total")
+            .help("Total Abnormal Terminations.")
+            .labelNames("termination_type")
+            .register(c)
+        )
       Kleisli(
-        metricsService[F](serviceMetrics, service, emptyResponseHandler, errorResponseHandler)(_))
+        metricsService[F](serviceMetrics, service, emptyResponseHandler, errorResponseHandler)(_)
+      )
     }
   }
 
