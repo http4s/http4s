@@ -10,8 +10,9 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
-  def toEntity(mp: Multipart[F]): F[Entity[F]] =
-    Sync[F].delay(Entity(renderParts(mp.boundary)(mp.parts), None))
+  //Note: Is this actually effecting?
+  def toEntity(mp: Multipart[F]): Entity[F] =
+    Entity(renderParts(mp.boundary)(mp.parts), None)
 
   val dash: String = "--"
 

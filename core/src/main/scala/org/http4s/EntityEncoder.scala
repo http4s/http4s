@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats._
-import cats.effect.{Async, Sync}
+import cats.effect.Sync
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -11,16 +11,14 @@ import java.nio.CharBuffer
 import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
-import org.http4s.syntax.async._
 import scala.annotation.implicitNotFound
-import scala.concurrent.{ExecutionContext, Future}
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
 trait EntityEncoder[F[_], A] { self =>
 
   /** Convert the type `A` to an [[EntityEncoder.Entity]] in the effect type `F` */
-  def toEntity(a: A): F[Entity[F]]
+  def toEntity(a: A): Entity[F]
 
   /** Headers that may be added to a [[Message]]
     *
@@ -31,7 +29,7 @@ trait EntityEncoder[F[_], A] { self =>
 
   /** Make a new [[EntityEncoder]] using this type as a foundation */
   def contramap[B](f: B => A): EntityEncoder[F, B] = new EntityEncoder[F, B] {
-    override def toEntity(a: B): F[Entity[F]] = self.toEntity(f(a))
+    override def toEntity(a: B): Entity[F] = self.toEntity(f(a))
     override def headers: Headers = self.headers
   }
 
@@ -43,7 +41,7 @@ trait EntityEncoder[F[_], A] { self =>
 
   /** Generate a new EntityEncoder that will contain the `Content-Type` header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[F, A] = new EntityEncoder[F, A] {
-    override def toEntity(a: A): F[Entity[F]] = self.toEntity(a)
+    override def toEntity(a: A): Entity[F] = self.toEntity(a)
     override val headers: Headers = self.headers.put(tpe)
   }
 }
@@ -54,14 +52,14 @@ object EntityEncoder extends EntityEncoderInstances {
   def apply[F[_], A](implicit ev: EntityEncoder[F, A]): EntityEncoder[F, A] = ev
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Headers)(f: A => F[Entity[F]]): EntityEncoder[F, A] =
+  def encodeBy[F[_], A](hs: Headers)(f: A => Entity[F]): EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
-      override def toEntity(a: A): F[Entity[F]] = f(a)
+      override def toEntity(a: A): Entity[F] = f(a)
       override def headers: Headers = hs
     }
 
   /** Create a new [[EntityEncoder]] */
-  def encodeBy[F[_], A](hs: Header*)(f: A => F[Entity[F]]): EntityEncoder[F, A] = {
+  def encodeBy[F[_], A](hs: Header*)(f: A => Entity[F]): EntityEncoder[F, A] = {
     val hdrs = if (hs.nonEmpty) Headers(hs.toList) else Headers.empty
     encodeBy(hdrs)(f)
   }
@@ -70,11 +68,10 @@ object EntityEncoder extends EntityEncoderInstances {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte])(
-      implicit F: Applicative[F]): EntityEncoder[F, A] =
+  def simple[F[_], A](hs: Header*)(toChunk: A => Chunk[Byte]): EntityEncoder[F, A] =
     encodeBy(hs: _*) { a =>
       val c = toChunk(a)
-      F.pure(Entity(chunk(c), Some(c.size.toLong)))
+      Entity[F](chunk(c).covary[F], Some(c.size.toLong))
     }
 }
 
@@ -89,21 +86,10 @@ trait EntityEncoderInstances0 {
     simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
   }
 
-  def emptyEncoder[F[_], A](implicit F: Applicative[F]): EntityEncoder[F, A] =
+  def emptyEncoder[F[_], A]: EntityEncoder[F, A] =
     new EntityEncoder[F, A] {
-      def toEntity(a: A): F[Entity[F]] = F.pure(Entity.empty)
+      def toEntity(a: A): Entity[F] = Entity.empty
       def headers: Headers = Headers.empty
-    }
-
-  implicit def futureEncoder[F[_], A](
-      implicit F: Async[F],
-      ec: ExecutionContext,
-      W: EntityEncoder[F, A]): EntityEncoder[F, Future[A]] =
-    new EntityEncoder[F, Future[A]] {
-      override def toEntity(future: Future[A]): F[Entity[F]] =
-        F.fromFuture(future).flatMap(W.toEntity)
-
-      override def headers: Headers = Headers.empty
     }
 
   /**
@@ -112,11 +98,10 @@ trait EntityEncoderInstances0 {
     * advance.  This is for use with chunked transfer encoding.
     */
   implicit def streamEncoder[F[_], A](
-      implicit F: Applicative[F],
-      W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
+      implicit W: EntityEncoder[F, A]): EntityEncoder[F, Stream[F, A]] =
     new EntityEncoder[F, Stream[F, A]] {
-      override def toEntity(a: Stream[F, A]): F[Entity[F]] =
-        F.pure(Entity(a.evalMap(W.toEntity).flatMap(_.body)))
+      override def toEntity(a: Stream[F, A]): Entity[F] =
+        Entity(a.flatMap(W.toEntity(_).body))
 
       override def headers: Headers =
         W.headers.get(`Transfer-Encoding`) match {
@@ -137,15 +122,13 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     emptyEncoder[F, Unit]
 
   implicit def stringEncoder[F[_]](
-      implicit F: Applicative[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
+      implicit charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
     simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
   }
 
   implicit def charArrayEncoder[F[_]](
-      implicit F: Applicative[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
+      implicit charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
   implicit def segmentEncoder[F[_]: Applicative]: EntityEncoder[F, Segment[Byte, Unit]] =
@@ -161,29 +144,32 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     * `Transfer-Encoding: chunked` header is set, as we cannot know
     * the content length without running the stream.
     */
-  implicit def entityBodyEncoder[F[_]](
-      implicit F: Applicative[F]): EntityEncoder[F, EntityBody[F]] =
+  implicit def entityBodyEncoder[F[_]]: EntityEncoder[F, EntityBody[F]] =
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { body =>
-      F.pure(Entity(body, None))
+      Entity(body, None)
     }
+//
+//  implicit def effectEncoder[F[_], A](
+//      implicit F: FlatMap[F],
+//      W: EntityEncoder[F, A]): EntityEncoder[F, F[A]] =
+//    new EntityEncoder[F, F[A]] {
+//      override def toEntity(a: F[A]): Entity[F] = a.map(W.toEntity)
+//      override def headers: Headers = W.headers
+//    }
 
-  implicit def effectEncoder[F[_], A](
-      implicit F: FlatMap[F],
-      W: EntityEncoder[F, A]): EntityEncoder[F, F[A]] =
-    new EntityEncoder[F, F[A]] {
-      override def toEntity(a: F[A]): F[Entity[F]] = a.flatMap(W.toEntity)
-      override def headers: Headers = W.headers
-    }
-
-  // TODO parameterize chunk size
-  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+//  // TODO parameterize chunk size
+//  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+//  implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
+//    inputStreamEncoder[F, FileInputStream].contramap(file => F.delay(new FileInputStream(file)))
   implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
-    inputStreamEncoder[F, FileInputStream].contramap(file => F.delay(new FileInputStream(file)))
+    filePathEncoder[F].contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def filePathEncoder[F[_]: Sync]: EntityEncoder[F, Path] =
-    fileEncoder[F].contramap(_.toFile)
+    encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
+      Entity(file.readAll[F](p, 4096)) //2 KB :P
+    }
 
   // TODO parameterize chunk size
   implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =

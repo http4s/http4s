@@ -20,8 +20,10 @@ class GitHubHttpEndpoint[F[_]](gitHubService: GitHubService[F])(implicit F: Sync
 
     // OAuth2 Callback URI
     case GET -> Root / ApiVersion / "login" / "github" :? CodeQuery(code) :? StateQuery(state) =>
-      Ok(gitHubService.accessToken(code, state).flatMap(gitHubService.userData))
-        .map(_.putHeaders(Header("Content-Type", "application/json")))
+      for {
+        o <- Ok()
+        code <- gitHubService.accessToken(code, state).flatMap(gitHubService.userData)
+      } yield o.withBody(code).putHeaders(Header("Content-Type", "application/json"))
   }
 
 }

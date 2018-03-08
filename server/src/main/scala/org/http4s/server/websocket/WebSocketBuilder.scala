@@ -49,9 +49,9 @@ object WebSocketBuilder {
         receive: Sink[F, WebSocketFrame],
         headers: Headers = Headers.empty,
         onNonWebSocketRequest: F[Response[F]] =
-          Response[F](Status.NotImplemented).withBody("This is a WebSocket route."),
+          Response[F](Status.NotImplemented).withBody("This is a WebSocket route.").pure[F],
         onHandshakeFailure: F[Response[F]] =
-          Response[F](Status.BadRequest).withBody("WebSocket handshake failed.")): F[Response[F]] =
+          Response[F](Status.BadRequest).withBody("WebSocket handshake failed.").pure[F]): F[Response[F]] =
       WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
         .map(
           _.withAttribute(

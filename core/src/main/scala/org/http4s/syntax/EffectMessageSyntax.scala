@@ -13,8 +13,8 @@ trait EffectMessageSyntax[F[_], M <: Message[F]] extends Any with MessageOps[F] 
   def transformHeaders(f: Headers => Headers)(implicit F: Functor[F]): Self =
     self.map(_.transformHeaders(f))
 
-  def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): Self =
-    self.flatMap(_.withBody(b).widen[M#Self])
+  def withBody[T](b: T)(implicit F: Functor[F], w: EntityEncoder[F, T]): Self =
+    self.map(_.withBody(b))
 
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     self.map(_.withAttribute(key, value))

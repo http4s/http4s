@@ -55,23 +55,20 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): F[Self] =
-    w.toEntity(b).flatMap { entity =>
-      val hs = entity.length match {
-        case Some(l) =>
-          `Content-Length`
-            .fromLong(l)
-            .fold(
-              _ =>
-                F.pure {
-                  Message.logger.warn(s"Attempt to provide a negative content length of $l")
-                  w.headers.toList
-              },
-              cl => F.pure(cl :: w.headers.toList))
-        case None => F.pure(w.headers)
-      }
-      hs.map(newHeaders => change(body = entity.body, headers = headers ++ newHeaders))
+  def withBody[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
+    val entity = w.toEntity(b)
+    val hs = entity.length match {
+      case Some(l) =>
+        `Content-Length`
+          .fromLong(l)
+          .fold(_ => {
+            Message.logger.warn(s"Attempt to provide a negative content length of $l")
+            w.headers.toList
+          }, cl => cl :: w.headers.toList)
+      case None => w.headers
     }
+    change(body = entity.body, headers = headers ++ hs)
+  }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
     * or `Content-Length`. Most use cases are better served by [[withBody]],
@@ -378,5 +375,5 @@ object Response {
 
   def notFoundFor[F[_]: Monad](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Response(Status.NotFound).withBody(s"${request.pathInfo} not found")
+    Monad[F].pure(Response(Status.NotFound).withBody(s"${request.pathInfo} not found"))
 }
