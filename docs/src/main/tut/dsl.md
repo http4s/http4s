@@ -214,14 +214,15 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You can seamlessly respond with a `Future` of any type that has an
-`EntityEncoder`.
+You can respond with a `Future` of any type that has an
+`EntityEncoder` by lifting it into IO. Note: `Future` is a side effecting and
+impure member of the standard library, thus we must defer its evaluation
 
 ```tut
-val io = Ok(Future {
+val io = IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
-})
+})).flatMap(Ok(_))
 io.unsafeRunSync
 ```
 
@@ -229,10 +230,10 @@ As good functional programmers who like to delay our side effects, we
 of course prefer to operate in [F]s:
 
 ```tut
-val io = Ok(IO {
+val io = IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
-})
+}.flatMap(Ok(_))
 io.unsafeRunSync
 ```
 
@@ -244,7 +245,7 @@ in its HTTP envelope, and thus has what it needs to calculate a
 #### Streaming bodies
 
 Streaming bodies are supported by returning a `fs2.Stream`.
-Like `Future`s and `IO`s, the stream may be of any type that has an
+Like `IO`, the stream may be of any type that has an
 `EntityEncoder`.
 
 An intro to `Stream` is out of scope, but we can glimpse the
@@ -328,7 +329,7 @@ def getUserName(userId: Int): IO[String] = ???
 
 val usersService = HttpService[IO] {
   case GET -> Root / "users" / IntVar(userId) =>
-    Ok(getUserName(userId))
+    getUserName(userId).flatMap(Ok(_))
 }
 ```
 
@@ -354,7 +355,7 @@ def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
 val dailyWeatherService = HttpService[IO] {
   case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
-    Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
+    getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _).flatMap(Ok(_))
 }
 
 println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
@@ -386,7 +387,8 @@ def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Doub
 
 val averageTemperatureService = HttpService[IO] {
   case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
-    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
+    getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _)
+    .flatMap(Ok(_))
 }
 ```
 
