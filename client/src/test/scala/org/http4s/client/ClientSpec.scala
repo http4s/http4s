@@ -2,13 +2,14 @@ package org.http4s
 package client
 
 import cats.effect._
+import cats.implicits._
 import java.io.IOException
 import org.http4s.Method._
 import org.http4s.Status.Ok
 
 class ClientSpec extends Http4sSpec {
   val service = HttpService[IO] {
-    case r => Response[IO](Ok).withBody(r.body)
+    case r => Response[IO](Ok).withBody(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpService(service)
 
@@ -20,6 +21,7 @@ class ClientSpec extends Http4sSpec {
     "fail to read body after dispose" in {
       Request[IO](POST)
         .withBody("foo")
+        .pure[IO]
         .flatMap { req =>
           // This is bad.  Don't do this.
           client.fetch(req)(IO.pure).flatMap(_.as[String])

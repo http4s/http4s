@@ -1,6 +1,7 @@
 package org.http4s
 package client
 
+import cats.syntax.applicative._
 import cats.effect._
 import fs2._
 import fs2.Stream._
@@ -14,15 +15,15 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
 
   val route = HttpService[IO] {
     case r if r.method == GET && r.pathInfo == "/" =>
-      Response[IO](Ok).withBody("hello")
+      Response[IO](Ok).withBody("hello").pure[IO]
     case r if r.method == PUT && r.pathInfo == "/put" =>
-      Response[IO](Created).withBody(r.body)
+      Response[IO](Created).withBody(r.body).pure[IO]
     case r if r.method == GET && r.pathInfo == "/echoheaders" =>
       r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
-        Response[IO](Ok).withBody(m.toString)
+        Response[IO](Ok).withBody(m.toString).pure[IO]
       }
     case r if r.pathInfo == "/status/500" =>
-      Response(InternalServerError).withBody("Oops")
+      Response[IO](InternalServerError).withBody("Oops").pure[IO]
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 

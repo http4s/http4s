@@ -55,5 +55,8 @@ package object websocket {
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],
       W: EntityEncoder[F, String]): F[Response[F]] =
-    WS(send, receive, Response[F](Status.NotImplemented).withBody("This is a WebSocket route.").pure[F])
+    WS(
+      send,
+      receive,
+      Response[F](Status.NotImplemented).withBody("This is a WebSocket route.").pure[F])
 }

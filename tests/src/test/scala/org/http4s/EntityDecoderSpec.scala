@@ -1,6 +1,5 @@
 package org.http4s
 
-import cats._
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -23,7 +22,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))
 
   "EntityDecoder".can {
-    val req = Response[IO](Ok).withBody("foo")
+    val req = Response[IO](Ok).withBody("foo").pure[IO]
     "flatMapR with success" in {
       DecodeResult.success(req).flatMap { r =>
         EntityDecoder
@@ -286,10 +285,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(IO.pure("hooray")))
       IO.async[String] { cb =>
         request
-          .flatMap(_.decodeWith(happyDecoder, strict = false) { s =>
+          .decodeWith(happyDecoder, strict = false) { s =>
             cb(Right(s))
             IO.pure(Response())
-          })
+          }
           .unsafeRunSync
         ()
       } must returnValue("hooray")
@@ -298,9 +297,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder: EntityDecoder[IO, String] = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ =>
         DecodeResult.failure[IO, String](IO.pure(MalformedMessageBodyFailure("Bah!"))))
-      request.flatMap(_.decodeWith(grumpyDecoder, strict = false) { _ =>
+      request.decodeWith(grumpyDecoder, strict = false) { _ =>
         IO.pure(Response())
-      }) must returnValue(haveStatus(Status.BadRequest))
+      } must returnValue(haveStatus(Status.BadRequest))
     }
   }
 
@@ -308,7 +307,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     val server: Request[IO] => IO[Response[IO]] = { req =>
       req
-        .decode[UrlForm](form => Response(Ok).withBody(form))
+        .decode[UrlForm](form => Response[IO](Ok).withBody(form).pure[IO])
         .attempt
         .map((e: Either[Throwable, Response[IO]]) => e.right.getOrElse(Response(Status.BadRequest)))
     }
@@ -320,8 +319,9 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           "Age" -> Seq("23"),
           "Name" -> Seq("Jonathan Doe")
         ))
-      val resp: IO[Response[IO]] = Request()
-        .withBody(urlForm)(Monad[IO], UrlForm.entityEncoder(Applicative[IO], Charset.`UTF-8`))
+      val resp: IO[Response[IO]] = Request[IO]()
+        .withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
+        .pure[IO]
         .flatMap(server)
       resp must returnValue(haveStatus(Ok))
       DecodeResult
@@ -360,7 +360,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) { req =>
           req.decodeWith(textFile(tmpFile), strict = false) { _ =>
-            Response(Ok).withBody("Hello")
+            Response[IO](Ok).withBody("Hello").pure[IO]
           }
         }.unsafeRunSync
 
@@ -379,7 +379,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val response = mockServe(Request()) {
           case req =>
             req.decodeWith(binFile(tmpFile), strict = false) { _ =>
-              Response(Ok).withBody("Hello")
+              Response[IO](Ok).withBody("Hello").pure[IO]
             }
         }.unsafeRunSync
 
@@ -418,18 +418,17 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "decodeString" should {
     val str = "Oekraïene"
     "Use an charset defined by the Content-Type header" in {
-      Response[IO](Ok)
+      val resp = Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
-        .map(_.withContentType(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
-        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`US-ASCII`)) must returnValue(
-        str)
+        .withContentType(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`)))
+      EntityDecoder.decodeString(resp)(implicitly, Charset.`US-ASCII`) must returnValue(str)
     }
 
     "Use the default if the Content-Type header does not define one" in {
-      Response[IO](Ok)
+      val resp = Response[IO](Ok)
         .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
-        .map(_.withContentType(`Content-Type`(MediaType.`text/plain`, None)))
-        .flatMap(EntityDecoder.decodeString(_)(implicitly, Charset.`UTF-8`)) must returnValue(str)
+        .withContentType(`Content-Type`(MediaType.`text/plain`, None))
+      EntityDecoder.decodeString(resp)(implicitly, Charset.`UTF-8`) must returnValue(str)
     }
   }
 

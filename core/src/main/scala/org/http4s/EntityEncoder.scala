@@ -148,19 +148,9 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { body =>
       Entity(body, None)
     }
-//
-//  implicit def effectEncoder[F[_], A](
-//      implicit F: FlatMap[F],
-//      W: EntityEncoder[F, A]): EntityEncoder[F, F[A]] =
-//    new EntityEncoder[F, F[A]] {
-//      override def toEntity(a: F[A]): Entity[F] = a.map(W.toEntity)
-//      override def headers: Headers = W.headers
-//    }
 
 //  // TODO parameterize chunk size
 //  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-//  implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
-//    inputStreamEncoder[F, FileInputStream].contramap(file => F.delay(new FileInputStream(file)))
   implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
     filePathEncoder[F].contramap(_.toPath)
 

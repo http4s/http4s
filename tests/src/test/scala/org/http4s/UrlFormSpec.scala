@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats._
+import cats.syntax.applicative._
 import cats.data._
 import cats.effect.IO
 
@@ -20,8 +20,10 @@ class UrlFormSpec extends Http4sSpec {
 
     "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
       DecodeResult
-        .success(Request[IO]()
-          .withBody(urlForm)(Monad[IO], UrlForm.entityEncoder(Applicative[IO], charset)))
+        .success(
+          Request[IO]()
+            .withBody(urlForm)(UrlForm.entityEncoder(charset))
+            .pure[IO])
         .flatMap { req =>
           UrlForm.entityDecoder[IO].decode(req, strict = false)
         } must returnRight(urlForm)

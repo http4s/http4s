@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats.effect._
+import cats.syntax.applicative._
 import org.http4s.Method._
 import org.http4s.headers.Host
 import org.http4s.Status.{BadRequest, NotFound, Ok}
@@ -10,15 +11,15 @@ import org.http4s.Status.{BadRequest, NotFound, Ok}
 class VirtualHostSpec extends Http4sSpec {
 
   val default = HttpService[IO] {
-    case _ => Response(Ok).withBody("default")
+    case _ => Response[IO](Ok).withBody("default").pure[IO]
   }
 
   val servicea = HttpService[IO] {
-    case _ => Response(Ok).withBody("servicea")
+    case _ => Response[IO](Ok).withBody("servicea").pure[IO]
   }
 
   val serviceb = HttpService[IO] {
-    case _ => Response(Ok).withBody("serviceb")
+    case _ => Response[IO](Ok).withBody("serviceb").pure[IO]
   }
 
   "VirtualHost" >> {

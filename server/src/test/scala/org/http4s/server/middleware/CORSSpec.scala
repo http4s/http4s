@@ -10,8 +10,8 @@ import org.http4s.headers._
 class CORSSpec extends Http4sSpec {
 
   val service = HttpService[IO] {
-    case req if req.pathInfo == "/foo" => Response(Ok).withBody("foo")
-    case req if req.pathInfo == "/bar" => Response(Unauthorized).withBody("bar")
+    case req if req.pathInfo == "/foo" => Response[IO](Ok).withBody("foo").pure[IO]
+    case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withBody("bar").pure[IO]
   }
 
   val cors1 = CORS(service)

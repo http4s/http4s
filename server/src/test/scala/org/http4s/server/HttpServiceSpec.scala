@@ -8,21 +8,21 @@ class HttpServiceSpec extends Http4sSpec {
 
   val srvc1 = HttpService[IO] {
     case req if req.pathInfo == "/match" =>
-      Response[IO](Status.Ok).withBody("match")
+      Response[IO](Status.Ok).withBody("match").pure[IO]
 
     case req if req.pathInfo == "/conflict" =>
-      Response[IO](Status.Ok).withBody("srvc1conflict")
+      Response[IO](Status.Ok).withBody("srvc1conflict").pure[IO]
 
     case req if req.pathInfo == "/notfound" =>
-      Response[IO](Status.NotFound).withBody("notfound")
+      Response[IO](Status.NotFound).withBody("notfound").pure[IO]
   }
 
   val srvc2 = HttpService[IO] {
     case req if req.pathInfo == "/srvc2" =>
-      Response[IO](Status.Ok).withBody("srvc2")
+      Response[IO](Status.Ok).withBody("srvc2").pure[IO]
 
     case req if req.pathInfo == "/conflict" =>
-      Response[IO](Status.Ok).withBody("srvc2conflict")
+      Response[IO](Status.Ok).withBody("srvc2conflict").pure[IO]
   }
 
   val aggregate1 = srvc1 <+> srvc2
