@@ -12,6 +12,46 @@ object MultipartParser {
 
   private[this] val logger = org.log4s.getLogger
 
+  /** New whey **/
+  private val CRLFBytesR = Array[Byte]('\r', '\n')
+  private val DashDashBytesR = Array[Byte]('-', '-')
+  private val boundaryBytesR: Boundary => Array[Byte] = boundary => boundary.value.getBytes("UTF-8")
+  private val startLineBytesR: Boundary => Array[Byte] = boundaryBytesR
+    .andThen { r =>
+      val newArr = new Array[Byte](r.length + DashDashBytesR.length)
+
+      /** Disgusting but FAST BOII **/
+      System.arraycopy(DashDashBytesR, 0, newArr, 0, DashDashBytesR.length)
+      System.arraycopy(r, 0, newArr, DashDashBytesR.length, r.length)
+      newArr
+    }
+
+  private val endLineBytesR: Boundary => Array[Byte] = boundaryBytesR.andThen { r =>
+    val newArr = new Array[Byte](r.length + DashDashBytesR.length * 2)
+
+    /** Disgusting but FAST BOII **/
+    System.arraycopy(DashDashBytesR, 0, newArr, 0, DashDashBytesR.length)
+    System.arraycopy(r, 0, newArr, DashDashBytesR.length, r.length)
+    System.arraycopy(
+      DashDashBytesR,
+      0,
+      newArr,
+      DashDashBytesR.length + r.length,
+      DashDashBytesR.length)
+    newArr
+  }
+//  private val endLineBytesR: Boundary => Array[Byte] = startLineBytesR.andThen(_ ++ DashDashBytes)
+  private val expectedBytesR: Boundary => Array[Byte] = boundaryBytesR.andThen { r =>
+    val newArr = new Array[Byte](r.length + DashDashBytesR.length + CRLFBytesR.length)
+
+    /** Disgusting but FAST BOII **/
+    System.arraycopy(DashDashBytesR, 0, newArr, 0, DashDashBytesR.length)
+    System.arraycopy(r, 0, newArr, DashDashBytesR.length, r.length)
+    System.arraycopy(CRLFBytesR, 0, newArr, DashDashBytesR.length + r.length, CRLFBytesR.length)
+    newArr
+  }
+
+  /** Ol' way **/
   private val CRLFBytes = ByteVector('\r', '\n')
   private val DashDashBytes = ByteVector('-', '-')
   private val boundaryBytes: Boundary => ByteVector = boundary =>
@@ -31,6 +71,48 @@ object MultipartParser {
     Stream
       .eval(listT)
       .flatMap(list => Stream.emits(list))
+  }
+
+  private def findAndStrip[F[_]: Sync](
+      values: Array[Byte],
+      stream: Stream[F, Byte]): Stream[F, Byte] = {
+    val len = values.length
+    @tailrec def tailrecCheck(st: Int, i: Int, c: Chunk[Byte]): Int =
+      if (st >= len || i == c.size) {
+        st
+      } else if (c(i) != values(st)) {
+        -1
+      } else tailrecCheck(st + 1, i + 1, c)
+
+    def go(s: Stream[F, Byte], state: Int): Pull[F, Byte, Unit] =
+      if (state == len) {
+        s.pull.echo
+      } else {
+        s.pull.unconsChunk.flatMap {
+          case Some((chnk, str)) =>
+            val bytes = chnk.toBytes
+            val check = tailrecCheck(state, 0, bytes)
+            if (check == -1) {
+              Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
+            } else {
+              go(str, check)
+            }
+          case None =>
+            Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
+        }
+      }
+
+    stream.pull.unconsChunk.flatMap {
+      case Some((chnk, strim)) =>
+        val check = tailrecCheck(0, 0, chnk)
+        if (check == -1) {
+          Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
+        } else {
+          go(strim, check)
+        }
+      case None =>
+        Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
+    }.stream
   }
 
   /**
