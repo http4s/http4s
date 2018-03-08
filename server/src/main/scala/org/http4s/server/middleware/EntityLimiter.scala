@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.Kleisli
 import fs2._
 import scala.util.control.NoStackTrace
 
@@ -11,8 +12,8 @@ object EntityLimiter {
 
   val DefaultMaxEntitySize: Long = 2L * 1024L * 1024L // 2 MB default
 
-  def apply[F[_]](service: HttpService[F], limit: Long = DefaultMaxEntitySize): HttpService[F] =
-    service.local { req: Request[F] =>
+  def apply[F[_], G[_], B](service: Kleisli[F, Request[G], B], limit: Long = DefaultMaxEntitySize): Kleisli[F, Request[G], B] =
+    service.local { req: Request[G] =>
       req.withBodyStream(req.body.through(takeLimited(limit)))
     }
 
