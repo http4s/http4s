@@ -48,7 +48,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     change(attributes = attributes.put(key, value))
 
-  @deprecated("User withEntity and `pure`", "0.19")
+  @deprecated("Use withEntity", "0.19")
   def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
     F.pure(withEntity(b))
 
