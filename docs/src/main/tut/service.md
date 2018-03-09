@@ -78,7 +78,7 @@ be seen as `Ok(getTweet(tweetId))(tweetEncoder)`.
 
 We've defined `tweetsEncoder` as being implicit so that we don't need to explicitly
 reference it when serving the response, which can be seen as
-`Ok(getPopularTweets())`.
+`getPopularTweets().flatMap(Ok(_))`.
 
 ```tut:book
 case class Tweet(id: Int, message: String)
@@ -91,7 +91,7 @@ def getPopularTweets(): IO[Seq[Tweet]] = ???
 
 val tweetService = HttpService[IO] {
   case GET -> Root / "tweets" / "popular" =>
-    Ok(getPopularTweets())
+    getPopularTweets().flatMap(Ok(_))
   case GET -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId).flatMap(Ok(_))
 }

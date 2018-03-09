@@ -706,17 +706,16 @@ trait ArbitraryInstances {
       for {
         body <- genEntityBody
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body, length)
+      } yield Entity(body.covary[F], length)
     })
 
   implicit def cogenEntity[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def arbitraryEntityEncoder[F[_], A](
-      implicit CA: Cogen[A],
-      AF: Arbitrary[F[Entity[F]]]): Arbitrary[EntityEncoder[F, A]] =
+      implicit CA: Cogen[A]): Arbitrary[EntityEncoder[F, A]] =
     Arbitrary(for {
-      f <- arbitrary[A => F[Entity[F]]]
+      f <- arbitrary[A => Entity[F]]
       hs <- arbitrary[Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 }

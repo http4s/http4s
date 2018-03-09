@@ -46,7 +46,7 @@ object CirceJsonBench {
       val arraySize = (approxContentLength.toDouble /
         jsonStr.getBytes("UTF-8").length.toDouble).round.toInt
       val json = Json.arr((1 to arraySize).map(_ => obj): _*)
-      req = Request[IO]().withBody(json).unsafeRunSync
+      req = Request[IO]().withEntity(json)
       println(
         s"Array size: $arraySize; Approx. Content-Length: $approxContentLength; Content-Length: ${req.contentLength}")
     }

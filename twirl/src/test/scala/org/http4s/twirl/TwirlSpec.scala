@@ -26,9 +26,8 @@ class TwirlSpec extends Http4sSpec {
     }
 
     "render the body" in prop { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withBody(html.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
-        "<h1>test html</h1>")
+      val resp = Response[IO](Ok).withEntity(html.test())
+      text[IO].decode(resp, strict = false).value.unsafeRunSync must beRight("<h1>test html</h1>")
     }
   }
 
@@ -41,9 +40,8 @@ class TwirlSpec extends Http4sSpec {
     }
 
     "render the body" in prop { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withBody(js.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
-        """"test js"""")
+      val resp = Response[IO](Ok).withEntity(js.test())
+      text[IO].decode(resp, strict = false).value.unsafeRunSync must beRight(""""test js"""")
     }
   }
 
@@ -54,9 +52,8 @@ class TwirlSpec extends Http4sSpec {
     }
 
     "render the body" in prop { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withBody(txt.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
-        """test text""")
+      val resp = Response[IO](Ok).withEntity(txt.test())
+      text[IO].decode(resp, strict = false).value.unsafeRunSync must beRight("""test text""")
     }
   }
 
@@ -68,8 +65,8 @@ class TwirlSpec extends Http4sSpec {
     }
 
     "render the body" in prop { implicit cs: Charset =>
-      val resp = Response[IO](Ok).withBody(_root_.xml.test())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
+      val resp = Response[IO](Ok).withEntity(_root_.xml.test())
+      text[IO].decode(resp, strict = false).value.unsafeRunSync must beRight(
         "<test>test xml</test>")
     }
   }

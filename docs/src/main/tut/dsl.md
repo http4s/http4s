@@ -214,14 +214,17 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You can seamlessly respond with a `Future` of any type that has an
-`EntityEncoder`.
+You can respond with a `Future` of any type that has an
+`EntityEncoder` by lifting it into IO or any `F[_]` that suspends future. 
+Note: unlike IO, wrapping a side effect in Future does not
+suspend it, and the resulting expression would still be side 
+effectful, unless we wrap it in IO.
 
 ```tut
-val io = Ok(Future {
+val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
-})
+})))
 io.unsafeRunSync
 ```
 
@@ -244,7 +247,7 @@ in its HTTP envelope, and thus has what it needs to calculate a
 #### Streaming bodies
 
 Streaming bodies are supported by returning a `fs2.Stream`.
-Like `Future`s and `IO`s, the stream may be of any type that has an
+Like `IO`, the stream may be of any type that has an
 `EntityEncoder`.
 
 An intro to `Stream` is out of scope, but we can glimpse the
