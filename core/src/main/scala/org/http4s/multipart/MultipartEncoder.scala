@@ -57,10 +57,14 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
       part.body
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
-    parts.tail
-      .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
-        acc ++
-          renderPart(Segment.array(encapsulationWithoutBody(boundary).getBytes))(part)
-      } ++ Stream.segment(end(boundary))
+    if (parts.isEmpty) {
+      Stream.empty.covary[F]
+    } else {
+      parts.tail
+        .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
+          acc ++
+            renderPart(Segment.array(encapsulationWithoutBody(boundary).getBytes))(part)
+        } ++ Stream.segment(end(boundary))
+    }
 
 }

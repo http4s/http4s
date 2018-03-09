@@ -14,6 +14,7 @@ object MultipartParser {
 
   /** New whey **/
   private val CRLFBytesR = Array[Byte]('\r', '\n')
+  private val DoubleCRLFBytesR = Array[Byte]('\r', '\n', '\r', '\n')
   private val DashDashBytesR = Array[Byte]('-', '-')
   private val boundaryBytesR: Boundary => Array[Byte] = boundary => boundary.value.getBytes("UTF-8")
   private val startLineBytesR: Boundary => Array[Byte] = boundaryBytesR
@@ -45,9 +46,9 @@ object MultipartParser {
     val newArr = new Array[Byte](r.length + DashDashBytesR.length + CRLFBytesR.length)
 
     /** Disgusting but FAST BOII **/
-    System.arraycopy(DashDashBytesR, 0, newArr, 0, DashDashBytesR.length)
-    System.arraycopy(r, 0, newArr, DashDashBytesR.length, r.length)
-    System.arraycopy(CRLFBytesR, 0, newArr, DashDashBytesR.length + r.length, CRLFBytesR.length)
+    System.arraycopy(CRLFBytesR, 0, newArr, 0, CRLFBytesR.length)
+    System.arraycopy(DashDashBytesR, 0, newArr, CRLFBytesR.length, DashDashBytesR.length)
+    System.arraycopy(r, 0, newArr, DashDashBytesR.length + CRLFBytesR.length, r.length)
     newArr
   }
 
@@ -73,30 +74,187 @@ object MultipartParser {
       .flatMap(list => Stream.emits(list))
   }
 
-  private def findAndStrip[F[_]: Sync](
+  def parseR[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Multipart[F]] = { st =>
+    val expectedStart = startLineBytesR(boundary)
+    val expectedEnd = endLineBytesR(boundary)
+    val expectedMiddles = expectedBytesR(boundary)
+    findAndSplit[F](expectedMiddles, ignoreAfter[F](expectedEnd, ignorePrior(expectedStart, st)))
+      .flatMap(parseToPartsR[F])
+      .fold(Vector.empty[Part[F]])(_ :+ _)
+      .map(Multipart(_))
+  }
+
+  def parseStreamed[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Stream[F, Byte]] = { st =>
+    val expectedStart = startLineBytesR(boundary)
+    val expectedEnd = endLineBytesR(boundary)
+    val expectedMiddles = expectedBytesR(boundary)
+    findAndSplit[F](expectedMiddles, ignoreAfter[F](expectedEnd, ignorePrior(expectedStart, st)))
+  }
+
+  /** Split an already truncated stream,
+    * parse the headers from the first part, and set the rest as the
+    * (potentially empty) body.
+    *
+    * This function assumes the stream `s` to have been already
+    * split by the delimited portions
+    */
+  private def parseToPartsR[F[_]: Sync](s: Stream[F, Byte]): Stream[F, Part[F]] =
+    findAndSplit[F](DoubleCRLFBytesR, s).pull.uncons1.flatMap {
+      case Some((strim1, rest)) =>
+        rest.pull.uncons1.flatMap {
+          case Some((strim2, rest2)) =>
+            rest2.pull.uncons1.flatMap {
+              case Some(_) =>
+                Pull.raiseError(MalformedMessageBodyFailure("Part split incorrectly"))
+              case None =>
+                parseHeadersR[F](strim1)
+                  .map(Part[F](_, strim2))
+                  .pull
+                  .echo
+            }
+          case None =>
+            parseHeadersR[F](strim1)
+              .map(Part[F](_, Stream.empty))
+              .pull
+              .echo
+        }
+      case None =>
+        Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
+    }.stream
+
+  /** Parse headers from CRLF separated
+    * stream components.
+    */
+  def parseHeadersR[F[_]: Sync](s: Stream[F, Byte]): Stream[F, Headers] = {
+    def splitH(s1: Stream[F, Byte]): Stream[F, Headers] =
+      s1.through(text.utf8Decode).map { line =>
+        val idx = line.indexOf(':')
+        if (idx >= 0) {
+          Headers(List(Header(line.substring(0, idx), line.substring(idx + 1).trim)))
+        } else {
+          Headers.empty
+        }
+      }
+
+    findAndSplit[F](CRLFBytesR, s).flatMap(splitH).fold(Headers.empty)(_ ++ _)
+  }
+
+  /** This function is the integral component in detecting whether `values`
+    * is either entirely contained in the chunk, partially contained
+    * in the chunk or not in the chunk at all
+    *
+    * @param values the value to look for in the chunk
+    * @param valueIx the current index of the value relative to the chunk.
+    *                This can mean the value is split across chunks.
+    * @param c the offending chunk.
+    * @return
+    */
+  private def stateIndex(values: Array[Byte], valueIx: Int, c: Chunk.Bytes): (Int, Int) = {
+    var i = 0
+    var sti = 0
+    val len2 = values.length - valueIx
+    while (sti < len2 && i < c.length) {
+      if (c(i) != values(sti + valueIx) && sti != 0) {
+        sti = 0
+      } else {
+        sti += 1
+      }
+      i += 1
+    }
+    (sti, i)
+  }
+
+  /** Apply our stateful indexing function, but only return the chunk
+    * after the final index matching the value array
+    */
+  private def emitRest(values: Array[Byte], st: Int, c: Chunk.Bytes): (Int, Chunk.Bytes) = {
+    val (sti, i) = stateIndex(values, st, c)
+    val str = {
+      if (sti == 0) {
+        c
+      } else if (i == c.length) {
+        Chunk.Bytes(Array.empty[Byte])
+      } else {
+        Chunk.Bytes(c.values, c.offset + i, c.length - i)
+      }
+    }
+    (sti + st, str)
+  }
+
+  /** Apply our stateful indexing function, but only return the chunk
+    * before the final index matching the value array
+    */
+  private def emitPrev(values: Array[Byte], st: Int, c: Chunk.Bytes): (Int, Chunk.Bytes) = {
+    val (sti, i) = stateIndex(values, st, c)
+    val str = {
+      if (sti == 0) {
+        c
+      } else {
+        Chunk.Bytes(c.values, c.offset, i - sti)
+      }
+    }
+    (sti + st, str)
+  }
+
+  /** Like `emitPrev` and `emitRest`,
+    * except it returns everything except the matched
+    * `values`.
+    */
+  def emitBoth[F[_]: Sync](
+      values: Array[Byte],
+      state: Int,
+      c: Chunk.Bytes): (Int, Segment[Byte, Unit], Vector[Stream[F, Byte]]) = {
+    @tailrec def segmentRecurse(
+        st: Int,
+        c: Chunk.Bytes,
+        acc: Segment[Byte, Unit],
+        out: Vector[Stream[F, Byte]]): (Int, Segment[Byte, Unit], Vector[Stream[F, Byte]]) = {
+      val (sti, i) = stateIndex(values, state, c)
+      if (sti == 0) {
+        (sti, acc ++ Segment.chunk(c), out)
+      } else if (sti + state == values.length) {
+        segmentRecurse(
+          0,
+          Chunk.Bytes(c.values, c.offset + i, c.length - i),
+          Segment.empty[Byte],
+          out :+ Stream
+            .segment(acc ++ Segment.chunk(Chunk.Bytes(c.values, c.offset, i - sti)))
+            .covary[F]
+        )
+      } else {
+        segmentRecurse(
+          sti + st,
+          Chunk.Bytes(c.values, c.offset + i, c.length - i),
+          acc ++ Segment.chunk(Chunk.Bytes(c.values, c.offset, i - sti)),
+          out
+        )
+      }
+    }
+
+    segmentRecurse(state, c, Segment.empty[Byte], Vector.empty)
+  }
+
+  /** Traverse the stream until the first match of `values`,
+    * emit everything before the match
+    * then discard everything after it.
+    *
+    * @param values the values that may be spread across boundaries
+    * @param stream the stream to split on
+    * @return
+    */
+  private def ignoreAfter[F[_]: Sync](
       values: Array[Byte],
       stream: Stream[F, Byte]): Stream[F, Byte] = {
-    val len = values.length
-    @tailrec def tailrecCheck(st: Int, i: Int, c: Chunk[Byte]): Int =
-      if (st >= len || i == c.size) {
-        st
-      } else if (c(i) != values(st)) {
-        -1
-      } else tailrecCheck(st + 1, i + 1, c)
 
-    def go(s: Stream[F, Byte], state: Int): Pull[F, Byte, Unit] =
-      if (state == len) {
-        s.pull.echo
+    def go(s: Stream[F, Byte], state: Int, lastChunk: Chunk[Byte]): Pull[F, Byte, Unit] =
+      if (state == values.length) {
+        Pull.done
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, str)) =>
             val bytes = chnk.toBytes
-            val check = tailrecCheck(state, 0, bytes)
-            if (check == -1) {
-              Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
-            } else {
-              go(str, check)
-            }
+            val (ix, strim) = emitPrev(values, state, bytes)
+            Pull.outputChunk[F, Byte](lastChunk) *> go(str, ix, strim)
           case None =>
             Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
         }
@@ -104,14 +262,93 @@ object MultipartParser {
 
     stream.pull.unconsChunk.flatMap {
       case Some((chnk, strim)) =>
-        val check = tailrecCheck(0, 0, chnk)
-        if (check == -1) {
-          Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
-        } else {
-          go(strim, check)
-        }
+        val (ix, rest) = emitPrev(values, 0, chnk.toBytes)
+        Pull.outputChunk(rest).flatMap(_ => go(strim, ix, rest))
       case None =>
         Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
+    }.stream
+  }
+
+  /** Traverse the stream until the first match of `values`,
+    * discard everything prior to the match, emit everything after.
+    *
+    * @param values the values that may be spread across boundaries
+    * @param stream the stream to split on
+    * @return
+    */
+  private def ignorePrior[F[_]: Sync](
+      values: Array[Byte],
+      stream: Stream[F, Byte]): Stream[F, Byte] = {
+
+    def go(s: Stream[F, Byte], state: Int, lastChnk: Chunk[Byte]): Pull[F, Byte, Unit] =
+      if (state == values.length) {
+        Pull.outputChunk(lastChnk).flatMap(_ => s.pull.echo)
+      } else {
+        s.pull.unconsChunk.flatMap {
+          case Some((chnk, rest)) =>
+            val bytes = chnk.toBytes
+            //Ignore the unmatched portion
+            val (ix, chnkN) = emitRest(values, state, bytes)
+            go(rest, ix, chnkN)
+          case None =>
+            Pull.raiseError(MalformedMessageBodyFailure("Malformed Malformed match"))
+        }
+      }
+
+    stream.pull.unconsChunk.flatMap {
+      case Some((chnk, strim)) =>
+        val (ix, chnk2) = emitRest(values, 0, chnk.toBytes)
+        go(strim, ix, chnk2)
+      case None =>
+        Pull.raiseError(MalformedMessageBodyFailure("Malformed Message Body"))
+    }.stream
+  }
+
+  /** Traverse the stream, splitting it up into sub-streams
+    * based on `value`
+    *
+    * @param values the values that may be spread across boundaries
+    * @param stream the stream to split on
+    * @return
+    */
+  def findAndSplit[F[_]: Sync](
+      values: Array[Byte],
+      stream: Stream[F, Byte]): Stream[F, Stream[F, Byte]] = {
+
+    def go(s: Stream[F, Byte], state: Int, accum: Stream[F, Byte]): Pull[F, Stream[F, Byte], Unit] =
+      if (state == values.length) {
+        Pull.output1(accum).flatMap(_ => go(s, 0, Stream.empty.covary[F]))
+      } else {
+        s.pull.unconsChunk.flatMap {
+          case Some((chnk, str)) =>
+            val bytes = chnk.toBytes
+            val (ix, seg, strim) = emitBoth(values, state, bytes)
+            if (strim.isEmpty)
+              go(str, ix, accum ++ Stream.segment(seg))
+            else
+              strim.tail
+                .foldLeft(Pull.output1(strim.head))((l, r) => l.flatMap(_ => Pull.output1(r)))
+                .flatMap(_ => go(str, ix, accum ++ Stream.segment(seg)))
+          case None =>
+            if (state != 0) {
+              Pull.raiseError(MalformedMessageBodyFailure("Malformed Message Body"))
+            } else {
+              Pull.output1(accum)
+            }
+        }
+      }
+
+    stream.pull.unconsChunk.flatMap {
+      case Some((chnk, str)) =>
+        val (ix, seq, strim) = emitBoth(values, 0, chnk.toBytes)
+        if (strim.isEmpty)
+          go(str, ix, Stream.segment(seq))
+        else
+          strim.tail
+            .foldLeft(Pull.output1(strim.head))((l, r) => l.flatMap(_ => Pull.output1(r)))
+            .flatMap(_ => go(str, ix, Stream.segment(seq)))
+      case None =>
+        Pull.raiseError(MalformedMessageBodyFailure("Splitting on empty stream"))
     }.stream
   }
 
