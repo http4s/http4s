@@ -2,8 +2,6 @@ package org.http4s
 
 import cats.Eq
 import cats.effect.IO
-import cats.effect.laws.discipline.arbitrary.catsEffectLawsArbitraryForIO
-import cats.effect.laws.util.TestContext
 import cats.implicits._
 import cats.laws.discipline.ContravariantTests
 import cats.laws.discipline.eq._
@@ -13,20 +11,10 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 import org.http4s.headers._
 import org.scalacheck.Arbitrary
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSpec {
   "EntityEncoder" should {
-    "render futures" in {
-      val hello = "Hello"
-      writeToString(Future(hello)) must_== hello
-    }
-
-    "render IOs" in {
-      val hello = "Hello"
-      writeToString(IO.pure(hello)) must_== hello
-    }
 
     "render streams" in {
       val helloWorld: Stream[IO, String] = Stream("hello", "world")
@@ -42,8 +30,7 @@ class EntityEncoderSpec extends Http4sSpec {
     "render streams with chunked transfer encoding without wiping out other encodings" in {
       trait Foo
       implicit val FooEncoder: EntityEncoder[IO, Foo] =
-        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ =>
-          IO.pure(Entity.empty))
+        EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.gzip))(_ => Entity.empty)
       implicitly[EntityEncoder[IO, Stream[IO, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) =>
           coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
@@ -54,7 +41,7 @@ class EntityEncoderSpec extends Http4sSpec {
       trait Foo
       implicit val FooEncoder =
         EntityEncoder.encodeBy[IO, Foo](`Transfer-Encoding`(TransferCoding.chunked))(_ =>
-          IO.pure(Entity.empty))
+          Entity.empty)
       EntityEncoder[IO, Stream[IO, Foo]].headers.get(`Transfer-Encoding`) must beLike {
         case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
       }
@@ -125,8 +112,6 @@ class EntityEncoderSpec extends Http4sSpec {
   }
 
   {
-    implicit val ec: TestContext = TestContext()
-
     implicit val throwableEq: Eq[Throwable] =
       Eq.fromUniversalEquals
 
@@ -142,7 +127,7 @@ class EntityEncoderSpec extends Http4sSpec {
 
     implicit def entityEncoderEq[A: Arbitrary]: Eq[EntityEncoder[IO, A]] =
       Eq.by[EntityEncoder[IO, A], (Headers, A => IO[Entity[IO]])](enc =>
-        (enc.headers, enc.toEntity))
+        (enc.headers, a => IO.pure(enc.toEntity(a))))
 
     checkAll(
       "Contravariant[EntityEncoder[F, ?]]",

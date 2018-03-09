@@ -79,6 +79,7 @@ object Timeout {
   def apply[F[_]: Effect](timeout: Duration)(service: HttpService[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpService[F] =
-    apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(
-      service)
+    apply(
+      timeout,
+      Response[F](Status.InternalServerError).withEntity("The service timed out.").pure[F])(service)
 }

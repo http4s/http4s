@@ -2,6 +2,7 @@ package org.http4s
 package server
 
 import cats._
+import cats.implicits._
 import fs2._
 import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
@@ -48,11 +49,14 @@ package object websocket {
       receive,
       Headers.empty,
       status,
-      Response[F](Status.BadRequest).withBody("WebSocket handshake failed."))
+      Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F])
 
   @deprecated("Use WebSocketBuilder", "0.18.0-M7")
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
       implicit F: Monad[F],
       W: EntityEncoder[F, String]): F[Response[F]] =
-    WS(send, receive, Response[F](Status.NotImplemented).withBody("This is a WebSocket route."))
+    WS(
+      send,
+      receive,
+      Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F])
 }
