@@ -11,15 +11,15 @@ import org.http4s.Status.{BadRequest, NotFound, Ok}
 class VirtualHostSpec extends Http4sSpec {
 
   val default = HttpService[IO] {
-    case _ => Response[IO](Ok).withBody("default").pure[IO]
+    case _ => Response[IO](Ok).withEntity("default").pure[IO]
   }
 
   val servicea = HttpService[IO] {
-    case _ => Response[IO](Ok).withBody("servicea").pure[IO]
+    case _ => Response[IO](Ok).withEntity("servicea").pure[IO]
   }
 
   val serviceb = HttpService[IO] {
-    case _ => Response[IO](Ok).withBody("serviceb").pure[IO]
+    case _ => Response[IO](Ok).withEntity("serviceb").pure[IO]
   }
 
   "VirtualHost" >> {

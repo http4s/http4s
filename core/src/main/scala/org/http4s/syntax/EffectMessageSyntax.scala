@@ -13,8 +13,12 @@ trait EffectMessageSyntax[F[_], M <: Message[F]] extends Any with MessageOps[F] 
   def transformHeaders(f: Headers => Headers)(implicit F: Functor[F]): Self =
     self.map(_.transformHeaders(f))
 
-  def withBody[T](b: T)(implicit F: Functor[F], w: EntityEncoder[F, T]): Self =
-    self.map(_.withBody(b))
+  @deprecated("Use withEntity", "0.19")
+  def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): Self =
+    self.map(_.withEntity(b))
+
+  def withEntity[T](b: T)(implicit F: Functor[F], w: EntityEncoder[F, T]): Self =
+    self.map(_.withEntity(b))
 
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     self.map(_.withAttribute(key, value))

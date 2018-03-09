@@ -81,5 +81,5 @@ object Timeout {
       scheduler: Scheduler): HttpService[F] =
     apply(
       timeout,
-      Response[F](Status.InternalServerError).withBody("The service timed out.").pure[F])(service)
+      Response[F](Status.InternalServerError).withEntity("The service timed out.").pure[F])(service)
 }

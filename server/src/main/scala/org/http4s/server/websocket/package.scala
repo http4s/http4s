@@ -49,7 +49,7 @@ package object websocket {
       receive,
       Headers.empty,
       status,
-      Response[F](Status.BadRequest).withBody("WebSocket handshake failed.").pure[F])
+      Response[F](Status.BadRequest).withEntity("WebSocket handshake failed.").pure[F])
 
   @deprecated("Use WebSocketBuilder", "0.18.0-M7")
   def WS[F[_]](send: Stream[F, WebSocketFrame], receive: Sink[F, WebSocketFrame])(
@@ -58,5 +58,5 @@ package object websocket {
     WS(
       send,
       receive,
-      Response[F](Status.NotImplemented).withBody("This is a WebSocket route.").pure[F])
+      Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F])
 }

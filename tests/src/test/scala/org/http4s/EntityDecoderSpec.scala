@@ -22,7 +22,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))
 
   "EntityDecoder".can {
-    val req = Response[IO](Ok).withBody("foo").pure[IO]
+    val req = Response[IO](Ok).withEntity("foo").pure[IO]
     "flatMapR with success" in {
       DecodeResult.success(req).flatMap { r =>
         EntityDecoder
@@ -278,7 +278,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   }
 
   "apply" should {
-    val request = Request[IO]().withBody("whatever")
+    val request = Request[IO]().withEntity("whatever")
 
     "invoke the function with  the right on a success" in {
       val happyDecoder: EntityDecoder[IO, String] =
@@ -307,7 +307,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     val server: Request[IO] => IO[Response[IO]] = { req =>
       req
-        .decode[UrlForm](form => Response[IO](Ok).withBody(form).pure[IO])
+        .decode[UrlForm](form => Response[IO](Ok).withEntity(form).pure[IO])
         .attempt
         .map((e: Either[Throwable, Response[IO]]) => e.right.getOrElse(Response(Status.BadRequest)))
     }
@@ -320,7 +320,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           "Name" -> Seq("Jonathan Doe")
         ))
       val resp: IO[Response[IO]] = Request[IO]()
-        .withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
+        .withEntity(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`))
         .pure[IO]
         .flatMap(server)
       resp must returnValue(haveStatus(Ok))
@@ -360,7 +360,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) { req =>
           req.decodeWith(textFile(tmpFile), strict = false) { _ =>
-            Response[IO](Ok).withBody("Hello").pure[IO]
+            Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
 
@@ -379,7 +379,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val response = mockServe(Request()) {
           case req =>
             req.decodeWith(binFile(tmpFile), strict = false) { _ =>
-              Response[IO](Ok).withBody("Hello").pure[IO]
+              Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
 
@@ -419,14 +419,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     val str = "Oekraïene"
     "Use an charset defined by the Content-Type header" in {
       val resp = Response[IO](Ok)
-        .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
+        .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`)))
       EntityDecoder.decodeString(resp)(implicitly, Charset.`US-ASCII`) must returnValue(str)
     }
 
     "Use the default if the Content-Type header does not define one" in {
       val resp = Response[IO](Ok)
-        .withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
+        .withEntity(str.getBytes(Charset.`UTF-8`.nioCharset))
         .withContentType(`Content-Type`(MediaType.`text/plain`, None))
       EntityDecoder.decodeString(resp)(implicitly, Charset.`UTF-8`) must returnValue(str)
     }

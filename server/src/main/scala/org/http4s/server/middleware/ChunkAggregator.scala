@@ -21,7 +21,7 @@ object ChunkAggregator {
           if (fullBody.nonEmpty)
             removeChunkedTransferEncoding(
               response
-                .withBody(ByteVectorChunk(fullBody): Chunk[Byte]))
+                .withEntity(ByteVectorChunk(fullBody): Chunk[Byte]))
           else
             response
       })

@@ -215,14 +215,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 You can respond with a `Future` of any type that has an
-`EntityEncoder` by lifting it into IO. Note: `Future` is a side effecting and
-impure member of the standard library, thus we must defer its evaluation
+`EntityEncoder` by lifting it into IO or any `F[_]` that suspends future. 
+Note: unlike IO, wrapping a side effect in Future does not
+suspend it, and the resulting expression would still be side 
+effectful, unless we wrap it in IO.
 
 ```tut
-val io = IO.fromFuture(IO(Future {
+val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
-})).flatMap(Ok(_))
+})))
 io.unsafeRunSync
 ```
 
@@ -230,10 +232,10 @@ As good functional programmers who like to delay our side effects, we
 of course prefer to operate in [F]s:
 
 ```tut
-val io = IO {
+val io = Ok(IO {
   println("I run when the IO is run.")
   "Mission accomplished!"
-}.flatMap(Ok(_))
+})
 io.unsafeRunSync
 ```
 
@@ -329,7 +331,7 @@ def getUserName(userId: Int): IO[String] = ???
 
 val usersService = HttpService[IO] {
   case GET -> Root / "users" / IntVar(userId) =>
-    getUserName(userId).flatMap(Ok(_))
+    Ok(getUserName(userId))
 }
 ```
 
@@ -355,7 +357,7 @@ def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
 val dailyWeatherService = HttpService[IO] {
   case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
-    getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _).flatMap(Ok(_))
+    Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
 
 println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService.orNotFound(_)).unsafeRunSync)
@@ -387,8 +389,7 @@ def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Doub
 
 val averageTemperatureService = HttpService[IO] {
   case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
-    getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _)
-    .flatMap(Ok(_))
+    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
 ```
 

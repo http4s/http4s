@@ -14,7 +14,7 @@ class ClientXmlSpec extends Http4sSpec {
   val xml = s"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>$body"""
   val service = HttpService[IO] {
     case _ =>
-      Response[IO](Ok).withBody(xml).pure[IO]
+      Response[IO](Ok).withEntity(xml).pure[IO]
   }
   val client = Client.fromHttpService(service)
 

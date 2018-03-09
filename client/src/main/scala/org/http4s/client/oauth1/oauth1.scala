@@ -116,7 +116,7 @@ package object oauth1 {
             .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.map((k, _)) }
 
           implicit val charset = req.charset.getOrElse(Charset.`UTF-8`)
-          req.withBody(urlform) -> (qparams ++ bodyparams)
+          req.withEntity(urlform) -> (qparams ++ bodyparams)
         }
 
       case _ => F.pure(req -> qparams)

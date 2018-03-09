@@ -153,7 +153,7 @@ class Http1ServerStageSpec extends Http4sSpec {
           val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
           IO.pure(
             Response[IO](headers = headers)
-              .withBody("hello world"))
+              .withEntity("hello world"))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -176,7 +176,7 @@ class Http1ServerStageSpec extends Http4sSpec {
           IO.pure(
             Response[IO](status = Status.NotModified)
               .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
-              .withBody("Foo!"))
+              .withEntity("Foo!"))
       }
 
       val req = "GET /foo HTTP/1.1\r\n\r\n"
@@ -241,7 +241,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val service = HttpService[IO] {
         case req =>
           req.as[String].map { s =>
-            Response().withBody("Result: " + s)
+            Response().withEntity("Result: " + s)
           }
       }
 
@@ -264,7 +264,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Maintain the connection if the body is ignored but was already read to completion by the Http1Stage" in {
 
       val service = HttpService[IO] {
-        case _ => IO.pure(Response().withBody("foo"))
+        case _ => IO.pure(Response().withEntity("foo"))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -284,7 +284,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Drop the connection if the body is ignored and was not read to completion by the Http1Stage" in {
 
       val service = HttpService[IO] {
-        case _ => IO.pure(Response().withBody("foo"))
+        case _ => IO.pure(Response().withEntity("foo"))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -306,7 +306,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     "Handle routes that runs the request body for non-chunked" in {
 
       val service = HttpService[IO] {
-        case req => req.body.compile.drain *> IO.pure(Response().withBody("foo"))
+        case req => req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
       }
 
       // The first request will get split into two chunks, leaving the last byte off

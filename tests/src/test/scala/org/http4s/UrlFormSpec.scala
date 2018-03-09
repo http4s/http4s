@@ -22,7 +22,7 @@ class UrlFormSpec extends Http4sSpec {
       DecodeResult
         .success(
           Request[IO]()
-            .withBody(urlForm)(UrlForm.entityEncoder(charset))
+            .withEntity(urlForm)(UrlForm.entityEncoder(charset))
             .pure[IO])
         .flatMap { req =>
           UrlForm.entityDecoder[IO].decode(req, strict = false)

@@ -23,7 +23,7 @@ class GitHubHttpEndpoint[F[_]](gitHubService: GitHubService[F])(implicit F: Sync
       for {
         o <- Ok()
         code <- gitHubService.accessToken(code, state).flatMap(gitHubService.userData)
-      } yield o.withBody(code).putHeaders(Header("Content-Type", "application/json"))
+      } yield o.withEntity(code).putHeaders(Header("Content-Type", "application/json"))
   }
 
 }

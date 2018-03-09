@@ -10,7 +10,7 @@ object MockRoute extends Http4s {
 
   def route(): HttpService[IO] = HttpService {
     case req if req.uri.path === "/ping" =>
-      Response[IO](Ok).withBody("pong").pure[IO]
+      Response[IO](Ok).withEntity("pong").pure[IO]
 
     case req if req.method === Method.POST && req.uri.path === "/echo" =>
       IO.pure(Response[IO](body = req.body))
@@ -26,6 +26,6 @@ object MockRoute extends Http4s {
 
     /** For testing the PushSupport middleware */
     case req if req.uri.path === "/push" =>
-      Response[IO](Ok).withBody("Hello").pure[IO].push("/ping")(req)
+      Response[IO](Ok).withEntity("Hello").pure[IO].push("/ping")(req)
   }
 }

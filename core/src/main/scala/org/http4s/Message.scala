@@ -48,6 +48,10 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     change(attributes = attributes.put(key, value))
 
+  @deprecated("User withEntity and `pure`", "0.19")
+  def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
+    F.pure(withEntity(b))
+
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method
@@ -55,7 +59,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
+  def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
     val entity = w.toEntity(b)
     val hs = entity.length match {
       case Some(l) =>
@@ -71,7 +75,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
-    * or `Content-Length`. Most use cases are better served by [[withBody]],
+    * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
   def withBodyStream(body: EntityBody[F]): Self
@@ -375,5 +379,5 @@ object Response {
 
   def notFoundFor[F[_]: Monad](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Monad[F].pure(Response(Status.NotFound).withBody(s"${request.pathInfo} not found"))
+    Monad[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
 }

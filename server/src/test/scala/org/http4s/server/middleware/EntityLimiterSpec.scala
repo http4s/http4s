@@ -14,7 +14,7 @@ import org.http4s.Status._
 class EntityLimiterSpec extends Http4sSpec {
 
   val s = HttpService[IO] {
-    case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withBody(_).pure[IO])
+    case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
 
   val b = chunk(Chunk.bytes("hello".getBytes(StandardCharsets.UTF_8)))
@@ -38,7 +38,8 @@ class EntityLimiterSpec extends Http4sSpec {
 
     "Chain correctly with other HttpServices" in {
       val s2 = HttpService[IO] {
-        case r if r.uri.path == "/echo2" => r.decode[String](Response[IO](Ok).withBody(_).pure[IO])
+        case r if r.uri.path == "/echo2" =>
+          r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
       }
 
       val st = EntityLimiter(s, 3) <+> s2

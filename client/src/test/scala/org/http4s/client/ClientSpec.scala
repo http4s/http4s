@@ -9,18 +9,18 @@ import org.http4s.Status.Ok
 
 class ClientSpec extends Http4sSpec {
   val service = HttpService[IO] {
-    case r => Response[IO](Ok).withBody(r.body).pure[IO]
+    case r => Response[IO](Ok).withEntity(r.body).pure[IO]
   }
   val client: Client[IO] = Client.fromHttpService(service)
 
   "mock client" should {
     "read body before dispose" in {
-      client.expect[String](Request[IO](POST).withBody("foo")).unsafeRunSync() must_== "foo"
+      client.expect[String](Request[IO](POST).withEntity("foo")).unsafeRunSync() must_== "foo"
     }
 
     "fail to read body after dispose" in {
       Request[IO](POST)
-        .withBody("foo")
+        .withEntity("foo")
         .pure[IO]
         .flatMap { req =>
           // This is bad.  Don't do this.
@@ -35,7 +35,7 @@ class ClientSpec extends Http4sSpec {
     "fail to read body after client shutdown" in {
       val client: Client[IO] = Client.fromHttpService(service)
       client.shutdownNow()
-      client.expect[String](Request[IO](POST).withBody("foo")).attempt.unsafeRunSync() must beLeft
+      client.expect[String](Request[IO](POST).withEntity("foo")).attempt.unsafeRunSync() must beLeft
         .like {
           case e: IOException => e.getMessage == "client was shut down"
         }

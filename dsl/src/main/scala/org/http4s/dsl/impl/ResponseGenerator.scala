@@ -38,6 +38,9 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response(status, headers = Headers(`Content-Length`.zero +: headers: _*)))
 
+  def apply[A](body: F[A])(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] =
+    F.flatMap(body)(apply[A](_))
+
   def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Response[F]] = {

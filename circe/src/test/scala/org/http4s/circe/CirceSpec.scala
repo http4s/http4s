@@ -95,10 +95,12 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
       def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
-      val req = Request[IO]().withBody(Json.fromDoubleOrNull(157))
+      val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
       val body = req
         .decode { json: Json =>
-          Response[IO](Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString).pure[IO]
+          Response[IO](Ok)
+            .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
+            .pure[IO]
         }
         .unsafeRunSync
         .body
@@ -109,7 +111,9 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
       val result = jsonOf[IO, Foo]
-        .decode(Request[IO]().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))), strict = true)
+        .decode(
+          Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
+          strict = true)
       result.value.unsafeRunSync must_== Right(Foo(42))
     }
 
@@ -120,7 +124,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
         val result =
-          jsonOf[IO, Umlaut].decode(Request[IO]().withBody(json), strict = true)
+          jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
         result.value.unsafeRunSync must_== Right(Umlaut(wort))
       }
     }
@@ -129,14 +133,16 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   "accumulatingJsonOf" should {
     "decode JSON from a Circe decoder" in {
       val result = accumulatingJsonOf[IO, Foo]
-        .decode(Request[IO]().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))), strict = true)
+        .decode(
+          Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
+          strict = true)
       result.value.unsafeRunSync must_== Right(Foo(42))
     }
 
     "return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages" in {
       val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
       val result = accumulatingJsonOf[IO, Bar]
-        .decode(Request[IO]().withBody(json), strict = true)
+        .decode(Request[IO]().withEntity(json), strict = true)
       result.value.unsafeRunSync must beLike {
         case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => ok
       }
@@ -153,12 +159,12 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
   "Message[F].decodeJson[A]" should {
     "decode json from a message" in {
-      val req = Request[IO]().withBody(foo.asJson)
+      val req = Request[IO]().withEntity(foo.asJson)
       req.decodeJson[Foo] must returnValue(foo)
     }
 
     "fail on invalid json" in {
-      val req = Request[IO]().withBody(List(13, 14).asJson)
+      val req = Request[IO]().withEntity(List(13, 14).asJson)
       req.decodeJson[Foo].attempt.unsafeRunSync must beLeft
     }
   }
