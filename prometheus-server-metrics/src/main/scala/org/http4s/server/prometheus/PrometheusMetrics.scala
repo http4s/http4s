@@ -185,6 +185,7 @@ object PrometheusMetrics {
     } yield ()
 
   /**
+    * Metrics -- 
     *
     * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
     *
@@ -193,7 +194,22 @@ object PrometheusMetrics {
     * org_http4s_response_total{labels=method,code} - Counter
     *
     * org_http4s_abnormal_terminations_total{labels=termination_type} - Counter
-  **/
+    *
+    * Labels --
+    * 
+    * method: Enumeration
+    * values: get, put, post, head, move, options, trace, connect, delete, other
+    *
+    * serving_phase: Enumeration
+    * values: header_phase, body_phase
+    * 
+    * code: Enumeration
+    * values:  1xx, 2xx, 3xx, 4xx, 5xx
+    * 
+    * termination_type: Enumeration
+    * values: abnormal_termination, server_error 
+    *
+    **/
   def apply[F[_]: Sync](
       c: CollectorRegistry,
       prefix: String = "org_http4s_server",
@@ -206,12 +222,12 @@ object PrometheusMetrics {
           requestDuration = Histogram
             .build()
             .name(prefix + "_" + "response_duration_seconds")
-            .help("Response Duration")
+            .help("Response Duration in seconds.")
             .labelNames("method", "serving_phase")
             .register(c),
           activeRequests = Gauge
             .build()
-            .name(prefix + "_" + "active_requests_count")
+            .name(prefix + "_" + "active_request_count")
             .help("Total Active Requests.")
             .register(c),
           requestCounter = Counter
