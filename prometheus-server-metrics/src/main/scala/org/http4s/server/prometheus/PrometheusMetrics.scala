@@ -185,7 +185,7 @@ object PrometheusMetrics {
     } yield ()
 
   /**
-    * Metrics -- 
+    * Metrics --
     *
     * org_http4s_response_duration_seconds{labels=method,serving_phase} - Histogram
     *
@@ -196,18 +196,18 @@ object PrometheusMetrics {
     * org_http4s_abnormal_terminations_total{labels=termination_type} - Counter
     *
     * Labels --
-    * 
+    *
     * method: Enumeration
     * values: get, put, post, head, move, options, trace, connect, delete, other
     *
     * serving_phase: Enumeration
     * values: header_phase, body_phase
-    * 
+    *
     * code: Enumeration
     * values:  1xx, 2xx, 3xx, 4xx, 5xx
-    * 
+    *
     * termination_type: Enumeration
-    * values: abnormal_termination, server_error 
+    * values: abnormal_termination, server_error
     *
     **/
   def apply[F[_]: Sync](
