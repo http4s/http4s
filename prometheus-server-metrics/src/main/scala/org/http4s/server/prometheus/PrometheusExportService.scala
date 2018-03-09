@@ -36,11 +36,14 @@ object PrometheusExportService {
       _ <- addDefaults(cr)
     } yield new PrometheusExportService[F](service(cr), cr)
 
-  def generateResponse[F[_]: Sync](collectorRegistry: CollectorRegistry): F[Response[F]] = Sync[F].delay {
+  def generateResponse[F[_]: Sync](collectorRegistry: CollectorRegistry): F[Response[F]] =
+    Sync[F]
+      .delay {
         val writer = new StringWriter
         TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
         writer.toString
-  }.map(Response[F](Status.Ok).withEntity(_))
+      }
+      .map(Response[F](Status.Ok).withEntity(_))
 
   def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpService[F] = {
     object dsl extends Http4sDsl[F]
