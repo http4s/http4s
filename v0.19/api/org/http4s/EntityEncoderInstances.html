@@ -955,9 +955,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       
     </li><li name="org.http4s.EntityEncoderInstances#charArrayEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="charArrayEncoder[F[_]](implicitF:cats.Applicative[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,Array[Char]]"></a><a id="charArrayEncoder[F[_]](Applicative[F],Charset):EntityEncoder[F,Array[Char]]"></a>
+      <a id="charArrayEncoder[F[_]](implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,Array[Char]]"></a><a id="charArrayEncoder[F[_]](Charset):EntityEncoder[F,Array[Char]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#charArrayEncoder[F[_]](implicitF:cats.Applicative[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,Array[Char]]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances.html#charArrayEncoder[F[_]](implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,Array[Char]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -966,7 +966,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">charArrayEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.charArrayEncoder.F">F</span>]</span>, <span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.charArrayEncoder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]]</span>
+        <span class="name">charArrayEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.charArrayEncoder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Char.html#scala.Char" class="extype" name="scala.Char">Char</a>]]</span>
       </span>
       
       
@@ -1010,26 +1010,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.EntityEncoderInstances#effectEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="effectEncoder[F[_],A](implicitF:cats.FlatMap[F],implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,F[A]]"></a><a id="effectEncoder[F[_],A](FlatMap[F],EntityEncoder[F,A]):EntityEncoder[F,F[A]]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#effectEncoder[F[_],A](implicitF:cats.FlatMap[F],implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,F[A]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">effectEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.FlatMap">FlatMap</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.effectEncoder.F">F</span>]</span>, <span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.effectEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances.effectEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.effectEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances.effectEncoder.F">F</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.effectEncoder.A">A</span>]]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.EntityEncoderInstances0#emptyEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="emptyEncoder[F[_],A](implicitF:cats.Applicative[F]):org.http4s.EntityEncoder[F,A]"></a><a id="emptyEncoder[F[_],A](Applicative[F]):EntityEncoder[F,A]"></a>
+      <a id="emptyEncoder[F[_],A]:org.http4s.EntityEncoder[F,A]"></a><a id="emptyEncoder[F[_],A]:EntityEncoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#emptyEncoder[F[_],A](implicitF:cats.Applicative[F]):org.http4s.EntityEncoder[F,A]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances.html#emptyEncoder[F[_],A]:org.http4s.EntityEncoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1038,7 +1022,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">emptyEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.A">A</span>]</span>
+        <span class="name">emptyEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.A">A</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances0.html" class="extype" name="org.http4s.EntityEncoderInstances0">EntityEncoderInstances0</a></dd></dl></div>
@@ -1123,9 +1107,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#entityBodyEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="entityBodyEncoder[F[_]](implicitF:cats.Applicative[F]):org.http4s.EntityEncoder[F,org.http4s.EntityBody[F]]"></a><a id="entityBodyEncoder[F[_]](Applicative[F]):EntityEncoder[F,EntityBody[F]]"></a>
+      <a id="entityBodyEncoder[F[_]]:org.http4s.EntityEncoder[F,org.http4s.EntityBody[F]]"></a><a id="entityBodyEncoder[F[_]]:EntityEncoder[F,EntityBody[F]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#entityBodyEncoder[F[_]](implicitF:cats.Applicative[F]):org.http4s.EntityEncoder[F,org.http4s.EntityBody[F]]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances.html#entityBodyEncoder[F[_]]:org.http4s.EntityEncoder[F,org.http4s.EntityBody[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1134,7 +1118,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">entityBodyEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.entityBodyEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.entityBodyEncoder.F">F</span>, <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.entityBodyEncoder.F">F</span>]]</span>
+        <span class="name">entityBodyEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.entityBodyEncoder.F">F</span>, <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.entityBodyEncoder.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Encodes an entity body.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes an entity body.  Chunking of the stream is preserved.  A
@@ -1266,22 +1250,6 @@ the content length without running the stream.
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.EntityEncoderInstances0#futureEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]"></a><a id="futureEncoder[F[_],A](Async[F],ExecutionContext,EntityEncoder[F,A]):EntityEncoder[F,Future[A]]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">futureEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances0.html" class="extype" name="org.http4s.EntityEncoderInstances0">EntityEncoderInstances0</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -1487,9 +1455,9 @@ the content length without running the stream.
       
       <p class="shortcomment cmt">Encodes a value from its Show instance.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances0.html" class="extype" name="org.http4s.EntityEncoderInstances0">EntityEncoderInstances0</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances0#streamEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="streamEncoder[F[_],A](implicitF:cats.Applicative[F],implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]"></a><a id="streamEncoder[F[_],A](Applicative[F],EntityEncoder[F,A]):EntityEncoder[F,Stream[F,A]]"></a>
+      <a id="streamEncoder[F[_],A](implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]"></a><a id="streamEncoder[F[_],A](EntityEncoder[F,A]):EntityEncoder[F,Stream[F,A]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#streamEncoder[F[_],A](implicitF:cats.Applicative[F],implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances.html#streamEncoder[F[_],A](implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1498,7 +1466,7 @@ the content length without running the stream.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">streamEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>]</span>, <span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]]</span>
+        <span class="name">streamEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">A stream encoder is intended for streaming, and does not calculate its
@@ -1507,9 +1475,9 @@ bodies in advance.  As such, it does not calculate the Content-Length in
 advance.  This is for use with chunked transfer encoding.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances0.html" class="extype" name="org.http4s.EntityEncoderInstances0">EntityEncoderInstances0</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#stringEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="stringEncoder[F[_]](implicitF:cats.Applicative[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,String]"></a><a id="stringEncoder[F[_]](Applicative[F],Charset):EntityEncoder[F,String]"></a>
+      <a id="stringEncoder[F[_]](implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,String]"></a><a id="stringEncoder[F[_]](Charset):EntityEncoder[F,String]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances.html#stringEncoder[F[_]](implicitF:cats.Applicative[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,String]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances.html#stringEncoder[F[_]](implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,String]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1518,7 +1486,7 @@ advance.  This is for use with chunked transfer encoding.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stringEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.stringEncoder.F">F</span>]</span>, <span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.stringEncoder.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">stringEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.stringEncoder.F">F</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       
       

@@ -963,9 +963,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               
         </dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances0#emptyEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="emptyEncoder[F[_],A](implicitF:cats.Applicative[F]):org.http4s.EntityEncoder[F,A]"></a><a id="emptyEncoder[F[_],A](Applicative[F]):EntityEncoder[F,A]"></a>
+      <a id="emptyEncoder[F[_],A]:org.http4s.EntityEncoder[F,A]"></a><a id="emptyEncoder[F[_],A]:EntityEncoder[F,A]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances0.html#emptyEncoder[F[_],A](implicitF:cats.Applicative[F]):org.http4s.EntityEncoder[F,A]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances0.html#emptyEncoder[F[_],A]:org.http4s.EntityEncoder[F,A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -974,7 +974,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">emptyEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.A">A</span>]</span>
+        <span class="name">emptyEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.emptyEncoder.A">A</span>]</span>
       </span>
       
       
@@ -1135,22 +1135,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.EntityEncoderInstances0#futureEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]"></a><a id="futureEncoder[F[_],A](Async[F],ExecutionContext,EntityEncoder[F,A]):EntityEncoder[F,Future[A]]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances0.html#futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">futureEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]]</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -1276,9 +1260,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <p class="shortcomment cmt">Encodes a value from its Show instance.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist.</p></div></div>
     </li><li name="org.http4s.EntityEncoderInstances0#streamEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="streamEncoder[F[_],A](implicitF:cats.Applicative[F],implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]"></a><a id="streamEncoder[F[_],A](Applicative[F],EntityEncoder[F,A]):EntityEncoder[F,Stream[F,A]]"></a>
+      <a id="streamEncoder[F[_],A](implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]"></a><a id="streamEncoder[F[_],A](EntityEncoder[F,A]):EntityEncoder[F,Stream[F,A]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/EntityEncoderInstances0.html#streamEncoder[F[_],A](implicitF:cats.Applicative[F],implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]" title="Permalink">
+      <a href="../../org/http4s/EntityEncoderInstances0.html#streamEncoder[F[_],A](implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,fs2.Stream[F,A]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1287,7 +1271,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">streamEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>]</span>, <span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]]</span>
+        <span class="name">streamEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.streamEncoder.A">A</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">A stream encoder is intended for streaming, and does not calculate its

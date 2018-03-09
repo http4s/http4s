@@ -874,22 +874,6 @@ The passed headers are assumed to contain no duplicate Singleton headers.
       <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="../AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
 </p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="../AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
 </p></div><dl class="paramcmts block"><dt class="tparam">V</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="../AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.syntax.EffectMessageSyntax#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withBody[T](b:T)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,T]):EffectMessageSyntax.this.Self"></a><a id="withBody[T](T)(Monad[F],EntityEncoder[F,T]):Self"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/syntax/EffectRequestOps.html#withBody[T](b:T)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,T]):EffectMessageSyntax.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.syntax.EffectMessageSyntax.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.syntax.EffectRequestOps.F">F</span>]</span>, <span name="w">w: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.syntax.EffectRequestOps.F">F</span>, <span class="extype" name="org.http4s.syntax.EffectMessageSyntax.withBody.T">T</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectRequestOps.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EffectMessageSyntax.html" class="extype" name="org.http4s.syntax.EffectMessageSyntax">EffectMessageSyntax</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withContentType(contentType:org.http4s.headers.Content-Type)(implicitF:cats.Functor[F]):MessageOps.this.Self"></a><a id="withContentType(Content-Type)(Functor[F]):Self"></a>
       <span class="permalink">
@@ -922,6 +906,22 @@ The passed headers are assumed to contain no duplicate Singleton headers.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.syntax.EffectMessageSyntax#withEntity" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withEntity[T](b:T)(implicitF:cats.Functor[F],implicitw:org.http4s.EntityEncoder[F,T]):EffectMessageSyntax.this.Self"></a><a id="withEntity[T](T)(Functor[F],EntityEncoder[F,T]):Self"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/syntax/EffectRequestOps.html#withEntity[T](b:T)(implicitF:cats.Functor[F],implicitw:org.http4s.EntityEncoder[F,T]):EffectMessageSyntax.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withEntity</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.syntax.EffectMessageSyntax.withEntity.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.syntax.EffectRequestOps.F">F</span>]</span>, <span name="w">w: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.syntax.EffectRequestOps.F">F</span>, <span class="extype" name="org.http4s.syntax.EffectMessageSyntax.withEntity.T">T</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectRequestOps.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EffectMessageSyntax.html" class="extype" name="org.http4s.syntax.EffectMessageSyntax">EffectMessageSyntax</a></dd></dl></div>
     </li><li name="org.http4s.syntax.EffectRequestOps#withPathInfo" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withPathInfo(pi:String)(implicitF:cats.Functor[F]):F[org.http4s.Request[F]]"></a><a id="withPathInfo(String)(Functor[F]):F[Request[F]]"></a>
       <span class="permalink">
@@ -1012,7 +1012,29 @@ The passed headers are assumed to contain no duplicate Singleton headers.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.syntax.EffectMessageSyntax#withBody" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):EffectMessageSyntax.this.Self"></a><a id="withBody[T](T)(Applicative[F],EntityEncoder[F,T]):Self"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/syntax/EffectRequestOps.html#withBody[T](b:T)(implicitF:cats.Applicative[F],implicitw:org.http4s.EntityEncoder[F,T]):EffectMessageSyntax.this.Self" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Use withEntity">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.syntax.EffectMessageSyntax.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.syntax.EffectRequestOps.F">F</span>]</span>, <span name="w">w: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.syntax.EffectRequestOps.F">F</span>, <span class="extype" name="org.http4s.syntax.EffectMessageSyntax.withBody.T">T</span>]</span>)</span><span class="result">: <a href="#Self=F[M#Self]" class="extmbr" name="org.http4s.syntax.EffectRequestOps.Self">Self</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EffectMessageSyntax.html" class="extype" name="org.http4s.syntax.EffectMessageSyntax">EffectMessageSyntax</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use withEntity</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
