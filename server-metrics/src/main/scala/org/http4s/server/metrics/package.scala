@@ -26,7 +26,7 @@ package object metrics {
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper): F[Response[F]] = {
     implicit val encoder = metricRegistryEncoder[F](mapper)
-    Response[F](Status.Ok).withBody(registry)
+    Monad[F].pure(Response[F](Status.Ok).withEntity(registry))
   }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */

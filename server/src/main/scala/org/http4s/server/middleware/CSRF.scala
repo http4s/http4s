@@ -104,7 +104,7 @@ final class CSRF[F[_]] private[middleware] (
             raw <- extractRaw(c.content)
             res <- service(r)
             newToken <- OptionT.liftF(signToken(raw))
-          } yield res.addCookie(Cookie(name = cookieName, content = newToken)))
+          } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
             .getOrElse(Response[F](Status.Unauthorized)))
       case None =>
         service(r).semiflatMap(embedNew)
@@ -119,7 +119,7 @@ final class CSRF[F[_]] private[middleware] (
       raw2 <- extractRaw(c2.value)
       response <- if (CSRF.isEqual(raw1, raw2)) service(r) else OptionT.none
       newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-    } yield response.addCookie(Cookie(name = cookieName, content = newToken)))
+    } yield response.addCookie(ResponseCookie(name = cookieName, content = newToken)))
       .getOrElse(Response[F](Status.Unauthorized))
 
   /** Check predicate, then apply the correct csrf policy **/
@@ -152,7 +152,7 @@ final class CSRF[F[_]] private[middleware] (
 
   /** Embed a token into a response **/
   def embedNew(res: Response[F]): F[Response[F]] =
-    generateToken.map(content => res.addCookie(Cookie(cookieName, content)))
+    generateToken.map(content => res.addCookie(ResponseCookie(cookieName, content)))
 
   /** Middleware to embed a csrf token into routes that do not have one. **/
   def withNewToken: HttpMiddleware[F] =
@@ -202,7 +202,7 @@ object CSRF {
 
   private[middleware] def cookieFromHeaders[F[_]: Applicative](
       request: Request[F],
-      cookieName: String): Option[Cookie] =
+      cookieName: String): Option[RequestCookie] =
     HCookie
       .from(request.headers)
       .flatMap(_.values.find(_.name == cookieName))

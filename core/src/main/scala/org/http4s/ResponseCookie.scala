@@ -25,14 +25,14 @@ import scala.collection.generic.CanBuildFrom
 object RequestCookieJar {
   def empty: RequestCookieJar = new RequestCookieJar(Nil)
 
-  def apply(cookies: Cookie*): RequestCookieJar = (newBuilder ++= cookies).result()
+  def apply(cookies: RequestCookie*): RequestCookieJar = (newBuilder ++= cookies).result()
 
   /** The default builder for RequestCookieJar objects.
     */
-  def newBuilder: mutable.Builder[Cookie, RequestCookieJar] =
-    new mutable.Builder[Cookie, RequestCookieJar] {
-      private[this] val coll = mutable.ListBuffer[Cookie]()
-      def +=(elem: Cookie): this.type = {
+  def newBuilder: mutable.Builder[RequestCookie, RequestCookieJar] =
+    new mutable.Builder[RequestCookie, RequestCookieJar] {
+      private[this] val coll = mutable.ListBuffer[RequestCookie]()
+      def +=(elem: RequestCookie): this.type = {
         coll += elem
         this
       }
@@ -42,30 +42,33 @@ object RequestCookieJar {
       def result(): RequestCookieJar = new RequestCookieJar(Vector(coll.toSeq: _*))
     }
 
-  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Cookie], Cookie, RequestCookieJar] =
-    new CanBuildFrom[TraversableOnce[Cookie], Cookie, RequestCookieJar] {
+  implicit def canBuildFrom
+    : CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] =
+    new CanBuildFrom[TraversableOnce[RequestCookie], RequestCookie, RequestCookieJar] {
       def apply(
-          from: TraversableOnce[Cookie]
-      ): mutable.Builder[Cookie, RequestCookieJar] = newBuilder
+          from: TraversableOnce[RequestCookie]
+      ): mutable.Builder[RequestCookie, RequestCookieJar] = newBuilder
 
-      def apply(): mutable.Builder[Cookie, RequestCookieJar] = newBuilder
+      def apply(): mutable.Builder[RequestCookie, RequestCookieJar] = newBuilder
     }
 
 }
-class RequestCookieJar(private val headers: Seq[Cookie])
-    extends Iterable[Cookie]
-    with IterableLike[Cookie, RequestCookieJar] {
-  override protected[this] def newBuilder: mutable.Builder[Cookie, RequestCookieJar] =
+class RequestCookieJar(private val headers: Seq[RequestCookie])
+    extends Iterable[RequestCookie]
+    with IterableLike[RequestCookie, RequestCookieJar] {
+  override protected[this] def newBuilder: mutable.Builder[RequestCookie, RequestCookieJar] =
     RequestCookieJar.newBuilder
-  def iterator: Iterator[Cookie] = headers.iterator
+  def iterator: Iterator[RequestCookie] = headers.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
 
-  def get(key: String): Option[Cookie] = headers.find(_.name == key)
-  def apply(key: String): Cookie = get(key).getOrElse(default(key))
+  def get(key: String): Option[RequestCookie] = headers.find(_.name == key)
+  def apply(key: String): RequestCookie = get(key).getOrElse(default(key))
   def contains(key: String): Boolean = headers.exists(_.name == key)
-  def getOrElse(key: String, default: => String): Cookie = get(key).getOrElse(Cookie(key, default))
+  def getOrElse(key: String, default: => String): RequestCookie =
+    get(key).getOrElse(RequestCookie(key, default))
   override def seq: RequestCookieJar = this
-  def default(key: String): Cookie = throw new NoSuchElementException("Can't find cookie " + key)
+  def default(key: String): RequestCookie =
+    throw new NoSuchElementException("Can't find RequestCookie " + key)
 
   def keySet: Set[String] = headers.map(_.name).toSet
 
@@ -85,7 +88,7 @@ class RequestCookieJar(private val headers: Seq[Cookie])
     *
     *  @return the values of this map as an iterable.
     */
-  def cookies: Iterable[Cookie] = headers
+  def cookies: Iterable[RequestCookie] = headers
 
   /** Creates an iterator for all keys.
     *
@@ -109,8 +112,8 @@ class RequestCookieJar(private val headers: Seq[Cookie])
     new RequestCookieJar(headers.filter(c => p(c.name)))
 
   /* Overridden for efficiency. */
-  override def toSeq: Seq[Cookie] = headers
-  override def toBuffer[C >: Cookie]: mutable.Buffer[C] = {
+  override def toSeq: Seq[RequestCookie] = headers
+  override def toBuffer[C >: RequestCookie]: mutable.Buffer[C] = {
     val result = new mutable.ArrayBuffer[C](size)
     copyToBuffer(result)
     result
@@ -130,7 +133,17 @@ class RequestCookieJar(private val headers: Seq[Cookie])
 }
 
 // see http://tools.ietf.org/html/rfc6265
-final case class Cookie(
+final case class RequestCookie(name: String, content: String) extends Renderable {
+
+  override lazy val renderString: String = super.renderString
+
+  override def render(writer: Writer): writer.type = {
+    writer.append(name).append('=').append(content)
+    writer
+  }
+}
+
+final case class ResponseCookie(
     name: String,
     content: String,
     expires: Option[HttpDate] = None,

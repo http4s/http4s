@@ -3,7 +3,6 @@ package dsl
 package impl
 
 import cats._
-import cats.implicits._
 import org.http4s.headers._
 
 trait ResponseGenerator extends Any {
@@ -39,19 +38,20 @@ trait EntityResponseGenerator[F[_]] extends Any with ResponseGenerator {
   def apply(headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(Response(status, headers = Headers(`Content-Length`.zero +: headers: _*)))
 
+  def apply[A](body: F[A])(implicit F: Monad[F], w: EntityEncoder[F, A]): F[Response[F]] =
+    F.flatMap(body)(apply[A](_))
+
   def apply[A](body: A, headers: Header*)(
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Response[F]] = {
     val h = w.headers ++ headers
-    w.toEntity(body).flatMap {
-      case Entity(proc, len) =>
-        val headers = len
-          .map { l =>
-            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
-          }
-          .getOrElse(h)
-        F.pure(Response(status = status, headers = headers, body = proc))
-    }
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Response(status = status, headers = newHeaders, body = entity.body))
   }
 }
 
@@ -87,15 +87,13 @@ trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator 
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Response[F]] = {
     val h = w.headers ++ Headers(authenticate +: headers.toList)
-    w.toEntity(body).flatMap {
-      case Entity(proc, len) =>
-        val headers = len
-          .map { l =>
-            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
-          }
-          .getOrElse(h)
-        F.pure(Response(status = status, headers = headers, body = proc))
-    }
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Response(status = status, headers = newHeaders, body = entity.body))
   }
 }
 
@@ -124,14 +122,12 @@ trait ProxyAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerato
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Response[F]] = {
     val h = w.headers ++ Headers(authenticate +: headers.toList)
-    w.toEntity(body).flatMap {
-      case Entity(proc, len) =>
-        val headers = len
-          .map { l =>
-            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
-          }
-          .getOrElse(h)
-        F.pure(Response(status = status, headers = headers, body = proc))
-    }
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Response(status = status, headers = newHeaders, body = entity.body))
   }
 }

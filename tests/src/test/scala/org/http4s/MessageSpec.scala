@@ -60,7 +60,7 @@ class MessageSpec extends Http4sSpec {
     "support cookies" should {
       "contain a Cookie header when an explicit cookie is added" in {
         Request(Method.GET)
-          .addCookie(Cookie("token", "value"))
+          .addCookie(RequestCookie("token", "value"))
           .headers
           .get("Cookie".ci)
           .map(_.value) must beSome("token=value")
@@ -132,7 +132,7 @@ class MessageSpec extends Http4sSpec {
   "Response" >> {
     "toString" should {
       "redact a `Set-Cookie` header" in {
-        val resp = Response().putHeaders(headers.`Set-Cookie`(Cookie("token", "value")))
+        val resp = Response().putHeaders(headers.`Set-Cookie`(ResponseCookie("token", "value")))
         resp.toString must_== ("Response(status=200, headers=Headers(Set-Cookie: <REDACTED>))")
       }
     }

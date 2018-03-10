@@ -1,17 +1,16 @@
 package org.http4s
 package multipart
 
-import cats.effect.Sync
 import fs2._
 import org.http4s.util._
 
-private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Multipart[F]] {
+private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
 
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
-  def toEntity(mp: Multipart[F]): F[Entity[F]] =
-    Sync[F].delay(Entity(renderParts(mp.boundary)(mp.parts), None))
+  def toEntity(mp: Multipart[F]): Entity[F] =
+    Entity(renderParts(mp.boundary)(mp.parts), None)
 
   val dash: String = "--"
 

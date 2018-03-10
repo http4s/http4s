@@ -27,15 +27,15 @@ class HeadersSpec extends Http4sSpec {
 
     "also find headers created raw" in {
       val headers = Headers(
-        org.http4s.headers.`Cookie`(org.http4s.Cookie("foo", "bar")),
-        Header("Cookie", org.http4s.Cookie("baz", "quux").toString)
+        org.http4s.headers.`Cookie`(RequestCookie("foo", "bar")),
+        Header("Cookie", RequestCookie("baz", "quux").toString)
       )
       headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome(2)
     }
 
     "Find the headers with DefaultHeaderKey keys" in {
       val headers = Headers(
-        `Set-Cookie`(org.http4s.Cookie("foo", "bar")),
+        `Set-Cookie`(ResponseCookie("foo", "bar")),
         Header("Accept-Patch", ""),
         Header("Access-Control-Allow-Credentials", "")
       )
@@ -49,8 +49,8 @@ class HeadersSpec extends Http4sSpec {
     }
 
     "Allow multiple Set-Cookie headers" in {
-      val h1 = `Set-Cookie`(org.http4s.Cookie("foo1", "bar1")).toRaw
-      val h2 = `Set-Cookie`(org.http4s.Cookie("foo2", "bar2")).toRaw
+      val h1 = `Set-Cookie`(ResponseCookie("foo1", "bar1")).toRaw
+      val h2 = `Set-Cookie`(ResponseCookie("foo2", "bar2")).toRaw
       val hs = Headers(clength) ++ Headers(h1) ++ Headers(h2)
       hs.count(_.parsed match { case `Set-Cookie`(_) => true; case _ => false }) must_== 2
       hs.exists(_ == clength) must_== true

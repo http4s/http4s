@@ -17,7 +17,7 @@ class ScalaXmlSpec extends Http4sSpec {
   "xml" should {
     val server: Request[IO] => IO[Response[IO]] = { req =>
       req.decode { elem: Elem =>
-        Response[IO](Ok).withBody(elem.label)
+        IO.pure(Response[IO](Ok).withEntity(elem.label))
       }
     }
 

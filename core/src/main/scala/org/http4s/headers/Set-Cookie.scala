@@ -3,6 +3,7 @@ package headers
 
 import cats.data.NonEmptyList
 import org.http4s.parser.HttpHeaderParser
+import org.http4s.ResponseCookie
 import org.http4s.util.Writer
 
 object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
@@ -21,7 +22,7 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
     HttpHeaderParser.SET_COOKIE(s)
 }
 
-final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Header.Parsed {
+final case class `Set-Cookie`(cookie: ResponseCookie) extends Header.Parsed {
   override def key: `Set-Cookie`.type = `Set-Cookie`
   override def renderValue(writer: Writer): writer.type = cookie.render(writer)
 }

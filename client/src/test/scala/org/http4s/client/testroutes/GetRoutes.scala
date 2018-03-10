@@ -15,11 +15,12 @@ object GetRoutes {
 
   def getPaths(implicit ec: ExecutionContext): Map[String, Response[IO]] =
     Map(
-      SimplePath -> Response[IO](Ok).withBody("simple path"),
-      ChunkedPath -> Response[IO](Ok).withBody(
-        Stream.emits("chunk".toSeq.map(_.toString)).covary[IO]),
+      SimplePath -> Response[IO](Ok).withEntity("simple path").pure[IO],
+      ChunkedPath -> Response[IO](Ok)
+        .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
+        .pure[IO],
       DelayedPath ->
         Http4sSpec.TestScheduler.sleep_[IO](1.second).compile.drain *>
-          Response[IO](Ok).withBody("delayed path")
+          Response[IO](Ok).withEntity("delayed path").pure[IO]
     ).mapValues(_.unsafeRunSync())
 }

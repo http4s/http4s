@@ -86,8 +86,9 @@ class Http4sServlet[F[_]](
       servletResponse: HttpServletResponse,
       bodyWriter: BodyWriter[F]): F[Unit] = {
     val response =
-      Response[F](Status.BadRequest)
-        .withBody(parseFailure.sanitized)
+      F.pure(
+        Response[F](Status.BadRequest)
+          .withEntity(parseFailure.sanitized))
     renderResponse(response, servletResponse, bodyWriter)
   }
 
@@ -114,8 +115,9 @@ class Http4sServlet[F[_]](
       async.unsafeRunAsync {
         if (!servletResponse.isCommitted) {
           val response =
-            Response[F](Status.InternalServerError)
-              .withBody("Service timed out.")
+            F.pure(
+              Response[F](Status.InternalServerError)
+                .withEntity("Service timed out."))
           renderResponse(response, servletResponse, bodyWriter)
         } else {
           logger.warn(
