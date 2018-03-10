@@ -1,7 +1,10 @@
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
+
 import scala.concurrent.ExecutionContextExecutor
 
 package object util {
@@ -30,6 +33,32 @@ package object util {
       }
     }
   }
+
+  /** Converts UTF-8 encoded byte stream to a stream of `String`. */
+  def asciiDecode[F[_]]: Pipe[F, Byte, String] =
+    _.chunks.through(asciiDecodeC)
+
+  private def asciiCheck(b: Byte) = 0x80 & b
+
+  /** Converts UTF-8 encoded `Chunk[Byte]` inputs to `String`. */
+  def asciiDecodeC[F[_]]: Pipe[F, Chunk[Byte], String] = { in =>
+    def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
+      if (i == bytes.length)
+        Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
+      else {
+        if (asciiCheck(bytes(i)) == 0x80) {
+          Stream.raiseError(
+            new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+        } else {
+          tailRecAsciiCheck(i + 1, bytes)
+        }
+      }
+
+    in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
+  }
+
+  def asciiEncode[F[_]]: Pipe[F, String, Byte] =
+    _.flatMap(s => Stream.chunk(Chunk.bytes(s.getBytes(StandardCharsets.US_ASCII))))
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
   private val Digits: Array[Char] =

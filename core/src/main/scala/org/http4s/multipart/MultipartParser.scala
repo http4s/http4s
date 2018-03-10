@@ -4,139 +4,28 @@ package multipart
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
-import scala.annotation.tailrec
-import scodec.bits.ByteVector
+import org.http4s.util._
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
 
-  private[this] val logger = org.log4s.getLogger
-
-  /** New whey **/
-  private val CRLFBytesR = Array[Byte]('\r', '\n')
-  private val DoubleCRLFBytesR = Array[Byte]('\r', '\n', '\r', '\n')
-  private val DashDashBytesR = Array[Byte]('-', '-')
+  private val CRLFBytes = Array[Byte]('\r', '\n')
+  private val DoubleCRLFBytes = Array[Byte]('\r', '\n', '\r', '\n')
+  private val DashDashBytes = Array[Byte]('-', '-')
   private val boundaryBytesR: Boundary => Array[Byte] = boundary => boundary.value.getBytes("UTF-8")
-  private val startLineBytesR: Boundary => Array[Byte] = boundaryBytesR
-    .andThen { r =>
-      val newArr = new Array[Byte](r.length + DashDashBytesR.length)
+  val startLineBytesR: Boundary => Array[Byte] = boundaryBytesR.andThen(DashDashBytes ++ _)
 
-      /** Disgusting but FAST BOII **/
-      System.arraycopy(DashDashBytesR, 0, newArr, 0, DashDashBytesR.length)
-      System.arraycopy(r, 0, newArr, DashDashBytesR.length, r.length)
-      newArr
-    }
+  private val expectedBytesR: Boundary => Array[Byte] =
+    boundaryBytesR.andThen(CRLFBytes ++ DashDashBytes ++ _)
 
-  private val endLineBytesR: Boundary => Array[Byte] = boundaryBytesR.andThen { r =>
-    val newArr = new Array[Byte](r.length + DashDashBytesR.length * 2)
-
-    /** Disgusting but FAST BOII **/
-    System.arraycopy(DashDashBytesR, 0, newArr, 0, DashDashBytesR.length)
-    System.arraycopy(r, 0, newArr, DashDashBytesR.length, r.length)
-    System.arraycopy(
-      DashDashBytesR,
-      0,
-      newArr,
-      DashDashBytesR.length + r.length,
-      DashDashBytesR.length)
-    newArr
-  }
-//  private val endLineBytesR: Boundary => Array[Byte] = startLineBytesR.andThen(_ ++ DashDashBytes)
-  private val expectedBytesR: Boundary => Array[Byte] = boundaryBytesR.andThen { r =>
-    val newArr = new Array[Byte](r.length + DashDashBytesR.length + CRLFBytesR.length)
-
-    /** Disgusting but FAST BOII **/
-    System.arraycopy(CRLFBytesR, 0, newArr, 0, CRLFBytesR.length)
-    System.arraycopy(DashDashBytesR, 0, newArr, CRLFBytesR.length, DashDashBytesR.length)
-    System.arraycopy(r, 0, newArr, DashDashBytesR.length + CRLFBytesR.length, r.length)
-    newArr
-  }
-
-  /** Ol' way **/
-  private val CRLFBytes = ByteVector('\r', '\n')
-  private val DashDashBytes = ByteVector('-', '-')
-  private val boundaryBytes: Boundary => ByteVector = boundary =>
-    ByteVector(boundary.value.getBytes)
-  private val startLineBytes: Boundary => ByteVector = boundaryBytes.andThen(DashDashBytes ++ _)
-
-  private val endLineBytes: Boundary => ByteVector = startLineBytes.andThen(_ ++ DashDashBytes)
-  private val expectedBytes: Boundary => ByteVector = startLineBytes.andThen(CRLFBytes ++ _)
-
-  final case class Out[+A](a: A, tail: Option[ByteVector] = None)
-
-  def parse[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Either[Headers, ByteVector]] = s => {
-    val bufferedMultipartT = s.compile.toVector.map(ByteVector(_))
-    val parts = bufferedMultipartT.flatMap(parseToParts(_)(boundary))
-    val listT = parts.map(splitParts(_)(boundary)(List.empty[Either[Headers, ByteVector]]))
-
-    Stream
-      .eval(listT)
-      .flatMap(list => Stream.emits(list))
-  }
-
-  def parseR[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Multipart[F]] = { st =>
-    val expectedStart = startLineBytesR(boundary)
-    val expectedEnd = endLineBytesR(boundary)
-    val expectedMiddles = expectedBytesR(boundary)
-    findAndSplit[F](expectedMiddles, ignoreAfter[F](expectedEnd, ignorePrior(expectedStart, st)))
-      .flatMap(parseToPartsR[F])
+  def parseStreamed[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Multipart[F]] = { st =>
+    ignorePreludeStage[F](boundary, st)
       .fold(Vector.empty[Part[F]])(_ :+ _)
-      .map(Multipart(_))
+      .map(Multipart(_, boundary))
   }
 
-  def parseStreamed[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Stream[F, Byte]] = { st =>
-    val expectedStart = startLineBytesR(boundary)
-    val expectedEnd = endLineBytesR(boundary)
-    val expectedMiddles = expectedBytesR(boundary)
-    findAndSplit[F](expectedMiddles, ignoreAfter[F](expectedEnd, ignorePrior(expectedStart, st)))
-  }
-
-  /** Split an already truncated stream,
-    * parse the headers from the first part, and set the rest as the
-    * (potentially empty) body.
-    *
-    * This function assumes the stream `s` to have been already
-    * split by the delimited portions
-    */
-  private def parseToPartsR[F[_]: Sync](s: Stream[F, Byte]): Stream[F, Part[F]] =
-    findAndSplit[F](DoubleCRLFBytesR, s).pull.uncons1.flatMap {
-      case Some((strim1, rest)) =>
-        rest.pull.uncons1.flatMap {
-          case Some((strim2, rest2)) =>
-            rest2.pull.uncons1.flatMap {
-              case Some(_) =>
-                Pull.raiseError(MalformedMessageBodyFailure("Part split incorrectly"))
-              case None =>
-                parseHeadersR[F](strim1)
-                  .map(Part[F](_, strim2))
-                  .pull
-                  .echo
-            }
-          case None =>
-            parseHeadersR[F](strim1)
-              .map(Part[F](_, Stream.empty))
-              .pull
-              .echo
-        }
-      case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
-    }.stream
-
-  /** Parse headers from CRLF separated
-    * stream components.
-    */
-  def parseHeadersR[F[_]: Sync](s: Stream[F, Byte]): Stream[F, Headers] = {
-    def splitH(s1: Stream[F, Byte]): Stream[F, Headers] =
-      s1.through(text.utf8Decode).map { line =>
-        val idx = line.indexOf(':')
-        if (idx >= 0) {
-          Headers(List(Header(line.substring(0, idx), line.substring(idx + 1).trim)))
-        } else {
-          Headers.empty
-        }
-      }
-
-    findAndSplit[F](CRLFBytesR, s).flatMap(splitH).fold(Headers.empty)(_ ++ _)
+  def parseToPartsStream[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Part[F]] = { st =>
+    ignorePreludeStage[F](boundary, st)
   }
 
   /** This function is the integral component in detecting whether `values`
@@ -147,149 +36,214 @@ object MultipartParser {
     * @param valueIx the current index of the value relative to the chunk.
     *                This can mean the value is split across chunks.
     * @param c the offending chunk.
-    * @return
     */
   private def stateIndex(values: Array[Byte], valueIx: Int, c: Chunk.Bytes): (Int, Int) = {
     var i = 0
     var sti = 0
     val len2 = values.length - valueIx
+    //Debug
     while (sti < len2 && i < c.length) {
-      if (c(i) != values(sti + valueIx) && sti != 0) {
-        sti = 0
-      } else {
+      if (c(i) == values(sti + valueIx)) {
         sti += 1
+      } else if (c(i) == values(0)) {
+        sti = 1
+      } else {
+        sti = 0
       }
       i += 1
     }
     (sti, i)
   }
 
-  /** Apply our stateful indexing function, but only return the chunk
-    * after the final index matching the value array
-    */
-  private def emitRest(values: Array[Byte], st: Int, c: Chunk.Bytes): (Int, Chunk.Bytes) = {
-    val (sti, i) = stateIndex(values, st, c)
-    val str = {
-      if (sti == 0) {
-        c
-      } else if (i == c.length) {
-        Chunk.Bytes(Array.empty[Byte])
-      } else {
-        Chunk.Bytes(c.values, c.offset + i, c.length - i)
-      }
-    }
-    (sti + st, str)
-  }
-
-  /** Apply our stateful indexing function, but only return the chunk
-    * before the final index matching the value array
-    */
-  private def emitPrev(values: Array[Byte], st: Int, c: Chunk.Bytes): (Int, Chunk.Bytes) = {
-    val (sti, i) = stateIndex(values, st, c)
-    val str = {
-      if (sti == 0) {
-        c
-      } else {
-        Chunk.Bytes(c.values, c.offset, i - sti)
-      }
-    }
-    (sti + st, str)
-  }
-
-  /** Like `emitPrev` and `emitRest`,
-    * except it returns everything except the matched
-    * `values`.
-    */
-  def emitBoth[F[_]: Sync](
+  //Todo: This may fail for an edge case
+  private def splitAndIgnorePrev[F[_]](
       values: Array[Byte],
       state: Int,
-      c: Chunk.Bytes): (Int, Segment[Byte, Unit], Vector[Stream[F, Byte]]) = {
-    @tailrec def segmentRecurse(
-        st: Int,
-        c: Chunk.Bytes,
-        acc: Segment[Byte, Unit],
-        out: Vector[Stream[F, Byte]]): (Int, Segment[Byte, Unit], Vector[Stream[F, Byte]]) = {
-      val (sti, i) = stateIndex(values, state, c)
-      if (sti == 0) {
-        (sti, acc ++ Segment.chunk(c), out)
-      } else if (sti + state == values.length) {
-        segmentRecurse(
-          0,
-          Chunk.Bytes(c.values, c.offset + i, c.length - i),
-          Segment.empty[Byte],
-          out :+ Stream
-            .segment(acc ++ Segment.chunk(Chunk.Bytes(c.values, c.offset, i - sti)))
-            .covary[F]
-        )
-      } else {
-        segmentRecurse(
-          sti + st,
-          Chunk.Bytes(c.values, c.offset + i, c.length - i),
-          acc ++ Segment.chunk(Chunk.Bytes(c.values, c.offset, i - sti)),
-          out
-        )
-      }
+      c: Chunk.Bytes): (Int, Stream[F, Byte]) = {
+    val (sti, i) = stateIndex(values, state, c)
+    if (sti == 0) {
+      (0, Stream.empty)
+    } else if (i == c.length) {
+      (sti + state, Stream.empty)
+    } else {
+      (sti + state, Stream.chunk(Chunk.Bytes(c.values, c.offset + i, c.length - i)))
+    }
+  }
+
+  /** Split a chunk in the case of a complete match:
+    *
+    * If it is a chunk that is between a partial match
+    * (middleChunked), consider the prior partial match
+    * as part of the data to emit.
+    *
+    * If it is a fully matched, fresh chunk (no carry over partial match),
+    * emit everything until the match, and everything after the match.
+    *
+    * If it is the continuation of a partial match,
+    * emit everything after the partial match.
+    *
+    */
+  private def splitCompleteMatch[F[_]: Sync](
+      state: Int,
+      middleChunked: Boolean,
+      sti: Int,
+      i: Int,
+      acc: Stream[F, Byte],
+      carry: Stream[F, Byte],
+      c: Chunk.Bytes
+  ): (Int, Stream[F, Byte], Stream[F, Byte]) =
+    if (middleChunked) {
+      (
+        sti,
+        //Emit the partial match as well
+        acc ++ carry ++ Stream.chunk(
+          Chunk.Bytes(
+            c.values,
+            c.offset,
+            i - sti //Emit until the match
+          )),
+        Stream.chunk(
+          //Emit after the match
+          Chunk.Bytes(c.values, c.offset + i, c.length - i)
+        ))
+    } else if (state == 0) {
+      (
+        sti,
+        //Ignore the partial match (carry)
+        acc ++ Stream.chunk(
+          Chunk.Bytes(
+            c.values,
+            c.offset,
+            i - sti
+          )
+        ),
+        Stream.chunk(
+          Chunk.Bytes(c.values, c.offset + i, c.length - i)
+        ))
+    } else {
+      (
+        sti,
+        acc, //block completes partial match, so do not emit carry
+        Stream.chunk(
+          //Emit everything after the match
+          Chunk.Bytes(c.values, c.offset + i, c.length - i)
+        ))
     }
 
-    segmentRecurse(state, c, Segment.empty[Byte], Vector.empty)
+  /** Split a chunk in the case of a partial match:
+    *
+    * If it is a chunk that is between a partial match
+    * (middle chunked), the prior partial match is added to
+    * the accumulator, and the current partial match is
+    * considered to carry over.
+    *
+    * If it is a fresh chunk (no carry over partial match),
+    * everything prior to the partial match is added to the accumulator,
+    * and the partial match is considered the carry over.
+    *
+    * Else, if the whole block is a partial match,
+    * add it to the carry over
+    *
+    */
+  def splitPartialMatch[F[_]: Sync](
+      state: Int,
+      middleChunked: Boolean,
+      currState: Int,
+      i: Int,
+      acc: Stream[F, Byte],
+      carry: Stream[F, Byte],
+      c: Chunk.Bytes
+  ): (Int, Stream[F, Byte], Stream[F, Byte]) = {
+    val ixx = i - currState
+    if (middleChunked) {
+      (
+        currState,
+        acc ++ carry ++ Stream.chunk(
+          Chunk.Bytes( //Emit previous carry
+            c.values,
+            c.offset,
+            ixx)),
+        Stream.chunk(
+          Chunk.Bytes(
+            c.values,
+            c.offset + ixx,
+            c.length - ixx
+          )))
+    } else if (state == 0) {
+      (
+        currState,
+        acc ++ carry ++ Stream.chunk(Chunk.Bytes(c.values, c.offset, ixx)),
+        Stream.chunk(Chunk.Bytes(c.values, c.offset + ixx, c.length - ixx)))
+    } else {
+      (currState, acc, carry ++ Stream.chunk(c))
+    }
   }
 
-  /** Traverse the stream until the first match of `values`,
-    * emit everything before the match
-    * then discard everything after it.
+  /** Split a chunk as part of either a left or right
+    * stream depending on the byte sequence in `values`.
     *
-    * @param values the values that may be spread across boundaries
-    * @param stream the stream to split on
-    * @return
+    * `state` represents the current counter position
+    * for `values`, which is necessary to keep track of in the
+    * case of partial matches.
+    *
+    * `acc` holds the cumulative left stream values,
+    * and `carry` holds the values that may possibly
+    * be the byte sequence. As such, carry is re-emitted if it was an
+    * incomplete match, or ignored (as such excluding the sequence
+    * from the subsequent split stream).
+    *
     */
-  private def ignoreAfter[F[_]: Sync](
+  def splitOnChunk[F[_]: Sync](
       values: Array[Byte],
-      stream: Stream[F, Byte]): Stream[F, Byte] = {
-
-    def go(s: Stream[F, Byte], state: Int, lastChunk: Chunk[Byte]): Pull[F, Byte, Unit] =
-      if (state == values.length) {
-        Pull.done
+      state: Int,
+      c: Chunk.Bytes,
+      acc: Stream[F, Byte],
+      carry: Stream[F, Byte]): (Int, Stream[F, Byte], Stream[F, Byte]) = {
+    var i = 0
+    var currState = state
+    val len = values.length
+    var middleChunked = false
+    //Debug
+    while (currState < len && i < c.length) {
+      if (c(i) == values(currState)) {
+        currState += 1
+      } else if (c(i) == values(0)) {
+        middleChunked = true
+        currState = 1
       } else {
-        s.pull.unconsChunk.flatMap {
-          case Some((chnk, str)) =>
-            val bytes = chnk.toBytes
-            val (ix, strim) = emitPrev(values, state, bytes)
-            Pull.outputChunk[F, Byte](lastChunk) *> go(str, ix, strim)
-          case None =>
-            Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
-        }
+        currState = 0
       }
+      i += 1
+    }
 
-    stream.pull.unconsChunk.flatMap {
-      case Some((chnk, strim)) =>
-        val (ix, rest) = emitPrev(values, 0, chnk.toBytes)
-        Pull.outputChunk(rest).flatMap(_ => go(strim, ix, rest))
-      case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Malformed Boundary"))
-    }.stream
+    if (currState == 0) {
+      (0, acc ++ carry ++ Stream.chunk(c), Stream.empty)
+    } else if (currState == len) {
+      splitCompleteMatch(state, middleChunked, currState, i, acc, carry, c)
+    } else {
+      splitPartialMatch(state, middleChunked, currState, i, acc, carry, c)
+    }
   }
 
-  /** Traverse the stream until the first match of `values`,
-    * discard everything prior to the match, emit everything after.
+  /** The first part of our streaming stages:
     *
-    * @param values the values that may be spread across boundaries
-    * @param stream the stream to split on
-    * @return
+    * Ignore the prelude and remove the first boundary
+    *
     */
-  private def ignorePrior[F[_]: Sync](
-      values: Array[Byte],
-      stream: Stream[F, Byte]): Stream[F, Byte] = {
+  private def ignorePreludeStage[F[_]: Sync](
+      b: Boundary,
+      stream: Stream[F, Byte]): Stream[F, Part[F]] = {
+    val values = startLineBytesR(b)
 
-    def go(s: Stream[F, Byte], state: Int, lastChnk: Chunk[Byte]): Pull[F, Byte, Unit] =
+    def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
       if (state == values.length) {
-        Pull.outputChunk(lastChnk).flatMap(_ => s.pull.echo)
+        streamStageParsePart(b, strim ++ s).pull.echo
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, rest)) =>
             val bytes = chnk.toBytes
-            //Ignore the unmatched portion
-            val (ix, chnkN) = emitRest(values, state, bytes)
-            go(rest, ix, chnkN)
+            val (ix, strim) = splitAndIgnorePrev(values, state, bytes)
+            go(rest, ix, strim)
           case None =>
             Pull.raiseError(MalformedMessageBodyFailure("Malformed Malformed match"))
         }
@@ -297,180 +251,125 @@ object MultipartParser {
 
     stream.pull.unconsChunk.flatMap {
       case Some((chnk, strim)) =>
-        val (ix, chnk2) = emitRest(values, 0, chnk.toBytes)
-        go(strim, ix, chnk2)
+        val (ix, rest) = splitAndIgnorePrev(values, 0, chnk.toBytes)
+        go(strim, ix, rest)
       case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Malformed Message Body"))
+        Pull.raiseError(MalformedMessageBodyFailure("Cannot parse empty stream"))
     }.stream
   }
 
-  /** Traverse the stream, splitting it up into sub-streams
-    * based on `value`
-    *
-    * @param values the values that may be spread across boundaries
-    * @param stream the stream to split on
-    * @return
-    */
-  def findAndSplit[F[_]: Sync](
-      values: Array[Byte],
-      stream: Stream[F, Byte]): Stream[F, Stream[F, Byte]] = {
+  private def parseToPartStreamed[F[_]: Sync](s: Stream[F, Byte]): Stream[F, Part[F]] =
+    splitHalf[F](DoubleCRLFBytes, s).flatMap {
+      case (l, r) =>
+        l.pull.uncons.flatMap {
+          case None =>
+            Pull.raiseError(
+              MalformedMessageBodyFailure("Invalid Separation between headers and body"))
+          case Some(_) =>
+            parseHeaders[F](l).map(Part[F](_, r)).pull.echo *> Pull.done
+        }
+    }.stream
 
-    def go(s: Stream[F, Byte], state: Int, accum: Stream[F, Byte]): Pull[F, Stream[F, Byte], Unit] =
+  private def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): Stream[F, Headers] = {
+    def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
+      splitHalf[F](CRLFBytes, s).flatMap {
+        case (l, r) =>
+          l.through(asciiDecode)
+            .fold("")(_ ++ _)
+            .map { string =>
+              val ix = string.indexOf(':')
+              if (string.indexOf(':') >= 0)
+                headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
+              else
+                headers
+            }
+            .pull
+            .echo *> r.pull.uncons.flatMap {
+            case Some(_) =>
+              tailrecParse(r, headers)
+            case None =>
+              Pull.done
+          }
+      }
+
+    tailrecParse(strim, Headers.empty).stream
+      .fold(Headers.empty)(_ ++ _)
+  }
+
+  private def streamStageParsePart[F[_]: Sync](
+      boundary: Boundary,
+      s: Stream[F, Byte]
+  ): Stream[F, Part[F]] = {
+    val values = expectedBytesR(boundary)
+    splitHalf[F](values, s).flatMap {
+      case (l, r) =>
+        r.pull.unconsChunk.flatMap {
+          case None =>
+            parseToPartStreamed[F](l).pull.echo *>
+              checkLast[F](r).pull.echo *>
+              Pull.done
+          case Some(_) =>
+            tailrecParts[F](boundary, values, l, r)
+        }
+    }.stream
+  }
+
+  private def checkLast[F[_]: Sync](s: Stream[F, Byte]): Stream[F, Part[F]] =
+    s.take(2).fold("")(_ + _.toChar).flatMap { s =>
+      if (s == "--") {
+        Stream.empty
+      } else {
+        Stream.raiseError(MalformedMessageBodyFailure("Invalid closing boundary"))
+      }
+    }
+
+  private def tailrecParts[F[_]: Sync](
+      b: Boundary,
+      values: Array[Byte],
+      last: Stream[F, Byte],
+      next: Stream[F, Byte]
+  ): Pull[F, Part[F], Unit] =
+    parseToPartStreamed[F](last).pull.echo *> splitHalf[F](values, next).flatMap {
+      case (l, r) =>
+        r.pull.uncons.flatMap {
+          case None =>
+            checkLast[F](l).pull.echo
+          case Some(_) =>
+            tailrecParts[F](b, values, l, r)
+        }
+    }
+
+  private def splitHalf[F[_]: Sync](
+      values: Array[Byte],
+      stream: Stream[F, Byte]): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] = {
+
+    def go(
+        s: Stream[F, Byte],
+        state: Int,
+        lacc: Stream[F, Byte],
+        racc: Stream[F, Byte]): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] =
       if (state == values.length) {
-        Pull.output1(accum).flatMap(_ => go(s, 0, Stream.empty.covary[F]))
+        Pull.pure((lacc, racc ++ s))
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, str)) =>
-            val bytes = chnk.toBytes
-            val (ix, seg, strim) = emitBoth(values, state, bytes)
-            if (strim.isEmpty)
-              go(str, ix, accum ++ Stream.segment(seg))
-            else
-              strim.tail
-                .foldLeft(Pull.output1(strim.head))((l, r) => l.flatMap(_ => Pull.output1(r)))
-                .flatMap(_ => go(str, ix, accum ++ Stream.segment(seg)))
+            val (ix, l, r) = splitOnChunk[F](values, state, chnk.toBytes, lacc, racc)
+            go(str, ix, l, r)
           case None =>
             if (state != 0) {
-              Pull.raiseError(MalformedMessageBodyFailure("Malformed Message Body"))
+              Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
             } else {
-              Pull.output1(accum)
+              Pull.pure((lacc, racc))
             }
         }
       }
 
     stream.pull.unconsChunk.flatMap {
-      case Some((chnk, str)) =>
-        val (ix, seq, strim) = emitBoth(values, 0, chnk.toBytes)
-        if (strim.isEmpty)
-          go(str, ix, Stream.segment(seq))
-        else
-          strim.tail
-            .foldLeft(Pull.output1(strim.head))((l, r) => l.flatMap(_ => Pull.output1(r)))
-            .flatMap(_ => go(str, ix, Stream.segment(seq)))
+      case Some((chunk, rest)) =>
+        val (ix, l, r) = splitOnChunk[F](values, 0, chunk.toBytes, Stream.empty, Stream.empty)
+        go(rest, ix, l, r)
       case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Splitting on empty stream"))
-    }.stream
-  }
-
-  /**
-    * parseToParts - Removes Prelude and Trailer
-    *
-    * splitParts - Splits Into Parts
-    * splitPart - Takes a Single Part of the Front
-    * generatePart - Generates a tuple of Headers and a ByteVector of the Body, effectively a Part
-    *
-    * generateHeaders - Generate Headers from ByteVector
-    * splitHeader - Splits a Header into the Name and Value
-    */
-  def parseToParts[F[_]](byteVector: ByteVector)(boundary: Boundary)(
-      implicit F: Sync[F]): F[ByteVector] = {
-    val startLine = startLineBytes(boundary)
-    val startIndex = byteVector.indexOfSlice(startLine)
-    val endLine = endLineBytes(boundary)
-    val endIndex = byteVector.indexOfSlice(endLine)
-
-    if (startIndex >= 0 && endIndex >= 0) {
-      val parts = byteVector.slice(
-        startIndex + startLine.length + CRLFBytes.length,
-        endIndex - CRLFBytes.length)
-      F.delay(parts)
-    } else {
-      F.raiseError(MalformedMessageBodyFailure("Expected a multipart start or end line"))
-    }
-  }
-
-  def splitPart(byteVector: ByteVector)(boundary: Boundary): Option[(ByteVector, ByteVector)] = {
-    val expected = expectedBytes(boundary)
-    val index = byteVector.indexOfSlice(expected)
-
-    if (index >= 0L) {
-      val (part, restWithExpected) = byteVector.splitAt(index)
-      val rest = restWithExpected.drop(expected.length)
-      Option((part, rest))
-    } else {
-      Option((byteVector, ByteVector.empty))
-    }
-  }
-  @tailrec
-  def splitParts(byteVector: ByteVector)(boundary: Boundary)(
-      acc: List[Either[Headers, ByteVector]]): List[Either[Headers, ByteVector]] = {
-
-    val expected = expectedBytes(boundary)
-    val containsExpected = byteVector.containsSlice(expected)
-
-    val partOpt = if (!containsExpected) {
-
-      Option((byteVector, ByteVector.empty))
-    } else {
-      splitPart(byteVector)(boundary)
-    }
-
-    partOpt match {
-      case Some((part, rest)) =>
-        logger.trace(s"splitParts part: ${part.decodeUtf8.toOption}")
-
-        val (headers, body) = generatePart(part)
-
-        val newAcc = Either.right(body) :: Either.left(headers) :: acc
-        logger.trace(s"splitParts newAcc: $newAcc")
-
-        if (rest.isEmpty) {
-          newAcc.reverse
-        } else {
-          splitParts(rest)(boundary)(newAcc)
-        }
-      case None => acc.reverse
-    }
-  }
-
-  def generatePart(byteVector: ByteVector): (Headers, ByteVector) = {
-    val doubleCRLF = CRLFBytes ++ CRLFBytes
-    val index = byteVector.indexOfSlice(doubleCRLF)
-    // Each Part Should Contain this Separation between bodies and headers -- We could handle failure.
-    val (headersSplit, bodyWithCRLFs) = byteVector.splitAt(index)
-    val body = bodyWithCRLFs.drop(doubleCRLF.length)
-
-    logger.trace(s"GeneratePart HeadersSplit ${headersSplit.decodeAscii}")
-    logger.trace(s"GenerateParts Body ${body.decodeAscii}")
-
-    val headers = generateHeaders(headersSplit ++ CRLFBytes)(Headers.empty)
-
-    (headers, body)
-  }
-
-  @tailrec
-  def generateHeaders(byteVector: ByteVector)(acc: Headers): Headers = {
-    val headerO = splitHeader(byteVector)
-
-    headerO match {
-      case Some((lineBV, rest)) =>
-        val headerO = for {
-          line <- lineBV.decodeAscii.right.toOption
-          idx <- Some(line.indexOf(':'))
-          if idx >= 0
-          header = Header(line.substring(0, idx), line.substring(idx + 1).trim)
-        } yield header
-
-        val newHeaders = acc ++ headerO
-
-        logger.trace(s"Generate Headers Header0 = $headerO")
-        generateHeaders(rest)(newHeaders)
-      case None => acc
-    }
-
-  }
-
-  def splitHeader(byteVector: ByteVector): Option[(ByteVector, ByteVector)] = {
-    val index = byteVector.indexOfSlice(CRLFBytes)
-
-    if (index >= 0L) {
-      val (line, rest) = byteVector.splitAt(index)
-
-      logger.trace(s"Split Header Line: ${line.decodeAscii}")
-      logger.trace(s"Split Header Rest: ${rest.decodeAscii}")
-      Option((line, rest.drop(CRLFBytes.length)))
-    } else {
-      Option.empty[(ByteVector, ByteVector)]
+        Pull.pure((Stream.empty, Stream.empty))
     }
   }
 }

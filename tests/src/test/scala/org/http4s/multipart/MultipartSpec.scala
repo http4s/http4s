@@ -59,7 +59,7 @@ class MultipartSpec extends Specification {
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, false)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
