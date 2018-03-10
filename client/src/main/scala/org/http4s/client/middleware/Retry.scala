@@ -63,7 +63,7 @@ object Retry {
           }
         }
         .getOrElse(0L)
-      val sleepDuration = Math.max(headerDuration, duration.length).seconds
+      val sleepDuration = headerDuration.seconds.max(duration)
       scheduler.sleep_[F](sleepDuration).compile.drain *> prepareLoop(
         req.withEmptyBody,
         attempts + 1)
