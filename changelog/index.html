@@ -85,10 +85,23 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-2-2018-03-09">v0.18.2 (2018-03-09)</h1>
+
+<ul>
+<li>Qualify reference to <code>identity</code> in <code>uriLiteral</code> macro <a href="https://github.com/http4s/http4s/pull/1697">#1697</a></li>
+<li>Make <code>Retry</code> use the correct duration units <a href="https://github.com/http4s/http4s/pull/1698">#1698</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>tomcat-9.0.6
+<br /></li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-1-2018-02-27">v0.18.1 (2018-02-27)</h1>
 
 <ul>
-<li>Fix the rendering of trailer headers in blaze <a href="https://github.com/http4s/http4s/pull/1638">#1629</a></li>
+<li>Fix the rendering of trailer headers in blaze <a href="https://github.com/http4s/http4s/pull/1629">#1629</a></li>
 <li>Fix race condition between shutdown and parsing in Http1SeverStage <a href="https://github.com/http4s/http4s/pull/1675">#1675</a></li>
 <li>Don&rsquo;t use filter in <code>Arbitrary[</code><code>Content-Length</code><code>]</code> <a href="https://github.com/http4s/http4s/pull/1678">#1678</a></li>
 <li>Opt-in fallthrough for authenticated services <a href="https://github.com/http4s/http4s/pull/1681">#1681</a></li>
