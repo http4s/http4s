@@ -31,7 +31,6 @@ lazy val core = libraryProject("core")
       macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting

@@ -7,7 +7,6 @@ import org.http4s.headers._
 import org.http4s.util._
 import org.specs2.mutable._
 import org.specs2.specification.core.Fragments
-import scodec.bits.ByteVector
 
 object MultipartParserSpec extends Specification {
 
@@ -22,10 +21,10 @@ object MultipartParserSpec extends Specification {
     if (str.isEmpty) {
       Stream.empty
     } else if (str.length <= limit) {
-      Stream.emits(ByteVector.view(str.getBytes("ASCII")).toSeq)
+      Stream.emits(str.getBytes("ASCII").toSeq)
     } else {
       val (front, back) = str.splitAt(limit)
-      Stream.emits(ByteVector.view(front.getBytes("ASCII")).toSeq) ++ unspool(back, limit)
+      Stream.emits(front.getBytes("ASCII")) ++ unspool(back, limit)
     }
 
   "form streaming parsing" should {
@@ -182,31 +181,36 @@ object MultipartParserSpec extends Specification {
       bodies.attempt.unsafeRunSync() must beRight(expected)
     }
 
-    //Todo
-//    "fail if the header is too large" in {
-//      // This is a valid multipart body, but in this example, we're imposing an
-//      // absurdly low cap in the argument to MultipartParser.parse to trigger failure.
-//      val unprocessedInput =
-//        """
-//        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-//        |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-//        |Content-Type: application/octet-stream
-//        |Content-Transfer-Encoding: binary
-//        |
-//        |this is a test
-//        |here's another test
-//        |catch me if you can!
-//        |
-//        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
-//      val input = ruinDelims(unprocessedInput)
-//
-//      val results =
-//        unspool(input, 15).through(MultipartParser.parse(boundary))
-//
-//      results.compile.toVector.unsafeRunSync() must throwA(
-//        MalformedMessageBodyFailure("Part header was longer than 100-byte limit"))
-//    }.pendingUntilFixed("Due to Buffering All, Irrelevant")
+    "fail if the header is too large" in {
+      // This is a valid multipart body, but in this example, we're imposing an
+      // absurdly low cap in the argument to MultipartParser.parse to trigger failure.
+      val unprocessedInput =
+        """
+        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+        |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+        |Content-Type: application/octet-stream
+        |Content-Transfer-Encoding: binary
+        |
+        |this is a test
+        |here's another test
+        |catch me if you can!
+        |
+        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+      val input = ruinDelims(unprocessedInput)
 
+      val headerSection =
+        """
+          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+          |Content-Type: application/octet-stream
+          |Content-Transfer-Encoding: binary""".stripMargin
+      val maxSize = ruinDelims(headerSection).length
+
+      val results =
+        unspool(input, 15).through(MultipartParser.parseStreamed(boundary, maxSize))
+
+      results.compile.toVector.unsafeRunSync() must throwA(
+        MalformedMessageBodyFailure(s"Part header was longer than $maxSize-byte limit"))
+    }
 
     "handle a miserably large body on one line" in {
       val input =
