@@ -8,8 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.2 (2018-03-09)
+* Qualify reference to `identity` in `uriLiteral` macro [#1697](https://github.com/http4s/http4s/pull/1697)
+* Make `Retry` use the correct duration units [#1698](https://github.com/http4s/http4s/pull/1698)
+* Dependency upgrades:
+  * tomcat-9.0.6
+	
 # v0.18.1 (2018-02-27)
-* Fix the rendering of trailer headers in blaze [#1629](https://github.com/http4s/http4s/pull/1638)
+* Fix the rendering of trailer headers in blaze [#1629](https://github.com/http4s/http4s/pull/1629)
 * Fix race condition between shutdown and parsing in Http1SeverStage [#1675](https://github.com/http4s/http4s/pull/1675)
 * Don't use filter in `Arbitrary[``Content-Length``]` [#1678](https://github.com/http4s/http4s/pull/1678)
 * Opt-in fallthrough for authenticated services [#1681](https://github.com/http4s/http4s/pull/1681)
