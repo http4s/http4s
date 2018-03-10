@@ -6,7 +6,7 @@ title: Testing
 
 ## Introduction
 
-Testing http4s [[org.http4s.HttpService]]'s is straightforward given that it's:
+Testing http4s `org.http4s.HttpService`'s is straightforward given that it's:
 
 ```scala
     type HttpService[F[_]] = Kleisli[OptionT[F, ?], Request[F], Response[F]]
@@ -28,40 +28,38 @@ So, since the above is simply a function, we can test it just like any other fun
 
 ## Example
 
-Given the following service, which we can define through the following [Swagger]() doc:
+Given the following service, which we can define through the following [Swagger](https://swagger.io/) contract:
 
 ```yaml
 swagger: "2.0"
 info:
   description: "Example Swagger Doc"
   version: "1.0.0"
-  title: "Http4s Demo"
-  license:
-host: ""
+  title: "Http4s Testing Demo"
+host: "localhost"
 basePath: "/api"
 schemes:
 - "http"
 paths:
   /user/{id}:
-    post:
+    get:
+      parameters:
+      - name: "id"
+        in: "path"
+        description: "ID of User."
+        required: true
+        type: "string"
+        format: "uuid"    
       summary: "Get a user by id."
       produces:
       - "application/json"
-      parameters:
-      - in: "path"
-        name: "id"
-        description: "ID of User"
-        format: "[0-9]{4}"
-        required: true
-        schema:
-          type: integer
       responses:
         200:
           description: "Got representation of User."
           schema:
             $ref: "#/definitions/User"
         400:
-          description: "Invalid User ID, i.e. not exactly 4 digits"
+          description: "Invalid User ID, i.e. not a UUID."
         404: 
           description: "User does not exist."
         500:
@@ -71,16 +69,44 @@ definitions:
     type: "object"
     required:
     - "name"
-    - "hobbies"
+    - "age"
     properties:
       name:
         type: "string"
-      hobbies:
-        type: "array"
-        description: "String's."
+      age:
+        type: "integer"
 ``` 
 
+Now, let's define the `org.http4s.HttpService`.
+
 ```tut:book
+import cats.effect._, org.http4s._, org.http4s.dsl.io._
+import java.util.UUID
+import scala.util.Try
+import io.circe.generic._
+
+object UserId {
+  def unapply(value: String): Option[UUID] = 
+    Try(UUID.fromString(value)).toOption
+} 
+
+final case class User(name: String, age: Int)
+object User {
+  implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
+}
+
+trait UserRepo {
+  def find(userId: UUID): IO[Option[User]]
+}
+
+def service(repo: UserRepo): HttpService = HttpService[IO] {
+  case GET -> Root / "user" / UserId(uuid) =>
+    repo.find(uuid).flatMap {
+      case Some(user) => Ok(user)
+      case None       => NotFound
+    }
+}
+```
 
 ## References
 
