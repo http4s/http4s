@@ -44,8 +44,7 @@ object Logger {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
       message.body
-        .fold(new StringBuilder)((sb, b) =>
-          sb.append(String.format("%02X", new java.lang.Integer(b & 0xff))))
+        .fold(new StringBuilder)((sb, b) => sb.append(String.format("%02X", Int.box(b & 0xff))))
         .map(_.toString)
     } else {
       Stream.empty.covary[F]
