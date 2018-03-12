@@ -5,17 +5,15 @@ import cats.effect._
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
-import org.http4s.{headers => H, _}
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
 import org.http4s.headers.{Date, Link, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.{headers => H, _}
 import org.specs2.specification.core.Fragment
-
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class Http1ServerStageSpec extends Http4sSpec {
   def makeString(b: ByteBuffer): String = {
