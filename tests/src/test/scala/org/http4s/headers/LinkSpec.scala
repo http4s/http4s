@@ -4,7 +4,7 @@ import org.http4s.MediaRange
 
 class LinkSpec extends HeaderLaws {
 
-  val link = """</feed>; rel="alternate"; type="text/*"; title="main"""""
+  val link = """</feed>; rel="alternate"; type="text/*"; title="main"; rev="previous""""
 
   "parse" should {
     "accept format RFC 5988" in {
@@ -13,6 +13,7 @@ class LinkSpec extends HeaderLaws {
       parsedLink.map(_.rel) must beRight(Option("alternate"))
       parsedLink.map(_.title) must beRight(Option("main"))
       parsedLink.map(_.`type`) must beRight(Option(MediaRange.`text/*`))
+      parsedLink.map(_.rev) must beRight(Option("previous"))
     }
   }
 
