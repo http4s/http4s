@@ -77,7 +77,8 @@ definitions:
         type: "integer"
 ``` 
 
-Now, let's define the `org.http4s.HttpService`.
+Now, let's define the `org.http4s.HttpService`. It will implement the
+above contract.
 
 ```tut:book
 import cats.effect._, org.http4s._, org.http4s.dsl.io._
@@ -106,6 +107,29 @@ def service(repo: UserRepo): HttpService = HttpService[IO] {
       case None       => NotFound
     }
 }
+```
+
+Let's define service by passing a `UserRepo` that returns `Ok(user)`. 
+
+```tut:book
+val success: UserRepo = new UserRepo {
+  def find(userId: UUID): IO.pure(Some(User("johndoe", 42)))
+} 
+
+val testUuid = UUID.randomUUID
+
+service(success).run(
+  Request(method = Method.GET, uri = Uri.uri(s"/user/$testUuid") )
+).unsafeRunSync
+```
+
+Next, let's check the HTTP Response's Status if the URI's Path does
+not consist of a UUID:
+
+```tut:book
+service(success).run(
+  Request(method = Method.GET, uri = Uri.uri(s"/user/not-a-uuid") )
+).unsafeRunSync
 ```
 
 ## References
