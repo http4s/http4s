@@ -56,4 +56,10 @@ object HttpRoutes {
     */
   def of[F[_]](pf: PartialFunction[Request[F], F[Response[F]]])(implicit F: Sync[F]): HttpRoutes[F] =
     Kleisli(req => OptionT(F.delay(pf.lift(req).sequence).flatten))
+
+  /** An empty set of routes.  Always responds with `pOptionT.none`.
+    * 
+    * @tparam F the base effect of the [[HttpRoutes]]
+    */
+  def empty[F[_]: Applicative]: HttpRoutes[F] = liftF(OptionT.none)
 }
