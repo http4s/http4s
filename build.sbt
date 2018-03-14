@@ -269,8 +269,9 @@ lazy val docs = http4sProject("docs")
         loadTest
       ),
     scalacOptions in Tut ~= {
+      val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
-      _.filterNot(_ == "-Ywarn-unused:params") :+ "-Xfatal-warnings"
+      _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
     scalacOptions in (Compile, doc) ++= {
       scmInfo.value match {
