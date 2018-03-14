@@ -200,6 +200,8 @@ the following one-liner:
 implicit def decoders[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
 ```
 
+This creates an `EntityDecoder[A]` for every `A` that has a `Decoder` instance.
+
 However, be cautious when using this. Having this implicit 
 in scope does mean that we would always try to decode HTTP entities
 from JSON (even if it is XML or plain text, for instance).
