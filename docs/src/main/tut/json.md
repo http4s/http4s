@@ -193,6 +193,17 @@ Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
 POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
+If we are always decoding from JSON to a typed model, we can use 
+the following one-liner:
+
+```tut:book
+implicit def decoders[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+```
+
+However, be cautious when using this. Having this implicit 
+in scope does mean that we would always try to decode HTTP entities
+from JSON (even if it is XML or plain text, for instance).
+
 ## Putting it all together
 
 ### A Hello world service
