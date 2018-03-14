@@ -222,7 +222,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@4ba21288
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@30cd37b9
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -289,7 +289,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@1a7cdf0e
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@4c9d1d94
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res10: User = User(Alice)
@@ -297,6 +297,19 @@ Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).fla
 POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Bob)
 </code></pre>
+
+<p>If we are always decoding from JSON to a typed model, we can use
+the following one-liner:</p>
+
+<pre><code class="language-scala">implicit def decoders[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+// decoders: [F[_], A](implicit evidence$1: cats.effect.Sync[F], implicit evidence$2: io.circe.Decoder[A])org.http4s.EntityDecoder[F,A]
+</code></pre>
+
+<p>This creates an <code>EntityDecoder[A]</code> for every <code>A</code> that has a <code>Decoder</code> instance.</p>
+
+<p>However, be cautious when using this. Having this implicit
+in scope does mean that we would always try to decode HTTP entities
+from JSON (even if it is XML or plain text, for instance).</p>
 
 <h2 id="putting-it-all-together">Putting it all together</h2>
 
@@ -339,7 +352,9 @@ val blazeServer = builder.unsafeRunSync
 
 <p>Now let&rsquo;s make a client for the service above:</p>
 
-<pre><code class="language-scala">import org.http4s.client.blaze._
+<pre><code class="language-scala">import org.http4s.client._
+import org.http4s.client.dsl.io._
+import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._
 
@@ -359,10 +374,10 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$19108015
+// helloAlice: cats.effect.IO[Hello] = IO$2074839658
 
 helloAlice.unsafeRunSync
-// res20: Hello = Hello(Alice)
+// res8: Hello = Hello(Alice)
 </code></pre>
 
         </div>
