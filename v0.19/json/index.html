@@ -96,9 +96,9 @@ basic interop with circe, but to follow this tutorial, install all three:</p>
 libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion,
   // Optional for auto-derivation of JSON codecs
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.9.1&quot;,
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.9.2&quot;,
   // Optional for string interpolation to JSON model
-  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.9.1&quot;
+  &quot;io.circe&quot; %% &quot;circe-literal&quot; % &quot;0.9.2&quot;
 )
 
 addCompilerPlugin(&quot;org.scalamacros&quot; % &quot;paradise&quot; % &quot;2.1.0&quot; cross CrossVersion.full)
@@ -222,7 +222,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@30cd37b9
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@3a96f441
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -289,7 +289,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@4c9d1d94
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@3fe973ec
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res10: User = User(Alice)
@@ -374,10 +374,10 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$2074839658
+// helloAlice: cats.effect.IO[Hello] = IO$805267889
 
 helloAlice.unsafeRunSync
-// res8: Hello = Hello(Alice)
+// res1: Hello = Hello(Alice)
 </code></pre>
 
         </div>
