@@ -36,7 +36,7 @@ object Logger {
 
     val isText = !isBinary || isJson
 
-    val prelude = message match{
+    def prelude = message match {
       case Request(method, uri, httpVersion, _, _, _) =>
         s"$method $httpVersion $uri"
 
