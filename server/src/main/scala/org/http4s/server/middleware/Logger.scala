@@ -36,6 +36,14 @@ object Logger {
 
     val isText = !isBinary || isJson
 
+    def prelude = message match {
+      case Request(method, uri, httpVersion, _, _, _) =>
+        s"$httpVersion $method $uri"
+
+      case Response(status, httpVersion, _, _, _) =>
+        s"$httpVersion $status"
+    }
+
     val headers =
       if (logHeaders)
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
@@ -58,7 +66,7 @@ object Logger {
     if (!logBody && !logHeaders) F.unit
     else {
       bodyText
-        .map(body => s"$headers $body")
+        .map(body => s"$prelude $headers $body")
         .map(text => logger.info(text))
         .compile
         .drain
