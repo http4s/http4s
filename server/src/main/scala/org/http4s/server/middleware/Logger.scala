@@ -38,7 +38,7 @@ object Logger {
 
     def prelude = message match {
       case Request(method, uri, httpVersion, _, _, _) =>
-        s"$method $httpVersion $uri"
+        s"$httpVersion $method $uri"
 
       case Response(status, httpVersion, _, _, _) =>
         s"$httpVersion $status"
