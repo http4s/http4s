@@ -687,8 +687,11 @@ trait ArbitraryInstances {
       }
     }
 
-  implicit def cogenEntityBody[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[EntityBody[F]] =
-    catsEffectLawsCogenForIO(cogenFuture[Vector[Byte]]).contramap { stream =>
+  implicit def cogenEntityBody[F[_]](
+      implicit F: Effect[F],
+      ec: TestContext): Cogen[EntityBody[F]] = {
+    val _ = ec // TODO unused as of cats-effect-0.10, remove in http4s-0.19
+    catsEffectLawsCogenForIO[Vector[Byte], Vector[Byte]].contramap { stream =>
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
@@ -696,6 +699,7 @@ trait ArbitraryInstances {
         case Left(t) => IO.raiseError(t)
       } *> readBytes
     }
+  }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>

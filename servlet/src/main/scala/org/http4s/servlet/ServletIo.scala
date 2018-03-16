@@ -97,7 +97,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         // This effect sets the callback and waits for the first bytes to read
         val registerRead =
           // Shift execution to a different EC
-          F.shift(trampoline) *>
+          Async.shift(trampoline) *>
             F.async[Option[Chunk[Byte]]] { cb =>
               if (!state.compareAndSet(Init, Blocked(cb))) {
                 cb(Left(bug("Shouldn't have gotten here: I should be the first to set a state")))
@@ -128,7 +128,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         val readStream = Stream.eval(registerRead) ++ Stream
           .repeatEval( // perform the initial set then transition into normal read mode
             // Shift execution to a different EC
-            F.shift(trampoline) *>
+            Async.shift(trampoline) *>
               F.async[Option[Chunk[Byte]]] { cb =>
                 @tailrec
                 def go(): Unit = state.get match {
@@ -216,7 +216,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
 
     val awaitLastWrite = Stream.eval_ {
       // Shift execution to a different EC
-      F.shift(trampoline) *>
+      Async.shift(trampoline) *>
         F.async[Unit] { cb =>
           state.getAndSet(AwaitingLastWrite(cb)) match {
             case Ready if out.isReady => cb(Right(()))
@@ -231,7 +231,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
       response.body.chunks
         .evalMap { chunk =>
           // Shift execution to a different EC
-          F.shift(trampoline) *>
+          Async.shift(trampoline) *>
             F.async[Chunk[Byte] => Unit] { cb =>
                 val blocked = Blocked(cb)
                 state.getAndSet(blocked) match {

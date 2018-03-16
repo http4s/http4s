@@ -97,7 +97,7 @@ class Http4sServlet[F[_]](
       bodyWriter: BodyWriter[F]): F[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
     // Note: We're catching silly user errors in the lift => flatten.
-    val response = F.shift(executionContext) *> F
+    val response = Async.shift(executionContext) *> F
       .delay(serviceFn(request).getOrElse(Response.notFound))
       .flatten
       .handleErrorWith(serviceErrorHandler(request))
