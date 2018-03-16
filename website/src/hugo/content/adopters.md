@@ -6,6 +6,8 @@ title: Adopters
 
 ## Industrial
 
+[Banno Group inside of Jack Henry & Associates](https://banno.com)
+
 [Cammy](http://www.cammy.com)
 : Has about 10 services in production at thousands of requests per second.
 
