@@ -34,13 +34,13 @@ package object util {
     }
   }
 
-  /** Converts UTF-8 encoded byte stream to a stream of `String`. */
+  /** Converts ASCII encoded byte stream to a stream of `String`. */
   def asciiDecode[F[_]]: Pipe[F, Byte, String] =
     _.chunks.through(asciiDecodeC)
 
   private def asciiCheck(b: Byte) = 0x80 & b
 
-  /** Converts UTF-8 encoded `Chunk[Byte]` inputs to `String`. */
+  /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
   def asciiDecodeC[F[_]]: Pipe[F, Chunk[Byte], String] = { in =>
     def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
       if (i == bytes.length)
@@ -57,6 +57,7 @@ package object util {
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
 
+  /** Encode ascii string to bytes  **/
   def asciiEncode[F[_]]: Pipe[F, String, Byte] =
     _.flatMap(s => Stream.chunk(Chunk.bytes(s.getBytes(StandardCharsets.US_ASCII))))
 
