@@ -514,3 +514,8 @@ def initCommands(additionalImports: String*) =
 // Everything is driven through release steps and the http4s* variables
 // This won't actually release unless on Travis.
 addCommandAlias("ci", ";clean ;release with-defaults")
+
+// VSCode Test Helper
+// Compile Both Test and Compile Scope
+// https://github.com/sbt/sbt/issues/4007
+addCommandAlias("compile", "test:compile")
