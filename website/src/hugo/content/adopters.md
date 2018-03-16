@@ -7,7 +7,7 @@ title: Adopters
 ## Industrial
 
 [Banno Group inside of Jack Henry & Associates](https://banno.com)
-:
+: Extensively utilizes http4s to deliver mission-critical banking services.
 
 [Cammy](http://www.cammy.com)
 : Has about 10 services in production at thousands of requests per second.
