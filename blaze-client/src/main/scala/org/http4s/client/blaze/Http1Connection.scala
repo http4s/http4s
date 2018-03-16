@@ -262,7 +262,7 @@ private final class Http1Connection[F[_]](val requestKey: RequestKey, config: Bl
           } else {
             attributes -> rawBody.onFinalize(
               Stream
-                .eval_(F.shift(executionContext) *> F.delay {
+                .eval_(Async.shift(executionContext) *> F.delay {
                   trailerCleanup(); cleanup(); stageShutdown()
                 })
                 .compile
