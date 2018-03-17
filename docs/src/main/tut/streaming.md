@@ -48,7 +48,7 @@ function, which takes a `Request[F]` and a `Response[F] => Stream[F, A]` and ret
 to consume a stream is just:
 
 ```scala
-client.streaming(req)(resp => resp.body)
+client.streaming(req).flatMap(resp => resp.body)
 ```
 
 That gives you a `Stream[F, Byte]`, but you probably want something other than a `Byte`.
@@ -115,7 +115,7 @@ abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
     for {
       client <- Http1Client.stream[F]()
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-      res <- client.streaming(sr)(resp => resp.body.chunks.parseJsonStream)
+      res <- client.streaming(sr).flatMap(resp => resp.body.chunks.parseJsonStream)
     } yield res
 
   /* Stream the sample statuses.
