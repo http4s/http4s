@@ -116,17 +116,14 @@ final case class Client[F[_]](
       }
       .mapF(OptionT.liftF(_))
 
-  def streaming[A](req: Request[F])(f: Response[F] => Stream[F, A]): Stream[F, A] =
+  def streaming[A](req: Request[F]): Stream[F, Response[F]] =
     Stream
       .eval(open(req))
       .flatMap {
         case DisposableResponse(response, dispose) =>
-          f(response)
+          Stream(response)
             .onFinalize(dispose)
       }
-
-  def streaming[A](req: F[Request[F]])(f: Response[F] => Stream[F, A]): Stream[F, A] =
-    Stream.eval(req).flatMap(streaming(_)(f))
 
   /**
     * Submits a request and decodes the response on success.  On failure, the

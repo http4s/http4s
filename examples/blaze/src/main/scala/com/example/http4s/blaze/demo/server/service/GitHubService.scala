@@ -30,7 +30,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
       .withQueryParam("scopes", "public_repo")
       .withQueryParam("state", "test_api")
 
-    client.streaming[Byte](Request[F](uri = uri))(_.body)
+    client.streaming[Byte](Request[F](uri = uri)).flatMap(_.body)
   }
 
   def accessToken(code: String, state: String): F[String] = {
