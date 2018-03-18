@@ -3,7 +3,7 @@ package client
 package middleware
 
 import cats.data.Kleisli
-import cats.effect.Effect
+import cats.effect._
 import cats.implicits._
 import fs2._
 import java.time.Instant
@@ -23,28 +23,29 @@ object Retry {
       implicit F: Effect[F],
       scheduler: Scheduler,
       executionContext: ExecutionContext): Client[F] = {
-    def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
-      client.open(req).attempt.flatMap {
+    def prepareLoop(req: Request[F], attempts: Int): Stream[F, Response[F]] =
+      client.streaming(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
-        case Right(dr @ DisposableResponse(response, _)) =>
-          policy(req, Right(dr.response), attempts) match {
+        case Right(response) =>
+          policy(req, Right(response), attempts) match {
             case Some(duration) =>
               logger.info(
                 s"Request ${req} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
-              dr.dispose.flatMap(_ =>
-                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
+              Stream(response).covary[F].scope >>
+                nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`))
             case None =>
-              F.pure(dr)
+              Stream(response)
           }
+          
         case Left(e) =>
           policy(req, Left(e), attempts) match {
             case Some(duration) =>
               // info instead of error(e), because e is not discarded
               logger.info(
                 s"Request $req threw an exception on attempt #$attempts attempts. Giving up.")
-              nextAttempt(req, attempts, duration, None)
+              Stream(()).scope.covary[F] >> nextAttempt(req, attempts, duration, None)
             case None =>
-              F.raiseError[DisposableResponse[F]](e)
+              Sync[Stream[F, ?]].raiseError[Response[F]](e)
           }
       }
 
@@ -54,7 +55,7 @@ object Retry {
         duration: FiniteDuration,
         retryHeader: Option[`Retry-After`])(
         implicit F: Effect[F],
-        executionContext: ExecutionContext): F[DisposableResponse[F]] = {
+        executionContext: ExecutionContext): Stream[F, Response[F]] = {
       val headerDuration = retryHeader
         .map { h =>
           h.retry match {
@@ -64,12 +65,12 @@ object Retry {
         }
         .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
-      scheduler.sleep_[F](sleepDuration).compile.drain *> prepareLoop(
+      scheduler.sleep_[F](sleepDuration) *> prepareLoop(
         req.withEmptyBody,
         attempts + 1)
     }
 
-    client.copy(open = Kleisli(prepareLoop(_, 1)))
+    Client(Kleisli(prepareLoop(_, 1)))
   }
 }
 
