@@ -8,6 +8,39 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.3 (2018-03-17)
+* Remove duplicate logging in pool manager [#1683]((https://github.com/http4s/http4s/pull/1683)
+* Add request/response specific properties to logging [#1709](https://github.com/http4s/http4s/pull/1709)
+* Dependency upgrades:
+  * async-http-client-2.0.39
+  * cats-1.1.0
+  * cats-effect-0.10
+  * circe-0.9.2
+  * discipline-0.9.0
+  * jawn-fs2-0.12.2
+  * log4s-1.5.0
+  * twirl-1.3.15
+
+# v0.18.2 (2018-03-09)
+* Qualify reference to `identity` in `uriLiteral` macro [#1697](https://github.com/http4s/http4s/pull/1697)
+* Make `Retry` use the correct duration units [#1698](https://github.com/http4s/http4s/pull/1698)
+* Dependency upgrades:
+  * tomcat-9.0.6
+	
+# v0.18.1 (2018-02-27)
+* Fix the rendering of trailer headers in blaze [#1629](https://github.com/http4s/http4s/pull/1629)
+* Fix race condition between shutdown and parsing in Http1SeverStage [#1675](https://github.com/http4s/http4s/pull/1675)
+* Don't use filter in `Arbitrary[``Content-Length``]` [#1678](https://github.com/http4s/http4s/pull/1678)
+* Opt-in fallthrough for authenticated services [#1681](https://github.com/http4s/http4s/pull/1681)
+* Dependency upgrades:
+  * cats-effect-0.9
+  * fs2-0.10.2
+  * fs2-reactive-streams-0.5.1
+  * jawn-fs2-0.12.1
+  * specs2-4.0.3
+  * tomcat-9.0.5
+  * twirl-1.3.4
+
 # v0.18.0 (2018-02-01)
 * Add `filename` method to `Part`
 * Dependency upgrades:

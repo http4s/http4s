@@ -73,6 +73,16 @@ lazy val serverMetrics = libraryProject("server-metrics")
   )
   .dependsOn(server % "compile;test->test")
 
+lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
+  .settings(
+    description := "Support for Prometheus Metrics on the server",
+    libraryDependencies ++= Seq(
+      prometheusClient,
+      prometheusHotspot
+    )
+  )
+  .dependsOn(server % "compile;test->test", theDsl)
+
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
@@ -269,8 +279,9 @@ lazy val docs = http4sProject("docs")
         loadTest
       ),
     scalacOptions in Tut ~= {
+      val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
-      _.filterNot(_ == "-Ywarn-unused:params") :+ "-Xfatal-warnings"
+      _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
     scalacOptions in (Compile, doc) ++= {
       scmInfo.value match {

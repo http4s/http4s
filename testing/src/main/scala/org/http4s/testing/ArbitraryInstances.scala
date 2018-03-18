@@ -31,6 +31,7 @@ trait ArbitraryInstances {
 
   implicit val arbitraryCaseInsensitiveString: Arbitrary[CaseInsensitiveString] =
     Arbitrary(arbitrary[String].map(_.ci))
+
   implicit val cogenCaseInsensitiveString: Cogen[CaseInsensitiveString] =
     Cogen[String].contramap(_.value.toLowerCase(Locale.ROOT))
 
@@ -350,7 +351,7 @@ trait ArbitraryInstances {
   implicit val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary {
       for {
-        long <- arbitrary[Long] if long > 0L
+        long <- Gen.chooseNum(0L, Long.MaxValue)
       } yield `Content-Length`.unsafeFromLong(long)
     }
 
@@ -670,6 +671,9 @@ trait ArbitraryInstances {
     } yield Uri(scheme, authority, path, query, fragment)
   }
 
+  implicit val cogenUri: Cogen[Uri] =
+    Cogen[String].contramap(_.renderString)
+
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
   implicit def genEntityBody[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized { size =>
@@ -687,8 +691,11 @@ trait ArbitraryInstances {
       }
     }
 
-  implicit def cogenEntityBody[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[EntityBody[F]] =
-    catsEffectLawsCogenForIO(cogenFuture[Vector[Byte]]).contramap { stream =>
+  implicit def cogenEntityBody[F[_]](
+      implicit F: Effect[F],
+      ec: TestContext): Cogen[EntityBody[F]] = {
+    val _ = ec // TODO unused as of cats-effect-0.10, remove in http4s-0.19
+    catsEffectLawsCogenForIO[Vector[Byte], Vector[Byte]].contramap { stream =>
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
@@ -696,23 +703,23 @@ trait ArbitraryInstances {
         case Left(t) => IO.raiseError(t)
       } *> readBytes
     }
+  }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
       for {
         body <- genEntityBody
         length <- Gen.oneOf(Some(size.toLong), None)
-      } yield Entity(body, length)
+      } yield Entity(body.covary[F], length)
     })
 
   implicit def cogenEntity[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def arbitraryEntityEncoder[F[_], A](
-      implicit CA: Cogen[A],
-      AF: Arbitrary[F[Entity[F]]]): Arbitrary[EntityEncoder[F, A]] =
+      implicit CA: Cogen[A]): Arbitrary[EntityEncoder[F, A]] =
     Arbitrary(for {
-      f <- arbitrary[A => F[Entity[F]]]
+      f <- arbitrary[A => Entity[F]]
       hs <- arbitrary[Headers]
     } yield EntityEncoder.encodeBy(hs)(f))
 }

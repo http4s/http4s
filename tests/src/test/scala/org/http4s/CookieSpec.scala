@@ -6,7 +6,7 @@ final class CookieSpec extends Http4sSpec {
   "RequestCookieJar" should {
 
     "Not duplicate elements when adding the empty set" in {
-      val jar = new RequestCookieJar(List(new Cookie("foo", "bar")))
+      val jar = new RequestCookieJar(List(RequestCookie("foo", "bar")))
       (jar ++ Set()).## must_== jar.##
     }
 

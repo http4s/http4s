@@ -104,12 +104,12 @@ class ServerSentEventSpec extends Http4sSpec {
     val eventStream: Stream[IO, ServerSentEvent] =
       Stream.range(0, 5).map(i => ServerSentEvent(data = i.toString))
     "set Content-Type to text/event-stream" in {
-      Response[IO]().withBody(eventStream).unsafeRunSync.contentType must beSome(
+      Response[IO]().withEntity(eventStream).contentType must beSome(
         `Content-Type`(MediaType.`text/event-stream`))
     }
 
     "decode to original event stream" in {
-      val resp = Response[IO]().withBody(eventStream).unsafeRunSync
+      val resp = Response[IO]().withEntity(eventStream)
       resp.body
         .through(ServerSentEvent.decoder)
         .compile

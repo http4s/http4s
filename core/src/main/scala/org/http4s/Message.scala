@@ -48,6 +48,10 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   override def withAttribute[A](key: AttributeKey[A], value: A)(implicit F: Functor[F]): Self =
     change(attributes = attributes.put(key, value))
 
+  @deprecated("Use withEntity", "0.19")
+  def withBody[T](b: T)(implicit F: Applicative[F], w: EntityEncoder[F, T]): F[Self] =
+    F.pure(withEntity(b))
+
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method
@@ -55,26 +59,23 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit F: Monad[F], w: EntityEncoder[F, T]): F[Self] =
-    w.toEntity(b).flatMap { entity =>
-      val hs = entity.length match {
-        case Some(l) =>
-          `Content-Length`
-            .fromLong(l)
-            .fold(
-              _ =>
-                F.pure {
-                  Message.logger.warn(s"Attempt to provide a negative content length of $l")
-                  w.headers.toList
-              },
-              cl => F.pure(cl :: w.headers.toList))
-        case None => F.pure(w.headers)
-      }
-      hs.map(newHeaders => change(body = entity.body, headers = headers ++ newHeaders))
+  def withEntity[T](b: T)(implicit w: EntityEncoder[F, T]): Self = {
+    val entity = w.toEntity(b)
+    val hs = entity.length match {
+      case Some(l) =>
+        `Content-Length`
+          .fromLong(l)
+          .fold(_ => {
+            Message.logger.warn(s"Attempt to provide a negative content length of $l")
+            w.headers.toList
+          }, cl => cl :: w.headers.toList)
+      case None => w.headers
     }
+    change(body = entity.body, headers = headers ++ hs)
+  }
 
   /** Sets the entity body without affecting headers such as `Transfer-Encoding`
-    * or `Content-Length`. Most use cases are better served by [[withBody]],
+    * or `Content-Length`. Most use cases are better served by [[withEntity]],
     * which uses an [[EntityEncoder]] to maintain the headers.
     */
   def withBodyStream(body: EntityBody[F]): Self
@@ -363,7 +364,7 @@ final case class Response[F[_]](
   /** Returns a list of cookies from the [[org.http4s.headers.Set-Cookie]]
     * headers. Includes expired cookies, such as those that represent cookie
     * deletion. */
-  def cookies: List[Cookie] =
+  def cookies: List[ResponseCookie] =
     `Set-Cookie`.from(headers).map(_.cookie)
 }
 
@@ -378,5 +379,5 @@ object Response {
 
   def notFoundFor[F[_]: Monad](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Response(Status.NotFound).withBody(s"${request.pathInfo} not found")
+    Monad[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
 }

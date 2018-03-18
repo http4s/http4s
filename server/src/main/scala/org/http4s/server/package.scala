@@ -49,13 +49,31 @@ package object server {
   type SSLBits = SSLConfig
 
   object AuthMiddleware {
+
     def apply[F[_]: Monad, T](
+        authUser: Kleisli[OptionT[F, ?], Request[F], T]
+    ): AuthMiddleware[F, T] =
+      noSpider[F, T](authUser, defaultAuthFailure[F])
+
+    def withFallThrough[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, ?], Request[F], T]): AuthMiddleware[F, T] =
-      service => {
-        Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r)))
-          .andThen(service.mapF(o => OptionT.liftF(o.fold(Response[F](Status.NotFound))(identity))))
-          .mapF(o => OptionT.liftF(o.fold(Response[F](Status.Unauthorized))(identity)))
+      _.compose(Kleisli((r: Request[F]) => authUser(r).map(AuthedRequest(_, r))))
+
+    def noSpider[F[_]: Monad, T](
+        authUser: Kleisli[OptionT[F, ?], Request[F], T],
+        onAuthFailure: Request[F] => F[Response[F]]
+    ): AuthMiddleware[F, T] = { service =>
+      Kleisli { r: Request[F] =>
+        authUser
+          .map(AuthedRequest(_, r))
+          .andThen(service.mapF(o => OptionT.liftF(o.getOrElse(Response[F](Status.NotFound)))))
+          .mapF(o => OptionT.liftF(o.getOrElseF(onAuthFailure(r))))
+          .run(r)
       }
+    }
+
+    def defaultAuthFailure[F[_]](implicit F: Applicative[F]): Request[F] => F[Response[F]] =
+      _ => F.pure(Response[F](Status.Unauthorized))
 
     def apply[F[_], Err, T](
         authUser: Kleisli[F, Request[F], Either[Err, T]],

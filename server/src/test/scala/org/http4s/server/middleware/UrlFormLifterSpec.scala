@@ -3,6 +3,7 @@ package server
 package middleware
 
 import cats.effect._
+import cats.syntax.applicative._
 import org.http4s.dsl.io._
 
 class UrlFormLifterSpec extends Http4sSpec {
@@ -20,18 +21,21 @@ class UrlFormLifterSpec extends Http4sSpec {
 
   "UrlFormLifter" should {
     "Add application/x-www-form-urlencoded bodies to the query params" in {
-      val req = Request[IO](method = POST).withBody(urlForm)
+      val req = Request[IO](method = POST).withEntity(urlForm).pure[IO]
       req.flatMap(service.orNotFound.run) must returnStatus(Ok)
     }
 
     "Add application/x-www-form-urlencoded bodies after query params" in {
-      val req = Request[IO](method = Method.POST, uri = Uri.uri("/foo?foo=biz")).withBody(urlForm)
+      val req =
+        Request[IO](method = Method.POST, uri = Uri.uri("/foo?foo=biz"))
+          .withEntity(urlForm)
+          .pure[IO]
       req.flatMap(service.orNotFound.run) must returnStatus(Ok)
       req.flatMap(service.orNotFound.run) must returnBody("biz,bar")
     }
 
     "Ignore Requests that don't have application/x-www-form-urlencoded bodies" in {
-      val req = Request[IO](method = Method.POST).withBody("foo")
+      val req = Request[IO](method = Method.POST).withEntity("foo").pure[IO]
       req.flatMap(service.orNotFound.run) must returnStatus(BadRequest)
     }
   }

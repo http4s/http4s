@@ -117,7 +117,7 @@ object Http4sWSStage {
     async
       .promise[IO, Either[Throwable, A]]
       .flatMap { p =>
-        F.runAsync(F.shift *> fa) { r =>
+        F.runAsync(Async.shift(ec) *> fa) { r =>
           p.complete(r)
         } *> p.get.rethrow
       }

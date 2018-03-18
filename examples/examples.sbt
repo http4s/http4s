@@ -3,7 +3,7 @@ name := "http4s-examples"
 description := "Common code for http4s examples on various backends"
 
 libraryDependencies ++= Seq(
-  "ch.qos.logback" % "logback-classic" % "1.1.7"
+  "ch.qos.logback" % "logback-classic" % "1.2.3"
 )
 
 // Adds ALPN to the boot classpath for HTTP/2 support
