@@ -60,6 +60,30 @@ trait LocationResponseGenerator[F[_]] extends Any with EntityResponseGenerator[F
   def apply(location: Uri)(implicit F: Applicative[F]): F[Response[F]] =
     F.pure(
       Response[F](status = status, headers = Headers(`Content-Length`.zero, Location(location))))
+
+  /** A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
+    * distinguishes this from other `EntityResponseGenerator`s.
+    */
+  def apply(location: Location, headers: Header*)(
+    implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(
+      Response(status, headers = Headers(`Content-Length`.zero +: location +: headers: _*)))
+
+  /** A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
+    * distinguishes this from other `EntityResponseGenerator`s.
+    */
+  def apply[A](location: Location, body: A, headers: Header*)(
+    implicit F: Monad[F],
+    w: EntityEncoder[F, A]): F[Response[F]] = {
+    val h = w.headers ++ Headers(location +: headers.toList)
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Response(status = status, headers = newHeaders, body = entity.body))
+  }
 }
 
 trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator {
@@ -73,7 +97,7 @@ trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator 
       ))
 
   /** A 401 status MUST contain a `WWW-Authenticate` header, which
-    * distinguishes this from other `EntityResponseGenerator`s.
+    * distinguishes this from other `ResponseGenerator`s.
     */
   def apply(authenticate: `WWW-Authenticate`, headers: Header*)(
       implicit F: Applicative[F]): F[Response[F]] =
@@ -81,7 +105,7 @@ trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator 
       Response(status, headers = Headers(`Content-Length`.zero +: authenticate +: headers: _*)))
 
   /** A 401 status MUST contain a `WWW-Authenticate` header, which
-    * distinguishes this from other `EntityResponseGenerator`s.
+    * distinguishes this from other `ResponseGenerator`s.
     */
   def apply[A](authenticate: `WWW-Authenticate`, body: A, headers: Header*)(
       implicit F: Monad[F],
