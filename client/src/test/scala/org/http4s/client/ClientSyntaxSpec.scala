@@ -208,7 +208,8 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
 
     "streaming returns a stream" in {
       client
-        .streaming(req)(_.body.through(fs2.text.utf8Decode))
+        .streaming(req)
+        .flatMap(_.body.through(fs2.text.utf8Decode))
         .compile
         .toVector
         .unsafeRunSync() must_== Vector("hello")
@@ -216,18 +217,19 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
 
     "streaming returns a stream from a request task" in {
       client
-        .streaming(req)(_.body.through(fs2.text.utf8Decode))
+        .streaming(req)
+        .flatMap(_.body.through(fs2.text.utf8Decode))
         .compile
         .toVector
         .unsafeRunSync() must_== Vector("hello")
     }
 
     "streaming disposes of the response on success" in {
-      assertDisposes(_.streaming(req)(_.body).compile.drain)
+      assertDisposes(_.streaming(req).flatMap(_.body).compile.drain)
     }
 
     "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Stream.raiseError(SadTrombone)).compile.drain)
+      assertDisposes(_.streaming(req).flatMap(_ => Stream.raiseError(SadTrombone)).compile.drain)
     }
 
     "toService disposes of the response on success" in {
