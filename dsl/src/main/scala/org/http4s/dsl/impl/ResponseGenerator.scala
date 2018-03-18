@@ -64,17 +64,15 @@ trait LocationResponseGenerator[F[_]] extends Any with EntityResponseGenerator[F
   /** A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
     * distinguishes this from other `EntityResponseGenerator`s.
     */
-  def apply(location: Location, headers: Header*)(
-    implicit F: Applicative[F]): F[Response[F]] =
-    F.pure(
-      Response(status, headers = Headers(`Content-Length`.zero +: location +: headers: _*)))
+  def apply(location: Location, headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(Response(status, headers = Headers(`Content-Length`.zero +: location +: headers: _*)))
 
   /** A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
     * distinguishes this from other `EntityResponseGenerator`s.
     */
   def apply[A](location: Location, body: A, headers: Header*)(
-    implicit F: Monad[F],
-    w: EntityEncoder[F, A]): F[Response[F]] = {
+      implicit F: Monad[F],
+      w: EntityEncoder[F, A]): F[Response[F]] = {
     val h = w.headers ++ Headers(location +: headers.toList)
     val entity = w.toEntity(body)
     val newHeaders = entity.length
