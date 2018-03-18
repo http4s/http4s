@@ -9,6 +9,7 @@ ordered chronologically, so each release contains all changes described below
 it.
 
 # v0.18.3 (2018-03-17)
+* Remove duplicate logging in pool manager [#1683]((https://github.com/http4s/http4s/pull/1683)
 * Add request/response specific properties to logging [#1709](https://github.com/http4s/http4s/pull/1709)
 * Dependency upgrades:
   * async-http-client-2.0.39
