@@ -5,7 +5,7 @@ environment:
     TEST_SUITE: test
   matrix:
     - SCALA_VERSION: 2.11.12
-    - SCALA_VERSION: 2.12.4
+    - SCALA_VERSION: 2.12.5
 
 install:
   - ps: |
@@ -28,4 +28,4 @@ test_script:
 cache:
   - C:\sbt -> appveyor.yml
   - C:\Users\appveyor\.ivy2 -> appveyor.yml
-  - C:\Users\appveyor\.coursier -> appveyor.yml 
+  - C:\Users\appveyor\.coursier -> appveyor.yml
