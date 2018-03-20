@@ -7,6 +7,7 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.util.Locale
+
 import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
 import org.http4s.Status._
@@ -15,7 +16,9 @@ import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
 import org.http4s.blaze.http.http20.Http2Exception._
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blazecore.util.{End, Http2Writer}
+import org.http4s.server.logging.ServerLogging
 import org.http4s.syntax.string._
+
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -27,7 +30,8 @@ private class Http2NodeStage[F[_]](
     implicit private val executionContext: ExecutionContext,
     attributes: AttributeMap,
     service: HttpService[F],
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    serverLogging: ServerLogging[F])(implicit F: Effect[F])
     extends TailStage[NodeMsg.Http2Msg] {
 
   import Http2StageTools._
@@ -191,7 +195,7 @@ private class Http2NodeStage[F[_]](
                 .getOrElse(Response.notFound)
                 .recoverWith(serviceErrorHandler(req))
                 .handleError(_ => Response(InternalServerError, req.httpVersion))
-                .map(renderResponse)
+                .map(renderResponse(req, _))
               catch serviceErrorHandler(req)
             } {
               case Right(_) =>
@@ -204,7 +208,7 @@ private class Http2NodeStage[F[_]](
     }
   }
 
-  private def renderResponse(resp: Response[F]): F[Unit] = {
+  private def renderResponse(req: Request[F], resp: Response[F]): F[Unit] = {
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
     resp.headers.foreach { h =>
@@ -217,10 +221,14 @@ private class Http2NodeStage[F[_]](
       }
     }
 
-    new Http2Writer(this, hs, executionContext).writeEntityBody(resp.body).attempt.map {
-      case Right(_) => shutdownWithCommand(Cmd.Disconnect)
-      case Left(Cmd.EOF) => stageShutdown()
-      case Left(t) => shutdownWithCommand(Cmd.Error(t))
-    }
+    new Http2Writer(this, hs, executionContext)
+      .writeEntityBody(resp.body)
+      .attempt
+      .map {
+        case Right(_) => shutdownWithCommand(Cmd.Disconnect)
+        case Left(Cmd.EOF) => stageShutdown()
+        case Left(t) => shutdownWithCommand(Cmd.Error(t))
+      }
+      .map(_ => serverLogging.logRequestResponse(req, resp))
   }
 }

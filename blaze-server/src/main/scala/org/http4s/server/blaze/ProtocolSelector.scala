@@ -4,9 +4,12 @@ package blaze
 
 import cats.effect.Effect
 import java.nio.ByteBuffer
+
 import javax.net.ssl.SSLEngine
 import org.http4s.blaze.http.http20._
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
+import org.http4s.server.logging.ServerLogging
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
@@ -19,7 +22,8 @@ private[blaze] object ProtocolSelector {
       maxHeadersLen: Int,
       requestAttributes: AttributeMap,
       executionContext: ExecutionContext,
-      serviceErrorHandler: ServiceErrorHandler[F]): ALPNSelector = {
+      serviceErrorHandler: ServiceErrorHandler[F],
+      serverLogging: ServerLogging[F]): ALPNSelector = {
 
     def http2Stage(): TailStage[ByteBuffer] = {
 
@@ -31,7 +35,8 @@ private[blaze] object ProtocolSelector {
             executionContext,
             requestAttributes,
             service,
-            serviceErrorHandler))
+            serviceErrorHandler,
+            serverLogging))
       }
 
       Http2Stage(
@@ -52,7 +57,8 @@ private[blaze] object ProtocolSelector {
         enableWebSockets = false,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler
+        serviceErrorHandler,
+        serverLogging
       )
 
     def preference(protos: Seq[String]): String =

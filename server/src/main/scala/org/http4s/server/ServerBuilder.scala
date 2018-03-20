@@ -7,10 +7,13 @@ import fs2.StreamApp.ExitCode
 import fs2._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
+
 import javax.net.ssl.SSLContext
 import fs2.async.immutable.Signal
 import fs2.async.Ref
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.logging.ServerLogging
+
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -137,6 +140,10 @@ object SSLKeyStoreSupport {
 
 trait SSLContextSupport[F[_]] { this: ServerBuilder[F] =>
   def withSSLContext(sslContext: SSLContext, clientAuth: Boolean = false): Self
+}
+
+trait ServerLoggingSupport[F[_]] { this: ServerBuilder[F] =>
+  def withRequestResponseLogging(serverLogging: ServerLogging[F]): Self
 }
 
 /*

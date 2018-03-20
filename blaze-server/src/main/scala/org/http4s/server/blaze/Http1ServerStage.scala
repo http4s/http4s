@@ -6,6 +6,7 @@ import cats.effect.{Effect, IO}
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
+
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
@@ -15,8 +16,10 @@ import org.http4s.blaze.util.Execution._
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.server.logging.ServerLogging
 import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Either, Failure, Left, Right, Success, Try}
 
@@ -29,7 +32,8 @@ private[blaze] object Http1ServerStage {
       enableWebSockets: Boolean,
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
-      serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] =
+      serviceErrorHandler: ServiceErrorHandler[F],
+      serverLogging: ServerLogging[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
         service,
@@ -37,7 +41,8 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler) with WebSocketSupport[F]
+        serviceErrorHandler,
+        serverLogging) with WebSocketSupport[F]
     else
       new Http1ServerStage(
         service,
@@ -45,7 +50,8 @@ private[blaze] object Http1ServerStage {
         executionContext,
         maxRequestLineLen,
         maxHeadersLen,
-        serviceErrorHandler)
+        serviceErrorHandler,
+        serverLogging)
 }
 
 private[blaze] class Http1ServerStage[F[_]](
@@ -54,7 +60,8 @@ private[blaze] class Http1ServerStage[F[_]](
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F],
+    serverLogging: ServerLogging[F])(implicit protected val F: Effect[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
@@ -243,6 +250,8 @@ private[blaze] class Http1ServerStage[F[_]](
         logger.error(t)("Error writing body")
         IO(closeConnection())
     }
+
+    serverLogging.logRequestResponse(req, resp)
   }
 
   private def closeConnection(): Unit = {
