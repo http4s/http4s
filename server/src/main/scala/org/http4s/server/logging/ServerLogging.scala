@@ -8,20 +8,17 @@ import java.time.{Clock, OffsetDateTime}
 import org.http4s.headers.Authorization
 
 abstract class ServerLogging[F[_]] {
-  def enabled: Boolean
   def logRequestResponse(request: Request[F], response: Response[F]): Unit
 }
 
 object ServerLogging {
   def apply[F[_]](log: (Request[F], Response[F]) => Unit): ServerLogging[F] =
     new ServerLogging[F] {
-      override final val enabled = true
       override def logRequestResponse(request: Request[F], response: Response[F]): Unit =
         log(request, response)
     }
 
   def disabled[F[_]]: ServerLogging[F] = new ServerLogging[F] {
-    override final val enabled: Boolean = false
     override def logRequestResponse(request: Request[F], response: Response[F]): Unit = ()
   }
 
