@@ -1,5 +1,6 @@
 package org.http4s
 
+import cats.Eq
 import cats.effect._
 import cats.effect.laws.discipline.arbitrary._
 import cats.effect.laws.util.TestContext
