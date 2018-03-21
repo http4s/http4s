@@ -171,8 +171,8 @@
                         <a href="IntVar$.html" title="Integer extractor of a path variable:">IntVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="LocationResponseGenerator.html" title=""></a>
-                        <a href="LocationResponseGenerator.html" title="">LocationResponseGenerator</a>
+                        <a class="trait" href="LocationResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body."></a>
+                        <a href="LocationResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body.">LocationResponseGenerator</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="LongVar$.html" title="Long extractor of a path variable:"></a>
@@ -211,8 +211,8 @@
                         <a href="Path.html" title="Base class for path extractors.">Path</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title=""></a>
-                        <a href="ProxyAuthenticateResponseGenerator.html" title="">ProxyAuthenticateResponseGenerator</a>
+                        <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body."></a>
+                        <a href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body.">ProxyAuthenticateResponseGenerator</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="QueryParamDecoderMatcher.html" title="param extractor using QueryParamDecoder:"></a>
@@ -243,8 +243,8 @@
                         <a href="ValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder.">ValidatingQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="WwwAuthenticateResponseGenerator.html" title=""></a>
-                        <a href="WwwAuthenticateResponseGenerator.html" title="">WwwAuthenticateResponseGenerator</a>
+                        <a class="trait" href="WwwAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body."></a>
+                        <a href="WwwAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body.">WwwAuthenticateResponseGenerator</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="$tilde$.html" title="File extension extractor"></a>
@@ -385,7 +385,7 @@ make intention clear and concise.
 </p></div><dl class="attributes block"> <div class="block">Example:
                <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: IO[Response] = Ok(<span class="lit">"Hello world!"</span>)</pre></li></ol>
             </div></dl></div>
-    </li><li name="org.http4s.dsl.impl.LocationResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl.impl.LocationResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="LocationResponseGenerator[F[_]]extendsAnywithEntityResponseGenerator[F]"></a><a id="LocationResponseGenerator[F[_]]:LocationResponseGenerator[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/dsl/impl/index.html#LocationResponseGenerator[F[_]]extendsAnywithEntityResponseGenerator[F]" title="Permalink">
@@ -397,10 +397,14 @@ make intention clear and concise.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="LocationResponseGenerator.html"><span class="name">LocationResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]</span>
+        <a title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body." href="LocationResponseGenerator.html"><span class="name">LocationResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]</span>
       </span>
       
-      
+      <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain
+a Location header and may contain a body.</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain
+a Location header and may contain a body.</p><p>A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
+distinguishes this from other <code>EntityResponseGenerator</code>s.
+</p></div></div>
     </li><li name="org.http4s.dsl.impl.MethodConcat" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MethodConcatextendsAnyRef"></a><a id="MethodConcat:MethodConcat"></a>
       <span class="permalink">
@@ -560,7 +564,7 @@ make intention clear and concise.
       </span>
       
       <p class="shortcomment cmt">Base class for path extractors.</p>
-    </li><li name="org.http4s.dsl.impl.ProxyAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl.impl.ProxyAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ProxyAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="ProxyAuthenticateResponseGenerator[F[_]]:ProxyAuthenticateResponseGenerator[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/dsl/impl/index.html#ProxyAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
@@ -572,10 +576,14 @@ make intention clear and concise.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="ProxyAuthenticateResponseGenerator.html"><span class="name">ProxyAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body." href="ProxyAuthenticateResponseGenerator.html"><span class="name">ProxyAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
+a Proxy-Authenticate header and may contain a body.</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
+a Proxy-Authenticate header and may contain a body.</p><p>A 407 status MUST contain a <code>Proxy-Authenticate</code> header, which
+distinguishes this from other <code>EntityResponseGenerator</code>s.
+</p></div></div>
     </li><li name="org.http4s.dsl.impl.QueryParamDecoderMatcher" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="QueryParamDecoderMatcher[T]extendsAnyRef"></a><a id="QueryParamDecoderMatcher[T]:QueryParamDecoderMatcher[T]"></a>
       <span class="permalink">
@@ -694,7 +702,7 @@ make intention clear and concise.
     foo  <span class="kw">=&gt;</span> { ... }
   )
 }</pre></div></div>
-    </li><li name="org.http4s.dsl.impl.WwwAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl.impl.WwwAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="WwwAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="WwwAuthenticateResponseGenerator[F[_]]:WwwAuthenticateResponseGenerator[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/dsl/impl/index.html#WwwAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator" title="Permalink">
@@ -706,10 +714,14 @@ make intention clear and concise.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="WwwAuthenticateResponseGenerator.html"><span class="name">WwwAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+        <a title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body." href="WwwAuthenticateResponseGenerator.html"><span class="name">WwwAuthenticateResponseGenerator</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
       </span>
       
-      
+      <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
+a WWW-Authenticate header and may contain a body.</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which must contain
+a WWW-Authenticate header and may contain a body.</p><p>A 401 status MUST contain a <code>WWW-Authenticate</code> header, which
+distinguishes this from other <code>ResponseGenerator</code>s.
+</p></div></div>
     </li></ol>
             </div>
 
