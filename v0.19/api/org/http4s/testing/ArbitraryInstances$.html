@@ -568,6 +568,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#arbitraryDecodeFailure" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="arbitraryDecodeFailure:org.scalacheck.Arbitrary[org.http4s.DecodeFailure]"></a><a id="arbitraryDecodeFailure:Arbitrary[DecodeFailure]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#arbitraryDecodeFailure:org.scalacheck.Arbitrary[org.http4s.DecodeFailure]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">arbitraryDecodeFailure</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
     </li><li name="org.http4s.testing.ArbitraryInstances#arbitraryEntity" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="arbitraryEntity[F[_]]:org.scalacheck.Arbitrary[org.http4s.Entity[F]]"></a><a id="arbitraryEntity[F[_]]:Arbitrary[Entity[F]]"></a>
       <span class="permalink">
@@ -581,6 +597,22 @@
       </span>
       <span class="symbol">
         <span class="name">arbitraryEntity</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../Entity.html" class="extype" name="org.http4s.Entity">Entity</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.arbitraryEntity.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#arbitraryEntityDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="arbitraryEntityDecoder[F[_],A](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext,implicitg:org.scalacheck.Arbitrary[org.http4s.DecodeResult[F,A]]):org.scalacheck.Arbitrary[org.http4s.EntityDecoder[F,A]]"></a><a id="arbitraryEntityDecoder[F[_],A](Effect[F],TestContext,Arbitrary[DecodeResult[F,A]]):Arbitrary[EntityDecoder[F,A]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#arbitraryEntityDecoder[F[_],A](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext,implicitg:org.scalacheck.Arbitrary[org.http4s.DecodeResult[F,A]]):org.scalacheck.Arbitrary[org.http4s.EntityDecoder[F,A]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">arbitraryEntityDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.arbitraryEntityDecoder.F">F</span>]</span>, <span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>, <span name="g">g: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.arbitraryEntityDecoder.F">F</span>, <span class="extype" name="org.http4s.testing.ArbitraryInstances.arbitraryEntityDecoder.A">A</span>]]</span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.arbitraryEntityDecoder.F">F</span>, <span class="extype" name="org.http4s.testing.ArbitraryInstances.arbitraryEntityDecoder.A">A</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
@@ -1216,6 +1248,38 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#cogenHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cogenHeader:org.scalacheck.Cogen[org.http4s.Header]"></a><a id="cogenHeader:Cogen[Header]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#cogenHeader:org.scalacheck.Cogen[org.http4s.Header]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cogenHeader</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#cogenHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cogenHeaders:org.scalacheck.Cogen[org.http4s.Headers]"></a><a id="cogenHeaders:Cogen[Headers]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#cogenHeaders:org.scalacheck.Cogen[org.http4s.Headers]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cogenHeaders</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
     </li><li name="org.http4s.testing.ArbitraryInstances#cogenHttpVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="cogenHttpVersion:org.scalacheck.Cogen[org.http4s.HttpVersion]"></a><a id="cogenHttpVersion:Cogen[HttpVersion]"></a>
       <span class="permalink">
@@ -1229,6 +1293,22 @@
       </span>
       <span class="symbol">
         <span class="name">cogenHttpVersion</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#cogenMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="cogenMessage[F[_]](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext):org.scalacheck.Cogen[org.http4s.Message[F]]"></a><a id="cogenMessage[F[_]](Effect[F],TestContext):Cogen[Message[F]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#cogenMessage[F[_]](implicitF:cats.effect.Effect[F],implicitec:cats.effect.laws.util.TestContext):org.scalacheck.Cogen[org.http4s.Message[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">cogenMessage</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenMessage.F">F</span>]</span>, <span name="ec">ec: <span class="extype" name="cats.effect.laws.util.TestContext">TestContext</span></span>)</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.testing.ArbitraryInstances.cogenMessage.F">F</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
@@ -1622,6 +1702,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#genInvalidMessageBodyFailure" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="genInvalidMessageBodyFailure:org.scalacheck.Gen[org.http4s.InvalidMessageBodyFailure]"></a><a id="genInvalidMessageBodyFailure:Gen[InvalidMessageBodyFailure]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#genInvalidMessageBodyFailure:org.scalacheck.Gen[org.http4s.InvalidMessageBodyFailure]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genInvalidMessageBodyFailure</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../InvalidMessageBodyFailure.html" class="extype" name="org.http4s.InvalidMessageBodyFailure">InvalidMessageBodyFailure</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
     </li><li name="org.http4s.testing.ArbitraryInstances#genLanguageTagNoQuality" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="genLanguageTagNoQuality:org.scalacheck.Gen[org.http4s.LanguageTag]"></a><a id="genLanguageTagNoQuality:Gen[LanguageTag]"></a>
       <span class="permalink">
@@ -1651,6 +1747,54 @@
       </span>
       <span class="symbol">
         <span class="name">genLws</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#genMalformedMessageBodyFailure" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="genMalformedMessageBodyFailure:org.scalacheck.Gen[org.http4s.MalformedMessageBodyFailure]"></a><a id="genMalformedMessageBodyFailure:Gen[MalformedMessageBodyFailure]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#genMalformedMessageBodyFailure:org.scalacheck.Gen[org.http4s.MalformedMessageBodyFailure]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genMalformedMessageBodyFailure</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../MalformedMessageBodyFailure.html" class="extype" name="org.http4s.MalformedMessageBodyFailure">MalformedMessageBodyFailure</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#genMediaTypeMismatch" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="genMediaTypeMismatch:org.scalacheck.Gen[org.http4s.MediaTypeMismatch]"></a><a id="genMediaTypeMismatch:Gen[MediaTypeMismatch]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#genMediaTypeMismatch:org.scalacheck.Gen[org.http4s.MediaTypeMismatch]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genMediaTypeMismatch</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../MediaTypeMismatch.html" class="extype" name="org.http4s.MediaTypeMismatch">MediaTypeMismatch</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#genMediaTypeMissing" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="genMediaTypeMissing:org.scalacheck.Gen[org.http4s.MediaTypeMissing]"></a><a id="genMediaTypeMissing:Gen[MediaTypeMissing]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#genMediaTypeMissing:org.scalacheck.Gen[org.http4s.MediaTypeMissing]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">genMediaTypeMissing</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../MediaTypeMissing.html" class="extype" name="org.http4s.MediaTypeMissing">MediaTypeMissing</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
@@ -1964,6 +2108,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#http4sArbitraryMediaType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sArbitraryMediaType:org.scalacheck.Arbitrary[org.http4s.MediaType]"></a><a id="http4sArbitraryMediaType:Arbitrary[MediaType]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#http4sArbitraryMediaType:org.scalacheck.Arbitrary[org.http4s.MediaType]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sArbitraryMediaType</span><span class="result">: <span class="extype" name="org.scalacheck.Arbitrary">Arbitrary</span>[<a href="../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
     </li><li name="org.http4s.testing.ArbitraryInstances#http4sCogenMediaRange" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sCogenMediaRange:org.scalacheck.Cogen[org.http4s.MediaRange]"></a><a id="http4sCogenMediaRange:Cogen[MediaRange]"></a>
       <span class="permalink">
@@ -1977,6 +2137,22 @@
       </span>
       <span class="symbol">
         <span class="name">http4sCogenMediaRange</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#http4sCogenMediaType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sCogenMediaType:org.scalacheck.Cogen[org.http4s.MediaType]"></a><a id="http4sCogenMediaType:Cogen[MediaType]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#http4sCogenMediaType:org.scalacheck.Cogen[org.http4s.MediaType]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sCogenMediaType</span><span class="result">: <span class="extype" name="org.scalacheck.Cogen">Cogen</span>[<a href="../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
@@ -2041,6 +2217,22 @@
       </span>
       <span class="symbol">
         <span class="name">http4sGenMediaRangeExtensions</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
+    </li><li name="org.http4s.testing.ArbitraryInstances#http4sGenMediaType" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sGenMediaType:org.scalacheck.Gen[org.http4s.MediaType]"></a><a id="http4sGenMediaType:Gen[MediaType]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/ArbitraryInstances$.html#http4sGenMediaType:org.scalacheck.Gen[org.http4s.MediaType]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4sGenMediaType</span><span class="result">: <span class="extype" name="org.scalacheck.Gen">Gen</span>[<a href="../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ArbitraryInstances.html" class="extype" name="org.http4s.testing.ArbitraryInstances">ArbitraryInstances</a></dd></dl></div>
