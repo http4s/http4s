@@ -23,21 +23,24 @@ object ServerLogging {
   }
 
   def commonLogFormat[F[_]](clock: Clock = Clock.systemDefaultZone()): ServerLogging[F] = {
+    val log = org.log4s.getLogger
     val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:hh:mm:ss Z")
 
     apply[F] { (req, res) =>
-      val remotehost = req.remoteAddr.getOrElse("-")
-      val rfc931 = "-"
-      val authuser = Authorization.from(req.headers).map(_.credentials) match {
-        case Some(BasicCredentials(credentials)) => credentials.username
-        case _ => "-"
-      }
-      val date = formatter.format(OffsetDateTime.now(clock))
-      val request = s"${req.method} ${req.uri} ${req.httpVersion}"
-      val status = res.status.code
-      val bytes = res.contentLength.map(_.toString).getOrElse("-")
+      log.info {
+        val remotehost = req.remoteAddr.getOrElse("-") + " "
+        val rfc931 = "- "
+        val authuser = Authorization.from(req.headers).map(_.credentials) match {
+          case Some(BasicCredentials(credentials)) => credentials.username + " "
+          case _ => "- "
+        }
+        val date = "[" + formatter.format(OffsetDateTime.now(clock)) + "] "
+        val request = req.method + " " + req.uri + " " + req.httpVersion + " "
+        val status = res.status.code + " "
+        val bytes = res.contentLength.map(_.toString).getOrElse("-")
 
-      println(s"""$remotehost $rfc931 $authuser [$date] "$request" $status $bytes""")
+        remotehost + rfc931 + authuser + date + request + status + bytes
+      }
     }
   }
 }
