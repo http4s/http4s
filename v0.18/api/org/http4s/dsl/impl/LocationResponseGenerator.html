@@ -171,8 +171,8 @@
                         <a href="IntVar$.html" title="Integer extractor of a path variable:">IntVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="" title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body."></a>
-                        <a href="" title="Helper for the generation of a org.http4s.Response which may contain a Location header and may contain a body.">LocationResponseGenerator</a>
+                        <a class="trait" href="" title=""></a>
+                        <a href="" title="">LocationResponseGenerator</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="LongVar$.html" title="Long extractor of a path variable:"></a>
@@ -211,8 +211,8 @@
                         <a href="Path.html" title="Base class for path extractors.">Path</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body."></a>
-                        <a href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body.">ProxyAuthenticateResponseGenerator</a>
+                        <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title=""></a>
+                        <a href="ProxyAuthenticateResponseGenerator.html" title="">ProxyAuthenticateResponseGenerator</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="QueryParamDecoderMatcher.html" title="param extractor using QueryParamDecoder:"></a>
@@ -243,8 +243,8 @@
                         <a href="ValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder.">ValidatingQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="trait" href="WwwAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body."></a>
-                        <a href="WwwAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a WWW-Authenticate header and may contain a body.">WwwAuthenticateResponseGenerator</a>
+                        <a class="trait" href="WwwAuthenticateResponseGenerator.html" title=""></a>
+                        <a href="WwwAuthenticateResponseGenerator.html" title="">WwwAuthenticateResponseGenerator</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="object" href="$tilde$.html" title="File extension extractor"></a>
@@ -277,10 +277,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain
-a Location header and may contain a body.</p><p>A 300, 301, 302, 303, 307 and 308 status SHOULD contain a Location header, which
-distinguishes this from other <code>EntityResponseGenerator</code>s.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/83e9585e546811de5adfb675ee75cd7147c009bf/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/0defa6d3b7473e6e17135a7cc4ae0373e8ec98ec/dsl/src/main/scala/org/http4s/dsl/impl/ResponseGenerator.scala" target="_blank">ResponseGenerator.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -473,38 +470,6 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.LocationResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[A](location:org.http4s.headers.Location,body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](Location,A,Header*)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/LocationResponseGenerator.html#apply[A](location:org.http4s.headers.Location,body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="location">location: <a href="../../headers/Location.html" class="extype" name="org.http4s.headers.Location">Location</a></span>, <span name="body">body: <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.apply.A">A</span></span>, <span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.dsl.impl.LocationResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(location:org.http4s.headers.Location,headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply(Location,Header*)(Applicative[F]):F[Response[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/LocationResponseGenerator.html#apply(location:org.http4s.headers.Location,headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="location">location: <a href="../../headers/Location.html" class="extype" name="org.http4s.headers.Location">Location</a></span>, <span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.LocationResponseGenerator.F">F</span>]]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply[A](body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](A,Header*)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
       <span class="permalink">
