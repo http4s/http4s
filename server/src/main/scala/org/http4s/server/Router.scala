@@ -1,9 +1,9 @@
 package org.http4s
 package server
 
+import cats.Monad
 import cats.data.Kleisli
-import cats.effect._
-import cats.implicits._
+import cats.syntax.semigroupk._
 
 object Router {
 
@@ -13,7 +13,7 @@ object Router {
     * Defines an HttpService based on list of mappings.
     * @see define
     */
-  def apply[F[_]: Sync](mappings: (String, HttpService[F])*): HttpService[F] =
+  def apply[F[_]: Monad](mappings: (String, HttpService[F])*): HttpService[F] =
     define(mappings: _*)(HttpService.empty[F])
 
   /**
@@ -22,7 +22,7 @@ object Router {
     *
     * The mappings are processed in descending order (longest first) of prefix length.
     */
-  def define[F[_]: Sync](mappings: (String, HttpService[F])*)(
+  def define[F[_]: Monad](mappings: (String, HttpService[F])*)(
       default: HttpService[F]): HttpService[F] =
     mappings.sortBy(_._1.length).foldLeft(default) {
       case (acc, (prefix, service)) =>

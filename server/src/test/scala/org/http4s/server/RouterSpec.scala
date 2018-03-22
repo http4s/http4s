@@ -1,6 +1,7 @@
 package org.http4s
 package server
 
+import cats.Monad
 import cats.effect._
 import org.http4s.dsl.io._
 
@@ -72,6 +73,13 @@ class RouterSpec extends Http4sSpec {
     "Return the fallthrough response if no route is found" in {
       val router = Router[IO]("/foo" -> notFound)
       router(Request[IO](uri = uri("/bar"))).value must returnValue(None)
+    }
+
+    "Only require a Monad instance for a given F[_]" in {
+      def router[F[_]: Monad]: HttpService[F] = Router(
+        "/" -> HttpService.empty[F]
+      )
+      router[IO] must haveClass[HttpService[IO]]
     }
   }
 }
