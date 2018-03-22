@@ -10,7 +10,7 @@ and calling it with http4s' client.
 Create a new directory, with the following build.sbt in the root:
 
 ```scala
-scalaVersion := "2.12.4" // Also supports 2.11.x
+scalaVersion := "2.12.5" // Also supports 2.11.x
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
 
@@ -109,7 +109,7 @@ matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
 Multiple `HttpService`s can be combined with the `combineK` method (or its alias
-`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`. 
+`<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`.
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
 

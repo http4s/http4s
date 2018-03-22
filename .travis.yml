@@ -12,11 +12,11 @@ env:
 matrix:
   include:
   - jdk: oraclejdk8
-    scala: 2.12.4
+    scala: 2.12.5
   - jdk: oraclejdk8
     scala: 2.11.12
   - jdk: oraclejdk9
-    scala: 2.12.4
+    scala: 2.12.5
 notifications:
   webhooks:
     urls:
