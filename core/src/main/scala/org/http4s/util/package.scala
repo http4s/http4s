@@ -56,10 +56,6 @@ package object util {
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
 
-  /** Encode ascii string to bytes  **/
-  def asciiEncode[F[_]]: Pipe[F, String, Byte] =
-    _.flatMap(s => Stream.chunk(Chunk.bytes(s.getBytes(StandardCharsets.US_ASCII))))
-
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
   private val Digits: Array[Char] =
     Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
