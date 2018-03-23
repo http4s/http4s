@@ -70,8 +70,11 @@ import cats.effect._, org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
 
 final case class User(name: String, age: Int)
+object User {
+  implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
+}
 
-implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
+import User._ // Note: this is necessary for the REPL.
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
