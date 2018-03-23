@@ -78,7 +78,7 @@ trait Http4sSpec
       .map(_.getOrElse(""))
       .unsafeRunSync
 
-  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
+  def writeToChunk[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
     Stream
       .emit(W.toEntity(a))
       .covary[IO]
