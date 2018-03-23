@@ -171,7 +171,7 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
 
-  /** Helper method which simply gathers the body into a single ByteVector */
+  /** Helper method which simply gathers the body into a single Segment */
   def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
     DecodeResult.success(msg.body.segments.compile.foldMonoid)
 
