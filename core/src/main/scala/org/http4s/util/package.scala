@@ -1,10 +1,10 @@
 package org.http4s
 
 import fs2._
-import fs2.interop.scodec.ByteVectorChunk
 import java.nio.{ByteBuffer, CharBuffer}
+import java.nio.charset.StandardCharsets
+
 import scala.concurrent.ExecutionContextExecutor
-import scodec.bits.ByteVector
 
 package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
@@ -23,16 +23,42 @@ package object util {
           if (outputString.isEmpty) Pull.done.as(None)
           else Pull.output1(outputString).as(None)
         case Some((segment, stream)) =>
-          val byteVector = ByteVector(segment.force.toVector)
-          val byteBuffer = byteVector.toByteBuffer
-          val charBuffer = CharBuffer.allocate(byteVector.size.toInt * maxCharsPerByte)
+          val bytes = segment.force.toArray
+          val byteBuffer = ByteBuffer.wrap(bytes)
+          val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
           decoder.decode(byteBuffer, charBuffer, false)
-          val nextByteVector = ByteVector.view(byteBuffer.slice)
-          val nextStream = stream.consChunk(ByteVectorChunk(nextByteVector))
+          val nextStream = stream.consChunk(Chunk.byteBuffer(byteBuffer.slice()))
           Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
       }
     }
   }
+
+  /** Converts ASCII encoded byte stream to a stream of `String`. */
+  private[http4s] def asciiDecode[F[_]]: Pipe[F, Byte, String] =
+    _.chunks.through(asciiDecodeC)
+
+  private def asciiCheck(b: Byte) = 0x80 & b
+
+  /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
+  private[http4s] def asciiDecodeC[F[_]]: Pipe[F, Chunk[Byte], String] = { in =>
+    def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
+      if (i == bytes.length)
+        Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
+      else {
+        if (asciiCheck(bytes(i)) == 0x80) {
+          Stream.raiseError(
+            new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+        } else {
+          tailRecAsciiCheck(i + 1, bytes)
+        }
+      }
+
+    in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
+  }
+
+  /** Encode ascii string to bytes  **/
+  def asciiEncode[F[_]]: Pipe[F, String, Byte] =
+    _.flatMap(s => Stream.chunk(Chunk.bytes(s.getBytes(StandardCharsets.US_ASCII))))
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
   private val Digits: Array[Char] =
