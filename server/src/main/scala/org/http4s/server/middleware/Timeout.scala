@@ -12,14 +12,14 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object Timeout {
 
-  @deprecated("Exists to support deprecated methods", "0.19")
+  @deprecated("Exists to support deprecated methods", "0.18.4")
   private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(
       implicit executionContext: ExecutionContext): HttpService[F] =
     service.mapF { resp =>
       OptionT(fs2AsyncRace(resp.value, timeoutResponse.map(_.some)).map(_.merge))
     }
 
-  @deprecated("Exists to support deprecated methods", "0.19")
+  @deprecated("Exists to support deprecated methods", "0.18.4")
   private def fs2AsyncRace[F[_], A, B](fa: F[A], fb: F[B])(
       implicit F: Effect[F],
       ec: ExecutionContext): F[Either[A, B]] =
@@ -53,7 +53,7 @@ object Timeout {
     */
   @deprecated(
     "Use apply(FiniteDuration, F[Response[F]](HttpService[F]) instead. That cancels the losing effect.",
-    "0.19")
+    "0.18.4")
   def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(service: HttpService[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpService[F] =
@@ -71,7 +71,7 @@ object Timeout {
     */
   @deprecated(
     "Use apply(FiniteDuration)(HttpService[F]) instead. That cancels the losing effect.",
-    "0.19")
+    "0.18.4")
   def apply[F[_]: Effect](timeout: Duration)(service: HttpService[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpService[F] =
