@@ -85,6 +85,22 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-4-2018-03-23">v0.18.4 (2018-03-23)</h1>
+
+<ul>
+<li>Deprecate old <code>Timeout</code> middleware methods in favor of new ones that use <code>FiniteDuration</code> and cancel timed out effects <a href="https://github.com/http4s/http4s/pull/1725">#1725</a></li>
+<li>Add <code>expectOr</code> methods to client for custom error handling on failed expects <a href="https://github.com/http4s/http4s/pull/1726">#1726</a></li>
+<li>Replace buffered multipart parser with a streaming version. Deprecate all uses of fs2-scodec. <a href="https://github.com/http4s/http4s/pull/1727">#1727</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>blaze-0.12.2</li>
+<li>fs2-0.10.3</li>
+<li>log4s-1.6.1</li>
+<li>jetty-9.4.9.v20180320</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-3-2018-03-17">v0.18.3 (2018-03-17)</h1>
 
 <ul>
