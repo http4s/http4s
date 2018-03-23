@@ -13,7 +13,6 @@ import org.http4s.headers._
 object ChunkAggregator {
   def apply[F[_]](service: HttpService[F])(implicit F: Effect[F]): HttpService[F] =
     service.flatMapF { response =>
-
       OptionT.liftF(
         response.body.chunks.compile
           .fold((Segment.empty[Byte], 0L)) {

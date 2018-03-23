@@ -176,6 +176,7 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
+  /**
   private class OrDec[F[_]: Functor, T](a: EntityDecoder[F, T], b: EntityDecoder[F, T])
       extends EntityDecoder[F, T] {
     override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
@@ -203,7 +204,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
-
+  **/
   /** Helper method which simply gathers the body into a single Segment */
   def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
     DecodeResult.success(msg.body.segments.compile.foldMonoid)
