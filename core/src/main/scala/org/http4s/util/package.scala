@@ -1,9 +1,8 @@
 package org.http4s
 
-import java.nio.charset.StandardCharsets
-
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
+import java.nio.charset.StandardCharsets
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -35,13 +34,13 @@ package object util {
   }
 
   /** Converts ASCII encoded byte stream to a stream of `String`. */
-  def asciiDecode[F[_]]: Pipe[F, Byte, String] =
+  private[http4s] def asciiDecode[F[_]]: Pipe[F, Byte, String] =
     _.chunks.through(asciiDecodeC)
 
   private def asciiCheck(b: Byte) = 0x80 & b
 
   /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
-  def asciiDecodeC[F[_]]: Pipe[F, Chunk[Byte], String] = { in =>
+  private[http4s] def asciiDecodeC[F[_]]: Pipe[F, Chunk[Byte], String] = { in =>
     def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
       if (i == bytes.length)
         Stream.emit(new String(bytes, StandardCharsets.US_ASCII))

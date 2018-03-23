@@ -157,7 +157,6 @@ object MultipartParser {
     var currState = state
     val len = values.length
     var middleChunked = false
-    //Debug
     while (currState < len && i < c.size) {
       if (c(i) == values(currState)) {
         currState += 1
