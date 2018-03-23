@@ -25,13 +25,11 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      fs2Scodec,
       http4sWebsocket,
       log4s,
       macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting

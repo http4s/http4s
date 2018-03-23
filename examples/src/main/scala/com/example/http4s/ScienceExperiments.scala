@@ -125,20 +125,6 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
         val body = scheduler.awakeEvery[F](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
         Ok(body)
 
-      /*
-    case req @ POST -> Root / "ill-advised-echo" =>
-      // Reads concurrently from the input.  Don't do this at home.
-      implicit val byteVectorMonoidInstance: Monoid[ByteVector] = new Monoid[ByteVector]{
-        def combine(x: ByteVector, y: ByteVector): ByteVector = x ++ y
-        def empty: ByteVector = ByteVector.empty
-      }
-      val seq = 1 to Runtime.getRuntime.availableProcessors
-      val f: Int => IO[ByteVector] = _ => req.body.map(ByteVector.fromByte).compile.toVector.map(_.combineAll)
-      val result: Stream[IO, Byte] = Stream.eval(IO.traverse(seq)(f))
-        .flatMap(v => Stream.emits(v.combineAll.toSeq))
-      Ok(result)
-       */
-
       case GET -> Root / "fail" / "task" =>
         F.raiseError(new RuntimeException)
 
