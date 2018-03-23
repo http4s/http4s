@@ -12,6 +12,8 @@ abstract class ServerLogging[F[_]] {
 }
 
 object ServerLogging {
+  private[this] val logger = org.log4s.getLogger
+
   def apply[F[_]](log: (Request[F], Response[F]) => Unit): ServerLogging[F] =
     new ServerLogging[F] {
       override def logRequestResponse(request: Request[F], response: Response[F]): Unit =
@@ -22,12 +24,13 @@ object ServerLogging {
     override def logRequestResponse(request: Request[F], response: Response[F]): Unit = ()
   }
 
-  def commonLogFormat[F[_]](clock: Clock = Clock.systemDefaultZone()): ServerLogging[F] = {
-    val log = org.log4s.getLogger
+  def commonLogFormat[F[_]](
+      clock: Clock = Clock.systemDefaultZone(),
+      log: String => Unit = logger.info): ServerLogging[F] = {
     val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:hh:mm:ss Z")
 
     apply[F] { (req, res) =>
-      log.info {
+      log {
         val remotehost = req.remoteAddr.getOrElse("-") + " "
         val rfc931 = "- "
         val authuser = Authorization.from(req.headers).map(_.credentials) match {
