@@ -11,7 +11,6 @@ import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.EntityEncoder._
 import org.specs2.Specification
-import scodec.bits.ByteVector
 
 class MultipartSpec extends Specification {
   sequential
@@ -32,15 +31,12 @@ class MultipartSpec extends Specification {
     authority = Some(Authority(host = RegName("example.com"))),
     path = "/path/to/some/where")
 
-  def toBV(entityBody: EntityBody[IO]): ByteVector =
-    ByteVector(entityBody.compile.toVector.unsafeRunSync())
-
   implicit def partIOEq: Eq[Part[IO]] = Eq.instance[Part[IO]] {
     case (a, b) =>
       a.headers === b.headers && {
         for {
-          abv <- a.body.compile.toVector.map(ByteVector(_))
-          bbv <- b.body.compile.toVector.map(ByteVector(_))
+          abv <- a.body.compile.toVector
+          bbv <- b.body.compile.toVector
         } yield abv === bbv
       }.unsafeRunSync()
   }
@@ -59,7 +55,7 @@ class MultipartSpec extends Specification {
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, false)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
