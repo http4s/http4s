@@ -176,7 +176,35 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
-  /** Helper method which simply gathers the body into a single ByteVector */
+  private class OrDec[F[_]: Functor, T](a: EntityDecoder[F, T], b: EntityDecoder[F, T])
+      extends EntityDecoder[F, T] {
+    override def decode(msg: Message[F], strict: Boolean): DecodeResult[F, T] =
+      msg.headers.get(`Content-Type`) match {
+        case Some(contentType) =>
+          if (a.matchesMediaType(contentType.mediaType)) {
+            a.decode(msg, strict)
+          } else
+            b.decode(msg, strict).leftMap {
+              case MediaTypeMismatch(actual, expected) =>
+                MediaTypeMismatch(actual, expected ++ a.consumes)
+              case other => other
+            }
+
+        case None =>
+          if (a.matchesMediaType(UndefinedMediaType)) {
+            a.decode(msg, strict)
+          } else
+            b.decode(msg, strict).leftMap {
+              case MediaTypeMissing(expected) =>
+                MediaTypeMissing(expected ++ a.consumes)
+              case other => other
+            }
+      }
+
+    override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
+  }
+
+  /** Helper method which simply gathers the body into a single Segment */
   def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
     DecodeResult.success(msg.body.segments.compile.foldMonoid)
 

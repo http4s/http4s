@@ -189,7 +189,7 @@ object StringWriter {
 }
 
 /** [[Writer]] that will result in a `Segment`
-  * @param bv initial `ByteVector`
+  * @param toByteSegment initial `Segment`
   */
 final case class SegmentWriter(
     var toByteSegment: Segment[Byte, Unit] = Segment.empty[Byte],
