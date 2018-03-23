@@ -218,26 +218,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.multipart.MultipartParser.Out" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Out[+A]extendsProductwithSerializable"></a><a id="Out[+A]:Out[A]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#Out[+A]extendsProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="MultipartParser$$Out.html"><span class="name">Out</span></a><span class="tparams">[<span name="A">+A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.multipart.MultipartParser.Out.A">A</span></span>, <span name="tail">tail: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -402,41 +383,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.multipart.MultipartParser#generateHeaders" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="generateHeaders(byteVector:scodec.bits.ByteVector)(acc:org.http4s.Headers):org.http4s.Headers"></a><a id="generateHeaders(ByteVector)(Headers):Headers"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#generateHeaders(byteVector:scodec.bits.ByteVector)(acc:org.http4s.Headers):org.http4s.Headers" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">generateHeaders</span><span class="params">(<span name="byteVector">byteVector: <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a></span>)</span><span class="params">(<span name="acc">acc: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@tailrec</span><span class="args">()</span>
-              
-        </dd></dl></div>
-    </li><li name="org.http4s.multipart.MultipartParser#generatePart" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="generatePart(byteVector:scodec.bits.ByteVector):(org.http4s.Headers,scodec.bits.ByteVector)"></a><a id="generatePart(ByteVector):(Headers,ByteVector)"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#generatePart(byteVector:scodec.bits.ByteVector):(org.http4s.Headers,scodec.bits.ByteVector)" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">generatePart</span><span class="params">(<span name="byteVector">byteVector: <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a></span>)</span><span class="result">: (<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>)</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -545,26 +491,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.multipart.MultipartParser#parse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parse[F[_]](boundary:org.http4s.multipart.Boundary)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]"></a><a id="parse[F[_]](Boundary)(Sync[F]):Pipe[F,Byte,Either[Headers,ByteVector]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#parse[F[_]](boundary:org.http4s.multipart.Boundary)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>]]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.multipart.MultipartParser#parseStreamed" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parseStreamed[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$2:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]"></a><a id="parseStreamed[F[_]](Boundary,Int)(Sync[F]):Pipe[F,Byte,Multipart[F]]"></a>
+      <a id="parseStreamed[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]"></a><a id="parseStreamed[F[_]](Boundary,Int)(Sync[F]):Pipe[F,Byte,Multipart[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseStreamed[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$2:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseStreamed[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -577,30 +507,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
-    </li><li name="org.http4s.multipart.MultipartParser#parseToParts" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="parseToParts[F[_]](byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(implicitF:cats.effect.Sync[F]):F[scodec.bits.ByteVector]"></a><a id="parseToParts[F[_]](ByteVector)(Boundary)(Sync[F]):F[ByteVector]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseToParts[F[_]](byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(implicitF:cats.effect.Sync[F]):F[scodec.bits.ByteVector]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parseToParts</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="byteVector">byteVector: <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a></span>)</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToParts.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.multipart.MultipartParser.parseToParts.F">F</span>[<a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">parseToParts - Removes Prelude and Trailer</p><div class="fullcomment"><div class="comment cmt"><p>parseToParts - Removes Prelude and Trailer</p><p>splitParts - Splits Into Parts
-splitPart - Takes a Single Part of the Front
-generatePart - Generates a tuple of Headers and a ByteVector of the Body, effectively a Part</p><p>generateHeaders - Generate Headers from ByteVector
-splitHeader - Splits a Header into the Name and Value
-</p></div></div>
     </li><li name="org.http4s.multipart.MultipartParser#parseToPartsStream" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parseToPartsStream[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$3:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Part[F]]"></a><a id="parseToPartsStream[F[_]](Boundary,Int)(Sync[F]):Pipe[F,Byte,Part[F]]"></a>
+      <a id="parseToPartsStream[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$2:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Part[F]]"></a><a id="parseToPartsStream[F[_]](Boundary,Int)(Sync[F]):Pipe[F,Byte,Part[F]]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseToPartsStream[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$3:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Part[F]]" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseToPartsStream[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$2:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Part[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -613,26 +523,10 @@ splitHeader - Splits a Header into the Name and Value
       </span>
       
       
-    </li><li name="org.http4s.multipart.MultipartParser#splitHeader" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="splitHeader(byteVector:scodec.bits.ByteVector):Option[(scodec.bits.ByteVector,scodec.bits.ByteVector)]"></a><a id="splitHeader(ByteVector):Option[(ByteVector,ByteVector)]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitHeader(byteVector:scodec.bits.ByteVector):Option[(scodec.bits.ByteVector,scodec.bits.ByteVector)]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">splitHeader</span><span class="params">(<span name="byteVector">byteVector: <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[(<a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>)]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.multipart.MultipartParser#splitOnChunk" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="splitOnChunk[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$6:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])"></a><a id="splitOnChunk[F[_]](Array[Byte],Int,Chunk[Byte],Stream[F,Byte],Stream[F,Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte])"></a>
+      <a id="splitOnChunk[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$5:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])"></a><a id="splitOnChunk[F[_]](Array[Byte],Int,Chunk[Byte],Stream[F,Byte],Stream[F,Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte])"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitOnChunk[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$6:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitOnChunk[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$5:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -654,9 +548,9 @@ be the byte sequence. As such, carry is re-emitted if it was an
 incomplete match, or ignored (as such excluding the sequence
 from the subsequent split stream).</p></div></div>
     </li><li name="org.http4s.multipart.MultipartParser#splitOnChunkLimited" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="splitOnChunkLimited[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$17:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)"></a><a id="splitOnChunkLimited[F[_]](Array[Byte],Int,Chunk[Byte],Stream[F,Byte],Stream[F,Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte],Int)"></a>
+      <a id="splitOnChunkLimited[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$16:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)"></a><a id="splitOnChunkLimited[F[_]](Array[Byte],Int,Chunk[Byte],Stream[F,Byte],Stream[F,Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte],Int)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitOnChunkLimited[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$17:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitOnChunkLimited[F[_]](values:Array[Byte],state:Int,c:fs2.Chunk[Byte],acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte])(implicitevidence$16:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -669,26 +563,10 @@ from the subsequent split stream).</p></div></div>
       </span>
       
       
-    </li><li name="org.http4s.multipart.MultipartParser#splitPart" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="splitPart(byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary):Option[(scodec.bits.ByteVector,scodec.bits.ByteVector)]"></a><a id="splitPart(ByteVector)(Boundary):Option[(ByteVector,ByteVector)]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitPart(byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary):Option[(scodec.bits.ByteVector,scodec.bits.ByteVector)]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">splitPart</span><span class="params">(<span name="byteVector">byteVector: <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a></span>)</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.4/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[(<a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>)]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.multipart.MultipartParser#splitPartialLimited" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="splitPartialLimited[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$16:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)"></a><a id="splitPartialLimited[F[_]](Int,Boolean,Int,Int,Stream[F,Byte],Stream[F,Byte],Chunk[Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte],Int)"></a>
+      <a id="splitPartialLimited[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$15:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)"></a><a id="splitPartialLimited[F[_]](Int,Boolean,Int,Int,Stream[F,Byte],Stream[F,Byte],Chunk[Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte],Int)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitPartialLimited[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$16:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitPartialLimited[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$15:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte],Int)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -708,9 +586,9 @@ everything prior to the partial match is added to the accumulator,
 and the partial match is considered the carry over.</p><p>Else, if the whole block is a partial match,
 add it to the carry over</p></div></div>
     </li><li name="org.http4s.multipart.MultipartParser#splitPartialMatch" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="splitPartialMatch[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$5:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])"></a><a id="splitPartialMatch[F[_]](Int,Boolean,Int,Int,Stream[F,Byte],Stream[F,Byte],Chunk[Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte])"></a>
+      <a id="splitPartialMatch[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$4:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])"></a><a id="splitPartialMatch[F[_]](Int,Boolean,Int,Int,Stream[F,Byte],Stream[F,Byte],Chunk[Byte])(Sync[F]):(Int,Stream[F,Byte],Stream[F,Byte])"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitPartialMatch[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$5:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])" title="Permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitPartialMatch[F[_]](state:Int,middleChunked:Boolean,currState:Int,i:Int,acc:fs2.Stream[F,Byte],carry:fs2.Stream[F,Byte],c:fs2.Chunk[Byte])(implicitevidence$4:cats.effect.Sync[F]):(Int,fs2.Stream[F,Byte],fs2.Stream[F,Byte])" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -729,25 +607,6 @@ considered to carry over.</p><p>If it is a fresh chunk (no carry over partial ma
 everything prior to the partial match is added to the accumulator,
 and the partial match is considered the carry over.</p><p>Else, if the whole block is a partial match,
 add it to the carry over</p></div></div>
-    </li><li name="org.http4s.multipart.MultipartParser#splitParts" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="splitParts(byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(acc:List[Either[org.http4s.Headers,scodec.bits.ByteVector]]):List[Either[org.http4s.Headers,scodec.bits.ByteVector]]"></a><a id="splitParts(ByteVector)(Boundary)(List[Either[Headers,ByteVector]]):List[Either[Headers,ByteVector]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#splitParts(byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(acc:List[Either[org.http4s.Headers,scodec.bits.ByteVector]]):List[Either[org.http4s.Headers,scodec.bits.ByteVector]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">splitParts</span><span class="params">(<span name="byteVector">byteVector: <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a></span>)</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="params">(<span name="acc">acc: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>]]</span>)</span><span class="result">: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@tailrec</span><span class="args">()</span>
-              
-        </dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
