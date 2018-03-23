@@ -32,44 +32,30 @@ object MultipartParser {
     ignorePreludeStage[F](boundary, st, limit)
   }
 
-  /** This function is the integral component in detecting whether `values`
-    * is either entirely contained in the chunk, partially contained
-    * in the chunk or not in the chunk at all
-    *
-    * @param values the value to look for in the chunk
-    * @param valueIx the current index of the value relative to the chunk.
-    *                This can mean the value is split across chunks.
-    * @param c the offending chunk.
-    */
-  private def stateIndex(values: Array[Byte], valueIx: Int, c: Chunk[Byte]): (Int, Int) = {
-    var i = 0
-    var sti = 0
-    val len2 = values.length - valueIx
-    while (sti < len2 && i < c.size) {
-      if (c(i) == values(sti + valueIx)) {
-        sti += 1
-      } else if (c(i) == values(0)) {
-        sti = 1
-      } else {
-        sti = 0
-      }
-      i += 1
-    }
-    (sti, i)
-  }
-
-  //Todo: This may fail for an edge case
   private def splitAndIgnorePrev[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte]): (Int, Stream[F, Byte]) = {
-    val (sti, i) = stateIndex(values, state, c)
-    if (sti == 0) {
+    var i = 0
+    var currState = state
+    val len = values.length
+    while (currState < len && i < c.size) {
+      if (c(i) == values(currState)) {
+        currState += 1
+      } else if (c(i) == values(0)) {
+        currState = 1
+      } else {
+        currState = 0
+      }
+      i += 1
+    }
+
+    if (currState == 0) {
       (0, Stream.empty)
-    } else if (i == c.size) {
-      (sti + state, Stream.empty)
+    } else if (currState == len) {
+      (currState, Stream.chunk(c.drop(i)))
     } else {
-      (sti + state, Stream.chunk(c.drop(i)))
+      (currState, Stream.empty)
     }
   }
 
