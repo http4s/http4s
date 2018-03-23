@@ -39,8 +39,8 @@ class MultipartSpec extends Specification {
     case (a, b) =>
       a.headers === b.headers && {
         for {
-          abv <- a.body.compile.toVector.map(ByteVector(_))
-          bbv <- b.body.compile.toVector.map(ByteVector(_))
+          abv <- a.body.compile.toVector
+          bbv <- b.body.compile.toVector
         } yield abv === bbv
       }.unsafeRunSync()
   }

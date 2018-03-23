@@ -1,8 +1,11 @@
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
 import fs2._
 import fs2.interop.scodec.ByteVectorChunk
 import java.nio.{ByteBuffer, CharBuffer}
+
 import scala.concurrent.ExecutionContextExecutor
 import scodec.bits.ByteVector
 
@@ -32,6 +35,29 @@ package object util {
           Pull.output1(charBuffer.flip().toString).as(Some(nextStream))
       }
     }
+  }
+
+  /** Converts ASCII encoded byte stream to a stream of `String`. */
+  private[http4s] def asciiDecode[F[_]]: Pipe[F, Byte, String] =
+    _.chunks.through(asciiDecodeC)
+
+  private def asciiCheck(b: Byte) = 0x80 & b
+
+  /** Converts ASCII encoded `Chunk[Byte]` inputs to `String`. */
+  private[http4s] def asciiDecodeC[F[_]]: Pipe[F, Chunk[Byte], String] = { in =>
+    def tailRecAsciiCheck(i: Int, bytes: Array[Byte]): Stream[F, String] =
+      if (i == bytes.length)
+        Stream.emit(new String(bytes, StandardCharsets.US_ASCII))
+      else {
+        if (asciiCheck(bytes(i)) == 0x80) {
+          Stream.raiseError(
+            new IllegalArgumentException("byte stream is not encodable as ascii bytes"))
+        } else {
+          tailRecAsciiCheck(i + 1, bytes)
+        }
+      }
+
+    in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
   }
 
   /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/

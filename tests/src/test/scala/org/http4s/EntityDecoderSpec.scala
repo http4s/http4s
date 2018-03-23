@@ -403,7 +403,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       binary[IO].decode(msg, strict = false) must returnRight(Segment.empty[Byte])
     }
 
-    "concat ByteVectors" in {
+    "concat Chunks" in {
       val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
       val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
       val msg = Request[IO](body = body)
