@@ -765,7 +765,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>EntityDecoder is used to attempt to decode an <a href="index.html#EntityBody[+F[_]]=fs2.Stream[F,Byte]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>
 This companion object provides a way to create <code>new EntityDecoder</code>s along
 with some commonly used instances which can be resolved implicitly.
-</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d293c6ada6f9ba5b9733a31fcb44407e7db5929c/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/408bcec4ee3e2689c224ff07ac03001dca202244/core/src/main/scala/org/http4s/EntityDecoder.scala" target="_blank">EntityDecoder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1021,7 +1021,7 @@ with some commonly used instances which can be resolved implicitly.
         <span class="name">collectBinary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="msg">msg: <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>]</span>)</span><span class="result">: <a href="index.html#DecodeResult[F[_],A]=cats.data.EitherT[F,org.http4s.DecodeFailure,A]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.collectBinary.F">F</span>, <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.4/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Helper method which simply gathers the body into a single ByteVector</p>
+      <p class="shortcomment cmt">Helper method which simply gathers the body into a single Segment</p>
     </li><li name="org.http4s.EntityDecoder#decodeBy" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="decodeBy[F[_],T](r1:org.http4s.MediaRange,rs:org.http4s.MediaRange*)(f:org.http4s.Message[F]=&gt;org.http4s.DecodeResult[F,T])(implicitevidence$1:cats.Applicative[F]):org.http4s.EntityDecoder[F,T]"></a><a id="decodeBy[F[_],T](MediaRange,MediaRange*)((Message[F])⇒DecodeResult[F,T])(Applicative[F]):EntityDecoder[F,T]"></a>
       <span class="permalink">
