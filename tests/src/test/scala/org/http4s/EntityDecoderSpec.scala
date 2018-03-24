@@ -17,6 +17,7 @@ import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
+import org.specs2.scalacheck.Parameters
 import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
@@ -451,5 +452,6 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
   checkAll(
     "SemigroupK[EntityDecoder[IO, ?]]",
-    SemigroupKTests[EntityDecoder[IO, ?]].semigroupK[String])
+    SemigroupKTests[EntityDecoder[IO, ?]]
+      .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
 }
