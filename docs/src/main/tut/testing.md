@@ -91,7 +91,7 @@ def service[F[_]](repo: UserRepo[F])(
 }
 ```
 
-For testing, let's define a `assert` function:
+For testing, let's define a `check` function:
 
 ```tut:book
 // Return true if match succeeds; otherwise false
@@ -147,7 +147,7 @@ assert[IO](result, Status.NotFound, None)
 The above documentation demonstrated how to define an HttpService[F], pass `Request`'s, and then 
 test the expected `OptionT[F, Response]`.
 
-To add unit tests in your choice Scala Testing Framework, please follow the above examples.
+To add unit tests in your chosen Scala Testing Framework, please follow the above examples.
 
 ## References
 
