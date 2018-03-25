@@ -111,6 +111,7 @@ object Http4sBuild {
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.6"
   def scalazCore(version: String)               = "org.scalaz"           %% "scalaz-core"               % version
   def scalazScalacheckBinding(version: String)  = "org.scalaz"           %% "scalaz-scalacheck-binding" % version
+  val simpleclientCommon       = "io.prometheus"             % "simpleclient_common"     % "0.0.19"
   def specs2Core(scalazVersion: String)         = "org.specs2"           %% "specs2-core"               % specs2Version(scalazVersion)
   def specs2MatcherExtra(scalazVersion: String) = "org.specs2"           %% "specs2-matcher-extra"      % specs2Core(scalazVersion).revision
   def specs2Scalacheck(scalazVersion: String)   = "org.specs2"           %% "specs2-scalacheck"         % specs2Core(scalazVersion).revision

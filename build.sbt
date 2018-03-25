@@ -71,6 +71,13 @@ lazy val serverMetrics = libraryProject("server-metrics")
 )
   .dependsOn(server % "compile;test->test")
 
+lazy val prometheusServer = http4sProject("prometheus-server")
+  .settings(
+    description := "Collect server metrics with Prometheus",
+    libraryDependencies += simpleclientCommon
+  )
+  .dependsOn(server % "compile;test->test")
+
 lazy val client = libraryProject("client")
   .settings(
   description := "Base library for building http4s clients",
@@ -375,8 +382,8 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
         path = file.getAbsolutePath if path.contains("jetty.alpn")
       } yield { s"-Xbootclasspath/p:${path}" }
     }).value
-)
-  .dependsOn(blazeServer, blazeClient)
+  )
+  .dependsOn(blazeServer, blazeClient, prometheusServer)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)
