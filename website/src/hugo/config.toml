@@ -1,4 +1,4 @@
-baseurl = "http://http4s.org"
+baseurl = "https://http4s.org"
 dataDir = "../../target/hugo-data"
 languageCode = "en-us"
 title = "http4s"
