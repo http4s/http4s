@@ -154,7 +154,7 @@ check(response, Status.NotFound, None)
 ## Conclusion
 
 The above documentation demonstrated how to define an HttpService[F], pass `Request`'s, and then 
-test the expected `OptionT[F, Response]`.
+test the expected `Response`.
 
 To add unit tests in your chosen Scala Testing Framework, please follow the above examples.
 
