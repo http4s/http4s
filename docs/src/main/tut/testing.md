@@ -137,7 +137,7 @@ val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
 check(response, Status.NotFound, None)
 ```
 
-Finally, let's pass a `Request` for which our service does not handle it:  
+Finally, let's pass a `Request` which our service does not handle.  
 
 ```tut:book
 val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
