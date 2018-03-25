@@ -496,7 +496,7 @@ lazy val commonSettings = Seq(
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
       "*.js" | "*.swf" | "*.json" | "*.md" |
       "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-      "CNAME" | "_config.yml"
+      "CNAME" | "_config.yml" | "_redirects"
   )
 )
 
