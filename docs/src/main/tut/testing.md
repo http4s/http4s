@@ -144,7 +144,7 @@ val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException("Should not get called!"))
 } 
 
-val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/not-a-matching-path") )
 )
 
