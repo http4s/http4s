@@ -303,7 +303,7 @@ lazy val docs = http4sProject("docs")
     makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
     baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
-      if (isTravisBuild.value) new URI(s"http://http4s.org${docsPrefix}")
+      if (isTravisBuild.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
     },
     siteMappings := {
@@ -331,7 +331,7 @@ lazy val website = http4sProject("website")
   .settings(
     description := "Common area of http4s.org",
     baseURL in Hugo := {
-      if (isTravisBuild.value) new URI(s"http://http4s.org")
+      if (isTravisBuild.value) new URI(s"https://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
     makeSite := makeSite.dependsOn(http4sBuildData).value,
