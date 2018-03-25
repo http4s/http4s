@@ -68,6 +68,7 @@ import io.circe.syntax._
 import io.circe.generic.semiauto._
 import cats.effect._, org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
+import org.http4s.dsl.io._
 
 final case class User(name: String, age: Int) 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
@@ -110,7 +111,11 @@ Let's define service by passing a `UserRepo` that returns `Ok(user)`.
 ```tut:book
 val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User("johndoe", 42)))
-} 
+}
+
+val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+  Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
+)
 
 val expectedJson = Json.obj(
   ("name", Json.fromString("johndoe")),
@@ -131,7 +136,7 @@ val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
 
-val foundNone = service(success).run(
+val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
 )
 
