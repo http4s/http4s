@@ -92,17 +92,15 @@ For testing, let's define a `check` function:
 
 ```tut:book
 // Return true if match succeeds; otherwise false
-def check[F[_]](actual: OptionT[F, Response], expectedStatus: Status, expectedBody: Option[Json])(
-   implicit F: Effect[F]
-): Boolean =  {
-   actual.value match {
-      case Some(response) => 
-        val statusCheck = response.status == expectedStatus 
-        val bodyCheck   = expectedBody.fold(true, expected => response.as[Json].unsafeRunSync == expected)
-        statusCheck && bodyCheck
-      case None           => 
-        false
-   }
+def check(actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[Json]): Boolean =  {
+   val actualResp         = actual.unsafeRunSync
+   val statusCheck        = actualResp.status == expectedStatus 
+   val bodyCheck          = expectedBody.fold[Boolean](
+       actualResp.body.compile.toVector.unsafeRunSync.isEmpty)( // Verify Response's body is empty.
+       expected => actualResp.as[Json].unsafeRunSync == expected
+   )
+   statusCheck && bodyCheck   
+}
  
 ```
 
@@ -122,11 +120,7 @@ val expectedJson = Json.obj(
   ("age",  Json.fromBigInt(42))
 )
 
-val result = service(success).run(
-  Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
-)
-
-check[IO](result, Status.Ok, Some(expectedJson))
+check(response, Status.Ok, Some(expectedJson))
 ```
 
 Next, let's define a service with a `userRepo` that returns `None` to any input.
