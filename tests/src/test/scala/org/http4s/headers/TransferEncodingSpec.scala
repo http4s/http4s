@@ -2,6 +2,7 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.syntax.foldable._
 import org.scalacheck.Prop.forAll
 
 class TransferEncodingSpec extends HeaderLaws {
@@ -30,7 +31,7 @@ class TransferEncodingSpec extends HeaderLaws {
   "hasChunked" should {
     "detect chunked" in {
       forAll { t: `Transfer-Encoding` =>
-        t.hasChunked must_== (t.values.contains(TransferCoding.chunked))
+        t.hasChunked must_== (t.values.contains_(TransferCoding.chunked))
       }
     }
   }
