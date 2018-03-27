@@ -762,7 +762,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/fc74a1271d085e91315ca0604fa649177fb0cd15/core/src/main/scala/org/http4s/Http4s.scala" target="_blank">Http4s.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/bd97329b7bd5f1858d60d9b53958fce2d572bf3a/core/src/main/scala/org/http4s/Http4s.scala" target="_blank">Http4s.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -1558,22 +1558,6 @@ the content length without running the stream.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="syntax/LiteralsSyntax.html" class="extype" name="org.http4s.syntax.LiteralsSyntax">LiteralsSyntax</a></dd></dl></div>
-    </li><li name="org.http4s.syntax.NonEmptyListSyntax#http4sNonEmptyListSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="http4sNonEmptyListSyntax[A](l:cats.data.NonEmptyList[A]):org.http4s.syntax.NonEmptyListOps[A]"></a><a id="http4sNonEmptyListSyntax[A](NonEmptyList[A]):NonEmptyListOps[A]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4s.html#http4sNonEmptyListSyntax[A](l:cats.data.NonEmptyList[A]):org.http4s.syntax.NonEmptyListOps[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">http4sNonEmptyListSyntax</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="l">l: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="org.http4s.syntax.NonEmptyListSyntax.http4sNonEmptyListSyntax.A">A</span>]</span>)</span><span class="result">: <a href="syntax/NonEmptyListOps.html" class="extype" name="org.http4s.syntax.NonEmptyListOps">NonEmptyListOps</a>[<span class="extype" name="org.http4s.syntax.NonEmptyListSyntax.http4sNonEmptyListSyntax.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="syntax/NonEmptyListSyntax.html" class="extype" name="org.http4s.syntax.NonEmptyListSyntax">NonEmptyListSyntax</a></dd></dl></div>
     </li><li name="org.http4s.CharsetRangeInstances#http4sShowForCharsetRange" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sShowForCharsetRange:cats.Show[org.http4s.Charset]"></a><a id="http4sShowForCharsetRange:Show[Charset]"></a>
       <span class="permalink">
@@ -2191,6 +2175,25 @@ at compile time.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18.0-M2)</i> Use map or flatMap directly on the response</p></dd></dl></div>
+    </li><li name="org.http4s.syntax.NonEmptyListSyntax#http4sNonEmptyListSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="http4sNonEmptyListSyntax[A](l:cats.data.NonEmptyList[A]):org.http4s.syntax.NonEmptyListOps[A]"></a><a id="http4sNonEmptyListSyntax[A](NonEmptyList[A]):NonEmptyListOps[A]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Http4s.html#http4sNonEmptyListSyntax[A](l:cats.data.NonEmptyList[A]):org.http4s.syntax.NonEmptyListOps[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.18.5) Use cats.foldable._">http4sNonEmptyListSyntax</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="l">l: <a href="http://typelevel.org/cats/api/cats/data/NonEmptyList.html#cats.data.NonEmptyList" class="extype" name="cats.data.NonEmptyList">NonEmptyList</a>[<span class="extype" name="org.http4s.syntax.NonEmptyListSyntax.http4sNonEmptyListSyntax.A">A</span>]</span>)</span><span class="result">: <a href="syntax/NonEmptyListOps.html" class="extype" name="org.http4s.syntax.NonEmptyListOps">NonEmptyListOps</a>[<span class="extype" name="org.http4s.syntax.NonEmptyListSyntax.http4sNonEmptyListSyntax.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="syntax/NonEmptyListSyntax.html" class="extype" name="org.http4s.syntax.NonEmptyListSyntax">NonEmptyListSyntax</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18.5)</i> Use cats.foldable._</p></dd></dl></div>
     </li></ol>
             </div>
         </div>
