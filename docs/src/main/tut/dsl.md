@@ -137,7 +137,6 @@ Extra headers can be added using `putHeaders`, for example to specify cache poli
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.`no-cache`
 import cats.data.NonEmptyList
-import org.http4s.util.nonEmptyList
 ```
 
 ```tut
