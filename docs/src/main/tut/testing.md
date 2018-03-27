@@ -6,60 +6,12 @@ title: Testing
 
 ## Introduction
 
-This document will show a simple Swagger Doc, its implementation as an `org.http4s.HttpService`, and then
+This document implement a simple `org.http4s.HttpService` and then
 walk through the results of applying inputs, i.e. `org.http4s.Request`, to the Service, i.e. `org.http4s.HttpService`.
 
 After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.
 
-## Example
-
-Given the following service, which we can define through the following [Swagger](https://swagger.io/) contract:
-
-```yaml
-swagger: "2.0"
-info:
-  description: "Example Swagger Doc"
-  version: "1.0.0"
-  title: "Http4s Testing Demo"
-host: "localhost"
-basePath: "/api"
-schemes:
-- "http"
-paths:
-  /user/{id}:
-    get:
-      parameters:
-      - name: "id"
-        in: "path"
-        description: "ID of User."
-        required: true
-        type: "string"    
-      summary: "Get a user by id."
-      produces:
-      - "application/json"
-      responses:
-        200:
-          description: "Got representation of User."
-          schema:
-            $ref: "#/definitions/User"
-        404: 
-          description: "User does not exist."
-        500:
-          description: "Server-side error."  
-definitions:
-  User:
-    type: "object"
-    required:
-    - "name"
-    - "age"
-    properties:
-      name:
-        type: "string"
-      age:
-        type: "integer"
-``` 
-
-Now, let's define the `org.http4s.HttpService`. It will implement the above contract.
+Now, let's define an `org.http4s.HttpService`.
 
 ```tut:book
 import cats.implicits._
