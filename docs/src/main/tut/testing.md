@@ -6,7 +6,7 @@ title: Testing
 
 ## Introduction
 
-This document implement a simple `org.http4s.HttpService` and then
+This document implements a simple `org.http4s.HttpService` and then
 walk through the results of applying inputs, i.e. `org.http4s.Request`, to the Service, i.e. `org.http4s.HttpService`.
 
 After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.
