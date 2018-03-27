@@ -8,7 +8,6 @@ import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
-import org.http4s.syntax.nonEmptyList._
 import org.log4s.getLogger
 
 /**
@@ -96,7 +95,7 @@ sealed trait Message[F[_]] extends MessageOps[F] { self =>
   def charset: Option[Charset] = contentType.flatMap(_.charset)
 
   def isChunked: Boolean =
-    headers.get(`Transfer-Encoding`).exists(_.values.contains(TransferCoding.chunked))
+    headers.get(`Transfer-Encoding`).exists(_.values.contains_(TransferCoding.chunked))
 
   /**
     * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
