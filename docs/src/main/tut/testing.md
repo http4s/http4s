@@ -44,7 +44,9 @@ For testing, let's define a `check` function:
 
 ```tut:book
 // Return true if match succeeds; otherwise false
-def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(
+def check[A](actual:        IO[Response[IO]], 
+            expectedStatus: Status, 
+            expectedBody:   Option[A])(
     implicit ev: EntityDecoder[IO, A]
 ): Boolean =  {
    val actualResp         = actual.unsafeRunSync
@@ -74,7 +76,7 @@ val expectedJson = Json.obj(
   ("age",  Json.fromBigInt(42))
 )
 
-check(response, Status.Ok, Some(expectedJson))
+check[Json](response, Status.Ok, Some(expectedJson))
 ```
 
 Next, let's define a service with a `userRepo` that returns `None` to any input.
@@ -88,7 +90,7 @@ val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
 )
 
-check(response, Status.NotFound, None)
+check[Json](response, Status.NotFound, None)
 ```
 
 Finally, let's pass a `Request` which our service does not handle.  
@@ -102,7 +104,7 @@ val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/not-a-matching-path") )
 )
 
-check(response, Status.NotFound, None)
+check[String](response, Status.NotFound, Some("Not found"))
 ```
 
 ## Conclusion
