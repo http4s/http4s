@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>http4s | Streaming</title>
+  <title>http4s | Testing</title>
 
   <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/bootstrap.min.css" >  
   <link rel="stylesheet" type="text/css" href="https://http4s.org/v0.19/css/font-awesome.min.css" >  
@@ -76,134 +76,154 @@
           </span>
 
           
-          <h1>Streaming</h1>
+          <h1>Testing</h1>
           
           
           
 
 <h2 id="introduction">Introduction</h2>
 
-<p>Streaming lies at the heart of the http4s model of HTTP, in the literal sense that <code>EntityBody[F]</code>
-is just a type alias for <code>Stream[F, Byte]</code>. Please see <a href="../entity">entity</a> for details. This means
-HTTP streaming is provided by both http4s&rsquo; service support and its client support.</p>
+<p>This document implements a simple <code>org.http4s.HttpService</code> and then
+walk through the results of applying inputs, i.e. <code>org.http4s.Request</code>, to the Service, i.e. <code>org.http4s.HttpService</code>.</p>
 
-<h2 id="streaming-responses-from-your-service">Streaming responses from your service</h2>
+<p>After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.</p>
 
-<p>Because <code>EntityBody[F]</code>s are streams anyway, returning a stream as a response from your service is
-simplicity itself:</p>
+<p>Now, let&rsquo;s define an <code>org.http4s.HttpService</code>.</p>
 
-<pre><code class="language-scala">import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
+<pre><code class="language-scala">import cats.implicits._
+// import cats.implicits._
+
+import io.circe._
+// import io.circe._
+
+import io.circe.syntax._
+// import io.circe.syntax._
+
+import io.circe.generic.semiauto._
+// import io.circe.generic.semiauto._
 
 import cats.effect._
-import fs2.Scheduler
+// import cats.effect._
+
 import org.http4s._
+// import org.http4s._
+
+import org.http4s.circe._
+// import org.http4s.circe._
+
 import org.http4s.dsl.io._
+// import org.http4s.dsl.io._
 
-// An infinite stream of the periodic elapsed time
-val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
+final case class User(name: String, age: Int) 
+// defined class User
 
-val service = HttpService[IO] {
-  case GET -&gt; Root / &quot;seconds&quot; =&gt;
-    Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
+implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
+// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@4a12799a
+
+trait UserRepo[F[_]] {
+  def find(userId: String): F[Option[User]]
 }
+// defined trait UserRepo
+
+def service[F[_]](repo: UserRepo[F])(
+      implicit F: Effect[F]
+): HttpService[F] = HttpService[F] {
+  case GET -&gt; Root / &quot;user&quot; / id =&gt;
+    repo.find(id).map {
+      case Some(user) =&gt; Response(status = Status.Ok).withEntity(user.asJson)
+      case None       =&gt; Response(status = Status.NotFound)
+    }
+}
+// service: [F[_]](repo: UserRepo[F])(implicit F: cats.effect.Effect[F])org.http4s.HttpService[F]
 </code></pre>
 
-<p>Streams are returned to the client as chunked HTTP responses automatically. You don&rsquo;t need to provide the header yourself.</p>
+<p>For testing, let&rsquo;s define a <code>check</code> function:</p>
 
-<p>For a more realistic example of streaming results from database queries to the client, please see the
-<a href="https://bitbucket.org/da_terry/scalasyd-doobie-http4s">ScalaSyd 2015</a> example. In particular, if you want to stream JSON responses, please take note of how
-it converts a stream of JSON objects to a JSON array, which is friendlier to clients.</p>
-
-<h2 id="consuming-streams-with-the-client">Consuming streams with the client</h2>
-
-<p>The http4s <a href="../client">client</a> supports consuming chunked HTTP responses as a stream, again because the
-<code>EntityBody[F]</code> is a stream anyway. http4s&rsquo; <code>Client</code> interface consumes streams with the <code>streaming</code>
-function, which takes a <code>Request[F]</code> and a <code>Response[F] =&gt; Stream[F, A]</code> and returns a
-<code>Stream[F, A]</code>. Since an <code>EntityBody[F]</code> is just a <code>Stream[F, Byte]</code>, then, the easiest way
-to consume a stream is just:</p>
-
-<pre><code class="language-scala">client.streaming(req)(resp =&gt; resp.body)
+<pre><code class="language-scala">// Return true if match succeeds; otherwise false
+def check(actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[Json]): Boolean =  {
+   val actualResp         = actual.unsafeRunSync
+   val statusCheck        = actualResp.status == expectedStatus 
+   val bodyCheck          = expectedBody.fold[Boolean](
+       actualResp.body.compile.toVector.unsafeRunSync.isEmpty)( // Verify Response's body is empty.
+       expected =&gt; actualResp.as[Json].unsafeRunSync == expected
+   )
+   statusCheck &amp;&amp; bodyCheck   
+}
+// check: (actual: cats.effect.IO[org.http4s.Response[cats.effect.IO]], expectedStatus: org.http4s.Status, expectedBody: Option[io.circe.Json])Boolean
 </code></pre>
 
-<p>That gives you a <code>Stream[F, Byte]</code>, but you probably want something other than a <code>Byte</code>.
-Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/streaming/overview">Twitter&rsquo;s streaming APIs</a>, which return a stream of JSON.</p>
+<p>Let&rsquo;s define service by passing a <code>UserRepo</code> that returns <code>Ok(user)</code>.</p>
 
-<p>First, let&rsquo;s assume we want to use <a href="https://circe.github.io/circe/">Circe</a> for JSON support. Please see <a href="../json">json</a> for details.</p>
+<pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
+  def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
+}
+// success: UserRepo[cats.effect.IO] = $anon$1@1127f9d6
 
-<pre><code class="language-scala">libraryDependencies ++= Seq(
-  &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;0.19.0-SNAPSHOT&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.9.2&quot;
+val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+  Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
 )
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
+
+val expectedJson = Json.obj(
+  (&quot;name&quot;, Json.fromString(&quot;johndoe&quot;)),
+  (&quot;age&quot;,  Json.fromBigInt(42))
+)
+// expectedJson: io.circe.Json =
+// {
+//   &quot;name&quot; : &quot;johndoe&quot;,
+//   &quot;age&quot; : 42
+// }
+
+check(response, Status.Ok, Some(expectedJson))
+// res1: Boolean = true
 </code></pre>
 
-<p>Next, we want <em>streaming</em> JSON. Because http4s is streaming in its bones, it relies on <a href="https://github.com/non/jawn">jawn</a> for
-streaming JSON support. Most popular JSON libraries, including Circe, provide jawn support, as
-the code below shows. What&rsquo;s left is to integrate jawn&rsquo;s streaming parsing with fs2&rsquo;s Stream.
-That&rsquo;s done by <a href="https://github.com/rossabaker/jawn-fs2">jawn-fs2</a>, which http4s&rsquo; Circe module depends on transitively.</p>
+<p>Next, let&rsquo;s define a service with a <code>userRepo</code> that returns <code>None</code> to any input.</p>
 
-<p>Because Twitter&rsquo;s Streaming APIs literally return a stream of JSON objects, <em>not</em> a JSON array,
-we want to use jawn-fs2&rsquo;s <code>parseJsonStream</code>.</p>
+<pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
+  def find(id: String): IO[Option[User]] = IO.pure(None)
+} 
+// foundNone: UserRepo[cats.effect.IO] = $anon$1@65314992
 
-<p>Finally, Twitter&rsquo;s Streaming APIs also require OAuth authentication. So our example is an OAuth
-example as a bonus!</p>
+val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+  Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
+)
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
 
-<p>Putting it all together into a small app that will print the JSON objects forever:</p>
-
-<pre><code class="language-scala">import org.http4s._
-import org.http4s.client.blaze._
-import org.http4s.client.oauth1
-import cats.effect._
-import fs2.{Stream, StreamApp}
-import fs2.StreamApp.ExitCode
-import fs2.io.stdout
-import fs2.text.{lines, utf8Encode}
-import jawnfs2._
-import io.circe.Json
-
-// Uncomment this line to create an application with a main method that can be run
-// object TWStream extends TWStreamApp[IO]
-
-abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
-
-  // jawn-fs2 needs to know what JSON AST you want
-  implicit val f = io.circe.jawn.CirceSupportParser.facade
-
-  /* These values are created by a Twitter developer web app.
-   * OAuth signing is an effect due to generating a nonce for each `Request`.
-   */
-  def sign(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
-          (req: Request[F]): F[Request[F]] = {
-    val consumer = oauth1.Consumer(consumerKey, consumerSecret)
-    val token    = oauth1.Token(accessToken, accessSecret)
-    oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
-  }
-
-  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and 
-   * `parseJsonStream` the `Response[F]`.
-   * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
-   */
-  def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
-            (req: Request[F]): Stream[F, Json] =
-    for {
-      client &lt;- Http1Client.stream[F]()
-      sr  &lt;- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
-      res &lt;- client.streaming(sr)(resp =&gt; resp.body.chunks.parseJsonStream)
-    } yield res
-
-  /* Stream the sample statuses.
-   * Plug in your four Twitter API values here.
-   * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
-   * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
-   */
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
-    val req = Request[F](Method.GET, Uri.uri(&quot;https://stream.twitter.com/1.1/statuses/sample.json&quot;))
-    val s   = jsonStream(&quot;&lt;consumerKey&gt;&quot;, &quot;&lt;consumerSecret&gt;&quot;, &quot;&lt;accessToken&gt;&quot;, &quot;&lt;accessSecret&gt;&quot;)(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout) &gt;&gt; Stream.emit(ExitCode.Success)
-  }
-
-}
+check(response, Status.NotFound, None)
+// res2: Boolean = false
 </code></pre>
+
+<p>Finally, let&rsquo;s pass a <code>Request</code> which our service does not handle.</p>
+
+<pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
+  def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
+} 
+// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@23cc5155
+
+val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
+  Request(method = Method.GET, uri = Uri.uri(&quot;/not-a-matching-path&quot;) )
+)
+// response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
+
+check(response, Status.NotFound, None)
+// res3: Boolean = false
+</code></pre>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The above documentation demonstrated how to define an HttpService[F], pass <code>Request</code>&rsquo;s, and then
+test the expected <code>Response</code>.</p>
+
+<p>To add unit tests in your chosen Scala Testing Framework, please follow the above examples.</p>
+
+<h2 id="references">References</h2>
+
+<ul>
+<li><a href="https://rossabaker.github.io/boston-http4s/#2">Ross Baker&rsquo;s NEScala 2018 Presentation</a></li>
+<li><a href="https://typelevel.org/cats/datatypes/kleisli.html">Kleisli</a></li>
+<li><a href="https://typelevel.org/cats/datatypes/optiont.html">OptionT</a></li>
+</ul>
 
         </div>
 
@@ -256,7 +276,7 @@ abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link active" href="/v0.19/streaming/">Streaming</a>
+	      <a class="nav-link" href="/v0.19/streaming/">Streaming</a>
             </li>
             
             <li class="nav-item">
@@ -264,7 +284,7 @@ abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
             </li>
             
             <li class="nav-item">
-	      <a class="nav-link" href="/v0.19/testing/">Testing</a>
+	      <a class="nav-link active" href="/v0.19/testing/">Testing</a>
             </li>
             
             <li class="nav-item">
