@@ -48,17 +48,16 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`])(
-        implicit F: Effect[F],
-        T: Timer[F]): F[DisposableResponse[F]] = {
-      val headerDuration = retryHeader
-        .map { h =>
-          h.retry match {
-            case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
-            case Right(secs) => secs
+        retryHeader: Option[`Retry-After`]): F[DisposableResponse[F]] = {
+      val headerDuration =
+        retryHeader
+          .map { h =>
+            h.retry match {
+              case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
+              case Right(secs) => secs
+            }
           }
-        }
-        .getOrElse(0L)
+          .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
       T.sleep(sleepDuration) *> prepareLoop(req.withEmptyBody, attempts + 1)
     }
