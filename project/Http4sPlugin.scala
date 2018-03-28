@@ -68,6 +68,9 @@ object Http4sPlugin extends AutoPlugin {
     // one for now.
     scalacOptions -= "-Xcheckinit",
 
+    // https://github.com/tkawachi/sbt-doctest/issues/102
+    scalacOptions in (Test, compile) -= "-Ywarn-unused:params",
+
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
