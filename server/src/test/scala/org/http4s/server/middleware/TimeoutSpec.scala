@@ -47,19 +47,19 @@ class TimeoutSpec extends Http4sSpec {
     }
 
     "cancel the loser" in {
-      val cancelled = new AtomicBoolean(false)
+      val canceled = new AtomicBoolean(false)
       val cancellationException = new CancellationException()
       val service = HttpService[IO] {
         case _ =>
           IO.sleep(2.seconds).onCancelRaiseError(cancellationException).attempt.flatMap {
-            case Left(`cancellationException`) => IO(cancelled.set(true)) *> NoContent()
+            case Left(`cancellationException`) => IO(canceled.set(true)) *> NoContent()
             case _ => NoContent()
           }
       }
       val timeoutService = Timeout(1.millis)(service)
       checkStatus(timeoutService.orNotFound(Request[IO]()), InternalServerError)
       // Give the losing response enough time to finish
-      cancelled.get must beTrue.eventually
+      canceled.get must beTrue.eventually
     }
   }
 }
