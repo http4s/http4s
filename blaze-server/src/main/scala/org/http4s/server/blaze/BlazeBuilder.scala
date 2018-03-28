@@ -7,6 +7,7 @@ import java.io.FileInputStream
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.security.{KeyStore, Security}
+
 import javax.net.ssl.{KeyManagerFactory, SSLContext, SSLEngine, TrustManagerFactory}
 import org.http4s.blaze.{BuildInfo => BlazeBuildInfo}
 import org.http4s.blaze.channel
@@ -16,7 +17,9 @@ import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.server.logging.ServerLogging
 import org.log4s.getLogger
+
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
@@ -35,13 +38,15 @@ class BlazeBuilder[F[_]](
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    serverLogging: ServerLogging[F]
 )(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F]
-    with server.WebSocketSupport[F] {
+    with server.WebSocketSupport[F]
+    with ServerLoggingSupport[F] {
   type Self = BlazeBuilder[F]
 
   private[this] val logger = getLogger
@@ -60,7 +65,8 @@ class BlazeBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen,
       serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      serverLogging: ServerLogging[F] = serverLogging
   ): Self =
     new BlazeBuilder(
       socketAddress,
@@ -76,7 +82,8 @@ class BlazeBuilder[F[_]](
       maxHeadersLen,
       serviceMounts,
       serviceErrorHandler,
-      banner
+      banner,
+      serverLogging
     )
 
   /** Configure HTTP parser length limits
@@ -178,7 +185,8 @@ class BlazeBuilder[F[_]](
           enableWebSockets,
           maxRequestLineLen,
           maxHeadersLen,
-          serviceErrorHandler
+          serviceErrorHandler,
+          serverLogging
         )
 
       def http2Stage(engine: SSLEngine) =
@@ -189,7 +197,8 @@ class BlazeBuilder[F[_]](
           maxHeadersLen,
           requestAttributes(secure = true),
           executionContext,
-          serviceErrorHandler
+          serviceErrorHandler,
+          serverLogging
         )
 
       def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
@@ -288,6 +297,9 @@ class BlazeBuilder[F[_]](
     case SSLContextBits(context, clientAuth) =>
       (context, clientAuth)
   }
+
+  override def withRequestResponseLogging(serverLogging: ServerLogging[F]): BlazeBuilder[F] =
+    copy(serverLogging = serverLogging)
 }
 
 object BlazeBuilder {
@@ -306,7 +318,8 @@ object BlazeBuilder {
       maxHeadersLen = 40 * 1024,
       serviceMounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
-      banner = ServerBuilder.DefaultBanner
+      banner = ServerBuilder.DefaultBanner,
+      serverLogging = ServerLogging.disabled[F]
     )
 }
 
