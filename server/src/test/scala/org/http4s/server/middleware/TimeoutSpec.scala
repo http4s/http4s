@@ -7,6 +7,7 @@ import cats.implicits._
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
+import scala.concurrent.CancellationException
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {
@@ -45,22 +46,20 @@ class TimeoutSpec extends Http4sSpec {
       checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
     }
 
-    "clean up resources of the loser" in {
-      val clean = new AtomicBoolean(false)
+    "cancel the loser" in {
+      val cancelled = new AtomicBoolean(false)
+      val cancellationException = new CancellationException()
       val service = HttpService[IO] {
         case _ =>
-          for {
-            resp <- delay(2.seconds, NoContent())
-            _ <- IO(clean.set(true))
-          } yield resp
+          IO.sleep(2.seconds).onCancelRaiseError(cancellationException).attempt.flatMap {
+            case Left(`cancellationException`) => IO(cancelled.set(true)) *> NoContent()
+            case _ => NoContent()
+          }
       }
       val timeoutService = Timeout(1.millis)(service)
       checkStatus(timeoutService.orNotFound(Request[IO]()), InternalServerError)
       // Give the losing response enough time to finish
-      clean.get must beTrue.eventually
+      cancelled.get must beTrue.eventually
     }
   }
-
-  private def delay[F[_]: Effect, A](duration: FiniteDuration, fa: F[A]): F[A] =
-    Http4sSpec.TestScheduler.sleep_(duration).compile.drain *> fa
 }
