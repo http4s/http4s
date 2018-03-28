@@ -12,8 +12,10 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
       else "\"" + tag + '"'
   }
 
-  implicit val http4sShowForEntityTag: Show[EntityTag] =
-    Show.fromToString
+  object EntityTag {
+    implicit val http4sShowForEntityTag: Show[EntityTag] =
+      Show.fromToString
+  }
 
   def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
 
