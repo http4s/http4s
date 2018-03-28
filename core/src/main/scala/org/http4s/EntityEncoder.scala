@@ -99,7 +99,8 @@ trait EntityEncoderInstances0 {
     """ This encoder breaks referential transparency and can cause unintended evaluation
         of expressions if you're not careful. See:
         https://github.com/http4s/http4s/issues/1757,
-        which means you can potentially evaluate effects in an unintended way.
+        which means you can potentially evaluate futures eagerly. You could end up
+        executing a statement you don't intend to despite it not returning to you as a value.
     """, "0.18.5")
   implicit def futureEncoder[F[_], A](
       implicit F: Async[F],
