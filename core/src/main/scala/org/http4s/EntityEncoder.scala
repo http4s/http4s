@@ -95,6 +95,12 @@ trait EntityEncoderInstances0 {
       def headers: Headers = Headers.empty
     }
 
+  @deprecated(
+    """ This encoder breaks referential transparency and can cause some really ugly
+        stuff to happen if you're not careful. See:
+        https://github.com/http4s/http4s/issues/1757,
+        which means you can potentially evaluate effects in an unintended way.
+    """, "0.18.5")
   implicit def futureEncoder[F[_], A](
       implicit F: Async[F],
       ec: ExecutionContext,
