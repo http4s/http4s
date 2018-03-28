@@ -96,7 +96,8 @@ trait EntityEncoderInstances0 {
     }
 
   @deprecated(
-    """ This encoder breaks referential transparency and can cause unintended evaluation
+    """
+        This encoder breaks referential transparency and can cause unintended evaluation
         of expressions if you're not careful. See:
         https://github.com/http4s/http4s/issues/1757,
         which means you can potentially evaluate futures eagerly. You could end up
@@ -104,7 +105,9 @@ trait EntityEncoderInstances0 {
 
         If you _must_ use futures, use something such as `IO.fromFuture(IO(myFuture))` or define your
         own helper that does not evaluate the future eagerly, as otherwise it will evaluate the moment it's bound.
-    """, "0.18.5")
+    """,
+    "0.18.5"
+  )
   implicit def futureEncoder[F[_], A](
       implicit F: Async[F],
       ec: ExecutionContext,

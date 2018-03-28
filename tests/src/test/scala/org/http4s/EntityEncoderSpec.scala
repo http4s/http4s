@@ -13,16 +13,10 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 import org.http4s.headers._
 import org.scalacheck.Arbitrary
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class EntityEncoderSpec extends Http4sSpec {
   "EntityEncoder" should {
-    "render futures" in {
-      val hello = "Hello"
-      writeToString(Future(hello)) must_== hello
-    }
-
     "render IOs" in {
       val hello = "Hello"
       writeToString(IO.pure(hello)) must_== hello
