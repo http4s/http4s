@@ -50,7 +50,7 @@ class TimeoutSpec extends Http4sSpec {
       val service = HttpService[IO] {
         case _ =>
           for {
-            resp <- delay(2.seconds, NoContent())
+            resp <- IO.sleep(2.seconds) *> NoContent()
             _ <- IO(clean.set(true))
           } yield resp
       }
@@ -60,7 +60,4 @@ class TimeoutSpec extends Http4sSpec {
       clean.get must beTrue.eventually
     }
   }
-
-  private def delay[F[_]: Effect, A](duration: FiniteDuration, fa: F[A]): F[A] =
-    Http4sSpec.TestScheduler.sleep_(duration).compile.drain *> fa
 }

@@ -20,7 +20,6 @@ object GetRoutes {
         .withEntity(Stream.emits("chunk".toSeq.map(_.toString)).covary[IO])
         .pure[IO],
       DelayedPath ->
-        Http4sSpec.TestScheduler.sleep_[IO](1.second).compile.drain *>
-          Response[IO](Ok).withEntity("delayed path").pure[IO]
+        IO.sleep(1.seconds) *> Response[IO](Ok).withEntity("delayed path").pure[IO]
     ).mapValues(_.unsafeRunSync())
 }

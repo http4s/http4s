@@ -7,7 +7,6 @@ import java.net.InetSocketAddress
 import javax.servlet.ServletOutputStream
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s._
-import org.http4s.Http4sSpec.TestScheduler.sleep_
 import org.http4s.client.testroutes.GetRoutes
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -63,7 +62,7 @@ class PooledClientSpec extends Http4sSpec {
             .compile
             .drain
           val flushOutputStream: IO[Unit] = IO(os.flush())
-          (writeBody *> sleep_[IO](Random.nextInt(1000).millis).compile.drain *> flushOutputStream)
+          (writeBody *> IO.sleep(Random.nextInt(1000).millis) *> flushOutputStream)
             .unsafeRunSync()
 
         case None => srv.sendError(404)
@@ -79,13 +78,8 @@ class PooledClientSpec extends Http4sSpec {
     "raise error NoConnectionAllowedException if no connections are permitted for key" in {
       val u = uri("https://httpbin.org/get")
       val resp = failClient.expect[String](u).attempt.unsafeRunTimed(timeout)
-      resp must_== (Some(
-        Left(
-          NoConnectionAllowedException(
-            RequestKey(
-              u.scheme.get,
-              u.authority.get
-            )))))
+      resp must beSome(
+        Left(NoConnectionAllowedException(RequestKey(u.scheme.get, u.authority.get))))
     }
 
     "make simple https requests" in {
@@ -165,9 +159,9 @@ class PooledClientSpec extends Http4sSpec {
         .map(_.right.exists(_.nonEmpty))
         .unsafeToFuture()
 
-      (sleep_[IO](100.millis).compile.drain *> drainTestClient.shutdown).unsafeToFuture()
+      (IO.sleep(100.millis) *> drainTestClient.shutdown).unsafeToFuture()
 
-      Await.result(resp, 6 seconds) must beTrue
+      Await.result(resp, 6.seconds) must beTrue
     }
   }
 
