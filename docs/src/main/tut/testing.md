@@ -82,7 +82,7 @@ val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
 
-val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
 )
 
