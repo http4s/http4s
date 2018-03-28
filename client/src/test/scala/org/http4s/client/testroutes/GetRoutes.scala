@@ -19,6 +19,6 @@ object GetRoutes {
       ChunkedPath -> Response[IO](Ok).withBody(
         Stream.emits("chunk".toSeq.map(_.toString)).covary[IO]),
       DelayedPath ->
-        IO.sleep(1.seconds) *> Response[IO](Ok).withEntity("delayed path").pure[IO]
+        IO.sleep(1.seconds) *> Response[IO](Ok).withBody("delayed path")
     ).mapValues(_.unsafeRunSync())
 }
