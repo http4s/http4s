@@ -19,7 +19,6 @@ object GetRoutes {
       ChunkedPath -> Response[IO](Ok).withBody(
         Stream.emits("chunk".toSeq.map(_.toString)).covary[IO]),
       DelayedPath ->
-        Http4sSpec.TestScheduler.sleep_[IO](1.second).compile.drain *>
-          Response[IO](Ok).withBody("delayed path")
+        IO.sleep(1.seconds) *> Response[IO](Ok).withBody("delayed path")
     ).mapValues(_.unsafeRunSync())
 }
