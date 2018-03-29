@@ -198,6 +198,10 @@
       
       
     </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="object" href="$amp$.html" title="A conjunction extractor."></a>
+                        <a href="$amp$.html" title="A conjunction extractor.">&amp;</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="Http4sDsl$.html" title=""></a>
                         <a class="trait" href="Http4sDsl.html" title=""></a>
                         <a href="Http4sDsl.html" title="">Http4sDsl</a>
@@ -507,7 +511,39 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div class="values members">
               <h3>Value Members</h3>
               <ol>
-                <li name="org.http4s.dsl.Http4sDsl" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+                <li name="org.http4s.dsl.&amp;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="&amp;"></a><a id="&amp;:&amp;"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/dsl/index.html#&amp;" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="A conjunction extractor." href="$amp$.html"><span title="gt4s: $amp" class="name">&amp;</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">A conjunction extractor.</p><div class="fullcomment"><div class="comment cmt"><p>A conjunction extractor.  Generally used as an infix operator.</p><pre>scala&gt; <span class="kw">import</span> org.http4s.dsl.&amp;
+scala&gt; <span class="kw">object</span> Even { <span class="kw">def</span> unapply(i: <span class="std">Int</span>) = (i % <span class="num">2</span>) == <span class="num">0</span> }
+scala&gt; <span class="kw">object</span> Positive { <span class="kw">def</span> unapply(i: <span class="std">Int</span>) = i &gt; <span class="num">0</span> }
+scala&gt; <span class="kw">def</span> describe(i: <span class="std">Int</span>) = i <span class="kw">match</span> {
+     |   <span class="kw">case</span> Even() &amp; Positive() <span class="kw">=&gt;</span> <span class="lit">"even and positive"</span>
+     |   <span class="kw">case</span> Even() <span class="kw">=&gt;</span> <span class="lit">"even but not positive"</span>
+     |   <span class="kw">case</span> Positive() <span class="kw">=&gt;</span> <span class="lit">"positive but not even"</span>
+     |   <span class="kw">case</span> _ <span class="kw">=&gt;</span> <span class="lit">"neither even nor positive"</span>
+     | }
+scala&gt; describe(-<span class="num">1</span>)
+res0: <span class="std">String</span> = neither even nor positive
+scala&gt; describe(<span class="num">0</span>)
+res1: <span class="std">String</span> = even but not positive
+scala&gt; describe(<span class="num">1</span>)
+res2: <span class="std">String</span> = positive but not even
+scala&gt; describe(<span class="num">2</span>)
+res3: <span class="std">String</span> = even and positive</pre></div></div>
+    </li><li name="org.http4s.dsl.Http4sDsl" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Http4sDsl"></a><a id="Http4sDsl:Http4sDsl"></a>
       <span class="permalink">
       <a href="../../../org/http4s/dsl/index.html#Http4sDsl" title="Permalink">
