@@ -213,14 +213,17 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You can seamlessly respond with a `Future` of any type that has an
-`EntityEncoder`.
+You can respond with a `Future` of any type that has an
+`EntityEncoder` by lifting it into IO or any `F[_]` that suspends future. 
+Note: unlike IO, wrapping a side effect in Future does not
+suspend it, and the resulting expression would still be side 
+effectful, unless we wrap it in IO.
 
 ```tut
-val io = Ok(Future {
+val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
-})
+})))
 io.unsafeRunSync
 ```
 
