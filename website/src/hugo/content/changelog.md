@@ -8,6 +8,16 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.4 (2018-03-23)
+* Deprecate old `Timeout` middleware methods in favor of new ones that use `FiniteDuration` and cancel timed out effects [#1725](https://github.com/http4s/http4s/pull/1725)
+* Add `expectOr` methods to client for custom error handling on failed expects [#1726](https://github.com/http4s/http4s/pull/1726)
+* Replace buffered multipart parser with a streaming version. Deprecate all uses of fs2-scodec. [#1727](https://github.com/http4s/http4s/pull/1727)
+* Dependency upgrades:
+  * blaze-0.12.2
+  * fs2-0.10.3
+  * log4s-1.6.1
+  * jetty-9.4.9.v20180320
+
 # v0.18.3 (2018-03-17)
 * Remove duplicate logging in pool manager [#1683]((https://github.com/http4s/http4s/pull/1683)
 * Add request/response specific properties to logging [#1709](https://github.com/http4s/http4s/pull/1709)

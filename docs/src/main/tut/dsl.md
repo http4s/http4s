@@ -137,7 +137,6 @@ Extra headers can be added using `putHeaders`, for example to specify cache poli
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.`no-cache`
 import cats.data.NonEmptyList
-import org.http4s.util.nonEmptyList
 ```
 
 ```tut
@@ -180,7 +179,7 @@ Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync.headers
 
 Most status codes take an argument as a body.  In http4s, `Request[F]`
 and `Response[F]` bodies are represented as a
-`fs2.Stream[F, ByteVector]`.  It's also considered good
+`fs2.Stream[F, Byte]`.  It's also considered good
 HTTP manners to provide a `Content-Type` and, where known in advance,
 `Content-Length` header in one's responses.
 

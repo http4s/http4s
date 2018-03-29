@@ -1,7 +1,14 @@
 package org.http4s
 
+import cats.Eq
 import cats.effect._
+import cats.effect.laws.discipline.arbitrary._
+import cats.effect.laws.util.TestContext
+import cats.effect.laws.util.TestInstances._
 import cats.implicits._
+import cats.laws.discipline.SemigroupKTests
+import cats.laws.discipline.arbitrary._
+import cats.laws.discipline.eq._
 import fs2._
 import fs2.Stream._
 import java.io.{File, FileInputStream, InputStreamReader}
@@ -10,10 +17,15 @@ import org.http4s.Status.Ok
 import org.http4s.headers.`Content-Type`
 import org.http4s.util.execution.trampoline
 import org.specs2.execute.PendingUntilFixed
+import org.specs2.scalacheck.Parameters
 import scala.concurrent.ExecutionContext
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
+  implicit val testContext: TestContext = TestContext()
+
+  implicit def entityDecoderEq[A: Eq]: Eq[EntityDecoder[IO, A]] =
+    Eq.by[EntityDecoder[IO, A], (Message[IO], Boolean) => DecodeResult[IO, A]](_.decode)
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
     body.compile.toVector.map(_.toArray)
@@ -399,7 +411,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       binary[IO].decode(msg, strict = false) must returnRight(Segment.empty[Byte])
     }
 
-    "concat ByteVectors" in {
+    "concat Chunks" in {
       val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
       val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
       val msg = Request[IO](body = body)
@@ -438,4 +450,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     EntityEncoder.simple[IO, ErrorJson](`Content-Type`(MediaType.`application/json`))(json =>
       Chunk.bytes(json.value.getBytes()))
 
+  checkAll(
+    "SemigroupK[EntityDecoder[IO, ?]]",
+    SemigroupKTests[EntityDecoder[IO, ?]]
+      .semigroupK[String])(Parameters(minTestsOk = 20, maxSize = 10))
 }

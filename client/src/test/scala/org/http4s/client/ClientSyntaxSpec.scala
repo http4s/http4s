@@ -138,28 +138,30 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       client.expect[String](req.uri) must returnValue("hello")
     }
 
+    "fetch Uris with expectOr" in {
+      client.expectOr[String](req.uri) { _ =>
+        IO.pure(SadTrombone)
+      } must returnValue("hello")
+    }
+
     "fetch requests with expect" in {
       client.expect[String](req) must returnValue("hello")
+    }
+
+    "fetch requests with expectOr" in {
+      client.expectOr[String](req) { _ =>
+        IO.pure(SadTrombone)
+      } must returnValue("hello")
     }
 
     "fetch request tasks with expect" in {
       client.expect[String](IO.pure(req)) must returnValue("hello")
     }
 
-    "status returns the status for a request" in {
-      client.status(req) must returnValue(Status.Ok)
-    }
-
-    "status returns the status for a request task" in {
-      client.status(IO.pure(req)) must returnValue(Status.Ok)
-    }
-
-    "successful returns the success of the status for a request" in {
-      client.successful(req) must returnValue(true)
-    }
-
-    "successful returns the success of the status for a request task" in {
-      client.successful(IO.pure(req)) must returnValue(true)
+    "fetch request tasks with expectOr" in {
+      client.expectOr[String](IO.pure(req)) { _ =>
+        IO.pure(SadTrombone)
+      } must returnValue("hello")
     }
 
     "status returns the status for a request" in {
@@ -178,9 +180,34 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       client.successful(IO.pure(req)) must returnValue(true)
     }
 
-    "return an unexpected status when expect returns unsuccessful status" in {
+    "status returns the status for a request" in {
+      client.status(req) must returnValue(Status.Ok)
+    }
+
+    "status returns the status for a request task" in {
+      client.status(IO.pure(req)) must returnValue(Status.Ok)
+    }
+
+    "successful returns the success of the status for a request" in {
+      client.successful(req) must returnValue(true)
+    }
+
+    "successful returns the success of the status for a request task" in {
+      client.successful(IO.pure(req)) must returnValue(true)
+    }
+
+    "return an unexpected status when expecting a URI returns unsuccessful status" in {
       client.expect[String](uri("http://www.foo.com/status/500")).attempt must returnValue(
         Left(UnexpectedStatus(Status.InternalServerError)))
+    }
+
+    "handle an unexpected status when calling a URI with expectOr" in {
+      case class Boom(status: Status, body: String) extends Exception
+      client
+        .expectOr[String](uri("http://www.foo.com/status/500")) { resp =>
+          resp.as[String].map(Boom(resp.status, _))
+        }
+        .attempt must returnValue(Left(Boom(InternalServerError, "Oops")))
     }
 
     "add Accept header on expect" in {

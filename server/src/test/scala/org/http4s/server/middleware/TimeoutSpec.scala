@@ -30,8 +30,8 @@ class TimeoutSpec extends Http4sSpec {
     resp.unsafeRunTimed(3.seconds).getOrElse(throw new TimeoutException) must haveStatus(status)
 
   "Timeout Middleware" should {
-    "have no effect if the response is not delayed" in {
-      val service = Timeout(Duration.Inf)(myService)
+    "have no effect if the response is timely" in {
+      val service = Timeout(365.days)(myService)
       checkStatus(service.orNotFound(fastReq), Status.Ok)
     }
 
