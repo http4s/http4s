@@ -171,7 +171,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/5382091d101da15ddbcda8859340b6b29ba4d79c/dsl/src/main/scala/org/http4s/dsl/Http4sDsl.scala" target="_blank">Http4sDsl.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/9312780def0949629c23f209ea70acafd4d5b3f2/dsl/src/main/scala/org/http4s/dsl/Http4sDsl.scala" target="_blank">Http4sDsl.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -2221,22 +2221,6 @@ the content length without running the stream.
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.EntityEncoderInstances0#futureEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]"></a><a id="futureEncoder[F[_],A](Async[F],ExecutionContext,EntityEncoder[F,A]):EntityEncoder[F,Future[A]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/dsl/Http4sDsl.html#futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">futureEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="W">W: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]</span>)</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../EntityEncoderInstances0.html" class="extype" name="org.http4s.EntityEncoderInstances0">EntityEncoderInstances0</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -3904,7 +3888,40 @@ at compile time.
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.syntax.EffectRequestSyntax#http4sEffectRequestSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.EntityEncoderInstances0#futureEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]"></a><a id="futureEncoder[F[_],A](Async[F],ExecutionContext,EntityEncoder[F,A]):EntityEncoder[F,Future[A]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/dsl/Http4sDsl.html#futureEncoder[F[_],A](implicitF:cats.effect.Async[F],implicitec:scala.concurrent.ExecutionContext,implicitW:org.http4s.EntityEncoder[F,A]):org.http4s.EntityEncoder[F,scala.concurrent.Future[A]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.18.5) 
+        This encoder breaks referential transparency and can cause unintended evaluation
+        of expressions if you're not careful. See:
+        https://github.com/http4s/http4s/issues/1757,
+        which means you can potentially evaluate futures eagerly. You could end up
+        executing a statement you don't intend to despite it not returning to you as a value.        If you _must_ use futures, use something such as IO.fromFuture(IO(myFuture)) or define your
+        own helper that does not evaluate the future eagerly, as otherwise it will evaluate the moment it's bound.
+    ">futureEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>, <span name="W">W: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]</span>)</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/Future.html#scala.concurrent.Future" class="extype" name="scala.concurrent.Future">Future</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.futureEncoder.A">A</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../EntityEncoderInstances0.html" class="extype" name="org.http4s.EntityEncoderInstances0">EntityEncoderInstances0</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18.5)</i> 
+        This encoder breaks referential transparency and can cause unintended evaluation
+        of expressions if you're not careful. See:
+        https://github.com/http4s/http4s/issues/1757,
+        which means you can potentially evaluate futures eagerly. You could end up
+        executing a statement you don't intend to despite it not returning to you as a value.</p><p>        If you _must_ use futures, use something such as <code>IO.fromFuture(IO(myFuture))</code> or define your
+        own helper that does not evaluate the future eagerly, as otherwise it will evaluate the moment it's bound.
+    </p></dd></dl></div>
+    </li><li name="org.http4s.syntax.EffectRequestSyntax#http4sEffectRequestSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="http4sEffectRequestSyntax[F[_]](req:F[org.http4s.Request[F]]):org.http4s.syntax.EffectRequestOps[F]"></a><a id="http4sEffectRequestSyntax[F[_]](F[Request[F]]):EffectRequestOps[F]"></a>
       <span class="permalink">
       <a href="../../../org/http4s/dsl/Http4sDsl.html#http4sEffectRequestSyntax[F[_]](req:F[org.http4s.Request[F]]):org.http4s.syntax.EffectRequestOps[F]" title="Permalink">
