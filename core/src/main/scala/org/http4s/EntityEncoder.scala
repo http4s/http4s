@@ -79,7 +79,7 @@ trait EntityEncoderInstances0 {
   import EntityEncoder._
 
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[F[_]: Applicative, A](
+  def showEncoder[F[_], A](
       implicit charset: Charset = DefaultCharset,
       show: Show[A]): EntityEncoder[F, A] = {
     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
@@ -118,7 +118,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   private val DefaultChunkSize = 4096
 
-  implicit def unitEncoder[F[_]: Applicative]: EntityEncoder[F, Unit] =
+  implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]
 
   implicit def stringEncoder[F[_]](
@@ -131,13 +131,13 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, Array[Char]] =
     stringEncoder[F].contramap(new String(_))
 
-  implicit def segmentEncoder[F[_]: Applicative]: EntityEncoder[F, Segment[Byte, Unit]] =
+  implicit def segmentEncoder[F[_]]: EntityEncoder[F, Segment[Byte, Unit]] =
     chunkEncoder[F].contramap[Segment[Byte, Unit]](_.force.toChunk)
 
-  implicit def chunkEncoder[F[_]: Applicative]: EntityEncoder[F, Chunk[Byte]] =
+  implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
 
-  implicit def byteArrayEncoder[F[_]: Applicative]: EntityEncoder[F, Array[Byte]] =
+  implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.bytes)
 
   /** Encodes an entity body.  Chunking of the stream is preserved.  A
@@ -213,7 +213,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
         r.contramap(f)
     }
 
-  implicit def serverSentEventEncoder[F[_]: Applicative]: EntityEncoder[F, EventStream[F]] =
+  implicit def serverSentEventEncoder[F[_]]: EntityEncoder[F, EventStream[F]] =
     entityBodyEncoder[F]
       .contramap[EventStream[F]] { _.through(ServerSentEvent.encoder) }
       .withContentType(`Content-Type`(MediaType.`text/event-stream`))
