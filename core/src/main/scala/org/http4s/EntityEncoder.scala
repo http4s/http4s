@@ -204,7 +204,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       Stream.bracket(r)(_ => useReader, t => F.delay(t.close()))
     }
 
-  implicit def multipartEncoder[F[_]: Sync]: EntityEncoder[F, Multipart[F]] =
+  implicit def multipartEncoder[F[_]]: EntityEncoder[F, Multipart[F]] =
     new MultipartEncoder[F]
 
   implicit def entityEncoderContravariant[F[_]]: Contravariant[EntityEncoder[F, ?]] =
