@@ -5,11 +5,9 @@ package blaze
 import cats.effect.Effect
 import java.nio.ByteBuffer
 import javax.net.ssl.SSLEngine
-
 import org.http4s.blaze.http.http2.{DefaultFlowStrategy, Http2Settings}
 import org.http4s.blaze.http.http2.server.{ALPNServerSelector, ServerPriorKnowledgeHandshaker}
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
-
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 

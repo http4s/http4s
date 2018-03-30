@@ -7,7 +7,6 @@ import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.util.Locale
-
 import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
 import org.http4s.Status._
@@ -16,7 +15,6 @@ import org.http4s.blaze.http.http2._
 import org.http4s.blaze.pipeline.{TailStage, Command => Cmd}
 import org.http4s.blazecore.util.{End, Http2Writer}
 import org.http4s.syntax.string._
-
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -178,7 +176,7 @@ private class Http2NodeStage[F[_]](
       error += s"Invalid request: missing pseudo headers. Method: $method, Scheme: $scheme, path: $path. "
     }
 
-    if (error.length() > 0) {
+    if (error.length > 0) {
       shutdownWithCommand(Cmd.Error(Http2Exception.PROTOCOL_ERROR.rst(streamId, error)))
     } else {
       val body = if (endStream) EmptyBody else getBody(contentLength)
