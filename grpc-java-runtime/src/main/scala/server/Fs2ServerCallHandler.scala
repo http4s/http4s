@@ -24,7 +24,7 @@ class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false)
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2UnaryServerCallListener[F].unsafeCreate(call)
-      listener.unsafeStreamResponse(new Metadata(),
+      listener.unsafeStreamResponse(headers,
                                     v => Stream.eval(v) >>= implementation)
       listener
     }
@@ -35,7 +35,7 @@ class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false)
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2StreamServerCallListener[F].unsafeCreate(call)
-      listener.unsafeUnaryResponse(new Metadata(), implementation)
+      listener.unsafeUnaryResponse(headers, implementation)
       listener
     }
 
@@ -45,7 +45,7 @@ class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false)
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2StreamServerCallListener[F].unsafeCreate(call)
-      listener.unsafeStreamResponse(new Metadata(), implementation)
+      listener.unsafeStreamResponse(headers, implementation)
       listener
     }
 }
