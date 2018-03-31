@@ -22,18 +22,13 @@ class Fs2StreamServerCallListener[F[_], Request, Response] private (
 }
 
 object Fs2StreamServerCallListener {
-  class PartialFs2StreamServerCallListener[F[_]](val dummy: Boolean = false)
-      extends AnyVal {
+  class PartialFs2StreamServerCallListener[F[_]](val dummy: Boolean = false) extends AnyVal {
     def unsafeCreate[Request, Response](call: ServerCall[Request, Response])(
         implicit F: Effect[F],
-        ec: ExecutionContext)
-      : Fs2StreamServerCallListener[F, Request, Response] = {
+        ec: ExecutionContext): Fs2StreamServerCallListener[F, Request, Response] = {
       async
         .unboundedQueue[IO, Request]
-        .map(
-          new Fs2StreamServerCallListener[F, Request, Response](
-            _,
-            Fs2ServerCall[F, Request, Response](call)))
+        .map(new Fs2StreamServerCallListener[F, Request, Response](_, Fs2ServerCall[F, Request, Response](call)))
         .unsafeRunSync()
     }
   }

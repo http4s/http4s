@@ -33,18 +33,13 @@ class Fs2UnaryServerCallListener[F[_], Request, Response] private (
 object Fs2UnaryServerCallListener {
   final val TooManyRequests: String = "Too many requests"
 
-  class PartialFs2UnaryServerCallListener[F[_]](val dummy: Boolean = false)
-      extends AnyVal {
+  class PartialFs2UnaryServerCallListener[F[_]](val dummy: Boolean = false) extends AnyVal {
     def unsafeCreate[Request, Response](call: ServerCall[Request, Response])(
         implicit F: Effect[F],
-        ec: ExecutionContext)
-      : Fs2UnaryServerCallListener[F, Request, Response] = {
+        ec: ExecutionContext): Fs2UnaryServerCallListener[F, Request, Response] = {
       async
         .promise[IO, Request]
-        .map(
-          new Fs2UnaryServerCallListener[F, Request, Response](
-            _,
-            Fs2ServerCall[F, Request, Response](call)))
+        .map(new Fs2UnaryServerCallListener[F, Request, Response](_, Fs2ServerCall[F, Request, Response](call)))
         .unsafeRunSync()
     }
   }

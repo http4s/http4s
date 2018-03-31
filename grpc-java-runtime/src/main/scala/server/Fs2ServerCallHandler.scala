@@ -7,30 +7,26 @@ import io.grpc._
 
 import scala.concurrent.ExecutionContext
 
-class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false)
-    extends AnyVal {
+class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false) extends AnyVal {
   def unaryToUnary[Request, Response](implementation: Request => F[Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2UnaryServerCallListener[F].unsafeCreate(call)
-      listener.unsafeUnaryResponse(new Metadata(), _ flatMap implementation)
+      listener.unsafeUnaryResponse(headers, _ >>= implementation)
       listener
     }
 
-  def unaryToStream[Request, Response](
-      implementation: Request => Stream[F, Response])(
+  def unaryToStream[Request, Response](implementation: Request => Stream[F, Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2UnaryServerCallListener[F].unsafeCreate(call)
-      listener.unsafeStreamResponse(headers,
-                                    v => Stream.eval(v) >>= implementation)
+      listener.unsafeStreamResponse(headers, v => Stream.eval(v) >>= implementation)
       listener
     }
 
-  def streamToUnary[Request, Response](
-      implementation: Stream[F, Request] => F[Response])(
+  def streamToUnary[Request, Response](implementation: Stream[F, Request] => F[Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
@@ -39,8 +35,7 @@ class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false)
       listener
     }
 
-  def streamToStream[Request, Response](
-      implementation: Stream[F, Request] => Stream[F, Response])(
+  def streamToStream[Request, Response](implementation: Stream[F, Request] => Stream[F, Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {

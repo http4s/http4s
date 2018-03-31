@@ -8,10 +8,9 @@ import io.grpc.{ClientCall, Metadata, Status}
 
 import scala.concurrent.ExecutionContext
 
-class Fs2StreamClientCallListener[Response](
-                                             request: Int => Unit,
-                                             queue: fs2.async.mutable.Queue[IO, Either[GrpcStatus, Response]])
-  extends ClientCall.Listener[Response] {
+class Fs2StreamClientCallListener[Response](request: Int => Unit,
+                                            queue: fs2.async.mutable.Queue[IO, Either[GrpcStatus, Response]])
+    extends ClientCall.Listener[Response] {
   override def onMessage(message: Response): Unit = {
     request(1)
     queue.enqueue1(message.asRight).unsafeRunSync()
@@ -22,8 +21,7 @@ class Fs2StreamClientCallListener[Response](
   }
 
   def stream[F[_]](implicit F: LiftIO[F]): Stream[F, Response] = {
-    def go(
-            q: Stream[F, Either[GrpcStatus, Response]]): Pull[F, Response, Unit] = {
+    def go(q: Stream[F, Either[GrpcStatus, Response]]): Pull[F, Response, Unit] = {
       // TODO: Write in terms of Segment
       q.pull.uncons1.flatMap {
         case Some((Right(v), tl)) => Pull.output1(v) >> go(tl)
@@ -41,9 +39,8 @@ class Fs2StreamClientCallListener[Response](
 }
 
 object Fs2StreamClientCallListener {
-  def apply[F[_], Response](request: Int => Unit)(
-    implicit F: LiftIO[F],
-    ec: ExecutionContext): F[Fs2StreamClientCallListener[Response]] = {
+  def apply[F[_], Response](request: Int => Unit)(implicit F: LiftIO[F],
+                                                  ec: ExecutionContext): F[Fs2StreamClientCallListener[Response]] = {
     F.liftIO(
       fs2.async
         .unboundedQueue[IO, Either[GrpcStatus, Response]]
