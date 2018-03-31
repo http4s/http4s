@@ -1,10 +1,9 @@
-package org.lyranthe.grpc.java_runtime.sbt
+package org.lyranthe.fs2_grpc.java_runtime.sbt_gen
 
 import com.google.protobuf.Descriptors.FileDescriptor
 import com.google.protobuf.ExtensionRegistry
 import com.google.protobuf.compiler.PluginProtos
 import com.google.protobuf.compiler.PluginProtos.{CodeGeneratorRequest, CodeGeneratorResponse}
-import org.lyranthe.grpc.java_runtime.gen.Fs2GrpcServicePrinter
 import protocbridge.{Artifact, JvmGenerator, ProtocCodeGenerator}
 import sbt._
 import sbt.Keys._
@@ -65,11 +64,11 @@ object Fs2GrpcPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
     libraryDependencies ++= List(
-      "io.grpc"                % "grpc-core"             % scalapb.compiler.Version.grpcJavaVersion,
-      "io.grpc"                % "grpc-stub"             % scalapb.compiler.Version.grpcJavaVersion,
-      "org.lyranthe.grpc_java" %% "runtime"              % "0.1.0-SNAPSHOT",
-      "com.thesamet.scalapb"   %% "scalapb-runtime"      % scalapb.compiler.Version.scalapbVersion,
-      "com.thesamet.scalapb"   %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
+      "io.grpc"               % "grpc-core"             % scalapb.compiler.Version.grpcJavaVersion,
+      "io.grpc"               % "grpc-stub"             % scalapb.compiler.Version.grpcJavaVersion,
+      "org.lyranthe.fs2-grpc" %% "java-runtime"         % "0.1.0-SNAPSHOT",
+      "com.thesamet.scalapb"  %% "scalapb-runtime"      % scalapb.compiler.Version.scalapbVersion,
+      "com.thesamet.scalapb"  %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
     )
   )
 }

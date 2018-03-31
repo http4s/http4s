@@ -1,4 +1,4 @@
-package org.lyranthe.grpc.java_runtime.client
+package org.lyranthe.fs2_grpc.java_runtime.client
 
 import cats.effect._
 import cats.implicits._

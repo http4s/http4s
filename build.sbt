@@ -1,6 +1,6 @@
 inThisBuild(
   List(
-    organization := "org.lyranthe.grpc_java",
+    organization := "org.lyranthe.fs2-grpc",
     scalaVersion := "2.12.5",
     crossScalaVersions := List(scalaVersion.value, "2.11.12")
   ))
@@ -54,7 +54,7 @@ val tpolecatFlags = List(
   "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
 )
 
-lazy val `sbt-gen` = project.settings(
+lazy val `sbt-java-gen` = project.settings(
   sbtPlugin := true,
   scalacOptions ++= tpolecatFlags,
   addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
@@ -64,7 +64,7 @@ lazy val `sbt-gen` = project.settings(
   )
 )
 
-lazy val `runtime` = project.settings(
+lazy val `java-runtime` = project.settings(
   scalacOptions ++= tpolecatFlags,
   libraryDependencies ++= List(
     "co.fs2"        %% "fs2-core"         % "0.10.3",

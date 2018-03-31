@@ -5,7 +5,7 @@ gRPC implementation for FS2/cats-effect
 
 `project/plugins.sbt`:
 ```scala
-addSbtPlugin("org.lyranthe.grpc_java" % "sbt-gen" % "0.1.0-SNAPSHOT")
+addSbtPlugin("org.lyranthe.fs2-grpc" % "sbt-java-gen" % "0.1.0-SNAPSHOT")
 ```
 
 `build.sbt`:

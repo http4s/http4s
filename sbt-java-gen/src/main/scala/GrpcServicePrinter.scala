@@ -1,4 +1,4 @@
-package org.lyranthe.grpc.java_runtime.gen
+package org.lyranthe.fs2_grpc.java_runtime.sbt_gen
 
 import com.google.protobuf.Descriptors.{MethodDescriptor, ServiceDescriptor}
 import scalapb.compiler.FunctionalPrinter.PrinterEndo
@@ -29,7 +29,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
 
   private[this] def createClientCall(method: MethodDescriptor) = {
     val basicClientCall =
-      s"_root_.org.lyranthe.grpc.java_runtime.client.Fs2ClientCall[F](channel, _root_.${service.getFile.scalaPackageName}.GreeterGrpc.${method.descriptorName}, callOptions)"
+      s"_root_.org.lyranthe.fs2_grpc.java_runtime.client.Fs2ClientCall[F](channel, _root_.${service.getFile.scalaPackageName}.GreeterGrpc.${method.descriptorName}, callOptions)"
     if (method.isServerStreaming)
       s"_root_.fs2.Stream.eval($basicClientCall)"
     else
@@ -52,14 +52,14 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
     _.call(service.methods.map(serviceMethodImplementation): _*)
 
   private[this] def serviceTrait: PrinterEndo =
-    _.add(s"trait ${service.name}[F[_]] {").indent.call(serviceMethods).outdent.add("}")
+    _.add(s"trait ${service.name}Fs2Grpc[F[_]] {").indent.call(serviceMethods).outdent.add("}")
 
   private[this] def serviceObject: PrinterEndo =
-    _.add(s"object ${service.name} {").indent.call(serviceClient).outdent.add("}")
+    _.add(s"object ${service.name}Fs2Grpc {").indent.call(serviceClient).outdent.add("}")
 
   private[this] def serviceClient: PrinterEndo = {
     _.add(
-      s"def stub[F[_]: _root_.cats.effect.Effect](channel: _root_.io.grpc.Channel, callOptions: _root_.io.grpc.CallOptions = _root_.io.grpc.CallOptions.DEFAULT)(implicit ec: _root_.scala.concurrent.ExecutionContext): ${service.name}[F] = new ${service.name}[F] {").indent
+      s"def stub[F[_]: _root_.cats.effect.Effect](channel: _root_.io.grpc.Channel, callOptions: _root_.io.grpc.CallOptions = _root_.io.grpc.CallOptions.DEFAULT)(implicit ec: _root_.scala.concurrent.ExecutionContext): ${service.name}Fs2Grpc[F] = new ${service.name}Fs2Grpc[F] {").indent
       .call(serviceMethodImplementations)
       .outdent
       .add("}")
@@ -67,7 +67,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
 
   def printService(printer: FunctionalPrinter): FunctionalPrinter = {
     printer
-      .add("package " + service.getFile.scalaPackageName + ".fs2", "", "import _root_.cats.implicits._", "")
+      .add("package " + service.getFile.scalaPackageName, "", "import _root_.cats.implicits._", "")
       .call(serviceTrait)
       .call(serviceObject)
   }

@@ -1,4 +1,4 @@
-package org.lyranthe.grpc.java_runtime.client
+package org.lyranthe.fs2_grpc.java_runtime.client
 
 import cats.arrow.FunctionK
 import cats.effect.{IO, LiftIO}

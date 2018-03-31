@@ -1,4 +1,4 @@
-package org.lyranthe.grpc.java_runtime.server
+package org.lyranthe.fs2_grpc.java_runtime.server
 
 import cats.arrow.FunctionK
 import cats.effect._
