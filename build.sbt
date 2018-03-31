@@ -1,6 +1,8 @@
 inThisBuild(
   List(
-    scalaVersion := "2.12.5"
+    organization := "org.lyranthe.grpc_java",
+    scalaVersion := "2.12.5",
+    crossScalaVersions := List(scalaVersion.value, "2.11.12")
   ))
 
 val tpolecatFlags = List(
@@ -52,15 +54,24 @@ val tpolecatFlags = List(
   "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
 )
 
-lazy val `grpc-java-runtime` = project.settings(
+lazy val `sbt-gen` = project.settings(
+  sbtPlugin := true,
+  scalacOptions ++= tpolecatFlags,
+  addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
+  libraryDependencies ++= List(
+    "io.grpc"              % "grpc-core"       % "1.11.0",
+    "com.thesamet.scalapb" %% "compilerplugin" % "0.7.1"
+  )
+)
+
+lazy val `runtime` = project.settings(
   scalacOptions ++= tpolecatFlags,
   libraryDependencies ++= List(
-    "co.fs2" %% "fs2-core" % "0.10.3",
-    "io.grpc" % "grpc-core" % "1.11.0",
-    "io.monix" %% "minitest" % "2.1.1" % "test",
+    "co.fs2"        %% "fs2-core"         % "0.10.3",
+    "io.grpc"       % "grpc-core"         % "1.11.0",
+    "io.monix"      %% "minitest"         % "2.1.1" % "test",
     "org.typelevel" %% "cats-effect-laws" % "0.10" % "test"
   ),
   testFrameworks += new TestFramework("minitest.runner.Framework"),
-  addCompilerPlugin(
-    "org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
+  addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
 )
