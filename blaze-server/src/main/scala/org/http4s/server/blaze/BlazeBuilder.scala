@@ -13,12 +13,13 @@ import org.http4s.blaze.channel
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
+import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
 class BlazeBuilder[F[_]](
@@ -154,67 +155,71 @@ class BlazeBuilder[F[_]](
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
       else address
 
-    val pipelineFactory = { conn: SocketConnection =>
-      def requestAttributes(secure: Boolean) =
-        (conn.local, conn.remote) match {
-          case (local: InetSocketAddress, remote: InetSocketAddress) =>
-            AttributeMap(
-              AttributeEntry(
-                Request.Keys.ConnectionInfo,
-                Request.Connection(
-                  local = local,
-                  remote = remote,
-                  secure = secure
-                )))
-          case _ =>
-            AttributeMap.empty
-        }
+    val pipelineFactory: SocketConnection => Future[LeafBuilder[ByteBuffer]] = {
+      conn: SocketConnection =>
+        def requestAttributes(secure: Boolean) =
+          (conn.local, conn.remote) match {
+            case (local: InetSocketAddress, remote: InetSocketAddress) =>
+              AttributeMap(
+                AttributeEntry(
+                  Request.Keys.ConnectionInfo,
+                  Request.Connection(
+                    local = local,
+                    remote = remote,
+                    secure = secure
+                  )))
+            case _ =>
+              AttributeMap.empty
+          }
 
-      def http1Stage(secure: Boolean) =
-        Http1ServerStage(
-          aggregateService,
-          requestAttributes(secure = secure),
-          executionContext,
-          enableWebSockets,
-          maxRequestLineLen,
-          maxHeadersLen,
-          serviceErrorHandler
-        )
-
-      def http2Stage(engine: SSLEngine) =
-        ProtocolSelector(
-          engine,
-          aggregateService,
-          maxRequestLineLen,
-          maxHeadersLen,
-          requestAttributes(secure = true),
-          executionContext,
-          serviceErrorHandler
-        )
-
-      def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
-        if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-        else lb
-
-      getContext() match {
-        case Some((ctx, clientAuth)) =>
-          val engine = ctx.createSSLEngine()
-          engine.setUseClientMode(false)
-          engine.setNeedClientAuth(clientAuth)
-
-          var lb = LeafBuilder(
-            if (isHttp2Enabled) http2Stage(engine)
-            else http1Stage(secure = true)
+        def http1Stage(secure: Boolean) =
+          Http1ServerStage(
+            aggregateService,
+            requestAttributes(secure = secure),
+            executionContext,
+            enableWebSockets,
+            maxRequestLineLen,
+            maxHeadersLen,
+            serviceErrorHandler
           )
-          lb = prependIdleTimeout(lb)
-          lb.prepend(new SSLStage(engine))
 
-        case None =>
-          if (isHttp2Enabled) logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
-          var lb = LeafBuilder(http1Stage(secure = false))
-          lb = prependIdleTimeout(lb)
-          lb
-      }
+        def http2Stage(engine: SSLEngine): ALPNServerSelector =
+          ProtocolSelector(
+            engine,
+            aggregateService,
+            maxRequestLineLen,
+            maxHeadersLen,
+            requestAttributes(secure = true),
+            executionContext,
+            serviceErrorHandler
+          )
+
+        def prependIdleTimeout(lb: LeafBuilder[ByteBuffer]) =
+          if (idleTimeout.isFinite) lb.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+          else lb
+
+        Future.successful {
+          getContext() match {
+            case Some((ctx, clientAuth)) =>
+              val engine = ctx.createSSLEngine()
+              engine.setUseClientMode(false)
+              engine.setNeedClientAuth(clientAuth)
+
+              var lb = LeafBuilder(
+                if (isHttp2Enabled) http2Stage(engine)
+                else http1Stage(secure = true)
+              )
+              lb = prependIdleTimeout(lb)
+              lb.prepend(new SSLStage(engine))
+
+            case None =>
+              if (isHttp2Enabled)
+                logger.warn("HTTP/2 support requires TLS. Falling back to HTTP/1.")
+              var lb = LeafBuilder(http1Stage(secure = false))
+              lb = prependIdleTimeout(lb)
+              lb
+          }
+        }
     }
 
     val factory =
@@ -297,7 +302,7 @@ object BlazeBuilder {
       executionContext = ExecutionContext.global,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
       isNio2 = false,
-      connectorPoolSize = channel.defaultPoolSize,
+      connectorPoolSize = channel.DefaultPoolSize,
       bufferSize = 64 * 1024,
       enableWebSockets = true,
       sslBits = None,

@@ -5,7 +5,7 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.http.http_parser.Http1ClientParser
+import org.http4s.blaze.http.parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 
 class ResponseParser extends Http1ClientParser {

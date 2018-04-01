@@ -6,7 +6,6 @@ import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 import org.http4s._
-import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
@@ -66,9 +65,9 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
 
                   val segment = LeafBuilder(new Http4sWSStage[F](wsContext.webSocket))
                     .prepend(new WSFrameAggregator)
-                    .prepend(new WebSocketDecoder(false))
+                    .prepend(new WebSocketDecoder)
 
-                  this.replaceInline(segment)
+                  this.replaceTail(segment, true)
 
                 case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
               }(executionContext)

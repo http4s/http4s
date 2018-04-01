@@ -375,12 +375,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
     macroParadiseSetting,
-    javaOptions in run ++= (managedClasspath in Runtime).map { attList =>
-      for {
-        file <- attList.map(_.data)
-        path = file.getAbsolutePath if path.contains("jetty.alpn")
-      } yield { s"-Xbootclasspath/p:${path}" }
-    }.value
+    javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)
 
