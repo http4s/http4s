@@ -20,8 +20,6 @@ class Fs2StreamServerCallListener[F[_], Request, Response] private (
 
   override def onHalfClose(): Unit = queue.enqueue1(none).unsafeRunSync()
 
-  override def onComplete(): Unit = queue.enqueue1(none).unsafeRunSync()
-
   override def source: Stream[F, Request] =
     queue.dequeue.unNoneTerminate.translate(FunctionK.lift(F.liftIO _))
 }

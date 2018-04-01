@@ -38,6 +38,8 @@ object ServerSuite extends SimpleTestSuite {
       listener.onMessage("456")
     }
 
+    listener.onHalfClose()
+
     ec.tick()
 
     assertEquals(dummy.currentStatus.isDefined, true)
