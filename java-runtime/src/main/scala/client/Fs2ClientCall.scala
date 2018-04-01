@@ -10,7 +10,7 @@ import scala.concurrent.ExecutionContext
 case class UnaryResult[A](value: Option[A], status: Option[GrpcStatus])
 case class GrpcStatus(status: Status, trailers: Metadata)
 
-class Fs2ClientCall[F[_], Request, Response] private (val call: ClientCall[Request, Response]) extends AnyVal {
+class Fs2ClientCall[F[_], Request, Response] private[client] (val call: ClientCall[Request, Response]) extends AnyVal {
 
   private def halfClose(implicit F: Sync[F]): F[Unit] =
     F.delay(call.halfClose())

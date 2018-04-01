@@ -1,4 +1,4 @@
-package org.lyranthe.grpc.java_runtime.client
+package org.lyranthe.fs2_grpc.java_runtime.client
 
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
@@ -12,9 +12,9 @@ object ClientSuite extends SimpleTestSuite {
   test("single message to unaryToUnary") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
-    val result = client.unaryToUnaryCall("hello").unsafeToFuture()
+    val result = client.unaryToUnaryCall("hello", new Metadata()).unsafeToFuture()
     dummy.listener.get.onMessage(5)
 
     // Check that call does not complete after result returns
@@ -33,9 +33,9 @@ object ClientSuite extends SimpleTestSuite {
   test("no response message to unaryToUnary") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
-    val result = client.unaryToUnaryCall("hello").unsafeToFuture()
+    val result = client.unaryToUnaryCall("hello", new Metadata()).unsafeToFuture()
 
     dummy.listener.get.onClose(Status.OK, new Metadata())
 
@@ -51,9 +51,9 @@ object ClientSuite extends SimpleTestSuite {
   test("error response to unaryToUnary") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
-    val result = client.unaryToUnaryCall("hello").unsafeToFuture()
+    val result = client.unaryToUnaryCall("hello", new Metadata()).unsafeToFuture()
     dummy.listener.get.onMessage(5)
 
     dummy.listener.get.onClose(Status.INTERNAL, new Metadata())
@@ -74,10 +74,10 @@ object ClientSuite extends SimpleTestSuite {
   test("stream to streamingToUnary") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
     val result = client
-      .streamingToUnaryCall(Stream.emits(List("a", "b", "c")))
+      .streamingToUnaryCall(Stream.emits(List("a", "b", "c")), new Metadata())
       .unsafeToFuture()
 
     dummy.listener.get.onMessage(5)
@@ -98,10 +98,10 @@ object ClientSuite extends SimpleTestSuite {
   test("0-length to streamingToUnary") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
     val result = client
-      .streamingToUnaryCall(Stream.empty)
+      .streamingToUnaryCall(Stream.empty, new Metadata())
       .unsafeToFuture()
 
     dummy.listener.get.onMessage(5)
@@ -122,10 +122,10 @@ object ClientSuite extends SimpleTestSuite {
   test("single message to unaryToStreaming") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
     val result =
-      client.unaryToStreamingCall("hello").compile.toList.unsafeToFuture()
+      client.unaryToStreamingCall("hello", new Metadata()).compile.toList.unsafeToFuture()
     dummy.listener.get.onMessage(1)
     dummy.listener.get.onMessage(2)
     dummy.listener.get.onMessage(3)
@@ -146,11 +146,11 @@ object ClientSuite extends SimpleTestSuite {
   test("stream to streamingToStreaming") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
     val result =
       client
-        .streamingToStreamingCall(Stream.emits(List("a", "b", "c", "d", "e")))
+        .streamingToStreamingCall(Stream.emits(List("a", "b", "c", "d", "e")), new Metadata())
         .compile
         .toList
         .unsafeToFuture()
@@ -174,11 +174,11 @@ object ClientSuite extends SimpleTestSuite {
   test("error returned from streamingToStreaming") {
     implicit val ec = TestContext()
 
-    val dummy = new DummyClientCall()
+    val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
     val result =
       client
-        .streamingToStreamingCall(Stream.emits(List("a", "b", "c", "d", "e")))
+        .streamingToStreamingCall(Stream.emits(List("a", "b", "c", "d", "e")), new Metadata())
         .compile
         .toList
         .unsafeToFuture()
