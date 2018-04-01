@@ -8,39 +8,46 @@ import io.grpc._
 import scala.concurrent.ExecutionContext
 
 class Fs2ServerCallHandler[F[_]](val dummy: Boolean = false) extends AnyVal {
-  def unaryToUnary[Request, Response](implementation: Request => F[Response])(
+  def unaryToUnaryCall[Request, Response](implementation: (Request, Metadata) => F[Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2UnaryServerCallListener[F].unsafeCreate(call)
-      listener.unsafeUnaryResponse(headers, _ >>= implementation)
+      listener.unsafeUnaryResponse(headers, _ flatMap { request =>
+        implementation(request, headers)
+      })
       listener
     }
 
-  def unaryToStream[Request, Response](implementation: Request => Stream[F, Response])(
+  def unaryToStreamingCall[Request, Response](implementation: (Request, Metadata) => Stream[F, Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2UnaryServerCallListener[F].unsafeCreate(call)
-      listener.unsafeStreamResponse(headers, v => Stream.eval(v) >>= implementation)
+      listener.unsafeStreamResponse(new Metadata(),
+                                    v =>
+                                      Stream.eval(v) flatMap { request =>
+                                        implementation(request, headers)
+                                    })
       listener
     }
 
-  def streamToUnary[Request, Response](implementation: Stream[F, Request] => F[Response])(
+  def streamingToUnaryCall[Request, Response](implementation: (Stream[F, Request], Metadata) => F[Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2StreamServerCallListener[F].unsafeCreate(call)
-      listener.unsafeUnaryResponse(headers, implementation)
+      listener.unsafeUnaryResponse(headers, implementation(_, headers))
       listener
     }
 
-  def streamToStream[Request, Response](implementation: Stream[F, Request] => Stream[F, Response])(
+  def streamingToStreamingCall[Request, Response](
+      implementation: (Stream[F, Request], Metadata) => Stream[F, Response])(
       implicit F: Effect[F],
       ec: ExecutionContext): ServerCallHandler[Request, Response] =
     (call: ServerCall[Request, Response], headers: Metadata) => {
       val listener = Fs2StreamServerCallListener[F].unsafeCreate(call)
-      listener.unsafeStreamResponse(headers, implementation)
+      listener.unsafeStreamResponse(headers, implementation(_, headers))
       listener
     }
 }

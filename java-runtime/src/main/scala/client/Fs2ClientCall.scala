@@ -24,9 +24,9 @@ class Fs2ClientCall[F[_], Request, Response] private (val call: ClientCall[Reque
   private def start(listener: ClientCall.Listener[Response], metadata: Metadata)(implicit F: Sync[F]): F[Unit] =
     F.delay(call.start(listener, metadata))
 
-  def startListener[A <: ClientCall.Listener[Response]](createListener: F[A], headers: Option[Metadata])(
+  def startListener[A <: ClientCall.Listener[Response]](createListener: F[A], headers: Metadata)(
       implicit F: Sync[F]): F[A] = {
-    createListener.flatTap(start(_, headers.getOrElse(new Metadata()))) <* request(1)
+    createListener.flatTap(start(_, headers)) <* request(1)
   }
 
   def sendSingleMessage(message: Request)(implicit F: Sync[F]): F[Unit] = {
@@ -37,8 +37,7 @@ class Fs2ClientCall[F[_], Request, Response] private (val call: ClientCall[Reque
     stream.evalMap(sendMessage) ++ Stream.eval(halfClose)
   }
 
-  def unaryToUnaryCall(message: Request, headers: Option[Metadata] = None)(implicit F: Async[F],
-                                                                           ec: ExecutionContext): F[Response] = {
+  def unaryToUnaryCall(message: Request, headers: Metadata)(implicit F: Async[F], ec: ExecutionContext): F[Response] = {
     for {
       listener <- startListener(Fs2UnaryClientCallListener[F, Response], headers)
       _        <- sendSingleMessage(message)
@@ -46,18 +45,16 @@ class Fs2ClientCall[F[_], Request, Response] private (val call: ClientCall[Reque
     } yield result
   }
 
-  def streamingToUnaryCall(messages: Stream[F, Request], headers: Option[Metadata] = None)(
-      implicit F: Effect[F],
-      ec: ExecutionContext): F[Response] = {
+  def streamingToUnaryCall(messages: Stream[F, Request], headers: Metadata)(implicit F: Effect[F],
+                                                                            ec: ExecutionContext): F[Response] = {
     for {
       listener <- startListener(Fs2UnaryClientCallListener[F, Response], headers)
       result   <- Stream.eval(listener.getValue).concurrently(sendStream(messages)).compile.last
     } yield result.get
   }
 
-  def unaryToStreamingCall(message: Request, headers: Option[Metadata] = None)(
-      implicit F: Async[F],
-      ec: ExecutionContext): Stream[F, Response] = {
+  def unaryToStreamingCall(message: Request, headers: Metadata)(implicit F: Async[F],
+                                                                ec: ExecutionContext): Stream[F, Response] = {
     for {
       listener <- Stream.eval(
         startListener(Fs2StreamClientCallListener[F, Response](call.request), headers) <* sendSingleMessage(message))
@@ -65,9 +62,8 @@ class Fs2ClientCall[F[_], Request, Response] private (val call: ClientCall[Reque
     } yield result
   }
 
-  def streamingToStreamingCall(messages: Stream[F, Request], headers: Option[Metadata] = None)(
-      implicit F: Effect[F],
-      ec: ExecutionContext): Stream[F, Response] = {
+  def streamingToStreamingCall(messages: Stream[F, Request],
+                               headers: Metadata)(implicit F: Effect[F], ec: ExecutionContext): Stream[F, Response] = {
     for {
       listener      <- Stream.eval(startListener(Fs2StreamClientCallListener[F, Response](call.request), headers))
       resultOrError <- listener.stream[F].concurrently(sendStream(messages))
