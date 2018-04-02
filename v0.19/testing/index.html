@@ -118,7 +118,7 @@ final case class User(name: String, age: Int)
 // defined class User
 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@1d199147
+// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@5fa9008b
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -140,16 +140,20 @@ def service[F[_]](repo: UserRepo[F])(
 <p>For testing, let&rsquo;s define a <code>check</code> function:</p>
 
 <pre><code class="language-scala">// Return true if match succeeds; otherwise false
-def check(actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[Json]): Boolean =  {
+def check[A](actual:        IO[Response[IO]], 
+            expectedStatus: Status, 
+            expectedBody:   Option[A])(
+    implicit ev: EntityDecoder[IO, A]
+): Boolean =  {
    val actualResp         = actual.unsafeRunSync
    val statusCheck        = actualResp.status == expectedStatus 
    val bodyCheck          = expectedBody.fold[Boolean](
        actualResp.body.compile.toVector.unsafeRunSync.isEmpty)( // Verify Response's body is empty.
-       expected =&gt; actualResp.as[Json].unsafeRunSync == expected
+       expected =&gt; actualResp.as[A].unsafeRunSync == expected
    )
    statusCheck &amp;&amp; bodyCheck   
 }
-// check: (actual: cats.effect.IO[org.http4s.Response[cats.effect.IO]], expectedStatus: org.http4s.Status, expectedBody: Option[io.circe.Json])Boolean
+// check: [A](actual: cats.effect.IO[org.http4s.Response[cats.effect.IO]], expectedStatus: org.http4s.Status, expectedBody: Option[A])(implicit ev: org.http4s.EntityDecoder[cats.effect.IO,A])Boolean
 </code></pre>
 
 <p>Let&rsquo;s define service by passing a <code>UserRepo</code> that returns <code>Ok(user)</code>.</p>
@@ -157,7 +161,7 @@ def check(actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[cats.effect.IO] = $anon$1@5bcb3733
+// success: UserRepo[cats.effect.IO] = $anon$1@21cac027
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -174,7 +178,7 @@ val expectedJson = Json.obj(
 //   &quot;age&quot; : 42
 // }
 
-check(response, Status.Ok, Some(expectedJson))
+check[Json](response, Status.Ok, Some(expectedJson))
 // res1: Boolean = true
 </code></pre>
 
@@ -183,15 +187,15 @@ check(response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[cats.effect.IO] = $anon$1@536e334d
+// foundNone: UserRepo[cats.effect.IO] = $anon$1@69c71e41
 
-val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
 )
 // response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
 
-check(response, Status.NotFound, None)
-// res2: Boolean = false
+check[Json](response, Status.NotFound, None)
+// res2: Boolean = true
 </code></pre>
 
 <p>Finally, let&rsquo;s pass a <code>Request</code> which our service does not handle.</p>
@@ -199,15 +203,15 @@ check(response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@4cb73684
+// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@2c55a2f2
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/not-a-matching-path&quot;) )
 )
 // response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
 
-check(response, Status.NotFound, None)
-// res3: Boolean = false
+check[String](response, Status.NotFound, Some(&quot;Not found&quot;))
+// res3: Boolean = true
 </code></pre>
 
 <h2 id="conclusion">Conclusion</h2>
