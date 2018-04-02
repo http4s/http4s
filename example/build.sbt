@@ -23,7 +23,8 @@ lazy val server =
     .in(file("server"))
     .settings(
       libraryDependencies ++= List(
-        "io.grpc" % "grpc-netty" % "1.11.0"
+        "io.grpc" % "grpc-netty" % "1.11.0",
+        "io.grpc" % "grpc-services" % "1.11.0"
       )
     )
     .dependsOn(protobuf)
