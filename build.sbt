@@ -4,31 +4,36 @@ inThisBuild(
     git.useGitDescribe := true
   ))
 
-lazy val root = project.in(file(".")).settings(
-  sonatypeProfileName := "org.lyranthe",
-  skip in publish := true,
-  pomExtra in Global := {
-    <url>https://github.com/fiadliel/http4s-timer</url>
-      <licenses>
-        <license>
-          <name>MIT</name>
-            <url>https://github.com/fiadliel/fs2-grpc/blob/master/LICENSE</url>
-        </license>
-      </licenses>
-      <developers>
-        <developer>
-          <id>fiadliel</id>
-          <name>Gary Coady</name>
-          <url>https://www.lyranthe.org/</url>
-        </developer>
-      </developers>
-  }
-).aggregate(`sbt-java-gen`, `java-runtime`)
+lazy val root = project.in(file("."))
+  .enablePlugins(GitVersioning)
+  .settings(
+    sonatypeProfileName := "org.lyranthe",
+    skip in publish := true,
+    pomExtra in Global := {
+      <url>https://github.com/fiadliel/http4s-timer</url>
+        <licenses>
+          <license>
+            <name>MIT</name>
+              <url>https://github.com/fiadliel/fs2-grpc/blob/master/LICENSE</url>
+          </license>
+        </licenses>
+        <developers>
+          <developer>
+            <id>fiadliel</id>
+            <name>Gary Coady</name>
+            <url>https://www.lyranthe.org/</url>
+          </developer>
+        </developers>
+    }
+  )
+  .aggregate(`sbt-java-gen`, `java-runtime`)
 
 lazy val `sbt-java-gen` = project
+  .enablePlugins(GitVersioning)
   .settings(
     publishTo := sonatypePublishTo.value,
     sbtPlugin := true,
+    crossSbtVersions := List(sbtVersion.value, "0.13.17"),
     addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
     libraryDependencies ++= List(
       "io.grpc"              % "grpc-core"       % "1.11.0",
@@ -37,6 +42,7 @@ lazy val `sbt-java-gen` = project
   )
 
 lazy val `java-runtime` = project
+  .enablePlugins(GitVersioning)
   .settings(
     scalaVersion := "2.12.5",
     crossScalaVersions := List(scalaVersion.value, "2.11.12"),
