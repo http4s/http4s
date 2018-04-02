@@ -24,11 +24,6 @@ object Main {
   val server: Server =
     ServerBuilder.forPort(9999).addService(helloService).build()
 
-  val serverStream: Stream[IO, Server] =
-    Stream.bracket(IO(server.start()))(
-      Stream.emit[Server],
-      (server: Server) => IO(server.shutdown()))
-
   def main(args: Array[String]): Unit = {
     server.start()
     server.awaitTermination()
