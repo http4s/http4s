@@ -85,6 +85,18 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-5-2018-03-28">v0.18.5 (2018-03-28)</h1>
+
+<ul>
+<li>Add <code>&amp;</code> extractor to http4s-dsl. <a href="https://github.com/http4s/http4s/pull/1758">#1758</a></li>
+<li>Deprecate <code>EntityEncoder[F, Future[A]]</code>.  The <code>EntityEncoder</code> is strict in its argument, which causes any side effect of the <code>Future</code> to execute immediately.  Wrap your <code>future</code> in <code>IO.fromFuture(IO(future))</code> instead. <a href="https://github.com/http4s/http4s/pull/1759">#1759</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>circe-0.9.3</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-4-2018-03-23">v0.18.4 (2018-03-23)</h1>
 
 <ul>
