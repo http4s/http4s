@@ -45,12 +45,16 @@ For testing, let's define a `check` function:
 
 ```tut:book
 // Return true if match succeeds; otherwise false
-def check(actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[Json]): Boolean =  {
+def check[A](actual:        IO[Response[IO]], 
+            expectedStatus: Status, 
+            expectedBody:   Option[A])(
+    implicit ev: EntityDecoder[IO, A]
+): Boolean =  {
    val actualResp         = actual.unsafeRunSync
    val statusCheck        = actualResp.status == expectedStatus 
    val bodyCheck          = expectedBody.fold[Boolean](
        actualResp.body.compile.toVector.unsafeRunSync.isEmpty)( // Verify Response's body is empty.
-       expected => actualResp.as[Json].unsafeRunSync == expected
+       expected => actualResp.as[A].unsafeRunSync == expected
    )
    statusCheck && bodyCheck   
 }
@@ -73,7 +77,7 @@ val expectedJson = Json.obj(
   ("age",  Json.fromBigInt(42))
 )
 
-check(response, Status.Ok, Some(expectedJson))
+check[Json](response, Status.Ok, Some(expectedJson))
 ```
 
 Next, let's define a service with a `userRepo` that returns `None` to any input.
@@ -83,11 +87,11 @@ val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
 
-val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
+val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/user/not-used") )
 )
 
-check(response, Status.NotFound, None)
+check[Json](response, Status.NotFound, None)
 ```
 
 Finally, let's pass a `Request` which our service does not handle.  
@@ -101,7 +105,7 @@ val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri("/not-a-matching-path") )
 )
 
-check(response, Status.NotFound, None)
+check[String](response, Status.NotFound, Some("Not found"))
 ```
 
 ## Conclusion

@@ -4,7 +4,6 @@ import cats.implicits._
 import cats.kernel.laws.discipline.OrderTests
 import org.http4s.testing.HttpCodecTests
 import org.http4s.util.Renderer
-import scala.math.signum
 
 class ContentCodingSpec extends Http4sSpec {
   "equals" should {
@@ -15,15 +14,11 @@ class ContentCodingSpec extends Http4sSpec {
   }
 
   "compare" should {
-    "be consistent with coding.compareToIgnoreCase for same quality" in {
-      prop { (a: ContentCoding, b: ContentCoding) =>
-        ((a.coding, a.qValue), (b.coding, b.qValue)) match {
-          case ((ac, aq), (bc, bq)) if ac == bc =>
-            signum(aq.compareTo(bq)) must_== signum(a.compare(b))
-          case ((ac, _), (bc, _)) if ac.compareToIgnoreCase(bc) > 0 => a.compare(b) must be_>(0)
-          case _ => a.compare(b) must be_<(0)
-        }
-      }
+    "be consistent with coding.compareToIgnoreCase for same qValue" in prop {
+      (a: ContentCoding, b: ContentCoding, q: QValue) =>
+        val aq = a.withQValue(q)
+        val bq = b.withQValue(q)
+        (aq.compare(bq)) must_== (aq.coding.compareToIgnoreCase(bq.coding))
     }
   }
 
