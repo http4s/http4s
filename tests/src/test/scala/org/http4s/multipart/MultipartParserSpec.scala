@@ -669,6 +669,44 @@ object MultipartParserSpec extends Specification {
       bodies.attempt.unsafeRunSync() must beRight("bar")
     }
 
+    "parse uneven input properly" in {
+      val unprocessed =
+        Stream
+          .segment(
+            List(
+              "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI\n",
+              "Content-Disposition: form-data; name=\"upload\"; filename=\"integration.txt\"\n",
+              """Content-Type: application/octet-stream
+                |Content-Transfer-Encoding: binary
+                |
+                |this is a test
+                |here's another test
+                |catch me if you can!
+                |
+                |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+                |Content-Disposition: form-data; name="foo"
+                |
+                |""".stripMargin,
+              """bar
+                |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            ).map(_.replaceAllLiterally("\n", "\r\n"))
+              .map(str => Segment.chunk(Chunk.bytes(str.getBytes)))
+              .foldLeft(Segment.empty[Byte])(_ ++ _)
+          )
+          .covary[IO]
+
+      val results = unprocessed.through(MultipartParser.parseStreamed(boundary))
+      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+      val bodies = multipartMaterialized
+        .parts(1)
+        .body
+        .through(asciiDecode)
+        .compile
+        .fold("")(_ ++ _)
+
+      bodies.attempt.unsafeRunSync() must beRight("bar")
+    }
+
     "produce the correct headers from a two part input" in {
       val unprocessedInput =
         """
