@@ -568,7 +568,7 @@ object MultipartParser {
       c: Chunk[Byte]
   ): (Int, Stream[F, Byte], Stream[F, Byte], Int) = {
     val ixx = i - currState
-    if (middleChunked || state == 0) {
+    if (middleChunked) {
       val (lchunk, rchunk) = c.splitAt(ixx)
       (
         currState,
