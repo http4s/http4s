@@ -5,7 +5,7 @@ inThisBuild(
   ))
 
 lazy val root = project.in(file("."))
-  .enablePlugins(GitVersioning)
+  .enablePlugins(GitVersioning, BuildInfoPlugin)
   .settings(
     sonatypeProfileName := "org.lyranthe",
     skip in publish := true,
@@ -29,11 +29,12 @@ lazy val root = project.in(file("."))
   .aggregate(`sbt-java-gen`, `java-runtime`)
 
 lazy val `sbt-java-gen` = project
-  .enablePlugins(GitVersioning)
+  .enablePlugins(GitVersioning, BuildInfoPlugin)
   .settings(
     publishTo := sonatypePublishTo.value,
     sbtPlugin := true,
     crossSbtVersions := List(sbtVersion.value, "0.13.17"),
+    buildInfoPackage := "org.lyranthe.fs2_grpc.buildinfo",
     addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
     libraryDependencies ++= List(
       "io.grpc"              % "grpc-core"       % "1.11.0",

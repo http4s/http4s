@@ -66,7 +66,7 @@ object Fs2GrpcPlugin extends AutoPlugin {
     libraryDependencies ++= List(
       "io.grpc"               % "grpc-core"             % scalapb.compiler.Version.grpcJavaVersion,
       "io.grpc"               % "grpc-stub"             % scalapb.compiler.Version.grpcJavaVersion,
-      "org.lyranthe.fs2-grpc" %% "java-runtime"         % "0.1.0-SNAPSHOT",
+      "org.lyranthe.fs2-grpc" %% "java-runtime"         % org.lyranthe.fs2_grpc.buildinfo.BuildInfo.version,
       "com.thesamet.scalapb"  %% "scalapb-runtime"      % scalapb.compiler.Version.scalapbVersion,
       "com.thesamet.scalapb"  %% "scalapb-runtime-grpc" % scalapb.compiler.Version.scalapbVersion
     )
