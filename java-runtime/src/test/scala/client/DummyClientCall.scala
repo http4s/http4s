@@ -19,5 +19,8 @@ class DummyClientCall extends ClientCall[String, Int] {
 
   override def halfClose(): Unit = ()
 
-  override def sendMessage(message: String): Unit = messagesSent += message
+  override def sendMessage(message: String): Unit = {
+    messagesSent += message
+    ()
+  }
 }

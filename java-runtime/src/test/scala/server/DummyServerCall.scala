@@ -12,6 +12,7 @@ class DummyServerCall extends ServerCall[String, Int] {
   override def isCancelled: Boolean = false
   override def sendMessage(message: Int): Unit = {
     messages += message
+    ()
   }
   override def sendHeaders(headers: Metadata): Unit = {
     ()
