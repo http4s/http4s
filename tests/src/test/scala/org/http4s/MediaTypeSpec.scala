@@ -2,8 +2,6 @@ package org.http4s
 
 import cats.kernel.laws.discipline.EqTests
 import org.http4s.testing.HttpCodecTests
-// import cats.implicits._
-// import org.http4s.testing._
 
 class MediaTypeSpec extends Http4sSpec {
 

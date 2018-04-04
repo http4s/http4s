@@ -73,6 +73,21 @@ sealed class MediaRange private[http4s] (
   }
 }
 
+private[http4s] trait MediaParser extends Rfc2616BasicRules { self: PbParser =>
+  def MediaRangeRule[A](builder: (String, String) => A): Rule1[A] = rule {
+    (("*/*" ~ push("*") ~ push("*")) |
+      (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
+      ("*" ~ push("*") ~ push("*"))) ~> (builder(_, _))
+  }
+
+  def MediaTypeExtension: Rule1[(String, String)] = rule {
+    ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
+      (s: String, s2: Option[String]) =>
+        (s, s2.getOrElse(""))
+    }
+  }
+}
+
 object MediaRange {
   val `*/*` = new MediaRange("*")
   val `application/*` = new MediaRange("application")
@@ -102,7 +117,7 @@ object MediaRange {
       def main = MediaRangeFull
     }.parse
 
-  private[http4s] trait MediaRangeParser extends Rfc2616BasicRules { self: PbParser =>
+  private[http4s] trait MediaRangeParser extends MediaParser { self: PbParser =>
     def MediaRangeFull: Rule1[MediaRange] = rule {
       MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
         (mr: MediaRange, ext: Option[Seq[(String, String)]]) =>
@@ -110,18 +125,7 @@ object MediaRange {
       }
     }
 
-    def MediaRangeDef: Rule1[MediaRange] = rule {
-      (("*/*" ~ push("*") ~ push("*")) |
-        (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-        ("*" ~ push("*") ~ push("*"))) ~> (getMediaRange(_, _))
-    }
-
-    def MediaTypeExtension: Rule1[(String, String)] = rule {
-      ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> {
-        (s: String, s2: Option[String]) =>
-          (s, s2.getOrElse(""))
-      }
-    }
+    def MediaRangeDef: Rule1[MediaRange] = MediaRangeRule[MediaRange](getMediaRange)
 
     private def getMediaRange(mainType: String, subType: String): MediaRange =
       if (subType === "*")
@@ -197,14 +201,6 @@ sealed class MediaType(
 }
 
 object MediaType {
-  // TODO error handling
-  implicit def fromKey(k: (String, String)): MediaType = new MediaType(k._1, k._2)
-  implicit def fromValue(v: MediaType): (String, String) =
-    (v.mainType.toLowerCase, v.subType.toLowerCase)
-
-  def unapply(mimeType: MediaType): Option[(String, String)] =
-    Some((mimeType.mainType, mimeType.subType))
-
   def forExtension(ext: String): Option[MediaType] = extensionMap.get(ext.toLowerCase)
 
   def multipart(subType: String, boundary: Option[String] = None): MediaType = {
@@ -219,6 +215,7 @@ object MediaType {
   }
 
   /////////////////////////// PREDEFINED MEDIA-TYPE DEFINITION ////////////////////////////
+  // Copied from the definitions on MimeDB
   val `text/plain`: MediaType = new MediaType(
     "text",
     "plain",
@@ -288,7 +285,7 @@ object MediaType {
     new MediaType("application", "hal+json", MimeDB.Compressible, MimeDB.Binary)
 
   val all: Map[(String, String), MediaType] = (`text/event-stream` :: MimeDB.all).map {
-    case m @ MediaType(main, secondary) => (main.toLowerCase, secondary.toLowerCase) -> m
+    case m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
   }.toMap
   val extensionMap: Map[String, MediaType] = MimeDB.all.flatMap {
     case m => m.fileExtensions.map(_ -> m)
@@ -302,7 +299,7 @@ object MediaType {
       def main = MediaTypeFull
     }.parse
 
-  private[http4s] trait MediaTypeParser extends MediaRange.MediaRangeParser {
+  private[http4s] trait MediaTypeParser extends MediaParser {
     def MediaTypeFull: Rule1[MediaType] = rule {
       MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
         (mr: MediaType, ext: Option[Seq[(String, String)]]) =>
@@ -310,11 +307,7 @@ object MediaType {
       }
     }
 
-    def MediaTypeDef: Rule1[MediaType] = rule {
-      (("*/*" ~ push("*") ~ push("*")) |
-        (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-        ("*" ~ push("*") ~ push("*"))) ~> (getMediaType(_, _))
-    }
+    def MediaTypeDef: Rule1[MediaType] = MediaRangeRule[MediaType](getMediaType)
 
     private def getMediaType(mainType: String, subType: String): MediaType =
       MediaType.all.getOrElse(

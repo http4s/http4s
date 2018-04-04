@@ -7,6 +7,7 @@ import scala.util.Success
 
 package object testing {
   // Media types used for testing
+  // Copied from the definitions on MimeDB
   val `text/css`: MediaType =
     new MediaType("text", "css", MimeDB.Compressible, MimeDB.NotBinary, List("css"))
   val `text/asp`: MediaType =
