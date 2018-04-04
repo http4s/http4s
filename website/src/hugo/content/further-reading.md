@@ -27,10 +27,10 @@ it helps to be familiar with its dependencies.
 * [Cats](https://typelevel.github.io/cats) provides typeclasses and a
   few core data types.
   * [Resources for Learners](https://typelevel.org/cats/resources_for_learners.html)
-* [cats-effect](https://github.com/typelevel/cats-effect/) is used to
+* [cats-effect](https://typelevel.github.io/cats-effect) is used to
   mark effectful code.
   * [An IO monad for cats](https://typelevel.org/blog/2017/05/02/io-monad-for-cats.html)
-* [FS2](https://github.com/functional-streams-for-scala/fs2) provides
+* [FS2](https://functional-streams-for-scala.github.io/fs2/) provides
   support for streaming.
   * [The Official Guide](https://github.com/functional-streams-for-scala/fs2/blob/series/0.10/docs/guide.md)
 * [Circe](https://circe.github.io/circe/) is the recommended library for JSON.
