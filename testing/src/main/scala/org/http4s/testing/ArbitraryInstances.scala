@@ -268,15 +268,8 @@ trait ArbitraryInstances {
   val http4sGenMediaRangeExtensions: Gen[Map[String, String]] =
     Gen.listOf(http4sGenMediaRangeExtension).map(_.toMap)
 
-  val http4sGenMediaType: Gen[MediaType] =
-    for {
-      mainType <- genToken
-      subType <- genToken
-      extensions <- arbitrary[Map[String, String]]
-    } yield new MediaType(mainType, subType, extensions = extensions)
-
   implicit val http4sArbitraryMediaType: Arbitrary[MediaType] =
-    Arbitrary(http4sGenMediaType)
+    Arbitrary(oneOf(MimeDB.all))
 
   implicit val http4sCogenMediaType: Cogen[MediaType] =
     Cogen[(String, String, Map[String, String])].contramap(m =>
