@@ -10,6 +10,7 @@ These materials are from third parties.  Some of the material may be
 dated, but is considered interesting enough to share as a supplement
 to the official documentation.
 
+* [HTTP applications are just a Kleisli function from a streaming request to a polymorphic effect of a streaming response. So what's the problem?](https://www.youtube.com/watch?v=urdtmx4h5LE) ([slides](https://rossabaker.github.io/boston-http4s/#2)) <small class="text-muted">(2018-03-20)</small> 
 * [Testing and Error Handling in http4s](https://medium.com/@albamus/testing-and-error-handling-in-http4s-2a05572e535d) <small class="text-muted">(2017-08-26)</small>
 * [Combining data from a database and a web service with Fetch](https://www.47deg.com/blog/fetch-doobie-http4s/) <small class="text-muted">(2017-01-19)</small>
 * [CRUD and error handling with Http4s](https://partialflow.wordpress.com/2016/10/18/crud-and-error-handling-with-http4s/) <small class="text-muted">(2016-10-18)</small>
