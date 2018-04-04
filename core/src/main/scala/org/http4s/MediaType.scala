@@ -209,27 +209,90 @@ object MediaType {
 
   def multipart(subType: String, boundary: Option[String] = None): MediaType = {
     val ext = boundary.map(b => Map("boundary" -> b)).getOrElse(Map.empty)
-    new MediaType("multipart", subType, MimeDB.Compressible, MimeDB.NotBinary, Nil, extensions = ext)
+    new MediaType(
+      "multipart",
+      subType,
+      MimeDB.Compressible,
+      MimeDB.NotBinary,
+      Nil,
+      extensions = ext)
   }
 
   /////////////////////////// PREDEFINED MEDIA-TYPE DEFINITION ////////////////////////////
-  val `text/plain`: MediaType = new MediaType("text", "plain", MimeDB.Compressible, MimeDB.NotBinary, List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
-  val `application/octet-stream`: MediaType = new MediaType("application", "octet-stream", MimeDB.Uncompressible, MimeDB.Binary, List("bin", "dms", "lrf", "mar", "so", "dist", "distz", "pkg", "bpk", "dump", "elc", "deploy", "exe", "dll", "deb", "dmg", "iso", "img", "msi", "msp", "msm", "buffer"))
-  val `application/x-www-form-urlencoded`: MediaType = new MediaType("application", "x-www-form-urlencoded", MimeDB.Compressible, MimeDB.NotBinary)
-  val `application/javascript`: MediaType = new MediaType("application", "javascript", MimeDB.Compressible, MimeDB.NotBinary, List("js", "mjs"))
-  val `application/xml`: MediaType = new MediaType("application", "xml", MimeDB.Compressible, MimeDB.NotBinary, List("xml", "xsl", "xsd", "rng"))
-  val `application/json`: MediaType = new MediaType("application", "json", MimeDB.Compressible, MimeDB.Binary, List("json", "map"))
-  val `text/html`: MediaType = new MediaType("text", "html", MimeDB.Compressible, MimeDB.NotBinary, List("html", "htm", "shtml"))
-  val `text/xml`: MediaType = new MediaType("text", "xml", MimeDB.Compressible, MimeDB.NotBinary, List("xml"))
-  val `image/png`: MediaType = new MediaType("image", "png", MimeDB.Uncompressible, MimeDB.Binary, List("png"))
+  val `text/plain`: MediaType = new MediaType(
+    "text",
+    "plain",
+    MimeDB.Compressible,
+    MimeDB.NotBinary,
+    List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
+  val `application/octet-stream`: MediaType = new MediaType(
+    "application",
+    "octet-stream",
+    MimeDB.Uncompressible,
+    MimeDB.Binary,
+    List(
+      "bin",
+      "dms",
+      "lrf",
+      "mar",
+      "so",
+      "dist",
+      "distz",
+      "pkg",
+      "bpk",
+      "dump",
+      "elc",
+      "deploy",
+      "exe",
+      "dll",
+      "deb",
+      "dmg",
+      "iso",
+      "img",
+      "msi",
+      "msp",
+      "msm",
+      "buffer")
+  )
+  val `application/x-www-form-urlencoded`: MediaType =
+    new MediaType("application", "x-www-form-urlencoded", MimeDB.Compressible, MimeDB.NotBinary)
+  val `application/javascript`: MediaType = new MediaType(
+    "application",
+    "javascript",
+    MimeDB.Compressible,
+    MimeDB.NotBinary,
+    List("js", "mjs"))
+  val `application/xml`: MediaType = new MediaType(
+    "application",
+    "xml",
+    MimeDB.Compressible,
+    MimeDB.NotBinary,
+    List("xml", "xsl", "xsd", "rng"))
+  val `application/json`: MediaType =
+    new MediaType("application", "json", MimeDB.Compressible, MimeDB.Binary, List("json", "map"))
+  val `text/html`: MediaType = new MediaType(
+    "text",
+    "html",
+    MimeDB.Compressible,
+    MimeDB.NotBinary,
+    List("html", "htm", "shtml"))
+  val `text/xml`: MediaType =
+    new MediaType("text", "xml", MimeDB.Compressible, MimeDB.NotBinary, List("xml"))
+  val `image/png`: MediaType =
+    new MediaType("image", "png", MimeDB.Uncompressible, MimeDB.Binary, List("png"))
 
   // Curiously text/event-stream isn't included in MimeDB
   val `text/event-stream` = new MediaType("text", "event-stream")
   // nor hal+json
-  val `application/hal+json` = new MediaType("application", "hal+json", MimeDB.Compressible, MimeDB.Binary)
+  val `application/hal+json` =
+    new MediaType("application", "hal+json", MimeDB.Compressible, MimeDB.Binary)
 
-  val all: Map[(String, String), MediaType] = (`text/event-stream` :: MimeDB.all).map { case m @ MediaType(main, secondary) => (main.toLowerCase, secondary.toLowerCase) -> m }.toMap
-  val extensionMap: Map[String, MediaType] = MimeDB.all.flatMap { case m => m.fileExtensions.map(_ -> m) }.toMap
+  val all: Map[(String, String), MediaType] = (`text/event-stream` :: MimeDB.all).map {
+    case m @ MediaType(main, secondary) => (main.toLowerCase, secondary.toLowerCase) -> m
+  }.toMap
+  val extensionMap: Map[String, MediaType] = MimeDB.all.flatMap {
+    case m => m.fileExtensions.map(_ -> m)
+  }.toMap
 
   /**
     * Parse a MediaType
@@ -239,25 +302,25 @@ object MediaType {
       def main = MediaTypeFull
     }.parse
 
-  private [http4s] trait MediaTypeParser extends MediaRange.MediaRangeParser {
-      def MediaTypeFull: Rule1[MediaType] = rule {
-        MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-          (mr: MediaType, ext: Option[Seq[(String, String)]]) =>
-            ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
-        }
+  private[http4s] trait MediaTypeParser extends MediaRange.MediaRangeParser {
+    def MediaTypeFull: Rule1[MediaType] = rule {
+      MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
+        (mr: MediaType, ext: Option[Seq[(String, String)]]) =>
+          ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
       }
-
-      def MediaTypeDef: Rule1[MediaType] = rule {
-        (("*/*" ~ push("*") ~ push("*")) |
-          (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-          ("*" ~ push("*") ~ push("*"))) ~> (getMediaType(_, _))
-      }
-
-      private def getMediaType(mainType: String, subType: String): MediaType =
-        MediaType.all.getOrElse(
-          (mainType.toLowerCase, subType.toLowerCase),
-          new MediaType(mainType.toLowerCase, subType.toLowerCase))
     }
+
+    def MediaTypeDef: Rule1[MediaType] = rule {
+      (("*/*" ~ push("*") ~ push("*")) |
+        (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
+        ("*" ~ push("*") ~ push("*"))) ~> (getMediaType(_, _))
+    }
+
+    private def getMediaType(mainType: String, subType: String): MediaType =
+      MediaType.all.getOrElse(
+        (mainType.toLowerCase, subType.toLowerCase),
+        new MediaType(mainType.toLowerCase, subType.toLowerCase))
+  }
 
   implicit val http4sInstancesForMediaType
     : Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] =
