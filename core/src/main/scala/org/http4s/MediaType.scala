@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import cats.{Order, Show}
+import cats.{Eq, Order, Show}
 import cats.implicits._
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
@@ -230,35 +230,36 @@ object MediaType {
 
   val all: Map[(String, String), MediaType] = (`text/event-stream` :: MimeDB.all).map { case m @ MediaType(main, secondary) => (main.toLowerCase, secondary.toLowerCase) -> m }.toMap
   val extensionMap: Map[String, MediaType] = MimeDB.all.flatMap { case m => m.fileExtensions.map(_ -> m) }.toMap
+
   /**
     * Parse a MediaType
     */
-  // def parse(s: String): ParseResult[MediaType] =
-  //   new Http4sParser[MediaType](s, "Invalid Media Type") with MediaTypeParser {
-  //     def main = MediaTypeFull
-  //   }.parse
-  //
-  // private [http4s] trait MediaTypeParser extends MediaRange.MediaRangeParser {
-  //     def MediaTypeFull: Rule1[MediaType] = rule {
-  //       MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
-  //         (mr: MediaType, ext: Option[Seq[(String, String)]]) =>
-  //           ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
-  //       }
-  //     }
-  //
-  //     def MediaTypeDef: Rule1[MediaType] = rule {
-  //       (("*/*" ~ push("*") ~ push("*")) |
-  //         (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
-  //         ("*" ~ push("*") ~ push("*"))) ~> (getMediaType(_, _))
-  //     }
-  //
-  //     private def getMediaType(mainType: String, subType: String): MediaType =
-  //       MediaType.all.getOrElse(
-  //         (mainType.toLowerCase, subType.toLowerCase),
-  //         new MediaType(mainType.toLowerCase, subType.toLowerCase))
-  //   }
+  def parse(s: String): ParseResult[MediaType] =
+    new Http4sParser[MediaType](s, "Invalid Media Type") with MediaTypeParser {
+      def main = MediaTypeFull
+    }.parse
 
-  /*implicit val http4sInstancesForMediaType
+  private [http4s] trait MediaTypeParser extends MediaRange.MediaRangeParser {
+      def MediaTypeFull: Rule1[MediaType] = rule {
+        MediaTypeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
+          (mr: MediaType, ext: Option[Seq[(String, String)]]) =>
+            ext.fold(mr)(ex => mr.withExtensions(ex.toMap))
+        }
+      }
+
+      def MediaTypeDef: Rule1[MediaType] = rule {
+        (("*/*" ~ push("*") ~ push("*")) |
+          (Token ~ "/" ~ (("*" ~ push("*")) | Token)) |
+          ("*" ~ push("*") ~ push("*"))) ~> (getMediaType(_, _))
+      }
+
+      private def getMediaType(mainType: String, subType: String): MediaType =
+        MediaType.all.getOrElse(
+          (mainType.toLowerCase, subType.toLowerCase),
+          new MediaType(mainType.toLowerCase, subType.toLowerCase))
+    }
+
+  implicit val http4sInstancesForMediaType
     : Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] =
     new Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] {
       override def show(s: MediaType): String = s.toString
@@ -271,6 +272,6 @@ object MediaType {
 
       override def eqv(x: MediaType, y: MediaType): Boolean =
         x.equals(y)
-    }*/
+    }
 
 }
