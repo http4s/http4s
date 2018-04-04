@@ -17,6 +17,20 @@ object MultipartParserSpec extends Specification {
     case c => c.toString
   }
 
+  def jumble(str: String): Stream[IO, Byte] = {
+    val rand = new scala.util.Random()
+
+    def jumbleAccum(s: String, acc: Stream[IO, Byte]): Stream[IO, Byte] =
+      if (s.length <= 1) {
+        acc ++ Stream.chunk(Chunk.bytes(s.getBytes()))
+      } else {
+        val (l, r) = s.splitAt(rand.nextInt(s.length - 1) + 1)
+        jumbleAccum(r, acc ++ Stream.chunk(Chunk.bytes(l.getBytes)))
+      }
+
+    jumbleAccum(str, Stream.empty)
+  }
+
   def unspool(str: String, limit: Int = Int.MaxValue): Stream[IO, Byte] =
     if (str.isEmpty) {
       Stream.empty
@@ -324,6 +338,79 @@ object MultipartParserSpec extends Specification {
         .fold("")(_ ++ _)
 
       bodies.attempt.unsafeRunSync() must beRight("bar")
+    }
+
+    "parse uneven input properly" in {
+      val unprocessed =
+        Stream
+          .segment(
+            List(
+              "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI\n",
+              "Content-Disposition: form-data; name=\"upload\"; filename=\"integration.txt\"\n",
+              """Content-Type: application/octet-stream
+                |Content-Transfer-Encoding: binary
+                |
+                |this is a test
+                |here's another test
+                |catch me if you can!
+                |
+                |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+                |Content-Disposition: form-data; name="foo"
+                |
+                |""".stripMargin,
+              """bar
+                |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            ).map(_.replaceAllLiterally("\n", "\r\n"))
+              .map(str => Segment.chunk(Chunk.bytes(str.getBytes)))
+              .foldLeft(Segment.empty[Byte])(_ ++ _)
+          )
+          .covary[IO]
+
+      val results = unprocessed.through(MultipartParser.parseStreamed(boundary))
+      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+      val bodies = multipartMaterialized
+        .parts(1)
+        .body
+        .through(asciiDecode)
+        .compile
+        .fold("")(_ ++ _)
+
+      bodies.attempt.unsafeRunSync() must beRight("bar")
+    }
+
+    Fragments.foreach(List.range(0, 100)) { count =>
+      s"parse randomized chunk length properly iteration #$count" in {
+
+        val unprocessedInput =
+          """
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!
+            |
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name="foo"
+            |
+            |bar
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin.replaceAllLiterally("\n", "\r\n")
+
+        val unprocessed = jumble(unprocessedInput)
+
+        val results = unprocessed.through(MultipartParser.parseStreamed(boundary))
+        val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+        val bodies = multipartMaterialized
+          .parts(1)
+          .body
+          .through(asciiDecode)
+          .compile
+          .fold("")(_ ++ _)
+
+        bodies.attempt.unsafeRunSync() must beRight("bar")
+      }
     }
 
     "produce the correct headers from a two part input" in {

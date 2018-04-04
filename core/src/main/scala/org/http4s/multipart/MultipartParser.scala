@@ -76,7 +76,6 @@ object MultipartParser {
     *
     */
   private def splitCompleteMatch[F[_]: Sync](
-      state: Int,
       middleChunked: Boolean,
       sti: Int,
       i: Int,
@@ -90,12 +89,6 @@ object MultipartParser {
         //Emit the partial match as well
         acc ++ carry ++ Stream.chunk(c.take(i - sti)),
         Stream.chunk(c.drop(i))) //Emit after the match
-    } else if (state == 0) {
-      (
-        sti,
-        //Ignore the partial match (carry)
-        acc ++ Stream.chunk(c.take(i - sti)),
-        Stream.chunk(c.drop(i)))
     } else {
       (
         sti,
@@ -118,8 +111,7 @@ object MultipartParser {
     * add it to the carry over
     *
     */
-  def splitPartialMatch[F[_]: Sync](
-      state: Int,
+  private def splitPartialMatch[F[_]: Sync](
       middleChunked: Boolean,
       currState: Int,
       i: Int,
@@ -128,7 +120,7 @@ object MultipartParser {
       c: Chunk[Byte]
   ): (Int, Stream[F, Byte], Stream[F, Byte]) = {
     val ixx = i - currState
-    if (middleChunked || state == 0) {
+    if (middleChunked) {
       val (lchunk, rchunk) = c.splitAt(ixx)
       (currState, acc ++ carry ++ Stream.chunk(lchunk), Stream.chunk(rchunk))
     } else {
@@ -150,7 +142,7 @@ object MultipartParser {
     * from the subsequent split stream).
     *
     */
-  def splitOnChunk[F[_]: Sync](
+  private def splitOnChunk[F[_]: Sync](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -159,25 +151,28 @@ object MultipartParser {
     var i = 0
     var currState = state
     val len = values.length
-    var middleChunked = false
     while (currState < len && i < c.size) {
       if (c(i) == values(currState)) {
         currState += 1
       } else if (c(i) == values(0)) {
-        middleChunked = true
         currState = 1
       } else {
         currState = 0
       }
       i += 1
     }
+    //It will only be zero if
+    //the chunk matches from the very beginning,
+    //since currstate can never be greater than
+    //(i + state).
+    val middleChunked = i + state - currState > 0
 
     if (currState == 0) {
       (0, acc ++ carry ++ Stream.chunk(c), Stream.empty)
     } else if (currState == len) {
-      splitCompleteMatch(state, middleChunked, currState, i, acc, carry, c)
+      splitCompleteMatch(middleChunked, currState, i, acc, carry, c)
     } else {
-      splitPartialMatch(state, middleChunked, currState, i, acc, carry, c)
+      splitPartialMatch(middleChunked, currState, i, acc, carry, c)
     }
   }
 
@@ -394,13 +389,6 @@ object MultipartParser {
         //Emit after the match
         Stream.chunk(c.drop(i)),
         state + i - sti)
-    } else if (state == 0) {
-      (
-        sti,
-        //Ignore the partial match (carry)
-        acc ++ Stream.chunk(c.take(i - sti)),
-        Stream.chunk(c.drop(i)),
-        i - sti)
     } else {
       (
         sti,
@@ -424,7 +412,7 @@ object MultipartParser {
     * add it to the carry over
     *
     */
-  def splitPartialLimited[F[_]: Sync](
+  private def splitPartialLimited[F[_]: Sync](
       state: Int,
       middleChunked: Boolean,
       currState: Int,
@@ -434,7 +422,7 @@ object MultipartParser {
       c: Chunk[Byte]
   ): (Int, Stream[F, Byte], Stream[F, Byte], Int) = {
     val ixx = i - currState
-    if (middleChunked || state == 0) {
+    if (middleChunked) {
       val (lchunk, rchunk) = c.splitAt(ixx)
       (
         currState,
@@ -447,7 +435,7 @@ object MultipartParser {
     }
   }
 
-  def splitOnChunkLimited[F[_]: Sync](
+  private def splitOnChunkLimited[F[_]: Sync](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte],
@@ -456,18 +444,22 @@ object MultipartParser {
     var i = 0
     var currState = state
     val len = values.length
-    var middleChunked = false
     while (currState < len && i < c.size) {
       if (c(i) == values(currState)) {
         currState += 1
       } else if (c(i) == values(0)) {
-        middleChunked = true
         currState = 1
       } else {
         currState = 0
       }
       i += 1
     }
+
+    //It will only be zero if
+    //the chunk matches from the very beginning,
+    //since currstate can never be greater than
+    //(i + state).
+    val middleChunked = i + state - currState > 0
 
     if (currState == 0) {
       (0, acc ++ carry ++ Stream.chunk(c), Stream.empty, i)
