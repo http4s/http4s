@@ -29,7 +29,7 @@ final class ManagedChannelBuilderOps[A <: ManagedChannelBuilder[A]](val builder:
     streamWithShutdown { ch =>
       F.delay {
         ch.shutdown()
-        if (!blocking(ch.awaitTermination(10, TimeUnit.SECONDS))) {
+        if (!blocking(ch.awaitTermination(30, TimeUnit.SECONDS))) {
           ch.shutdownNow()
           ()
         }
