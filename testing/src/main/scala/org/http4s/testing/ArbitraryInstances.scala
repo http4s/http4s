@@ -670,6 +670,13 @@ trait ArbitraryInstances {
     } yield Uri(scheme, authority, path, query, fragment)
   }
 
+
+  implicit val arbitraryLink: Arbitrary[Link] = Arbitrary {
+    for {
+      uri <- arbitraryUri.arbitrary
+    } yield Link(uri)
+  }
+
   // TODO This could be a lot more interesting.
   // See https://github.com/functional-streams-for-scala/fs2/blob/fd3d0428de1e71c10d1578f2893ee53336264ffe/core/shared/src/test/scala/fs2/TestUtil.scala#L42
   implicit def genEntityBody[F[_]]: Gen[Stream[Pure, Byte]] = Gen.sized { size =>

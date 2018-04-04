@@ -1,8 +1,9 @@
-package org.http4s.headers
-
-import org.http4s.MediaRange
+package org.http4s
+package headers
 
 class LinkSpec extends HeaderLaws {
+
+  checkAll(name="Link", headerLaws(Link))
 
   val link = """</feed>; rel="alternate"; type="text/*"; title="main"; rev="previous""""
 

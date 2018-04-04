@@ -9,7 +9,7 @@ import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
-import org.http4s.headers.{Date, Link, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.http4s.{headers => H, _}
 import org.specs2.specification.core.Fragment
 import scala.concurrent.duration._
@@ -412,20 +412,6 @@ class Http1ServerStageSpec extends Http4sSpec {
 
         val results = dropDate(ResponseParser.parseBuffer(buff))
         results._1 must_== InternalServerError
-      }
-
-      "Handle link header" in {
-        val linkHeader = Link(uri("/feed"))
-
-        val service = HttpService[IO] {
-          case req => IO.pure(Response(body = req.body).replaceAllHeaders(linkHeader))
-        }
-
-        val req = "GET /foo HTTP/1.1\r\n\r\n"
-
-        val buf = Await.result(runRequest(Seq(req), service), 5.seconds)
-        val (_, hdrs, _) = ResponseParser.apply(buf)
-        hdrs.find(_.name == Link.name) must beSome(linkHeader)
       }
     }
   }
