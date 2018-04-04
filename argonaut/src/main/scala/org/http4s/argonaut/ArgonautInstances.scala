@@ -30,10 +30,9 @@ trait ArgonautInstances {
   implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrettyParams[F](defaultPrettyParams)
 
-  def jsonEncoderWithPrettyParams[F[_]](prettyParams: PrettyParams)(
-      implicit A: Applicative[F]): EntityEncoder[F, Json] =
+  def jsonEncoderWithPrettyParams[F[_]](prettyParams: PrettyParams): EntityEncoder[F, Json] =
     EntityEncoder
-      .stringEncoder(A, Charset.`UTF-8`)
+      .stringEncoder(Charset.`UTF-8`)
       .contramap[Json](prettyParams.pretty)
       .withContentType(`Content-Type`(MediaType.`application/json`, Charset.`UTF-8`))
 

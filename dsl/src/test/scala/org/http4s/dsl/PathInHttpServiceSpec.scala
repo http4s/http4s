@@ -3,6 +3,8 @@ package dsl
 
 import cats.data.Validated._
 import cats.effect.IO
+import cats.instances.string._
+import cats.syntax.foldable._
 import org.http4s.dsl.io._
 
 object PathInHttpServiceSpec extends Http4sSpec {
@@ -51,12 +53,12 @@ object PathInHttpServiceSpec extends Http4sSpec {
       Ok(s"counter: $c")
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
-        errors => BadRequest(errors.map(_.sanitized).mkString(",")),
+        errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")),
         vc => Ok(s"counter: $vc")
       )
     case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
-        case Some(Invalid(errors)) => BadRequest(errors.map(_.sanitized).mkString(","))
+        case Some(Invalid(errors)) => BadRequest(errors.map(_.sanitized).mkString_("", ",", ""))
         case Some(Valid(cv)) => Ok(s"counter: $cv")
         case None => Ok("no counter")
       }

@@ -67,12 +67,12 @@ class OAuthTest extends Specification {
   "RFC 5849 example" should {
 
     implicit def urlFormEncoder: EntityEncoder[IO, UrlForm] =
-      UrlForm.entityEncoder(implicitly, Charset.`US-ASCII`)
+      UrlForm.entityEncoder(Charset.`US-ASCII`)
 
     val Right(uri) = Uri.fromString("http://example.com/request?b5=%3D%253D&a3=a&c%40=&a2=r%20b")
     val Right(body) = UrlForm.decodeString(Charset.`US-ASCII`)("c2&a3=2+q")
 
-    val req = Request[IO](method = Method.POST, uri = uri).withBody(body).unsafeRunSync()
+    val req = Request[IO](method = Method.POST, uri = uri).withEntity(body)
 
     "Collect proper params, pg 22" in {
       oauth1.getUserParams(req).unsafeRunSync()._2.sorted must_== Seq(

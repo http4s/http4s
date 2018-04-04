@@ -137,7 +137,6 @@ Extra headers can be added using `putHeaders`, for example to specify cache poli
 import org.http4s.headers.`Cache-Control`
 import org.http4s.CacheDirective.`no-cache`
 import cats.data.NonEmptyList
-import org.http4s.util.nonEmptyList
 ```
 
 ```tut
@@ -158,13 +157,13 @@ http4s has special support for Cookie headers using the `Cookie` type to add
 and invalidate cookies. Adding a cookie will generate the correct `Set-Cookie` header:
 
 ```tut
-Ok("Ok response.").map(_.addCookie(Cookie("foo", "bar"))).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar"))).unsafeRunSync.headers
 ```
 
 `Cookie` can be further customized to set, e.g., expiration, the secure flag, httpOnly, flag, etc
 
 ```tut
-Ok("Ok response.").map(_.addCookie(Cookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
+Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar", expires = Some(HttpDate.now), httpOnly = true, secure = true))).unsafeRunSync.headers
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
@@ -180,7 +179,7 @@ Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync.headers
 
 Most status codes take an argument as a body.  In http4s, `Request[F]`
 and `Response[F]` bodies are represented as a
-`fs2.Stream[F, ByteVector]`.  It's also considered good
+`fs2.Stream[F, Byte]`.  It's also considered good
 HTTP manners to provide a `Content-Type` and, where known in advance,
 `Content-Length` header in one's responses.
 
@@ -214,14 +213,17 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-You can seamlessly respond with a `Future` of any type that has an
-`EntityEncoder`.
+You can respond with a `Future` of any type that has an
+`EntityEncoder` by lifting it into IO or any `F[_]` that suspends future. 
+Note: unlike IO, wrapping a side effect in Future does not
+suspend it, and the resulting expression would still be side 
+effectful, unless we wrap it in IO.
 
 ```tut
-val io = Ok(Future {
+val io = Ok(IO.fromFuture(IO(Future {
   println("I run when the future is constructed.")
   "Greetings from the future!"
-})
+})))
 io.unsafeRunSync
 ```
 
@@ -244,7 +246,7 @@ in its HTTP envelope, and thus has what it needs to calculate a
 #### Streaming bodies
 
 Streaming bodies are supported by returning a `fs2.Stream`.
-Like `Future`s and `IO`s, the stream may be of any type that has an
+Like `IO`, the stream may be of any type that has an
 `EntityEncoder`.
 
 An intro to `Stream` is out of scope, but we can glimpse the

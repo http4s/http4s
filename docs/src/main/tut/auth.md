@@ -133,7 +133,7 @@ val logIn: Kleisli[IO, Request[IO], Response[IO]] = Kleisli({ request =>
       Forbidden(error)
     case Right(user) => {
       val message = crypto.signToken(user.id.toString, clock.millis.toString)
-      Ok("Logged in!").map(_.addCookie(Cookie("authcookie", message)))
+      Ok("Logged in!").map(_.addCookie(ResponseCookie("authcookie", message)))
     }
   })
 })
@@ -180,5 +180,5 @@ The [TSec] project provides an authentication and authorization module
 
 [service]: ../service
 [SPA]: https://en.wikipedia.org/wiki/Single-page_application
-[ADT]: http://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html
+[ADT]: https://typelevel.org/blog/2014/11/10/why_is_adt_pattern_matching_allowed.html
 [TSec]: https://jmcardon.github.io/tsec/

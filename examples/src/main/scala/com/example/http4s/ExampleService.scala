@@ -45,10 +45,6 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
         // EntityEncoder allows for easy conversion of types to a response body
         Ok("pong")
 
-      case GET -> Root / "future" =>
-        // EntityEncoder allows rendering asynchronous results as well
-        Ok(Future("Hello from the future!"))
-
       case GET -> Root / "streaming" =>
         // It's also easy to stream responses to clients
         Ok(dataStream(100))

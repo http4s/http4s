@@ -10,7 +10,6 @@ import org.http4s.blazecore.SeqTestHead
 import org.http4s.client.blaze.bits.DefaultUserAgent
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scodec.bits.ByteVector
 
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Http4sSpec {
@@ -77,7 +76,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
     h.stageShutdown()
     val buff = Await.result(h.result, 10.seconds)
-    val request = new String(ByteVector(buff).toArray, StandardCharsets.ISO_8859_1)
+    val request = new String(buff.array(), StandardCharsets.ISO_8859_1)
     (request, result)
   }
 

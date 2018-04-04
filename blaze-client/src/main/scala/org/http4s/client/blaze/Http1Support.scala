@@ -30,7 +30,7 @@ private[blaze] object Http1Support {
 final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Effect[F]) {
 
   private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
-  private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
+  private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group)
 
 ////////////////////////////////////////////////////
 

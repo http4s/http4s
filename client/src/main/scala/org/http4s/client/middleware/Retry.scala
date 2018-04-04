@@ -3,15 +3,13 @@ package client
 package middleware
 
 import cats.data.Kleisli
-import cats.effect.Effect
+import cats.effect.{Effect, Timer}
 import cats.implicits._
-import fs2._
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.http4s.Status._
 import org.http4s.headers.`Retry-After`
 import org.log4s.getLogger
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.math.{min, pow, random}
 
@@ -19,10 +17,8 @@ object Retry {
 
   private[this] val logger = getLogger
 
-  def apply[F[_]](policy: RetryPolicy[F])(client: Client[F])(
-      implicit F: Effect[F],
-      scheduler: Scheduler,
-      executionContext: ExecutionContext): Client[F] = {
+  def apply[F[_]](policy: RetryPolicy[F])(
+      client: Client[F])(implicit F: Effect[F], T: Timer[F]): Client[F] = {
     def prepareLoop(req: Request[F], attempts: Int): F[DisposableResponse[F]] =
       client.open(req).attempt.flatMap {
         // TODO fs2 port - Reimplement request isIdempotent in some form
@@ -30,7 +26,7 @@ object Retry {
           policy(req, Right(dr.response), attempts) match {
             case Some(duration) =>
               logger.info(
-                s"Request ${req} has failed on attempt #${attempts} with reason ${response.status}. Retrying after ${duration}.")
+                s"Request $req has failed on attempt #$attempts with reason ${response.status}. Retrying after $duration.")
               dr.dispose.flatMap(_ =>
                 nextAttempt(req, attempts, duration, response.headers.get(`Retry-After`)))
             case None =>
@@ -52,21 +48,18 @@ object Retry {
         req: Request[F],
         attempts: Int,
         duration: FiniteDuration,
-        retryHeader: Option[`Retry-After`])(
-        implicit F: Effect[F],
-        executionContext: ExecutionContext): F[DisposableResponse[F]] = {
-      val headerDuration = retryHeader
-        .map { h =>
-          h.retry match {
-            case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
-            case Right(secs) => secs
+        retryHeader: Option[`Retry-After`]): F[DisposableResponse[F]] = {
+      val headerDuration =
+        retryHeader
+          .map { h =>
+            h.retry match {
+              case Left(d) => Instant.now().until(d.toInstant, ChronoUnit.SECONDS)
+              case Right(secs) => secs
+            }
           }
-        }
-        .getOrElse(0L)
-      val sleepDuration = Math.max(headerDuration, duration.length).seconds
-      scheduler.sleep_[F](sleepDuration).compile.drain *> prepareLoop(
-        req.withEmptyBody,
-        attempts + 1)
+          .getOrElse(0L)
+      val sleepDuration = headerDuration.seconds.max(duration)
+      T.sleep(sleepDuration) *> prepareLoop(req.withEmptyBody, attempts + 1)
     }
 
     client.copy(open = Kleisli(prepareLoop(_, 1)))

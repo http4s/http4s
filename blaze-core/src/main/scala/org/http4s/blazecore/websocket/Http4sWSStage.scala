@@ -8,7 +8,6 @@ import fs2._
 import fs2.async.mutable.Signal
 import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
-import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.websocket.WebsocketBits._
 
@@ -118,7 +117,7 @@ object Http4sWSStage {
     async
       .promise[IO, Either[Throwable, A]]
       .flatMap { p =>
-        F.runAsync(F.shift *> fa) { r =>
+        F.runAsync(Async.shift(ec) *> fa) { r =>
           p.complete(r)
         } *> p.get.rethrow
       }

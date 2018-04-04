@@ -12,7 +12,7 @@ private[blaze] final class Http1ServerParser[F[_]](
     logger: Logger,
     maxRequestLine: Int,
     maxHeadersLen: Int)(implicit F: Effect[F])
-    extends blaze.http.http_parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2 * 1024) {
+    extends blaze.http.parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2 * 1024) {
 
   private var uri: String = _
   private var method: String = _

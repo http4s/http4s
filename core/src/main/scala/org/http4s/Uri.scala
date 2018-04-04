@@ -130,7 +130,8 @@ object Uri extends UriFunctions {
             .fromString(s)
             .fold(
               e => c.abort(c.enclosingPosition, e.details),
-              qValue => q"_root_.org.http4s.Uri.fromString($s).fold(throw _, identity)"
+              qValue =>
+                q"_root_.org.http4s.Uri.fromString($s).fold(throw _, _root_.scala.Predef.identity)"
             )
         case _ =>
           c.abort(
@@ -260,6 +261,8 @@ object Uri extends UriFunctions {
   object RegName { def apply(name: String): RegName = new RegName(name.ci) }
   object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
+
+  implicit val eqInstance: Eq[Uri] = Eq.fromUniversalEquals
 }
 
 trait UriFunctions {

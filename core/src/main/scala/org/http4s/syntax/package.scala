@@ -9,6 +9,7 @@ package object syntax {
   object effectResponse extends EffectResponseSyntax
   object kleisli extends KleisliSyntax
   object literals extends LiteralsSyntax
+  @deprecated("Use cats.foldable._", "0.18.5")
   object nonEmptyList extends NonEmptyListSyntax
   object string extends StringSyntax
 }

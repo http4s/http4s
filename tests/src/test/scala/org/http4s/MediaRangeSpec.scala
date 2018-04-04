@@ -1,6 +1,7 @@
 package org.http4s
 
-import cats.kernel.laws.discipline.EqTests
+import cats.kernel.laws.discipline.OrderTests
+import cats.implicits._
 import org.http4s.testing.HttpCodecTests
 
 class MediaRangeSpec extends Http4sSpec {
@@ -41,6 +42,6 @@ class MediaRangeSpec extends Http4sSpec {
     }
   }
 
-  checkAll("Eq[MediaRange]", EqTests[MediaRange].eqv)
+  checkAll("Order[MediaRange]", OrderTests[MediaRange].order)
   checkAll("HttpCodec[MediaRange]", HttpCodecTests[MediaRange].httpCodec)
 }

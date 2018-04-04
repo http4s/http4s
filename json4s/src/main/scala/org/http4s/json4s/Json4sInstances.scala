@@ -46,9 +46,9 @@ trait Json4sInstances[J] {
 
   protected def jsonMethods: JsonMethods[J]
 
-  implicit def jsonEncoder[F[_], A <: JValue](implicit F: Applicative[F]): EntityEncoder[F, A] =
+  implicit def jsonEncoder[F[_], A <: JValue]: EntityEncoder[F, A] =
     EntityEncoder
-      .stringEncoder(F, Charset.`UTF-8`)
+      .stringEncoder(Charset.`UTF-8`)
       .contramap[A] { json =>
         // TODO naive implementation materializes to a String.
         // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
