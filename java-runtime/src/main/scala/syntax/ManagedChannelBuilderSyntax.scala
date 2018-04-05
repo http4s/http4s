@@ -7,7 +7,7 @@ import fs2._
 import scala.concurrent._
 
 trait ManagedChannelBuilderSyntax {
-  implicit final def fs2GrpcClientSyntaxManagedChannelBuilder[A <: ManagedChannelBuilder[A]](
+  implicit final def fs2GrpcSyntaxManagedChannelBuilder[A <: ManagedChannelBuilder[A]](
       builder: ManagedChannelBuilder[A]): ManagedChannelBuilderOps[A] = new ManagedChannelBuilderOps[A](builder)
 }
 
