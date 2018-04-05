@@ -1,7 +1,6 @@
 package org.http4s.client.impl
 
 import cats._
-import cats.implicits._
 import org.http4s._
 import org.http4s.headers.`Content-Length`
 
@@ -23,14 +22,12 @@ trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
       implicit F: Monad[F],
       w: EntityEncoder[F, A]): F[Request[F]] = {
     val h = w.headers ++ headers
-    w.toEntity(body).flatMap {
-      case Entity(proc, len) =>
-        val headers = len
-          .map { l =>
-            `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
-          }
-          .getOrElse(h)
-        F.pure(Request(method = method, uri = uri, headers = headers, body = proc))
-    }
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Request(method = method, uri = uri, headers = newHeaders, body = entity.body))
   }
 }

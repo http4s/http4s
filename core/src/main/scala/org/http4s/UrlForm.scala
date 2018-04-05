@@ -85,8 +85,7 @@ object UrlForm {
     apply(values: _*)
 
   implicit def entityEncoder[F[_]](
-      implicit F: Applicative[F],
-      charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
+      implicit charset: Charset = DefaultCharset): EntityEncoder[F, UrlForm] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))

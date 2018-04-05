@@ -3,17 +3,16 @@ package multipart
 
 import java.nio.charset.StandardCharsets
 
-import cats.effect.Sync
 import fs2._
 import org.http4s.util._
 
-private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Multipart[F]] {
+private[http4s] class MultipartEncoder[F[_]] extends EntityEncoder[F, Multipart[F]] {
 
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
-  def toEntity(mp: Multipart[F]): F[Entity[F]] =
-    Sync[F].delay(Entity(renderParts(mp.boundary)(mp.parts), None))
+  def toEntity(mp: Multipart[F]): Entity[F] =
+    Entity(renderParts(mp.boundary)(mp.parts), None)
 
   val dash: String = "--"
 
@@ -59,12 +58,14 @@ private[http4s] class MultipartEncoder[F[_]: Sync] extends EntityEncoder[F, Mult
       part.body
 
   def renderParts(boundary: Boundary)(parts: Vector[Part[F]]): Stream[F, Byte] =
-    parts.tail
-      .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
-        acc ++
-          renderPart(
-            Segment.array(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(
-            part)
-      } ++ Stream.segment(end(boundary))
+    if (parts.isEmpty) {
+      Stream.empty.covary[F]
+    } else {
+      parts.tail
+        .foldLeft(renderPart(start(boundary))(parts.head)) { (acc, part) =>
+          acc ++
+            renderPart(Segment.array(encapsulationWithoutBody(boundary).getBytes(StandardCharsets.UTF_8)))(part)
+        } ++ Stream.segment(end(boundary))
+    }
 
 }

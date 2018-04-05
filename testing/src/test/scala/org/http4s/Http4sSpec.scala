@@ -68,8 +68,9 @@ trait Http4sSpec
 
   def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): String =
     Stream
-      .eval(W.toEntity(a))
-      .flatMap { case Entity(body, _) => body }
+      .emit(W.toEntity(a))
+      .covary[IO]
+      .flatMap(_.body)
       .through(utf8Decode)
       .foldMonoid
       .compile
@@ -77,10 +78,11 @@ trait Http4sSpec
       .map(_.getOrElse(""))
       .unsafeRunSync
 
-  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
+  def writeToChunk[A](a: A)(implicit W: EntityEncoder[IO, A]): Chunk[Byte] =
     Stream
-      .eval(W.toEntity(a))
-      .flatMap { case Entity(body, _) => body }
+      .emit(W.toEntity(a))
+      .covary[IO]
+      .flatMap(_.body)
       .bufferAll
       .chunks
       .compile

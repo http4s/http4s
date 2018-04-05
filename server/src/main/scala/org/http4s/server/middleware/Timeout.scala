@@ -104,6 +104,7 @@ object Timeout {
     */
   def apply[F[_]](timeout: FiniteDuration)(
       service: HttpService[F])(implicit F: Concurrent[F], T: Timer[F]): HttpService[F] =
-    apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(
-      service)
+    apply(
+      timeout,
+      Response[F](Status.InternalServerError).withEntity("The service timed out.").pure[F])(service)
 }

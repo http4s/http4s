@@ -261,6 +261,8 @@ object Uri extends UriFunctions {
   object RegName { def apply(name: String): RegName = new RegName(name.ci) }
   object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
+
+  implicit val eqInstance: Eq[Uri] = Eq.fromUniversalEquals
 }
 
 trait UriFunctions {

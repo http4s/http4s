@@ -252,10 +252,21 @@ object Http4sPlugin extends AutoPlugin {
       case (m, None) => m
     }
 
+  def addAlpnPath(attList: Keys.Classpath): Seq[String] = {
+    for {
+      file <- attList.map(_.data)
+      path = file.getAbsolutePath if path.contains("jetty") && path.contains("alpn-boot")
+    } yield {
+      println(s"Adding Alpn classes to boot classpath: $path")
+      "-Xbootclasspath/p:" + path
+    }
+  }
+
+
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.39"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.12"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.2"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M3"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
@@ -270,7 +281,6 @@ object Http4sPlugin extends AutoPlugin {
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.3"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
-  lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.0"
@@ -288,13 +298,14 @@ object Http4sPlugin extends AutoPlugin {
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.2.0"
+  lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
-  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
-  lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
+  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.0"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.3"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision

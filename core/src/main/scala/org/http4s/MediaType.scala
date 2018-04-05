@@ -18,11 +18,8 @@
  */
 package org.http4s
 
-import cats.{Eq, Show}
-import cats.instances.char._
-import cats.instances.map._
-import cats.instances.string._
-import cats.syntax.eq._
+import cats.{Order, Show}
+import cats.implicits._
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
@@ -135,8 +132,8 @@ object MediaRange {
   }
 
   implicit val http4sInstancesForMediaRange
-    : Show[MediaRange] with HttpCodec[MediaRange] with Eq[MediaRange] =
-    new Show[MediaRange] with HttpCodec[MediaRange] with Eq[MediaRange] {
+    : Show[MediaRange] with HttpCodec[MediaRange] with Order[MediaRange] =
+    new Show[MediaRange] with HttpCodec[MediaRange] with Order[MediaRange] {
       override def show(s: MediaRange): String = s.toString
 
       override def parse(s: String): ParseResult[MediaRange] =
@@ -145,10 +142,15 @@ object MediaRange {
       override def render(writer: Writer, range: MediaRange): writer.type =
         range.render(writer)
 
-      override def eqv(x: MediaRange, y: MediaRange): Boolean =
-        x.equals(y)
+      override def compare(x: MediaRange, y: MediaRange): Int = {
+        def orderedSubtype(a: MediaRange) = a match {
+          case mt: MediaType => mt.subType
+          case _ => ""
+        }
+        def f(a: MediaRange) = (a.mainType, orderedSubtype(a), a.extensions.toVector.sortBy(_._1))
+        Order[(String, String, Vector[(String, String)])].compare(f(x), f(y))
+      }
     }
-
 }
 
 sealed class MediaType(

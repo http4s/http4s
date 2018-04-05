@@ -18,7 +18,8 @@ import cats.implicits._
 import io.circe._
 import io.circe.syntax._
 import io.circe.generic.semiauto._
-import cats.effect._, org.http4s._, org.http4s.dsl.io._
+import cats.effect._
+import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 
@@ -33,9 +34,9 @@ def service[F[_]](repo: UserRepo[F])(
       implicit F: Effect[F]
 ): HttpService[F] = HttpService[F] {
   case GET -> Root / "user" / id =>
-    repo.find(id).flatMap {
-      case Some(user) => Response(status = Status.Ok).withBody(user.asJson)
-      case None       => F.pure(Response(status = Status.NotFound))
+    repo.find(id).map {
+      case Some(user) => Response(status = Status.Ok).withEntity(user.asJson)
+      case None       => Response(status = Status.NotFound)
     }
 }
 ```

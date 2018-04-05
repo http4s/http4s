@@ -49,6 +49,7 @@ package object server {
   type SSLBits = SSLConfig
 
   object AuthMiddleware {
+
     def apply[F[_]: Monad, T](
         authUser: Kleisli[OptionT[F, ?], Request[F], T]
     ): AuthMiddleware[F, T] =

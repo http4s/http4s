@@ -3,10 +3,12 @@ package circe.test // Get out of circe package so we can import custom instances
 
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
+import cats.syntax.applicative._
 import io.circe._
 import io.circe.syntax._
 import io.circe.testing.instances._
 import java.nio.charset.StandardCharsets
+import cats.data.NonEmptyList
 import org.http4s.Status.Ok
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
@@ -29,11 +31,17 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   implicit val FooEncoder: Encoder[Foo] =
     Encoder.forProduct1("bar")(foo => foo.bar)
 
+  sealed case class Bar(a: Int, b: String)
+  implicit val barDecoder: Decoder[Bar] =
+    Decoder.forProduct2("a", "b")(Bar.apply)
+  implicit val barEncoder: Encoder[Bar] =
+    Encoder.forProduct2("a", "b")(bar => (bar.a, bar.b))
+
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
     "have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== Some(
+      jsonEncoder[IO].headers.get(`Content-Type`) must_== Some(
         `Content-Type`(MediaType.`application/json`))
     }
 
@@ -87,10 +95,12 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
       def getBody(body: EntityBody[IO]): Array[Byte] = body.compile.toVector.unsafeRunSync.toArray
-      val req = Request[IO]().withBody(Json.fromDoubleOrNull(157)).unsafeRunSync
+      val req = Request[IO]().withEntity(Json.fromDoubleOrNull(157))
       val body = req
         .decode { json: Json =>
-          Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
+          Response[IO](Ok)
+            .withEntity(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)
+            .pure[IO]
         }
         .unsafeRunSync
         .body
@@ -100,9 +110,10 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
-      val result = jsonOf[IO, Foo].decode(
-        Request[IO]().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).unsafeRunSync,
-        strict = true)
+      val result = jsonOf[IO, Foo]
+        .decode(
+          Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
+          strict = true)
       result.value.unsafeRunSync must_== Right(Foo(42))
     }
 
@@ -113,8 +124,27 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
         val result =
-          jsonOf[IO, Umlaut].decode(Request[IO]().withBody(json).unsafeRunSync, strict = true)
+          jsonOf[IO, Umlaut].decode(Request[IO]().withEntity(json), strict = true)
         result.value.unsafeRunSync must_== Right(Umlaut(wort))
+      }
+    }
+  }
+
+  "accumulatingJsonOf" should {
+    "decode JSON from a Circe decoder" in {
+      val result = accumulatingJsonOf[IO, Foo]
+        .decode(
+          Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42))),
+          strict = true)
+      result.value.unsafeRunSync must_== Right(Foo(42))
+    }
+
+    "return an InvalidMessageBodyFailure with a list of failures on invalid JSON messages" in {
+      val json = Json.obj("a" -> Json.fromString("sup"), "b" -> Json.fromInt(42))
+      val result = accumulatingJsonOf[IO, Bar]
+        .decode(Request[IO]().withEntity(json), strict = true)
+      result.value.unsafeRunSync must beLike {
+        case Left(InvalidMessageBodyFailure(_, Some(DecodingFailures(NonEmptyList(_, _))))) => ok
       }
     }
   }
@@ -129,13 +159,13 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
   "Message[F].decodeJson[A]" should {
     "decode json from a message" in {
-      val req = Request[IO]().withBody(foo.asJson)
-      req.flatMap(_.decodeJson[Foo]) must returnValue(foo)
+      val req = Request[IO]().withEntity(foo.asJson)
+      req.decodeJson[Foo] must returnValue(foo)
     }
 
     "fail on invalid json" in {
-      val req = Request[IO]().withBody(List(13, 14).asJson)
-      req.flatMap(_.decodeJson[Foo]).attempt.unsafeRunSync must beLeft
+      val req = Request[IO]().withEntity(List(13, 14).asJson)
+      req.decodeJson[Foo].attempt.unsafeRunSync must beLeft
     }
   }
 

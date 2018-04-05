@@ -78,23 +78,28 @@ class ResponderSpec extends Specification {
     }
 
     "Set cookie from tuple" in {
-      resp.addCookie("foo", "bar").cookies must_== List(org.http4s.Cookie("foo", "bar"))
+      resp.addCookie("foo", "bar").cookies must_== List(ResponseCookie("foo", "bar"))
     }
 
     "Set cookie from Cookie" in {
-      resp.addCookie(Cookie("foo", "bar")).cookies must_== List(org.http4s.Cookie("foo", "bar"))
+      resp.addCookie(ResponseCookie("foo", "bar")).cookies must_== List(
+        ResponseCookie("foo", "bar"))
     }
 
     "Set multiple cookies" in {
-      resp.addCookie(Cookie("foo", "bar")).addCookie(Cookie("baz", "quux")).cookies must_== List(
-        org.http4s.Cookie("foo", "bar"),
-        org.http4s.Cookie("baz", "quux"))
+      resp
+        .addCookie(ResponseCookie("foo", "bar"))
+        .addCookie(ResponseCookie("baz", "quux"))
+        .cookies must_== List(
+        ResponseCookie("foo", "bar"),
+        ResponseCookie("baz", "quux")
+      )
     }
 
     "Remove cookie" in {
-      val cookie = Cookie("foo", "bar")
+      val cookie = ResponseCookie("foo", "bar")
       resp.removeCookie(cookie).cookies must_== List(
-        org.http4s.Cookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
+        ResponseCookie("foo", "", expires = Option(HttpDate.Epoch), maxAge = Some(0L))
       )
     }
   }

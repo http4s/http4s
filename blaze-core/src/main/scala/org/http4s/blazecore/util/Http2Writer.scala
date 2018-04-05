@@ -5,12 +5,12 @@ package util
 import cats.effect._
 import fs2._
 import org.http4s.blaze.http.Headers
-import org.http4s.blaze.http.http20.NodeMsg._
+import org.http4s.blaze.http.http2.{DataFrame, HeadersFrame, Priority, StreamFrame}
 import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent._
 
 private[http4s] class Http2Writer[F[_]](
-    tail: TailStage[Http2Msg],
+    tail: TailStage[StreamFrame],
     private var headers: Headers,
     protected val ec: ExecutionContext)(implicit protected val F: Effect[F])
     extends EntityBodyWriter[F] {
@@ -21,10 +21,11 @@ private[http4s] class Http2Writer[F[_]](
       else {
         val hs = headers
         headers = null
-        if (chunk.isEmpty) tail.channelWrite(HeadersFrame(None, endStream = true, hs))
+        if (chunk.isEmpty)
+          tail.channelWrite(HeadersFrame(Priority.NoPriority, endStream = true, hs))
         else
           tail.channelWrite(
-            HeadersFrame(None, endStream = false, hs)
+            HeadersFrame(Priority.NoPriority, endStream = false, hs)
               :: DataFrame(endStream = true, chunk.toByteBuffer)
               :: Nil)
       }
@@ -40,7 +41,7 @@ private[http4s] class Http2Writer[F[_]](
         val hs = headers
         headers = null
         tail.channelWrite(
-          HeadersFrame(None, endStream = false, hs)
+          HeadersFrame(Priority.NoPriority, endStream = false, hs)
             :: DataFrame(endStream = false, chunk.toByteBuffer)
             :: Nil)
       }

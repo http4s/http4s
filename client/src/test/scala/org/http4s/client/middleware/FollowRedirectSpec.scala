@@ -120,7 +120,7 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
     "Strip payload headers when switching to GET" in {
       // We could test others, and other scenarios, but this was a pain.
-      val req = Request[IO](PUT, uri("http://localhost/303")).withBody("foo")
+      val req = Request[IO](PUT, uri("http://localhost/303")).withEntity("foo")
       client
         .fetch(req) {
           case Ok(resp) =>
@@ -134,7 +134,7 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
       val statefulService = HttpService[IO] {
         case GET -> Root / "loop" =>
           val body = loopCounter.incrementAndGet.toString
-          MovedPermanently(Location(uri("/loop"))).flatMap(_.withBody(body))
+          MovedPermanently(Location(uri("/loop"))).map(_.withEntity(body))
       }
       val client = FollowRedirect(3)(Client.fromHttpService(statefulService))
       client.fetch(Request[IO](uri = uri("http://localhost/loop"))) {

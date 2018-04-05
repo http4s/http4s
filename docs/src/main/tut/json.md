@@ -193,6 +193,19 @@ Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
 POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
+If we are always decoding from JSON to a typed model, we can use
+the following one-liner:
+
+```tut:book
+implicit def decoders[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+```
+
+This creates an `EntityDecoder[A]` for every `A` that has a `Decoder` instance.
+
+However, be cautious when using this. Having this implicit
+in scope does mean that we would always try to decode HTTP entities
+from JSON (even if it is XML or plain text, for instance).
+
 ## Putting it all together
 
 ### A Hello world service
@@ -200,7 +213,7 @@ POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 Our hello world service will parse a `User` from a request and offer a
 proper greeting.
 
-```tut:silent
+```tut:silent:reset
 import cats.effect._
 
 import io.circe._
@@ -236,6 +249,8 @@ val blazeServer = builder.unsafeRunSync
 Now let's make a client for the service above:
 
 ```tut:silent
+import org.http4s.client._
+import org.http4s.client.dsl.io._
 import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._

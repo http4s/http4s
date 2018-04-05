@@ -30,7 +30,7 @@ trait Http4sMatchers extends Matchers with IOMatchers {
     }
 
   def haveHeaders(a: Headers): Matcher[Message[IO]] =
-    be(a) ^^ { m: Message[IO] =>
+    be_===(a) ^^ { m: Message[IO] =>
       m.headers.aka("the headers")
     }
 

@@ -25,13 +25,11 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      fs2Scodec,
       http4sWebsocket,
       log4s,
       macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
@@ -72,6 +70,16 @@ lazy val serverMetrics = libraryProject("server-metrics")
     )
   )
   .dependsOn(server % "compile;test->test")
+
+lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
+  .settings(
+    description := "Support for Prometheus Metrics on the server",
+    libraryDependencies ++= Seq(
+      prometheusClient,
+      prometheusHotspot
+    )
+  )
+  .dependsOn(server % "compile;test->test", theDsl)
 
 lazy val client = libraryProject("client")
   .settings(
@@ -367,12 +375,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
     macroParadiseSetting,
-    javaOptions in run ++= (managedClasspath in Runtime).map { attList =>
-      for {
-        file <- attList.map(_.data)
-        path = file.getAbsolutePath if path.contains("jetty.alpn")
-      } yield { s"-Xbootclasspath/p:${path}" }
-    }.value
+    javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -488,7 +491,7 @@ lazy val commonSettings = Seq(
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
       "*.js" | "*.swf" | "*.json" | "*.md" |
       "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-      "CNAME" | "_config.yml"
+      "CNAME" | "_config.yml" | "_redirects"
   )
 )
 
