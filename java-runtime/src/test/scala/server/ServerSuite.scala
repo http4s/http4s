@@ -1,4 +1,5 @@
-package org.lyranthe.fs2_grpc.java_runtime.server
+package org.lyranthe.fs2_grpc.java_runtime
+package server
 
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
@@ -48,6 +49,17 @@ object ServerSuite extends SimpleTestSuite {
       dummy.currentStatus.get.isOk)
   }
 
+  test("stream awaits termination of server") {
+    implicit val ec = TestContext()
+
+    import implicits._
+    val result = ServerBuilder.forPort(0).stream[IO].compile.last.unsafeToFuture()
+
+    ec.tick()
+    val server = result.value.get.get.get
+    assert(server.isTerminated)
+  }
+  
 //  test("single message to unaryToStreaming") {
 //    val dummy = new DummyServerCall
 //
