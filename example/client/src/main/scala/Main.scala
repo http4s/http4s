@@ -2,18 +2,14 @@ import cats.effect.IO
 import com.example.protos.hello._
 import fs2._
 import io.grpc._
-
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.lyranthe.fs2_grpc.java_runtime.implicits._
 
 object Main extends StreamApp[IO] {
   val managedChannelStream: Stream[IO, ManagedChannel] =
-    Stream.bracket(
-      IO(
-        ManagedChannelBuilder
-          .forAddress("127.0.0.1", 9999)
-          .usePlaintext()
-          .build()))(Stream.emit[ManagedChannel],
-                     (channel: ManagedChannel) => IO(channel.shutdown()))
+    ManagedChannelBuilder
+      .forAddress("127.0.0.1", 9999)
+      .usePlaintext()
+      .stream
 
   def runProgram(helloStub: GreeterFs2Grpc[IO]): IO[Unit] = {
     for {

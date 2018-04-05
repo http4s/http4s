@@ -51,6 +51,7 @@ lazy val `java-runtime` = project
     libraryDependencies ++= List(
       "co.fs2"        %% "fs2-core"         % "0.10.3",
       "io.grpc"       % "grpc-core"         % "1.11.0",
+      "io.grpc"       % "grpc-netty-shaded" % "1.11.0" % "test",
       "io.monix"      %% "minitest"         % "2.1.1" % "test",
       "org.typelevel" %% "cats-effect-laws" % "0.10" % "test"
     ),

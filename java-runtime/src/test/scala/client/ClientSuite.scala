@@ -1,9 +1,10 @@
-package org.lyranthe.fs2_grpc.java_runtime.client
+package org.lyranthe.fs2_grpc.java_runtime
+package client
 
 import cats.effect.IO
 import cats.effect.laws.util.TestContext
 import fs2._
-import io.grpc.{Metadata, Status, StatusRuntimeException}
+import io.grpc.{ManagedChannelBuilder, Metadata, Status, StatusRuntimeException}
 import minitest._
 
 import scala.util.Success
@@ -205,4 +206,14 @@ object ClientSuite extends SimpleTestSuite {
     assertEquals(dummy.requested, 4)
   }
 
+  test("stream awaits termination of managed channel") {
+    implicit val ec = TestContext()
+
+    import implicits._
+    val result = ManagedChannelBuilder.forAddress("127.0.0.1", 0).stream[IO].compile.last.unsafeToFuture()
+
+    ec.tick()
+    val channel = result.value.get.get.get
+    assert(channel.isTerminated)
+  }
 }
