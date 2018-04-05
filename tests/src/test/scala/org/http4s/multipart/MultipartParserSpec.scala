@@ -1,6 +1,8 @@
 package org.http4s
 package multipart
 
+import java.nio.charset.StandardCharsets
+
 import cats.effect._
 import fs2._
 import org.http4s.headers._
@@ -31,14 +33,17 @@ object MultipartParserSpec extends Specification {
     jumbleAccum(str, Stream.empty)
   }
 
-  def unspool(str: String, limit: Int = Int.MaxValue): Stream[IO, Byte] =
+  def unspool(
+      str: String,
+      limit: Int = Int.MaxValue,
+      charset: java.nio.charset.Charset = StandardCharsets.US_ASCII): Stream[IO, Byte] =
     if (str.isEmpty) {
       Stream.empty
     } else if (str.length <= limit) {
-      Stream.emits(str.getBytes("ASCII").toSeq)
+      Stream.emits(str.getBytes(charset).toSeq)
     } else {
       val (front, back) = str.splitAt(limit)
-      Stream.emits(front.getBytes("ASCII").toSeq) ++ unspool(back, limit)
+      Stream.emits(front.getBytes(charset).toSeq) ++ unspool(back, limit, charset)
     }
 
   "form streaming parsing" should {
@@ -110,6 +115,47 @@ object MultipartParserSpec extends Specification {
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
+        `Content-Type`(MediaType.`application/octet-stream`),
+        Header("Content-Transfer-Encoding", "binary")
+      )
+
+      val expected = ruinDelims("""this is a test
+                                  |here's another test
+                                  |catch me if you can!
+                                  |""".stripMargin)
+
+      val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
+      val bodies =
+        multipartMaterialized.parts
+          .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
+          .through(asciiDecode)
+          .compile
+          .fold("")(_ ++ _)
+
+      headers mustEqual expectedHeaders
+      bodies.attempt.unsafeRunSync() must beRight(expected)
+    }
+
+    "parse utf8 headers properly" in {
+      val unprocessedInput =
+        """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+          |Content-Disposition: form-data; name="http4s很棒"; filename="我老婆太漂亮.txt"
+          |Content-Type: application/octet-stream
+          |Content-Transfer-Encoding: binary
+          |
+          |this is a test
+          |here's another test
+          |catch me if you can!
+          |
+          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+
+      val input = ruinDelims(unprocessedInput)
+      val results =
+        unspool(input, 15, StandardCharsets.UTF_8).through(MultipartParser.parseStreamed(boundary))
+      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+
+      val expectedHeaders = Headers(
+        `Content-Disposition`("form-data", Map("name" -> "http4s很棒", "filename" -> "我老婆太漂亮.txt")),
         `Content-Type`(MediaType.`application/octet-stream`),
         Header("Content-Transfer-Encoding", "binary")
       )

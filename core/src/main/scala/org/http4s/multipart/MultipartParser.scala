@@ -4,7 +4,6 @@ package multipart
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
-import org.http4s.util._
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -226,7 +225,7 @@ object MultipartParser {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap {
         case (l, r) =>
-          l.through(asciiDecode)
+          l.through(fs2.text.utf8Decode[F])
             .fold("")(_ ++ _)
             .map { string =>
               val ix = string.indexOf(':')
