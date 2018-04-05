@@ -29,7 +29,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
 
   private[this] def createClientCall(method: MethodDescriptor) = {
     val basicClientCall =
-      s"_root_.org.lyranthe.fs2_grpc.java_runtime.client.Fs2ClientCall[F](channel, _root_.${service.getFile.scalaPackageName}.GreeterGrpc.${method.descriptorName}, callOptions)"
+      s"_root_.org.lyranthe.fs2_grpc.java_runtime.client.Fs2ClientCall[F](channel, _root_.${service.getFile.scalaPackageName}.${service.name}Grpc.${method.descriptorName}, callOptions)"
     if (method.isServerStreaming)
       s"_root_.fs2.Stream.eval($basicClientCall)"
     else
@@ -49,7 +49,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
   // TODO: update this
   private[this] def serviceBindingImplementation(method: MethodDescriptor): PrinterEndo = { p =>
     p.add(
-      s".addMethod(GreeterGrpc.${method.descriptorName}, _root_.org.lyranthe.fs2_grpc.java_runtime.server.Fs2ServerCallHandler[F].${handleMethod(
+      s".addMethod(_root_.${service.getFile.scalaPackageName}.${service.getName}Grpc.${method.descriptorName}, _root_.org.lyranthe.fs2_grpc.java_runtime.server.Fs2ServerCallHandler[F].${handleMethod(
         method)}(serviceImpl.${method.name}))")
   }
 
@@ -60,7 +60,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
 
   private[this] def serviceBindingImplementations: PrinterEndo =
     _.indent
-      .add(s".builder(_root_.${service.getFile.scalaPackageName}.GreeterGrpc.${service.descriptorName})")
+      .add(s".builder(_root_.${service.getFile.scalaPackageName}.${service.getName}Grpc.${service.descriptorName})")
       .call(service.methods.map(serviceBindingImplementation): _*)
       .add(".build()")
       .outdent
