@@ -4,6 +4,7 @@ package parser
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.MediaRange._
 import org.http4s.testing._
+import cats.syntax.show._
 import org.specs2.mutable.Specification
 
 class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] with Http4s {
@@ -19,7 +20,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
       // Parse the rest
       foreach(MediaRange.standard.values) { m =>
-        val r = parse(m.renderString).values.head
+        val r = parse(m.show).values.head
         r must be_===(MediaRangeAndQValue(m))
       }
     }
@@ -37,7 +38,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
       // Parse the rest
       foreach(MediaType.all.values) { m =>
-        val r = parse(m.renderString).values.head
+        val r = parse(m.show).values.head
         r must be_===(MediaRangeAndQValue(m))
       }
     }

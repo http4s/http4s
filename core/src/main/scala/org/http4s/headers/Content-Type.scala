@@ -18,7 +18,7 @@ final case class `Content-Type` private (mediaType: MediaType, charset: Option[C
   override def key: `Content-Type`.type = `Content-Type`
   override def renderValue(writer: Writer): writer.type = charset match {
     case Some(cs) => writer << mediaType << "; charset=" << cs
-    case _ => mediaType.render(writer)
+    case _ => MediaRange.http4sInstancesForMediaRange.render(writer, mediaType)
   }
 
   def withMediaType(mediaType: MediaType): `Content-Type` =

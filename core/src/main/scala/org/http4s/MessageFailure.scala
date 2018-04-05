@@ -110,7 +110,7 @@ sealed abstract class UnsupportedMediaTypeFailure extends DecodeFailure with NoS
 
   protected def sanitizedResponsePrefix: String
   protected def expectedMsg: String =
-    s"Expected one of the following media ranges: ${expected.map(_.renderString).mkString(", ")}"
+    s"Expected one of the following media ranges: ${expected.map(_.show).mkString(", ")}"
   protected def responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
   def toHttpResponse[F[_]](httpVersion: HttpVersion)(implicit F: Monad[F]): F[Response[F]] =
@@ -131,5 +131,5 @@ final case class MediaTypeMismatch(messageType: MediaType, expected: Set[MediaRa
     extends UnsupportedMediaTypeFailure {
   def sanitizedResponsePrefix: String =
     "Media type supplied in Content-Type header is not supported"
-  def message: String = s"${messageType.renderString} is not a supported media type. $expectedMsg"
+  def message: String = s"${messageType.show} is not a supported media type. $expectedMsg"
 }

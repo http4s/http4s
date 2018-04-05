@@ -23,18 +23,12 @@ import cats.implicits._
 import org.http4s.headers.MediaRangeAndQValue
 import org.http4s.internal.parboiled2.{Parser => PbParser, _}
 import org.http4s.parser.{Http4sParser, Rfc2616BasicRules}
-import org.http4s.util.{Renderable, Writer}
+import org.http4s.util.{StringWriter, Writer}
+import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s] (
     val mainType: String,
-    val extensions: Map[String, String] = Map.empty)
-    extends Renderable {
-
-  override def render(writer: Writer): writer.type = {
-    writer << mainType << "/*"
-    renderExtensions(writer)
-    writer
-  }
+    val extensions: Map[String, String] = Map.empty) {
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean =
@@ -54,7 +48,7 @@ sealed class MediaRange private[http4s] (
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, ext)
 
-  override def toString: String = s"MediaRange($renderString)"
+  override def toString: String = s"MediaRange($mainType/*${MediaRange.extensionsToString(this)})"
 
   override def equals(obj: Any): Boolean = obj match {
     case _: MediaType => false
@@ -66,11 +60,14 @@ sealed class MediaRange private[http4s] (
       false
   }
 
-  override def hashCode(): Int = renderString.##
-
-  private[http4s] def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
-    extensions.foreach { case (k, v) => sb << ';' << ' ' << k << '=' <<# v }
+  private[this] var hash = 0
+  override def hashCode(): Int = {
+    if (hash == 0) {
+      hash = MurmurHash3.mixLast(mainType.toLowerCase.##, extensions.##)
+    }
+    hash
   }
+
 }
 
 private[http4s] trait MediaParser extends Rfc2616BasicRules { self: PbParser =>
@@ -117,6 +114,15 @@ object MediaRange {
       def main = MediaRangeFull
     }.parse
 
+  private[http4s] def renderExtensions(sb: Writer, mr: MediaRange): Unit =
+    mr.extensions.foreach { case (k, v) => sb << ';' << ' ' << k << '=' <<# v }
+
+  private[http4s] def extensionsToString(mr: MediaRange): String = {
+    val sw = new StringWriter()
+    renderExtensions(sw, mr)
+    sw.result
+  }
+
   private[http4s] trait MediaRangeParser extends MediaParser { self: PbParser =>
     def MediaRangeFull: Rule1[MediaRange] = rule {
       MediaRangeDef ~ optional(oneOrMore(MediaTypeExtension)) ~> {
@@ -139,13 +145,19 @@ object MediaRange {
   implicit val http4sInstancesForMediaRange
     : Show[MediaRange] with HttpCodec[MediaRange] with Order[MediaRange] =
     new Show[MediaRange] with HttpCodec[MediaRange] with Order[MediaRange] {
-      override def show(s: MediaRange): String = s.toString
+      override def show(s: MediaRange): String =
+        s"${s.mainType}/*${MediaRange.extensionsToString(s)}"
 
       override def parse(s: String): ParseResult[MediaRange] =
         MediaRange.parse(s)
 
-      override def render(writer: Writer, range: MediaRange): writer.type =
-        range.render(writer)
+      override def render(writer: Writer, mr: MediaRange): writer.type = mr match {
+        case mt: MediaType => MediaType.http4sInstancesForMediaType.render(writer, mt)
+        case _ =>
+          writer << mr.mainType << "/*"
+          renderExtensions(writer, mr)
+          writer
+      }
 
       override def compare(x: MediaRange, y: MediaRange): Int = {
         def orderedSubtype(a: MediaRange) = a match {
@@ -166,12 +178,6 @@ sealed class MediaType(
     val fileExtensions: Seq[String] = Nil,
     extensions: Map[String, String] = Map.empty)
     extends MediaRange(mainType, extensions) {
-
-  override def render(writer: Writer): writer.type = {
-    writer << mainType << '/' << subType
-    renderExtensions(writer)
-    writer
-  }
 
   override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible, binary, fileExtensions, ext)
@@ -196,8 +202,22 @@ sealed class MediaType(
     case _ => false
   }
 
-  override def hashCode(): Int = renderString.##
-  override def toString: String = s"MediaType($renderString)"
+  private[this] var hash = 0
+  override def hashCode(): Int = {
+    if (hash == 0) {
+      hash = MurmurHash3.mixLast(
+        mainType.##,
+        MurmurHash3.mix(
+          subType.##,
+          MurmurHash3.mix(
+            compressible.##,
+            MurmurHash3.mix(binary.##, MurmurHash3.mix(fileExtensions.##, extensions.##)))))
+    }
+    hash
+  }
+
+  override def toString: String =
+    s"MediaType($mainType/$subType${MediaRange.extensionsToString(this)})"
 }
 
 object MediaType {
@@ -216,12 +236,14 @@ object MediaType {
 
   /////////////////////////// PREDEFINED MEDIA-TYPE DEFINITION ////////////////////////////
   // Copied from the definitions on MimeDB
-  val `text/plain`: MediaType = new MediaType(
-    "text",
-    "plain",
+  val `application/javascript`: MediaType = new MediaType(
+    "application",
+    "javascript",
     MimeDB.Compressible,
     MimeDB.NotBinary,
-    List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
+    List("js", "mjs"))
+  val `application/json`: MediaType =
+    new MediaType("application", "json", MimeDB.Compressible, MimeDB.Binary, List("json", "map"))
   val `application/octet-stream`: MediaType = new MediaType(
     "application",
     "octet-stream",
@@ -251,32 +273,34 @@ object MediaType {
       "msm",
       "buffer")
   )
-  val `application/x-www-form-urlencoded`: MediaType =
-    new MediaType("application", "x-www-form-urlencoded", MimeDB.Compressible, MimeDB.NotBinary)
-  val `application/javascript`: MediaType = new MediaType(
-    "application",
-    "javascript",
-    MimeDB.Compressible,
-    MimeDB.NotBinary,
-    List("js", "mjs"))
   val `application/xml`: MediaType = new MediaType(
     "application",
     "xml",
     MimeDB.Compressible,
     MimeDB.NotBinary,
     List("xml", "xsl", "xsd", "rng"))
-  val `application/json`: MediaType =
-    new MediaType("application", "json", MimeDB.Compressible, MimeDB.Binary, List("json", "map"))
+  val `application/x-www-form-urlencoded`: MediaType =
+    new MediaType("application", "x-www-form-urlencoded", MimeDB.Compressible, MimeDB.NotBinary)
+  lazy val `audio/ogg`: MediaType =
+    new MediaType("audio", "ogg", MimeDB.Uncompressible, MimeDB.Binary, List("oga", "ogg", "spx"))
+  val `image/png`: MediaType =
+    new MediaType("image", "png", MimeDB.Uncompressible, MimeDB.Binary, List("png"))
   val `text/html`: MediaType = new MediaType(
     "text",
     "html",
     MimeDB.Compressible,
     MimeDB.NotBinary,
     List("html", "htm", "shtml"))
+  val `text/plain`: MediaType = new MediaType(
+    "text",
+    "plain",
+    MimeDB.Compressible,
+    MimeDB.NotBinary,
+    List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
   val `text/xml`: MediaType =
     new MediaType("text", "xml", MimeDB.Compressible, MimeDB.NotBinary, List("xml"))
-  val `image/png`: MediaType =
-    new MediaType("image", "png", MimeDB.Uncompressible, MimeDB.Binary, List("png"))
+  lazy val `video/ogg`: MediaType =
+    new MediaType("video", "ogg", MimeDB.Uncompressible, MimeDB.Binary, List("ogv"))
 
   // Curiously text/event-stream isn't included in MimeDB
   val `text/event-stream` = new MediaType("text", "event-stream")
@@ -284,9 +308,10 @@ object MediaType {
   val `application/hal+json` =
     new MediaType("application", "hal+json", MimeDB.Compressible, MimeDB.Binary)
 
-  val all: Map[(String, String), MediaType] = (`text/event-stream` :: MimeDB.all).map {
-    case m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
-  }.toMap
+  val all: Map[(String, String), MediaType] =
+    (`application/hal+json` :: `text/event-stream` :: MimeDB.all).map {
+      case m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
+    }.toMap
   val extensionMap: Map[String, MediaType] = MimeDB.all.flatMap {
     case m => m.fileExtensions.map(_ -> m)
   }.toMap
@@ -318,13 +343,17 @@ object MediaType {
   implicit val http4sInstancesForMediaType
     : Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] =
     new Show[MediaType] with HttpCodec[MediaType] with Eq[MediaType] {
-      override def show(s: MediaType): String = s.toString
+      override def show(s: MediaType): String =
+        s"${s.mainType}/${s.subType}${MediaRange.extensionsToString(s)}"
 
       override def parse(s: String): ParseResult[MediaType] =
         MediaType.parse(s)
 
-      override def render(writer: Writer, range: MediaType): writer.type =
-        range.render(writer)
+      override def render(writer: Writer, mt: MediaType): writer.type = {
+        writer << mt.mainType << '/' << mt.subType
+        MediaRange.renderExtensions(writer, mt)
+        writer
+      }
 
       override def eqv(x: MediaType, y: MediaType): Boolean =
         x.equals(y)
