@@ -49,7 +49,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
   // TODO: update this
   private[this] def serviceBindingImplementation(method: MethodDescriptor): PrinterEndo = { p =>
     p.add(
-      s".addMethod(${service.getFile.scalaPackageName}.${service.getName}Grpc.${method.descriptorName}, _root_.org.lyranthe.fs2_grpc.java_runtime.server.Fs2ServerCallHandler[F].${handleMethod(
+      s".addMethod(_root_.${service.getFile.scalaPackageName}.${service.getName}Grpc.${method.descriptorName}, _root_.org.lyranthe.fs2_grpc.java_runtime.server.Fs2ServerCallHandler[F].${handleMethod(
         method)}(serviceImpl.${method.name}))")
   }
 
