@@ -1,7 +1,8 @@
 inThisBuild(
   List(
     organization := "org.lyranthe.fs2-grpc",
-    git.useGitDescribe := true
+    git.useGitDescribe := true,
+    scmInfo := Some(ScmInfo(url("https://github.com/fiadliel/fs2-grpc"), "git@github.com:fiadliel/fs2-grpc.git"))
   ))
 
 lazy val root = project.in(file("."))
