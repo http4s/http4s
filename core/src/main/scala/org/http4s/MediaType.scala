@@ -235,80 +235,26 @@ object MediaType {
   }
 
   /////////////////////////// PREDEFINED MEDIA-TYPE DEFINITION ////////////////////////////
-  // Copied from the definitions on MimeDB
-  val `application/javascript`: MediaType = new MediaType(
-    "application",
-    "javascript",
-    MimeDB.Compressible,
-    MimeDB.NotBinary,
-    List("js", "mjs"))
-  val `application/json`: MediaType =
-    new MediaType("application", "json", MimeDB.Compressible, MimeDB.Binary, List("json", "map"))
-  val `application/octet-stream`: MediaType = new MediaType(
-    "application",
-    "octet-stream",
-    MimeDB.Uncompressible,
-    MimeDB.Binary,
-    List(
-      "bin",
-      "dms",
-      "lrf",
-      "mar",
-      "so",
-      "dist",
-      "distz",
-      "pkg",
-      "bpk",
-      "dump",
-      "elc",
-      "deploy",
-      "exe",
-      "dll",
-      "deb",
-      "dmg",
-      "iso",
-      "img",
-      "msi",
-      "msp",
-      "msm",
-      "buffer")
-  )
-  val `application/xml`: MediaType = new MediaType(
-    "application",
-    "xml",
-    MimeDB.Compressible,
-    MimeDB.NotBinary,
-    List("xml", "xsl", "xsd", "rng"))
-  val `application/x-www-form-urlencoded`: MediaType =
-    new MediaType("application", "x-www-form-urlencoded", MimeDB.Compressible, MimeDB.NotBinary)
-  lazy val `audio/ogg`: MediaType =
-    new MediaType("audio", "ogg", MimeDB.Uncompressible, MimeDB.Binary, List("oga", "ogg", "spx"))
-  val `image/png`: MediaType =
-    new MediaType("image", "png", MimeDB.Uncompressible, MimeDB.Binary, List("png"))
-  val `text/html`: MediaType = new MediaType(
-    "text",
-    "html",
-    MimeDB.Compressible,
-    MimeDB.NotBinary,
-    List("html", "htm", "shtml"))
-  val `text/plain`: MediaType = new MediaType(
-    "text",
-    "plain",
-    MimeDB.Compressible,
-    MimeDB.NotBinary,
-    List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
-  val `text/xml`: MediaType =
-    new MediaType("text", "xml", MimeDB.Compressible, MimeDB.NotBinary, List("xml"))
-  lazy val `video/ogg`: MediaType =
-    new MediaType("video", "ogg", MimeDB.Uncompressible, MimeDB.Binary, List("ogv"))
+  lazy val `application/javascript`: MediaType = MimeDB.application.`application/javascript`
+  lazy val `application/json`: MediaType = MimeDB.application.`application/json`
+  lazy val `application/octet-stream`: MediaType = MimeDB.application.`application/octet-stream`
+  lazy val `application/xml`: MediaType = MimeDB.application.`application/xml`
+  lazy val `application/x-www-form-urlencoded`: MediaType =
+    MimeDB.application.`application/x-www-form-urlencoded`
+  lazy val `audio/ogg`: MediaType = MimeDB.audio.`audio/ogg`
+  lazy val `image/png`: MediaType = MimeDB.image.`image/png`
+  lazy val `text/html`: MediaType = MimeDB.text.`text/html`
+  lazy val `text/plain`: MediaType = MimeDB.text.`text/plain`
+  lazy val `text/xml`: MediaType = MimeDB.text.`text/xml`
+  lazy val `video/ogg`: MediaType = MimeDB.video.`video/ogg`
 
   // Curiously text/event-stream isn't included in MimeDB
-  val `text/event-stream` = new MediaType("text", "event-stream")
+  lazy val `text/event-stream` = new MediaType("text", "event-stream")
   // nor hal+json
-  val `application/hal+json` =
+  lazy val `application/hal+json` =
     new MediaType("application", "hal+json", MimeDB.Compressible, MimeDB.Binary)
 
-  val all: Map[(String, String), MediaType] =
+  lazy val all: Map[(String, String), MediaType] =
     (`application/hal+json` :: `text/event-stream` :: MimeDB.all).map {
       case m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
     }.toMap
