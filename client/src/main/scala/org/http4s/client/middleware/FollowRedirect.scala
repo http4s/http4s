@@ -42,10 +42,10 @@ object FollowRedirect {
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: MonadError[F, Throwable]): Client[F] = {
-    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] = {
-      client.open(req).flatMap {
-        case dr @ DisposableResponse(resp, _) =>
-          def redirectUri =
+    def prepareLoop(req: Request[F], redirects: Int): Stream[F, Response[F]] = {
+      client(req).flatMap {
+        case resp =>
+          def redirectUri : Option[Uri] =
             resp.headers.get(Location).map { loc =>
               val uri = loc.uri
               // https://tools.ietf.org/html/rfc7231#section-7.1.2
@@ -62,7 +62,7 @@ object FollowRedirect {
             Some(req.body)
           // TODO fs2 port
 
-          def dontRedirect: F[DisposableResponse[F]] = F.pure(dr)
+          def dontRedirect: Stream[F, Response[F]] = Stream(resp).covary[F]
 
           def stripSensitiveHeaders(nextUri: Uri): Request[F] =
             if (req.uri.authority != nextUri.authority)
@@ -85,7 +85,7 @@ object FollowRedirect {
                   .withEmptyBody
             }
 
-          def doRedirect(method: Method): F[DisposableResponse[F]] =
+          def doRedirect(method: Method): Stream[F, Response[F]] =
             if (redirects < maxRedirects) {
               // If we get a redirect response without a location, then there is
               // nothing to redirect.
@@ -99,7 +99,7 @@ object FollowRedirect {
                     pureBody.map(body => nextRequest(method, nextUri, Some(body)))
                 }
                 nextReq.fold(dontRedirect)(req =>
-                  dr.dispose.flatMap(_ => prepareLoop(req, redirects + 1)))
+                  prepareLoop(req, redirects + 1))
               }
             } else dontRedirect
 
@@ -143,11 +143,11 @@ object FollowRedirect {
               doRedirect(req.method)
 
             case _ =>
-              F.pure(dr)
+              Stream(resp).covary[F]
           }
       }
     }
 
-    client.copy(open = Kleisli(prepareLoop(_, 0)))
+    Kleisli(prepareLoop(_, 0).take(1))
   }
 }
