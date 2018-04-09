@@ -12,9 +12,9 @@ private[server] trait Fs2ServerCallListener[F[_], G[_], Request, Response] {
   def reportError(t: Throwable)(implicit F: Sync[F]): F[Unit] = {
     t match {
       case ex: StatusException =>
-        call.closeStream(ex.getStatus, ex.getTrailers)
+        call.closeStream(ex.getStatus, Option(ex.getTrailers).getOrElse(new Metadata()))
       case ex: StatusRuntimeException =>
-        call.closeStream(ex.getStatus, ex.getTrailers)
+        call.closeStream(ex.getStatus, Option(ex.getTrailers).getOrElse(new Metadata()))
       case ex =>
         // TODO: Customize failure trailers?
         call.closeStream(Status.INTERNAL.withDescription(ex.getMessage).withCause(ex), new Metadata())
