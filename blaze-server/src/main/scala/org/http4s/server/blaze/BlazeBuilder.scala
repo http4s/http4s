@@ -155,7 +155,7 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = httpApp.getOrElse(Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound)
+    val aggregateService: HttpStream[F] = httpApp.getOrElse(Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound).mapF(fs2.Stream.eval)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)

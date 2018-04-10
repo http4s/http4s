@@ -38,6 +38,7 @@ package object http4s { // scalastyle:ignore
 
   type Http[F[_], G[_]] = Kleisli[F, Request[G], Response[G]]
   type HttpApp[F[_]] = Http[F, F]
+  type HttpStream[F[_]] = Http[Stream[F, ?], F]
 
   /**
     * We need to change the order of type parameters to make partial unification

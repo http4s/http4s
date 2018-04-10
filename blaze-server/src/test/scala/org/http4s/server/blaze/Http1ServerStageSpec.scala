@@ -39,7 +39,7 @@ class Http1ServerStageSpec extends Http4sSpec {
     val head = new SeqTestHead(
       req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
     val httpStage = Http1ServerStage[IO](
-      service.orNotFound,
+      service.orNotFound.mapF(fs2.Stream.eval),
       AttributeMap.empty,
       testExecutionContext,
       enableWebSockets = true,

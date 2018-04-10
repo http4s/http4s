@@ -23,7 +23,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 private[blaze] object Http1ServerStage {
 
   def apply[F[_]: Effect](
-      service: HttpApp[F],
+      service: HttpStream[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
@@ -49,7 +49,7 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    service: HttpApp[F],
+    service: HttpStream[F],
     requestAttrs: AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
@@ -139,17 +139,19 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit =
-            F.runAsync {
-                try serviceFn(req)
-                  .handleErrorWith(serviceErrorHandler(req))
-                catch serviceErrorHandler(req)
-              } {
-                case Right(resp) =>
-                  IO(renderResponse(req, resp, cleanup))
-                case Left(t) =>
-                  IO(internalServerError(s"Error running route: $req", t, req, cleanup))
-              }
-              .unsafeRunSync()
+            F.runAsync(
+              (serviceFn(req) ++ Stream.raiseError(new NoSuchElementException))
+                .take(1)
+                .handleErrorWith(t => Stream.eval(serviceErrorHandler(req)(t)))
+                .evalMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+                .compile
+                .drain
+            ) {
+              case Right(()) =>
+                IO.unit
+              case Left(t) =>
+                IO(logger.error(t)(s"Error running route: $req"))
+            }.unsafeRunSync()
         })
       case Left((e, protocol)) =>
         badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))
