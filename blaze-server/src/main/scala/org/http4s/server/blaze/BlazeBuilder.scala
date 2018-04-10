@@ -22,6 +22,31 @@ import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
+/**
+ * BlazeBuilder is the component for the builder pattern aggregating
+ * different components to finally serve requests.
+ *
+ * Variables: 
+ * socketAddress: Is the Socket Address the server will be mounted at
+ * executionContext: Is the Execution Context the underlying blaze futures
+ *   will be executed upon.
+ * idleTimeout: Period of Time a connection can remain idle before the
+ *    connection is timed out and disconnected.
+ * isNio2: Whether or not to use NIO2 or NIO1 Socket Server Group
+ * connectorPoolSize: Number of worker threads for the new Socket Server Group
+ * bufferSize: Buffer size to use for IO operations
+ * enableWebsockets: Enables Websocket Support
+ * sslBits: If present enables secure communication to the server using the 
+ *   sslContext
+ * isHttp2Enabled: Whether or not to enable Http2 Server Features
+ * maxRequestLineLength: Maximum request line to parse
+ * maxHeadersLen: Maximum data that composes the headers
+ * serviceMounts: The services that are mounted on this server to serve.
+ * serviceErrorHandler: The last resort to recover and generate a response
+ *  this is necessary to recovery totality from the error condition.
+ * banner: Pretty log to display on server start.
+ *
+ */
 class BlazeBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
