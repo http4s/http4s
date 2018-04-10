@@ -23,7 +23,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 private[blaze] object Http1ServerStage {
 
   def apply[F[_]: Effect](
-      service: HttpService[F],
+      service: HttpApp[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
@@ -49,7 +49,7 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    service: HttpService[F],
+    service: HttpApp[F],
     requestAttrs: AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
@@ -141,7 +141,6 @@ private[blaze] class Http1ServerStage[F[_]](
           def run(): Unit =
             F.runAsync {
                 try serviceFn(req)
-                  .getOrElse(Response.notFound)
                   .handleErrorWith(serviceErrorHandler(req))
                 catch serviceErrorHandler(req)
               } {

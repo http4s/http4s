@@ -36,6 +36,9 @@ package object http4s { // scalastyle:ignore
     */
   type HttpService[F[_]] = Kleisli[OptionT[F, ?], Request[F], Response[F]]
 
+  type Http[F[_], G[_]] = Kleisli[F, Request[G], Response[G]]
+  type HttpApp[F[_]] = Http[F, F]
+
   /**
     * We need to change the order of type parameters to make partial unification
     * trigger. See https://github.com/http4s/http4s/issues/1506

@@ -17,6 +17,7 @@ import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
+import org.http4s.syntax.kleisli._
 import org.log4s.getLogger
 import scala.collection.immutable
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,7 +37,8 @@ class BlazeBuilder[F[_]](
     maxHeadersLen: Int,
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    httpApp: Option[HttpApp[F]]
 )(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
@@ -61,7 +63,8 @@ class BlazeBuilder[F[_]](
       maxHeadersLen: Int = maxHeadersLen,
       serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
-      banner: immutable.Seq[String] = banner
+      banner: immutable.Seq[String] = banner,
+      httpApp: Option[HttpApp[F]] = None
   ): Self =
     new BlazeBuilder(
       socketAddress,
@@ -77,7 +80,8 @@ class BlazeBuilder[F[_]](
       maxHeadersLen,
       serviceMounts,
       serviceErrorHandler,
-      banner
+      banner,
+      httpApp
     )
 
   /** Configure HTTP parser length limits
@@ -125,6 +129,8 @@ class BlazeBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
+  def withHttpApp(httpApp: HttpApp[F]): Self = copy(httpApp = Some(httpApp))
+
   override def mountService(service: HttpService[F], prefix: String): Self = {
     val prefixedService =
       if (prefix.isEmpty || prefix == "/") service
@@ -149,7 +155,7 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
+    val aggregateService = httpApp.getOrElse(Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
@@ -311,7 +317,8 @@ object BlazeBuilder {
       maxHeadersLen = 40 * 1024,
       serviceMounts = Vector.empty,
       serviceErrorHandler = DefaultServiceErrorHandler,
-      banner = ServerBuilder.DefaultBanner
+      banner = ServerBuilder.DefaultBanner,
+      httpApp = None
     )
 }
 
