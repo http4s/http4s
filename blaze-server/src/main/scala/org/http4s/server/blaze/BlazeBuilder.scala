@@ -37,13 +37,13 @@ import scala.concurrent.duration._
  * bufferSize: Buffer size to use for IO operations
  * enableWebsockets: Enables Websocket Support
  * sslBits: If present enables secure communication to the server using the 
- *   sslContext
+ *    sslContext
  * isHttp2Enabled: Whether or not to enable Http2 Server Features
  * maxRequestLineLength: Maximum request line to parse
  * maxHeadersLen: Maximum data that composes the headers
  * serviceMounts: The services that are mounted on this server to serve.
  * serviceErrorHandler: The last resort to recover and generate a response
- *  this is necessary to recovery totality from the error condition.
+ *    this is necessary to recovery totality from the error condition.
  * banner: Pretty log to display on server start.
  *
  */
