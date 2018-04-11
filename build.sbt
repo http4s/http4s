@@ -73,6 +73,17 @@ lazy val serverMetrics = libraryProject("server-metrics")
   )
   .dependsOn(server % "compile;test->test")
 
+lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
+  .settings(
+    description := "Support for Prometheus Metrics on the server",
+    libraryDependencies ++= Seq(
+      prometheusClient,
+      prometheusHotspot
+    ),
+    mimaPreviousArtifacts := Set.empty
+  )
+  .dependsOn(server % "compile;test->test", theDsl)
+
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
