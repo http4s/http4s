@@ -35,13 +35,13 @@ class ResponseGeneratorSpec extends Http4sSpec {
 
   "Explicitly added headers have priority" in {
     val w: EntityEncoder[IO, String] = EntityEncoder.encodeBy[IO, String](
-      EntityEncoder.stringEncoder[IO].headers.put(`Content-Type`(MediaType.`text/html`)))(
+      EntityEncoder.stringEncoder[IO].headers.put(`Content-Type`(MediaType.text.`text/html`)))(
       EntityEncoder.stringEncoder[IO].toEntity(_)
     )
 
     val resp: IO[Response[IO]] =
-      Ok("foo", `Content-Type`(MediaType.`application/json`))(Monad[IO], w)
-    resp must returnValue(haveMediaType(MediaType.`application/json`))
+      Ok("foo", `Content-Type`(MediaType.application `application/json`))(Monad[IO], w)
+    resp must returnValue(haveMediaType(MediaType.application `application/json`))
   }
 
   "NoContent() does not generate Content-Length" in {
@@ -118,7 +118,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     resp must returnValue(
       haveHeaders(
         Headers(
-          `Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`),
+          `Content-Type`(MediaType.text.`text/plain`, Charset.`UTF-8`),
           location,
           Accept(MediaRange.`audio/*`),
           `Content-Length`.unsafeFromLong(3)

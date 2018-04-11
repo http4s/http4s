@@ -21,7 +21,7 @@ trait ElemInstances {
     EntityEncoder
       .stringEncoder[F]
       .contramap[Elem](xml => xml.buildString(false))
-      .withContentType(`Content-Type`(MediaType.`application/xml`))
+      .withContentType(`Content-Type`(MediaType.application.`application/xml`))
 
   /**
     * Handles a message body as XML.
@@ -32,7 +32,10 @@ trait ElemInstances {
     */
   implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
-    decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`) { msg =>
+    decodeBy(
+      MediaType.text.`text/xml`,
+      MediaType.text.`text/html`,
+      MediaType.application.`application/xml`) { msg =>
       collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
         val source = new InputSource(
           new StringReader(

@@ -372,7 +372,7 @@ object Response {
     Response(
       Status.NotFound,
       body = Stream("Not found").through(text.utf8Encode),
-      headers = Headers(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`)))
+      headers = Headers(`Content-Type`(MediaType.text.`text/plain`, Charset.`UTF-8`)))
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 

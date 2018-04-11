@@ -220,45 +220,23 @@ sealed class MediaType(
     s"MediaType($mainType/$subType${MediaRange.extensionsToString(this)})"
 }
 
-object MediaType {
+object MediaType extends MimeDB {
   def forExtension(ext: String): Option[MediaType] = extensionMap.get(ext.toLowerCase)
 
-  def multipart(subType: String, boundary: Option[String] = None): MediaType = {
+  def multipartType(subType: String, boundary: Option[String] = None): MediaType = {
     val ext = boundary.map(b => Map("boundary" -> b)).getOrElse(Map.empty)
-    new MediaType(
-      "multipart",
-      subType,
-      MimeDB.Compressible,
-      MimeDB.NotBinary,
-      Nil,
-      extensions = ext)
+    new MediaType("multipart", subType, Compressible, NotBinary, Nil, extensions = ext)
   }
-
-  /////////////////////////// PREDEFINED MEDIA-TYPE DEFINITION ////////////////////////////
-  lazy val `application/javascript`: MediaType = MimeDB.application.`application/javascript`
-  lazy val `application/json`: MediaType = MimeDB.application.`application/json`
-  lazy val `application/octet-stream`: MediaType = MimeDB.application.`application/octet-stream`
-  lazy val `application/xml`: MediaType = MimeDB.application.`application/xml`
-  lazy val `application/x-www-form-urlencoded`: MediaType =
-    MimeDB.application.`application/x-www-form-urlencoded`
-  lazy val `audio/ogg`: MediaType = MimeDB.audio.`audio/ogg`
-  lazy val `image/png`: MediaType = MimeDB.image.`image/png`
-  lazy val `text/html`: MediaType = MimeDB.text.`text/html`
-  lazy val `text/plain`: MediaType = MimeDB.text.`text/plain`
-  lazy val `text/xml`: MediaType = MimeDB.text.`text/xml`
-  lazy val `video/ogg`: MediaType = MimeDB.video.`video/ogg`
 
   // Curiously text/event-stream isn't included in MimeDB
   lazy val `text/event-stream` = new MediaType("text", "event-stream")
-  // nor hal+json
-  lazy val `application/hal+json` =
-    new MediaType("application", "hal+json", MimeDB.Compressible, MimeDB.Binary)
 
   lazy val all: Map[(String, String), MediaType] =
-    (`application/hal+json` :: `text/event-stream` :: MimeDB.all).map {
+    (`text/event-stream` :: allMediaTypes).map {
       case m => (m.mainType.toLowerCase, m.subType.toLowerCase) -> m
     }.toMap
-  val extensionMap: Map[String, MediaType] = MimeDB.all.flatMap {
+
+  val extensionMap: Map[String, MediaType] = allMediaTypes.flatMap {
     case m => m.fileExtensions.map(_ -> m)
   }.toMap
 

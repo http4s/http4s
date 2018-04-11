@@ -6,10 +6,10 @@ import cats.effect._
 import fs2._
 import fs2.Stream._
 import org.http4s.Method._
+import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.Accept
-import org.http4s.testing._
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThrownMatchers {
@@ -228,7 +228,8 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
 
     "combine entity decoder media types correctly" in {
       // This is more of an EntityDecoder spec
-      val edec = EntityDecoder.decodeBy[IO, String](`image/jpeg`)(_ => DecodeResult.success("foo!"))
+      val edec = EntityDecoder.decodeBy[IO, String](MediaType.image.`image/jpeg`)(_ =>
+        DecodeResult.success("foo!"))
       client.expect(Request[IO](GET, uri("http://www.foo.com/echoheaders")))(
         EntityDecoder.text[IO].orElse(edec)) must returnValue("Accept: text/*, image/jpeg")
     }

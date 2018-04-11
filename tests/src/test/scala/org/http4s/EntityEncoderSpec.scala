@@ -92,9 +92,9 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "give the content type" in {
       EntityEncoder[IO, String].contentType must beSome(
-        `Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
+        `Content-Type`(MediaType.text.`text/plain`, Charset.`UTF-8`))
       EntityEncoder[IO, Array[Byte]].contentType must beSome(
-        `Content-Type`(MediaType.`application/octet-stream`))
+        `Content-Type`(MediaType.application.`application/octet-stream`))
     }
 
     "work with local defined EntityEncoders" in {
