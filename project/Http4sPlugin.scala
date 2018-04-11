@@ -288,6 +288,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.2.0"
+  lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
