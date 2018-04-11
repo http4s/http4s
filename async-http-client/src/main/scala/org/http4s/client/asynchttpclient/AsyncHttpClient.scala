@@ -39,7 +39,7 @@ object AsyncHttpClient {
     */
   def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: Effect[F],
-      ec: ExecutionContext): Client[F] = {
+      ec: ExecutionContext): F[Client[F]] = F.delay {
     val client = new DefaultAsyncHttpClient(config)
     Client(
       Kleisli { req =>
@@ -63,7 +63,7 @@ object AsyncHttpClient {
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: Effect[F],
       ec: ExecutionContext): Stream[F, Client[F]] =
-    Stream.bracket(F.delay(apply(config)))(c => Stream.emit(c), _.shutdown)
+    Stream.bracket(apply(config))(c => Stream.emit(c), _.shutdown)
 
   private def asyncHandler[F[_]](
       cb: Callback[DisposableResponse[F]])(implicit F: Effect[F], ec: ExecutionContext) =
