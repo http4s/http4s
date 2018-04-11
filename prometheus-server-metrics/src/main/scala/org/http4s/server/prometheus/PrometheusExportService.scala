@@ -10,9 +10,15 @@ import io.prometheus.client.hotspot._
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
+/*
+ * PromethusExportService Contains an HttpService
+ * ready to be scraped by Prometheus, paired
+ * with the CollectorRegistry that it is creating
+ * metrics for, allowing custom metric registration.
+ */
 final class PrometheusExportService[F[_]: Sync] private (
-    val s: HttpService[F],
-    val cr: CollectorRegistry
+    val service: HttpService[F],
+    val collectorRegistry: CollectorRegistry
 )
 
 object PrometheusExportService {
