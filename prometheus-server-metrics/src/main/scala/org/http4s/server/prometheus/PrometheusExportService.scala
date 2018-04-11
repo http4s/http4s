@@ -10,20 +10,10 @@ import io.prometheus.client.hotspot._
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
-class PrometheusExportService[F[_]: Sync] private (
-    s: HttpService[F],
-    cr: CollectorRegistry
-) {
-  def withCollectorRegistry(cr: CollectorRegistry): PrometheusExportService[F] =
-    new PrometheusExportService[F](
-      PrometheusExportService.service[F](cr),
-      cr
-    )
-
-  def service: HttpService[F] = s
-
-  def collectorRegistry: CollectorRegistry = cr
-}
+final class PrometheusExportService[F[_]: Sync] private (
+    val s: HttpService[F],
+    val cr: CollectorRegistry
+)
 
 object PrometheusExportService {
 
@@ -43,7 +33,7 @@ object PrometheusExportService {
         TextFormat.write004(writer, collectorRegistry.metricFamilySamples)
         writer.toString
       }
-      .map(Response[F](Status.Ok).withEntity(_))
+      .flatMap(Response[F](Status.Ok).withBody(_))
 
   def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpService[F] = {
     object dsl extends Http4sDsl[F]
