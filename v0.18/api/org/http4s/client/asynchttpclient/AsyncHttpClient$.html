@@ -165,7 +165,7 @@
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/4afe5127c3a8aa5669a3c4fa310099320649002d/async-http-client/src/main/scala/org/http4s/client/asynchttpclient/AsyncHttpClient.scala" target="_blank">AsyncHttpClient.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/7f50c33b660f277bdcedc5c87c131c94b7cd4e13/async-http-client/src/main/scala/org/http4s/client/asynchttpclient/AsyncHttpClient.scala" target="_blank">AsyncHttpClient.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -506,6 +506,24 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.client.asynchttpclient.AsyncHttpClient#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stream[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream[F[_]](AsyncHttpClientConfig)(Effect[F],ExecutionContext):Stream[F,Client[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/asynchttpclient/AsyncHttpClient$.html#stream[F[_]](config:org.asynchttpclient.AsyncHttpClientConfig)(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,org.http4s.client.Client[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">stream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <span class="extype" name="org.asynchttpclient.AsyncHttpClientConfig">AsyncHttpClientConfig</span> = <span class="symbol"><span class="name"><a href="#defaultConfig:org.asynchttpclient.DefaultAsyncHttpClientConfig">defaultConfig</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.stream.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.4/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.stream.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.asynchttpclient.AsyncHttpClient.stream.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Create a bracketed HTTP client based on the AsyncHttpClient library.</p><div class="fullcomment"><div class="comment cmt"><p>Create a bracketed HTTP client based on the AsyncHttpClient library.
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>configuration for the client</p></dd><dt class="param">ec</dt><dd class="cmt"><p>The ExecutionContext to run responses on</p></dd><dt>returns</dt><dd class="cmt"><p>a singleton stream of the client.  The client will be
+shutdown when the stream terminates.</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
