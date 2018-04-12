@@ -7,4 +7,4 @@ import cats.effect.{Effect, IO}
 class AsyncHttpClientSpec
     extends ClientRouteTestBattery(
       "AsyncHttpClient",
-      AsyncHttpClient()(Effect[IO], Http4sSpec.TestExecutionContext))
+      AsyncHttpClient()(Effect[IO], Http4sSpec.TestExecutionContext).unsafeRunSync)

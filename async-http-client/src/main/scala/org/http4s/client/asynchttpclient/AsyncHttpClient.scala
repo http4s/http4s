@@ -35,12 +35,11 @@ object AsyncHttpClient {
     * Create an HTTP client based on the AsyncHttpClient library
     *
     * @param config configuration for the client
-    * @param bufferSize body chunks to buffer when reading the body; defaults to 8
     * @param ec The ExecutionContext to run responses on
     */
   def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: Effect[F],
-      ec: ExecutionContext): Client[F] = {
+      ec: ExecutionContext): F[Client[F]] = F.delay {
     val client = new DefaultAsyncHttpClient(config)
     Client(
       Kleisli { req =>
@@ -52,6 +51,19 @@ object AsyncHttpClient {
       F.delay(client.close())
     )
   }
+
+  /**
+    * Create a bracketed HTTP client based on the AsyncHttpClient library.
+    *
+    * @param config configuration for the client
+    * @param ec The ExecutionContext to run responses on
+    * @return a singleton stream of the client.  The client will be
+    * shutdown when the stream terminates.
+    */
+  def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
+      implicit F: Effect[F],
+      ec: ExecutionContext): Stream[F, Client[F]] =
+    Stream.bracket(apply(config))(c => Stream.emit(c), _.shutdown)
 
   private def asyncHandler[F[_]](
       cb: Callback[DisposableResponse[F]])(implicit F: Effect[F], ec: ExecutionContext) =
