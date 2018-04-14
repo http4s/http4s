@@ -12,7 +12,7 @@ import scala.io.Source
   */
 class LoggerSpec extends Http4sSpec {
 
-  val testService = HttpService[IO] {
+  val testRoutes = HttpRoutes.of[IO] {
     case GET -> Root / "request" =>
       Ok("request response")
     case req @ POST -> Root / "post" =>
@@ -26,48 +26,48 @@ class LoggerSpec extends Http4sSpec {
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 
   "ResponseLogger" should {
-    val responseLoggerService = ResponseLogger(true, true)(testService)
+    val app = ResponseLogger(true, true)(testRoutes).orNotFound
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
-      responseLoggerService.orNotFound(req) must returnStatus(Status.Ok)
+      app(req) must returnStatus(Status.Ok)
     }
 
     "not affect a Post" in {
       val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = responseLoggerService.orNotFound(req)
+      val res = app(req)
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)
     }
   }
 
   "RequestLogger" should {
-    val requestLoggerService = RequestLogger(true, true)(testService)
+    val app = RequestLogger(true, true)(testRoutes).orNotFound
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
-      requestLoggerService.orNotFound(req) must returnStatus(Status.Ok)
+      app(req) must returnStatus(Status.Ok)
     }
 
     "not affect a Post" in {
       val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = requestLoggerService.orNotFound(req)
+      val res = app(req)
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)
     }
   }
 
   "Logger" should {
-    val loggerService = Logger(true, true)(testService)
+    val app = Logger(true, true)(testRoutes).orNotFound
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
-      loggerService.orNotFound(req) must returnStatus(Status.Ok)
+      app(req) must returnStatus(Status.Ok)
     }
 
     "not affect a Post" in {
       val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = loggerService.orNotFound(req)
+      val res = app(req)
       res must returnStatus(Status.Ok)
       res must returnBody(expectedBody)
     }

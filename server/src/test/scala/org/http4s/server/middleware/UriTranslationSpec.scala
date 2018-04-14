@@ -7,7 +7,7 @@ import org.http4s.dsl.io._
 
 class UriTranslationSpec extends Http4sSpec {
 
-  val service = HttpService[IO] {
+  val routes = HttpRoutes.of[IO] {
     case _ -> Root / "foo" =>
       Ok("foo")
 
@@ -16,27 +16,27 @@ class UriTranslationSpec extends Http4sSpec {
       Ok(s)
   }
 
-  val trans1 = URITranslation.translateRoot("/http4s")(service)
-  val trans2 = URITranslation.translateRoot("http4s")(service)
+  val trans1 = URITranslation.translateRoot("/http4s")(routes).orNotFound
+  val trans2 = URITranslation.translateRoot("http4s")(routes).orNotFound
 
   "UriTranslation" should {
     "match a matching request" in {
       val req = Request[IO](uri = Uri(path = "/http4s/foo"))
-      trans1.orNotFound(req) must returnStatus(Ok)
-      trans2.orNotFound(req) must returnStatus(Ok)
-      service.orNotFound(req) must returnStatus(NotFound)
+      trans1(req) must returnStatus(Ok)
+      trans2(req) must returnStatus(Ok)
+      routes.orNotFound(req) must returnStatus(NotFound)
     }
 
     "Not match a request missing the prefix" in {
       val req = Request[IO](uri = Uri(path = "/foo"))
-      trans1.orNotFound(req) must returnStatus(NotFound)
-      trans2.orNotFound(req) must returnStatus(NotFound)
-      service.orNotFound(req) must returnStatus(Ok)
+      trans1(req) must returnStatus(NotFound)
+      trans2(req) must returnStatus(NotFound)
+      routes.orNotFound(req) must returnStatus(Ok)
     }
 
     "Split the Uri into scriptName and pathInfo" in {
       val req = Request[IO](uri = Uri(path = "/http4s/checkattr"))
-      val resp = trans1.orNotFound(req).unsafeRunSync()
+      val resp = trans1(req).unsafeRunSync()
       resp.status must be(Ok)
       resp must haveBody("/http4s /checkattr")
     }

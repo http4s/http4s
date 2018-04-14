@@ -19,11 +19,11 @@ object Timeout {
     * `scalaz.stream.wye.interrupt`.
     *
     * @param timeoutResponse F[Response] to race against the result of the service. This will be run for each [[Request]]
-    * @param service [[org.http4s.HttpService]] to transform
+    * @param routes [[org.http4s.HttpRoutes]] to transform
     */
-  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(
-      implicit executionContext: ExecutionContext): HttpService[F] =
-    service.mapF { resp =>
+  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(routes: HttpRoutes[F])(
+      implicit executionContext: ExecutionContext): HttpRoutes[F] =
+    routes.mapF { resp =>
       OptionT(fs2AsyncRace(resp.value, timeoutResponse.map(_.some)).map(_.merge))
     }
 
@@ -58,28 +58,30 @@ object Timeout {
       go *> p.get.flatMap(F.fromEither)
     }
 
-  /** Transform the service to return a timeout response [[Status]]
-    * after the supplied duration if the service response is not yet
-    * ready.  The service response task continues to run in the
+  /** Transform the routes to return a timeout response [[Status]]
+    * after the supplied duration if the routes response is not yet
+    * ready.  The routes response task continues to run in the
     * background.  To interrupt a server side response safely, look at
     * `scalaz.stream.wye.interrupt`.
     *
     * @param timeout Duration to wait before returning the
     * RequestTimeOut
-    * @param service [[HttpService]] to transform
+    * @param routes [[HttpRoutes]] to transform
     */
-  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(service: HttpService[F])(
+  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
-      scheduler: Scheduler): HttpService[F] =
+      scheduler: Scheduler): HttpRoutes[F] =
     timeout match {
-      case fd: FiniteDuration => race(scheduler.effect.delay(response, fd))(service)
-      case _ => service
+      case fd: FiniteDuration => race(scheduler.effect.delay(response, fd))(routes)
+      case _ => routes
     }
 
-  def apply[F[_]: Effect](timeout: Duration)(service: HttpService[F])(
+  def apply[F[_]: Effect](timeout: Duration)(
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
-      scheduler: Scheduler): HttpService[F] =
+      scheduler: Scheduler): HttpRoutes[F] =
     apply(
       timeout,
-      Response[F](Status.InternalServerError).withEntity("The service timed out.").pure[F])(service)
+      Response[F](Status.InternalServerError).withEntity("The response timed out.").pure[F])(routes)
 }

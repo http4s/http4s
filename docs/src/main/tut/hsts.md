@@ -28,7 +28,7 @@ import cats.effect.IO
 Let's make a simple service that will be exposed and wrapped with HSTS.
 
 ```tut:book
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case _ =>
     Ok("ok")
 }

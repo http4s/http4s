@@ -19,10 +19,10 @@ package object http4s { // scalastyle:ignore
 
   val DefaultCharset = Charset.`UTF-8`
 
-  /** A kleisli with a [[Request]] input and a [[Response]] output.  This type 
+  /** A kleisli with a [[Request]] input and a [[Response]] output.  This type
     * is useful for writing middleware that are polymorphic over the return
     * type F.
-    * 
+    *
     * @tparam F the effect type in which the [[Response]] is returned
     * @tparam G the effect type of the [[Request]] and [[Response]] bodies
     */
@@ -32,7 +32,7 @@ package object http4s { // scalastyle:ignore
     * that the response effect is the same as the request and response bodies'.
     * An HTTP app is total on its inputs.  An HTTP app may be run by a server,
     * and a client can be converted to or from an HTTP app.
-    * 
+    *
     * @tparam F the effect type in which the [[Response]] is returned
     * @tparam G the effect type of the [[Request]] and [[Response]] bodies
     */
@@ -43,7 +43,7 @@ package object http4s { // scalastyle:ignore
     * request and response bodies.  HTTP routes can conveniently be
     * constructed from a partial function and combined as a
     * `SemigroupK`.
-    * 
+    *
     * @tparam F the effect type of the [[Request]] and [[Response]] bodies,
     * and the base monad of the `OptionT` in which the response is returned.
     */

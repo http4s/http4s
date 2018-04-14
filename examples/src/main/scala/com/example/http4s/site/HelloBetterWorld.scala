@@ -6,7 +6,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 
 object HelloBetterWorld {
-  val service = HttpService[IO] {
+  val service = HttpRoutes.of[IO] {
     //  We use http4s-dsl to match the path of the Request to the familiar URI form
     case GET -> Root / "hello" =>
       // We could make a IO[Response] manually, but we use the

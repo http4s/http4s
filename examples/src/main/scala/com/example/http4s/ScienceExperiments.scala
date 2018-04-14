@@ -26,8 +26,8 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
   def service(
       implicit F: Effect[F],
       scheduler: Scheduler,
-      executionContext: ExecutionContext = ExecutionContext.global): HttpService[F] =
-    HttpService[F] {
+      executionContext: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
+    HttpRoutes.of[F] {
       ///////////////// Misc //////////////////////
       case req @ POST -> Root / "root-element-name" =>
         req.decode { root: Elem =>

@@ -8,29 +8,30 @@ import java.io.File
 import org.http4s.server.middleware.URITranslation
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
-  val s = fileService(FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath))
+  val routes = fileService(
+    FileService.Config[IO](new File(getClass.getResource("/").toURI).getPath))
 
   "FileService" should {
 
     "Respect UriTranslation" in {
-      val s2 = URITranslation.translateRoot("/foo")(s)
+      val app = URITranslation.translateRoot("/foo")(routes).orNotFound
 
       {
         val req = Request[IO](uri = uri("foo/testresource.txt"))
-        s2.orNotFound(req) must returnBody(testResource)
-        s2.orNotFound(req) must returnStatus(Status.Ok)
+        app(req) must returnBody(testResource)
+        app(req) must returnStatus(Status.Ok)
       }
 
       {
         val req = Request[IO](uri = uri("testresource.txt"))
-        s2.orNotFound(req) must returnStatus(Status.NotFound)
+        app(req) must returnStatus(Status.NotFound)
       }
     }
 
     "Return a 200 Ok file" in {
       val req = Request[IO](uri = uri("testresource.txt"))
-      s.orNotFound(req) must returnBody(testResource)
-      s.orNotFound(req) must returnStatus(Status.Ok)
+      routes.orNotFound(req) must returnBody(testResource)
+      routes.orNotFound(req) must returnStatus(Status.Ok)
     }
 
     "Return index.html if request points to a directory" in {
@@ -43,29 +44,29 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not find missing file" in {
       val req = Request[IO](uri = uri("testresource.txtt"))
-      s.orNotFound(req) must returnStatus(Status.NotFound)
+      routes.orNotFound(req) must returnStatus(Status.NotFound)
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(4)
       val req = Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(range)
-      s.orNotFound(req) must returnStatus(Status.PartialContent)
-      s.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.splitAt(4)._2))
+      routes.orNotFound(req) must returnStatus(Status.PartialContent)
+      routes.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.splitAt(4)._2))
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(-4)
       val req = Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(range)
-      s.orNotFound(req) must returnStatus(Status.PartialContent)
-      s.orNotFound(req) must returnBody(
+      routes.orNotFound(req) must returnStatus(Status.PartialContent)
+      routes.orNotFound(req) must returnBody(
         Chunk.bytes(testResource.toArray.splitAt(testResource.size - 4)._2))
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(2, 4)
       val req = Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(range)
-      s.orNotFound(req) must returnStatus(Status.PartialContent)
-      s.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) // the end number is inclusive in the Range header
+      routes.orNotFound(req) must returnStatus(Status.PartialContent)
+      routes.orNotFound(req) must returnBody(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) // the end number is inclusive in the Range header
     }
 
     "Return a 200 OK on invalid range" in {
@@ -78,8 +79,8 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       )
       val reqs = ranges.map(r => Request[IO](uri = uri("testresource.txt")).replaceAllHeaders(r))
       forall(reqs) { req =>
-        s.orNotFound(req) must returnStatus(Status.Ok)
-        s.orNotFound(req) must returnBody(testResource)
+        routes.orNotFound(req) must returnStatus(Status.Ok)
+        routes.orNotFound(req) must returnBody(testResource)
       }
     }
   }

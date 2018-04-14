@@ -27,7 +27,7 @@ class CSRFSpec extends Http4sSpec {
       Instant.ofEpochMilli(clockTick.incrementAndGet())
   }
 
-  val dummyService: HttpService[IO] = HttpService[IO] {
+  val dummyRoutes: HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root =>
       Ok()
     case POST -> Root =>
@@ -42,7 +42,7 @@ class CSRFSpec extends Http4sSpec {
   "CSRF" should {
     "pass through and embed a new token for a safe, fresh request" in {
       val response =
-        csrf.validate()(dummyService)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
+        csrf.validate()(dummyRoutes)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
 
       response.status must_== Status.Ok
       response.cookies.exists(_.name == csrf.cookieName) must_== true
@@ -51,7 +51,7 @@ class CSRFSpec extends Http4sSpec {
     "fail a request with an invalid cookie, despite it being a safe method" in {
       val response =
         csrf
-          .validate()(dummyService)(
+          .validate()(dummyRoutes)(
             passThroughRequest.addCookie(RequestCookie(csrf.cookieName, "MOOSE")))
           .getOrElse(orElse)
           .unsafeRunSync()
@@ -66,7 +66,7 @@ class CSRFSpec extends Http4sSpec {
           oldToken <- csrf.generateToken
           raw1 <- csrf.extractRaw(oldToken).getOrElse("Invalid1")
           response <- csrf
-            .validate()(dummyService)(passThroughRequest.addCookie(csrf.cookieName, oldToken))
+            .validate()(dummyRoutes)(passThroughRequest.addCookie(csrf.cookieName, oldToken))
             .getOrElse(orElse)
           newCookie <- IO.pure(
             response.cookies
@@ -90,7 +90,7 @@ class CSRFSpec extends Http4sSpec {
     "validate for the correct csrf token" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate()(dummyService)(
+        res <- csrf.validate()(dummyRoutes)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token))
             .addCookie(csrf.cookieName, token)
@@ -100,7 +100,7 @@ class CSRFSpec extends Http4sSpec {
 
     "not validate if token is missing in both" in {
       csrf
-        .validate()(dummyService)(dummyRequest)
+        .validate()(dummyRoutes)(dummyRequest)
         .getOrElse(orElse)
         .unsafeRunSync()
         .status must_== Status.Unauthorized
@@ -109,7 +109,7 @@ class CSRFSpec extends Http4sSpec {
     "not validate for token missing in header" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate()(dummyService)(
+        res <- csrf.validate()(dummyRoutes)(
           dummyRequest.addCookie(csrf.cookieName, token)
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
@@ -118,7 +118,7 @@ class CSRFSpec extends Http4sSpec {
     "not validate for token missing in cookie" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate()(dummyService)(
+        res <- csrf.validate()(dummyRoutes)(
           dummyRequest.putHeaders(Header(csrf.headerName, token))
         )
       } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
@@ -128,7 +128,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token1 <- OptionT.liftF(csrf.generateToken)
         token2 <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate()(dummyService)(
+        res <- csrf.validate()(dummyRoutes)(
           dummyRequest
             .withHeaders(Headers(Header(csrf.headerName, token1)))
             .addCookie(csrf.cookieName, token2)
@@ -140,7 +140,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
         raw1 <- csrf.extractRaw(token)
-        res <- csrf.validate()(dummyService)(
+        res <- csrf.validate()(dummyRoutes)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token))
             .addCookie(csrf.cookieName, token)
@@ -154,7 +154,7 @@ class CSRFSpec extends Http4sSpec {
       val response = (for {
         token1 <- OptionT.liftF(csrf.generateToken)
         token2 <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate()(dummyService)(
+        res <- csrf.validate()(dummyRoutes)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token1))
             .addCookie(csrf.cookieName, token2)

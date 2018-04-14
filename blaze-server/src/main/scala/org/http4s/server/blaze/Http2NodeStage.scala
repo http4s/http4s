@@ -26,7 +26,7 @@ private class Http2NodeStage[F[_]](
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
     attributes: AttributeMap,
-    service: HttpService[F],
+    service: HttpRoutes[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
     extends TailStage[NodeMsg.Http2Msg] {
 

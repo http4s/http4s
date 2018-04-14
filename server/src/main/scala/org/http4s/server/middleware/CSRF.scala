@@ -96,28 +96,28 @@ final class CSRF[F[_]] private[middleware] (
     */
   private[middleware] def validateOrEmbed(
       r: Request[F],
-      service: HttpService[F]): OptionT[F, Response[F]] =
+      routes: HttpRoutes[F]): OptionT[F, Response[F]] =
     CSRF.cookieFromHeaders(r, cookieName) match {
       case Some(c) =>
         OptionT.liftF(
           (for {
             raw <- extractRaw(c.content)
-            res <- service(r)
+            res <- routes(r)
             newToken <- OptionT.liftF(signToken(raw))
           } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
             .getOrElse(Response[F](Status.Unauthorized)))
       case None =>
-        service(r).semiflatMap(embedNew)
+        routes(r).semiflatMap(embedNew)
     }
 
   /** Check for CSRF validity for an unsafe action. **/
-  private[middleware] def checkCSRF(r: Request[F], service: HttpService[F]): F[Response[F]] =
+  private[middleware] def checkCSRF(r: Request[F], routes: HttpRoutes[F]): F[Response[F]] =
     (for {
       c1 <- OptionT.fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
       c2 <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)))
       raw1 <- extractRaw(c1.content)
       raw2 <- extractRaw(c2.value)
-      response <- if (CSRF.isEqual(raw1, raw2)) service(r) else OptionT.none
+      response <- if (CSRF.isEqual(raw1, raw2)) routes(r) else OptionT.none
       newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
     } yield response.addCookie(ResponseCookie(name = cookieName, content = newToken)))
       .getOrElse(Response[F](Status.Unauthorized))
@@ -126,11 +126,11 @@ final class CSRF[F[_]] private[middleware] (
   private[middleware] def filter(
       predicate: Request[F] => Boolean,
       r: Request[F],
-      service: HttpService[F]): OptionT[F, Response[F]] =
+      routes: HttpRoutes[F]): OptionT[F, Response[F]] =
     if (predicate(r)) {
-      validateOrEmbed(r, service)
+      validateOrEmbed(r, routes)
     } else {
-      OptionT.liftF(checkCSRF(r, service))
+      OptionT.liftF(checkCSRF(r, routes))
     }
 
   /** Constructs a middleware that will check for the csrf token
@@ -144,9 +144,9 @@ final class CSRF[F[_]] private[middleware] (
     *
     *
     */
-  def validate(predicate: Request[F] => Boolean = _.method.isSafe): HttpMiddleware[F] = { service =>
+  def validate(predicate: Request[F] => Boolean = _.method.isSafe): HttpMiddleware[F] = { routes =>
     Kleisli { r: Request[F] =>
-      filter(predicate, r, service)
+      filter(predicate, r, routes)
     }
   }
 

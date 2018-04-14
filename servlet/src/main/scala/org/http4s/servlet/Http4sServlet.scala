@@ -15,7 +15,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class Http4sServlet[F[_]](
-    service: HttpService[F],
+    service: HttpRoutes[F],
     asyncTimeout: Duration = Duration.Inf,
     implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
     private[this] var servletIo: ServletIo[F],
@@ -205,7 +205,7 @@ class Http4sServlet[F[_]](
 
 object Http4sServlet {
   def apply[F[_]: Effect](
-      service: HttpService[F],
+      service: HttpRoutes[F],
       asyncTimeout: Duration = Duration.Inf,
       executionContext: ExecutionContext = ExecutionContext.global): Http4sServlet[F] =
     new Http4sServlet[F](

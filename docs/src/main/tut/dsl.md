@@ -4,8 +4,8 @@ weight: 110
 title: The http4s DSL
 ---
 
-Recall from earlier that an `HttpService[F]` is just a type alias for
-`Kleisli[F, Request[F], Response[F]]`.  This provides a minimal
+Recall from earlier that an `HttpRoutes[F]` is just a type alias for
+`Kleisli[OptionT[F, ?], Request[F], Response[F]]`.  This provides a minimal
 foundation for declaring services and executing them on blaze or a
 servlet container.  While this foundation is composeable, it is not
 highly productive.  Most service authors will seek a higher level DSL.
@@ -41,7 +41,7 @@ import org.http4s._, org.http4s.dsl.io._, org.http4s.implicits._
 ```
 
 The central concept of http4s-dsl is pattern matching.  An
-`HttpService[F]` is declared as a simple series of case statements.  Each
+`HttpRoutes[F]` is declared as a simple series of case statements.  Each
 case statement attempts to match and optionally extract from an
 incoming `Request[F]`.  The code associated with the first matching case
 is used to generate a `F[Response[F]]`.
@@ -53,7 +53,7 @@ anything.  The right hand side of the request must return a
 In the following we use `cats.effect.IO` as the effect type `F`.
 
 ```tut:book
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case _ =>
     IO(Response(Status.Ok))
 }
@@ -61,7 +61,7 @@ val service = HttpService[IO] {
 
 ## Testing the Service
 
-One beautiful thing about the `HttpService[F]` model is that we don't
+One beautiful thing about the `HttpRoutes[F]` model is that we don't
 need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
 
@@ -77,7 +77,7 @@ be an asynchronous operation with side effects, such as invoking
 another web service or querying a database, or maybe both.  Operating
 in a `F` gives us control over the sequencing of operations and
 lets us reason about our code like good functional programmers.  It is
-the `HttpService[F]`'s job to describe the task, and the server's job to
+the `HttpRoutes[F]`'s job to describe the task, and the server's job to
 run it.
 
 But here in the REPL, it's up to us to run it:
@@ -108,7 +108,7 @@ This simple `Ok()` expression succinctly says what we mean in a
 service:
 
 ```tut:book
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case _ => Ok()
 }.orNotFound.run(getRoot).unsafeRunSync
 ```
@@ -118,7 +118,7 @@ don't return a body, so a `204 No Content` would be a more appropriate
 response:
 
 ```tut:book
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case _ => NoContent()
 }.orNotFound.run(getRoot).unsafeRunSync
 ```
@@ -291,7 +291,7 @@ other side the path. Naturally, `_` is a valid matcher too, so any call to
 `/api` can be blocked, regardless of `Method`:
 
 ```tut
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case _ -> Root / "api" => Forbidden()
 }
 ```
@@ -300,7 +300,7 @@ To also block all subcalls `/api/...`, you'll need `/:`, which is right
 associative, and matches everything after, and not just the next element:
 
 ```tut
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case _ -> "api" /: _ => Forbidden()
 }
 ```
@@ -308,7 +308,7 @@ HttpService[IO] {
 For matching more than one `Method`, there's `|`:
 
 ```tut
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case (GET | POST) -> Root / "api"  => ???
 }
 ```
@@ -316,7 +316,7 @@ HttpService[IO] {
 Honorable mention: `~`, for matching file extensions.
 
 ```tut
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case GET -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
 }
 ```
@@ -329,7 +329,7 @@ of `IntVar` and `LongVar`.
 ```tut:book
 def getUserName(userId: Int): IO[String] = ???
 
-val usersService = HttpService[IO] {
+val usersService = HttpRoutes.of[IO] {
   case GET -> Root / "users" / IntVar(userId) =>
     Ok(getUserName(userId))
 }
@@ -355,7 +355,7 @@ object LocalDateVar {
 
 def getTemperatureForecast(date: LocalDate): IO[Double] = IO(42.23)
 
-val dailyWeatherService = HttpService[IO] {
+val dailyWeatherService = HttpRoutes.of[IO] {
   case GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
@@ -387,7 +387,7 @@ object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 
 def getAverageTemperatureForCountryAndYear(country: String, year: Year): IO[Double] = ???
 
-val averageTemperatureService = HttpService[IO] {
+val averageTemperatureService = HttpRoutes.of[IO] {
   case GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }

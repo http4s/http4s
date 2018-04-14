@@ -45,12 +45,12 @@ object Metrics {
     Kleisli(metricsService[F](serviceMetrics, service)(_))
   }
 
-  private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, service: HttpService[F])(
+  private def metricsService[F[_]: Sync](serviceMetrics: ServiceMetrics, routes: HttpRoutes[F])(
       req: Request[F]): OptionT[F, Response[F]] = OptionT {
     for {
       now <- Sync[F].delay(System.nanoTime())
       _ <- Sync[F].delay(serviceMetrics.generalMetrics.activeRequests.inc())
-      e <- service(req).value.attempt
+      e <- routes(req).value.attempt
       resp <- metricsServiceHandler(req.method, now, serviceMetrics, e)
     } yield resp
   }

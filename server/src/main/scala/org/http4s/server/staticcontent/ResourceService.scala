@@ -25,8 +25,8 @@ object ResourceService {
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F],
       preferGzipped: Boolean = false)
 
-  /** Make a new [[org.http4s.HttpService]] that serves static files. */
-  private[staticcontent] def apply[F[_]: Effect](config: Config[F]): HttpService[F] =
+  /** Make a new [[org.http4s.HttpRoutes]] that serves static files. */
+  private[staticcontent] def apply[F[_]: Effect](config: Config[F]): HttpRoutes[F] =
     Kleisli {
       case request if request.pathInfo.startsWith(config.pathPrefix) =>
         StaticFile

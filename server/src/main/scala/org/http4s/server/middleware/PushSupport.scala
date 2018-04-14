@@ -44,18 +44,18 @@ object PushSupport {
       r: Vector[PushLocation],
       req: Request[F],
       verify: String => Boolean,
-      route: HttpService[F])(implicit F: Monad[F]): F[Vector[PushResponse[F]]] =
+      routes: HttpRoutes[F])(implicit F: Monad[F]): F[Vector[PushResponse[F]]] =
     r.foldLeft(F.pure(Vector.empty[PushResponse[F]])) { (facc, v) =>
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          route
+          routes
             .mapF[OptionT[F, ?], Vector[PushResponse[F]]] {
               _.semiflatMap { response =>
                 response.attributes
                   .get(pushLocationKey)
                   .map { pushed =>
-                    collectResponse(pushed, req, verify, route).map(
+                    collectResponse(pushed, req, verify, routes).map(
                       accumulated ++ _ :+ PushResponse(v.location, response))
                   }
                   .getOrElse(F.pure(accumulated :+ PushResponse(v.location, response)))
@@ -64,7 +64,7 @@ object PushSupport {
             .apply(newReq)
             .getOrElse(Vector.empty[PushResponse[F]])
         } else {
-          route
+          routes
             .flatMapF { response =>
               OptionT.liftF(facc.map(_ :+ PushResponse(v.location, response)))
             }
@@ -76,19 +76,19 @@ object PushSupport {
 
   /** Transform the route such that requests will gather pushed resources
     *
-    * @param service HttpService to transform
+    * @param routes HttpRoutes to transform
     * @param verify method that determines if the location should be pushed
     * @return      Transformed route
     */
   def apply[F[_]: Monad](
-      service: HttpService[F],
-      verify: String => Boolean = _ => true): HttpService[F] = {
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      verify: String => Boolean = _ => true): HttpRoutes[F] = {
 
     def gather(req: Request[F])(resp: Response[F]): Response[F] =
       resp.attributes
         .get(pushLocationKey)
         .map { fresource =>
-          val collected = collectResponse(fresource, req, verify, service)
+          val collected = collectResponse(fresource, req, verify, routes)
           resp.copy(
             body = resp.body,
             attributes = resp.attributes.put(pushResponsesKey[F], collected)
@@ -96,7 +96,7 @@ object PushSupport {
         }
         .getOrElse(resp)
 
-    Kleisli(req => service(req).map(gather(req)))
+    Kleisli(req => routes(req).map(gather(req)))
   }
 
   private[PushSupport] final case class PushLocation(location: String, cascade: Boolean)

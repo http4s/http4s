@@ -5,26 +5,26 @@ import cats.effect._
 import org.http4s.dsl.io._
 
 class RouterSpec extends Http4sSpec {
-  val numbers = HttpService[IO] {
+  val numbers = HttpRoutes.of[IO] {
     case GET -> Root / "1" =>
       Ok("one")
   }
-  val letters = HttpService[IO] {
+  val letters = HttpRoutes.of[IO] {
     case GET -> Root / "/b" =>
       Ok("bee")
   }
-  val shadow = HttpService[IO] {
+  val shadow = HttpRoutes.of[IO] {
     case GET -> Root / "shadowed" =>
       Ok("visible")
   }
-  val root = HttpService[IO] {
+  val root = HttpRoutes.of[IO] {
     case GET -> Root / "about" =>
       Ok("about")
     case GET -> Root / "shadow" / "shadowed" =>
       Ok("invisible")
   }
 
-  val notFound = HttpService[IO] {
+  val notFound = HttpRoutes.of[IO] {
     case _ => NotFound("Custom NotFound")
   }
 

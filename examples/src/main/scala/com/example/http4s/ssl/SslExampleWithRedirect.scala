@@ -6,7 +6,7 @@ import cats.syntax.option._
 import fs2.StreamApp.ExitCode
 import fs2._
 import java.nio.file.Paths
-import org.http4s.HttpService
+import org.http4s.HttpRoutes
 import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.{Host, Location}
@@ -24,7 +24,7 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
 
   def builder: ServerBuilder[F] with SSLKeyStoreSupport[F]
 
-  val redirectService: HttpService[F] = HttpService[F] {
+  val redirectService: HttpRoutes[F] = HttpRoutes.of[F] {
     case request =>
       request.headers.get(Host) match {
         case Some(Host(host, _)) =>

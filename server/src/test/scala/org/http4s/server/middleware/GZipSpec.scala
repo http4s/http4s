@@ -16,29 +16,29 @@ class GZipSpec extends Http4sSpec {
 
   "GZip" should {
     "fall through if the route doesn't match" in {
-      val service = GZip(HttpService.empty[IO]) <+> HttpService[IO] {
+      val routes = GZip(HttpRoutes.empty[IO]) <+> HttpRoutes.of[IO] {
         case GET -> Root => Ok("pong")
       }
       val req =
         Request[IO](Method.GET, Uri.uri("/")).putHeaders(`Accept-Encoding`(ContentCoding.gzip))
-      val resp = service.orNotFound(req).unsafeRunSync()
+      val resp = routes.orNotFound(req).unsafeRunSync()
       resp.status must_== (Status.Ok)
       resp.headers.get(`Content-Encoding`) must beNone
     }
 
     "encodes random content-type if given isZippable is true" in {
       val response = "Response string"
-      val service: HttpService[IO] = HttpService[IO] {
+      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
         case GET -> Root =>
           Ok(response, Header("Content-Type", "random-type; charset=utf-8"))
       }
 
-      val gzipService: HttpService[IO] = GZip(service, isZippable = (_) => true)
+      val gzipRoutes: HttpRoutes[IO] = GZip(routes, isZippable = (_) => true)
 
       val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/"))
         .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
       val actual: IO[Array[Byte]] =
-        gzipService.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
+        gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
       val byteStream = new ByteArrayOutputStream(response.length)
       val gZIPStream = new GZIPOutputStream(byteStream)
@@ -53,14 +53,14 @@ class GZipSpec extends Http4sSpec {
       new Properties("GZip") {
         property("middleware encoding == GZIPOutputStream encoding") = forAll {
           vector: Vector[Array[Byte]] =>
-            val service: HttpService[IO] = HttpService[IO] {
+            val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
               case GET -> Root => Ok(Stream.emits(vector).covary[IO])
             }
-            val gzipService: HttpService[IO] = GZip(service)
+            val gzipRoutes: HttpRoutes[IO] = GZip(routes)
             val req: Request[IO] = Request[IO](Method.GET, Uri.uri("/"))
               .putHeaders(`Accept-Encoding`(ContentCoding.gzip))
             val actual: IO[Array[Byte]] =
-              gzipService.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
+              gzipRoutes.orNotFound(req).flatMap(_.as[Chunk[Byte]]).map(_.toArray)
 
             val byteArrayStream = new ByteArrayOutputStream()
             val gzipStream = new GZIPOutputStream(byteArrayStream)

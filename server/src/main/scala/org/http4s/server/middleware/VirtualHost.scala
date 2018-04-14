@@ -20,18 +20,20 @@ object VirtualHost {
     * filled in, if possible, using the request Uri or knowledge of the
     * security of the underlying transport protocol.
     */
-  final case class HostService[F[_]](service: HttpService[F], p: Host => Boolean)
+  final case class HostService[F[_]](
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      p: Host => Boolean)
 
   /** Create a [[HostService]] that will match based on the exact host string
     * (discounting case) and port, if the port is given. If the port is not
     * given, it is ignored.
     */
   def exact[F[_]](
-      service: HttpService[F],
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
       requestHost: String,
       port: Option[Int] = None): HostService[F] =
     HostService(
-      service,
+      routes,
       h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
 
   /** Create a [[HostService]] that will match based on the host string allowing
@@ -39,28 +41,28 @@ object VirtualHost {
     * given. If the port is not given, it is ignored.
     */
   def wildcard[F[_]](
-      service: HttpService[F],
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
       wildcardHost: String,
       port: Option[Int] = None): HostService[F] =
-    regex(service, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
+    regex(routes, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
   /** Create a [[HostService]] that uses a regular expression to match the host
     * string (which will be provided in lower case form) and port, if the port
     * is given. If the port is not given, it is ignored.
     */
   def regex[F[_]](
-      service: HttpService[F],
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
       hostRegex: String,
       port: Option[Int] = None): HostService[F] = {
     val r = hostRegex.r
     HostService(
-      service,
+      routes,
       h => r.findFirstIn(h.host.toLowerCase).nonEmpty && (port.isEmpty || port == h.port))
   }
 
   def apply[F[_]](first: HostService[F], rest: HostService[F]*)(
       implicit F: Monad[F],
-      W: EntityEncoder[F, String]): HttpService[F] =
+      W: EntityEncoder[F, String]): HttpRoutes[F] =
     Kleisli { req =>
       req.headers
         .get(Host)

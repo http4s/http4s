@@ -14,7 +14,9 @@ import cats.effect._
   */
 object UrlFormLifter {
 
-  def apply[F[_]: Effect](service: HttpService[F], strictDecode: Boolean = false): HttpService[F] =
+  def apply[F[_]: Effect](
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      strictDecode: Boolean = false): HttpRoutes[F] =
     Kleisli { req =>
       def addUrlForm(form: UrlForm): OptionT[F, Response[F]] = {
         val flatForm = form.values.toVector.flatMap { case (k, vs) => vs.map(v => (k, Some(v))) }
@@ -24,7 +26,7 @@ object UrlFormLifter {
         val newRequest = req
           .withUri(req.uri.copy(query = newQuery))
           .withEmptyBody
-        service(newRequest)
+        routes(newRequest)
       }
 
       req.headers.get(headers.`Content-Type`) match {
@@ -38,7 +40,7 @@ object UrlFormLifter {
             )
           } yield resp
 
-        case _ => service(req)
+        case _ => routes(req)
       }
     }
 

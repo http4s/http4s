@@ -10,8 +10,7 @@ import java.nio.file.{Files, Paths}
 import scodec.bits.ByteVector
 
 private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
-
-  def s: HttpService[IO]
+  def routes: HttpRoutes[IO]
 
   lazy val testResource: Chunk[Byte] = {
     val s = getClass.getResourceAsStream("/testresource.txt")
@@ -57,7 +56,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
   }
 
   def runReq(req: Request[IO]): (ByteVector, Response[IO]) = {
-    val resp = s.orNotFound(req).unsafeRunSync
+    val resp = routes.orNotFound(req).unsafeRunSync
     val body = resp.body.chunks.compile.toVector.unsafeRunSync.foldLeft(ByteVector.empty) {
       (bv, chunk) =>
         bv ++ ByteVector.view(chunk.toArray)

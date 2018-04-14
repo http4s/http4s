@@ -11,7 +11,7 @@ import org.http4s._
 import org.http4s.dsl.Http4sDsl
 
 class PrometheusExportService[F[_]: Sync] private (
-    s: HttpService[F],
+    s: HttpRoutes[F],
     cr: CollectorRegistry
 ) {
   def withCollectorRegistry(cr: CollectorRegistry): PrometheusExportService[F] =
@@ -20,7 +20,7 @@ class PrometheusExportService[F[_]: Sync] private (
       cr
     )
 
-  def service: HttpService[F] = s
+  def service: HttpRoutes[F] = s
 
   def collectorRegistry: CollectorRegistry = cr
 }
@@ -45,11 +45,11 @@ object PrometheusExportService {
       }
       .map(Response[F](Status.Ok).withEntity(_))
 
-  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpService[F] = {
+  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] = {
     object dsl extends Http4sDsl[F]
     import dsl._
 
-    HttpService[F] {
+    HttpRoutes.of[F] {
       case GET -> Root / "metrics" => generateResponse(collectorRegistry)
     }
   }

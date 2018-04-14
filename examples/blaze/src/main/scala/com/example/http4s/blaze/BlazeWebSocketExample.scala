@@ -16,7 +16,7 @@ object BlazeWebSocketExample extends BlazeWebSocketExampleApp[IO]
 
 class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F] with Http4sDsl[F] {
 
-  def route(scheduler: Scheduler): HttpService[F] = HttpService[F] {
+  def route(scheduler: Scheduler): HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 

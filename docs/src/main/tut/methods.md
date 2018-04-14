@@ -25,7 +25,7 @@ def deleteTweet(id: Int): IO[Unit] = ???
 implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
 implicit val tweetDecoder = jsonOf[IO, Tweet]
 
-val tweetService = HttpService[IO] {
+val tweetService = HttpRoutes.of[IO] {
   case GET -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId)
       .flatMap(_.fold(NotFound())(Ok(_)))

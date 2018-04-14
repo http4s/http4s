@@ -194,7 +194,7 @@ object LongVar extends NumericPathVar(_.toLong)
   * {{{
   *   object A extends QueryParamDecoderMatcher[String]("a")
   *   object B extends QueryParamDecoderMatcher[Int]("b")
-  *   val service: HttpService = {
+  *   val routes = HttpRoutes.of {
   *     case GET -> Root / "user" :? A(a) +& B(b) => ...
   * }}}
   */
@@ -211,7 +211,7 @@ object +& {
   *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
-  *   val service: HttpService = {
+  *   val routes = HttpRoutes.of {
   *     case GET -> Root / "closest" :? FooMatcher(2) => ...
   * }}}
   */
@@ -238,7 +238,7 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   *   implicit val fooParam: QueryParam[Foo] = ...
   *
   *   object FooMatcher extends QueryParamDecoderMatcher[Foo]
-  *   val service: HttpService = {
+  *   val routes = HttpRoutes.of {
   *     case GET -> Root / "closest" :? FooMatcher(2) => ...
   * }}}
   */
@@ -263,7 +263,7 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
   *   implicit val fooParam: QueryParam[Foo] = ...
   *
   *   object FooMatcher extends OptionalMultiQueryParamDecoderMatcher[Foo]("foo")
-  *   val service: HttpService = {
+  *   val routes = HttpRoutes.of {
   *     // matches http://.../closest?foo=2&foo=3&foo=4
   *     case GET -> Root / "closest" :? FooMatcher(Some(Seq(2,3,4))) => ...
   *
@@ -302,13 +302,13 @@ abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
   *
   *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
-  *  val service: HttpService = {
-  *  case GET -> Root / "closest" :? FooMatcher(fooValue) => {
-  *    fooValue.fold(
-  *      nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
-  *      foo  => { ... }
-  *    )
-  *  }
+  *  val routes: HttpRoutes.of = {
+  *    case GET -> Root / "closest" :? FooMatcher(fooValue) => {
+  *      fooValue.fold(
+  *        nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
+  *        foo  => { ... }
+  *      )
+  *    }
   * }}}
   */
 abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
@@ -332,15 +332,15 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
   *  object BarMatcher extends OptionalValidatingQueryParamDecoderMatcher[Bar]("bar")
   *
-  *  val service: HttpService = {
-  *  case GET -> Root / "closest" :? FooMatcher(fooValue) +& BarMatcher(barValue) => {
-  *    ^(fooValue, barValue getOrElse 42.right) { (foo, bar) =>
-  *      ...
-  *    }.fold(
-  *      nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
-  *      baz  => { ... }
-  *    )
-  *  }
+  *  val routes = HttpRoutes.of {
+  *    case GET -> Root / "closest" :? FooMatcher(fooValue) +& BarMatcher(barValue) => {
+  *      ^(fooValue, barValue getOrElse 42.right) { (foo, bar) =>
+  *        ...
+  *      }.fold(
+  *        nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
+  *        baz  => { ... }
+  *      )
+  *    }
   * }}}
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {

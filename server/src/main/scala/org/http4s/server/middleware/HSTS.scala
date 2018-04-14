@@ -17,23 +17,23 @@ object HSTS {
     includeSubDomains = true,
     preload = false)
 
-  def apply[F[_]: Functor](service: HttpService[F]): HttpService[F] =
-    apply(service, defaultHSTSPolicy)
+  def apply[F[_]: Functor](@deprecatedName('service, "0.19") routes: HttpRoutes[F]): HttpRoutes[F] =
+    apply(routes, defaultHSTSPolicy)
 
   def apply[F[_]: Functor](
-      service: HttpService[F],
-      header: `Strict-Transport-Security`): HttpService[F] = Kleisli { req =>
-    service.map(_.putHeaders(header)).apply(req)
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      header: `Strict-Transport-Security`): HttpRoutes[F] = Kleisli { req =>
+    routes.map(_.putHeaders(header)).apply(req)
   }
 
   def unsafeFromDuration[F[_]: Functor](
-      service: HttpService[F],
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
       maxAge: FiniteDuration = 365.days,
       includeSubDomains: Boolean = true,
-      preload: Boolean = false): HttpService[F] = {
+      preload: Boolean = false): HttpRoutes[F] = {
     val header = `Strict-Transport-Security`.unsafeFromDuration(maxAge, includeSubDomains, preload)
 
-    apply(service, header)
+    apply(routes, header)
   }
 
 }

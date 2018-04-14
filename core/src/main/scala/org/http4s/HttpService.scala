@@ -17,7 +17,7 @@ object HttpService extends Serializable {
 
   /** Lifts a partial function to [[HttpRoutes]].  Responds with
     * `OptionT.none` for any request where `pf` is not defined.
-    * 
+    *
     * Unlike `HttpRoutes.of`, does not suspend the application of `pf`.
     */
   @deprecated("Replaced by `HttpRoutes.of`", "0.19")
