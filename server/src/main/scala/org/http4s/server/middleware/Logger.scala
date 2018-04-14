@@ -6,7 +6,6 @@ import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.{Logger => SLogger}
-import scodec.bits.ByteVector
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -36,6 +35,14 @@ object Logger {
 
     val isText = !isBinary || isJson
 
+    def prelude = message match {
+      case Request(method, uri, httpVersion, _, _, _) =>
+        s"$httpVersion $method $uri"
+
+      case Response(status, httpVersion, _, _, _) =>
+        s"$httpVersion $status"
+    }
+
     val headers =
       if (logHeaders)
         message.headers.redactSensitive(redactHeadersWhen).toList.mkString("Headers(", ", ", ")")
@@ -44,7 +51,9 @@ object Logger {
     val bodyStream = if (logBody && isText) {
       message.bodyAsText(charset.getOrElse(Charset.`UTF-8`))
     } else if (logBody) {
-      message.body.map(ByteVector.fromByte).map(_.toHex)
+      message.body
+        .fold(new StringBuilder)((sb, b) => sb.append(java.lang.Integer.toHexString(b & 0xff)))
+        .map(_.toString)
     } else {
       Stream.empty.covary[F]
     }
@@ -58,7 +67,7 @@ object Logger {
     if (!logBody && !logHeaders) F.unit
     else {
       bodyText
-        .map(body => s"$headers $body")
+        .map(body => s"$prelude $headers $body")
         .map(text => logger.info(text))
         .compile
         .drain

@@ -71,6 +71,10 @@ object ParseResult {
   * the entity headers or with the entity itself.   */
 trait DecodeFailure extends MessageFailure
 
+object DecodeFailure {
+  implicit val http4sEqForDecodeFailure: Eq[DecodeFailure] = Eq.fromUniversalEquals
+}
+
 /** Indicates a problem decoding a [[Message]] body. */
 trait MessageBodyFailure extends DecodeFailure
 

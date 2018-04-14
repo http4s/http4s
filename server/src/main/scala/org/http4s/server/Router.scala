@@ -2,8 +2,8 @@ package org.http4s
 package server
 
 import cats.data.Kleisli
-import cats.effect._
-import cats.implicits._
+import cats.effect.Sync
+import cats.syntax.semigroupk._
 
 object Router {
 

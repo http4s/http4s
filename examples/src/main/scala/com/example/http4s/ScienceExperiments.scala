@@ -2,17 +2,17 @@ package com.example.http4s
 
 import cats.effect._
 import cats.implicits._
-import fs2.{Pull, Scheduler, Stream}
+import fs2.{Chunk, Pull, Scheduler, Stream}
 import io.circe._
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.Date
 import org.http4s.scalaxml._
+
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext
 import scala.xml.Elem
-import scodec.bits.ByteVector
 
 /** These are routes that we tend to use for testing purposes
   * and will likely get folded into unit tests later in life */
@@ -108,7 +108,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
       case GET -> Root / "hanging-body" =>
         Ok(
           Stream
-            .eval(F.pure(ByteVector(Seq(' '.toByte))))
+            .eval(F.pure(Chunk.bytes(Array(' '.toByte))))
             .evalMap(_ =>
               F.async[Byte] { cb => /* hang */
             }))
@@ -124,20 +124,6 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
         val resp = "Hello world!".map(_.toString())
         val body = scheduler.awakeEvery[F](2.seconds).zipWith(Stream.emits(resp))((_, c) => c)
         Ok(body)
-
-      /*
-    case req @ POST -> Root / "ill-advised-echo" =>
-      // Reads concurrently from the input.  Don't do this at home.
-      implicit val byteVectorMonoidInstance: Monoid[ByteVector] = new Monoid[ByteVector]{
-        def combine(x: ByteVector, y: ByteVector): ByteVector = x ++ y
-        def empty: ByteVector = ByteVector.empty
-      }
-      val seq = 1 to Runtime.getRuntime.availableProcessors
-      val f: Int => IO[ByteVector] = _ => req.body.map(ByteVector.fromByte).compile.toVector.map(_.combineAll)
-      val result: Stream[IO, Byte] = Stream.eval(IO.traverse(seq)(f))
-        .flatMap(v => Stream.emits(v.combineAll.toSeq))
-      Ok(result)
-       */
 
       case GET -> Root / "fail" / "task" =>
         F.raiseError(new RuntimeException)

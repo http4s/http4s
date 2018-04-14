@@ -8,6 +8,41 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.7 (2018-04-04)
+* Multipart parser defaults to fields interpreted as utf-8. [#1767](https://github.com/http4s/http4s/pull/1767)
+
+# v0.18.6 (2018-04-03)
+* Fix parsing of multipart bodies across chunk boundaries. [#1764](https://github.com/http4s/http4s/pull/1764)
+
+# v0.18.5 (2018-03-28)
+* Add `&` extractor to http4s-dsl. [#1758](https://github.com/http4s/http4s/pull/1758)
+* Deprecate `EntityEncoder[F, Future[A]]`.  The `EntityEncoder` is strict in its argument, which causes any side effect of the `Future` to execute immediately.  Wrap your `future` in `IO.fromFuture(IO(future))` instead. [#1759](https://github.com/http4s/http4s/pull/1759)
+* Dependency upgrades:
+  * circe-0.9.3
+
+# v0.18.4 (2018-03-23)
+* Deprecate old `Timeout` middleware methods in favor of new ones that use `FiniteDuration` and cancel timed out effects [#1725](https://github.com/http4s/http4s/pull/1725)
+* Add `expectOr` methods to client for custom error handling on failed expects [#1726](https://github.com/http4s/http4s/pull/1726)
+* Replace buffered multipart parser with a streaming version. Deprecate all uses of fs2-scodec. [#1727](https://github.com/http4s/http4s/pull/1727)
+* Dependency upgrades:
+  * blaze-0.12.2
+  * fs2-0.10.3
+  * log4s-1.6.1
+  * jetty-9.4.9.v20180320
+
+# v0.18.3 (2018-03-17)
+* Remove duplicate logging in pool manager [#1683]((https://github.com/http4s/http4s/pull/1683)
+* Add request/response specific properties to logging [#1709](https://github.com/http4s/http4s/pull/1709)
+* Dependency upgrades:
+  * async-http-client-2.0.39
+  * cats-1.1.0
+  * cats-effect-0.10
+  * circe-0.9.2
+  * discipline-0.9.0
+  * jawn-fs2-0.12.2
+  * log4s-1.5.0
+  * twirl-1.3.15
+
 # v0.18.2 (2018-03-09)
 * Qualify reference to `identity` in `uriLiteral` macro [#1697](https://github.com/http4s/http4s/pull/1697)
 * Make `Retry` use the correct duration units [#1698](https://github.com/http4s/http4s/pull/1698)

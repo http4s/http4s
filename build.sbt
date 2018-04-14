@@ -25,13 +25,11 @@ lazy val core = libraryProject("core")
       cats,
       catsEffect,
       fs2Io,
-      fs2Scodec,
       http4sWebsocket,
       log4s,
       macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
-      scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
     macroParadiseSetting
@@ -279,8 +277,9 @@ lazy val docs = http4sProject("docs")
         loadTest
       ),
     scalacOptions in Tut ~= {
+      val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
-      _.filterNot(_ == "-Ywarn-unused:params") :+ "-Xfatal-warnings"
+      _.filterNot(unwanted) :+ "-Xfatal-warnings"
     },
     scalacOptions in (Compile, doc) ++= {
       scmInfo.value match {
@@ -312,7 +311,7 @@ lazy val docs = http4sProject("docs")
     makeSite := makeSite.dependsOn(tutQuick, http4sBuildData).value,
     baseURL in Hugo := {
       val docsPrefix = extractDocsPrefix(version.value)
-      if (isTravisBuild.value) new URI(s"http://http4s.org${docsPrefix}")
+      if (isTravisBuild.value) new URI(s"https://http4s.org${docsPrefix}")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}${docsPrefix}")
     },
     siteMappings := {
@@ -340,7 +339,7 @@ lazy val website = http4sProject("website")
   .settings(
     description := "Common area of http4s.org",
     baseURL in Hugo := {
-      if (isTravisBuild.value) new URI(s"http://http4s.org")
+      if (isTravisBuild.value) new URI(s"https://http4s.org")
       else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
     },
     makeSite := makeSite.dependsOn(http4sBuildData).value,
@@ -376,12 +375,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
     macroParadiseSetting,
-    javaOptions in run ++= (managedClasspath in Runtime).map { attList =>
-      for {
-        file <- attList.map(_.data)
-        path = file.getAbsolutePath if path.contains("jetty.alpn")
-      } yield { s"-Xbootclasspath/p:${path}" }
-    }.value
+    javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)
 
@@ -497,7 +491,7 @@ lazy val commonSettings = Seq(
     "*.html" | "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
       "*.js" | "*.swf" | "*.json" | "*.md" |
       "*.css" | "*.woff" | "*.woff2" | "*.ttf" |
-      "CNAME" | "_config.yml"
+      "CNAME" | "_config.yml" | "_redirects"
   )
 )
 

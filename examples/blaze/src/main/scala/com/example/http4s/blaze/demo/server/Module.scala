@@ -1,6 +1,6 @@
 package com.example.http4s.blaze.demo.server
 
-import cats.effect.Effect
+import cats.effect._
 import cats.syntax.semigroupk._ // For <+>
 import com.example.http4s.blaze.demo.server.endpoints._
 import com.example.http4s.blaze.demo.server.endpoints.auth.{
@@ -14,10 +14,9 @@ import org.http4s.client.Client
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
-class Module[F[_]](client: Client[F])(implicit F: Effect[F], S: Scheduler) {
+class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], S: Scheduler, T: Timer[F]) {
 
   private val fileService = new FileService[F]
 

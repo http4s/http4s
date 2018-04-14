@@ -9,4 +9,4 @@ http4s is licensed under the [Apache License 2.0]. Opening a pull
 request signifies your consent to license your contributions under the
 Apache License 2.0.
 
-[contributors' guide]: http://http4s.org/contributing/
+[contributors' guide]: https://http4s.org/contributing/

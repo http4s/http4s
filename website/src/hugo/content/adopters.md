@@ -6,6 +6,9 @@ title: Adopters
 
 ## Industrial
 
+[Banno Group inside of Jack Henry & Associates](https://banno.com)
+: Extensively utilizes http4s to deliver mission-critical banking services.
+
 [Cammy](http://www.cammy.com)
 : Has about 10 services in production at thousands of requests per second.
 
@@ -35,11 +38,23 @@ title: Adopters
 [http4s-directives](https://github.com/hamnis/http4s-directives)
 : Implementation of unfiltered-directives using http4s
 
+[http4s-timer](https://github.com/fiadliel/http4s-timer)
+: Adds timing capability to http4s, with a possible concrete implementation for New Relic
+
+[kamon-http4s](https://github.com/kamon-io/kamon-http4s)
+: Kamon support for http4s
+
+[pureconfig-http4s](https://github.com/pureconfig/pureconfig/tree/master/modules/http4s)
+: Adds support for http4s' `Uri` class to PureConfig.
+
 [rho](https://github.com/http4s/rho)
 : A self-documenting DSL built on http4s 
 
 [tsec](https://github.com/jmcardon/tsec)
 : A type-safe, functional, general purpose security and cryptography library
+
+[typedapi](https://github.com/pheymann/typedapi)
+: Build your API on the type level
 
 ## Open Source apps
 

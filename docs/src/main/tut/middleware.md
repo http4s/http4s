@@ -159,4 +159,4 @@ And a few others.
 [Service Timeout]: ../api/org/http4s/server/middleware/Timeout$
 [Jsonp]: ../api/org/http4s/server/middleware/Jsonp$
 [Virtual Host]: ../api/org/http4s/server/middleware/VirtualHost$
-[`Kleisli`]: http://typelevel.org/cats/datatypes/kleisli.html
+[`Kleisli`]: https://typelevel.org/cats/datatypes/kleisli.html

@@ -12,29 +12,14 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 
 object Timeout {
 
-  /** Transform the service to return whichever resolves first: the
-    * provided F[Response[F]], or the service response task.  The
-    * service response task continues to run in the background.  To
-    * interrupt a server side response safely, look at
-    * `scalaz.stream.wye.interrupt`.
-    *
-    * @param timeoutResponse F[Response] to race against the result of the service. This will be run for each [[Request]]
-    * @param routes [[org.http4s.HttpRoutes]] to transform
-    */
-  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(routes: HttpRoutes[F])(
+  @deprecated("Exists to support deprecated methods", "0.18.4")
+  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpRoutes[F])(
       implicit executionContext: ExecutionContext): HttpRoutes[F] =
-    routes.mapF { resp =>
+    service.mapF { resp =>
       OptionT(fs2AsyncRace(resp.value, timeoutResponse.map(_.some)).map(_.merge))
     }
 
-  /**
-    * Returns an effect that, when run, races evaluation of `fa` and `fb`,
-    * and returns the result of whichever completes first. The losing effect
-    * continues to execute in the background though its result will be sent
-    * nowhere.
-    *
-    * Internalized from fs2 for now
-    */
+  @deprecated("Exists to support deprecated methods", "0.18.4")
   private def fs2AsyncRace[F[_], A, B](fa: F[A], fb: F[B])(
       implicit F: Effect[F],
       ec: ExecutionContext): F[Either[A, B]] =
@@ -58,18 +43,18 @@ object Timeout {
       go *> p.get.flatMap(F.fromEither)
     }
 
-  /** Transform the routes to return a timeout response [[Status]]
-    * after the supplied duration if the routes response is not yet
-    * ready.  The routes response task continues to run in the
-    * background.  To interrupt a server side response safely, look at
-    * `scalaz.stream.wye.interrupt`.
+  /** Transform the service to return a timeout response after the given
+    * duration if the service has not yet responded.  If the timeout
+    * fires, the service's response continues to run in the background
+    * and is discarded.
     *
-    * @param timeout Duration to wait before returning the
-    * RequestTimeOut
+    * @param timeout Finite duration to wait before returning `response`
     * @param routes [[HttpRoutes]] to transform
     */
-  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(
+  @deprecated(
+    "Use apply(FiniteDuration, F[Response[F]](HttpRoutes[F]) instead. That cancels the losing effect.",
+    "0.18.4")
+  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(@deprecatedName('routes, "0.19") routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpRoutes[F] =
     timeout match {
@@ -77,10 +62,48 @@ object Timeout {
       case _ => routes
     }
 
-  def apply[F[_]: Effect](timeout: Duration)(
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(
+  /** Transform the service to return a timeout response after the given
+    * duration if the service has not yet responded.  If the timeout
+    * fires, the service's response continues to run in the background
+    * and is discarded.
+    *
+    * @param timeout Finite duration to wait before returning `response`
+    */
+  @deprecated(
+    "Use apply(FiniteDuration)(HttpRoutes[F]) instead. That cancels the losing effect.",
+    "0.18.4")
+  def apply[F[_]: Effect](timeout: Duration)(@deprecatedName('service, "0.19") routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpRoutes[F] =
+    apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(
+      routes)
+
+  /** Transform the service to return a timeout response after the given
+    * duration if the service has not yet responded.  If the timeout
+    * fires, the service's response is canceled.
+    *
+    * @param timeout Finite duration to wait before returning a `500
+    * Internal Server Error` response
+    * @param service [[HttpRoutes]] to transform
+    */
+  def apply[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(implicit F: Concurrent[F], T: Timer[F]): HttpRoutes[F] = {
+    val OTC = Concurrent[OptionT[F, ?]]
+    routes
+      .mapF(respF => OTC.race(respF, OptionT.liftF(T.sleep(timeout) *> timeoutResponse)))
+      .map(_.merge)
+  }
+
+  /** Transform the service to return a timeout response after the given
+    * duration if the service has not yet responded.  If the timeout
+    * fires, the service's response is canceled.
+    *
+    * @param timeout Finite duration to wait before returning a `500
+    * Internal Server Error` response
+    * @param service [[HttpRoutes]] to transform
+    */
+  def apply[F[_]](timeout: FiniteDuration)(
+      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(implicit F: Concurrent[F], T: Timer[F]): HttpRoutes[F] =
     apply(
       timeout,
       Response[F](Status.InternalServerError).withEntity("The response timed out.").pure[F])(routes)

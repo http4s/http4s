@@ -5,10 +5,9 @@ import cats.effect.Effect
 import cats.implicits._
 import fs2._
 import fs2.Stream._
-import fs2.interop.scodec.ByteVectorChunk
 import java.nio.ByteBuffer
 import java.time.Instant
-import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
+import org.http4s.blaze.http.parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util.BufferTools
 import org.http4s.blaze.util.BufferTools.emptyBuffer
@@ -17,7 +16,6 @@ import org.http4s.headers._
 import org.http4s.util.{StringWriter, Writer}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
-import scodec.bits.ByteVector
 
 /** Utility bits for dealing with the HTTP 1.x protocol */
 trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
@@ -144,13 +142,13 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     }
     // try parsing the existing buffer: many requests will come as a single chunk
     else if (buffer.hasRemaining) doParseContent(buffer) match {
-      case Some(chunk) if contentComplete() =>
-        Stream.chunk(ByteVectorChunk(ByteVector.view(chunk))).covary[F] -> Http1Stage
+      case Some(buff) if contentComplete() =>
+        Stream.chunk(Chunk.byteBuffer(buff)).covary[F] -> Http1Stage
           .futureBufferThunk(buffer)
 
-      case Some(chunk) =>
+      case Some(buff) =>
         val (rst, end) = streamingBody(buffer, eofCondition)
-        (Stream.chunk(ByteVectorChunk(ByteVector.view(chunk))) ++ rst, end)
+        (Stream.chunk(Chunk.byteBuffer(buff)) ++ rst, end)
 
       case None if contentComplete() =>
         if (buffer.hasRemaining) EmptyBody -> Http1Stage.futureBufferThunk(buffer)
@@ -178,7 +176,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
             logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
             parseResult match {
               case Some(result) =>
-                cb(Either.right(ByteVectorChunk(ByteVector.view(result)).some))
+                cb(Either.right(Chunk.byteBuffer(result).some))
 
               case None if contentComplete() =>
                 cb(End)

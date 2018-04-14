@@ -2,8 +2,9 @@ package org.http4s
 package headers
 
 import cats.data.NonEmptyList
+import cats.syntax.foldable._
 import org.http4s.parser.HttpHeaderParser
-import org.http4s.syntax.nonEmptyList._
+import CharsetRange.Atom
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[`Accept-Charset`] =
@@ -16,10 +17,11 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange])
   type Value = CharsetRange
 
   def qValue(charset: Charset): QValue = {
-    def specific = values.collectFirst {
-      case cs: CharsetRange.Atom if cs.matches(charset) => cs.qValue
-    }
-    def splatted = values.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
+    def specific =
+      values.collectFirst { case cs: Atom if cs.matches(charset) => cs.qValue }
+    def splatted =
+      values.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
+
     specific.orElse(splatted).getOrElse(QValue.Zero)
   }
 

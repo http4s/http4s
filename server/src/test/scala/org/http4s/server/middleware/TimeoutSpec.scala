@@ -2,12 +2,12 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.OptionT
 import cats.effect._
 import cats.implicits._
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.dsl.io._
+import scala.concurrent.CancellationException
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {
@@ -31,9 +31,9 @@ class TimeoutSpec extends Http4sSpec {
     resp.unsafeRunTimed(3.seconds).getOrElse(throw new TimeoutException) must haveStatus(status)
 
   "Timeout Middleware" should {
-    "have no effect if the response is not delayed" in {
-      val service = Timeout(Duration.Inf)(routes)
-      checkStatus(service.orNotFound(fastReq), Status.Ok)
+    "have no effect if the response is timely" in {
+      val app = Timeout(365.days)(routes).orNotFound
+      checkStatus(app(fastReq), Status.Ok)
     }
 
     "return a 500 error if the result takes too long" in {
@@ -46,19 +46,20 @@ class TimeoutSpec extends Http4sSpec {
       checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
     }
 
-    "clean up resources of the loser" in {
-      val clean = new AtomicBoolean(false)
-      val routes = HttpRoutes.liftF(OptionT.liftF(for {
-        resp <- delay(2.seconds, NoContent())
-        _ <- IO(clean.set(true))
-      } yield resp))
+    "cancel the loser" in {
+      val canceled = new AtomicBoolean(false)
+      val cancellationException = new CancellationException()
+      val routes = HttpRoutes.of[IO] {
+        case _ =>
+          IO.sleep(2.seconds).onCancelRaiseError(cancellationException).attempt.flatMap {
+            case Left(`cancellationException`) => IO(canceled.set(true)) *> NoContent()
+            case _ => NoContent()
+          }
+      }
       val app = Timeout(1.millis)(routes).orNotFound
       checkStatus(app(Request[IO]()), InternalServerError)
       // Give the losing response enough time to finish
-      clean.get must beTrue.eventually
+      canceled.get must beTrue.eventually
     }
   }
-
-  private def delay[F[_]: Effect, A](duration: FiniteDuration, fa: F[A]): F[A] =
-    Http4sSpec.TestScheduler.sleep_(duration).compile.drain *> fa
 }
