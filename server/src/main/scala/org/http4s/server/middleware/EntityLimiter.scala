@@ -12,7 +12,7 @@ object EntityLimiter {
   val DefaultMaxEntitySize: Long = 2L * 1024L * 1024L // 2 MB default
 
   def apply[F[_]](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       limit: Long = DefaultMaxEntitySize): HttpRoutes[F] =
     routes.local { req: Request[F] =>
       req.withBodyStream(req.body.through(takeLimited(limit)))

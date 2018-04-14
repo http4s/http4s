@@ -21,7 +21,7 @@ object VirtualHost {
     * security of the underlying transport protocol.
     */
   final case class HostService[F[_]](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       p: Host => Boolean)
 
   /** Create a [[HostService]] that will match based on the exact host string
@@ -29,7 +29,7 @@ object VirtualHost {
     * given, it is ignored.
     */
   def exact[F[_]](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       requestHost: String,
       port: Option[Int] = None): HostService[F] =
     HostService(
@@ -41,7 +41,7 @@ object VirtualHost {
     * given. If the port is not given, it is ignored.
     */
   def wildcard[F[_]](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       wildcardHost: String,
       port: Option[Int] = None): HostService[F] =
     regex(routes, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
@@ -51,7 +51,7 @@ object VirtualHost {
     * is given. If the port is not given, it is ignored.
     */
   def regex[F[_]](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       hostRegex: String,
       port: Option[Int] = None): HostService[F] = {
     val r = hostRegex.r

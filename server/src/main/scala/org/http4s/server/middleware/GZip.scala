@@ -18,7 +18,7 @@ object GZip {
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
   def apply[F[_]: Functor](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
       isZippable: Response[F] => Boolean = defaultIsZippable[F](_: Response[F])): HttpRoutes[F] =

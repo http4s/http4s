@@ -6,7 +6,7 @@ import cats.Functor
 
 object URITranslation {
   def translateRoot[F[_]: Functor](prefix: String)(
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F]): HttpRoutes[F] = {
+      @deprecatedName('service) routes: HttpRoutes[F]): HttpRoutes[F] = {
     val newCaret = prefix match {
       case "/" => 0
       case x if x.startsWith("/") => x.length

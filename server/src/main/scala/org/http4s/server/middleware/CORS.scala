@@ -39,7 +39,7 @@ object CORS {
     * Currently, you cannot make permissions depend on request details
     */
   def apply[F[_]](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       config: CORSConfig = DefaultCORSConfig)(implicit F: Applicative[F]): HttpRoutes[F] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.

@@ -54,7 +54,8 @@ object Timeout {
   @deprecated(
     "Use apply(FiniteDuration, F[Response[F]](HttpRoutes[F]) instead. That cancels the losing effect.",
     "0.18.4")
-  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(@deprecatedName('routes, "0.19") routes: HttpRoutes[F])(
+  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(
+      @deprecatedName('service) routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpRoutes[F] =
     timeout match {
@@ -72,7 +73,7 @@ object Timeout {
   @deprecated(
     "Use apply(FiniteDuration)(HttpRoutes[F]) instead. That cancels the losing effect.",
     "0.18.4")
-  def apply[F[_]: Effect](timeout: Duration)(@deprecatedName('service, "0.19") routes: HttpRoutes[F])(
+  def apply[F[_]: Effect](timeout: Duration)(@deprecatedName('service) routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
       scheduler: Scheduler): HttpRoutes[F] =
     apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(
@@ -87,7 +88,9 @@ object Timeout {
     * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(implicit F: Concurrent[F], T: Timer[F]): HttpRoutes[F] = {
+      @deprecatedName('service) routes: HttpRoutes[F])(
+      implicit F: Concurrent[F],
+      T: Timer[F]): HttpRoutes[F] = {
     val OTC = Concurrent[OptionT[F, ?]]
     routes
       .mapF(respF => OTC.race(respF, OptionT.liftF(T.sleep(timeout) *> timeoutResponse)))
@@ -102,8 +105,9 @@ object Timeout {
     * Internal Server Error` response
     * @param service [[HttpRoutes]] to transform
     */
-  def apply[F[_]](timeout: FiniteDuration)(
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F])(implicit F: Concurrent[F], T: Timer[F]): HttpRoutes[F] =
+  def apply[F[_]](timeout: FiniteDuration)(@deprecatedName('service) routes: HttpRoutes[F])(
+      implicit F: Concurrent[F],
+      T: Timer[F]): HttpRoutes[F] =
     apply(
       timeout,
       Response[F](Status.InternalServerError).withEntity("The response timed out.").pure[F])(routes)

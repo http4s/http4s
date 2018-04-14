@@ -20,7 +20,7 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('service, "0.19") routes: HttpRoutes[F])(
+  )(@deprecatedName('service) routes: HttpRoutes[F])(
       implicit F: Effect[F],
       ec: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
     Kleisli { req =>

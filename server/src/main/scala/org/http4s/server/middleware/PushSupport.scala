@@ -81,7 +81,7 @@ object PushSupport {
     * @return      Transformed route
     */
   def apply[F[_]: Monad](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       verify: String => Boolean = _ => true): HttpRoutes[F] = {
 
     def gather(req: Request[F])(resp: Response[F]): Response[F] =

@@ -15,7 +15,7 @@ import cats.effect._
 object UrlFormLifter {
 
   def apply[F[_]: Effect](
-      @deprecatedName('service, "0.19") routes: HttpRoutes[F],
+      @deprecatedName('service) routes: HttpRoutes[F],
       strictDecode: Boolean = false): HttpRoutes[F] =
     Kleisli { req =>
       def addUrlForm(form: UrlForm): OptionT[F, Response[F]] = {

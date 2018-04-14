@@ -14,7 +14,7 @@ import cats.implicits._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Monad](@deprecatedName('service, "0.19") routes: HttpRoutes[F]): HttpRoutes[F] =
+  def apply[F[_]: Monad](@deprecatedName('service) routes: HttpRoutes[F]): HttpRoutes[F] =
     Kleisli { req =>
       req.method match {
         case Method.HEAD =>
