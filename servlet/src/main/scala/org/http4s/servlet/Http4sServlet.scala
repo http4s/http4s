@@ -136,10 +136,19 @@ class Http4sServlet[F[_]](
     response.flatMap { resp =>
       // Note: the servlet API gives us no undeprecated method to both set
       // a body and a status reason.  We sacrifice the status reason.
-      servletResponse.setStatus(resp.status.code)
-      for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
-        servletResponse.addHeader(header.name.toString, header.value)
-      bodyWriter(resp)
+      F.delay {
+          servletResponse.setStatus(resp.status.code)
+          for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
+            servletResponse.addHeader(header.name.toString, header.value)
+        }
+        .attempt
+        .flatMap {
+          case Right(()) => bodyWriter(resp)
+          case Left(t) =>
+            resp.body.drain.compile.drain.handleError {
+              case t2 => logger.error(t2)("Error draining body")
+            } *> F.raiseError(t)
+        }
     }
 
   private def errorHandler(
