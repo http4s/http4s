@@ -1,6 +1,7 @@
 package org.http4s
 package servlet
 
+import cats.data.OptionT
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.async
@@ -29,6 +30,7 @@ class Http4sServlet[F[_]](
 
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
+  private[this] val optionTSync = Sync[OptionT[F, ?]]
 
   object ServletRequestKeys {
     val HttpSession: AttributeKey[Option[HttpSession]] = AttributeKey[Option[HttpSession]]
@@ -97,10 +99,11 @@ class Http4sServlet[F[_]](
       bodyWriter: BodyWriter[F]): F[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
     // Note: We're catching silly user errors in the lift => flatten.
-    val response = Async.shift(executionContext) *> F
-      .delay(serviceFn(request).getOrElse(Response.notFound))
-      .flatten
-      .handleErrorWith(serviceErrorHandler(request))
+    val response = Async.shift(executionContext) *>
+      optionTSync
+        .suspend(serviceFn(request))
+        .getOrElse(Response.notFound)
+        .recoverWith(serviceErrorHandler(request))
 
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
@@ -122,9 +125,9 @@ class Http4sServlet[F[_]](
             s"Async context timed out, but response was already committed: ${request.method} ${request.uri.path}")
           F.pure(())
         }
-      } { _ =>
-        ctx.complete()
-        IO.unit
+      } {
+        case Right(()) => IO(ctx.complete())
+        case Left(t) => IO(logger.error(t)("Error timing out async context")) *> IO(ctx.complete())
       }
     }
   }
@@ -136,10 +139,11 @@ class Http4sServlet[F[_]](
     response.flatMap { resp =>
       // Note: the servlet API gives us no undeprecated method to both set
       // a body and a status reason.  We sacrifice the status reason.
-      servletResponse.setStatus(resp.status.code)
-      for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
-        servletResponse.addHeader(header.name.toString, header.value)
-      bodyWriter(resp)
+      F.delay {
+        servletResponse.setStatus(resp.status.code)
+        for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
+          servletResponse.addHeader(header.name.toString, header.value)
+      } *> bodyWriter(resp)
     }
 
   private def errorHandler(

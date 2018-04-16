@@ -2,14 +2,14 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{Effect, IO}
+import cats.data.OptionT
+import cats.effect.{Effect, IO, Sync}
 import cats.implicits._
 import fs2._
 import fs2.Stream._
 import java.util.Locale
 import org.http4s.{Headers => HHeaders, Method => HMethod}
 import org.http4s.Header.Raw
-import org.http4s.Status._
 import org.http4s.blaze.http.Headers
 import org.http4s.blaze.http.http20.{Http2StageTools, NodeMsg}
 import org.http4s.blaze.http.http20.Http2Exception._
@@ -32,6 +32,10 @@ private class Http2NodeStage[F[_]](
 
   import Http2StageTools._
   import NodeMsg.{DataFrame, HeadersFrame}
+
+  // micro-optimization: unwrap the service and call its .run directly
+  private[this] val serviceFn = service.run
+  private[this] val optionTSync = Sync[OptionT[F, ?]]
 
   override def name = "Http2NodeStage"
 
@@ -185,21 +189,20 @@ private class Http2NodeStage[F[_]](
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
       executionContext.execute(new Runnable {
-        def run(): Unit =
-          F.runAsync {
-              try service(req)
-                .getOrElse(Response.notFound)
-                .recoverWith(serviceErrorHandler(req))
-                .handleError(_ => Response(InternalServerError, req.httpVersion))
-                .map(renderResponse)
-              catch serviceErrorHandler(req)
-            } {
-              case Right(_) =>
-                IO.unit
-              case Left(t) =>
-                IO(logger.error(t)("Error rendering response"))
-            }
-            .unsafeRunSync()
+        def run(): Unit = {
+          val action = optionTSync
+            .suspend(serviceFn(req))
+            .getOrElse(Response.notFound)
+            .recoverWith(serviceErrorHandler(req))
+            .flatMap(resp => renderResponse(resp))
+
+          F.runAsync(action) {
+            case Right(()) => IO.unit
+            case Left(t) =>
+              IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                shutdownWithCommand(Cmd.Disconnect))
+          }
+        }.unsafeRunSync()
       })
     }
   }
