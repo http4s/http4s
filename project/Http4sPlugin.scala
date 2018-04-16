@@ -255,7 +255,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.39"
-  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.12"
+  lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.13"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
@@ -273,7 +273,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
-  lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.0"
+  lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.1"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.11.1"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.2"
@@ -297,7 +297,7 @@ object Http4sPlugin extends AutoPlugin {
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
   lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.3"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.4"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.7"
