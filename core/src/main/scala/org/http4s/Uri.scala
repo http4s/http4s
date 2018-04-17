@@ -198,8 +198,8 @@ object Uri extends UriFunctions {
 
     private[http4s] trait Parser { self: PbParser =>
       def scheme = rule {
-        "https" ~ push(https) |
-          "http" ~ push(http) |
+        "https" ~ !Alpha ~ push(https) |
+          "http" ~ !Alpha ~ push(http) |
           capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (new Scheme(_))
       }
     }
