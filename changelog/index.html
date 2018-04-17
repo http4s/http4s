@@ -85,6 +85,48 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-19-0-snapshot">v0.19.0-SNAPSHOT</h1>
+
+<ul>
+<li>Add accumulating version of circe <code>EntityDecoder</code> <a href="https://github.com/http4/http4s/1647">#1647</a></li>
+<li>Add ETag support to <code>StaticFile</code> <a href="https://github.com/http4s/http4s/1652">#1652</a></li>
+<li>Reintroduce the option for fallthrough for authenticated services [#1670]((<a href="https://github.com/http4s/http4s/1670">https://github.com/http4s/http4s/1670</a>)</li>
+<li>Separate <code>Cookie</code> into <code>RequestCookie</code> and <code>ResponseCookie</code> <a href="https://github.com/http4s/http4s/1676">#1676</a></li>
+<li>Add <code>Eq[Uri]</code> instance <a href="https://github.com/http4s/http4s/1688">#1688</a></li>
+<li>Deprecate <code>Message#withBody</code> in favor of <code>Message#withEntity</code>.  The latter returns a <code>Message[F]</code> rather than an <code>F[Message[F]]</code>. <a href="https://github.com/http4s/http4s/1694">#1694</a></li>
+<li>Myriad new <code>Arbitrary</code> and <code>Cogen</code> instances <a href="https://github.com/http4s/http4s/1677">#1677</a></li>
+<li>Add non-deprecated <code>LocationResponseGenerator</code> functions <a href="https://github.com/http4s/http4s/1715">#1715</a></li>
+<li>Relax constraint on <code>Router</code> from <code>Sync</code> to <code>Monad</code> <a href="https://github.com/http4s/http4s/1723">#1723</a></li>
+<li>Drop scodec-bits dependency <a href="https://github.com/http4s/http4s/1732">#1732</a></li>
+<li>Add <code>Show[ETag]</code> instance <a href="https://github.com/http4s/http4s/1749">#1749</a></li>
+<li>Replace <code>fs2.Scheduler</code> with <code>cats.effect.Timer</code> in <code>Retry</code> <a href="https://github.com/http4s/http4s/1754">#1754</a></li>
+<li>Remove <code>Sync</code> constraint from <code>EntityEncoder[Multipart]</code> <a href="https://github.com/http4s/http4s/1762">#1762</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>async-http-client-2.4.2</li>
+<li>blaze-0.14.0-M3</li>
+<li>scala-xml-1.1.0</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-9-snapshot">v0.18.9-SNAPSHOT</h1>
+
+<ul>
+<li>Log any exceptions when writing the header in blaze-server for HTTP/1 <a href="https://github.com/http4/http4s/1781">#1781</a></li>
+<li>Drain the response body (thus running its finalizer) when there is an error writing a servlet header or body <a href="https://github.com/http4s/http4s/pull/1782">#1782</a></li>
+<li>Clean up logging of errors thrown by services. Prevents the possible swallowing of errors thrown during <code>renderResponse</code> in blaze-server and <code>Http4sServlet</code> <a href="https://github.com/http4s/http4s/pull/1783">#1783</a></li>
+<li>Fix Uri.Scheme parser for schemes beginning with <code>http</code> other than <code>https</code> <a href="https://github.com/http4s/http4s/pull/1790">#1790</a></li>
+<li>Depdency upgrades:
+
+<ul>
+<li>blaze-0.12.13</li>
+<li>http4s-websocket-0.2.1</li>
+<li>specs2-4.0.4</li>
+<li>tomcat-9.0.7</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-8-2018-04-11">v0.18.8 (2018-04-11)</h1>
 
 <ul>
