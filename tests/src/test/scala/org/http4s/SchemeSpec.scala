@@ -45,6 +45,10 @@ class SchemeSpec extends Http4sSpec {
       !s.forall(CharPredicate.Alpha ++ CharPredicate(".-+"))) ==>
         (Scheme.parse(s) must beLeft)
     }
+
+    "accept valid literals prefixed by cached version" in {
+      Scheme.parse("httpx") must beRight
+    }
   }
 
   "literal syntax" should {
