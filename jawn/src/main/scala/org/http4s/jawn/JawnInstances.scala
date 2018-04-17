@@ -10,7 +10,7 @@ import jawnfs2._
 
 trait JawnInstances {
   def jawnDecoder[F[_]: Sync, J: Facade]: EntityDecoder[F, J] =
-    EntityDecoder.decodeBy(MediaType.application.`application/json`)(jawnDecoderImpl[F, J])
+    EntityDecoder.decodeBy(MediaType.application.json)(jawnDecoderImpl[F, J])
 
   // some decoders may reuse it and avoid extra content negotiation
   private[http4s] def jawnDecoderImpl[F[_]: Sync, J: Facade](msg: Message[F]): DecodeResult[F, J] =

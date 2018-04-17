@@ -24,7 +24,7 @@ class StaticFileSpec extends Http4sSpec {
       }
 
       val tests = Seq(
-        "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.`image/png`),
+        "/Animated_PNG_example_bouncing_beach_ball.png" -> Some(MediaType.image.png),
         "/test.fiddlefaddle" -> None)
       forall(tests) {
         case (p, om) =>

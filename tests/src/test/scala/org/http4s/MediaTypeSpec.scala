@@ -9,26 +9,26 @@ class MediaTypeSpec extends Http4sSpec {
   "MediaType" should {
 
     "Render itself" in {
-      MediaType.text.`text/html`.show must_== "text/html"
+      MediaType.text.html.show must_== "text/html"
     }
 
     "Quote extension strings" in {
-      MediaType.text.`text/html`
+      MediaType.text.html
         .withExtensions(Map("foo" -> "bar"))
         .show must_== """text/html; foo="bar""""
     }
 
     "Encode extensions with special characters" in {
-      MediaType.text.`text/html`
+      MediaType.text.html
         .withExtensions(Map("foo" -> ";"))
         .show must_== """text/html; foo=";""""
     }
 
     "Escape special chars in media range extensions" in {
-      MediaType.text.`text/html`
+      MediaType.text.html
         .withExtensions(Map("foo" -> "\\"))
         .show must_== """text/html; foo="\\""""
-      MediaType.text.`text/html`
+      MediaType.text.html
         .withExtensions(Map("foo" -> "\""))
         .show must_== """text/html; foo="\"""""
     }

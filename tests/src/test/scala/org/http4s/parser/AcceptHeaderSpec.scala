@@ -28,16 +28,15 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
     "Deal with '.' and '+' chars" in {
       val value = "application/soap+xml, application/vnd.ms-fontobject"
-      val accept = Accept(
-        MediaType.application.`application/soap+xml`,
-        MediaType.application.`application/vnd.ms-fontobject`)
+      val accept =
+        Accept(MediaType.application.`soap+xml`, MediaType.application.`vnd.ms-fontobject`)
       parse(value) must be_===(accept)
 
     }
 
     "Parse all registered MediaTypes" in {
       // Parse a single one
-      parse("image/jpeg").values.head must be_==~(MediaType.image.`image/jpeg`)
+      parse("image/jpeg").values.head must be_==~(MediaType.image.jpeg)
 
       // Parse the rest
       foreach(MediaType.all.values) { m =>
@@ -76,7 +75,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
     "Parse multiple Types" in {
       // Just do a single type
-      val accept = Accept(`audio/mod`, MediaType.audio.`audio/mpeg`)
+      val accept = Accept(`audio/mod`, MediaType.audio.mpeg)
       parse(accept.value) must be_===(accept)
 
       // Go through all of them
@@ -92,8 +91,8 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
       parse(value) must be_===(
         Accept(
           `text/*`.withQValue(q(0.3)),
-          MediaType.text.`text/html`.withQValue(q(0.7)),
-          MediaType.text.`text/html`.withExtensions(Map("level" -> "1"))
+          MediaType.text.html.withQValue(q(0.7)),
+          MediaType.text.html.withExtensions(Map("level" -> "1"))
         ))
 
       // Go through all of them

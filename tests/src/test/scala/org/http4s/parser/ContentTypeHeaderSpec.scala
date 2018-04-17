@@ -9,14 +9,14 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
 
   def hparse(value: String): ParseResult[`Content-Type`] = HttpHeaderParser.CONTENT_TYPE(value)
 
-  def simple = `Content-Type`(MediaType.text.`text/html`)
-  def charset = `Content-Type`(MediaType.text.`text/html`, Charset.`UTF-8`)
-  def extensions = `Content-Type`(MediaType.text.`text/html`.withExtensions(Map("foo" -> "bar")))
+  def simple = `Content-Type`(MediaType.text.html)
+  def charset = `Content-Type`(MediaType.text.html, Charset.`UTF-8`)
+  def extensions = `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")))
   def extensionsandset =
-    `Content-Type`(MediaType.text.`text/html`.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
+    `Content-Type`(MediaType.text.html.withExtensions(Map("foo" -> "bar")), Charset.`UTF-8`)
   def multipart =
     `Content-Type`(
-      MediaType.multipart.`multipart/form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
+      MediaType.multipart.`form-data`.withExtensions(Map("boundary" -> "aLotOfMoose")),
       Charset.`UTF-8`)
 
   "ContentType Header" should {

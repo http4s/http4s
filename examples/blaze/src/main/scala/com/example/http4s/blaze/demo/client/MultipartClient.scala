@@ -26,7 +26,7 @@ class MultipartHttpClient[F[_]](implicit F: Effect[F], S: StreamUtils[F])
   private def multipart(url: URL) = Multipart[F](
     Vector(
       Part.formData("name", "gvolpe"),
-      Part.fileData("rick", url, `Content-Type`(MediaType.image.`image/png`))
+      Part.fileData("rick", url, `Content-Type`(MediaType.image.png))
     )
   )
 

@@ -49,7 +49,7 @@ class MultipartSpec extends Specification {
   def encodeAndDecodeMultipart = {
 
     val field1 =
-      Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.`text/plain`))
+      Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
     val field2 = Part.formData[IO]("field2", "Text_Field_2")
     val multipart = Multipart(Vector(field1, field2))
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
@@ -87,7 +87,7 @@ class MultipartSpec extends Specification {
     val file = new File(getClass.getResource("/ball.png").toURI)
 
     val field1 = Part.formData[IO]("field1", "Text_Field_1")
-    val field2 = Part.fileData[IO]("image", file, `Content-Type`(MediaType.image.`image/png`))
+    val field2 = Part.fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
 
     val multipart = Multipart[IO](Vector(field1, field2))
 

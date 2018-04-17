@@ -82,7 +82,7 @@ trait EntityEncoderInstances0 {
   def showEncoder[F[_], A](
       implicit charset: Charset = DefaultCharset,
       show: Show[A]): EntityEncoder[F, A] = {
-    val hdr = `Content-Type`(MediaType.text.`text/plain`).withCharset(charset)
+    val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple[F, A](hdr)(a => Chunk.bytes(show.show(a).getBytes(charset.nioCharset)))
   }
 
@@ -123,7 +123,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   implicit def stringEncoder[F[_]](
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, String] = {
-    val hdr = `Content-Type`(MediaType.text.`text/plain`).withCharset(charset)
+    val hdr = `Content-Type`(MediaType.text.plain).withCharset(charset)
     simple(hdr)(s => Chunk.bytes(s.getBytes(charset.nioCharset)))
   }
 
@@ -135,7 +135,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     chunkEncoder[F].contramap[Segment[Byte, Unit]](_.force.toChunk)
 
   implicit def chunkEncoder[F[_]]: EntityEncoder[F, Chunk[Byte]] =
-    simple(`Content-Type`(MediaType.application.`application/octet-stream`))(identity)
+    simple(`Content-Type`(MediaType.application.`octet-stream`))(identity)
 
   implicit def byteArrayEncoder[F[_]]: EntityEncoder[F, Array[Byte]] =
     chunkEncoder[F].contramap(Chunk.bytes)

@@ -20,7 +20,7 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 
     "have json content type" in {
       jsonEncoder[IO, JValue].headers.get(`Content-Type`) must beSome(
-        `Content-Type`(MediaType.application.`application/json`))
+        `Content-Type`(MediaType.application.json))
     }
 
     "write compact JSON" in {
@@ -31,7 +31,7 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
   "jsonEncoderOf" should {
     "have json content type" in {
       jsonEncoderOf[IO, Option[Int]].headers.get(`Content-Type`) must beSome(
-        `Content-Type`(MediaType.application.`application/json`))
+        `Content-Type`(MediaType.application.json))
     }
 
     "write compact JSON with a json4s writer" in {
@@ -86,14 +86,14 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     "decode json from a message" in {
       val req = Request[IO]()
         .withEntity("42")
-        .withContentType(`Content-Type`(MediaType.application.`application/json`))
+        .withContentType(`Content-Type`(MediaType.application.json))
       req.decodeJson[Option[Int]] must returnValue(Some(42))
     }
 
     "fail on invalid json" in {
       val req = Request[IO]()
         .withEntity("not a number")
-        .withContentType(`Content-Type`(MediaType.application.`application/json`))
+        .withContentType(`Content-Type`(MediaType.application.json))
       req.decodeJson[Int].attempt.unsafeRunSync must beLeft
     }
   }

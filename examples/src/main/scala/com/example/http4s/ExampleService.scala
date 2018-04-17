@@ -60,9 +60,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case GET -> Root / "content-change" =>
         // EntityEncoder typically deals with appropriate headers, but they can be overridden
-        Ok(
-          "<h2>This will have an html content type!</h2>",
-          `Content-Type`(MediaType.text.`text/html`))
+        Ok("<h2>This will have an html content type!</h2>", `Content-Type`(MediaType.text.html))
 
       case req @ GET -> "static" /: path =>
         // captures everything after "/static" into `path`
@@ -74,14 +72,14 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
       //////////////// Dealing with the message body ////////////////
       case req @ POST -> Root / "echo" =>
         // The body can be used in the response
-        Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.`text/plain`)))
+        Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
 
       case GET -> Root / "echo" =>
         Ok(html.submissionForm("echo data"))
 
       case req @ POST -> Root / "echo2" =>
         // Even more useful, the body can be transformed in the response
-        Ok(req.body.drop(6), `Content-Type`(MediaType.text.`text/plain`))
+        Ok(req.body.drop(6), `Content-Type`(MediaType.text.plain))
 
       case GET -> Root / "echo2" =>
         Ok(html.submissionForm("echo data"))

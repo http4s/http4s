@@ -23,7 +23,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
     "have json content type" in {
       jsonEncoder.headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.`application/json`, Charset.`UTF-8`))
+        `Content-Type`(MediaType.application.json, Charset.`UTF-8`))
     }
 
     "write compact JSON" in {
@@ -48,7 +48,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   "jsonEncoderOf" should {
     "have json content type" in {
       jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.`application/json`, Charset.`UTF-8`))
+        `Content-Type`(MediaType.application.json, Charset.`UTF-8`))
     }
 
     "write compact JSON" in {

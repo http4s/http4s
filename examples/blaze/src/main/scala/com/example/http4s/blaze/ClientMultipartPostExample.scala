@@ -22,7 +22,7 @@ object ClientMultipartPostExample extends Http4sClientDsl[IO] {
     val multipart = Multipart[IO](
       Vector(
         Part.formData("text", "This is text."),
-        Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.`image/png`))
+        Part.fileData("BALL", bottle, `Content-Type`(MediaType.image.png))
       ))
 
     val request: IO[Request[IO]] =
