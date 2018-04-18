@@ -27,54 +27,56 @@ object BlazeClient {
       onShutdown: F[Unit])(implicit F: Sync[F]): Client[F] =
     Client(
       Kleisli { req =>
-        val key = RequestKey.fromRequest(req)
-        val submitTime = Instant.now()
+        F.suspend {
+          val key = RequestKey.fromRequest(req)
+          val submitTime = Instant.now()
 
-        // If we can't invalidate a connection, it shouldn't tank the subsequent operation,
-        // but it should be noisy.
-        def invalidate(connection: A): F[Unit] =
-          manager
-            .invalidate(connection)
-            .handleError(e => logger.error(e)("Error invalidating connection"))
+          // If we can't invalidate a connection, it shouldn't tank the subsequent operation,
+          // but it should be noisy.
+          def invalidate(connection: A): F[Unit] =
+            manager
+              .invalidate(connection)
+              .handleError(e => logger.error(e)("Error invalidating connection"))
 
-        def loop(next: manager.NextConnection): F[DisposableResponse[F]] = {
-          // Add the timeout stage to the pipeline
-          val elapsed = (Instant.now.toEpochMilli - submitTime.toEpochMilli).millis
-          val ts = new ClientTimeoutStage(
-            if (elapsed > config.responseHeaderTimeout) 0.milli
-            else config.responseHeaderTimeout - elapsed,
-            config.idleTimeout,
-            if (elapsed > config.requestTimeout) 0.milli else config.requestTimeout - elapsed,
-            bits.ClientTickWheel
-          )
-          next.connection.spliceBefore(ts)
-          ts.initialize()
+          def loop(next: manager.NextConnection): F[DisposableResponse[F]] = {
+            // Add the timeout stage to the pipeline
+            val elapsed = (Instant.now.toEpochMilli - submitTime.toEpochMilli).millis
+            val ts = new ClientTimeoutStage(
+              if (elapsed > config.responseHeaderTimeout) 0.milli
+              else config.responseHeaderTimeout - elapsed,
+              config.idleTimeout,
+              if (elapsed > config.requestTimeout) 0.milli else config.requestTimeout - elapsed,
+              bits.ClientTickWheel
+            )
+            next.connection.spliceBefore(ts)
+            ts.initialize()
 
-          next.connection.runRequest(req).attempt.flatMap {
-            case Right(r) =>
-              val dispose = F
-                .delay(ts.removeStage)
-                .flatMap { _ =>
-                  manager.release(next.connection)
-                }
-              F.pure(DisposableResponse(r, dispose))
+            next.connection.runRequest(req).attempt.flatMap {
+              case Right(r) =>
+                val dispose = F
+                  .delay(ts.removeStage)
+                  .flatMap { _ =>
+                    manager.release(next.connection)
+                  }
+                F.pure(DisposableResponse(r, dispose))
 
-            case Left(Command.EOF) =>
-              invalidate(next.connection).flatMap { _ =>
-                if (next.fresh)
-                  F.raiseError(new java.io.IOException(s"Failed to connect to endpoint: $key"))
-                else {
-                  manager.borrow(key).flatMap { newConn =>
-                    loop(newConn)
+              case Left(Command.EOF) =>
+                invalidate(next.connection).flatMap { _ =>
+                  if (next.fresh)
+                    F.raiseError(new java.io.IOException(s"Failed to connect to endpoint: $key"))
+                  else {
+                    manager.borrow(key).flatMap { newConn =>
+                      loop(newConn)
+                    }
                   }
                 }
-              }
 
-            case Left(e) =>
-              invalidate(next.connection) *> F.raiseError(e)
+              case Left(e) =>
+                invalidate(next.connection) *> F.raiseError(e)
+            }
           }
+          manager.borrow(key).flatMap(loop)
         }
-        manager.borrow(key).flatMap(loop)
       },
       onShutdown
     )
