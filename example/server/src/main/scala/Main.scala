@@ -22,14 +22,13 @@ class ExampleImplementation extends GreeterFs2Grpc[IO] {
 object Main extends StreamApp[IO] {
   val helloService: ServerServiceDefinition =
     GreeterFs2Grpc.bindService(new ExampleImplementation)
-  def main(args: List[String], requestShutdown: IO[Unit]): fs2.Stream[IO, StreamApp.ExitCode] = {
-    for {
-      server <- ServerBuilder
-        .forPort(9999)
-        .addService(helloService)
-        .addService(ProtoReflectionService.newInstance())
-        .stream
-      _ <- IO.never
-    } yield StreamApp.ExitCode.Success
+  def stream(args: List[String], requestShutdown: IO[Unit]): fs2.Stream[IO, StreamApp.ExitCode] = {
+    ServerBuilder
+      .forPort(9999)
+      .addService(helloService)
+      .addService(ProtoReflectionService.newInstance())
+      .stream[IO]
+      .evalMap(server => IO(server.start()))
+      .evalMap(_ => IO.never)
   }
 }
