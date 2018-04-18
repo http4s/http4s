@@ -8,13 +8,15 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.9-SNAPSHOT
+# v0.18.9 (2018-04-17)
 * Log any exceptions when writing the header in blaze-server for HTTP/1 [#1781](https://github.com/http4/http4s/1781)
 * Drain the response body (thus running its finalizer) when there is an error writing a servlet header or body [#1782](https://github.com/http4s/http4s/pull/1782)
 * Clean up logging of errors thrown by services. Prevents the possible swallowing of errors thrown during `renderResponse` in blaze-server and `Http4sServlet` [#1783](https://github.com/http4s/http4s/pull/1783)
-* Fix Uri.Scheme parser for schemes beginning with `http` other than `https` [#1790](https://github.com/http4s/http4s/pull/1790)
+* Fix `Uri.Scheme` parser for schemes beginning with `http` other than `https` [#1790](https://github.com/http4s/http4s/pull/1790)
+* Fix blaze-client to reset the connection start time on each invocation of the `F[DisposableResponse]`. This fixes the "timeout after 0 milliseconds" error. [#1792](https://github.com/http4s/http4s/1792)
 * Depdency upgrades:
   * blaze-0.12.13
+  * cats-effect-0.10.1
   * http4s-websocket-0.2.1
   * specs2-4.0.4
   * tomcat-9.0.7
