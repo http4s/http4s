@@ -218,9 +218,9 @@ code is added.
 
 ## Submit a pull request
 
-Before you open a pull request, you should make sure that `sbt
-validate` runs successfully. Travis CI will run this as well, but it
-may save you some time to be alerted to style or tut problems earlier.
+Before you open a pull request, you should make sure that `sbt ci` runs
+successfully. Travis CI will run this as well, but it may save you some
+time to be alerted to style or tut problems earlier.
 
 If your pull request addresses an existing issue, please tag that
 issue number in the body of your pull request or commit message. For
