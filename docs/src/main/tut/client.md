@@ -112,6 +112,56 @@ val greetingsStringEffect = greetingList.map(_.mkString("\n"))
 greetingsStringEffect.unsafeRunSync
 ```
 
+## Examples
+
+### Send a GET request, treating the response as a string
+
+You can send a GET by calling the `expect` method on the client, passing either
+a String or a `Uri`:
+
+```tut:book
+httpClient.expect[String]("https://google.com/")
+
+httpClient.expect[String](Uri.uri("https://google.com/"))
+```
+
+If you need to do something more complicated like setting request headers, you
+can build up a request object and pass that to `expect`:
+
+```tut:book
+import org.http4s.client.dsl.io._
+import org.http4s.headers._
+import org.http4s.MediaType._
+
+val request = GET(
+  Uri.uri("https://my-lovely-api.com/"),
+  Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
+  Accept(`application/json`)
+)
+
+httpClient.expect[String](request)
+```
+
+### Post a form, decoding the JSON response to a case class
+
+```tut:book
+case class AuthResponse(access_token: String)
+
+// See the JSON page for details on how to define this
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+
+val postRequest = POST(
+  Uri.uri("https://my-lovely-api.com/oauth2/token"),
+  UrlForm(
+    "grant_type" -> "client_credentials",
+    "client_id" -> "my-awesome-client",
+    "client_secret" -> "s3cr3t"
+  )
+)
+
+httpClient.expect[AuthResponse](postRequest)
+```
+
 ## Cleaning up
 
 Our client consumes system resources. Let's clean up after ourselves by shutting
