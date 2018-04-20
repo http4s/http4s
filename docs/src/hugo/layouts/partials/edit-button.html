@@ -1,0 +1,4 @@
+{{ $apiVer := index .Site.Data.build.versions "http4s.api" }}
+<a href="https://github.com/http4s/http4s/edit/release-{{ $apiVer }}.x/docs/src/main/tut/{{ replace .File.Path (print "v" $apiVer) ""}}" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
