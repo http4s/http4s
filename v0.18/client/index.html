@@ -66,9 +66,11 @@
 
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
-          <button type="button" class="btn btn-secondary btn-sm">
-            <i class="fa fa-edit"></i>
-          </button>
+          
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/client.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
           <span class="d-md-none">
             <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
               <i class="fa fa-navicon"></i>
@@ -119,10 +121,10 @@ val service = HttpService[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$37772/474434737@43b37780)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$37429/626620828@159420c4)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$894452885
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1295794970
 
 val server = builder.unsafeRunSync
 // server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
@@ -141,7 +143,7 @@ create the client.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = Http1Client[IO]().unsafeRunSync
-// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$37798/424204945@3294844b),IO$1269159525)
+// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$37455/1552542834@3294eadb),IO$2022427618)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -150,7 +152,7 @@ val httpClient = Http1Client[IO]().unsafeRunSync
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$258334804
+// helloJames: cats.effect.IO[String] = IO$933100058
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -188,7 +190,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = fs2.async.parallelTraverse(people)(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1719647159
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$819965925
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned

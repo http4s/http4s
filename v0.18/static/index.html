@@ -66,9 +66,11 @@
 
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
-          <button type="button" class="btn btn-secondary btn-sm">
-            <i class="fa fa-edit"></i>
-          </button>
+          
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/static.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
           <span class="d-md-none">
             <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
               <i class="fa fa-navicon"></i>
@@ -113,7 +115,7 @@ val service = HttpService[IO] {
     StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$43037/1812936049@1176fa1c)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$42672/1420912287@6e0cc2cd)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -129,7 +131,7 @@ val service = HttpService[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$43037/1812936049@45bc80e9)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$42672/1420912287@675af0f5)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -166,7 +168,7 @@ val webjars: HttpService[IO] = webjarService(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$43044/1065168361@72c6317d)
+// webjars: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$42679/905269617@26c2ee66)
 </code></pre>
 
         </div>

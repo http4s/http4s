@@ -66,9 +66,11 @@
 
         <div class="col-12 col-md-9 order-1">
           <span class="float-right">
-          <button type="button" class="btn btn-secondary btn-sm">
-            <i class="fa fa-edit"></i>
-          </button>
+          
+<a href="https://github.com/http4s/http4s/edit/release-0.18.x/docs/src/main/tut/json.md" class="btn btn-secondary btn-sm">
+  <i class="fa fa-edit"></i>
+</a>
+
           <span class="d-md-none">
             <button type="button" class="btn btn-secondary btn-sm" data-toggle="offcanvas">
               <i class="fa fa-navicon"></i>
@@ -223,7 +225,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@462dc1c3
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@563948e9
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -290,7 +292,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@2750f1e3
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@148116db
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res10: User = User(Alice)
@@ -360,7 +362,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$1635488509
+// helloAlice: cats.effect.IO[Hello] = IO$1091384891
 
 helloAlice.unsafeRunSync
 // res13: Hello = Hello(Alice)
