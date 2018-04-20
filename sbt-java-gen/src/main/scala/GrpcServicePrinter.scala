@@ -4,7 +4,7 @@ import com.google.protobuf.Descriptors.{MethodDescriptor, ServiceDescriptor}
 import scalapb.compiler.FunctionalPrinter.PrinterEndo
 import scalapb.compiler.{DescriptorPimps, FunctionalPrinter, GeneratorParams, StreamType}
 
-class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps {
+class Fs2GrpcServicePrinter(service: ServiceDescriptor, override val params: GeneratorParams) extends DescriptorPimps {
   private[this] def serviceMethodSignature(method: MethodDescriptor) = {
     s"def ${method.name}" + (method.streamType match {
       case StreamType.Unary =>
@@ -94,7 +94,4 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor) extends DescriptorPimps 
       .call(serviceTrait)
       .call(serviceObject)
   }
-
-  // Not used, but required by DescriptorPimps
-  override def params: GeneratorParams = GeneratorParams()
 }
