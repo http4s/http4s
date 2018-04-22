@@ -39,7 +39,7 @@ lazy val `sbt-java-gen` = project
     addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
     libraryDependencies ++= List(
       "io.grpc"              % "grpc-core"       % "1.11.0",
-      "com.thesamet.scalapb" %% "compilerplugin" % "0.7.1"
+      "com.thesamet.scalapb" %% "compilerplugin" % "0.7.2"
     )
   )
 
@@ -51,10 +51,11 @@ lazy val `java-runtime` = project
     publishTo := sonatypePublishTo.value,
     libraryDependencies ++= List(
       "co.fs2"        %% "fs2-core"         % "0.10.3",
+      "org.typelevel" %% "cats-effect"      % "0.10.1",
+      "org.typelevel" %% "cats-effect-laws" % "0.10.1" % "test",
       "io.grpc"       % "grpc-core"         % "1.11.0",
       "io.grpc"       % "grpc-netty-shaded" % "1.11.0" % "test",
-      "io.monix"      %% "minitest"         % "2.1.1" % "test",
-      "org.typelevel" %% "cats-effect-laws" % "0.10" % "test"
+      "io.monix"      %% "minitest"         % "2.1.1"  % "test"
     ),
     testFrameworks += new TestFramework("minitest.runner.Framework"),
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
