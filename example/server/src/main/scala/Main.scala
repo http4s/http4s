@@ -3,7 +3,7 @@ import com.example.protos.hello._
 import fs2._
 import io.grpc._
 import io.grpc.protobuf.services.ProtoReflectionService
-
+import org.lyranthe.fs2_grpc.java_runtime.implicits._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class ExampleImplementation extends GreeterFs2Grpc[IO] {
@@ -19,18 +19,16 @@ class ExampleImplementation extends GreeterFs2Grpc[IO] {
   }
 }
 
-object Main {
+object Main extends StreamApp[IO] {
   val helloService: ServerServiceDefinition =
     GreeterFs2Grpc.bindService(new ExampleImplementation)
-  val server: Server =
+  def stream(args: List[String], requestShutdown: IO[Unit]): fs2.Stream[IO, StreamApp.ExitCode] = {
     ServerBuilder
       .forPort(9999)
       .addService(helloService)
       .addService(ProtoReflectionService.newInstance())
-      .build()
-
-  def main(args: Array[String]): Unit = {
-    server.start()
-    server.awaitTermination()
+      .stream[IO]
+      .evalMap(server => IO(server.start()))
+      .evalMap(_ => IO.never)
   }
 }

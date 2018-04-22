@@ -1,6 +1,12 @@
-lazy val protobuf =
+lazy val root = project.in(file("."))
+  .settings(
+    skip in publish := true
+  )
+  .aggregate(protobuf, client, server)
+
+val protobuf =
   project
-    .in(file("."))
+    .in(file("protobuf"))
     .settings(
       PB.targets in Compile := List(
         scalapb.gen() -> (sourceManaged in Compile).value,
