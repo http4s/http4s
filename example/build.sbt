@@ -7,12 +7,7 @@ lazy val root = project.in(file("."))
 val protobuf =
   project
     .in(file("protobuf"))
-    .settings(
-      PB.targets in Compile := List(
-        scalapb.gen() -> (sourceManaged in Compile).value,
-        fs2CodeGenerator -> (sourceManaged in Compile).value
-      )
-    )
+    .enablePlugins(Fs2Grpc)
 
 lazy val client =
   project
