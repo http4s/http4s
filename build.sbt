@@ -30,18 +30,17 @@ lazy val core = libraryCrossProject("core", CrossType.Full)
       fs2Io,
       log4s.value,
       parboiled.value,
+      log4s.value,
+      fs2Core.value,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
   )
   .jvmSettings(
-    libraryDependencies ++= Seq(
-      log4s,
-      fs2Io
-    )
+    libraryDependencies += fs2Io.value
   )
   .jsSettings(
-    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M11"
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M13"
   )
 
 lazy val coreJVM = core.jvm
@@ -51,7 +50,7 @@ lazy val testing = libraryCrossProject("testing", CrossType.Full)
   .settings(
     description := "Instances and laws for testing http4s code",
     libraryDependencies ++= Seq(
-      catsEffectLaws,
+      catsEffectLaws.value,
       scalacheck,
       specs2Matcher.value
     ),

@@ -117,8 +117,6 @@ object EntityEncoder extends EntityEncoderInstances {
 trait EntityEncoderInstances extends EntityEncoderInstances0 with PlatformEntityEncoderInstances {
   import EntityEncoder._
 
-  private val DefaultChunkSize = 4096
-
   implicit def unitEncoder[F[_]]: EntityEncoder[F, Unit] =
     emptyEncoder[F, Unit]
 

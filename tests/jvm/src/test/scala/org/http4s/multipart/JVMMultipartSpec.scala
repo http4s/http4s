@@ -15,8 +15,6 @@ import org.specs2.Specification
 import cats._
 import cats.implicits._
 
-import scodec.bits.ByteVector
-
 class JVMMultipartSpec extends Specification {
   sequential
 
@@ -34,8 +32,8 @@ class JVMMultipartSpec extends Specification {
     case (a, b) =>
       a.headers === b.headers && {
         for {
-          abv <- a.body.runLog.map(ByteVector(_))
-          bbv <- b.body.runLog.map(ByteVector(_))
+          abv <- a.body.compile.toVector
+          bbv <- b.body.compile.toVector
         } yield abv === bbv
       }.unsafeRunSync()
   }
@@ -56,7 +54,7 @@ class JVMMultipartSpec extends Specification {
     val multipart = Multipart[IO](Vector(field1, field2))
 
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
-    val body = entity.unsafeRunSync().body
+    val body = entity.body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
     val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)

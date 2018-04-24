@@ -14,7 +14,7 @@ addSbtPlugin("io.verizon.build"    %  "sbt-rig"                   % "5.0.39")
 addSbtPlugin("org.tpolecat"        %  "tut-plugin"                % "0.6.10")
 addSbtPlugin("pl.project13.scala"  %  "sbt-jmh"                   % "0.3.4")
 addSbtPlugin("com.timushev.sbt"    %  "sbt-updates"               % "0.3.4")
-addSbtPlugin("org.scala-js"        %  "sbt-scalajs"           % "0.6.19")
+addSbtPlugin("org.scala-js"        %  "sbt-scalajs"           % "0.6.22")
 addSbtPlugin("org.scala-native"    % "sbt-crossproject"         % "0.2.2")
 addSbtPlugin("org.scala-native"    % "sbt-scalajs-crossproject" % "0.2.2")
 

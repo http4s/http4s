@@ -9,7 +9,7 @@
 
 package org.http4s
 
-import fs2._
+import fs2.Scheduler
 
 object PlatformTestScheduler {
   val TestScheduler: Scheduler = Scheduler.default

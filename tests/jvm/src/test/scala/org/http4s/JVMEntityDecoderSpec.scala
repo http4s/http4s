@@ -17,7 +17,7 @@ class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   implicit val executionContext: ExecutionContext = trampoline
 
   def getBody(body: EntityBody[IO]): IO[Array[Byte]] =
-    body.runLog.map(_.toArray)
+    body.compile.toVector.map(_.toArray)
 
   def strBody(body: String): Stream[IO, Byte] =
     chunk(Chunk.bytes(body.getBytes(StandardCharsets.UTF_8)))
@@ -47,7 +47,7 @@ class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) { req =>
           req.decodeWith(textFile(tmpFile), strict = false) { _ =>
-            Response(Ok).withBody("Hello")
+            Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
 
@@ -66,7 +66,7 @@ class JVMEntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         val response = mockServe(Request()) {
           case req =>
             req.decodeWith(binFile(tmpFile), strict = false) { _ =>
-              Response(Ok).withBody("Hello")
+              Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
 
