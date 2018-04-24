@@ -20,7 +20,7 @@ class Http4sServlet[F[_]](
     asyncTimeout: Duration = Duration.Inf,
     implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
     private[this] var servletIo: ServletIo[F],
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends HttpServlet {
   private[this] val logger = getLogger
 
@@ -98,39 +98,23 @@ class Http4sServlet[F[_]](
       ctx: AsyncContext,
       request: Request[F],
       bodyWriter: BodyWriter[F]): F[Unit] = {
-    ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    // Note: We're catching silly user errors in the lift => flatten.
+    val timeout = F.async[Response[F]] { cb =>
+      ctx.addListener(new AsyncTimeoutHandler(cb))
+    }
     val response = Async.shift(executionContext) *>
       optionTSync
         .suspend(serviceFn(request))
         .getOrElse(Response.notFound)
         .recoverWith(serviceErrorHandler(request))
-
+    val race = F.race(timeout, response).map(_.merge)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    renderResponse(response, servletResponse, bodyWriter)
+    renderResponse(race, servletResponse, bodyWriter)
   }
 
-  private class AsyncTimeoutHandler(request: Request[F], bodyWriter: BodyWriter[F])
+  private class AsyncTimeoutHandler(cb: Callback[Response[F]])
       extends AbstractAsyncListener {
     override def onTimeout(event: AsyncEvent): Unit = {
-      val ctx = event.getAsyncContext
-      val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-      async.unsafeRunAsync {
-        if (!servletResponse.isCommitted) {
-          val response =
-            F.pure(
-              Response[F](Status.InternalServerError)
-                .withEntity("Service timed out."))
-          renderResponse(response, servletResponse, bodyWriter)
-        } else {
-          logger.warn(
-            s"Async context timed out, but response was already committed: ${request.method} ${request.uri.path}")
-          F.pure(())
-        }
-      } {
-        case Right(()) => IO(ctx.complete())
-        case Left(t) => IO(logger.error(t)("Error timing out async context")) *> IO(ctx.complete())
-      }
+      cb(Right(Response[F](Status.InternalServerError).withEntity("Service timed out.")))
     }
   }
 
@@ -142,7 +126,7 @@ class Http4sServlet[F[_]](
       // Note: the servlet API gives us no undeprecated method to both set
       // a body and a status reason.  We sacrifice the status reason.
       F.delay {
-          servletResponse.setStatus(resp.status.code)
+        servletResponse.setStatus(resp.status.code)
           for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
             servletResponse.addHeader(header.name.toString, header.value)
         }
@@ -216,7 +200,7 @@ class Http4sServlet[F[_]](
 }
 
 object Http4sServlet {
-  def apply[F[_]: Effect](
+  def apply[F[_]: ConcurrentEffect](
       service: HttpService[F],
       asyncTimeout: Duration = Duration.Inf,
       executionContext: ExecutionContext = ExecutionContext.global): Http4sServlet[F] =

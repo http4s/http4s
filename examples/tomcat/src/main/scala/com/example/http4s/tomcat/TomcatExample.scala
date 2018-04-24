@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object TomcatExample extends TomcatExampleApp[IO]
 
-class TomcatExampleApp[F[_]: Effect] extends StreamApp[F] {
+class TomcatExampleApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 

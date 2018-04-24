@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object JettyExample extends JettyExampleApp[IO]
 
-class JettyExampleApp[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
+class JettyExampleApp[F[_]: ConcurrentEffect] extends StreamApp[F] with Http4sDsl[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 

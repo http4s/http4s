@@ -19,7 +19,7 @@ import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-sealed class TomcatBuilder[F[_]: Effect] private (
+sealed class TomcatBuilder[F[_]: ConcurrentEffect] private (
     socketAddress: InetSocketAddress,
     private val executionContext: ExecutionContext,
     private val idleTimeout: Duration,
@@ -226,7 +226,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
 object TomcatBuilder {
 
-  def apply[F[_]: Effect]: TomcatBuilder[F] =
+  def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
