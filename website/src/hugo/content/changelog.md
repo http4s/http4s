@@ -23,7 +23,7 @@ it.
 * Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
 * Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
 * Dependency upgrades:
-  * async-http-client-2.4.2
+  * async-http-client-2.4.5
   * blaze-0.14.0-M3
   * scala-xml-1.1.0
 
