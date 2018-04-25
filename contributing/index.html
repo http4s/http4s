@@ -149,10 +149,10 @@ specializing on a task. (In versions before cats-effect is on the classpath,
 specialize on use <code>fs2.Task</code> or <code>scalaz.concurrent.Task</code>.)</p>
 
 <pre><code class="language-scala">// Good
-def apply[F[_]](service: HttpService[F])(implicit F: Monad[F]): HttpService[F]
+def apply[F[_]](service: HttpApp[F])(implicit F: Monad[F]): HttpApp[F]
 
 // Bad
-def apply(service: HttpService[Task]): HttpService[Task]
+def apply(service: HttpApp[IO]): HttpService[IO]
 </code></pre>
 
 <p>For examples and tutorials, use <code>cats.effect.IO</code> wherever a concrete effect is

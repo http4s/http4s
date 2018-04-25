@@ -102,6 +102,13 @@ it.</p>
 <li>Add <code>Show[ETag]</code> instance <a href="https://github.com/http4s/http4s/pull/1749">#1749</a></li>
 <li>Replace <code>fs2.Scheduler</code> with <code>cats.effect.Timer</code> in <code>Retry</code> <a href="https://github.com/http4s/http4s/pull/1754">#1754</a></li>
 <li>Remove <code>Sync</code> constraint from <code>EntityEncoder[Multipart]</code> <a href="https://github.com/http4s/http4s/pull/1762">#1762</a></li>
+<li>Deprecate <code>HttpService</code>: <a href="https://github.com/http4s/http4s/pull/1693">#1693</a>
+
+<ul>
+<li>Introduces an <code>Http[F[_], G[_]]</code> type alias</li>
+<li><code>HttpService</code> is replaced by <code>HttpRoutes</code>, which is an <code>Http[OptionT[F, ?], ?]</code>.  <code>HttpRoutes.of</code> replaces <code>HttpService</code> constructor from <code>PartialFunction</code>s.</li>
+<li><code>HttpApp</code> is an <code>Http[F, F]</code>, representing a total HTTP function.</li>
+</ul></li>
 <li>Dependency upgrades:
 
 <ul>
