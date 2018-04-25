@@ -164,12 +164,12 @@ can build up a request object and pass that to `expect`:
 ```tut:book
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
-import org.http4s.MediaType._
+import org.http4s.MediaType
 
 val request = GET(
   Uri.uri("https://my-lovely-api.com/"),
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
-  Accept(`application/json`)
+  Accept(MediaType.application.json)
 )
 
 httpClient.expect[String](request)
