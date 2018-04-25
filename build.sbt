@@ -228,6 +228,17 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
+lazy val mimedbGenerator = http4sProject("mimedb-generator")
+  .enablePlugins(PrivateProjectPlugin)
+  .settings(
+    description := "MimeDB source code generator",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.treeHugger,
+      Http4sPlugin.circeGeneric
+    )
+  )
+  .dependsOn(blazeClient, circe)
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .enablePlugins(PrivateProjectPlugin)
@@ -274,6 +285,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
+        mimedbGenerator,
         loadTest
       ),
     scalacOptions in Tut ~= {
