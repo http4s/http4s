@@ -22,6 +22,10 @@ it.
 * Add `Show[ETag]` instance [#1749](https://github.com/http4s/http4s/pull/1749)
 * Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
 * Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
+* Deprecate `HttpService`: [#1693](https://github.com/http4s/http4s/pull/1693)
+  * Introduces an `Http[F[_], G[_]]` type alias
+  * `HttpService` is replaced by `HttpRoutes`, which is an `Http[OptionT[F, ?], ?]`.  `HttpRoutes.of` replaces `HttpService` constructor from `PartialFunction`s.
+  * `HttpApp` is an `Http[F, F]`, representing a total HTTP function.
 * Dependency upgrades:
   * async-http-client-2.4.2
   * blaze-0.14.0-M3
