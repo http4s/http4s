@@ -31,7 +31,7 @@ object Logger {
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
     val isJson = message.contentType.exists(mT =>
-      mT.mediaType == MediaType.`application/json` || mT.mediaType == MediaType.`application/hal+json`)
+      mT.mediaType == MediaType.application.json || mT.mediaType == MediaType.application.`vnd.hal+json`)
 
     val isText = !isBinary || isJson
 

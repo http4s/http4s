@@ -16,7 +16,7 @@ trait CirceInstances {
     jawn.jawnDecoder[F, Json]
 
   def jsonDecoderByteBuffer[F[_]: Sync]: EntityDecoder[F, Json] =
-    EntityDecoder.decodeBy(MediaType.`application/json`)(jsonDecoderByteBufferImpl[F])
+    EntityDecoder.decodeBy(MediaType.application.json)(jsonDecoderByteBufferImpl[F])
 
   private def jsonDecoderByteBufferImpl[F[_]: Sync](msg: Message[F]): DecodeResult[F, Json] =
     EntityDecoder.collectBinary(msg).flatMap { segment =>
@@ -37,7 +37,7 @@ trait CirceInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json]
 
   def jsonDecoderAdaptive[F[_]: Sync](cutoff: Long): EntityDecoder[F, Json] =
-    EntityDecoder.decodeBy(MediaType.`application/json`) { msg =>
+    EntityDecoder.decodeBy(MediaType.application.json) { msg =>
       msg.contentLength match {
         case Some(contentLength) if contentLength < cutoff =>
           jsonDecoderByteBufferImpl[F](msg)
@@ -89,7 +89,7 @@ trait CirceInstances {
         val bytes = printer.prettyByteBuffer(json)
         Chunk.byteBuffer(bytes)
       }
-      .withContentType(`Content-Type`(MediaType.`application/json`))
+      .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](
       implicit encoder: Encoder[A]): EntityEncoder[F, A] =

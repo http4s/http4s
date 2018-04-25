@@ -33,7 +33,7 @@ object Jsonp {
         case Some(ValidCallback(callback)) =>
           service(req).map { response =>
             response.contentType.map(_.mediaType) match {
-              case Some(MediaType.`application/json`) =>
+              case Some(MediaType.application.json) =>
                 jsonp(response, callback)
               case _ =>
                 response
@@ -57,7 +57,7 @@ object Jsonp {
     resp
       .copy(body = jsonpBody)
       .transformHeaders(_ ++ newLengthHeaderOption)
-      .withContentType(`Content-Type`(MediaType.`application/javascript`))
+      .withContentType(`Content-Type`(MediaType.application.javascript))
   }
 
   private def beginJsonp(callback: String) =

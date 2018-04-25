@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-SNAPSHOT
+# v1.0.0-SNAPSHOT (unreleased)
 * Add accumulating version of circe `EntityDecoder` [#1647](https://github.com/http4/http4s/1647)
 * Add ETag support to `StaticFile` [#1652](https://github.com/http4s/http4s/pull/1652)
 * Reintroduce the option for fallthrough for authenticated services [#1670]((https://github.com/http4s/http4s/pull/1670)
@@ -23,9 +23,14 @@ it.
 * Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
 * Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
 * Dependency upgrades:
-  * async-http-client-2.4.2
+  * async-http-client-2.4.5
   * blaze-0.14.0-M3
   * scala-xml-1.1.0
+
+# v0.18.10-SNAPSHOT (unreleased)
+* Dependency upgrades:
+  * cats-effect-0.10.1
+  * specs2-4.1.0
 
 # v0.18.9 (2018-04-17)
 * Log any exceptions when writing the header in blaze-server for HTTP/1 [#1781](https://github.com/http4s/http4s/pull/1781)
@@ -35,7 +40,6 @@ it.
 * Fix blaze-client to reset the connection start time on each invocation of the `F[DisposableResponse]`. This fixes the "timeout after 0 milliseconds" error. [#1792](https://github.com/http4s/http4s/pull/1792)
 * Depdency upgrades:
   * blaze-0.12.13
-  * cats-effect-0.10.1
   * http4s-websocket-0.2.1
   * specs2-4.0.4
   * tomcat-9.0.7

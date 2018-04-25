@@ -54,7 +54,7 @@ trait Json4sInstances[J] {
         // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
         jsonMethods.compact(jsonMethods.render(json))
       }
-      .withContentType(`Content-Type`(MediaType.`application/json`))
+      .withContentType(`Content-Type`(MediaType.application.json))
 
   def jsonEncoderOf[F[_]: Applicative, A](implicit writer: Writer[A]): EntityEncoder[F, A] =
     jsonEncoder[F, JValue].contramap[A](writer.write)

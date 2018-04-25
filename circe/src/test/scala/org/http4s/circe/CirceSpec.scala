@@ -42,7 +42,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
     "have json content type" in {
       jsonEncoder[IO].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.`application/json`))
+        `Content-Type`(MediaType.application.json))
     }
 
     "write compact JSON" in {
@@ -67,7 +67,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   "jsonEncoderOf" should {
     "have json content type" in {
       jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.`application/json`))
+        `Content-Type`(MediaType.application.json))
     }
 
     "write compact JSON" in {
