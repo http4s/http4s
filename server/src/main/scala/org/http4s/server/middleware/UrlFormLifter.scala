@@ -28,7 +28,7 @@ object UrlFormLifter {
       }
 
       req.headers.get(headers.`Content-Type`) match {
-        case Some(headers.`Content-Type`(MediaType.`application/x-www-form-urlencoded`, _))
+        case Some(headers.`Content-Type`(MediaType.application.`x-www-form-urlencoded`, _))
             if checkRequest(req) =>
           for {
             decoded <- OptionT.liftF(UrlForm.entityDecoder[F].decode(req, strictDecode).value)

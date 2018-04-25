@@ -110,7 +110,7 @@ package object oauth1 {
     req.contentType match {
       case Some(t)
           if (req.method == Method.POST || req.method == Method.PUT) &&
-            t.mediaType == MediaType.`application/x-www-form-urlencoded` =>
+            t.mediaType == MediaType.application.`x-www-form-urlencoded` =>
         req.as[UrlForm].map { urlform =>
           val bodyparams = urlform.values.toSeq
             .flatMap { case (k, vs) => if (vs.isEmpty) Seq(k -> "") else vs.map((k, _)) }
