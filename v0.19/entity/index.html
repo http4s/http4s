@@ -148,25 +148,25 @@ defined class Audio
 scala&gt; case class Video(body: String) extends Resp
 defined class Video
 
-scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(`Content-Type`(MediaType.`audio/ogg`)))
+scala&gt; val response = Ok(&quot;&quot;).map(_.withContentType(`Content-Type`(MediaType.audio.ogg)))
 response: cats.effect.IO[org.http4s.Response[cats.effect.IO]] = &lt;function1&gt;
 
-scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Message[IO] =&gt;
+scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$7@51a8f760
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$7@6a61d98b
 
-scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
+scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$7@46c25706
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$7@494a6568
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$$anon$1$$anon$6@76611fb0
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$$anon$1$$anon$6@1e36c1a4
 
 scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
 Audio()

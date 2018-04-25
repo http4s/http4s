@@ -1575,9 +1575,9 @@ server backend, such as Blaze, Jetty, or Tomcat.
       
       <p class="shortcomment cmt">Indicates an syntactic error decoding the body of an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p>
     </li><li name="org.http4s.MediaRange" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MediaRangeextendsRenderable"></a><a id="MediaRange:MediaRange"></a>
+      <a id="MediaRangeextendsAnyRef"></a><a id="MediaRange:MediaRange"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#MediaRangeextendsRenderable" title="Permalink">
+      <a href="../../org/http4s/index.html#MediaRangeextendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1586,7 +1586,7 @@ server backend, such as Blaze, Jetty, or Tomcat.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="MediaRange.html"><span class="name">MediaRange</span></a><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <a title="" href="MediaRange.html"><span class="name">MediaRange</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></span>
       </span>
       
       
@@ -1769,7 +1769,7 @@ Response while most of the functionality is found in <a href="MessageOps.html" c
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">ParseResult</span><span class="tparams">[<span name="A">+A</span>]</span><span class="result alias"> = <span class="extype" name="scala.util.Either">Either</span>[<a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>, <span class="extype" name="org.http4s.ParseResult.A">A</span>]</span>
+        <span class="name">ParseResult</span><span class="tparams">[<span name="A">+A</span>]</span><span class="result alias"> = <a href="http://www.scala-lang.org/api/2.12.4/scala/util/Either.html#scala.util.Either" class="extype" name="scala.util.Either">Either</a>[<a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>, <span class="extype" name="org.http4s.ParseResult.A">A</span>]</span>
       </span>
       
       
@@ -2816,7 +2816,7 @@ with some commonly used instances which can be resolved implicitly.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="MediaType$.html"><span class="name">MediaType</span></a><span class="result"> extends <span class="extype" name="org.http4s.util.Registry">Registry</span></span>
+        <a title="" href="MediaType$.html"><span class="name">MediaType</span></a><span class="result"> extends <span class="extype" name="org.http4s.MimeDB">MimeDB</span></span>
       </span>
       
       
