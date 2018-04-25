@@ -86,19 +86,17 @@ class Http4sServlet[F[_]](
   private def onParseFailure(
       parseFailure: ParseFailure,
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] = {
-    val response =
-      F.pure(
-        Response[F](Status.BadRequest)
-          .withEntity(parseFailure.sanitized))
-    renderResponse(response, servletResponse, bodyWriter)
+      bodyWriter: BodyWriter[F],
+  ): F[Unit] = {
+    val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
+    renderResponse(response, servletResponse, bodyWriter, F.async(_ => ()))
   }
 
   private def handleRequest(
       ctx: AsyncContext,
       request: Request[F],
       bodyWriter: BodyWriter[F]): F[Unit] = {
-    val timeout = F.async[Response[F]] { cb =>
+    val timeout = F.async[Unit] { cb =>
       ctx.addListener(new AsyncTimeoutHandler(cb))
     }
     val response = Async.shift(executionContext) *>
@@ -106,39 +104,46 @@ class Http4sServlet[F[_]](
         .suspend(serviceFn(request))
         .getOrElse(Response.notFound)
         .recoverWith(serviceErrorHandler(request))
-    val race = F.race(timeout, response).map(_.merge)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    renderResponse(race, servletResponse, bodyWriter)
+    F.race(timeout, response).flatMap {
+      case Left(()) =>
+        // The F.never is so we don't interrupt the rendering of the timeout response
+        renderResponse(Response.timeout[F], servletResponse, bodyWriter, F.async(cb => ()))
+      case Right(resp) =>
+        renderResponse(resp, servletResponse, bodyWriter, timeout)
+    }
   }
 
-  private class AsyncTimeoutHandler(cb: Callback[Response[F]])
+  private class AsyncTimeoutHandler(cb: Callback[Unit])
       extends AbstractAsyncListener {
     override def onTimeout(event: AsyncEvent): Unit = {
-      cb(Right(Response[F](Status.InternalServerError).withEntity("Service timed out.")))
+      val req = event.getAsyncContext.getRequest.asInstanceOf[HttpServletRequest]
+      logger.info(s"Request timed out: ${req.getMethod} ${req.getServletPath}${req.getPathInfo}")
+      cb(Right(()))
     }
   }
 
   private def renderResponse(
-      response: F[Response[F]],
+      response: Response[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] =
-    response.flatMap { resp =>
-      // Note: the servlet API gives us no undeprecated method to both set
-      // a body and a status reason.  We sacrifice the status reason.
-      F.delay {
-        servletResponse.setStatus(resp.status.code)
-          for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
-            servletResponse.addHeader(header.name.toString, header.value)
-        }
-        .attempt
-        .flatMap {
-          case Right(()) => bodyWriter(resp)
-          case Left(t) =>
-            resp.body.drain.compile.drain.handleError {
-              case t2 => logger.error(t2)("Error draining body")
-            } *> F.raiseError(t)
-        }
+      bodyWriter: BodyWriter[F],
+      timeout: F[Unit],
+  ): F[Unit] =
+    // Note: the servlet API gives us no undeprecated method to both set
+    // a body and a status reason.  We sacrifice the status reason.
+    F.delay {
+      servletResponse.setStatus(response.status.code)
+      for (header <- response.headers if header.isNot(`Transfer-Encoding`))
+        servletResponse.addHeader(header.name.toString, header.value)
     }
+      .attempt
+      .flatMap {
+        case Right(()) => bodyWriter(response, timeout)
+        case Left(t) =>
+          response.body.drain.compile.drain.handleError {
+            case t2 => logger.error(t2)("Error draining body")
+          } *> F.raiseError(t)
+      }
 
   private def errorHandler(
       servletRequest: ServletRequest,
@@ -148,11 +153,11 @@ class Http4sServlet[F[_]](
 
     case t: Throwable =>
       logger.error(t)("Error processing request")
-      val response = F.pure(Response[F](Status.InternalServerError))
+      val response = Response[F](Status.InternalServerError)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
       async
-        .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter)) { _ =>
+        .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter, F.pure(()))) { _ =>
           IO {
             if (servletRequest.isAsyncStarted)
               servletRequest.getAsyncContext.complete()

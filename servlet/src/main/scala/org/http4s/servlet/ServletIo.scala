@@ -11,6 +11,7 @@ import org.http4s.util.bug
 import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext
 
 /**
   * Determines the mode of I/O used for reading request bodies and writing response bodies.
@@ -21,7 +22,7 @@ sealed abstract class ServletIo[F[_]: Async] {
   protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F]
 
   /** May install a listener on the servlet response. */
-  protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter[F]
+  protected[servlet] def initWriter(servletResponse: HttpServletResponse)(implicit ec: ExecutionContext): BodyWriter[F]
 }
 
 /**
@@ -30,12 +31,12 @@ sealed abstract class ServletIo[F[_]: Async] {
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
   */
-final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
+final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = { response: Response[F] =>
+      servletResponse: HttpServletResponse)(implicit ec: ExecutionContext): BodyWriter[F] = { (response: Response[F], timeout: F[Unit]) =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.chunks
@@ -59,7 +60,7 @@ final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletI
   * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
   * operationally annoying.
   */
-final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
+final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
   private[this] val logger = getLogger
 
   private[this] def rightSome[A](a: A) = Right(Some(a))
@@ -164,7 +165,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
     }
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = {
+      servletResponse: HttpServletResponse)(implicit ec: ExecutionContext): BodyWriter[F] = {
     sealed trait State
     case object Init extends State
     case object Ready extends State
@@ -225,7 +226,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         }
     }
 
-    { response: Response[F] =>
+    { (response: Response[F], timeout: F[Unit]) =>
       if (response.isChunked)
         autoFlush = true
       response.body.chunks

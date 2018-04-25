@@ -379,4 +379,7 @@ object Response {
   def notFoundFor[F[_]: Monad](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
     Monad[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
+
+  def timeout[F[_]]: Response[F] =
+    Response[F](Status.InternalServerError).withEntity("Response timed out")
 }
