@@ -3,411 +3,11 @@ package org.http4s
 
 private[http4s] trait MimeDB {
   lazy val allMediaTypes
-    : List[MediaType] = Nil ::: text.all ::: x_shader.all ::: model.all ::: application.all ::: x_conference.all ::: image.all ::: multipart.all ::: font.all ::: chemical.all ::: video.all ::: message.all ::: audio.all
+    : List[MediaType] = Nil ++ x_shader.all ++ x_conference.all ++ video.all ++ text.all ++ multipart.all ++ model.all ++ message.all ++ image.all ++ font.all ++ chemical.all ++ audio.all ++ application.all
   val Compressible: Boolean = true
   val Uncompressible: Boolean = true
   val Binary: Boolean = true
   val NotBinary: Boolean = true
-  object text {
-    lazy val `1d-interleaved-parityfec`: MediaType =
-      new MediaType("text", "1d-interleaved-parityfec", Compressible, NotBinary)
-    lazy val `cache-manifest`: MediaType =
-      new MediaType("text", "cache-manifest", Compressible, NotBinary, List("appcache", "manifest"))
-    lazy val `calendar`: MediaType =
-      new MediaType("text", "calendar", Compressible, NotBinary, List("ics", "ifb"))
-    lazy val `calender`: MediaType = new MediaType("text", "calender", Compressible, NotBinary)
-    lazy val `cmd`: MediaType = new MediaType("text", "cmd", Compressible, NotBinary)
-    lazy val `coffeescript`: MediaType =
-      new MediaType("text", "coffeescript", Compressible, NotBinary, List("coffee", "litcoffee"))
-    lazy val `css`: MediaType = new MediaType("text", "css", Compressible, NotBinary, List("css"))
-    lazy val `csv`: MediaType = new MediaType("text", "csv", Compressible, NotBinary, List("csv"))
-    lazy val `csv-schema`: MediaType = new MediaType("text", "csv-schema", Compressible, NotBinary)
-    lazy val `directory`: MediaType = new MediaType("text", "directory", Compressible, NotBinary)
-    lazy val `dns`: MediaType = new MediaType("text", "dns", Compressible, NotBinary)
-    lazy val `ecmascript`: MediaType = new MediaType("text", "ecmascript", Compressible, NotBinary)
-    lazy val `encaprtp`: MediaType = new MediaType("text", "encaprtp", Compressible, NotBinary)
-    lazy val `enriched`: MediaType = new MediaType("text", "enriched", Compressible, NotBinary)
-    lazy val `fwdred`: MediaType = new MediaType("text", "fwdred", Compressible, NotBinary)
-    lazy val `grammar-ref-list`: MediaType =
-      new MediaType("text", "grammar-ref-list", Compressible, NotBinary)
-    lazy val `html`: MediaType =
-      new MediaType("text", "html", Compressible, NotBinary, List("html", "htm", "shtml"))
-    lazy val `jade`: MediaType =
-      new MediaType("text", "jade", Compressible, NotBinary, List("jade"))
-    lazy val `javascript`: MediaType = new MediaType("text", "javascript", Compressible, NotBinary)
-    lazy val `jcr-cnd`: MediaType = new MediaType("text", "jcr-cnd", Compressible, NotBinary)
-    lazy val `jsx`: MediaType = new MediaType("text", "jsx", Compressible, NotBinary, List("jsx"))
-    lazy val `less`: MediaType =
-      new MediaType("text", "less", Compressible, NotBinary, List("less"))
-    lazy val `markdown`: MediaType =
-      new MediaType("text", "markdown", Compressible, NotBinary, List("markdown", "md"))
-    lazy val `mathml`: MediaType =
-      new MediaType("text", "mathml", Compressible, NotBinary, List("mml"))
-    lazy val `mizar`: MediaType = new MediaType("text", "mizar", Compressible, NotBinary)
-    lazy val `n3`: MediaType = new MediaType("text", "n3", Compressible, NotBinary, List("n3"))
-    lazy val `parameters`: MediaType = new MediaType("text", "parameters", Compressible, NotBinary)
-    lazy val `parityfec`: MediaType = new MediaType("text", "parityfec", Compressible, NotBinary)
-    lazy val `plain`: MediaType = new MediaType(
-      "text",
-      "plain",
-      Compressible,
-      NotBinary,
-      List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
-    lazy val `provenance-notation`: MediaType =
-      new MediaType("text", "provenance-notation", Compressible, NotBinary)
-    lazy val `prs.fallenstein.rst`: MediaType =
-      new MediaType("text", "prs.fallenstein.rst", Compressible, NotBinary)
-    lazy val `prs.lines.tag`: MediaType =
-      new MediaType("text", "prs.lines.tag", Compressible, NotBinary, List("dsc"))
-    lazy val `prs.prop.logic`: MediaType =
-      new MediaType("text", "prs.prop.logic", Compressible, NotBinary)
-    lazy val `raptorfec`: MediaType = new MediaType("text", "raptorfec", Compressible, NotBinary)
-    lazy val `red`: MediaType = new MediaType("text", "red", Compressible, NotBinary)
-    lazy val `rfc822-headers`: MediaType =
-      new MediaType("text", "rfc822-headers", Compressible, NotBinary)
-    lazy val `richtext`: MediaType =
-      new MediaType("text", "richtext", Compressible, NotBinary, List("rtx"))
-    lazy val `rtf`: MediaType = new MediaType("text", "rtf", Compressible, NotBinary, List("rtf"))
-    lazy val `rtp-enc-aescm128`: MediaType =
-      new MediaType("text", "rtp-enc-aescm128", Compressible, NotBinary)
-    lazy val `rtploopback`: MediaType =
-      new MediaType("text", "rtploopback", Compressible, NotBinary)
-    lazy val `rtx`: MediaType = new MediaType("text", "rtx", Compressible, NotBinary)
-    lazy val `sgml`: MediaType =
-      new MediaType("text", "sgml", Compressible, NotBinary, List("sgml", "sgm"))
-    lazy val `shex`: MediaType =
-      new MediaType("text", "shex", Compressible, NotBinary, List("shex"))
-    lazy val `slim`: MediaType =
-      new MediaType("text", "slim", Compressible, NotBinary, List("slim", "slm"))
-    lazy val `strings`: MediaType = new MediaType("text", "strings", Compressible, NotBinary)
-    lazy val `stylus`: MediaType =
-      new MediaType("text", "stylus", Compressible, NotBinary, List("stylus", "styl"))
-    lazy val `t140`: MediaType = new MediaType("text", "t140", Compressible, NotBinary)
-    lazy val `tab-separated-values`: MediaType =
-      new MediaType("text", "tab-separated-values", Compressible, NotBinary, List("tsv"))
-    lazy val `troff`: MediaType = new MediaType(
-      "text",
-      "troff",
-      Compressible,
-      NotBinary,
-      List("t", "tr", "roff", "man", "me", "ms"))
-    lazy val `turtle`: MediaType =
-      new MediaType("text", "turtle", Compressible, NotBinary, List("ttl"))
-    lazy val `ulpfec`: MediaType = new MediaType("text", "ulpfec", Compressible, NotBinary)
-    lazy val `uri-list`: MediaType =
-      new MediaType("text", "uri-list", Compressible, NotBinary, List("uri", "uris", "urls"))
-    lazy val `vcard`: MediaType =
-      new MediaType("text", "vcard", Compressible, NotBinary, List("vcard"))
-    lazy val `vnd.a`: MediaType = new MediaType("text", "vnd.a", Compressible, NotBinary)
-    lazy val `vnd.abc`: MediaType = new MediaType("text", "vnd.abc", Compressible, NotBinary)
-    lazy val `vnd.ascii-art`: MediaType =
-      new MediaType("text", "vnd.ascii-art", Compressible, NotBinary)
-    lazy val `vnd.curl`: MediaType =
-      new MediaType("text", "vnd.curl", Compressible, NotBinary, List("curl"))
-    lazy val `vnd.curl.dcurl`: MediaType =
-      new MediaType("text", "vnd.curl.dcurl", Compressible, NotBinary, List("dcurl"))
-    lazy val `vnd.curl.mcurl`: MediaType =
-      new MediaType("text", "vnd.curl.mcurl", Compressible, NotBinary, List("mcurl"))
-    lazy val `vnd.curl.scurl`: MediaType =
-      new MediaType("text", "vnd.curl.scurl", Compressible, NotBinary, List("scurl"))
-    lazy val `vnd.debian.copyright`: MediaType =
-      new MediaType("text", "vnd.debian.copyright", Compressible, NotBinary)
-    lazy val `vnd.dmclientscript`: MediaType =
-      new MediaType("text", "vnd.dmclientscript", Compressible, NotBinary)
-    lazy val `vnd.dvb.subtitle`: MediaType =
-      new MediaType("text", "vnd.dvb.subtitle", Compressible, NotBinary, List("sub"))
-    lazy val `vnd.esmertec.theme-descriptor`: MediaType =
-      new MediaType("text", "vnd.esmertec.theme-descriptor", Compressible, NotBinary)
-    lazy val `vnd.fly`: MediaType =
-      new MediaType("text", "vnd.fly", Compressible, NotBinary, List("fly"))
-    lazy val `vnd.fmi.flexstor`: MediaType =
-      new MediaType("text", "vnd.fmi.flexstor", Compressible, NotBinary, List("flx"))
-    lazy val `vnd.graphviz`: MediaType =
-      new MediaType("text", "vnd.graphviz", Compressible, NotBinary, List("gv"))
-    lazy val `vnd.in3d.3dml`: MediaType =
-      new MediaType("text", "vnd.in3d.3dml", Compressible, NotBinary, List("3dml"))
-    lazy val `vnd.in3d.spot`: MediaType =
-      new MediaType("text", "vnd.in3d.spot", Compressible, NotBinary, List("spot"))
-    lazy val `vnd.iptc.newsml`: MediaType =
-      new MediaType("text", "vnd.iptc.newsml", Compressible, NotBinary)
-    lazy val `vnd.iptc.nitf`: MediaType =
-      new MediaType("text", "vnd.iptc.nitf", Compressible, NotBinary)
-    lazy val `vnd.latex-z`: MediaType =
-      new MediaType("text", "vnd.latex-z", Compressible, NotBinary)
-    lazy val `vnd.motorola.reflex`: MediaType =
-      new MediaType("text", "vnd.motorola.reflex", Compressible, NotBinary)
-    lazy val `vnd.ms-mediapackage`: MediaType =
-      new MediaType("text", "vnd.ms-mediapackage", Compressible, NotBinary)
-    lazy val `vnd.net2phone.commcenter.command`: MediaType =
-      new MediaType("text", "vnd.net2phone.commcenter.command", Compressible, NotBinary)
-    lazy val `vnd.radisys.msml-basic-layout`: MediaType =
-      new MediaType("text", "vnd.radisys.msml-basic-layout", Compressible, NotBinary)
-    lazy val `vnd.si.uricatalogue`: MediaType =
-      new MediaType("text", "vnd.si.uricatalogue", Compressible, NotBinary)
-    lazy val `vnd.sun.j2me.app-descriptor`: MediaType =
-      new MediaType("text", "vnd.sun.j2me.app-descriptor", Compressible, NotBinary, List("jad"))
-    lazy val `vnd.trolltech.linguist`: MediaType =
-      new MediaType("text", "vnd.trolltech.linguist", Compressible, NotBinary)
-    lazy val `vnd.wap.si`: MediaType = new MediaType("text", "vnd.wap.si", Compressible, NotBinary)
-    lazy val `vnd.wap.sl`: MediaType = new MediaType("text", "vnd.wap.sl", Compressible, NotBinary)
-    lazy val `vnd.wap.wml`: MediaType =
-      new MediaType("text", "vnd.wap.wml", Compressible, NotBinary, List("wml"))
-    lazy val `vnd.wap.wmlscript`: MediaType =
-      new MediaType("text", "vnd.wap.wmlscript", Compressible, NotBinary, List("wmls"))
-    lazy val `vtt`: MediaType = new MediaType("text", "vtt", Compressible, NotBinary, List("vtt"))
-    lazy val `x-asm`: MediaType =
-      new MediaType("text", "x-asm", Compressible, NotBinary, List("s", "asm"))
-    lazy val `x-c`: MediaType = new MediaType(
-      "text",
-      "x-c",
-      Compressible,
-      NotBinary,
-      List("c", "cc", "cxx", "cpp", "h", "hh", "dic"))
-    lazy val `x-component`: MediaType =
-      new MediaType("text", "x-component", Compressible, NotBinary, List("htc"))
-    lazy val `x-fortran`: MediaType =
-      new MediaType("text", "x-fortran", Compressible, NotBinary, List("f", "for", "f77", "f90"))
-    lazy val `x-gwt-rpc`: MediaType = new MediaType("text", "x-gwt-rpc", Compressible, NotBinary)
-    lazy val `x-handlebars-template`: MediaType =
-      new MediaType("text", "x-handlebars-template", Compressible, NotBinary, List("hbs"))
-    lazy val `x-java-source`: MediaType =
-      new MediaType("text", "x-java-source", Compressible, NotBinary, List("java"))
-    lazy val `x-jquery-tmpl`: MediaType =
-      new MediaType("text", "x-jquery-tmpl", Compressible, NotBinary)
-    lazy val `x-lua`: MediaType =
-      new MediaType("text", "x-lua", Compressible, NotBinary, List("lua"))
-    lazy val `x-markdown`: MediaType =
-      new MediaType("text", "x-markdown", Compressible, NotBinary, List("mkd"))
-    lazy val `x-nfo`: MediaType =
-      new MediaType("text", "x-nfo", Compressible, NotBinary, List("nfo"))
-    lazy val `x-opml`: MediaType =
-      new MediaType("text", "x-opml", Compressible, NotBinary, List("opml"))
-    lazy val `x-org`: MediaType =
-      new MediaType("text", "x-org", Compressible, NotBinary, List("org"))
-    lazy val `x-pascal`: MediaType =
-      new MediaType("text", "x-pascal", Compressible, NotBinary, List("p", "pas"))
-    lazy val `x-processing`: MediaType =
-      new MediaType("text", "x-processing", Compressible, NotBinary, List("pde"))
-    lazy val `x-sass`: MediaType =
-      new MediaType("text", "x-sass", Compressible, NotBinary, List("sass"))
-    lazy val `x-scss`: MediaType =
-      new MediaType("text", "x-scss", Compressible, NotBinary, List("scss"))
-    lazy val `x-setext`: MediaType =
-      new MediaType("text", "x-setext", Compressible, NotBinary, List("etx"))
-    lazy val `x-sfv`: MediaType =
-      new MediaType("text", "x-sfv", Compressible, NotBinary, List("sfv"))
-    lazy val `x-suse-ymp`: MediaType =
-      new MediaType("text", "x-suse-ymp", Compressible, NotBinary, List("ymp"))
-    lazy val `x-uuencode`: MediaType =
-      new MediaType("text", "x-uuencode", Compressible, NotBinary, List("uu"))
-    lazy val `x-vcalendar`: MediaType =
-      new MediaType("text", "x-vcalendar", Compressible, NotBinary, List("vcs"))
-    lazy val `x-vcard`: MediaType =
-      new MediaType("text", "x-vcard", Compressible, NotBinary, List("vcf"))
-    lazy val `xml`: MediaType = new MediaType("text", "xml", Compressible, NotBinary, List("xml"))
-    lazy val `xml-external-parsed-entity`: MediaType =
-      new MediaType("text", "xml-external-parsed-entity", Compressible, NotBinary)
-    lazy val `yaml`: MediaType =
-      new MediaType("text", "yaml", Compressible, NotBinary, List("yaml", "yml"))
-    lazy val all: List[MediaType] = List(
-      `1d-interleaved-parityfec`,
-      `cache-manifest`,
-      `calendar`,
-      `calender`,
-      `cmd`,
-      `coffeescript`,
-      `css`,
-      `csv`,
-      `csv-schema`,
-      `directory`,
-      `dns`,
-      `ecmascript`,
-      `encaprtp`,
-      `enriched`,
-      `fwdred`,
-      `grammar-ref-list`,
-      `html`,
-      `jade`,
-      `javascript`,
-      `jcr-cnd`,
-      `jsx`,
-      `less`,
-      `markdown`,
-      `mathml`,
-      `mizar`,
-      `n3`,
-      `parameters`,
-      `parityfec`,
-      `plain`,
-      `provenance-notation`,
-      `prs.fallenstein.rst`,
-      `prs.lines.tag`,
-      `prs.prop.logic`,
-      `raptorfec`,
-      `red`,
-      `rfc822-headers`,
-      `richtext`,
-      `rtf`,
-      `rtp-enc-aescm128`,
-      `rtploopback`,
-      `rtx`,
-      `sgml`,
-      `shex`,
-      `slim`,
-      `strings`,
-      `stylus`,
-      `t140`,
-      `tab-separated-values`,
-      `troff`,
-      `turtle`,
-      `ulpfec`,
-      `uri-list`,
-      `vcard`,
-      `vnd.a`,
-      `vnd.abc`,
-      `vnd.ascii-art`,
-      `vnd.curl`,
-      `vnd.curl.dcurl`,
-      `vnd.curl.mcurl`,
-      `vnd.curl.scurl`,
-      `vnd.debian.copyright`,
-      `vnd.dmclientscript`,
-      `vnd.dvb.subtitle`,
-      `vnd.esmertec.theme-descriptor`,
-      `vnd.fly`,
-      `vnd.fmi.flexstor`,
-      `vnd.graphviz`,
-      `vnd.in3d.3dml`,
-      `vnd.in3d.spot`,
-      `vnd.iptc.newsml`,
-      `vnd.iptc.nitf`,
-      `vnd.latex-z`,
-      `vnd.motorola.reflex`,
-      `vnd.ms-mediapackage`,
-      `vnd.net2phone.commcenter.command`,
-      `vnd.radisys.msml-basic-layout`,
-      `vnd.si.uricatalogue`,
-      `vnd.sun.j2me.app-descriptor`,
-      `vnd.trolltech.linguist`,
-      `vnd.wap.si`,
-      `vnd.wap.sl`,
-      `vnd.wap.wml`,
-      `vnd.wap.wmlscript`,
-      `vtt`,
-      `x-asm`,
-      `x-c`,
-      `x-component`,
-      `x-fortran`,
-      `x-gwt-rpc`,
-      `x-handlebars-template`,
-      `x-java-source`,
-      `x-jquery-tmpl`,
-      `x-lua`,
-      `x-markdown`,
-      `x-nfo`,
-      `x-opml`,
-      `x-org`,
-      `x-pascal`,
-      `x-processing`,
-      `x-sass`,
-      `x-scss`,
-      `x-setext`,
-      `x-sfv`,
-      `x-suse-ymp`,
-      `x-uuencode`,
-      `x-vcalendar`,
-      `x-vcard`,
-      `xml`,
-      `xml-external-parsed-entity`,
-      `yaml`
-    )
-  }
-  object x_shader {
-    lazy val `x-fragment`: MediaType =
-      new MediaType("x-shader", "x-fragment", Compressible, NotBinary)
-    lazy val `x-vertex`: MediaType = new MediaType("x-shader", "x-vertex", Compressible, NotBinary)
-    lazy val all: List[MediaType] = List(`x-fragment`, `x-vertex`)
-  }
-  object model {
-    lazy val `3mf`: MediaType = new MediaType("model", "3mf", Compressible, NotBinary)
-    lazy val `gltf+json`: MediaType =
-      new MediaType("model", "gltf+json", Compressible, NotBinary, List("gltf"))
-    lazy val `gltf-binary`: MediaType =
-      new MediaType("model", "gltf-binary", Compressible, NotBinary, List("glb"))
-    lazy val `iges`: MediaType =
-      new MediaType("model", "iges", Uncompressible, NotBinary, List("igs", "iges"))
-    lazy val `mesh`: MediaType =
-      new MediaType("model", "mesh", Uncompressible, NotBinary, List("msh", "mesh", "silo"))
-    lazy val `stl`: MediaType = new MediaType("model", "stl", Compressible, NotBinary)
-    lazy val `vnd.collada+xml`: MediaType =
-      new MediaType("model", "vnd.collada+xml", Compressible, NotBinary, List("dae"))
-    lazy val `vnd.dwf`: MediaType =
-      new MediaType("model", "vnd.dwf", Compressible, NotBinary, List("dwf"))
-    lazy val `vnd.flatland.3dml`: MediaType =
-      new MediaType("model", "vnd.flatland.3dml", Compressible, NotBinary)
-    lazy val `vnd.gdl`: MediaType =
-      new MediaType("model", "vnd.gdl", Compressible, NotBinary, List("gdl"))
-    lazy val `vnd.gs-gdl`: MediaType = new MediaType("model", "vnd.gs-gdl", Compressible, NotBinary)
-    lazy val `vnd.gs.gdl`: MediaType = new MediaType("model", "vnd.gs.gdl", Compressible, NotBinary)
-    lazy val `vnd.gtw`: MediaType =
-      new MediaType("model", "vnd.gtw", Compressible, NotBinary, List("gtw"))
-    lazy val `vnd.moml+xml`: MediaType =
-      new MediaType("model", "vnd.moml+xml", Compressible, NotBinary)
-    lazy val `vnd.mts`: MediaType =
-      new MediaType("model", "vnd.mts", Compressible, NotBinary, List("mts"))
-    lazy val `vnd.opengex`: MediaType =
-      new MediaType("model", "vnd.opengex", Compressible, NotBinary)
-    lazy val `vnd.parasolid.transmit.binary`: MediaType =
-      new MediaType("model", "vnd.parasolid.transmit.binary", Compressible, NotBinary)
-    lazy val `vnd.parasolid.transmit.text`: MediaType =
-      new MediaType("model", "vnd.parasolid.transmit.text", Compressible, NotBinary)
-    lazy val `vnd.rosette.annotated-data-model`: MediaType =
-      new MediaType("model", "vnd.rosette.annotated-data-model", Compressible, NotBinary)
-    lazy val `vnd.valve.source.compiled-map`: MediaType =
-      new MediaType("model", "vnd.valve.source.compiled-map", Compressible, NotBinary)
-    lazy val `vnd.vtu`: MediaType =
-      new MediaType("model", "vnd.vtu", Compressible, NotBinary, List("vtu"))
-    lazy val `vrml`: MediaType =
-      new MediaType("model", "vrml", Uncompressible, NotBinary, List("wrl", "vrml"))
-    lazy val `x3d+binary`: MediaType =
-      new MediaType("model", "x3d+binary", Uncompressible, NotBinary, List("x3db", "x3dbz"))
-    lazy val `x3d+fastinfoset`: MediaType =
-      new MediaType("model", "x3d+fastinfoset", Compressible, NotBinary)
-    lazy val `x3d+vrml`: MediaType =
-      new MediaType("model", "x3d+vrml", Uncompressible, NotBinary, List("x3dv", "x3dvz"))
-    lazy val `x3d+xml`: MediaType =
-      new MediaType("model", "x3d+xml", Compressible, NotBinary, List("x3d", "x3dz"))
-    lazy val `x3d-vrml`: MediaType = new MediaType("model", "x3d-vrml", Compressible, NotBinary)
-    lazy val all: List[MediaType] = List(
-      `3mf`,
-      `gltf+json`,
-      `gltf-binary`,
-      `iges`,
-      `mesh`,
-      `stl`,
-      `vnd.collada+xml`,
-      `vnd.dwf`,
-      `vnd.flatland.3dml`,
-      `vnd.gdl`,
-      `vnd.gs-gdl`,
-      `vnd.gs.gdl`,
-      `vnd.gtw`,
-      `vnd.moml+xml`,
-      `vnd.mts`,
-      `vnd.opengex`,
-      `vnd.parasolid.transmit.binary`,
-      `vnd.parasolid.transmit.text`,
-      `vnd.rosette.annotated-data-model`,
-      `vnd.valve.source.compiled-map`,
-      `vnd.vtu`,
-      `vrml`,
-      `x3d+binary`,
-      `x3d+fastinfoset`,
-      `x3d+vrml`,
-      `x3d+xml`,
-      `x3d-vrml`
-    )
-  }
   private[http4s] object application_parts {
     trait application_0 {
       lazy val `1d-interleaved-parityfec`: MediaType =
@@ -5805,623 +5405,7 @@ private[http4s] trait MimeDB {
       extends application_parts.application_0
       with application_parts.application_1
       with application_parts.application_2 {
-    lazy val all: List[MediaType] = Nil ::: part_0 ::: part_1 ::: part_2
-  }
-  object x_conference {
-    lazy val `x-cooltalk`: MediaType =
-      new MediaType("x-conference", "x-cooltalk", Compressible, NotBinary, List("ice"))
-    lazy val all: List[MediaType] = List(`x-cooltalk`)
-  }
-  object image {
-    lazy val `aces`: MediaType = new MediaType("image", "aces", Compressible, Binary)
-    lazy val `apng`: MediaType =
-      new MediaType("image", "apng", Uncompressible, Binary, List("apng"))
-    lazy val `bmp`: MediaType = new MediaType("image", "bmp", Compressible, Binary, List("bmp"))
-    lazy val `cgm`: MediaType = new MediaType("image", "cgm", Compressible, Binary, List("cgm"))
-    lazy val `dicom-rle`: MediaType = new MediaType("image", "dicom-rle", Compressible, Binary)
-    lazy val `emf`: MediaType = new MediaType("image", "emf", Compressible, Binary)
-    lazy val `fits`: MediaType = new MediaType("image", "fits", Compressible, Binary)
-    lazy val `g3fax`: MediaType = new MediaType("image", "g3fax", Compressible, Binary, List("g3"))
-    lazy val `gif`: MediaType = new MediaType("image", "gif", Uncompressible, Binary, List("gif"))
-    lazy val `ief`: MediaType = new MediaType("image", "ief", Compressible, Binary, List("ief"))
-    lazy val `jls`: MediaType = new MediaType("image", "jls", Compressible, Binary)
-    lazy val `jp2`: MediaType =
-      new MediaType("image", "jp2", Uncompressible, Binary, List("jp2", "jpg2"))
-    lazy val `jpeg`: MediaType =
-      new MediaType("image", "jpeg", Uncompressible, Binary, List("jpeg", "jpg", "jpe"))
-    lazy val `jpm`: MediaType = new MediaType("image", "jpm", Uncompressible, Binary, List("jpm"))
-    lazy val `jpx`: MediaType =
-      new MediaType("image", "jpx", Uncompressible, Binary, List("jpx", "jpf"))
-    lazy val `ktx`: MediaType = new MediaType("image", "ktx", Compressible, Binary, List("ktx"))
-    lazy val `naplps`: MediaType = new MediaType("image", "naplps", Compressible, Binary)
-    lazy val `pjpeg`: MediaType = new MediaType("image", "pjpeg", Uncompressible, Binary)
-    lazy val `png`: MediaType = new MediaType("image", "png", Uncompressible, Binary, List("png"))
-    lazy val `prs.btif`: MediaType =
-      new MediaType("image", "prs.btif", Compressible, Binary, List("btif"))
-    lazy val `prs.pti`: MediaType = new MediaType("image", "prs.pti", Compressible, Binary)
-    lazy val `pwg-raster`: MediaType = new MediaType("image", "pwg-raster", Compressible, Binary)
-    lazy val `sgi`: MediaType = new MediaType("image", "sgi", Compressible, Binary, List("sgi"))
-    lazy val `svg+xml`: MediaType =
-      new MediaType("image", "svg+xml", Compressible, Binary, List("svg", "svgz"))
-    lazy val `t38`: MediaType = new MediaType("image", "t38", Compressible, Binary)
-    lazy val `tiff`: MediaType =
-      new MediaType("image", "tiff", Uncompressible, Binary, List("tiff", "tif"))
-    lazy val `tiff-fx`: MediaType = new MediaType("image", "tiff-fx", Compressible, Binary)
-    lazy val `vnd.adobe.photoshop`: MediaType =
-      new MediaType("image", "vnd.adobe.photoshop", Compressible, Binary, List("psd"))
-    lazy val `vnd.airzip.accelerator.azv`: MediaType =
-      new MediaType("image", "vnd.airzip.accelerator.azv", Compressible, Binary)
-    lazy val `vnd.cns.inf2`: MediaType =
-      new MediaType("image", "vnd.cns.inf2", Compressible, Binary)
-    lazy val `vnd.dece.graphic`: MediaType = new MediaType(
-      "image",
-      "vnd.dece.graphic",
-      Compressible,
-      Binary,
-      List("uvi", "uvvi", "uvg", "uvvg"))
-    lazy val `vnd.djvu`: MediaType =
-      new MediaType("image", "vnd.djvu", Compressible, Binary, List("djvu", "djv"))
-    lazy val `vnd.dvb.subtitle`: MediaType =
-      new MediaType("image", "vnd.dvb.subtitle", Compressible, Binary, List("sub"))
-    lazy val `vnd.dwg`: MediaType =
-      new MediaType("image", "vnd.dwg", Compressible, Binary, List("dwg"))
-    lazy val `vnd.dxf`: MediaType =
-      new MediaType("image", "vnd.dxf", Compressible, Binary, List("dxf"))
-    lazy val `vnd.fastbidsheet`: MediaType =
-      new MediaType("image", "vnd.fastbidsheet", Compressible, Binary, List("fbs"))
-    lazy val `vnd.fpx`: MediaType =
-      new MediaType("image", "vnd.fpx", Compressible, Binary, List("fpx"))
-    lazy val `vnd.fst`: MediaType =
-      new MediaType("image", "vnd.fst", Compressible, Binary, List("fst"))
-    lazy val `vnd.fujixerox.edmics-mmr`: MediaType =
-      new MediaType("image", "vnd.fujixerox.edmics-mmr", Compressible, Binary, List("mmr"))
-    lazy val `vnd.fujixerox.edmics-rlc`: MediaType =
-      new MediaType("image", "vnd.fujixerox.edmics-rlc", Compressible, Binary, List("rlc"))
-    lazy val `vnd.globalgraphics.pgb`: MediaType =
-      new MediaType("image", "vnd.globalgraphics.pgb", Compressible, Binary)
-    lazy val `vnd.microsoft.icon`: MediaType =
-      new MediaType("image", "vnd.microsoft.icon", Compressible, Binary)
-    lazy val `vnd.mix`: MediaType = new MediaType("image", "vnd.mix", Compressible, Binary)
-    lazy val `vnd.mozilla.apng`: MediaType =
-      new MediaType("image", "vnd.mozilla.apng", Compressible, Binary)
-    lazy val `vnd.ms-modi`: MediaType =
-      new MediaType("image", "vnd.ms-modi", Compressible, Binary, List("mdi"))
-    lazy val `vnd.ms-photo`: MediaType =
-      new MediaType("image", "vnd.ms-photo", Compressible, Binary, List("wdp"))
-    lazy val `vnd.net-fpx`: MediaType =
-      new MediaType("image", "vnd.net-fpx", Compressible, Binary, List("npx"))
-    lazy val `vnd.radiance`: MediaType =
-      new MediaType("image", "vnd.radiance", Compressible, Binary)
-    lazy val `vnd.sealed.png`: MediaType =
-      new MediaType("image", "vnd.sealed.png", Compressible, Binary)
-    lazy val `vnd.sealedmedia.softseal.gif`: MediaType =
-      new MediaType("image", "vnd.sealedmedia.softseal.gif", Compressible, Binary)
-    lazy val `vnd.sealedmedia.softseal.jpg`: MediaType =
-      new MediaType("image", "vnd.sealedmedia.softseal.jpg", Compressible, Binary)
-    lazy val `vnd.svf`: MediaType = new MediaType("image", "vnd.svf", Compressible, Binary)
-    lazy val `vnd.tencent.tap`: MediaType =
-      new MediaType("image", "vnd.tencent.tap", Compressible, Binary)
-    lazy val `vnd.valve.source.texture`: MediaType =
-      new MediaType("image", "vnd.valve.source.texture", Compressible, Binary)
-    lazy val `vnd.wap.wbmp`: MediaType =
-      new MediaType("image", "vnd.wap.wbmp", Compressible, Binary, List("wbmp"))
-    lazy val `vnd.xiff`: MediaType =
-      new MediaType("image", "vnd.xiff", Compressible, Binary, List("xif"))
-    lazy val `vnd.zbrush.pcx`: MediaType =
-      new MediaType("image", "vnd.zbrush.pcx", Compressible, Binary)
-    lazy val `webp`: MediaType = new MediaType("image", "webp", Compressible, Binary, List("webp"))
-    lazy val `wmf`: MediaType = new MediaType("image", "wmf", Compressible, Binary)
-    lazy val `x-3ds`: MediaType = new MediaType("image", "x-3ds", Compressible, Binary, List("3ds"))
-    lazy val `x-cmu-raster`: MediaType =
-      new MediaType("image", "x-cmu-raster", Compressible, Binary, List("ras"))
-    lazy val `x-cmx`: MediaType = new MediaType("image", "x-cmx", Compressible, Binary, List("cmx"))
-    lazy val `x-freehand`: MediaType = new MediaType(
-      "image",
-      "x-freehand",
-      Compressible,
-      Binary,
-      List("fh", "fhc", "fh4", "fh5", "fh7"))
-    lazy val `x-icon`: MediaType =
-      new MediaType("image", "x-icon", Compressible, Binary, List("ico"))
-    lazy val `x-jng`: MediaType = new MediaType("image", "x-jng", Compressible, Binary, List("jng"))
-    lazy val `x-mrsid-image`: MediaType =
-      new MediaType("image", "x-mrsid-image", Compressible, Binary, List("sid"))
-    lazy val `x-ms-bmp`: MediaType =
-      new MediaType("image", "x-ms-bmp", Compressible, Binary, List("bmp"))
-    lazy val `x-pcx`: MediaType = new MediaType("image", "x-pcx", Compressible, Binary, List("pcx"))
-    lazy val `x-pict`: MediaType =
-      new MediaType("image", "x-pict", Compressible, Binary, List("pic", "pct"))
-    lazy val `x-portable-anymap`: MediaType =
-      new MediaType("image", "x-portable-anymap", Compressible, Binary, List("pnm"))
-    lazy val `x-portable-bitmap`: MediaType =
-      new MediaType("image", "x-portable-bitmap", Compressible, Binary, List("pbm"))
-    lazy val `x-portable-graymap`: MediaType =
-      new MediaType("image", "x-portable-graymap", Compressible, Binary, List("pgm"))
-    lazy val `x-portable-pixmap`: MediaType =
-      new MediaType("image", "x-portable-pixmap", Compressible, Binary, List("ppm"))
-    lazy val `x-rgb`: MediaType = new MediaType("image", "x-rgb", Compressible, Binary, List("rgb"))
-    lazy val `x-tga`: MediaType = new MediaType("image", "x-tga", Compressible, Binary, List("tga"))
-    lazy val `x-xbitmap`: MediaType =
-      new MediaType("image", "x-xbitmap", Compressible, Binary, List("xbm"))
-    lazy val `x-xcf`: MediaType = new MediaType("image", "x-xcf", Uncompressible, Binary)
-    lazy val `x-xpixmap`: MediaType =
-      new MediaType("image", "x-xpixmap", Compressible, Binary, List("xpm"))
-    lazy val `x-xwindowdump`: MediaType =
-      new MediaType("image", "x-xwindowdump", Compressible, Binary, List("xwd"))
-    lazy val all: List[MediaType] = List(
-      `aces`,
-      `apng`,
-      `bmp`,
-      `cgm`,
-      `dicom-rle`,
-      `emf`,
-      `fits`,
-      `g3fax`,
-      `gif`,
-      `ief`,
-      `jls`,
-      `jp2`,
-      `jpeg`,
-      `jpm`,
-      `jpx`,
-      `ktx`,
-      `naplps`,
-      `pjpeg`,
-      `png`,
-      `prs.btif`,
-      `prs.pti`,
-      `pwg-raster`,
-      `sgi`,
-      `svg+xml`,
-      `t38`,
-      `tiff`,
-      `tiff-fx`,
-      `vnd.adobe.photoshop`,
-      `vnd.airzip.accelerator.azv`,
-      `vnd.cns.inf2`,
-      `vnd.dece.graphic`,
-      `vnd.djvu`,
-      `vnd.dvb.subtitle`,
-      `vnd.dwg`,
-      `vnd.dxf`,
-      `vnd.fastbidsheet`,
-      `vnd.fpx`,
-      `vnd.fst`,
-      `vnd.fujixerox.edmics-mmr`,
-      `vnd.fujixerox.edmics-rlc`,
-      `vnd.globalgraphics.pgb`,
-      `vnd.microsoft.icon`,
-      `vnd.mix`,
-      `vnd.mozilla.apng`,
-      `vnd.ms-modi`,
-      `vnd.ms-photo`,
-      `vnd.net-fpx`,
-      `vnd.radiance`,
-      `vnd.sealed.png`,
-      `vnd.sealedmedia.softseal.gif`,
-      `vnd.sealedmedia.softseal.jpg`,
-      `vnd.svf`,
-      `vnd.tencent.tap`,
-      `vnd.valve.source.texture`,
-      `vnd.wap.wbmp`,
-      `vnd.xiff`,
-      `vnd.zbrush.pcx`,
-      `webp`,
-      `wmf`,
-      `x-3ds`,
-      `x-cmu-raster`,
-      `x-cmx`,
-      `x-freehand`,
-      `x-icon`,
-      `x-jng`,
-      `x-mrsid-image`,
-      `x-ms-bmp`,
-      `x-pcx`,
-      `x-pict`,
-      `x-portable-anymap`,
-      `x-portable-bitmap`,
-      `x-portable-graymap`,
-      `x-portable-pixmap`,
-      `x-rgb`,
-      `x-tga`,
-      `x-xbitmap`,
-      `x-xcf`,
-      `x-xpixmap`,
-      `x-xwindowdump`
-    )
-  }
-  object multipart {
-    lazy val `alternative`: MediaType =
-      new MediaType("multipart", "alternative", Uncompressible, NotBinary)
-    lazy val `appledouble`: MediaType =
-      new MediaType("multipart", "appledouble", Compressible, NotBinary)
-    lazy val `byteranges`: MediaType =
-      new MediaType("multipart", "byteranges", Compressible, NotBinary)
-    lazy val `digest`: MediaType = new MediaType("multipart", "digest", Compressible, NotBinary)
-    lazy val `encrypted`: MediaType =
-      new MediaType("multipart", "encrypted", Uncompressible, NotBinary)
-    lazy val `form-data`: MediaType =
-      new MediaType("multipart", "form-data", Uncompressible, NotBinary)
-    lazy val `header-set`: MediaType =
-      new MediaType("multipart", "header-set", Compressible, NotBinary)
-    lazy val `mixed`: MediaType = new MediaType("multipart", "mixed", Uncompressible, NotBinary)
-    lazy val `multilingual`: MediaType =
-      new MediaType("multipart", "multilingual", Compressible, NotBinary)
-    lazy val `parallel`: MediaType = new MediaType("multipart", "parallel", Compressible, NotBinary)
-    lazy val `related`: MediaType = new MediaType("multipart", "related", Uncompressible, NotBinary)
-    lazy val `report`: MediaType = new MediaType("multipart", "report", Compressible, NotBinary)
-    lazy val `signed`: MediaType = new MediaType("multipart", "signed", Uncompressible, NotBinary)
-    lazy val `vnd.bint.med-plus`: MediaType =
-      new MediaType("multipart", "vnd.bint.med-plus", Compressible, NotBinary)
-    lazy val `voice-message`: MediaType =
-      new MediaType("multipart", "voice-message", Compressible, NotBinary)
-    lazy val `x-mixed-replace`: MediaType =
-      new MediaType("multipart", "x-mixed-replace", Compressible, NotBinary)
-    lazy val all: List[MediaType] = List(
-      `alternative`,
-      `appledouble`,
-      `byteranges`,
-      `digest`,
-      `encrypted`,
-      `form-data`,
-      `header-set`,
-      `mixed`,
-      `multilingual`,
-      `parallel`,
-      `related`,
-      `report`,
-      `signed`,
-      `vnd.bint.med-plus`,
-      `voice-message`,
-      `x-mixed-replace`
-    )
-  }
-  object font {
-    lazy val `collection`: MediaType =
-      new MediaType("font", "collection", Compressible, NotBinary, List("ttc"))
-    lazy val `otf`: MediaType = new MediaType("font", "otf", Compressible, NotBinary, List("otf"))
-    lazy val `sfnt`: MediaType = new MediaType("font", "sfnt", Compressible, NotBinary)
-    lazy val `ttf`: MediaType = new MediaType("font", "ttf", Compressible, NotBinary, List("ttf"))
-    lazy val `woff`: MediaType =
-      new MediaType("font", "woff", Compressible, NotBinary, List("woff"))
-    lazy val `woff2`: MediaType =
-      new MediaType("font", "woff2", Compressible, NotBinary, List("woff2"))
-    lazy val all: List[MediaType] = List(`collection`, `otf`, `sfnt`, `ttf`, `woff`, `woff2`)
-  }
-  object chemical {
-    lazy val `x-cdx`: MediaType =
-      new MediaType("chemical", "x-cdx", Compressible, NotBinary, List("cdx"))
-    lazy val `x-cif`: MediaType =
-      new MediaType("chemical", "x-cif", Compressible, NotBinary, List("cif"))
-    lazy val `x-cmdf`: MediaType =
-      new MediaType("chemical", "x-cmdf", Compressible, NotBinary, List("cmdf"))
-    lazy val `x-cml`: MediaType =
-      new MediaType("chemical", "x-cml", Compressible, NotBinary, List("cml"))
-    lazy val `x-csml`: MediaType =
-      new MediaType("chemical", "x-csml", Compressible, NotBinary, List("csml"))
-    lazy val `x-pdb`: MediaType = new MediaType("chemical", "x-pdb", Compressible, NotBinary)
-    lazy val `x-xyz`: MediaType =
-      new MediaType("chemical", "x-xyz", Compressible, NotBinary, List("xyz"))
-    lazy val all: List[MediaType] =
-      List(`x-cdx`, `x-cif`, `x-cmdf`, `x-cml`, `x-csml`, `x-pdb`, `x-xyz`)
-  }
-  object video {
-    lazy val `1d-interleaved-parityfec`: MediaType =
-      new MediaType("video", "1d-interleaved-parityfec", Compressible, Binary)
-    lazy val `3gpp`: MediaType =
-      new MediaType("video", "3gpp", Compressible, Binary, List("3gp", "3gpp"))
-    lazy val `3gpp-tt`: MediaType = new MediaType("video", "3gpp-tt", Compressible, Binary)
-    lazy val `3gpp2`: MediaType = new MediaType("video", "3gpp2", Compressible, Binary, List("3g2"))
-    lazy val `bmpeg`: MediaType = new MediaType("video", "bmpeg", Compressible, Binary)
-    lazy val `bt656`: MediaType = new MediaType("video", "bt656", Compressible, Binary)
-    lazy val `celb`: MediaType = new MediaType("video", "celb", Compressible, Binary)
-    lazy val `dv`: MediaType = new MediaType("video", "dv", Compressible, Binary)
-    lazy val `encaprtp`: MediaType = new MediaType("video", "encaprtp", Compressible, Binary)
-    lazy val `h261`: MediaType = new MediaType("video", "h261", Compressible, Binary, List("h261"))
-    lazy val `h263`: MediaType = new MediaType("video", "h263", Compressible, Binary, List("h263"))
-    lazy val `h263-1998`: MediaType = new MediaType("video", "h263-1998", Compressible, Binary)
-    lazy val `h263-2000`: MediaType = new MediaType("video", "h263-2000", Compressible, Binary)
-    lazy val `h264`: MediaType = new MediaType("video", "h264", Compressible, Binary, List("h264"))
-    lazy val `h264-rcdo`: MediaType = new MediaType("video", "h264-rcdo", Compressible, Binary)
-    lazy val `h264-svc`: MediaType = new MediaType("video", "h264-svc", Compressible, Binary)
-    lazy val `h265`: MediaType = new MediaType("video", "h265", Compressible, Binary)
-    lazy val `iso.segment`: MediaType = new MediaType("video", "iso.segment", Compressible, Binary)
-    lazy val `jpeg`: MediaType = new MediaType("video", "jpeg", Compressible, Binary, List("jpgv"))
-    lazy val `jpeg2000`: MediaType = new MediaType("video", "jpeg2000", Compressible, Binary)
-    lazy val `jpm`: MediaType =
-      new MediaType("video", "jpm", Compressible, Binary, List("jpm", "jpgm"))
-    lazy val `mj2`: MediaType =
-      new MediaType("video", "mj2", Compressible, Binary, List("mj2", "mjp2"))
-    lazy val `mp1s`: MediaType = new MediaType("video", "mp1s", Compressible, Binary)
-    lazy val `mp2p`: MediaType = new MediaType("video", "mp2p", Compressible, Binary)
-    lazy val `mp2t`: MediaType = new MediaType("video", "mp2t", Compressible, Binary, List("ts"))
-    lazy val `mp4`: MediaType =
-      new MediaType("video", "mp4", Uncompressible, Binary, List("mp4", "mp4v", "mpg4"))
-    lazy val `mp4v-es`: MediaType = new MediaType("video", "mp4v-es", Compressible, Binary)
-    lazy val `mpeg`: MediaType = new MediaType(
-      "video",
-      "mpeg",
-      Uncompressible,
-      Binary,
-      List("mpeg", "mpg", "mpe", "m1v", "m2v"))
-    lazy val `mpeg4-generic`: MediaType =
-      new MediaType("video", "mpeg4-generic", Compressible, Binary)
-    lazy val `mpv`: MediaType = new MediaType("video", "mpv", Compressible, Binary)
-    lazy val `nv`: MediaType = new MediaType("video", "nv", Compressible, Binary)
-    lazy val `ogg`: MediaType = new MediaType("video", "ogg", Uncompressible, Binary, List("ogv"))
-    lazy val `parityfec`: MediaType = new MediaType("video", "parityfec", Compressible, Binary)
-    lazy val `pointer`: MediaType = new MediaType("video", "pointer", Compressible, Binary)
-    lazy val `quicktime`: MediaType =
-      new MediaType("video", "quicktime", Uncompressible, Binary, List("qt", "mov"))
-    lazy val `raptorfec`: MediaType = new MediaType("video", "raptorfec", Compressible, Binary)
-    lazy val `raw`: MediaType = new MediaType("video", "raw", Compressible, Binary)
-    lazy val `rtp-enc-aescm128`: MediaType =
-      new MediaType("video", "rtp-enc-aescm128", Compressible, Binary)
-    lazy val `rtploopback`: MediaType = new MediaType("video", "rtploopback", Compressible, Binary)
-    lazy val `rtx`: MediaType = new MediaType("video", "rtx", Compressible, Binary)
-    lazy val `smpte291`: MediaType = new MediaType("video", "smpte291", Compressible, Binary)
-    lazy val `smpte292m`: MediaType = new MediaType("video", "smpte292m", Compressible, Binary)
-    lazy val `ulpfec`: MediaType = new MediaType("video", "ulpfec", Compressible, Binary)
-    lazy val `vc1`: MediaType = new MediaType("video", "vc1", Compressible, Binary)
-    lazy val `vnd.cctv`: MediaType = new MediaType("video", "vnd.cctv", Compressible, Binary)
-    lazy val `vnd.dece.hd`: MediaType =
-      new MediaType("video", "vnd.dece.hd", Compressible, Binary, List("uvh", "uvvh"))
-    lazy val `vnd.dece.mobile`: MediaType =
-      new MediaType("video", "vnd.dece.mobile", Compressible, Binary, List("uvm", "uvvm"))
-    lazy val `vnd.dece.mp4`: MediaType =
-      new MediaType("video", "vnd.dece.mp4", Compressible, Binary)
-    lazy val `vnd.dece.pd`: MediaType =
-      new MediaType("video", "vnd.dece.pd", Compressible, Binary, List("uvp", "uvvp"))
-    lazy val `vnd.dece.sd`: MediaType =
-      new MediaType("video", "vnd.dece.sd", Compressible, Binary, List("uvs", "uvvs"))
-    lazy val `vnd.dece.video`: MediaType =
-      new MediaType("video", "vnd.dece.video", Compressible, Binary, List("uvv", "uvvv"))
-    lazy val `vnd.directv.mpeg`: MediaType =
-      new MediaType("video", "vnd.directv.mpeg", Compressible, Binary)
-    lazy val `vnd.directv.mpeg-tts`: MediaType =
-      new MediaType("video", "vnd.directv.mpeg-tts", Compressible, Binary)
-    lazy val `vnd.dlna.mpeg-tts`: MediaType =
-      new MediaType("video", "vnd.dlna.mpeg-tts", Compressible, Binary)
-    lazy val `vnd.dvb.file`: MediaType =
-      new MediaType("video", "vnd.dvb.file", Compressible, Binary, List("dvb"))
-    lazy val `vnd.fvt`: MediaType =
-      new MediaType("video", "vnd.fvt", Compressible, Binary, List("fvt"))
-    lazy val `vnd.hns.video`: MediaType =
-      new MediaType("video", "vnd.hns.video", Compressible, Binary)
-    lazy val `vnd.iptvforum.1dparityfec-1010`: MediaType =
-      new MediaType("video", "vnd.iptvforum.1dparityfec-1010", Compressible, Binary)
-    lazy val `vnd.iptvforum.1dparityfec-2005`: MediaType =
-      new MediaType("video", "vnd.iptvforum.1dparityfec-2005", Compressible, Binary)
-    lazy val `vnd.iptvforum.2dparityfec-1010`: MediaType =
-      new MediaType("video", "vnd.iptvforum.2dparityfec-1010", Compressible, Binary)
-    lazy val `vnd.iptvforum.2dparityfec-2005`: MediaType =
-      new MediaType("video", "vnd.iptvforum.2dparityfec-2005", Compressible, Binary)
-    lazy val `vnd.iptvforum.ttsavc`: MediaType =
-      new MediaType("video", "vnd.iptvforum.ttsavc", Compressible, Binary)
-    lazy val `vnd.iptvforum.ttsmpeg2`: MediaType =
-      new MediaType("video", "vnd.iptvforum.ttsmpeg2", Compressible, Binary)
-    lazy val `vnd.motorola.video`: MediaType =
-      new MediaType("video", "vnd.motorola.video", Compressible, Binary)
-    lazy val `vnd.motorola.videop`: MediaType =
-      new MediaType("video", "vnd.motorola.videop", Compressible, Binary)
-    lazy val `vnd.mpegurl`: MediaType =
-      new MediaType("video", "vnd.mpegurl", Compressible, Binary, List("mxu", "m4u"))
-    lazy val `vnd.ms-playready.media.pyv`: MediaType =
-      new MediaType("video", "vnd.ms-playready.media.pyv", Compressible, Binary, List("pyv"))
-    lazy val `vnd.nokia.interleaved-multimedia`: MediaType =
-      new MediaType("video", "vnd.nokia.interleaved-multimedia", Compressible, Binary)
-    lazy val `vnd.nokia.mp4vr`: MediaType =
-      new MediaType("video", "vnd.nokia.mp4vr", Compressible, Binary)
-    lazy val `vnd.nokia.videovoip`: MediaType =
-      new MediaType("video", "vnd.nokia.videovoip", Compressible, Binary)
-    lazy val `vnd.objectvideo`: MediaType =
-      new MediaType("video", "vnd.objectvideo", Compressible, Binary)
-    lazy val `vnd.radgamettools.bink`: MediaType =
-      new MediaType("video", "vnd.radgamettools.bink", Compressible, Binary)
-    lazy val `vnd.radgamettools.smacker`: MediaType =
-      new MediaType("video", "vnd.radgamettools.smacker", Compressible, Binary)
-    lazy val `vnd.sealed.mpeg1`: MediaType =
-      new MediaType("video", "vnd.sealed.mpeg1", Compressible, Binary)
-    lazy val `vnd.sealed.mpeg4`: MediaType =
-      new MediaType("video", "vnd.sealed.mpeg4", Compressible, Binary)
-    lazy val `vnd.sealed.swf`: MediaType =
-      new MediaType("video", "vnd.sealed.swf", Compressible, Binary)
-    lazy val `vnd.sealedmedia.softseal.mov`: MediaType =
-      new MediaType("video", "vnd.sealedmedia.softseal.mov", Compressible, Binary)
-    lazy val `vnd.uvvu.mp4`: MediaType =
-      new MediaType("video", "vnd.uvvu.mp4", Compressible, Binary, List("uvu", "uvvu"))
-    lazy val `vnd.vivo`: MediaType =
-      new MediaType("video", "vnd.vivo", Compressible, Binary, List("viv"))
-    lazy val `vp8`: MediaType = new MediaType("video", "vp8", Compressible, Binary)
-    lazy val `webm`: MediaType =
-      new MediaType("video", "webm", Uncompressible, Binary, List("webm"))
-    lazy val `x-f4v`: MediaType = new MediaType("video", "x-f4v", Compressible, Binary, List("f4v"))
-    lazy val `x-fli`: MediaType = new MediaType("video", "x-fli", Compressible, Binary, List("fli"))
-    lazy val `x-flv`: MediaType =
-      new MediaType("video", "x-flv", Uncompressible, Binary, List("flv"))
-    lazy val `x-m4v`: MediaType = new MediaType("video", "x-m4v", Compressible, Binary, List("m4v"))
-    lazy val `x-matroska`: MediaType =
-      new MediaType("video", "x-matroska", Uncompressible, Binary, List("mkv", "mk3d", "mks"))
-    lazy val `x-mng`: MediaType = new MediaType("video", "x-mng", Compressible, Binary, List("mng"))
-    lazy val `x-ms-asf`: MediaType =
-      new MediaType("video", "x-ms-asf", Compressible, Binary, List("asf", "asx"))
-    lazy val `x-ms-vob`: MediaType =
-      new MediaType("video", "x-ms-vob", Compressible, Binary, List("vob"))
-    lazy val `x-ms-wm`: MediaType =
-      new MediaType("video", "x-ms-wm", Compressible, Binary, List("wm"))
-    lazy val `x-ms-wmv`: MediaType =
-      new MediaType("video", "x-ms-wmv", Uncompressible, Binary, List("wmv"))
-    lazy val `x-ms-wmx`: MediaType =
-      new MediaType("video", "x-ms-wmx", Compressible, Binary, List("wmx"))
-    lazy val `x-ms-wvx`: MediaType =
-      new MediaType("video", "x-ms-wvx", Compressible, Binary, List("wvx"))
-    lazy val `x-msvideo`: MediaType =
-      new MediaType("video", "x-msvideo", Compressible, Binary, List("avi"))
-    lazy val `x-sgi-movie`: MediaType =
-      new MediaType("video", "x-sgi-movie", Compressible, Binary, List("movie"))
-    lazy val `x-smv`: MediaType = new MediaType("video", "x-smv", Compressible, Binary, List("smv"))
-    lazy val all: List[MediaType] = List(
-      `1d-interleaved-parityfec`,
-      `3gpp`,
-      `3gpp-tt`,
-      `3gpp2`,
-      `bmpeg`,
-      `bt656`,
-      `celb`,
-      `dv`,
-      `encaprtp`,
-      `h261`,
-      `h263`,
-      `h263-1998`,
-      `h263-2000`,
-      `h264`,
-      `h264-rcdo`,
-      `h264-svc`,
-      `h265`,
-      `iso.segment`,
-      `jpeg`,
-      `jpeg2000`,
-      `jpm`,
-      `mj2`,
-      `mp1s`,
-      `mp2p`,
-      `mp2t`,
-      `mp4`,
-      `mp4v-es`,
-      `mpeg`,
-      `mpeg4-generic`,
-      `mpv`,
-      `nv`,
-      `ogg`,
-      `parityfec`,
-      `pointer`,
-      `quicktime`,
-      `raptorfec`,
-      `raw`,
-      `rtp-enc-aescm128`,
-      `rtploopback`,
-      `rtx`,
-      `smpte291`,
-      `smpte292m`,
-      `ulpfec`,
-      `vc1`,
-      `vnd.cctv`,
-      `vnd.dece.hd`,
-      `vnd.dece.mobile`,
-      `vnd.dece.mp4`,
-      `vnd.dece.pd`,
-      `vnd.dece.sd`,
-      `vnd.dece.video`,
-      `vnd.directv.mpeg`,
-      `vnd.directv.mpeg-tts`,
-      `vnd.dlna.mpeg-tts`,
-      `vnd.dvb.file`,
-      `vnd.fvt`,
-      `vnd.hns.video`,
-      `vnd.iptvforum.1dparityfec-1010`,
-      `vnd.iptvforum.1dparityfec-2005`,
-      `vnd.iptvforum.2dparityfec-1010`,
-      `vnd.iptvforum.2dparityfec-2005`,
-      `vnd.iptvforum.ttsavc`,
-      `vnd.iptvforum.ttsmpeg2`,
-      `vnd.motorola.video`,
-      `vnd.motorola.videop`,
-      `vnd.mpegurl`,
-      `vnd.ms-playready.media.pyv`,
-      `vnd.nokia.interleaved-multimedia`,
-      `vnd.nokia.mp4vr`,
-      `vnd.nokia.videovoip`,
-      `vnd.objectvideo`,
-      `vnd.radgamettools.bink`,
-      `vnd.radgamettools.smacker`,
-      `vnd.sealed.mpeg1`,
-      `vnd.sealed.mpeg4`,
-      `vnd.sealed.swf`,
-      `vnd.sealedmedia.softseal.mov`,
-      `vnd.uvvu.mp4`,
-      `vnd.vivo`,
-      `vp8`,
-      `webm`,
-      `x-f4v`,
-      `x-fli`,
-      `x-flv`,
-      `x-m4v`,
-      `x-matroska`,
-      `x-mng`,
-      `x-ms-asf`,
-      `x-ms-vob`,
-      `x-ms-wm`,
-      `x-ms-wmv`,
-      `x-ms-wmx`,
-      `x-ms-wvx`,
-      `x-msvideo`,
-      `x-sgi-movie`,
-      `x-smv`
-    )
-  }
-  object message {
-    lazy val `cpim`: MediaType = new MediaType("message", "cpim", Compressible, NotBinary)
-    lazy val `delivery-status`: MediaType =
-      new MediaType("message", "delivery-status", Compressible, NotBinary)
-    lazy val `disposition-notification`: MediaType = new MediaType(
-      "message",
-      "disposition-notification",
-      Compressible,
-      NotBinary,
-      List("disposition-notification"))
-    lazy val `external-body`: MediaType =
-      new MediaType("message", "external-body", Compressible, NotBinary)
-    lazy val `feedback-report`: MediaType =
-      new MediaType("message", "feedback-report", Compressible, NotBinary)
-    lazy val `global`: MediaType =
-      new MediaType("message", "global", Compressible, NotBinary, List("u8msg"))
-    lazy val `global-delivery-status`: MediaType =
-      new MediaType("message", "global-delivery-status", Compressible, NotBinary, List("u8dsn"))
-    lazy val `global-disposition-notification`: MediaType = new MediaType(
-      "message",
-      "global-disposition-notification",
-      Compressible,
-      NotBinary,
-      List("u8mdn"))
-    lazy val `global-headers`: MediaType =
-      new MediaType("message", "global-headers", Compressible, NotBinary, List("u8hdr"))
-    lazy val `http`: MediaType = new MediaType("message", "http", Uncompressible, NotBinary)
-    lazy val `imdn+xml`: MediaType = new MediaType("message", "imdn+xml", Compressible, NotBinary)
-    lazy val `news`: MediaType = new MediaType("message", "news", Compressible, NotBinary)
-    lazy val `partial`: MediaType = new MediaType("message", "partial", Uncompressible, NotBinary)
-    lazy val `rfc822`: MediaType =
-      new MediaType("message", "rfc822", Compressible, NotBinary, List("eml", "mime"))
-    lazy val `s-http`: MediaType = new MediaType("message", "s-http", Compressible, NotBinary)
-    lazy val `sip`: MediaType = new MediaType("message", "sip", Compressible, NotBinary)
-    lazy val `sipfrag`: MediaType = new MediaType("message", "sipfrag", Compressible, NotBinary)
-    lazy val `tracking-status`: MediaType =
-      new MediaType("message", "tracking-status", Compressible, NotBinary)
-    lazy val `vnd.si.simp`: MediaType =
-      new MediaType("message", "vnd.si.simp", Compressible, NotBinary)
-    lazy val `vnd.wfa.wsc`: MediaType =
-      new MediaType("message", "vnd.wfa.wsc", Compressible, NotBinary, List("wsc"))
-    lazy val all: List[MediaType] = List(
-      `cpim`,
-      `delivery-status`,
-      `disposition-notification`,
-      `external-body`,
-      `feedback-report`,
-      `global`,
-      `global-delivery-status`,
-      `global-disposition-notification`,
-      `global-headers`,
-      `http`,
-      `imdn+xml`,
-      `news`,
-      `partial`,
-      `rfc822`,
-      `s-http`,
-      `sip`,
-      `sipfrag`,
-      `tracking-status`,
-      `vnd.si.simp`,
-      `vnd.wfa.wsc`
-    )
+    lazy val all: List[MediaType] = Nil ++ part_0 ++ part_1 ++ part_2
   }
   object audio {
     lazy val `1d-interleaved-parityfec`: MediaType =
@@ -6845,5 +5829,1021 @@ private[http4s] trait MimeDB {
       `x-wav`,
       `xm`
     )
+  }
+  object chemical {
+    lazy val `x-cdx`: MediaType =
+      new MediaType("chemical", "x-cdx", Compressible, NotBinary, List("cdx"))
+    lazy val `x-cif`: MediaType =
+      new MediaType("chemical", "x-cif", Compressible, NotBinary, List("cif"))
+    lazy val `x-cmdf`: MediaType =
+      new MediaType("chemical", "x-cmdf", Compressible, NotBinary, List("cmdf"))
+    lazy val `x-cml`: MediaType =
+      new MediaType("chemical", "x-cml", Compressible, NotBinary, List("cml"))
+    lazy val `x-csml`: MediaType =
+      new MediaType("chemical", "x-csml", Compressible, NotBinary, List("csml"))
+    lazy val `x-pdb`: MediaType = new MediaType("chemical", "x-pdb", Compressible, NotBinary)
+    lazy val `x-xyz`: MediaType =
+      new MediaType("chemical", "x-xyz", Compressible, NotBinary, List("xyz"))
+    lazy val all: List[MediaType] =
+      List(`x-cdx`, `x-cif`, `x-cmdf`, `x-cml`, `x-csml`, `x-pdb`, `x-xyz`)
+  }
+  object font {
+    lazy val `collection`: MediaType =
+      new MediaType("font", "collection", Compressible, NotBinary, List("ttc"))
+    lazy val `otf`: MediaType = new MediaType("font", "otf", Compressible, NotBinary, List("otf"))
+    lazy val `sfnt`: MediaType = new MediaType("font", "sfnt", Compressible, NotBinary)
+    lazy val `ttf`: MediaType = new MediaType("font", "ttf", Compressible, NotBinary, List("ttf"))
+    lazy val `woff`: MediaType =
+      new MediaType("font", "woff", Compressible, NotBinary, List("woff"))
+    lazy val `woff2`: MediaType =
+      new MediaType("font", "woff2", Compressible, NotBinary, List("woff2"))
+    lazy val all: List[MediaType] = List(`collection`, `otf`, `sfnt`, `ttf`, `woff`, `woff2`)
+  }
+  object image {
+    lazy val `aces`: MediaType = new MediaType("image", "aces", Compressible, Binary)
+    lazy val `apng`: MediaType =
+      new MediaType("image", "apng", Uncompressible, Binary, List("apng"))
+    lazy val `bmp`: MediaType = new MediaType("image", "bmp", Compressible, Binary, List("bmp"))
+    lazy val `cgm`: MediaType = new MediaType("image", "cgm", Compressible, Binary, List("cgm"))
+    lazy val `dicom-rle`: MediaType = new MediaType("image", "dicom-rle", Compressible, Binary)
+    lazy val `emf`: MediaType = new MediaType("image", "emf", Compressible, Binary)
+    lazy val `fits`: MediaType = new MediaType("image", "fits", Compressible, Binary)
+    lazy val `g3fax`: MediaType = new MediaType("image", "g3fax", Compressible, Binary, List("g3"))
+    lazy val `gif`: MediaType = new MediaType("image", "gif", Uncompressible, Binary, List("gif"))
+    lazy val `ief`: MediaType = new MediaType("image", "ief", Compressible, Binary, List("ief"))
+    lazy val `jls`: MediaType = new MediaType("image", "jls", Compressible, Binary)
+    lazy val `jp2`: MediaType =
+      new MediaType("image", "jp2", Uncompressible, Binary, List("jp2", "jpg2"))
+    lazy val `jpeg`: MediaType =
+      new MediaType("image", "jpeg", Uncompressible, Binary, List("jpeg", "jpg", "jpe"))
+    lazy val `jpm`: MediaType = new MediaType("image", "jpm", Uncompressible, Binary, List("jpm"))
+    lazy val `jpx`: MediaType =
+      new MediaType("image", "jpx", Uncompressible, Binary, List("jpx", "jpf"))
+    lazy val `ktx`: MediaType = new MediaType("image", "ktx", Compressible, Binary, List("ktx"))
+    lazy val `naplps`: MediaType = new MediaType("image", "naplps", Compressible, Binary)
+    lazy val `pjpeg`: MediaType = new MediaType("image", "pjpeg", Uncompressible, Binary)
+    lazy val `png`: MediaType = new MediaType("image", "png", Uncompressible, Binary, List("png"))
+    lazy val `prs.btif`: MediaType =
+      new MediaType("image", "prs.btif", Compressible, Binary, List("btif"))
+    lazy val `prs.pti`: MediaType = new MediaType("image", "prs.pti", Compressible, Binary)
+    lazy val `pwg-raster`: MediaType = new MediaType("image", "pwg-raster", Compressible, Binary)
+    lazy val `sgi`: MediaType = new MediaType("image", "sgi", Compressible, Binary, List("sgi"))
+    lazy val `svg+xml`: MediaType =
+      new MediaType("image", "svg+xml", Compressible, Binary, List("svg", "svgz"))
+    lazy val `t38`: MediaType = new MediaType("image", "t38", Compressible, Binary)
+    lazy val `tiff`: MediaType =
+      new MediaType("image", "tiff", Uncompressible, Binary, List("tiff", "tif"))
+    lazy val `tiff-fx`: MediaType = new MediaType("image", "tiff-fx", Compressible, Binary)
+    lazy val `vnd.adobe.photoshop`: MediaType =
+      new MediaType("image", "vnd.adobe.photoshop", Compressible, Binary, List("psd"))
+    lazy val `vnd.airzip.accelerator.azv`: MediaType =
+      new MediaType("image", "vnd.airzip.accelerator.azv", Compressible, Binary)
+    lazy val `vnd.cns.inf2`: MediaType =
+      new MediaType("image", "vnd.cns.inf2", Compressible, Binary)
+    lazy val `vnd.dece.graphic`: MediaType = new MediaType(
+      "image",
+      "vnd.dece.graphic",
+      Compressible,
+      Binary,
+      List("uvi", "uvvi", "uvg", "uvvg"))
+    lazy val `vnd.djvu`: MediaType =
+      new MediaType("image", "vnd.djvu", Compressible, Binary, List("djvu", "djv"))
+    lazy val `vnd.dvb.subtitle`: MediaType =
+      new MediaType("image", "vnd.dvb.subtitle", Compressible, Binary, List("sub"))
+    lazy val `vnd.dwg`: MediaType =
+      new MediaType("image", "vnd.dwg", Compressible, Binary, List("dwg"))
+    lazy val `vnd.dxf`: MediaType =
+      new MediaType("image", "vnd.dxf", Compressible, Binary, List("dxf"))
+    lazy val `vnd.fastbidsheet`: MediaType =
+      new MediaType("image", "vnd.fastbidsheet", Compressible, Binary, List("fbs"))
+    lazy val `vnd.fpx`: MediaType =
+      new MediaType("image", "vnd.fpx", Compressible, Binary, List("fpx"))
+    lazy val `vnd.fst`: MediaType =
+      new MediaType("image", "vnd.fst", Compressible, Binary, List("fst"))
+    lazy val `vnd.fujixerox.edmics-mmr`: MediaType =
+      new MediaType("image", "vnd.fujixerox.edmics-mmr", Compressible, Binary, List("mmr"))
+    lazy val `vnd.fujixerox.edmics-rlc`: MediaType =
+      new MediaType("image", "vnd.fujixerox.edmics-rlc", Compressible, Binary, List("rlc"))
+    lazy val `vnd.globalgraphics.pgb`: MediaType =
+      new MediaType("image", "vnd.globalgraphics.pgb", Compressible, Binary)
+    lazy val `vnd.microsoft.icon`: MediaType =
+      new MediaType("image", "vnd.microsoft.icon", Compressible, Binary)
+    lazy val `vnd.mix`: MediaType = new MediaType("image", "vnd.mix", Compressible, Binary)
+    lazy val `vnd.mozilla.apng`: MediaType =
+      new MediaType("image", "vnd.mozilla.apng", Compressible, Binary)
+    lazy val `vnd.ms-modi`: MediaType =
+      new MediaType("image", "vnd.ms-modi", Compressible, Binary, List("mdi"))
+    lazy val `vnd.ms-photo`: MediaType =
+      new MediaType("image", "vnd.ms-photo", Compressible, Binary, List("wdp"))
+    lazy val `vnd.net-fpx`: MediaType =
+      new MediaType("image", "vnd.net-fpx", Compressible, Binary, List("npx"))
+    lazy val `vnd.radiance`: MediaType =
+      new MediaType("image", "vnd.radiance", Compressible, Binary)
+    lazy val `vnd.sealed.png`: MediaType =
+      new MediaType("image", "vnd.sealed.png", Compressible, Binary)
+    lazy val `vnd.sealedmedia.softseal.gif`: MediaType =
+      new MediaType("image", "vnd.sealedmedia.softseal.gif", Compressible, Binary)
+    lazy val `vnd.sealedmedia.softseal.jpg`: MediaType =
+      new MediaType("image", "vnd.sealedmedia.softseal.jpg", Compressible, Binary)
+    lazy val `vnd.svf`: MediaType = new MediaType("image", "vnd.svf", Compressible, Binary)
+    lazy val `vnd.tencent.tap`: MediaType =
+      new MediaType("image", "vnd.tencent.tap", Compressible, Binary)
+    lazy val `vnd.valve.source.texture`: MediaType =
+      new MediaType("image", "vnd.valve.source.texture", Compressible, Binary)
+    lazy val `vnd.wap.wbmp`: MediaType =
+      new MediaType("image", "vnd.wap.wbmp", Compressible, Binary, List("wbmp"))
+    lazy val `vnd.xiff`: MediaType =
+      new MediaType("image", "vnd.xiff", Compressible, Binary, List("xif"))
+    lazy val `vnd.zbrush.pcx`: MediaType =
+      new MediaType("image", "vnd.zbrush.pcx", Compressible, Binary)
+    lazy val `webp`: MediaType = new MediaType("image", "webp", Compressible, Binary, List("webp"))
+    lazy val `wmf`: MediaType = new MediaType("image", "wmf", Compressible, Binary)
+    lazy val `x-3ds`: MediaType = new MediaType("image", "x-3ds", Compressible, Binary, List("3ds"))
+    lazy val `x-cmu-raster`: MediaType =
+      new MediaType("image", "x-cmu-raster", Compressible, Binary, List("ras"))
+    lazy val `x-cmx`: MediaType = new MediaType("image", "x-cmx", Compressible, Binary, List("cmx"))
+    lazy val `x-freehand`: MediaType = new MediaType(
+      "image",
+      "x-freehand",
+      Compressible,
+      Binary,
+      List("fh", "fhc", "fh4", "fh5", "fh7"))
+    lazy val `x-icon`: MediaType =
+      new MediaType("image", "x-icon", Compressible, Binary, List("ico"))
+    lazy val `x-jng`: MediaType = new MediaType("image", "x-jng", Compressible, Binary, List("jng"))
+    lazy val `x-mrsid-image`: MediaType =
+      new MediaType("image", "x-mrsid-image", Compressible, Binary, List("sid"))
+    lazy val `x-ms-bmp`: MediaType =
+      new MediaType("image", "x-ms-bmp", Compressible, Binary, List("bmp"))
+    lazy val `x-pcx`: MediaType = new MediaType("image", "x-pcx", Compressible, Binary, List("pcx"))
+    lazy val `x-pict`: MediaType =
+      new MediaType("image", "x-pict", Compressible, Binary, List("pic", "pct"))
+    lazy val `x-portable-anymap`: MediaType =
+      new MediaType("image", "x-portable-anymap", Compressible, Binary, List("pnm"))
+    lazy val `x-portable-bitmap`: MediaType =
+      new MediaType("image", "x-portable-bitmap", Compressible, Binary, List("pbm"))
+    lazy val `x-portable-graymap`: MediaType =
+      new MediaType("image", "x-portable-graymap", Compressible, Binary, List("pgm"))
+    lazy val `x-portable-pixmap`: MediaType =
+      new MediaType("image", "x-portable-pixmap", Compressible, Binary, List("ppm"))
+    lazy val `x-rgb`: MediaType = new MediaType("image", "x-rgb", Compressible, Binary, List("rgb"))
+    lazy val `x-tga`: MediaType = new MediaType("image", "x-tga", Compressible, Binary, List("tga"))
+    lazy val `x-xbitmap`: MediaType =
+      new MediaType("image", "x-xbitmap", Compressible, Binary, List("xbm"))
+    lazy val `x-xcf`: MediaType = new MediaType("image", "x-xcf", Uncompressible, Binary)
+    lazy val `x-xpixmap`: MediaType =
+      new MediaType("image", "x-xpixmap", Compressible, Binary, List("xpm"))
+    lazy val `x-xwindowdump`: MediaType =
+      new MediaType("image", "x-xwindowdump", Compressible, Binary, List("xwd"))
+    lazy val all: List[MediaType] = List(
+      `aces`,
+      `apng`,
+      `bmp`,
+      `cgm`,
+      `dicom-rle`,
+      `emf`,
+      `fits`,
+      `g3fax`,
+      `gif`,
+      `ief`,
+      `jls`,
+      `jp2`,
+      `jpeg`,
+      `jpm`,
+      `jpx`,
+      `ktx`,
+      `naplps`,
+      `pjpeg`,
+      `png`,
+      `prs.btif`,
+      `prs.pti`,
+      `pwg-raster`,
+      `sgi`,
+      `svg+xml`,
+      `t38`,
+      `tiff`,
+      `tiff-fx`,
+      `vnd.adobe.photoshop`,
+      `vnd.airzip.accelerator.azv`,
+      `vnd.cns.inf2`,
+      `vnd.dece.graphic`,
+      `vnd.djvu`,
+      `vnd.dvb.subtitle`,
+      `vnd.dwg`,
+      `vnd.dxf`,
+      `vnd.fastbidsheet`,
+      `vnd.fpx`,
+      `vnd.fst`,
+      `vnd.fujixerox.edmics-mmr`,
+      `vnd.fujixerox.edmics-rlc`,
+      `vnd.globalgraphics.pgb`,
+      `vnd.microsoft.icon`,
+      `vnd.mix`,
+      `vnd.mozilla.apng`,
+      `vnd.ms-modi`,
+      `vnd.ms-photo`,
+      `vnd.net-fpx`,
+      `vnd.radiance`,
+      `vnd.sealed.png`,
+      `vnd.sealedmedia.softseal.gif`,
+      `vnd.sealedmedia.softseal.jpg`,
+      `vnd.svf`,
+      `vnd.tencent.tap`,
+      `vnd.valve.source.texture`,
+      `vnd.wap.wbmp`,
+      `vnd.xiff`,
+      `vnd.zbrush.pcx`,
+      `webp`,
+      `wmf`,
+      `x-3ds`,
+      `x-cmu-raster`,
+      `x-cmx`,
+      `x-freehand`,
+      `x-icon`,
+      `x-jng`,
+      `x-mrsid-image`,
+      `x-ms-bmp`,
+      `x-pcx`,
+      `x-pict`,
+      `x-portable-anymap`,
+      `x-portable-bitmap`,
+      `x-portable-graymap`,
+      `x-portable-pixmap`,
+      `x-rgb`,
+      `x-tga`,
+      `x-xbitmap`,
+      `x-xcf`,
+      `x-xpixmap`,
+      `x-xwindowdump`
+    )
+  }
+  object message {
+    lazy val `cpim`: MediaType = new MediaType("message", "cpim", Compressible, NotBinary)
+    lazy val `delivery-status`: MediaType =
+      new MediaType("message", "delivery-status", Compressible, NotBinary)
+    lazy val `disposition-notification`: MediaType = new MediaType(
+      "message",
+      "disposition-notification",
+      Compressible,
+      NotBinary,
+      List("disposition-notification"))
+    lazy val `external-body`: MediaType =
+      new MediaType("message", "external-body", Compressible, NotBinary)
+    lazy val `feedback-report`: MediaType =
+      new MediaType("message", "feedback-report", Compressible, NotBinary)
+    lazy val `global`: MediaType =
+      new MediaType("message", "global", Compressible, NotBinary, List("u8msg"))
+    lazy val `global-delivery-status`: MediaType =
+      new MediaType("message", "global-delivery-status", Compressible, NotBinary, List("u8dsn"))
+    lazy val `global-disposition-notification`: MediaType = new MediaType(
+      "message",
+      "global-disposition-notification",
+      Compressible,
+      NotBinary,
+      List("u8mdn"))
+    lazy val `global-headers`: MediaType =
+      new MediaType("message", "global-headers", Compressible, NotBinary, List("u8hdr"))
+    lazy val `http`: MediaType = new MediaType("message", "http", Uncompressible, NotBinary)
+    lazy val `imdn+xml`: MediaType = new MediaType("message", "imdn+xml", Compressible, NotBinary)
+    lazy val `news`: MediaType = new MediaType("message", "news", Compressible, NotBinary)
+    lazy val `partial`: MediaType = new MediaType("message", "partial", Uncompressible, NotBinary)
+    lazy val `rfc822`: MediaType =
+      new MediaType("message", "rfc822", Compressible, NotBinary, List("eml", "mime"))
+    lazy val `s-http`: MediaType = new MediaType("message", "s-http", Compressible, NotBinary)
+    lazy val `sip`: MediaType = new MediaType("message", "sip", Compressible, NotBinary)
+    lazy val `sipfrag`: MediaType = new MediaType("message", "sipfrag", Compressible, NotBinary)
+    lazy val `tracking-status`: MediaType =
+      new MediaType("message", "tracking-status", Compressible, NotBinary)
+    lazy val `vnd.si.simp`: MediaType =
+      new MediaType("message", "vnd.si.simp", Compressible, NotBinary)
+    lazy val `vnd.wfa.wsc`: MediaType =
+      new MediaType("message", "vnd.wfa.wsc", Compressible, NotBinary, List("wsc"))
+    lazy val all: List[MediaType] = List(
+      `cpim`,
+      `delivery-status`,
+      `disposition-notification`,
+      `external-body`,
+      `feedback-report`,
+      `global`,
+      `global-delivery-status`,
+      `global-disposition-notification`,
+      `global-headers`,
+      `http`,
+      `imdn+xml`,
+      `news`,
+      `partial`,
+      `rfc822`,
+      `s-http`,
+      `sip`,
+      `sipfrag`,
+      `tracking-status`,
+      `vnd.si.simp`,
+      `vnd.wfa.wsc`
+    )
+  }
+  object model {
+    lazy val `3mf`: MediaType = new MediaType("model", "3mf", Compressible, NotBinary)
+    lazy val `gltf+json`: MediaType =
+      new MediaType("model", "gltf+json", Compressible, NotBinary, List("gltf"))
+    lazy val `gltf-binary`: MediaType =
+      new MediaType("model", "gltf-binary", Compressible, NotBinary, List("glb"))
+    lazy val `iges`: MediaType =
+      new MediaType("model", "iges", Uncompressible, NotBinary, List("igs", "iges"))
+    lazy val `mesh`: MediaType =
+      new MediaType("model", "mesh", Uncompressible, NotBinary, List("msh", "mesh", "silo"))
+    lazy val `stl`: MediaType = new MediaType("model", "stl", Compressible, NotBinary)
+    lazy val `vnd.collada+xml`: MediaType =
+      new MediaType("model", "vnd.collada+xml", Compressible, NotBinary, List("dae"))
+    lazy val `vnd.dwf`: MediaType =
+      new MediaType("model", "vnd.dwf", Compressible, NotBinary, List("dwf"))
+    lazy val `vnd.flatland.3dml`: MediaType =
+      new MediaType("model", "vnd.flatland.3dml", Compressible, NotBinary)
+    lazy val `vnd.gdl`: MediaType =
+      new MediaType("model", "vnd.gdl", Compressible, NotBinary, List("gdl"))
+    lazy val `vnd.gs-gdl`: MediaType = new MediaType("model", "vnd.gs-gdl", Compressible, NotBinary)
+    lazy val `vnd.gs.gdl`: MediaType = new MediaType("model", "vnd.gs.gdl", Compressible, NotBinary)
+    lazy val `vnd.gtw`: MediaType =
+      new MediaType("model", "vnd.gtw", Compressible, NotBinary, List("gtw"))
+    lazy val `vnd.moml+xml`: MediaType =
+      new MediaType("model", "vnd.moml+xml", Compressible, NotBinary)
+    lazy val `vnd.mts`: MediaType =
+      new MediaType("model", "vnd.mts", Compressible, NotBinary, List("mts"))
+    lazy val `vnd.opengex`: MediaType =
+      new MediaType("model", "vnd.opengex", Compressible, NotBinary)
+    lazy val `vnd.parasolid.transmit.binary`: MediaType =
+      new MediaType("model", "vnd.parasolid.transmit.binary", Compressible, NotBinary)
+    lazy val `vnd.parasolid.transmit.text`: MediaType =
+      new MediaType("model", "vnd.parasolid.transmit.text", Compressible, NotBinary)
+    lazy val `vnd.rosette.annotated-data-model`: MediaType =
+      new MediaType("model", "vnd.rosette.annotated-data-model", Compressible, NotBinary)
+    lazy val `vnd.valve.source.compiled-map`: MediaType =
+      new MediaType("model", "vnd.valve.source.compiled-map", Compressible, NotBinary)
+    lazy val `vnd.vtu`: MediaType =
+      new MediaType("model", "vnd.vtu", Compressible, NotBinary, List("vtu"))
+    lazy val `vrml`: MediaType =
+      new MediaType("model", "vrml", Uncompressible, NotBinary, List("wrl", "vrml"))
+    lazy val `x3d+binary`: MediaType =
+      new MediaType("model", "x3d+binary", Uncompressible, NotBinary, List("x3db", "x3dbz"))
+    lazy val `x3d+fastinfoset`: MediaType =
+      new MediaType("model", "x3d+fastinfoset", Compressible, NotBinary)
+    lazy val `x3d+vrml`: MediaType =
+      new MediaType("model", "x3d+vrml", Uncompressible, NotBinary, List("x3dv", "x3dvz"))
+    lazy val `x3d+xml`: MediaType =
+      new MediaType("model", "x3d+xml", Compressible, NotBinary, List("x3d", "x3dz"))
+    lazy val `x3d-vrml`: MediaType = new MediaType("model", "x3d-vrml", Compressible, NotBinary)
+    lazy val all: List[MediaType] = List(
+      `3mf`,
+      `gltf+json`,
+      `gltf-binary`,
+      `iges`,
+      `mesh`,
+      `stl`,
+      `vnd.collada+xml`,
+      `vnd.dwf`,
+      `vnd.flatland.3dml`,
+      `vnd.gdl`,
+      `vnd.gs-gdl`,
+      `vnd.gs.gdl`,
+      `vnd.gtw`,
+      `vnd.moml+xml`,
+      `vnd.mts`,
+      `vnd.opengex`,
+      `vnd.parasolid.transmit.binary`,
+      `vnd.parasolid.transmit.text`,
+      `vnd.rosette.annotated-data-model`,
+      `vnd.valve.source.compiled-map`,
+      `vnd.vtu`,
+      `vrml`,
+      `x3d+binary`,
+      `x3d+fastinfoset`,
+      `x3d+vrml`,
+      `x3d+xml`,
+      `x3d-vrml`
+    )
+  }
+  object multipart {
+    lazy val `alternative`: MediaType =
+      new MediaType("multipart", "alternative", Uncompressible, NotBinary)
+    lazy val `appledouble`: MediaType =
+      new MediaType("multipart", "appledouble", Compressible, NotBinary)
+    lazy val `byteranges`: MediaType =
+      new MediaType("multipart", "byteranges", Compressible, NotBinary)
+    lazy val `digest`: MediaType = new MediaType("multipart", "digest", Compressible, NotBinary)
+    lazy val `encrypted`: MediaType =
+      new MediaType("multipart", "encrypted", Uncompressible, NotBinary)
+    lazy val `form-data`: MediaType =
+      new MediaType("multipart", "form-data", Uncompressible, NotBinary)
+    lazy val `header-set`: MediaType =
+      new MediaType("multipart", "header-set", Compressible, NotBinary)
+    lazy val `mixed`: MediaType = new MediaType("multipart", "mixed", Uncompressible, NotBinary)
+    lazy val `multilingual`: MediaType =
+      new MediaType("multipart", "multilingual", Compressible, NotBinary)
+    lazy val `parallel`: MediaType = new MediaType("multipart", "parallel", Compressible, NotBinary)
+    lazy val `related`: MediaType = new MediaType("multipart", "related", Uncompressible, NotBinary)
+    lazy val `report`: MediaType = new MediaType("multipart", "report", Compressible, NotBinary)
+    lazy val `signed`: MediaType = new MediaType("multipart", "signed", Uncompressible, NotBinary)
+    lazy val `vnd.bint.med-plus`: MediaType =
+      new MediaType("multipart", "vnd.bint.med-plus", Compressible, NotBinary)
+    lazy val `voice-message`: MediaType =
+      new MediaType("multipart", "voice-message", Compressible, NotBinary)
+    lazy val `x-mixed-replace`: MediaType =
+      new MediaType("multipart", "x-mixed-replace", Compressible, NotBinary)
+    lazy val all: List[MediaType] = List(
+      `alternative`,
+      `appledouble`,
+      `byteranges`,
+      `digest`,
+      `encrypted`,
+      `form-data`,
+      `header-set`,
+      `mixed`,
+      `multilingual`,
+      `parallel`,
+      `related`,
+      `report`,
+      `signed`,
+      `vnd.bint.med-plus`,
+      `voice-message`,
+      `x-mixed-replace`
+    )
+  }
+  object text {
+    lazy val `1d-interleaved-parityfec`: MediaType =
+      new MediaType("text", "1d-interleaved-parityfec", Compressible, NotBinary)
+    lazy val `cache-manifest`: MediaType =
+      new MediaType("text", "cache-manifest", Compressible, NotBinary, List("appcache", "manifest"))
+    lazy val `calendar`: MediaType =
+      new MediaType("text", "calendar", Compressible, NotBinary, List("ics", "ifb"))
+    lazy val `calender`: MediaType = new MediaType("text", "calender", Compressible, NotBinary)
+    lazy val `cmd`: MediaType = new MediaType("text", "cmd", Compressible, NotBinary)
+    lazy val `coffeescript`: MediaType =
+      new MediaType("text", "coffeescript", Compressible, NotBinary, List("coffee", "litcoffee"))
+    lazy val `css`: MediaType = new MediaType("text", "css", Compressible, NotBinary, List("css"))
+    lazy val `csv`: MediaType = new MediaType("text", "csv", Compressible, NotBinary, List("csv"))
+    lazy val `csv-schema`: MediaType = new MediaType("text", "csv-schema", Compressible, NotBinary)
+    lazy val `directory`: MediaType = new MediaType("text", "directory", Compressible, NotBinary)
+    lazy val `dns`: MediaType = new MediaType("text", "dns", Compressible, NotBinary)
+    lazy val `ecmascript`: MediaType = new MediaType("text", "ecmascript", Compressible, NotBinary)
+    lazy val `encaprtp`: MediaType = new MediaType("text", "encaprtp", Compressible, NotBinary)
+    lazy val `enriched`: MediaType = new MediaType("text", "enriched", Compressible, NotBinary)
+    lazy val `fwdred`: MediaType = new MediaType("text", "fwdred", Compressible, NotBinary)
+    lazy val `grammar-ref-list`: MediaType =
+      new MediaType("text", "grammar-ref-list", Compressible, NotBinary)
+    lazy val `html`: MediaType =
+      new MediaType("text", "html", Compressible, NotBinary, List("html", "htm", "shtml"))
+    lazy val `jade`: MediaType =
+      new MediaType("text", "jade", Compressible, NotBinary, List("jade"))
+    lazy val `javascript`: MediaType = new MediaType("text", "javascript", Compressible, NotBinary)
+    lazy val `jcr-cnd`: MediaType = new MediaType("text", "jcr-cnd", Compressible, NotBinary)
+    lazy val `jsx`: MediaType = new MediaType("text", "jsx", Compressible, NotBinary, List("jsx"))
+    lazy val `less`: MediaType =
+      new MediaType("text", "less", Compressible, NotBinary, List("less"))
+    lazy val `markdown`: MediaType =
+      new MediaType("text", "markdown", Compressible, NotBinary, List("markdown", "md"))
+    lazy val `mathml`: MediaType =
+      new MediaType("text", "mathml", Compressible, NotBinary, List("mml"))
+    lazy val `mizar`: MediaType = new MediaType("text", "mizar", Compressible, NotBinary)
+    lazy val `n3`: MediaType = new MediaType("text", "n3", Compressible, NotBinary, List("n3"))
+    lazy val `parameters`: MediaType = new MediaType("text", "parameters", Compressible, NotBinary)
+    lazy val `parityfec`: MediaType = new MediaType("text", "parityfec", Compressible, NotBinary)
+    lazy val `plain`: MediaType = new MediaType(
+      "text",
+      "plain",
+      Compressible,
+      NotBinary,
+      List("txt", "text", "conf", "def", "list", "log", "in", "ini"))
+    lazy val `provenance-notation`: MediaType =
+      new MediaType("text", "provenance-notation", Compressible, NotBinary)
+    lazy val `prs.fallenstein.rst`: MediaType =
+      new MediaType("text", "prs.fallenstein.rst", Compressible, NotBinary)
+    lazy val `prs.lines.tag`: MediaType =
+      new MediaType("text", "prs.lines.tag", Compressible, NotBinary, List("dsc"))
+    lazy val `prs.prop.logic`: MediaType =
+      new MediaType("text", "prs.prop.logic", Compressible, NotBinary)
+    lazy val `raptorfec`: MediaType = new MediaType("text", "raptorfec", Compressible, NotBinary)
+    lazy val `red`: MediaType = new MediaType("text", "red", Compressible, NotBinary)
+    lazy val `rfc822-headers`: MediaType =
+      new MediaType("text", "rfc822-headers", Compressible, NotBinary)
+    lazy val `richtext`: MediaType =
+      new MediaType("text", "richtext", Compressible, NotBinary, List("rtx"))
+    lazy val `rtf`: MediaType = new MediaType("text", "rtf", Compressible, NotBinary, List("rtf"))
+    lazy val `rtp-enc-aescm128`: MediaType =
+      new MediaType("text", "rtp-enc-aescm128", Compressible, NotBinary)
+    lazy val `rtploopback`: MediaType =
+      new MediaType("text", "rtploopback", Compressible, NotBinary)
+    lazy val `rtx`: MediaType = new MediaType("text", "rtx", Compressible, NotBinary)
+    lazy val `sgml`: MediaType =
+      new MediaType("text", "sgml", Compressible, NotBinary, List("sgml", "sgm"))
+    lazy val `shex`: MediaType =
+      new MediaType("text", "shex", Compressible, NotBinary, List("shex"))
+    lazy val `slim`: MediaType =
+      new MediaType("text", "slim", Compressible, NotBinary, List("slim", "slm"))
+    lazy val `strings`: MediaType = new MediaType("text", "strings", Compressible, NotBinary)
+    lazy val `stylus`: MediaType =
+      new MediaType("text", "stylus", Compressible, NotBinary, List("stylus", "styl"))
+    lazy val `t140`: MediaType = new MediaType("text", "t140", Compressible, NotBinary)
+    lazy val `tab-separated-values`: MediaType =
+      new MediaType("text", "tab-separated-values", Compressible, NotBinary, List("tsv"))
+    lazy val `troff`: MediaType = new MediaType(
+      "text",
+      "troff",
+      Compressible,
+      NotBinary,
+      List("t", "tr", "roff", "man", "me", "ms"))
+    lazy val `turtle`: MediaType =
+      new MediaType("text", "turtle", Compressible, NotBinary, List("ttl"))
+    lazy val `ulpfec`: MediaType = new MediaType("text", "ulpfec", Compressible, NotBinary)
+    lazy val `uri-list`: MediaType =
+      new MediaType("text", "uri-list", Compressible, NotBinary, List("uri", "uris", "urls"))
+    lazy val `vcard`: MediaType =
+      new MediaType("text", "vcard", Compressible, NotBinary, List("vcard"))
+    lazy val `vnd.a`: MediaType = new MediaType("text", "vnd.a", Compressible, NotBinary)
+    lazy val `vnd.abc`: MediaType = new MediaType("text", "vnd.abc", Compressible, NotBinary)
+    lazy val `vnd.ascii-art`: MediaType =
+      new MediaType("text", "vnd.ascii-art", Compressible, NotBinary)
+    lazy val `vnd.curl`: MediaType =
+      new MediaType("text", "vnd.curl", Compressible, NotBinary, List("curl"))
+    lazy val `vnd.curl.dcurl`: MediaType =
+      new MediaType("text", "vnd.curl.dcurl", Compressible, NotBinary, List("dcurl"))
+    lazy val `vnd.curl.mcurl`: MediaType =
+      new MediaType("text", "vnd.curl.mcurl", Compressible, NotBinary, List("mcurl"))
+    lazy val `vnd.curl.scurl`: MediaType =
+      new MediaType("text", "vnd.curl.scurl", Compressible, NotBinary, List("scurl"))
+    lazy val `vnd.debian.copyright`: MediaType =
+      new MediaType("text", "vnd.debian.copyright", Compressible, NotBinary)
+    lazy val `vnd.dmclientscript`: MediaType =
+      new MediaType("text", "vnd.dmclientscript", Compressible, NotBinary)
+    lazy val `vnd.dvb.subtitle`: MediaType =
+      new MediaType("text", "vnd.dvb.subtitle", Compressible, NotBinary, List("sub"))
+    lazy val `vnd.esmertec.theme-descriptor`: MediaType =
+      new MediaType("text", "vnd.esmertec.theme-descriptor", Compressible, NotBinary)
+    lazy val `vnd.fly`: MediaType =
+      new MediaType("text", "vnd.fly", Compressible, NotBinary, List("fly"))
+    lazy val `vnd.fmi.flexstor`: MediaType =
+      new MediaType("text", "vnd.fmi.flexstor", Compressible, NotBinary, List("flx"))
+    lazy val `vnd.graphviz`: MediaType =
+      new MediaType("text", "vnd.graphviz", Compressible, NotBinary, List("gv"))
+    lazy val `vnd.in3d.3dml`: MediaType =
+      new MediaType("text", "vnd.in3d.3dml", Compressible, NotBinary, List("3dml"))
+    lazy val `vnd.in3d.spot`: MediaType =
+      new MediaType("text", "vnd.in3d.spot", Compressible, NotBinary, List("spot"))
+    lazy val `vnd.iptc.newsml`: MediaType =
+      new MediaType("text", "vnd.iptc.newsml", Compressible, NotBinary)
+    lazy val `vnd.iptc.nitf`: MediaType =
+      new MediaType("text", "vnd.iptc.nitf", Compressible, NotBinary)
+    lazy val `vnd.latex-z`: MediaType =
+      new MediaType("text", "vnd.latex-z", Compressible, NotBinary)
+    lazy val `vnd.motorola.reflex`: MediaType =
+      new MediaType("text", "vnd.motorola.reflex", Compressible, NotBinary)
+    lazy val `vnd.ms-mediapackage`: MediaType =
+      new MediaType("text", "vnd.ms-mediapackage", Compressible, NotBinary)
+    lazy val `vnd.net2phone.commcenter.command`: MediaType =
+      new MediaType("text", "vnd.net2phone.commcenter.command", Compressible, NotBinary)
+    lazy val `vnd.radisys.msml-basic-layout`: MediaType =
+      new MediaType("text", "vnd.radisys.msml-basic-layout", Compressible, NotBinary)
+    lazy val `vnd.si.uricatalogue`: MediaType =
+      new MediaType("text", "vnd.si.uricatalogue", Compressible, NotBinary)
+    lazy val `vnd.sun.j2me.app-descriptor`: MediaType =
+      new MediaType("text", "vnd.sun.j2me.app-descriptor", Compressible, NotBinary, List("jad"))
+    lazy val `vnd.trolltech.linguist`: MediaType =
+      new MediaType("text", "vnd.trolltech.linguist", Compressible, NotBinary)
+    lazy val `vnd.wap.si`: MediaType = new MediaType("text", "vnd.wap.si", Compressible, NotBinary)
+    lazy val `vnd.wap.sl`: MediaType = new MediaType("text", "vnd.wap.sl", Compressible, NotBinary)
+    lazy val `vnd.wap.wml`: MediaType =
+      new MediaType("text", "vnd.wap.wml", Compressible, NotBinary, List("wml"))
+    lazy val `vnd.wap.wmlscript`: MediaType =
+      new MediaType("text", "vnd.wap.wmlscript", Compressible, NotBinary, List("wmls"))
+    lazy val `vtt`: MediaType = new MediaType("text", "vtt", Compressible, NotBinary, List("vtt"))
+    lazy val `x-asm`: MediaType =
+      new MediaType("text", "x-asm", Compressible, NotBinary, List("s", "asm"))
+    lazy val `x-c`: MediaType = new MediaType(
+      "text",
+      "x-c",
+      Compressible,
+      NotBinary,
+      List("c", "cc", "cxx", "cpp", "h", "hh", "dic"))
+    lazy val `x-component`: MediaType =
+      new MediaType("text", "x-component", Compressible, NotBinary, List("htc"))
+    lazy val `x-fortran`: MediaType =
+      new MediaType("text", "x-fortran", Compressible, NotBinary, List("f", "for", "f77", "f90"))
+    lazy val `x-gwt-rpc`: MediaType = new MediaType("text", "x-gwt-rpc", Compressible, NotBinary)
+    lazy val `x-handlebars-template`: MediaType =
+      new MediaType("text", "x-handlebars-template", Compressible, NotBinary, List("hbs"))
+    lazy val `x-java-source`: MediaType =
+      new MediaType("text", "x-java-source", Compressible, NotBinary, List("java"))
+    lazy val `x-jquery-tmpl`: MediaType =
+      new MediaType("text", "x-jquery-tmpl", Compressible, NotBinary)
+    lazy val `x-lua`: MediaType =
+      new MediaType("text", "x-lua", Compressible, NotBinary, List("lua"))
+    lazy val `x-markdown`: MediaType =
+      new MediaType("text", "x-markdown", Compressible, NotBinary, List("mkd"))
+    lazy val `x-nfo`: MediaType =
+      new MediaType("text", "x-nfo", Compressible, NotBinary, List("nfo"))
+    lazy val `x-opml`: MediaType =
+      new MediaType("text", "x-opml", Compressible, NotBinary, List("opml"))
+    lazy val `x-org`: MediaType =
+      new MediaType("text", "x-org", Compressible, NotBinary, List("org"))
+    lazy val `x-pascal`: MediaType =
+      new MediaType("text", "x-pascal", Compressible, NotBinary, List("p", "pas"))
+    lazy val `x-processing`: MediaType =
+      new MediaType("text", "x-processing", Compressible, NotBinary, List("pde"))
+    lazy val `x-sass`: MediaType =
+      new MediaType("text", "x-sass", Compressible, NotBinary, List("sass"))
+    lazy val `x-scss`: MediaType =
+      new MediaType("text", "x-scss", Compressible, NotBinary, List("scss"))
+    lazy val `x-setext`: MediaType =
+      new MediaType("text", "x-setext", Compressible, NotBinary, List("etx"))
+    lazy val `x-sfv`: MediaType =
+      new MediaType("text", "x-sfv", Compressible, NotBinary, List("sfv"))
+    lazy val `x-suse-ymp`: MediaType =
+      new MediaType("text", "x-suse-ymp", Compressible, NotBinary, List("ymp"))
+    lazy val `x-uuencode`: MediaType =
+      new MediaType("text", "x-uuencode", Compressible, NotBinary, List("uu"))
+    lazy val `x-vcalendar`: MediaType =
+      new MediaType("text", "x-vcalendar", Compressible, NotBinary, List("vcs"))
+    lazy val `x-vcard`: MediaType =
+      new MediaType("text", "x-vcard", Compressible, NotBinary, List("vcf"))
+    lazy val `xml`: MediaType = new MediaType("text", "xml", Compressible, NotBinary, List("xml"))
+    lazy val `xml-external-parsed-entity`: MediaType =
+      new MediaType("text", "xml-external-parsed-entity", Compressible, NotBinary)
+    lazy val `yaml`: MediaType =
+      new MediaType("text", "yaml", Compressible, NotBinary, List("yaml", "yml"))
+    lazy val all: List[MediaType] = List(
+      `1d-interleaved-parityfec`,
+      `cache-manifest`,
+      `calendar`,
+      `calender`,
+      `cmd`,
+      `coffeescript`,
+      `css`,
+      `csv`,
+      `csv-schema`,
+      `directory`,
+      `dns`,
+      `ecmascript`,
+      `encaprtp`,
+      `enriched`,
+      `fwdred`,
+      `grammar-ref-list`,
+      `html`,
+      `jade`,
+      `javascript`,
+      `jcr-cnd`,
+      `jsx`,
+      `less`,
+      `markdown`,
+      `mathml`,
+      `mizar`,
+      `n3`,
+      `parameters`,
+      `parityfec`,
+      `plain`,
+      `provenance-notation`,
+      `prs.fallenstein.rst`,
+      `prs.lines.tag`,
+      `prs.prop.logic`,
+      `raptorfec`,
+      `red`,
+      `rfc822-headers`,
+      `richtext`,
+      `rtf`,
+      `rtp-enc-aescm128`,
+      `rtploopback`,
+      `rtx`,
+      `sgml`,
+      `shex`,
+      `slim`,
+      `strings`,
+      `stylus`,
+      `t140`,
+      `tab-separated-values`,
+      `troff`,
+      `turtle`,
+      `ulpfec`,
+      `uri-list`,
+      `vcard`,
+      `vnd.a`,
+      `vnd.abc`,
+      `vnd.ascii-art`,
+      `vnd.curl`,
+      `vnd.curl.dcurl`,
+      `vnd.curl.mcurl`,
+      `vnd.curl.scurl`,
+      `vnd.debian.copyright`,
+      `vnd.dmclientscript`,
+      `vnd.dvb.subtitle`,
+      `vnd.esmertec.theme-descriptor`,
+      `vnd.fly`,
+      `vnd.fmi.flexstor`,
+      `vnd.graphviz`,
+      `vnd.in3d.3dml`,
+      `vnd.in3d.spot`,
+      `vnd.iptc.newsml`,
+      `vnd.iptc.nitf`,
+      `vnd.latex-z`,
+      `vnd.motorola.reflex`,
+      `vnd.ms-mediapackage`,
+      `vnd.net2phone.commcenter.command`,
+      `vnd.radisys.msml-basic-layout`,
+      `vnd.si.uricatalogue`,
+      `vnd.sun.j2me.app-descriptor`,
+      `vnd.trolltech.linguist`,
+      `vnd.wap.si`,
+      `vnd.wap.sl`,
+      `vnd.wap.wml`,
+      `vnd.wap.wmlscript`,
+      `vtt`,
+      `x-asm`,
+      `x-c`,
+      `x-component`,
+      `x-fortran`,
+      `x-gwt-rpc`,
+      `x-handlebars-template`,
+      `x-java-source`,
+      `x-jquery-tmpl`,
+      `x-lua`,
+      `x-markdown`,
+      `x-nfo`,
+      `x-opml`,
+      `x-org`,
+      `x-pascal`,
+      `x-processing`,
+      `x-sass`,
+      `x-scss`,
+      `x-setext`,
+      `x-sfv`,
+      `x-suse-ymp`,
+      `x-uuencode`,
+      `x-vcalendar`,
+      `x-vcard`,
+      `xml`,
+      `xml-external-parsed-entity`,
+      `yaml`
+    )
+  }
+  object video {
+    lazy val `1d-interleaved-parityfec`: MediaType =
+      new MediaType("video", "1d-interleaved-parityfec", Compressible, Binary)
+    lazy val `3gpp`: MediaType =
+      new MediaType("video", "3gpp", Compressible, Binary, List("3gp", "3gpp"))
+    lazy val `3gpp-tt`: MediaType = new MediaType("video", "3gpp-tt", Compressible, Binary)
+    lazy val `3gpp2`: MediaType = new MediaType("video", "3gpp2", Compressible, Binary, List("3g2"))
+    lazy val `bmpeg`: MediaType = new MediaType("video", "bmpeg", Compressible, Binary)
+    lazy val `bt656`: MediaType = new MediaType("video", "bt656", Compressible, Binary)
+    lazy val `celb`: MediaType = new MediaType("video", "celb", Compressible, Binary)
+    lazy val `dv`: MediaType = new MediaType("video", "dv", Compressible, Binary)
+    lazy val `encaprtp`: MediaType = new MediaType("video", "encaprtp", Compressible, Binary)
+    lazy val `h261`: MediaType = new MediaType("video", "h261", Compressible, Binary, List("h261"))
+    lazy val `h263`: MediaType = new MediaType("video", "h263", Compressible, Binary, List("h263"))
+    lazy val `h263-1998`: MediaType = new MediaType("video", "h263-1998", Compressible, Binary)
+    lazy val `h263-2000`: MediaType = new MediaType("video", "h263-2000", Compressible, Binary)
+    lazy val `h264`: MediaType = new MediaType("video", "h264", Compressible, Binary, List("h264"))
+    lazy val `h264-rcdo`: MediaType = new MediaType("video", "h264-rcdo", Compressible, Binary)
+    lazy val `h264-svc`: MediaType = new MediaType("video", "h264-svc", Compressible, Binary)
+    lazy val `h265`: MediaType = new MediaType("video", "h265", Compressible, Binary)
+    lazy val `iso.segment`: MediaType = new MediaType("video", "iso.segment", Compressible, Binary)
+    lazy val `jpeg`: MediaType = new MediaType("video", "jpeg", Compressible, Binary, List("jpgv"))
+    lazy val `jpeg2000`: MediaType = new MediaType("video", "jpeg2000", Compressible, Binary)
+    lazy val `jpm`: MediaType =
+      new MediaType("video", "jpm", Compressible, Binary, List("jpm", "jpgm"))
+    lazy val `mj2`: MediaType =
+      new MediaType("video", "mj2", Compressible, Binary, List("mj2", "mjp2"))
+    lazy val `mp1s`: MediaType = new MediaType("video", "mp1s", Compressible, Binary)
+    lazy val `mp2p`: MediaType = new MediaType("video", "mp2p", Compressible, Binary)
+    lazy val `mp2t`: MediaType = new MediaType("video", "mp2t", Compressible, Binary, List("ts"))
+    lazy val `mp4`: MediaType =
+      new MediaType("video", "mp4", Uncompressible, Binary, List("mp4", "mp4v", "mpg4"))
+    lazy val `mp4v-es`: MediaType = new MediaType("video", "mp4v-es", Compressible, Binary)
+    lazy val `mpeg`: MediaType = new MediaType(
+      "video",
+      "mpeg",
+      Uncompressible,
+      Binary,
+      List("mpeg", "mpg", "mpe", "m1v", "m2v"))
+    lazy val `mpeg4-generic`: MediaType =
+      new MediaType("video", "mpeg4-generic", Compressible, Binary)
+    lazy val `mpv`: MediaType = new MediaType("video", "mpv", Compressible, Binary)
+    lazy val `nv`: MediaType = new MediaType("video", "nv", Compressible, Binary)
+    lazy val `ogg`: MediaType = new MediaType("video", "ogg", Uncompressible, Binary, List("ogv"))
+    lazy val `parityfec`: MediaType = new MediaType("video", "parityfec", Compressible, Binary)
+    lazy val `pointer`: MediaType = new MediaType("video", "pointer", Compressible, Binary)
+    lazy val `quicktime`: MediaType =
+      new MediaType("video", "quicktime", Uncompressible, Binary, List("qt", "mov"))
+    lazy val `raptorfec`: MediaType = new MediaType("video", "raptorfec", Compressible, Binary)
+    lazy val `raw`: MediaType = new MediaType("video", "raw", Compressible, Binary)
+    lazy val `rtp-enc-aescm128`: MediaType =
+      new MediaType("video", "rtp-enc-aescm128", Compressible, Binary)
+    lazy val `rtploopback`: MediaType = new MediaType("video", "rtploopback", Compressible, Binary)
+    lazy val `rtx`: MediaType = new MediaType("video", "rtx", Compressible, Binary)
+    lazy val `smpte291`: MediaType = new MediaType("video", "smpte291", Compressible, Binary)
+    lazy val `smpte292m`: MediaType = new MediaType("video", "smpte292m", Compressible, Binary)
+    lazy val `ulpfec`: MediaType = new MediaType("video", "ulpfec", Compressible, Binary)
+    lazy val `vc1`: MediaType = new MediaType("video", "vc1", Compressible, Binary)
+    lazy val `vnd.cctv`: MediaType = new MediaType("video", "vnd.cctv", Compressible, Binary)
+    lazy val `vnd.dece.hd`: MediaType =
+      new MediaType("video", "vnd.dece.hd", Compressible, Binary, List("uvh", "uvvh"))
+    lazy val `vnd.dece.mobile`: MediaType =
+      new MediaType("video", "vnd.dece.mobile", Compressible, Binary, List("uvm", "uvvm"))
+    lazy val `vnd.dece.mp4`: MediaType =
+      new MediaType("video", "vnd.dece.mp4", Compressible, Binary)
+    lazy val `vnd.dece.pd`: MediaType =
+      new MediaType("video", "vnd.dece.pd", Compressible, Binary, List("uvp", "uvvp"))
+    lazy val `vnd.dece.sd`: MediaType =
+      new MediaType("video", "vnd.dece.sd", Compressible, Binary, List("uvs", "uvvs"))
+    lazy val `vnd.dece.video`: MediaType =
+      new MediaType("video", "vnd.dece.video", Compressible, Binary, List("uvv", "uvvv"))
+    lazy val `vnd.directv.mpeg`: MediaType =
+      new MediaType("video", "vnd.directv.mpeg", Compressible, Binary)
+    lazy val `vnd.directv.mpeg-tts`: MediaType =
+      new MediaType("video", "vnd.directv.mpeg-tts", Compressible, Binary)
+    lazy val `vnd.dlna.mpeg-tts`: MediaType =
+      new MediaType("video", "vnd.dlna.mpeg-tts", Compressible, Binary)
+    lazy val `vnd.dvb.file`: MediaType =
+      new MediaType("video", "vnd.dvb.file", Compressible, Binary, List("dvb"))
+    lazy val `vnd.fvt`: MediaType =
+      new MediaType("video", "vnd.fvt", Compressible, Binary, List("fvt"))
+    lazy val `vnd.hns.video`: MediaType =
+      new MediaType("video", "vnd.hns.video", Compressible, Binary)
+    lazy val `vnd.iptvforum.1dparityfec-1010`: MediaType =
+      new MediaType("video", "vnd.iptvforum.1dparityfec-1010", Compressible, Binary)
+    lazy val `vnd.iptvforum.1dparityfec-2005`: MediaType =
+      new MediaType("video", "vnd.iptvforum.1dparityfec-2005", Compressible, Binary)
+    lazy val `vnd.iptvforum.2dparityfec-1010`: MediaType =
+      new MediaType("video", "vnd.iptvforum.2dparityfec-1010", Compressible, Binary)
+    lazy val `vnd.iptvforum.2dparityfec-2005`: MediaType =
+      new MediaType("video", "vnd.iptvforum.2dparityfec-2005", Compressible, Binary)
+    lazy val `vnd.iptvforum.ttsavc`: MediaType =
+      new MediaType("video", "vnd.iptvforum.ttsavc", Compressible, Binary)
+    lazy val `vnd.iptvforum.ttsmpeg2`: MediaType =
+      new MediaType("video", "vnd.iptvforum.ttsmpeg2", Compressible, Binary)
+    lazy val `vnd.motorola.video`: MediaType =
+      new MediaType("video", "vnd.motorola.video", Compressible, Binary)
+    lazy val `vnd.motorola.videop`: MediaType =
+      new MediaType("video", "vnd.motorola.videop", Compressible, Binary)
+    lazy val `vnd.mpegurl`: MediaType =
+      new MediaType("video", "vnd.mpegurl", Compressible, Binary, List("mxu", "m4u"))
+    lazy val `vnd.ms-playready.media.pyv`: MediaType =
+      new MediaType("video", "vnd.ms-playready.media.pyv", Compressible, Binary, List("pyv"))
+    lazy val `vnd.nokia.interleaved-multimedia`: MediaType =
+      new MediaType("video", "vnd.nokia.interleaved-multimedia", Compressible, Binary)
+    lazy val `vnd.nokia.mp4vr`: MediaType =
+      new MediaType("video", "vnd.nokia.mp4vr", Compressible, Binary)
+    lazy val `vnd.nokia.videovoip`: MediaType =
+      new MediaType("video", "vnd.nokia.videovoip", Compressible, Binary)
+    lazy val `vnd.objectvideo`: MediaType =
+      new MediaType("video", "vnd.objectvideo", Compressible, Binary)
+    lazy val `vnd.radgamettools.bink`: MediaType =
+      new MediaType("video", "vnd.radgamettools.bink", Compressible, Binary)
+    lazy val `vnd.radgamettools.smacker`: MediaType =
+      new MediaType("video", "vnd.radgamettools.smacker", Compressible, Binary)
+    lazy val `vnd.sealed.mpeg1`: MediaType =
+      new MediaType("video", "vnd.sealed.mpeg1", Compressible, Binary)
+    lazy val `vnd.sealed.mpeg4`: MediaType =
+      new MediaType("video", "vnd.sealed.mpeg4", Compressible, Binary)
+    lazy val `vnd.sealed.swf`: MediaType =
+      new MediaType("video", "vnd.sealed.swf", Compressible, Binary)
+    lazy val `vnd.sealedmedia.softseal.mov`: MediaType =
+      new MediaType("video", "vnd.sealedmedia.softseal.mov", Compressible, Binary)
+    lazy val `vnd.uvvu.mp4`: MediaType =
+      new MediaType("video", "vnd.uvvu.mp4", Compressible, Binary, List("uvu", "uvvu"))
+    lazy val `vnd.vivo`: MediaType =
+      new MediaType("video", "vnd.vivo", Compressible, Binary, List("viv"))
+    lazy val `vp8`: MediaType = new MediaType("video", "vp8", Compressible, Binary)
+    lazy val `webm`: MediaType =
+      new MediaType("video", "webm", Uncompressible, Binary, List("webm"))
+    lazy val `x-f4v`: MediaType = new MediaType("video", "x-f4v", Compressible, Binary, List("f4v"))
+    lazy val `x-fli`: MediaType = new MediaType("video", "x-fli", Compressible, Binary, List("fli"))
+    lazy val `x-flv`: MediaType =
+      new MediaType("video", "x-flv", Uncompressible, Binary, List("flv"))
+    lazy val `x-m4v`: MediaType = new MediaType("video", "x-m4v", Compressible, Binary, List("m4v"))
+    lazy val `x-matroska`: MediaType =
+      new MediaType("video", "x-matroska", Uncompressible, Binary, List("mkv", "mk3d", "mks"))
+    lazy val `x-mng`: MediaType = new MediaType("video", "x-mng", Compressible, Binary, List("mng"))
+    lazy val `x-ms-asf`: MediaType =
+      new MediaType("video", "x-ms-asf", Compressible, Binary, List("asf", "asx"))
+    lazy val `x-ms-vob`: MediaType =
+      new MediaType("video", "x-ms-vob", Compressible, Binary, List("vob"))
+    lazy val `x-ms-wm`: MediaType =
+      new MediaType("video", "x-ms-wm", Compressible, Binary, List("wm"))
+    lazy val `x-ms-wmv`: MediaType =
+      new MediaType("video", "x-ms-wmv", Uncompressible, Binary, List("wmv"))
+    lazy val `x-ms-wmx`: MediaType =
+      new MediaType("video", "x-ms-wmx", Compressible, Binary, List("wmx"))
+    lazy val `x-ms-wvx`: MediaType =
+      new MediaType("video", "x-ms-wvx", Compressible, Binary, List("wvx"))
+    lazy val `x-msvideo`: MediaType =
+      new MediaType("video", "x-msvideo", Compressible, Binary, List("avi"))
+    lazy val `x-sgi-movie`: MediaType =
+      new MediaType("video", "x-sgi-movie", Compressible, Binary, List("movie"))
+    lazy val `x-smv`: MediaType = new MediaType("video", "x-smv", Compressible, Binary, List("smv"))
+    lazy val all: List[MediaType] = List(
+      `1d-interleaved-parityfec`,
+      `3gpp`,
+      `3gpp-tt`,
+      `3gpp2`,
+      `bmpeg`,
+      `bt656`,
+      `celb`,
+      `dv`,
+      `encaprtp`,
+      `h261`,
+      `h263`,
+      `h263-1998`,
+      `h263-2000`,
+      `h264`,
+      `h264-rcdo`,
+      `h264-svc`,
+      `h265`,
+      `iso.segment`,
+      `jpeg`,
+      `jpeg2000`,
+      `jpm`,
+      `mj2`,
+      `mp1s`,
+      `mp2p`,
+      `mp2t`,
+      `mp4`,
+      `mp4v-es`,
+      `mpeg`,
+      `mpeg4-generic`,
+      `mpv`,
+      `nv`,
+      `ogg`,
+      `parityfec`,
+      `pointer`,
+      `quicktime`,
+      `raptorfec`,
+      `raw`,
+      `rtp-enc-aescm128`,
+      `rtploopback`,
+      `rtx`,
+      `smpte291`,
+      `smpte292m`,
+      `ulpfec`,
+      `vc1`,
+      `vnd.cctv`,
+      `vnd.dece.hd`,
+      `vnd.dece.mobile`,
+      `vnd.dece.mp4`,
+      `vnd.dece.pd`,
+      `vnd.dece.sd`,
+      `vnd.dece.video`,
+      `vnd.directv.mpeg`,
+      `vnd.directv.mpeg-tts`,
+      `vnd.dlna.mpeg-tts`,
+      `vnd.dvb.file`,
+      `vnd.fvt`,
+      `vnd.hns.video`,
+      `vnd.iptvforum.1dparityfec-1010`,
+      `vnd.iptvforum.1dparityfec-2005`,
+      `vnd.iptvforum.2dparityfec-1010`,
+      `vnd.iptvforum.2dparityfec-2005`,
+      `vnd.iptvforum.ttsavc`,
+      `vnd.iptvforum.ttsmpeg2`,
+      `vnd.motorola.video`,
+      `vnd.motorola.videop`,
+      `vnd.mpegurl`,
+      `vnd.ms-playready.media.pyv`,
+      `vnd.nokia.interleaved-multimedia`,
+      `vnd.nokia.mp4vr`,
+      `vnd.nokia.videovoip`,
+      `vnd.objectvideo`,
+      `vnd.radgamettools.bink`,
+      `vnd.radgamettools.smacker`,
+      `vnd.sealed.mpeg1`,
+      `vnd.sealed.mpeg4`,
+      `vnd.sealed.swf`,
+      `vnd.sealedmedia.softseal.mov`,
+      `vnd.uvvu.mp4`,
+      `vnd.vivo`,
+      `vp8`,
+      `webm`,
+      `x-f4v`,
+      `x-fli`,
+      `x-flv`,
+      `x-m4v`,
+      `x-matroska`,
+      `x-mng`,
+      `x-ms-asf`,
+      `x-ms-vob`,
+      `x-ms-wm`,
+      `x-ms-wmv`,
+      `x-ms-wmx`,
+      `x-ms-wvx`,
+      `x-msvideo`,
+      `x-sgi-movie`,
+      `x-smv`
+    )
+  }
+  object x_conference {
+    lazy val `x-cooltalk`: MediaType =
+      new MediaType("x-conference", "x-cooltalk", Compressible, NotBinary, List("ice"))
+    lazy val all: List[MediaType] = List(`x-cooltalk`)
+  }
+  object x_shader {
+    lazy val `x-fragment`: MediaType =
+      new MediaType("x-shader", "x-fragment", Compressible, NotBinary)
+    lazy val `x-vertex`: MediaType = new MediaType("x-shader", "x-vertex", Compressible, NotBinary)
+    lazy val all: List[MediaType] = List(`x-fragment`, `x-vertex`)
   }
 }
