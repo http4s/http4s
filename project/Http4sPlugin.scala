@@ -283,7 +283,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
-  lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.0"
+  lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.1"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.11.1"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.2"
@@ -298,7 +298,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.2.0"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.3.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
@@ -306,10 +306,10 @@ object Http4sPlugin extends AutoPlugin {
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.0"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.3"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.4"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.6"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.7"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.15"
 }

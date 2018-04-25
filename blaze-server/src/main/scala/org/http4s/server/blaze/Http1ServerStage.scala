@@ -2,7 +2,8 @@ package org.http4s
 package server
 package blaze
 
-import cats.effect.{Effect, IO}
+import cats.data.OptionT
+import cats.effect.{Effect, IO, Sync}
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
@@ -60,6 +61,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
   // micro-optimization: unwrap the routes and call its .run directly
   private[this] val routesFn = routes.run
+  private[this] val optionTSync = Sync[OptionT[F, ?]]
 
   // both `parser` and `isClosed` are protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
@@ -138,19 +140,21 @@ private[blaze] class Http1ServerStage[F[_]](
     parser.collectMessage(body, requestAttrs) match {
       case Right(req) =>
         executionContext.execute(new Runnable {
-          def run(): Unit =
-            F.runAsync {
-                try routesFn(req)
-                  .getOrElse(Response.notFound)
-                  .handleErrorWith(serviceErrorHandler(req))
-                catch serviceErrorHandler(req)
-              } {
-                case Right(resp) =>
-                  IO(renderResponse(req, resp, cleanup))
+          def run(): Unit = {
+            val action = optionTSync
+              .suspend(routesFn(req))
+              .getOrElse(Response.notFound)
+              .recoverWith(serviceErrorHandler(req))
+              .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
+
+            F.runAsync(action) {
+                case Right(()) => IO.unit
                 case Left(t) =>
-                  IO(internalServerError(s"Error running route: $req", t, req, cleanup))
+                  IO(logger.error(t)(s"Error running request: $req")).attempt *> IO(
+                    closeConnection())
               }
               .unsafeRunSync()
+          }
         })
       case Left((e, protocol)) =>
         badMessage(e.details, new BadMessage(e.sanitized), Request[F]().withHttpVersion(protocol))

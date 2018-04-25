@@ -45,7 +45,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
       rb must returnBody(testResourceGzipped)
       rb must returnStatus(Status.Ok)
-      rb must returnValue(haveMediaType(MediaType.`text/plain`))
+      rb must returnValue(haveMediaType(MediaType.text.plain))
       rb must returnValue(haveContentCoding(ContentCoding.gzip))
     }
 
@@ -58,7 +58,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
       rb must returnBody(testResource)
       rb must returnStatus(Status.Ok)
-      rb must returnValue(haveMediaType(MediaType.`text/plain`))
+      rb must returnValue(haveMediaType(MediaType.text.plain))
       rb must not(returnValue(haveContentCoding(ContentCoding.gzip)))
     }
 

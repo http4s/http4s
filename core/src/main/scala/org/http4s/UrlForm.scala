@@ -89,12 +89,12 @@ object UrlForm {
     EntityEncoder
       .stringEncoder[F]
       .contramap[UrlForm](encodeString(charset))
-      .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
+      .withContentType(`Content-Type`(MediaType.application.`x-www-form-urlencoded`, charset))
 
   implicit def entityDecoder[F[_]](
       implicit F: Sync[F],
       defaultCharset: Charset = DefaultCharset): EntityDecoder[F, UrlForm] =
-    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`) { m =>
+    EntityDecoder.decodeBy(MediaType.application.`x-www-form-urlencoded`) { m =>
       DecodeResult(
         EntityDecoder
           .decodeString(m)

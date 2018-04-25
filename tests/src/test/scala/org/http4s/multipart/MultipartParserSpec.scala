@@ -68,7 +68,7 @@ object MultipartParserSpec extends Specification {
           `Content-Disposition`(
             "form-data",
             Map("name" -> "upload", "filename" -> "integration.txt")),
-          `Content-Type`(MediaType.`application/octet-stream`),
+          `Content-Type`(MediaType.application.`octet-stream`),
           Header("Content-Transfer-Encoding", "binary")
         )
 
@@ -115,7 +115,7 @@ object MultipartParserSpec extends Specification {
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
-        `Content-Type`(MediaType.`application/octet-stream`),
+        `Content-Type`(MediaType.application.`octet-stream`),
         Header("Content-Transfer-Encoding", "binary")
       )
 
@@ -156,7 +156,7 @@ object MultipartParserSpec extends Specification {
 
       val expectedHeaders = Headers(
         `Content-Disposition`("form-data", Map("name" -> "http4s很棒", "filename" -> "我老婆太漂亮.txt")),
-        `Content-Type`(MediaType.`application/octet-stream`),
+        `Content-Type`(MediaType.application.`octet-stream`),
         Header("Content-Transfer-Encoding", "binary")
       )
 
@@ -196,7 +196,7 @@ object MultipartParserSpec extends Specification {
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
-        `Content-Type`(MediaType.`application/octet-stream`),
+        `Content-Type`(MediaType.application.`octet-stream`),
         Header("Content-Transfer-Encoding", "binary")
       )
 
@@ -286,7 +286,7 @@ object MultipartParserSpec extends Specification {
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
-        `Content-Type`(MediaType.`application/octet-stream`),
+        `Content-Type`(MediaType.application.`octet-stream`),
         Header("Content-Transfer-Encoding", "binary")
       )
 
@@ -332,7 +332,7 @@ object MultipartParserSpec extends Specification {
         `Content-Disposition`(
           "form-data",
           Map("name" -> "upload", "filename" -> "integration.txt")),
-        `Content-Type`(MediaType.`application/octet-stream`),
+        `Content-Type`(MediaType.application.`octet-stream`),
         Header("Content-Transfer-Encoding", "binary")
       )
 
@@ -484,7 +484,7 @@ object MultipartParserSpec extends Specification {
       headers mustEqual List(
         Headers(
           `Content-Disposition`("form-data", Map("name" -> "field1")),
-          `Content-Type`(MediaType.`text/plain`)
+          `Content-Type`(MediaType.text.plain)
         ),
         Headers(
           `Content-Disposition`("form-data", Map("name" -> "field2"))

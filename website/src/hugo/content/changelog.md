@@ -8,6 +8,43 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.19.0-SNAPSHOT
+* Add accumulating version of circe `EntityDecoder` [#1647](https://github.com/http4/http4s/1647)
+* Add ETag support to `StaticFile` [#1652](https://github.com/http4s/http4s/pull/1652)
+* Reintroduce the option for fallthrough for authenticated services [#1670]((https://github.com/http4s/http4s/pull/1670)
+* Separate `Cookie` into `RequestCookie` and `ResponseCookie` [#1676](https://github.com/http4s/http4s/pull/1676)
+* Add `Eq[Uri]` instance [#1688](https://github.com/http4s/http4s/pull/1688)
+* Deprecate `Message#withBody` in favor of `Message#withEntity`.  The latter returns a `Message[F]` rather than an `F[Message[F]]`. [#1694](https://github.com/http4s/http4s/pull/1694)
+* Myriad new `Arbitrary` and `Cogen` instances [#1677](https://github.com/http4s/http4s/pull/1677)
+* Add non-deprecated `LocationResponseGenerator` functions [#1715](https://github.com/http4s/http4s/pull/1715)
+* Relax constraint on `Router` from `Sync` to `Monad` [#1723](https://github.com/http4s/http4s/pull/1723)
+* Drop scodec-bits dependency [#1732](https://github.com/http4s/http4s/pull/1732)
+* Add `Show[ETag]` instance [#1749](https://github.com/http4s/http4s/pull/1749)
+* Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
+* Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
+* Dependency upgrades:
+  * async-http-client-2.4.2
+  * blaze-0.14.0-M3
+  * scala-xml-1.1.0
+
+# v0.18.9 (2018-04-17)
+* Log any exceptions when writing the header in blaze-server for HTTP/1 [#1781](https://github.com/http4s/http4s/pull/1781)
+* Drain the response body (thus running its finalizer) when there is an error writing a servlet header or body [#1782](https://github.com/http4s/http4s/pull/1782)
+* Clean up logging of errors thrown by services. Prevents the possible swallowing of errors thrown during `renderResponse` in blaze-server and `Http4sServlet` [#1783](https://github.com/http4s/http4s/pull/1783)
+* Fix `Uri.Scheme` parser for schemes beginning with `http` other than `https` [#1790](https://github.com/http4s/http4s/pull/1790)
+* Fix blaze-client to reset the connection start time on each invocation of the `F[DisposableResponse]`. This fixes the "timeout after 0 milliseconds" error. [#1792](https://github.com/http4s/http4s/pull/1792)
+* Depdency upgrades:
+  * blaze-0.12.13
+  * cats-effect-0.10.1
+  * http4s-websocket-0.2.1
+  * specs2-4.0.4
+  * tomcat-9.0.7
+
+# v0.18.8 (2018-04-11)
+* Improved ScalaDoc for BlazeBuilder [#1775](https://github.com/http4s/http4s/pull/1775)
+* Added a stream constructor for async-http-client [#1776](https://github.com/http4s/http4s/pull/1776)
+* http4s-prometheus-server-metrics project created. Prometheus Metrics middleware implemented for metrics on http4s server. Exposes an HttpService ready to be scraped by Prometheus, as well pairing to a CollectorRegistry for custom metric registration. [#1778](https://github.com/http4s/http4s/pull/1778)
+
 # v0.18.7 (2018-04-04)
 * Multipart parser defaults to fields interpreted as utf-8. [#1767](https://github.com/http4s/http4s/pull/1767)
 

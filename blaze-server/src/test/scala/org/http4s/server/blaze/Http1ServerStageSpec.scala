@@ -257,7 +257,7 @@ class Http1ServerStageSpec extends Http4sSpec {
           Ok,
           Set(
             H.`Content-Length`.unsafeFromLong(8 + 4),
-            H.`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`)),
+            H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`)),
           "Result: done"))
     }
 
@@ -274,7 +274,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val buff = Await.result(runRequest(Seq(req1, req2), routes), 5.seconds)
 
       val hs = Set(
-        H.`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`),
+        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         H.`Content-Length`.unsafeFromLong(3))
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
@@ -296,7 +296,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val buff = Await.result(runRequest(Seq(r11, r12, req2), routes), 5.seconds)
 
       val hs = Set(
-        H.`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`),
+        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         H.`Content-Length`.unsafeFromLong(3))
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
@@ -317,7 +317,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val buff = Await.result(runRequest(Seq(r11, r12, req2), routes), 5.seconds)
 
       val hs = Set(
-        H.`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`),
+        H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
         H.`Content-Length`.unsafeFromLong(3))
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, hs, "foo"))
