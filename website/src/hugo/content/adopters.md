@@ -88,7 +88,7 @@ title: Adopters
 [twitterstorm](https://github.com/ChristopherDavenport/twitterstorm)
 : Twitter Streaming API Processing Example Project 
 
-[http4-index](https://github.com/stephennancekivell/http4s-index)
+[http4s-index](https://github.com/stephennancekivell/http4s-index)
 : lists the files and folders becoming a simple light weight web server
 
 
