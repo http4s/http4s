@@ -9,14 +9,14 @@ import org.http4s.headers._
 
 class CORSSpec extends Http4sSpec {
 
-  val service = HttpService[IO] {
+  val routes = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/foo" => Response[IO](Ok).withEntity("foo").pure[IO]
     case req if req.pathInfo == "/bar" => Response[IO](Unauthorized).withEntity("bar").pure[IO]
   }
 
-  val cors1 = CORS(service)
+  val cors1 = CORS(routes)
   val cors2 = CORS(
-    service,
+    routes,
     CORSConfig(
       anyOrigin = false,
       allowCredentials = false,
@@ -136,9 +136,9 @@ class CORSSpec extends Http4sSpec {
 
     "Fall through" in {
       val req = buildRequest("/2")
-      val s1 = CORS(HttpService[IO] { case GET -> Root / "1" => Ok() })
-      val s2 = CORS(HttpService[IO] { case GET -> Root / "2" => Ok() })
-      (s1 <+> s2).orNotFound(req) must returnStatus(Ok)
+      val routes1 = CORS(HttpRoutes.of[IO] { case GET -> Root / "1" => Ok() })
+      val routes2 = CORS(HttpRoutes.of[IO] { case GET -> Root / "2" => Ok() })
+      (routes1 <+> routes2).orNotFound(req) must returnStatus(Ok)
     }
   }
 }

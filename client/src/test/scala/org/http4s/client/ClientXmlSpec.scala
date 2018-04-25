@@ -12,11 +12,8 @@ class ClientXmlSpec extends Http4sSpec {
   implicit val decoder = scalaxml.xml[IO]
   val body = <html><h1>h1</h1></html>
   val xml = s"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>$body"""
-  val service = HttpService[IO] {
-    case _ =>
-      Response[IO](Ok).withEntity(xml).pure[IO]
-  }
-  val client = Client.fromHttpService(service)
+  val app = HttpApp.pure(Response[IO](Ok).withEntity(xml))
+  val client = Client.fromHttpApp(app)
 
   "mock client" should {
     "read xml body before dispose" in {

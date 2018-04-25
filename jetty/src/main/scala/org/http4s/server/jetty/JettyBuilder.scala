@@ -105,7 +105,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
       context.addFilter(filterHolder, urlMapping, dispatches)
     })
 
-  override def mountService(service: HttpService[F], prefix: String): Self =
+  override def mountService(service: HttpRoutes[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
       val servlet = new Http4sServlet(
         service = service,

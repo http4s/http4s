@@ -111,7 +111,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
       ctx.addFilterMap(filterMap)
     })
 
-  override def mountService(service: HttpService[F], prefix: String): Self =
+  override def mountService(service: HttpRoutes[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
       val servlet = new Http4sServlet(
         service = service,

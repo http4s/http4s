@@ -32,7 +32,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
@@ -103,7 +103,7 @@ It is best to run your `F` "at the end of the world."  The "end of
 the world" varies by context:
 
 * In a command line app, it's your main method.
-* In an `HttpService[F]`, an `F[Response[F]]` is returned to be run by the
+* In an `HttpApp[F]`, an `F[Response[F]]` is returned to be run by the
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 

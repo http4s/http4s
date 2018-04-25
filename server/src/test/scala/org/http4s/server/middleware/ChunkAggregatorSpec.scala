@@ -1,6 +1,6 @@
 package org.http4s.server.middleware
 
-import cats.data.{Kleisli, NonEmptyList, OptionT}
+import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
 import cats.instances.int._
 import cats.instances.vector._
@@ -26,13 +26,12 @@ class ChunkAggregatorSpec extends Http4sSpec {
   "ChunkAggregator" should {
     def checkResponse(body: EntityBody[IO], transferCodings: List[TransferCoding])(
         responseCheck: Response[IO] => MatchResult[Any]): MatchResult[Any] = {
-      val service: HttpService[IO] = Kleisli { _ =>
+      val routes: HttpRoutes[IO] = HttpRoutes.liftF(
         OptionT.liftF(
           Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
-            .map(_.removeHeader(`Content-Length`)))
-      }
+            .map(_.removeHeader(`Content-Length`))))
 
-      ChunkAggregator(service).run(Request()).value.unsafeRunSync must beSome.like {
+      ChunkAggregator(routes).run(Request()).value.unsafeRunSync must beSome.like {
         case response =>
           response.status must_== Ok
           responseCheck(response)
@@ -47,8 +46,8 @@ class ChunkAggregatorSpec extends Http4sSpec {
     }
 
     "handle a none" in {
-      val service: HttpService[IO] = Kleisli.liftF(OptionT.none)
-      ChunkAggregator(service).run(Request()).value must returnValue(None)
+      val routes: HttpRoutes[IO] = HttpRoutes.empty
+      ChunkAggregator(routes).run(Request()).value must returnValue(None)
     }
 
     "handle chunks" in {

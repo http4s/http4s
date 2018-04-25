@@ -36,8 +36,8 @@ $ sbt console
 
 ## Your first service
 
-An `HttpService[F]` is a simple alias for
-`Kleisli[F, Request, Response]`.  If that's meaningful to you,
+An `HttpRoutes[F]` is a simple alias for
+`Kleisli[OptionT[F, ?[, Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
 around a `Request => F[Response]`, and `F` is an effectful
 operation.  We'll teach you what you need to know as we go, or you
@@ -49,19 +49,19 @@ can, uh, fork a task to read these introductions first:
 ### Defining your service
 
 Wherever you are in your studies, let's create our first
-`HttpService`.  Start by pasting these imports into your SBT console:
+`HttpRoutes`.  Start by pasting these imports into your SBT console:
 
 ```tut:book
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 ```
 
-Using the [http4s-dsl], we can construct an `HttpService` by pattern
+Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern
 matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
 
 ```tut:book
-val helloWorldService = HttpService[IO] {
+val helloWorldService = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
@@ -89,7 +89,7 @@ implicit def tweetsEncoder: EntityEncoder[IO, Seq[Tweet]] = ???
 def getTweet(tweetId: Int): IO[Tweet] = ???
 def getPopularTweets(): IO[Seq[Tweet]] = ???
 
-val tweetService = HttpService[IO] {
+val tweetService = HttpRoutes.of[IO] {
   case GET -> Root / "tweets" / "popular" =>
     getPopularTweets().flatMap(Ok(_))
   case GET -> Root / "tweets" / IntVar(tweetId) =>
@@ -108,7 +108,7 @@ path of `/api`. The services can be mounted in any order as the request will be
 matched against the longest base paths first. The `BlazeBuilder` is immutable
 with chained methods, each returning a new builder.
 
-Multiple `HttpService`s can be combined with the `combineK` method (or its alias
+Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 `<+>`) by importing `cats.implicits._` and `org.http4s.implicits._`. Please ensure partial unification is enabled in your `build.sbt`. 
 
 `scalacOptions ++= Seq("-Ypartial-unification")`
@@ -124,7 +124,7 @@ val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(helloWor
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
 using defaults of port 8080 and the loopback address. The `mountService` call
-associates a base path with a `HttpService`.
+associates a base path with a `HttpRoutes`.
 
 A builder can be `run` to start the server.
 

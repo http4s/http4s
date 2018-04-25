@@ -7,7 +7,7 @@ import cats.instances.string._
 import cats.syntax.foldable._
 import org.http4s.dsl.io._
 
-object PathInHttpServiceSpec extends Http4sSpec {
+object PathInHttpRoutesSpec extends Http4sSpec {
 
   object List {
     def unapplySeq(params: Map[String, Seq[String]]) = params.get("list")
@@ -32,7 +32,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
 
-  val service: HttpService[IO] = HttpService {
+  val app: HttpApp[IO] = HttpApp {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
     case GET -> Root / LongVar(id) =>
@@ -73,7 +73,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
   }
 
   def serve(req: Request[IO]): Response[IO] =
-    service.orNotFound(req).unsafeRunSync
+    app(req).unsafeRunSync
 
   "Path DSL within HttpService" should {
     "GET /" in {

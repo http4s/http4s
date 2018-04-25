@@ -63,7 +63,7 @@ A `StreamApp[IO]` must define a method `stream(args: List[String],
 requestShutdown: IO[Unit])` which acts the entry point to your application. That
 method starts blaze, http4s' native server backend.
 
-The `route` method defines a simple `HttpService` that responds to `GET
+The `service` method defines a simple `HttpService` that responds to `GET
 /hello/$USERNAME` with a JSON greeting.  Let's try it:
 
 ```sh

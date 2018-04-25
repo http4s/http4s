@@ -15,10 +15,10 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(httpService: HttpService[F]): HttpService[F] =
+  )(@deprecatedName('httpService) httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
     ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
       RequestLogger(logHeaders, logBody, redactHeadersWhen)(
-        httpService
+        httpRoutes
       )
     )
 

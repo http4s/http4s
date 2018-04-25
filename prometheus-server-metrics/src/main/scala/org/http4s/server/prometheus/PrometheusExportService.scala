@@ -17,7 +17,7 @@ import org.http4s.dsl.Http4sDsl
  * metrics for, allowing custom metric registration.
  */
 final class PrometheusExportService[F[_]: Sync] private (
-    val service: HttpService[F],
+    val routes: HttpRoutes[F],
     val collectorRegistry: CollectorRegistry
 )
 
@@ -41,11 +41,11 @@ object PrometheusExportService {
       }
       .map(Response[F](Status.Ok).withEntity(_))
 
-  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpService[F] = {
+  def service[F[_]: Sync](collectorRegistry: CollectorRegistry): HttpRoutes[F] = {
     object dsl extends Http4sDsl[F]
     import dsl._
 
-    HttpService[F] {
+    HttpRoutes.of[F] {
       case GET -> Root / "metrics" => generateResponse(collectorRegistry)
     }
   }

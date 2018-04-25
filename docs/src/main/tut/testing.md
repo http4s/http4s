@@ -6,8 +6,8 @@ title: Testing
 
 ## Introduction
 
-This document implements a simple `org.http4s.HttpService` and then
-walk through the results of applying inputs, i.e. `org.http4s.Request`, to the Service, i.e. `org.http4s.HttpService`.
+This document implements a simple `org.http4s.HttpRoutes` and then
+walk through the results of applying inputs, i.e. `org.http4s.Request`, to the service, i.e. `org.http4s.HttpService`.
 
 After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.
 
@@ -32,7 +32,7 @@ trait UserRepo[F[_]] {
 
 def service[F[_]](repo: UserRepo[F])(
       implicit F: Effect[F]
-): HttpService[F] = HttpService[F] {
+): HttpRoutes[F] = HttpRoutes.of[F] {
   case GET -> Root / "user" / id =>
     repo.find(id).map {
       case Some(user) => Response(status = Status.Ok).withEntity(user.asJson)

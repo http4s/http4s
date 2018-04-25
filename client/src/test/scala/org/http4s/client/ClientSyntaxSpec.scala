@@ -14,21 +14,22 @@ import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThrownMatchers {
 
-  val route = HttpService[IO] {
-    case r if r.method == GET && r.pathInfo == "/" =>
-      Response[IO](Ok).withEntity("hello").pure[IO]
-    case r if r.method == PUT && r.pathInfo == "/put" =>
-      Response[IO](Created).withEntity(r.body).pure[IO]
-    case r if r.method == GET && r.pathInfo == "/echoheaders" =>
-      r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
-        Response[IO](Ok).withEntity(m.toString).pure[IO]
-      }
-    case r if r.pathInfo == "/status/500" =>
-      Response[IO](InternalServerError).withEntity("Oops").pure[IO]
-    case r => sys.error("Path not found: " + r.pathInfo)
-  }
+  val app = HttpRoutes
+    .of[IO] {
+      case r if r.method == GET && r.pathInfo == "/" =>
+        Response[IO](Ok).withEntity("hello").pure[IO]
+      case r if r.method == PUT && r.pathInfo == "/put" =>
+        Response[IO](Created).withEntity(r.body).pure[IO]
+      case r if r.method == GET && r.pathInfo == "/echoheaders" =>
+        r.headers.get(Accept).fold(IO.pure(Response[IO](BadRequest))) { m =>
+          Response[IO](Ok).withEntity(m.toString).pure[IO]
+        }
+      case r if r.pathInfo == "/status/500" =>
+        Response[IO](InternalServerError).withEntity("Oops").pure[IO]
+    }
+    .orNotFound
 
-  val client: Client[IO] = Client.fromHttpService(route)
+  val client: Client[IO] = Client.fromHttpApp(app)
 
   val req: Request[IO] = Request(GET, uri("http://www.foo.bar/"))
 
@@ -40,7 +41,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       disposed = true
       ()
     }
-    val disposingClient = Client(route.orNotFound.map(r => DisposableResponse(r, dispose)), IO.unit)
+    val disposingClient = Client(app.map(r => DisposableResponse(r, dispose)), IO.unit)
     f(disposingClient).attempt.unsafeRunSync()
     disposed must beTrue
   }
@@ -266,23 +267,23 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       assertDisposes(_.toKleisli(_ => IO.raiseError(SadTrombone)).run(req))
     }
 
-    "toHttpService disposes the response if the body is run" in {
-      assertDisposes(_.toHttpService.orNotFound.flatMapF(_.body.compile.drain).run(req))
+    "toHttpApp disposes the response if the body is run" in {
+      assertDisposes(_.toHttpApp.flatMapF(_.body.compile.drain).run(req))
     }
 
-    "toHttpService disposes of the response if the body is run, even if it fails" in {
+    "toHttpApp disposes of the response if the body is run, even if it fails" in {
       assertDisposes(
-        _.toHttpService.orNotFound
+        _.toHttpApp
           .flatMapF(_.body.flatMap(_ => Stream.raiseError(SadTrombone)).compile.drain)
           .run(req))
     }
 
-    "toHttpService allows the response to be read" in {
-      client.toHttpService.orNotFound(req).flatMap(_.as[String]) must returnValue("hello")
+    "toHttpApp allows the response to be read" in {
+      client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
     }
 
-    "toHttpService allows the response to be read" in {
-      client.toHttpService.orNotFound(req).flatMap(_.as[String]) must returnValue("hello")
+    "toHttpApp allows the response to be read" in {
+      client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
     }
   }
 

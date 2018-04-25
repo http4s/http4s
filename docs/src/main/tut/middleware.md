@@ -24,6 +24,7 @@ libraryDependencies ++= Seq(
 and some imports.
 
 ```tut:silent
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import org.http4s._
@@ -35,7 +36,7 @@ Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.
 
 ```tut:book
-def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = cats.data.Kleisli { req: Request[IO] =>
+def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { req: Request[IO] =>
   service(req).map {
     case Status.Successful(resp) =>
       resp.putHeaders(header)
@@ -56,7 +57,7 @@ service without a server. Because an `HttpService[F]` returns a `F[Response[F]]`
 we need to call `unsafeRunSync` on the result of the function to extract the `Response[F]`.
 
 ```tut:book
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case GET -> Root / "bad" =>
     BadRequest()
   case _ =>
@@ -92,7 +93,7 @@ object MyMiddle {
       case resp => resp
     }
 
-  def apply(service: HttpService[IO], header: Header) =
+  def apply(service: HttpRoutes[IO], header: Header) =
     service.map(addHeader(_, header))
 }
 
@@ -119,7 +120,7 @@ middleware with other, unwrapped, services, or services wrapped in other middlew
 You can also wrap a single service in multiple layers of middleware. For example:
 
 ```tut:book
-val apiService = HttpService[IO] {
+val apiService = HttpRoutes.of[IO] {
   case GET -> Root / "api" =>
     Ok()
 }

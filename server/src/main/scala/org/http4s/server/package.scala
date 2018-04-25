@@ -30,7 +30,7 @@ package object server {
   }
 
   /**
-    * An HTTP middleware converts an [[HttpService]] to another.
+    * An HTTP middleware converts an [[HttpRoutes]] to another.
     */
   type HttpMiddleware[F[_]] =
     Middleware[OptionT[F, ?], Request[F], Response[F], Request[F], Response[F]]

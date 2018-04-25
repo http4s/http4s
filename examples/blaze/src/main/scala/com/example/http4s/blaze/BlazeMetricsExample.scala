@@ -5,7 +5,7 @@ import com.codahale.metrics._
 import com.example.http4s.ExampleService
 import fs2._
 import fs2.StreamApp.ExitCode
-import org.http4s.HttpService
+import org.http4s.HttpRoutes
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.metrics._
 import org.http4s.server.{HttpMiddleware, Router}
@@ -17,7 +17,7 @@ class BlazeMetricsExampleApp[F[_]: Effect] extends StreamApp[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry()
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def service(implicit scheduler: Scheduler): HttpService[F] =
+  def service(implicit scheduler: Scheduler): HttpRoutes[F] =
     Router(
       "" -> metrics(new ExampleService[F].service),
       "/metrics" -> metricsService[F](metricsRegistry)

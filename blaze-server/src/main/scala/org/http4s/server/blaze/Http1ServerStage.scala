@@ -24,7 +24,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 private[blaze] object Http1ServerStage {
 
   def apply[F[_]: Effect](
-      service: HttpService[F],
+      routes: HttpRoutes[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
@@ -33,7 +33,7 @@ private[blaze] object Http1ServerStage {
       serviceErrorHandler: ServiceErrorHandler[F]): Http1ServerStage[F] =
     if (enableWebSockets)
       new Http1ServerStage(
-        service,
+        routes,
         attributes,
         executionContext,
         maxRequestLineLen,
@@ -41,7 +41,7 @@ private[blaze] object Http1ServerStage {
         serviceErrorHandler) with WebSocketSupport[F]
     else
       new Http1ServerStage(
-        service,
+        routes,
         attributes,
         executionContext,
         maxRequestLineLen,
@@ -50,7 +50,7 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    service: HttpService[F],
+    routes: HttpRoutes[F],
     requestAttrs: AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
@@ -59,8 +59,8 @@ private[blaze] class Http1ServerStage[F[_]](
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
-  // micro-optimization: unwrap the service and call its .run directly
-  private[this] val serviceFn = service.run
+  // micro-optimization: unwrap the routes and call its .run directly
+  private[this] val routesFn = routes.run
   private[this] val optionTSync = Sync[OptionT[F, ?]]
 
   // both `parser` and `isClosed` are protected by synchronization on `parser`
@@ -142,7 +142,7 @@ private[blaze] class Http1ServerStage[F[_]](
         executionContext.execute(new Runnable {
           def run(): Unit = {
             val action = optionTSync
-              .suspend(serviceFn(req))
+              .suspend(routesFn(req))
               .getOrElse(Response.notFound)
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))

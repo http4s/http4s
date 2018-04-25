@@ -5,14 +5,15 @@ package middleware
 import cats.Functor
 
 object URITranslation {
-  def translateRoot[F[_]: Functor](prefix: String)(service: HttpService[F]): HttpService[F] = {
+  def translateRoot[F[_]: Functor](prefix: String)(
+      @deprecatedName('service) routes: HttpRoutes[F]): HttpRoutes[F] = {
     val newCaret = prefix match {
       case "/" => 0
       case x if x.startsWith("/") => x.length
       case x => x.length + 1
     }
 
-    service.local { req: Request[F] =>
+    routes.local { req: Request[F] =>
       val oldCaret = req.attributes
         .get(Request.Keys.PathInfoCaret)
         .getOrElse(0)

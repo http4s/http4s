@@ -20,12 +20,12 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(service: HttpService[F])(
-      implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
+  )(@deprecatedName('service) routes: HttpRoutes[F])(
+      implicit ec: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
     Kleisli { req =>
       if (!logBody)
         OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> service(req).value)
+          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> routes(req).value)
       else
         OptionT
           .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
@@ -47,7 +47,7 @@ object RequestLogger {
                 )
             )
 
-            service(changedRequest)
+            routes(changedRequest)
           }
     }
 }

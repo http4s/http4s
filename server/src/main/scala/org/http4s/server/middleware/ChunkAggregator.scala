@@ -11,8 +11,9 @@ import fs2._
 import org.http4s.headers._
 
 object ChunkAggregator {
-  def apply[F[_]](service: HttpService[F])(implicit F: Effect[F]): HttpService[F] =
-    service.flatMapF { response =>
+  def apply[F[_]](@deprecatedName('service) routes: HttpRoutes[F])(
+      implicit F: Effect[F]): HttpRoutes[F] =
+    routes.flatMapF { response =>
       OptionT.liftF(
         response.body.chunks.compile
           .fold((Segment.empty[Byte], 0L)) {

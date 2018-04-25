@@ -78,10 +78,10 @@ specialize on use `fs2.Task` or `scalaz.concurrent.Task`.)
 
 ```scala
 // Good
-def apply[F[_]](service: HttpService[F])(implicit F: Monad[F]): HttpService[F]
+def apply[F[_]](service: HttpApp[F])(implicit F: Monad[F]): HttpApp[F]
 
 // Bad
-def apply(service: HttpService[Task]): HttpService[Task]
+def apply(service: HttpApp[IO]): HttpService[IO]
 ```
 
 For examples and tutorials, use `cats.effect.IO` wherever a concrete effect is

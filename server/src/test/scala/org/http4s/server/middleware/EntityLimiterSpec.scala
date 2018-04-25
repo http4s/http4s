@@ -13,7 +13,7 @@ import org.http4s.Status._
 
 class EntityLimiterSpec extends Http4sSpec {
 
-  val s = HttpService[IO] {
+  val routes = HttpRoutes.of[IO] {
     case r if r.uri.path == "/echo" => r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
   }
 
@@ -22,27 +22,27 @@ class EntityLimiterSpec extends Http4sSpec {
   "EntityLimiter" should {
 
     "Allow reasonable entities" in {
-      EntityLimiter(s, 100)
+      EntityLimiter(routes, 100)
         .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1)
         .value must returnValue(Some(-1))
     }
 
     "Limit the maximum size of an EntityBody" in {
-      EntityLimiter(s, 3)
+      EntityLimiter(routes, 3)
         .apply(Request[IO](POST, uri("/echo"), body = b))
         .map(_ => -1L)
         .value
         .handleError { case EntityTooLarge(i) => Some(i) } must returnValue(Some(3))
     }
 
-    "Chain correctly with other HttpServices" in {
-      val s2 = HttpService[IO] {
+    "Chain correctly with other HttpRoutes" in {
+      val routes2 = HttpRoutes.of[IO] {
         case r if r.uri.path == "/echo2" =>
           r.decode[String](Response[IO](Ok).withEntity(_).pure[IO])
       }
 
-      val st = EntityLimiter(s, 3) <+> s2
+      val st = EntityLimiter(routes, 3) <+> routes2
 
       st.apply(Request[IO](POST, uri("/echo2"), body = b))
         .map(_ => -1)
