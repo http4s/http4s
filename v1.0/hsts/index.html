@@ -104,11 +104,11 @@ import cats.effect.IO
 
 <p>Let&rsquo;s make a simple service that will be exposed and wrapped with HSTS.</p>
 
-<pre><code class="language-scala">val service = HttpService[IO] {
+<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
   case _ =&gt;
     Ok(&quot;ok&quot;)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$53101/67320052@35cf8223)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$53290/321508530@10ab446c)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -127,7 +127,7 @@ response.headers
 // import org.http4s.server.middleware._
 
 val hstsService = HSTS(service)
-// hstsService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$53263/23195534@6af7648)
+// hstsService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$53447/357115343@6218f8fd)
 
 // Do not call 'unsafeRunSync' in your code
 val response = hstsService.orNotFound(request).unsafeRunSync
@@ -160,7 +160,7 @@ val hstsHeader = `Strict-Transport-Security`.unsafeFromDuration(30.days, include
 // hstsHeader: org.http4s.headers.Strict-Transport-Security = Strict-Transport-Security: max-age=2592000; includeSubDomains; preload
 
 val hstsService = HSTS(service, hstsHeader)
-// hstsService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$53263/23195534@571ad259)
+// hstsService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.middleware.HSTS$$$Lambda$53447/357115343@737c3b0b)
 
 // Do not call 'unsafeRunSync' in your code
 val response = hstsService.orNotFound(request).unsafeRunSync

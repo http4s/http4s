@@ -109,12 +109,12 @@ import org.http4s.dsl.io._
 import java.io.File
 // import java.io.File
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / &quot;index.html&quot; =&gt;
     StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$63149/462040548@64de84b7)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$63332/1769573827@47ebf52a)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -126,11 +126,11 @@ deliver them from there. Append to the <code>List</code> as needed.</p>
   StaticFile.fromResource(&quot;/&quot; + file, Some(request)).getOrElseF(NotFound())
 // static: (file: String, request: org.http4s.Request[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]]
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$63149/462040548@b8e5663)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$63332/1769573827@51abc54a)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -162,12 +162,12 @@ def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(&quot;.js&quot;)
 // isJsAsset: (asset: org.http4s.server.staticcontent.WebjarService.WebjarAsset)Boolean
 
-val webjars: HttpService[IO] = webjarService(
+val webjars: HttpRoutes[IO] = webjarService(
   Config(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$63215/1757153600@6bd2a575)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$63398/286403447@3c254fd4)
 </code></pre>
 
         </div>

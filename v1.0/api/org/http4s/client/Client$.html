@@ -471,10 +471,10 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.Client#fromHttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fromHttpService[F[_]](service:org.http4s.HttpService[F])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="fromHttpService[F[_]](HttpService[F])(Sync[F]):Client[F]"></a>
+    </li><li name="org.http4s.client.Client#fromHttpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromHttpApp[F[_]](app:org.http4s.HttpApp[F])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="fromHttpApp[F[_]](HttpApp[F])(Sync[F]):Client[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client$.html#fromHttpService[F[_]](service:org.http4s.HttpService[F])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
+      <a href="../../../org/http4s/client/Client$.html#fromHttpApp[F[_]](app:org.http4s.HttpApp[F])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -483,12 +483,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fromHttpService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.fromHttpService.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.Client.fromHttpService.F">F</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.fromHttpService.F">F</span>]</span>
+        <span class="name">fromHttpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="app">app: <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.client.Client.fromHttpApp.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.Client.fromHttpApp.F">F</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.fromHttpApp.F">F</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Creates a client from the specified service.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a client from the specified service.  Useful for generating
-pre-determined responses for requests in testing.
-</p></div><dl class="paramcmts block"><dt class="param">service</dt><dd class="cmt"><p>the service to respond to requests to this client</p></dd></dl></div>
+      <p class="shortcomment cmt">Creates a client from the specified <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a client from the specified <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.  Useful for
+generating pre-determined responses for requests in testing.
+</p></div><dl class="paramcmts block"><dt class="param">app</dt><dd class="cmt"><p>the <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a> to respond to requests to this client</p></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
@@ -703,7 +703,31 @@ pre-determined responses for requests in testing.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.client.Client#fromHttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fromHttpService[F[_]](service:org.http4s.HttpRoutes[F])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="fromHttpService[F[_]](HttpRoutes[F])(Sync[F]):Client[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client$.html#fromHttpService[F[_]](service:org.http4s.HttpRoutes[F])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.">fromHttpService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.client.Client.fromHttpService.F">F</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.Client.fromHttpService.F">F</span>]</span>)</span><span class="result">: <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.Client.fromHttpService.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Creates a client from the specified service.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a client from the specified service.  Useful for generating
+pre-determined responses for requests in testing.
+</p></div><dl class="paramcmts block"><dt class="param">service</dt><dd class="cmt"><p>the service to respond to requests to this client</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

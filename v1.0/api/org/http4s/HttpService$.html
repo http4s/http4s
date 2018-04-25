@@ -509,6 +509,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Headers.html" title="A collection of HTTP Headers"></a>
                         <a href="Headers.html" title="A collection of HTTP Headers">Headers</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="Http$.html" title="Functions for creating Http kleislis."></a>
+                        <a href="Http$.html" title="Functions for creating Http kleislis.">Http</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Http4s$.html" title=""></a>
                         <a class="trait" href="Http4s.html" title=""></a>
                         <a href="Http4s.html" title="">Http4s</a>
@@ -525,6 +529,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="HttpApp$.html" title="Functions for creating HttpApp kleislis."></a>
+                        <a href="HttpApp$.html" title="Functions for creating HttpApp kleislis.">HttpApp</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="HttpCodec$.html" title=""></a>
                         <a class="trait" href="HttpCodec.html" title=""></a>
                         <a href="HttpCodec.html" title="">HttpCodec</a>
@@ -532,6 +540,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="HttpDate$.html" title=""></a>
                         <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal Time (UTC)."></a>
                         <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal Time (UTC).">HttpDate</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis."></a>
+                        <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="" title=""></a>
@@ -759,12 +771,15 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpService</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Replaced by HttpRoutes">HttpService</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/HttpService.scala" target="_blank">HttpService.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Replaced by HttpRoutes</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/HttpService.scala" target="_blank">HttpService.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -869,24 +884,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.HttpService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_]](pf:PartialFunction[org.http4s.Request[F],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.HttpService[F]"></a><a id="apply[F[_]](PartialFunction[Request[F],F[Response[F]]])(Applicative[F]):HttpService[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HttpService$.html#apply[F[_]](pf:PartialFunction[org.http4s.Request[F],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.HttpService[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.12.4/scala/PartialFunction.html#scala.PartialFunction" class="extype" name="scala.PartialFunction">PartialFunction</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>], <span class="extype" name="org.http4s.HttpService.apply.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>]]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>]</span>)</span><span class="result">: <a href="index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Lifts a partial function to an <code>HttpService</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a partial function to an <code>HttpService</code>.
-Responds with <code>OptionT.none</code> for any request where <code>pf</code> is not defined.
-</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -927,22 +924,6 @@ Responds with <code>OptionT.none</code> for any request where <code>pf</code> is
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.HttpService#empty" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="empty[F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.HttpService[F]"></a><a id="empty[F[_]](Applicative[F]):HttpService[F]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/HttpService$.html#empty[F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.HttpService[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">empty</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.HttpService.empty.F">F</span>]</span>)</span><span class="result">: <a href="index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.HttpService.empty.F">F</span>]</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -1213,7 +1194,47 @@ Responds with <code>OptionT.none</code> for any request where <code>pf</code> is
 
         <div class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.HttpService#lift" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.HttpService#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[F[_]](pf:PartialFunction[org.http4s.Request[F],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](PartialFunction[Request[F],F[Response[F]]])(Applicative[F]):HttpRoutes[F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/HttpService$.html#apply[F[_]](pf:PartialFunction[org.http4s.Request[F],F[org.http4s.Response[F]]])(implicitF:cats.Applicative[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Replaced by HttpRoutes.of">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.12.4/scala/PartialFunction.html#scala.PartialFunction" class="extype" name="scala.PartialFunction">PartialFunction</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>], <span class="extype" name="org.http4s.HttpService.apply.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>]]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>]</span>)</span><span class="result">: <a href="index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.HttpService.apply.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Lifts a partial function to <a href="index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a partial function to <a href="index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>.  Responds with
+<code>OptionT.none</code> for any request where <code>pf</code> is not defined.</p><p>Unlike <code>HttpRoutes.of</code>, does not suspend the application of <code>pf</code>.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Replaced by <code>HttpRoutes.of</code></p></dd></dl></div>
+    </li><li name="org.http4s.HttpService#empty" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="empty[F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.HttpRoutes[F]"></a><a id="empty[F[_]](Applicative[F]):HttpRoutes[F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/HttpService$.html#empty[F[_]](implicitevidence$2:cats.Applicative[F]):org.http4s.HttpRoutes[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Replaced by HttpRoutes.empty">empty</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.HttpService.empty.F">F</span>]</span>)</span><span class="result">: <a href="index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.HttpService.empty.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Replaced by <code>HttpRoutes.empty</code></p></dd></dl></div>
+    </li><li name="org.http4s.HttpService#lift" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="lift[F[_]](f:org.http4s.Request[F]=&gt;F[org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.HttpService[F]"></a><a id="lift[F[_]]((Request[F])⇒F[Response[F]])(Functor[F]):HttpService[F]"></a>
       <span class="permalink">
       <a href="../../org/http4s/HttpService$.html#lift[F[_]](f:org.http4s.Request[F]=&gt;F[org.http4s.Response[F]])(implicitevidence$1:cats.Functor[F]):org.http4s.HttpService[F]" title="Permalink">
@@ -1225,7 +1246,7 @@ Responds with <code>OptionT.none</code> for any request where <code>pf</code> is
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use liftF with an OptionT[F, Response[F]] instead">lift</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]) ⇒ <span class="extype" name="org.http4s.HttpService.lift.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]</span>)</span><span class="result">: <a href="index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.18) Use liftF with an OptionT[F, Response[F]] instead">lift</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="f">f: (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]) ⇒ <span class="extype" name="org.http4s.HttpService.lift.F">F</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.Functor">Functor</span>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]</span>)</span><span class="result">: <a href="index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.HttpService.lift.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Lifts a total function to an <code>HttpService</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a total function to an <code>HttpService</code>. The function is expected to

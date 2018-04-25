@@ -132,7 +132,7 @@ A <code>StreamApp[IO]</code> must define a method <code>stream(args: List[String
 requestShutdown: IO[Unit])</code> which acts the entry point to your application. That
 method starts blaze, http4s&rsquo; native server backend.</p>
 
-<p>The <code>route</code> method defines a simple <code>HttpService</code> that responds to <code>GET
+<p>The <code>service</code> method defines a simple <code>HttpService</code> that responds to <code>GET
 /hello/$USERNAME</code> with a JSON greeting.  Let&rsquo;s try it:</p>
 
 <pre><code class="language-sh">$ sbt run

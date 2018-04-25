@@ -1136,10 +1136,10 @@ successful</p>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.client.Client#toHttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="toHttpService:org.http4s.HttpService[F]"></a><a id="toHttpService:HttpService[F]"></a>
+    </li><li name="org.http4s.client.Client#toHttpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toHttpApp:org.http4s.HttpApp[F]"></a><a id="toHttpApp:HttpApp[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/Client.html#toHttpService:org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../org/http4s/client/Client.html#toHttpApp:org.http4s.HttpApp[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1148,10 +1148,10 @@ successful</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toHttpService</span><span class="result">: <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
+        <span class="name">toHttpApp</span><span class="result">: <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the responsibility of
+      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a>.  It is the responsibility of
 callers of this service to run the response body to dispose of the
 underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
 <a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
@@ -1351,6 +1351,30 @@ connection is closed at the completion of the decoding.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#toHttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toHttpService:org.http4s.HttpService[F]"></a><a id="toHttpService:HttpService[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/Client.html#toHttpService:org.http4s.HttpService[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Use toHttpApp. Call .mapF(OptionT.liftF) if OptionT is really desired.">toHttpService</span><span class="result">: <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.client.Client.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the
+responsibility of callers of this service to run the response
+body to dispose of the underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <code>fetch</code>, <code>fetchAs</code>,
+<a href="#toKleisli[A](f:org.http4s.Response[F]=&gt;F[A]):cats.data.Kleisli[F,org.http4s.Request[F],A]" class="extmbr" name="org.http4s.client.Client#toKleisli">toKleisli</a>, and <a href="#streaming[A](req:F[org.http4s.Request[F]])(f:org.http4s.Response[F]=&gt;fs2.Stream[F,A]):fs2.Stream[F,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
+signatures guarantee disposal of the HTTP connection.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Use toHttpApp. Call <code>.mapF(OptionT.liftF)</code> if OptionT is really desired.</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#toService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toService[A](f:org.http4s.Response[F]=&gt;F[A]):org.http4s.Service[F,org.http4s.Request[F],A]"></a><a id="toService[A]((Response[F])⇒F[A]):Service[F,Request[F],A]"></a>
       <span class="permalink">

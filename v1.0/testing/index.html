@@ -85,8 +85,8 @@
 
 <h2 id="introduction">Introduction</h2>
 
-<p>This document implements a simple <code>org.http4s.HttpService</code> and then
-walk through the results of applying inputs, i.e. <code>org.http4s.Request</code>, to the Service, i.e. <code>org.http4s.HttpService</code>.</p>
+<p>This document implements a simple <code>org.http4s.HttpRoutes</code> and then
+walk through the results of applying inputs, i.e. <code>org.http4s.Request</code>, to the service, i.e. <code>org.http4s.HttpService</code>.</p>
 
 <p>After reading this doc, the reader should feel comfortable writing a unit test using his/her favorite Scala testing library.</p>
 
@@ -120,7 +120,7 @@ final case class User(name: String, age: Int)
 // defined class User
 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@616835fd
+// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@35f1432e
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -129,14 +129,14 @@ trait UserRepo[F[_]] {
 
 def service[F[_]](repo: UserRepo[F])(
       implicit F: Effect[F]
-): HttpService[F] = HttpService[F] {
+): HttpRoutes[F] = HttpRoutes.of[F] {
   case GET -&gt; Root / &quot;user&quot; / id =&gt;
     repo.find(id).map {
       case Some(user) =&gt; Response(status = Status.Ok).withEntity(user.asJson)
       case None       =&gt; Response(status = Status.NotFound)
     }
 }
-// service: [F[_]](repo: UserRepo[F])(implicit F: cats.effect.Effect[F])org.http4s.HttpService[F]
+// service: [F[_]](repo: UserRepo[F])(implicit F: cats.effect.Effect[F])org.http4s.HttpRoutes[F]
 </code></pre>
 
 <p>For testing, let&rsquo;s define a <code>check</code> function:</p>
@@ -163,7 +163,7 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[cats.effect.IO] = $anon$1@405bb4fa
+// success: UserRepo[cats.effect.IO] = $anon$1@56c8c534
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -189,7 +189,7 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[cats.effect.IO] = $anon$1@477e6cea
+// foundNone: UserRepo[cats.effect.IO] = $anon$1@6719201c
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -205,7 +205,7 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@12fb48a0
+// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@5da3b220
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/not-a-matching-path&quot;) )

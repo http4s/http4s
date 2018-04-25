@@ -102,11 +102,11 @@ import org.http4s.dsl.io._
 <p>Let&rsquo;s start by making a simple service that returns a (relatively) large string
 in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
 
-<pre><code class="language-scala">val service = HttpService[IO] {
+<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$54566/1731703374@6b540fcb)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$54750/1871928136@37cce847)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -128,7 +128,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$54823/976484505@7ba95dee)
+// zipService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$55007/1274907000@45f923aa)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRunSync

@@ -113,8 +113,8 @@ from the top, you should be able to follow along in a REPL.</p>
 
 <h2 id="your-first-service">Your first service</h2>
 
-<p>An <code>HttpService[F]</code> is a simple alias for
-<code>Kleisli[F, Request, Response]</code>.  If that&rsquo;s meaningful to you,
+<p>An <code>HttpRoutes[F]</code> is a simple alias for
+<code>Kleisli[OptionT[F, ?[, Request, Response]</code>.  If that&rsquo;s meaningful to you,
 great.  If not, don&rsquo;t panic: <code>Kleisli</code> is just a convenient wrapper
 around a <code>Request =&gt; F[Response]</code>, and <code>F</code> is an effectful
 operation.  We&rsquo;ll teach you what you need to know as we go, or you
@@ -128,7 +128,7 @@ can, uh, fork a task to read these introductions first:</p>
 <h3 id="defining-your-service">Defining your service</h3>
 
 <p>Wherever you are in your studies, let&rsquo;s create our first
-<code>HttpService</code>.  Start by pasting these imports into your SBT console:</p>
+<code>HttpRoutes</code>.  Start by pasting these imports into your SBT console:</p>
 
 <pre><code class="language-scala">import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
 // import cats.effect._
@@ -137,16 +137,16 @@ can, uh, fork a task to read these introductions first:</p>
 // import scala.concurrent.ExecutionContext.Implicits.global
 </code></pre>
 
-<p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpService</code> by pattern
+<p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpRoutes</code> by pattern
 matching the request.  Let&rsquo;s build a service that matches requests to
 <code>GET /hello/:name</code>, where <code>:name</code> is a path parameter for the person to
 greet.</p>
 
-<pre><code class="language-scala">val helloWorldService = HttpService[IO] {
+<pre><code class="language-scala">val helloWorldService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$47556/224857015@2e6d201c)
+// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$47745/2082761487@60729bb6)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -178,13 +178,13 @@ def getTweet(tweetId: Int): IO[Tweet] = ???
 def getPopularTweets(): IO[Seq[Tweet]] = ???
 // getPopularTweets: ()cats.effect.IO[Seq[Tweet]]
 
-val tweetService = HttpService[IO] {
+val tweetService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / &quot;popular&quot; =&gt;
     getPopularTweets().flatMap(Ok(_))
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$47556/224857015@65c28f1f)
+// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$47745/2082761487@47faa3eb)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -198,7 +198,7 @@ path of <code>/api</code>. The services can be mounted in any order as the reque
 matched against the longest base paths first. The <code>BlazeBuilder</code> is immutable
 with chained methods, each returning a new builder.</p>
 
-<p>Multiple <code>HttpService</code>s can be combined with the <code>combineK</code> method (or its alias
+<p>Multiple <code>HttpRoutes</code> can be combined with the <code>combineK</code> method (or its alias
 <code>&lt;+&gt;</code>) by importing <code>cats.implicits._</code> and <code>org.http4s.implicits._</code>. Please ensure partial unification is enabled in your <code>build.sbt</code>.</p>
 
 <p><code>scalacOptions ++= Seq(&quot;-Ypartial-unification&quot;)</code></p>
@@ -213,15 +213,15 @@ import org.http4s.implicits._
 // import org.http4s.implicits._
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$47756/532407260@1e523511)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$47950/176365066@5a7d9810)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$701411444
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$342314140
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
 using defaults of port 8080 and the loopback address. The <code>mountService</code> call
-associates a base path with a <code>HttpService</code>.</p>
+associates a base path with a <code>HttpRoutes</code>.</p>
 
 <p>A builder can be <code>run</code> to start the server.</p>
 

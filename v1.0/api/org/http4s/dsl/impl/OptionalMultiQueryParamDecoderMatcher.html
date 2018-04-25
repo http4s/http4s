@@ -282,7 +282,7 @@
 <span class="kw">implicit</span> <span class="kw">val</span> fooParam: QueryParam[Foo] = ...
 
 <span class="kw">object</span> FooMatcher <span class="kw">extends</span> OptionalMultiQueryParamDecoderMatcher[Foo](<span class="lit">"foo"</span>)
-<span class="kw">val</span> service: HttpService = {
+<span class="kw">val</span> routes = HttpRoutes.of {
   <span class="cmt">// matches http://.../closest?foo=2&foo=3&foo=4</span>
   <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(<span class="std">Some</span>(<span class="std">Seq</span>(<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>))) <span class="kw">=&gt;</span> ...
 

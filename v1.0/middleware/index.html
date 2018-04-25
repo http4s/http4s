@@ -102,7 +102,8 @@ at a simple example.</p>
 
 <p>and some imports.</p>
 
-<pre><code class="language-scala">import cats.effect._
+<pre><code class="language-scala">import cats.data.Kleisli
+import cats.effect._
 import cats.implicits._
 import org.http4s._
 import org.http4s.implicits._
@@ -112,7 +113,7 @@ import org.http4s.dsl.io._
 <p>Then, we can create a middleware that adds a header to successful responses from
 the wrapped service like this.</p>
 
-<pre><code class="language-scala">def myMiddle(service: HttpService[IO], header: Header): HttpService[IO] = cats.data.Kleisli { req: Request[IO] =&gt;
+<pre><code class="language-scala">def myMiddle(service: HttpRoutes[IO], header: Header): HttpRoutes[IO] = Kleisli { req: Request[IO] =&gt;
   service(req).map {
     case Status.Successful(resp) =&gt;
       resp.putHeaders(header)
@@ -120,7 +121,7 @@ the wrapped service like this.</p>
       resp
   }
 }
-// myMiddle: (service: org.http4s.HttpService[cats.effect.IO], header: org.http4s.Header)org.http4s.HttpService[cats.effect.IO]
+// myMiddle: (service: org.http4s.HttpRoutes[cats.effect.IO], header: org.http4s.Header)org.http4s.HttpRoutes[cats.effect.IO]
 </code></pre>
 
 <p>All we do here is pass the request to the service,
@@ -133,13 +134,13 @@ is implemented as a <a href="https://typelevel.org/cats/datatypes/kleisli.html">
 service without a server. Because an <code>HttpService[F]</code> returns a <code>F[Response[F]]</code>,
 we need to call <code>unsafeRunSync</code> on the result of the function to extract the <code>Response[F]</code>.</p>
 
-<pre><code class="language-scala">val service = HttpService[IO] {
+<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;bad&quot; =&gt;
     BadRequest()
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$56344/516462022@6cbdda7d)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$56533/1621269084@467ffd64)
 
 val goodRequest = Request[IO](Method.GET, uri(&quot;/&quot;))
 // goodRequest: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -157,7 +158,7 @@ service.orNotFound(badRequest).unsafeRunSync
 <p>Now, we&rsquo;ll wrap the service in our middleware to create a new service, and try it out.</p>
 
 <pre><code class="language-scala">val wrappedService = myMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;));
-// wrappedService: org.http4s.HttpService[cats.effect.IO] = Kleisli($$Lambda$56454/593363371@2d55b234)
+// wrappedService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli($$Lambda$56634/946516633@4005df12)
 
 wrappedService.orNotFound(goodRequest).unsafeRunSync
 // res2: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, SomeKey: SomeValue))
@@ -178,13 +179,13 @@ it as an <code>object</code> and use the <code>apply</code> method.</p>
       case resp =&gt; resp
     }
 
-  def apply(service: HttpService[IO], header: Header) =
+  def apply(service: HttpRoutes[IO], header: Header) =
     service.map(addHeader(_, header))
 }
 // defined object MyMiddle
 
 val newService = MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// newService: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.Kleisli$$Lambda$56466/422920393@1f56fbe7)
+// newService: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.Kleisli$$Lambda$56651/1034951717@6d5193b5)
 
 newService.orNotFound(goodRequest).unsafeRunSync
 // res4: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, SomeKey: SomeValue))
@@ -210,14 +211,14 @@ defined for this in the <code>http4s.server</code> package:</p>
 middleware with other, unwrapped, services, or services wrapped in other middleware.
 You can also wrap a single service in multiple layers of middleware. For example:</p>
 
-<pre><code class="language-scala">val apiService = HttpService[IO] {
+<pre><code class="language-scala">val apiService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;api&quot; =&gt;
     Ok()
 }
-// apiService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$56344/516462022@2f88b683)
+// apiService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$56533/1621269084@4d39d5e3)
 
 val aggregateService = apiService &lt;+&gt; MyMiddle(service, Header(&quot;SomeKey&quot;, &quot;SomeValue&quot;))
-// aggregateService: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$56477/490701760@64093eb1)
+// aggregateService: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$56662/1013946133@435177fc)
 
 val apiRequest = Request[IO](Method.GET, uri(&quot;/api&quot;))
 // apiRequest: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/api, headers=Headers())

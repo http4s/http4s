@@ -105,7 +105,7 @@ import org.http4s.dsl.io._
 // An infinite stream of the periodic elapsed time
 val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
     Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }

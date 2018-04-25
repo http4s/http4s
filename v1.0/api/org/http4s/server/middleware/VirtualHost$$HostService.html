@@ -178,7 +178,7 @@ based on the <a href="../../headers/Host.html" class="extype" name="org.http4s.h
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">HostService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">HostService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="routes">routes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -242,9 +242,9 @@ security of the underlying transport protocol.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.middleware.VirtualHost.HostService#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(service:org.http4s.HttpService[F],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F]"></a><a id="&lt;init&gt;:HostService[F]"></a>
+      <a id="&lt;init&gt;(routes:org.http4s.HttpRoutes[F],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F]"></a><a id="&lt;init&gt;:HostService[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#&lt;init&gt;(service:org.http4s.HttpService[F],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#&lt;init&gt;(routes:org.http4s.HttpRoutes[F],p:org.http4s.headers.Host=&gt;Boolean):org.http4s.server.middleware.VirtualHost.HostService[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -253,7 +253,7 @@ security of the underlying transport protocol.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">HostService</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span>
+        <span class="name">HostService</span><span class="params">(<span name="routes">routes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>, <span name="p">p: (<a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.4/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span>
       </span>
       
       
@@ -644,10 +644,10 @@ security of the underlying transport protocol.
       </span>
       
       
-    </li><li name="org.http4s.server.middleware.VirtualHost.HostService#service" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="service:org.http4s.HttpService[F]"></a><a id="service:HttpService[F]"></a>
+    </li><li name="org.http4s.server.middleware.VirtualHost.HostService#routes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="routes:org.http4s.HttpRoutes[F]"></a><a id="routes:HttpRoutes[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#service:org.http4s.HttpService[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/VirtualHost$$HostService.html#routes:org.http4s.HttpRoutes[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -656,7 +656,7 @@ security of the underlying transport protocol.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">service</span><span class="result">: <a href="../../index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
+        <span class="name">routes</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.VirtualHost.HostService.F">F</span>]</span>
       </span>
       
       

@@ -509,6 +509,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Headers.html" title="A collection of HTTP Headers"></a>
                         <a href="Headers.html" title="A collection of HTTP Headers">Headers</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="Http$.html" title="Functions for creating Http kleislis."></a>
+                        <a href="Http$.html" title="Functions for creating Http kleislis.">Http</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="Http4s$.html" title=""></a>
                         <a class="trait" href="Http4s.html" title=""></a>
                         <a href="Http4s.html" title="">Http4s</a>
@@ -525,6 +529,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="class" href="Http4sVersion.html" title=""></a>
                         <a href="Http4sVersion.html" title="">Http4sVersion</a>
                       </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="HttpApp$.html" title="Functions for creating HttpApp kleislis."></a>
+                        <a href="HttpApp$.html" title="Functions for creating HttpApp kleislis.">HttpApp</a>
+                      </li><li class="current-entities indented2">
                         <a class="object" href="HttpCodec$.html" title=""></a>
                         <a class="trait" href="HttpCodec.html" title=""></a>
                         <a href="HttpCodec.html" title="">HttpCodec</a>
@@ -532,6 +540,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="HttpDate$.html" title=""></a>
                         <a class="class" href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal Time (UTC)."></a>
                         <a href="HttpDate.html" title="An HTTP-date value represents time as an instance of Coordinated Universal Time (UTC).">HttpDate</a>
+                      </li><li class="current-entities indented2">
+                        <span class="separator"></span>
+                        <a class="object" href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis."></a>
+                        <a href="HttpRoutes$.html" title="Functions for creating HttpRoutes kleislis.">HttpRoutes</a>
                       </li><li class="current-entities indented2">
                         <span class="separator"></span>
                         <a class="object" href="HttpService$.html" title=""></a>
@@ -1338,6 +1350,25 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </span>
       
       <p class="shortcomment cmt">A collection of HTTP Headers</p>
+    </li><li name="org.http4s.Http" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]"></a><a id="Http[F[_],G[_]]:Http[F,G]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Http</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.Http.F">F</span>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.Http.G">G</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.Http.G">G</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">A kleisli with a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> input and a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> output.</p><div class="fullcomment"><div class="comment cmt"><p>A kleisli with a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> input and a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> output.  This type
+is useful for writing middleware that are polymorphic over the return
+type F.
+</p></div></div>
     </li><li name="org.http4s.Http4s" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Http4sextendsHttp4sInstanceswithHttp4sFunctionswithAllSyntax"></a><a id="Http4s:Http4s"></a>
       <span class="permalink">
@@ -1402,6 +1433,27 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </span>
       
       
+    </li><li name="org.http4s.HttpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpApp[F[_]]=org.http4s.package.Http[F,F]"></a><a id="HttpApp[F[_]]:HttpApp[F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpApp[F[_]]=org.http4s.package.Http[F,F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpApp</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.HttpApp.F">F</span>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpApp.F">F</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpApp.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">A kleisli with a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> input and a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> output, such
+that the response effect is the same as the request and response bodies'.</p><div class="fullcomment"><div class="comment cmt"><p>A kleisli with a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> input and a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> output, such
+that the response effect is the same as the request and response bodies'.
+An HTTP app is total on its inputs.  An HTTP app may be run by a server,
+and a client can be converted to or from an HTTP app.
+</p></div></div>
     </li><li name="org.http4s.HttpCodec" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="HttpCodec[A]extendsRenderer[A]"></a><a id="HttpCodec[A]:HttpCodec[A]"></a>
       <span class="permalink">
@@ -1439,10 +1491,10 @@ Time (UTC). It expresses time at a resolution of one second.  By using it
 over java.time.Instant in the model, we assure that if two headers render
 equally, their values are equal.
 </p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>https://tools.ietf.org/html/rfc7231#page65</p></span></dd></dl></div>
-    </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]"></a><a id="HttpService[F[_]]:HttpService[F]"></a>
+    </li><li name="org.http4s.HttpRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]"></a><a id="HttpRoutes[F[_]]:HttpRoutes[F]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#HttpService[F[_]]=cats.data.Kleisli[[β$0$]cats.data.OptionT[F,β$0$],org.http4s.Request[F],org.http4s.Response[F]]" title="Permalink">
+      <a href="../../org/http4s/index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1451,15 +1503,16 @@ equally, their values are equal.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$0$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$0$">β$0$</span>], <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>]]</span>
+        <span class="name">HttpRoutes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$0$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.HttpRoutes.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$0$">β$0$</span>], <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpRoutes.F">F</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpRoutes.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">A <span class="extype" name="Kleisli">Kleisli</span> that produces an effect to compute an <span class="extype" name="OptionT[F">OptionT[F</span>]] from a
-<span class="extype" name="Request[F">Request[F</span>].</p><div class="fullcomment"><div class="comment cmt"><p>A <span class="extype" name="Kleisli">Kleisli</span> that produces an effect to compute an <span class="extype" name="OptionT[F">OptionT[F</span>]] from a
-<span class="extype" name="Request[F">Request[F</span>]. In case an <span class="extype" name="OptionT.none">OptionT.none</span> is computed the server backend
-should respond with a 404.
-An HttpService can be run on any supported http4s
-server backend, such as Blaze, Jetty, or Tomcat.
+      <p class="shortcomment cmt">A kleisl with a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> input and a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> output, such
+that the response effect is an optional inside the effect of the
+request and response bodies.</p><div class="fullcomment"><div class="comment cmt"><p>A kleisl with a <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> input and a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> output, such
+that the response effect is an optional inside the effect of the
+request and response bodies.  HTTP routes can conveniently be
+constructed from a partial function and combined as a
+<code>SemigroupK</code>.
 </p></div></div>
     </li><li name="org.http4s.HttpVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpVersionextendsRenderablewithOrdered[org.http4s.HttpVersion]withProductwithSerializable"></a><a id="HttpVersion:HttpVersion"></a>
@@ -2257,6 +2310,25 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Moved to org.http4s.syntax.AllSyntax</p></dd></dl></div>
+    </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpService[F[_]]=org.http4s.package.HttpRoutes[F]"></a><a id="HttpService[F[_]]:HttpService[F]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpService[F[_]]=org.http4s.package.HttpRoutes[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19) Deprecated in favor of HttpRoutes">HttpService</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[[β$0$]<a href="http://typelevel.org/cats/api/cats/data/OptionT.html#cats.data.OptionT" class="extype" name="cats.data.OptionT">OptionT</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>, <span class="extype" name="org.http4s.&lt;refinement&gt;.Λ$.β$0$">β$0$</span>], <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.HttpService.F">F</span>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Deprecated in favor of HttpRoutes</p></dd></dl></div>
     </li><li name="org.http4s.Service" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Service[F[_],A,B]=cats.data.Kleisli[F,A,B]"></a><a id="Service[F[_],A,B]:Service[F,A,B]"></a>
       <span class="permalink">
@@ -2272,11 +2344,7 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
         <span class="name deprecated" title="Deprecated: (Since version 0.18) Deprecated in favor of just using Kleisli">Service</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>, <span name="B">B</span>]</span><span class="result alias"> = <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.Service.F">F</span>, <span class="extype" name="org.http4s.Service.A">A</span>, <span class="extype" name="org.http4s.Service.B">B</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">A Service wraps a function of request type <code>A</code> to an effect that runs
-to response type <code>B</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <code>A</code> to an effect that runs
-to response type <code>B</code>.  By wrapping the <a href="#Service[F[_],A,B]=cats.data.Kleisli[F,A,B]" class="extmbr" name="org.http4s.Service">Service</a>, we can compose them
-using Kleisli operations.
-</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18)</i> Deprecated in favor of just using Kleisli</p></dd></dl></div>
@@ -2660,6 +2728,22 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
+    </li><li name="org.http4s.Http" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http"></a><a id="Http:Http"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#Http" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Functions for creating Http kleislis." href="Http$.html"><span class="name">Http</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Functions for creating <a href="#Http[F[_],G[_]]=cats.data.Kleisli[F,org.http4s.Request[G],org.http4s.Response[G]]" class="extmbr" name="org.http4s.Http">Http</a> kleislis.</p>
     </li><li name="org.http4s.Http4s" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Http4s"></a><a id="Http4s:Http4s"></a>
       <span class="permalink">
@@ -2708,6 +2792,22 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
+    </li><li name="org.http4s.HttpApp" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpApp"></a><a id="HttpApp:HttpApp"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpApp" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="Functions for creating HttpApp kleislis." href="HttpApp$.html"><span class="name">HttpApp</span></a>
+      </span>
+      
+      <p class="shortcomment cmt">Functions for creating <a href="#HttpApp[F[_]]=org.http4s.package.Http[F,F]" class="extmbr" name="org.http4s.HttpApp">HttpApp</a> kleislis.</p>
     </li><li name="org.http4s.HttpCodec" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpCodec"></a><a id="HttpCodec:HttpCodec"></a>
       <span class="permalink">
@@ -2740,10 +2840,10 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       
       
-    </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="HttpService"></a><a id="HttpService:HttpService"></a>
+    </li><li name="org.http4s.HttpRoutes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpRoutes"></a><a id="HttpRoutes:HttpRoutes"></a>
       <span class="permalink">
-      <a href="../../org/http4s/index.html#HttpService" title="Permalink">
+      <a href="../../org/http4s/index.html#HttpRoutes" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -2752,10 +2852,10 @@ with some commonly used instances which can be resolved implicitly.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="" href="HttpService$.html"><span class="name">HttpService</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Functions for creating HttpRoutes kleislis." href="HttpRoutes$.html"><span class="name">HttpRoutes</span></a>
       </span>
       
-      
+      <p class="shortcomment cmt">Functions for creating <a href="#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a> kleislis.</p>
     </li><li name="org.http4s.HttpVersion" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpVersion"></a><a id="HttpVersion:HttpVersion"></a>
       <span class="permalink">
@@ -3199,6 +3299,25 @@ with some commonly used instances which can be resolved implicitly.</p>
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Moved to org.http4s.syntax.all</p></dd></dl></div>
+    </li><li name="org.http4s.HttpService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpService"></a><a id="HttpService:HttpService"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#HttpService" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="HttpService$.html"><span class="name deprecated" title="Deprecated: (Since version 0.19) Replaced by HttpRoutes">HttpService</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19)</i> Replaced by HttpRoutes</p></dd></dl></div>
     </li><li name="org.http4s.Service" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Service"></a><a id="Service:Service"></a>
       <span class="permalink">
