@@ -5,7 +5,6 @@ import cats._
 import cats.effect._
 import cats.implicits._
 import fs2._
-import java.io.File
 import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.EntityEncoder._

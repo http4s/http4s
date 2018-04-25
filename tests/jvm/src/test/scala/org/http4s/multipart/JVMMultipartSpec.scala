@@ -5,7 +5,6 @@ import java.io.File
 
 import org.http4s._
 import cats.effect._
-import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.Headers._
 import org.http4s.Uri._
@@ -49,7 +48,7 @@ class JVMMultipartSpec extends Specification {
     val file = new File(getClass.getResource("/ball.png").toURI)
 
     val field1 = Part.formData[IO]("field1", "Text_Field_1")
-    val field2 = Part.fileData[IO]("image", file, `Content-Type`(`image/png`))
+    val field2 = Part.fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
 
     val multipart = Multipart[IO](Vector(field1, field2))
 
