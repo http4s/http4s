@@ -34,6 +34,7 @@ it.
 # v0.18.10-SNAPSHOT (unreleased)
 * Dependency upgrades:
   * cats-effect-0.10.1
+  * fs2-0.10.4
   * specs2-4.1.0
 
 # v0.18.9 (2018-04-17)
