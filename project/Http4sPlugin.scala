@@ -21,6 +21,7 @@ import verizon.build.RigPlugin.autoImport._
 import verizon.build.common._
 import org.scalajs.sbtplugin.ScalaJSPlugin
 import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
+import org.portablescala.sbtplatformdeps.PlatformDepsPlugin.autoImport._
 
 object Http4sPlugin extends AutoPlugin {
   object autoImport {
@@ -283,9 +284,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = Def.setting("org.typelevel"          %% "cats-core"                 % "1.5.0")
   lazy val catsEffect                       = Def.setting("org.typelevel"          %% "cats-effect"               % "1.1.0")
-  lazy val catsEffectLaws                   = Def.setting("org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision)
-  lazy val catsKernelLaws                   = Def.setting("org.typelevel"          %% "cats-kernel-laws"          % cats.revision)
-  lazy val catsLaws                         = Def.setting("org.typelevel"          %% "cats-laws"                 % cats.revision)
+  lazy val catsEffectLaws                   = Def.setting("org.typelevel"          %% "cats-effect-laws"          % catsEffect.value.revision)
+  lazy val catsKernelLaws                   = Def.setting("org.typelevel"          %% "cats-kernel-laws"          % cats.value.revision)
+  lazy val catsLaws                         = Def.setting("org.typelevel"          %% "cats-laws"                 % cats.value.revision)
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
   lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.11.0"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision

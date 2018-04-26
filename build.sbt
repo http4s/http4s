@@ -531,7 +531,9 @@ def http4sProject(name: String) =
       initCommands()
     )
 
-def http4sCrossProject(name: String, crossType: CrossType) = CrossProject(name, file(name), crossType, JSPlatform, JVMPlatform)
+def http4sCrossProject(name: String, crossType: CrossType) = CrossProject(name, file(name))(JSPlatform, JVMPlatform)
+  .crossType(crossType)
+  .in(file(name))
   .settings(commonSettings)
   .settings(
     moduleName := s"http4s-$name",
