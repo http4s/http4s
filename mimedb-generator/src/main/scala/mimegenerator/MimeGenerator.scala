@@ -8,7 +8,7 @@ import java.io.PrintWriter
 import fs2.Stream
 import org.http4s.circe._
 import org.http4s.client.blaze._
-import org.http4s.circe._
+import org.http4s.Uri
 import treehugger.forest._, definitions._, treehuggerDSL._
 
 /**
@@ -19,16 +19,16 @@ import treehugger.forest._, definitions._, treehuggerDSL._
   */
 object MimeLoader {
   implicit val MimeDescrDecoder: Decoder[MimeDescr] = deriveDecoder[MimeDescr]
-  val url = "https://cdn.rawgit.com/jshttp/mime-db/master/db.json"
+  val url = Uri.uri("https://cdn.rawgit.com/jshttp/mime-db/master/db.json")
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
   val readMimeDB: Stream[IO, List[Mime]] =
     for {
       client <- Http1Client.stream[IO]()
-      _ <- Stream.emit(println(s"Downloading mimedb from $url"))
+      _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
       value <- Stream.eval(client.expect[Json](url))
-      obj <- Stream.emit(value.arrayOrObject(JsonObject.empty, _ => JsonObject.empty, identity))
+      obj <- Stream.eval(IO(value.arrayOrObject(JsonObject.empty, _ => JsonObject.empty, identity)))
     } yield {
       obj.toMap
         .map(x => (x._1.split("/").toList, x._2))
