@@ -147,6 +147,9 @@ object Query {
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)
 
+  def withConfig(config: QueryEncodeParams, xs: (String, Option[String])*) : Query =
+    new Query(xs.toVector, config)
+
   def fromPairs(xs: (String, String)*): Query = {
     val b = newBuilder
     xs.foreach { case (k, v) => b += ((k, Some(v))) }
