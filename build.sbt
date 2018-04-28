@@ -145,6 +145,17 @@ lazy val jetty = libraryProject("jetty")
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
+lazy val playServer = libraryProject("play-server")
+  .settings(
+    description := "Play implementation for http4s servers",
+    libraryDependencies ++= Seq(
+      playServerT,
+      fs2Io,
+      fs2ReactiveStreams
+    )
+  )
+  .dependsOn(core, server % "compile;test->test", testing % "test->test")
+
 lazy val tomcat = libraryProject("tomcat")
   .settings(
     description := "Tomcat implementation for http4s servers",
@@ -335,7 +346,7 @@ lazy val docs = http4sProject("docs")
       }
     }
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, playServer)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
