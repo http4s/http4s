@@ -3,7 +3,6 @@ package org.http4s
 import cats._
 import cats.implicits.{catsSyntaxEither => _, _}
 import java.nio.charset.StandardCharsets
-import macrocompat.bundle
 import org.http4s.Uri._
 import org.http4s.internal.parboiled2.{Parser => PbParser}
 import org.http4s.internal.parboiled2.CharPredicate.{Alpha, Digit}
@@ -119,7 +118,6 @@ final case class Uri(
 }
 
 object Uri extends UriFunctions {
-  @bundle
   class Macros(val c: Context) {
     import c.universe._
 
