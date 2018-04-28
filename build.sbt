@@ -146,6 +146,7 @@ lazy val jetty = libraryProject("jetty")
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
 lazy val playServer = libraryProject("play-server")
+  .disablePlugins(DoctestPlugin)
   .settings(
     description := "Play implementation for http4s servers",
     libraryDependencies ++= Seq(
