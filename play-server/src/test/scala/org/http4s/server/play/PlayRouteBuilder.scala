@@ -7,7 +7,7 @@ import cats.effect.{Effect, IO}
 import org.http4s.{EmptyBody, Header, Headers, HttpService, Method, Request, Response, Uri}
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
-import play.api.mvc.{EssentialAction, RequestHeader, ResponseHeader, Result}
+import play.api.mvc._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
@@ -15,9 +15,6 @@ import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 class PlayRouteBuilder[F[_]](
     service: HttpService[F]
 )(implicit F: Effect[F], executionContext: ExecutionContext) {
-  private val FE = Effect[F]
-
-  FE.delay(0)
 
   type R = Request[F] => OptionT[F, Response[F]]
   private[this] val r: R = service.run
@@ -40,14 +37,17 @@ class PlayRouteBuilder[F[_]](
   def playRequestToPlayResponse(requestHeader: RequestHeader): Accumulator[ByteString, Result] = {
     val http4sResponse: F[Option[Response[F]]] =
       r.apply(requestHeaderToRequest(requestHeader)).value
+
     // I know, ugly, will fix once I get it to work
     val http4sResponseExists: F[Response[F]] = F.map(http4sResponse)(_.get)
+    val AkkaHttpSetsSeparately = Set("Content-Type", "Content-Length")
     val resultContainer: F[Result] = F.map(http4sResponseExists) { response =>
       Result(
         header = ResponseHeader(
           status = response.status.code,
-          headers = response.headers.map { header =>
-            header.parsed.name.value -> header.parsed.value
+          headers = response.headers.collect {
+            case header if AkkaHttpSetsSeparately.contains(header.parsed.name.value) =>
+              header.parsed.name.value -> header.parsed.value
           }.toMap
         ),
         body = {
@@ -57,7 +57,9 @@ class PlayRouteBuilder[F[_]](
 
           // hack!
           val playBody: PlayTarget =
-            Source.fromPublisher(entityBody.toUnicastPublisher()).map(byte => ByteString(byte))
+            Source
+              .fromPublisher(entityBody.toUnicastPublisher())
+              .map(byte => ByteString(byte))
 
           Streamed(
             data = playBody,
@@ -73,13 +75,14 @@ class PlayRouteBuilder[F[_]](
     val promise = Promise[Result]
 
     F.runAsync(resultContainer) {
-      case Left(bad) =>
-        promise.failure(bad)
-        IO.unit
-      case Right(good) =>
-        promise.success(good)
-        IO.unit
-    }
+        case Left(bad) =>
+          promise.failure(bad)
+          IO.unit
+        case Right(good) =>
+          promise.success(good)
+          IO.unit
+      }
+      .unsafeRunSync()
     Accumulator.done(promise.future)
   }
 
@@ -91,13 +94,12 @@ class PlayRouteBuilder[F[_]](
           val part: OptionT[F, Response[F]] = r.apply(requestHeaderToRequest(something))
           val efff: F[Option[Response[F]]] = part.value
           val completion = Promise[Boolean]()
-          FE.runAsync(efff) {
+          F.runAsync(efff) {
               case Left(f) => completion.failure(f); IO.unit
               case Right(s) => completion.success(s.isDefined); IO.unit
             }
             .unsafeRunSync()
           Await.result(completion.future, Duration.Inf)
-
         } =>
       new EssentialAction {
         override def apply(v1: RequestHeader): Accumulator[ByteString, Result] =
