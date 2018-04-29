@@ -8,7 +8,17 @@ import fs2.Chunk
 import fs2.interop.reactivestreams._
 import org.http4s.server.play.PlayRouteBuilder.{PlayAccumulator, PlayRouting, PlayTargetStream}
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.{EmptyBody, Header, Headers, HttpService, Method, Request, Response, Uri}
+import org.http4s.{
+  EmptyBody,
+  EntityBody,
+  Header,
+  Headers,
+  HttpService,
+  Method,
+  Request,
+  Response,
+  Uri
+}
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
@@ -38,13 +48,11 @@ class PlayRouteBuilder[F[_]](
       body = EmptyBody
     )
 
-  type ResponseStream = fs2.Stream[F, Byte]
-
-  def convertStream(responseStream: ResponseStream): PlayTargetStream = {
-    val entityBody: fs2.Stream[F, Byte] = responseStream
+  def convertStream(responseStream: EntityBody[F]): PlayTargetStream = {
+    val entityBody: fs2.Stream[F, ByteString] =
+      responseStream.chunks.map(chunk => ByteString(chunk.toArray))
     Source
       .fromPublisher(entityBody.toUnicastPublisher())
-      .map(byte => ByteString(byte))
   }
 
   def effectToFuture[T](eff: F[T]): Future[T] = {
@@ -69,7 +77,7 @@ class PlayRouteBuilder[F[_]](
     */
   def playRequestToPlayResponse(requestHeader: RequestHeader, method: Method): PlayAccumulator = {
     val sink: Sink[ByteString, Future[Result]] = {
-      Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
+      Sink.asPublisher[ByteString](fanout = false).mapMaterializedValue { publisher =>
         val requestBodyStream: fs2.Stream[F, Byte] =
           publisher.toStream().flatMap(bs => fs2.Stream.chunk(Chunk.bytes(bs.toArray)))
 
