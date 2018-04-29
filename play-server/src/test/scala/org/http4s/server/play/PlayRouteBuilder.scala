@@ -5,6 +5,7 @@ import akka.util.ByteString
 import cats.data.OptionT
 import cats.effect.{Effect, IO}
 import fs2.interop.reactivestreams._
+import org.http4s.server.play.PlayRouteBuilder.{PlayAccumulator, PlayRouting, PlayTargetStream}
 import org.http4s.{EmptyBody, Header, Headers, HttpService, Method, Request, Response, Uri}
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
@@ -22,6 +23,7 @@ class PlayRouteBuilder[F[_]](
 
   def requestHeaderToRequest(requestHeader: RequestHeader): Request[F] =
     Request(
+      // todo fix the ???
       method = Method.fromString(requestHeader.method).getOrElse(???),
       uri = Uri(path = requestHeader.uri),
       headers = Headers.apply(requestHeader.headers.toMap.toList.flatMap {
@@ -33,20 +35,22 @@ class PlayRouteBuilder[F[_]](
       body = EmptyBody
     )
 
-  type SinkType = Sink[ByteString, Future[Result]]
-  type PlayAccumulator = Accumulator[ByteString, Result]
-
   type ResponseStream = fs2.Stream[F, Byte]
-  type PlayTargetStream = Source[ByteString, _]
 
   def convertStream(responseStream: ResponseStream): PlayTargetStream = {
     val entityBody: fs2.Stream[F, Byte] = responseStream
     Source
       .fromPublisher(entityBody.toUnicastPublisher())
       .map(byte => ByteString(byte))
-
   }
 
+  /**
+    * A Play accumulator Sinks HTTP data in, and then pumps out a future of a Result.
+    * That Result will have a Source as the response HTTP Entity.
+    *
+    * Here we create a unattached sink, map its materialized value into a publisher,
+    * convert that into an FS2 Stream, then pipe the request body into the http4s request.
+    */
   def playRequestToPlayResponse(requestHeader: RequestHeader): PlayAccumulator = {
     val sink: Sink[ByteString, Future[Result]] = {
       Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
@@ -54,9 +58,8 @@ class PlayRouteBuilder[F[_]](
           publisher.toStream().flatMap(bs => fs2.Stream.fromIterator[F, Byte](bs.toIterator))
 
         val wrappedResponse: F[Response[F]] =
-          F.map(
-            unwrappedRun(requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)).value)(
-            _.get)
+          F.map(unwrappedRun(
+            requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)).value)(_.get)
         val wrappedResult: F[Result] = F.map(wrappedResponse) { response =>
           Result(
             header = convertResponseToHeader(response),
@@ -110,7 +113,7 @@ class PlayRouteBuilder[F[_]](
     Await.result(completion.future, Duration.Inf)
   }
 
-  def build: _root_.play.api.routing.Router.Routes = {
+  def build: PlayRouting = {
     case requestHeader if routeMatches(requestHeader) =>
       EssentialAction(playRequestToPlayResponse)
   }
@@ -118,6 +121,11 @@ class PlayRouteBuilder[F[_]](
 }
 
 object PlayRouteBuilder {
+
+  type PlayRouting = PartialFunction[RequestHeader, Handler]
+
+  type PlayAccumulator = Accumulator[ByteString, Result]
+  type PlayTargetStream = Source[ByteString, _]
 
   /** Borrowed from Play for now **/
   def withPrefix(
