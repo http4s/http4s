@@ -9,7 +9,7 @@ ordered chronologically, so each release contains all changes described below
 it.
 
 # v0.18.10-SNAPSHOT
-* Eliminate dependnecy on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
+* Eliminate dependency on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
 * Dependency upgrades:
   * cats-effect-0.10.1
   * fs2-0.10.4
