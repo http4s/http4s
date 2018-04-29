@@ -145,12 +145,12 @@ lazy val jetty = libraryProject("jetty")
   )
   .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
-lazy val playServer = libraryProject("play-server")
+lazy val playRoute = libraryProject("play-route")
   .disablePlugins(DoctestPlugin)
   .settings(
-    description := "Play implementation for http4s servers",
+    description := "Play wrapper of http4s services",
     libraryDependencies ++= Seq(
-      playServerT,
+      play,
       fs2Io,
       fs2ReactiveStreams,
       playAkkaHttpServer % "test"
@@ -348,7 +348,7 @@ lazy val docs = http4sProject("docs")
       }
     }
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, playServer)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe, playRoute)
 
 lazy val website = http4sProject("website")
   .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)

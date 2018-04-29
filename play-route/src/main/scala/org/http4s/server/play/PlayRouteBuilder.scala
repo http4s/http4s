@@ -125,6 +125,7 @@ object PlayRouteBuilder {
   type PlayRouting = PartialFunction[RequestHeader, Handler]
 
   type PlayAccumulator = Accumulator[ByteString, Result]
+
   type PlayTargetStream = Source[ByteString, _]
 
   /** Borrowed from Play for now **/

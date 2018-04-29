@@ -10,14 +10,14 @@ import play.api.{Configuration, Environment, Mode}
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 
-class PlayServerBuilder[F[_]](
+class PlayTestServerBuilder[F[_]](
     hostname: String,
     services: Vector[(HttpService[F], String)],
     executionContext: ExecutionContext,
     port: Int,
 )(implicit F: Effect[F])
     extends ServerBuilder[F] {
-  type Self = PlayServerBuilder[F]
+  type Self = PlayTestServerBuilder[F]
 
   private implicit val ec: ExecutionContext = executionContext
 
@@ -27,7 +27,7 @@ class PlayServerBuilder[F[_]](
       executionContext: ExecutionContext = executionContext,
       services: Vector[(HttpService[F], String)] = services
   ): Self =
-    new PlayServerBuilder(hostname, services, executionContext, port)
+    new PlayTestServerBuilder(hostname, services, executionContext, port)
 
   override def mountService(service: HttpService[F], prefix: String): Self =
     copy(
@@ -70,9 +70,9 @@ class PlayServerBuilder[F[_]](
     server
   }
 
-  override def bindSocketAddress(socketAddress: InetSocketAddress): PlayServerBuilder[F] = this
+  override def bindSocketAddress(socketAddress: InetSocketAddress): PlayTestServerBuilder[F] = this
 
-  override def withExecutionContext(executionContext: ExecutionContext): PlayServerBuilder[F] =
+  override def withExecutionContext(executionContext: ExecutionContext): PlayTestServerBuilder[F] =
     copy(executionContext = executionContext)
 
   /** Sets the handler for errors thrown invoking the service.  Is not
@@ -80,15 +80,15 @@ class PlayServerBuilder[F[_]](
     * parsing a request or handling a context timeout.
     */
   override def withServiceErrorHandler(
-      serviceErrorHandler: ServiceErrorHandler[F]): PlayServerBuilder[F] = this
+      serviceErrorHandler: ServiceErrorHandler[F]): PlayTestServerBuilder[F] = this
 
   /** Set the banner to display when the server starts up */
-  override def withBanner(banner: immutable.Seq[String]): PlayServerBuilder[F] = this
+  override def withBanner(banner: immutable.Seq[String]): PlayTestServerBuilder[F] = this
 }
 
-object PlayServerBuilder {
-  def apply[F[_]](implicit F: Effect[F]): PlayServerBuilder[F] =
-    new PlayServerBuilder(
+object PlayTestServerBuilder {
+  def apply[F[_]](implicit F: Effect[F]): PlayTestServerBuilder[F] =
+    new PlayTestServerBuilder(
       hostname = ServerBuilder.DefaultSocketAddress.getHostString,
       services = Vector.empty,
       port = ServerBuilder.DefaultHttpPort,
