@@ -3,7 +3,7 @@ package org.http4s.server.play
 import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
 import cats.data.OptionT
-import cats.effect.{Effect, IO}
+import cats.effect.{Async, Effect, IO}
 import fs2.Chunk
 import fs2.interop.reactivestreams._
 import org.http4s.server.play.PlayRouteBuilder.{PlayAccumulator, PlayRouting, PlayTargetStream}
@@ -91,7 +91,7 @@ class PlayRouteBuilder[F[_]](
 
         val promise = Promise[Result]
 
-        F.runAsync(wrappedResult) {
+        F.runAsync(Async.shift(executionContext) *> wrappedResult) {
             case Left(bad) =>
               IO(promise.failure(bad))
             case Right(good) =>
@@ -119,7 +119,7 @@ class PlayRouteBuilder[F[_]](
       unwrappedRun.apply(requestHeaderToRequest(requestHeader, method))
     val efff: F[Option[Response[F]]] = optionalResponse.value
     val completion = Promise[Boolean]()
-    F.runAsync(efff) {
+    F.runAsync(Async.shift(executionContext) *> efff) {
         case Left(f) => IO(completion.failure(f))
         case Right(s) => IO(completion.success(s.isDefined))
       }
