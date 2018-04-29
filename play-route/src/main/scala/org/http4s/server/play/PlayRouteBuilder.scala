@@ -4,8 +4,10 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
 import cats.data.OptionT
 import cats.effect.{Effect, IO}
+import fs2.Chunk
 import fs2.interop.reactivestreams._
 import org.http4s.server.play.PlayRouteBuilder.{PlayAccumulator, PlayRouting, PlayTargetStream}
+import org.http4s.util.CaseInsensitiveString
 import org.http4s.{EmptyBody, Header, Headers, HttpService, Method, Request, Response, Uri}
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
@@ -55,8 +57,9 @@ class PlayRouteBuilder[F[_]](
     val sink: Sink[ByteString, Future[Result]] = {
       Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
         val requestBodyStream: fs2.Stream[F, Byte] =
-          publisher.toStream().flatMap(bs => fs2.Stream.fromIterator[F, Byte](bs.toIterator))
+          publisher.toStream().flatMap(bs => fs2.Stream.chunk(Chunk.bytes(bs.toArray)))
 
+        /** The .get here is safe because this was already proven in the pattern match of the caller **/
         val wrappedResponse: F[Response[F]] =
           F.map(unwrappedRun(
             requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)).value)(_.get)
@@ -75,11 +78,9 @@ class PlayRouteBuilder[F[_]](
 
         F.runAsync(wrappedResult) {
             case Left(bad) =>
-              promise.failure(bad)
-              IO.unit
+              IO(promise.failure(bad))
             case Right(good) =>
-              promise.success(good)
-              IO.unit
+              IO(promise.success(good))
           }
           .unsafeRunSync()
 
@@ -94,7 +95,8 @@ class PlayRouteBuilder[F[_]](
       status = response.status.code,
       headers = response.headers.collect {
         case header
-            if !PlayRouteBuilder.AkkaHttpSetsSeparately.contains(header.parsed.name.value) =>
+            if !PlayRouteBuilder.AkkaHttpSetsSeparately.exists(name =>
+              header.name == CaseInsensitiveString(name)) =>
           header.parsed.name.value -> header.parsed.value
       }.toMap
     )
@@ -106,8 +108,8 @@ class PlayRouteBuilder[F[_]](
     val efff: F[Option[Response[F]]] = optionalResponse.value
     val completion = Promise[Boolean]()
     F.runAsync(efff) {
-        case Left(f) => completion.failure(f); IO.unit
-        case Right(s) => completion.success(s.isDefined); IO.unit
+        case Left(f) => IO(completion.failure(f))
+        case Right(s) => IO(completion.success(s.isDefined))
       }
       .unsafeRunSync()
     Await.result(completion.future, Duration.Inf)
