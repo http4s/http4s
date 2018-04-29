@@ -12,6 +12,7 @@ import org.http4s.{EmptyBody, Header, Headers, HttpService, Method, Request, Res
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import cats.syntax.all._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
@@ -46,6 +47,19 @@ class PlayRouteBuilder[F[_]](
       .map(byte => ByteString(byte))
   }
 
+  def effectToFuture[T](eff: F[T]): Future[T] = {
+    val promise = Promise[T]
+    F.runAsync(eff) {
+        case Left(bad) =>
+          IO(promise.failure(bad))
+        case Right(good) =>
+          IO(promise.success(good))
+      }
+      .unsafeRunSync()
+
+    promise.future
+  }
+
   /**
     * A Play accumulator Sinks HTTP data in, and then pumps out a future of a Result.
     * That Result will have a Source as the response HTTP Entity.
@@ -59,11 +73,11 @@ class PlayRouteBuilder[F[_]](
         val requestBodyStream: fs2.Stream[F, Byte] =
           publisher.toStream().flatMap(bs => fs2.Stream.chunk(Chunk.bytes(bs.toArray)))
 
+        val http4sRequest = requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)
+
         /** The .get here is safe because this was already proven in the pattern match of the caller **/
-        val wrappedResponse: F[Response[F]] =
-          F.map(unwrappedRun(
-            requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)).value)(_.get)
-        val wrappedResult: F[Result] = F.map(wrappedResponse) { response =>
+        val wrappedResponse: F[Response[F]] = unwrappedRun(http4sRequest).value.map(_.get)
+        val wrappedResult: F[Result] = wrappedResponse.map { response =>
           Result(
             header = convertResponseToHeader(response),
             body = Streamed(
@@ -94,14 +108,11 @@ class PlayRouteBuilder[F[_]](
     ResponseHeader(
       status = response.status.code,
       headers = response.headers.collect {
-        case header
-            if !PlayRouteBuilder.AkkaHttpSetsSeparately.exists(name =>
-              header.name == CaseInsensitiveString(name)) =>
+        case header if !PlayRouteBuilder.AkkaHttpSetsSeparately.contains(header.name) =>
           header.parsed.name.value -> header.parsed.value
       }.toMap
     )
 
-  /** Big big hack :-( Teach me! **/
   def routeMatches(requestHeader: RequestHeader): Boolean = {
     val optionalResponse: OptionT[F, Response[F]] =
       unwrappedRun.apply(requestHeaderToRequest(requestHeader))
@@ -146,6 +157,7 @@ object PlayRouteBuilder {
       Function.unlift(prefixed.lift.andThen(_.flatMap(t.lift)))
     }
 
-  val AkkaHttpSetsSeparately = Set("Content-Type", "Content-Length", "Transfer-Encoding")
+  val AkkaHttpSetsSeparately: Set[CaseInsensitiveString] =
+    Set("Content-Type", "Content-Length", "Transfer-Encoding").map(CaseInsensitiveString.apply)
 
 }
