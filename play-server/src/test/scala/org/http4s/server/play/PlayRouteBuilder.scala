@@ -9,6 +9,7 @@ import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
+import fs2.interop.reactivestreams._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 
@@ -33,48 +34,52 @@ class PlayRouteBuilder[F[_]](
     )
 
   type SinkType = Sink[ByteString, Future[Result]]
+  type PlayAccumulator = Accumulator[ByteString, Result]
 
-  def playRequestToPlayResponse(requestHeader: RequestHeader): Accumulator[ByteString, Result] = {
+  type ResponseStream = fs2.Stream[F, Byte]
+  type PlayTargetStream = Source[ByteString, _]
+
+  def convertStream(responseStream: ResponseStream): PlayTargetStream = {
+    val entityBody: fs2.Stream[F, Byte] = responseStream
+    Source
+      .fromPublisher(entityBody.toUnicastPublisher())
+      .map(byte => ByteString(byte))
+
+  }
+
+  def playRequestToPlayResponse(requestHeader: RequestHeader): PlayAccumulator = {
     val http4sResponse: F[Option[Response[F]]] =
       r.apply(requestHeaderToRequest(requestHeader)).value
 
     // I know, ugly, will fix once I get it to work
     val http4sResponseExists: F[Response[F]] = F.map(http4sResponse)(_.get)
-    val AkkaHttpSetsSeparately = Set("Content-Type", "Content-Length")
     val resultContainer: F[Result] = F.map(http4sResponseExists) { response =>
       Result(
-        header = ResponseHeader(
-          status = response.status.code,
-          headers = response.headers.collect {
-            case header if AkkaHttpSetsSeparately.contains(header.parsed.name.value) =>
-              header.parsed.name.value -> header.parsed.value
-          }.toMap
-        ),
-        body = {
-          val entityBody: fs2.Stream[F, Byte] = response.body
-          type PlayTarget = Source[ByteString, _]
-          import fs2.interop.reactivestreams._
-
-          // hack!
-          val playBody: PlayTarget =
-            Source
-              .fromPublisher(entityBody.toUnicastPublisher())
-              .map(byte => ByteString(byte))
-
-          Streamed(
-            data = playBody,
-            contentLength = response.contentLength,
-            contentType = response.contentType.map(_.value)
-          )
-        }
+        header = convertResponseToHeader(response),
+        body = Streamed(
+          data = convertStream(response.body),
+          contentLength = response.contentLength,
+          contentType = response.contentType.map(_.value)
+        )
       )
-
     }
+    convertResult(resultContainer)
+  }
 
-    // hack
+  def convertResponseToHeader(response: Response[F]): ResponseHeader =
+    ResponseHeader(
+      status = response.status.code,
+      headers = response.headers.collect {
+        case header
+            if !PlayRouteBuilder.AkkaHttpSetsSeparately.contains(header.parsed.name.value) =>
+          header.parsed.name.value -> header.parsed.value
+      }.toMap
+    )
+
+  def convertResult(r: F[Result]): PlayAccumulator = {
     val promise = Promise[Result]
 
-    F.runAsync(resultContainer) {
+    F.runAsync(r) {
         case Left(bad) =>
           promise.failure(bad)
           IO.unit
@@ -90,9 +95,9 @@ class PlayRouteBuilder[F[_]](
     * Play's route matching is synchronous so must await for the future, effectively... :-(
     */
   def build: _root_.play.api.routing.Router.Routes = {
-    case something if {
-          val part: OptionT[F, Response[F]] = r.apply(requestHeaderToRequest(something))
-          val efff: F[Option[Response[F]]] = part.value
+    case requestHeader if {
+          val optionalResponse: OptionT[F, Response[F]] = r.apply(requestHeaderToRequest(requestHeader))
+          val efff: F[Option[Response[F]]] = optionalResponse.value
           val completion = Promise[Boolean]()
           F.runAsync(efff) {
               case Left(f) => completion.failure(f); IO.unit
@@ -105,7 +110,6 @@ class PlayRouteBuilder[F[_]](
         override def apply(v1: RequestHeader): Accumulator[ByteString, Result] =
           playRequestToPlayResponse(v1)
       }
-//    type HttpService[F[_]] = Kleisli[OptionT[F, ?], Request[F], Response[F]]
   }
 
 }
@@ -127,4 +131,7 @@ object PlayRouteBuilder {
       }
       Function.unlift(prefixed.lift.andThen(_.flatMap(t.lift)))
     }
+
+  val AkkaHttpSetsSeparately = Set("Content-Type", "Content-Length", "Transfer-Encoding")
+
 }
