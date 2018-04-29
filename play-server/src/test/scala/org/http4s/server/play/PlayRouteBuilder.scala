@@ -50,12 +50,12 @@ class PlayRouteBuilder[F[_]](
   def playRequestToPlayResponse(requestHeader: RequestHeader): PlayAccumulator = {
     val sink: Sink[ByteString, Future[Result]] = {
       Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
-        val bodyStream: fs2.Stream[F, Byte] =
+        val requestBodyStream: fs2.Stream[F, Byte] =
           publisher.toStream().flatMap(bs => fs2.Stream.fromIterator[F, Byte](bs.toIterator))
 
         val wrappedResponse: F[Response[F]] =
           F.map(
-            unwrappedRun(requestHeaderToRequest(requestHeader).withBodyStream(bodyStream)).value)(
+            unwrappedRun(requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)).value)(
             _.get)
         val wrappedResult: F[Result] = F.map(wrappedResponse) { response =>
           Result(
