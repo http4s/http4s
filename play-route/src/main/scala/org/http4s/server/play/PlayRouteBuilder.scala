@@ -24,10 +24,10 @@ class PlayRouteBuilder[F[_]](
   type UnwrappedKleisli = Request[F] => OptionT[F, Response[F]]
   private[this] val unwrappedRun: UnwrappedKleisli = service.run
 
-  def requestHeaderToRequest(requestHeader: RequestHeader): Request[F] =
+  def requestHeaderToRequest(requestHeader: RequestHeader, method: Method): Request[F] =
     Request(
       // todo fix the ???
-      method = Method.fromString(requestHeader.method).getOrElse(???),
+      method = method,
       uri = Uri(path = requestHeader.uri),
       headers = Headers.apply(requestHeader.headers.toMap.toList.flatMap {
         case (headerName, values) =>
@@ -67,13 +67,14 @@ class PlayRouteBuilder[F[_]](
     * Here we create a unattached sink, map its materialized value into a publisher,
     * convert that into an FS2 Stream, then pipe the request body into the http4s request.
     */
-  def playRequestToPlayResponse(requestHeader: RequestHeader): PlayAccumulator = {
+  def playRequestToPlayResponse(requestHeader: RequestHeader, method: Method): PlayAccumulator = {
     val sink: Sink[ByteString, Future[Result]] = {
       Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
         val requestBodyStream: fs2.Stream[F, Byte] =
           publisher.toStream().flatMap(bs => fs2.Stream.chunk(Chunk.bytes(bs.toArray)))
 
-        val http4sRequest = requestHeaderToRequest(requestHeader).withBodyStream(requestBodyStream)
+        val http4sRequest =
+          requestHeaderToRequest(requestHeader, method).withBodyStream(requestBodyStream)
 
         /** The .get here is safe because this was already proven in the pattern match of the caller **/
         val wrappedResponse: F[Response[F]] = unwrappedRun(http4sRequest).value.map(_.get)
@@ -113,9 +114,9 @@ class PlayRouteBuilder[F[_]](
       }.toMap
     )
 
-  def routeMatches(requestHeader: RequestHeader): Boolean = {
+  def routeMatches(requestHeader: RequestHeader, method: Method): Boolean = {
     val optionalResponse: OptionT[F, Response[F]] =
-      unwrappedRun.apply(requestHeaderToRequest(requestHeader))
+      unwrappedRun.apply(requestHeaderToRequest(requestHeader, method))
     val efff: F[Option[Response[F]]] = optionalResponse.value
     val completion = Promise[Boolean]()
     F.runAsync(efff) {
@@ -127,8 +128,12 @@ class PlayRouteBuilder[F[_]](
   }
 
   def build: PlayRouting = {
-    case requestHeader if routeMatches(requestHeader) =>
-      EssentialAction(playRequestToPlayResponse)
+    case requestHeader
+        if Method.fromString(requestHeader.method).isRight && routeMatches(
+          requestHeader,
+          Method.fromString(requestHeader.method).right.get) =>
+      EssentialAction(
+        playRequestToPlayResponse(_, Method.fromString(requestHeader.method).right.get))
   }
 
 }
