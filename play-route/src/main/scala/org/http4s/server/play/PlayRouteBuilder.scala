@@ -36,7 +36,6 @@ class PlayRouteBuilder[F[_]](
 
   def requestHeaderToRequest(requestHeader: RequestHeader, method: Method): Request[F] =
     Request(
-      // todo fix the ???
       method = method,
       uri = Uri(path = requestHeader.uri),
       headers = Headers.apply(requestHeader.headers.toMap.toList.flatMap {
