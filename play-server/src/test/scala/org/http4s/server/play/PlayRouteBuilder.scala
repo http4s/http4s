@@ -17,8 +17,8 @@ class PlayRouteBuilder[F[_]](
     service: HttpService[F]
 )(implicit F: Effect[F], executionContext: ExecutionContext) {
 
-  type R = Request[F] => OptionT[F, Response[F]]
-  private[this] val r: R = service.run
+  type UnwrappedKleisli = Request[F] => OptionT[F, Response[F]]
+  private[this] val unwrappedRun: UnwrappedKleisli = service.run
 
   def requestHeaderToRequest(requestHeader: RequestHeader): Request[F] =
     Request(
@@ -52,9 +52,12 @@ class PlayRouteBuilder[F[_]](
       Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
         val bodyStream: fs2.Stream[F, Byte] =
           publisher.toStream().flatMap(bs => fs2.Stream.fromIterator[F, Byte](bs.toIterator))
-        val ahx = r.apply(requestHeaderToRequest(requestHeader).withBodyStream(bodyStream)).value
-        val ahe = F.map(ahx)(_.get)
-        val reg = F.map(ahe) { response =>
+
+        val wrappedResponse: F[Response[F]] =
+          F.map(
+            unwrappedRun(requestHeaderToRequest(requestHeader).withBodyStream(bodyStream)).value)(
+            _.get)
+        val wrappedResult: F[Result] = F.map(wrappedResponse) { response =>
           Result(
             header = convertResponseToHeader(response),
             body = Streamed(
@@ -67,7 +70,7 @@ class PlayRouteBuilder[F[_]](
 
         val promise = Promise[Result]
 
-        F.runAsync(reg) {
+        F.runAsync(wrappedResult) {
             case Left(bad) =>
               promise.failure(bad)
               IO.unit
@@ -93,26 +96,23 @@ class PlayRouteBuilder[F[_]](
       }.toMap
     )
 
-  /**
-    * Play's route matching is synchronous so must await for the future, effectively... :-(
-    */
-  def build: _root_.play.api.routing.Router.Routes = {
-    case requestHeader if {
-          val optionalResponse: OptionT[F, Response[F]] =
-            r.apply(requestHeaderToRequest(requestHeader))
-          val efff: F[Option[Response[F]]] = optionalResponse.value
-          val completion = Promise[Boolean]()
-          F.runAsync(efff) {
-              case Left(f) => completion.failure(f); IO.unit
-              case Right(s) => completion.success(s.isDefined); IO.unit
-            }
-            .unsafeRunSync()
-          Await.result(completion.future, Duration.Inf)
-        } =>
-      new EssentialAction {
-        override def apply(v1: RequestHeader): Accumulator[ByteString, Result] =
-          playRequestToPlayResponse(v1)
+  /** Big big hack :-( Teach me! **/
+  def routeMatches(requestHeader: RequestHeader): Boolean = {
+    val optionalResponse: OptionT[F, Response[F]] =
+      unwrappedRun.apply(requestHeaderToRequest(requestHeader))
+    val efff: F[Option[Response[F]]] = optionalResponse.value
+    val completion = Promise[Boolean]()
+    F.runAsync(efff) {
+        case Left(f) => completion.failure(f); IO.unit
+        case Right(s) => completion.success(s.isDefined); IO.unit
       }
+      .unsafeRunSync()
+    Await.result(completion.future, Duration.Inf)
+  }
+
+  def build: _root_.play.api.routing.Router.Routes = {
+    case requestHeader if routeMatches(requestHeader) =>
+      EssentialAction(playRequestToPlayResponse)
   }
 
 }
