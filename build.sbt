@@ -295,7 +295,7 @@ lazy val docs = http4sProject("docs")
     scalacOptions in Tut ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
       // unused params warnings are disabled due to undefined functions in the doc
-      _.filterNot(unwanted) :+ "-Xfatal-warnings"
+      _.filterNot(unwanted) // :+ "-Xfatal-warnings"
     },
     scalacOptions in (Compile, doc) ++= {
       scmInfo.value match {
@@ -423,6 +423,18 @@ lazy val examplesJetty = exampleProject("examples-jetty")
     mainClass in reStart := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
+
+lazy val examplesPlay = exampleProject("examples-play")
+  .enablePlugins(PlayScala)
+  .settings(
+    description := "Example of http4s on Play",
+    scalacOptions in Compile -= "-Xfatal-warnings",
+    libraryDependencies ++= Seq(
+      guice,
+      jaxbApi,
+    ),
+  )
+  .dependsOn(playRoute)
 
 lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(Revolver.settings)

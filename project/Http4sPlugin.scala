@@ -79,7 +79,7 @@ object Http4sPlugin extends AutoPlugin {
           None
       }
     },
-    mimaFailOnProblem := http4sMimaVersion.value.isDefined,
+    mimaFailOnProblem := false,
     mimaPreviousArtifacts := (http4sMimaVersion.value map {
       organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
     }).toSet,
@@ -281,7 +281,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val play                             = "com.typesafe.play"      %% "play"                      % "2.6.13"
   lazy val playAkkaHttpServer               = "com.typesafe.play"      %% "play-akka-http-server"     % "2.6.13"
-
+  lazy val jaxbApi = "javax.xml.bind" % "jaxb-api" % "2.3.0"
 
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.3"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision

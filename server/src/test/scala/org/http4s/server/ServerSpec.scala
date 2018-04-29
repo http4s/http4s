@@ -29,7 +29,9 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
       .start
       .unsafeRunSync()
 
-  def afterAll = server.shutdownNow()
+  def afterAll = {
+    server.shutdownNow()
+  }
 
   // This should be in IO and shifted but I'm tired of fighting this.
   private def get(path: String): String =

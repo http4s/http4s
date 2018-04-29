@@ -1,0 +1,2 @@
+GET / @controllers.Main.index
+->  / @controllers.Http4sRouter

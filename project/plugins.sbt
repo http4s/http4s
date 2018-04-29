@@ -14,4 +14,7 @@ addSbtPlugin("io.verizon.build"    %  "sbt-rig"               % "5.0.39")
 addSbtPlugin("org.tpolecat"        %  "tut-plugin"            % "0.6.4")
 addSbtPlugin("pl.project13.scala"  %  "sbt-jmh"               % "0.3.3")
 
+resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.13")
+
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"

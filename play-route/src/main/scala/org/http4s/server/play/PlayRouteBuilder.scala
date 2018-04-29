@@ -123,11 +123,16 @@ class PlayRouteBuilder[F[_]](
     )
 
   def routeMatches(requestHeader: RequestHeader, method: Method): Boolean = {
-    val optionalResponse: OptionT[F, Response[F]] =
-      unwrappedRun.apply(requestHeaderToRequest(requestHeader, method))
-    val efff: F[Option[Response[F]]] = optionalResponse.value
+    val computeRequestHeader: F[Option[Response[F]]] = F.delay {
+      val playRequest = requestHeaderToRequest(requestHeader, method)
+      val optionalResponse: OptionT[F, Response[F]] =
+        unwrappedRun.apply(playRequest)
+      val efff: F[Option[Response[F]]] = optionalResponse.value
+      efff
+    }.flatten
+
     val completion = Promise[Boolean]()
-    F.runAsync(Async.shift(executionContext) *> efff) {
+    F.runAsync(Async.shift(executionContext) *> computeRequestHeader) {
         case Left(f) => IO(completion.failure(f))
         case Right(s) => IO(completion.success(s.isDefined))
       }
