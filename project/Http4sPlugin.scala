@@ -280,6 +280,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.9.v20180320"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val playServerT                       = "com.typesafe.play"      %% "play-server"               % "2.6.13"
+lazy val playAkkaHttpServer = "com.typesafe.play" %% "play-akka-http-server" % "2.6.13"
+
 
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.3"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision

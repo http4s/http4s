@@ -152,7 +152,8 @@ lazy val playServer = libraryProject("play-server")
     libraryDependencies ++= Seq(
       playServerT,
       fs2Io,
-      fs2ReactiveStreams
+      fs2ReactiveStreams,
+      playAkkaHttpServer % "test"
     )
   )
   .dependsOn(core, server % "compile;test->test", testing % "test->test")

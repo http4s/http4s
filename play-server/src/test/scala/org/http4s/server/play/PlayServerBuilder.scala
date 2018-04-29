@@ -5,6 +5,7 @@ import java.net.InetSocketAddress
 import cats.effect._
 import org.http4s.HttpService
 import org.http4s.server.{Server, ServerBuilder, ServiceErrorHandler}
+import play.api.{Configuration, Environment, Mode}
 
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
@@ -17,6 +18,8 @@ class PlayServerBuilder[F[_]](
 )(implicit F: Effect[F])
     extends ServerBuilder[F] {
   type Self = PlayServerBuilder[F]
+
+  private implicit val ec: ExecutionContext = executionContext
 
   private def copy(
       hostname: String = hostname,
@@ -32,8 +35,27 @@ class PlayServerBuilder[F[_]](
     )
 
   def start: F[Server[F]] = F.delay {
+
+    val serverA = {
+      import play.core.server.{AkkaHttpServer, _}
+      val serverConfig =
+        ServerConfig(
+          port = Some(port),
+          address = hostname
+        ).copy(configuration = Configuration.load(Environment.simple()), mode = Mode.Test)
+      AkkaHttpServer.fromRouterWithComponents(serverConfig) { _ =>
+        services
+          .map {
+            case (service, prefix) =>
+              PlayRouteBuilder
+                .withPrefix(prefix, new PlayRouteBuilder(service).build)
+          }
+          .foldLeft(PartialFunction.empty: _root_.play.api.routing.Router.Routes)(_.orElse(_))
+      }
+    }
+
     val server = new Server[F] {
-      override def shutdown: F[Unit] = F.delay {}
+      override def shutdown: F[Unit] = F.delay { serverA.stop() }
 
       override def onShutdown(f: => Unit): this.type =
         this
