@@ -4,12 +4,12 @@ import akka.stream.scaladsl.{Sink, Source}
 import akka.util.ByteString
 import cats.data.OptionT
 import cats.effect.{Effect, IO}
+import fs2.interop.reactivestreams._
 import org.http4s.{EmptyBody, Header, Headers, HttpService, Method, Request, Response, Uri}
 import play.api.http.HttpEntity.Streamed
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
 
-import fs2.interop.reactivestreams._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 
@@ -48,22 +48,39 @@ class PlayRouteBuilder[F[_]](
   }
 
   def playRequestToPlayResponse(requestHeader: RequestHeader): PlayAccumulator = {
-    val http4sResponse: F[Option[Response[F]]] =
-      r.apply(requestHeaderToRequest(requestHeader)).value
+    val sink: Sink[ByteString, Future[Result]] = {
+      Sink.asPublisher[ByteString](false).mapMaterializedValue { publisher =>
+        val bodyStream: fs2.Stream[F, Byte] =
+          publisher.toStream().flatMap(bs => fs2.Stream.fromIterator[F, Byte](bs.toIterator))
+        val ahx = r.apply(requestHeaderToRequest(requestHeader).withBodyStream(bodyStream)).value
+        val ahe = F.map(ahx)(_.get)
+        val reg = F.map(ahe) { response =>
+          Result(
+            header = convertResponseToHeader(response),
+            body = Streamed(
+              data = convertStream(response.body),
+              contentLength = response.contentLength,
+              contentType = response.contentType.map(_.value)
+            )
+          )
+        }
 
-    // I know, ugly, will fix once I get it to work
-    val http4sResponseExists: F[Response[F]] = F.map(http4sResponse)(_.get)
-    val resultContainer: F[Result] = F.map(http4sResponseExists) { response =>
-      Result(
-        header = convertResponseToHeader(response),
-        body = Streamed(
-          data = convertStream(response.body),
-          contentLength = response.contentLength,
-          contentType = response.contentType.map(_.value)
-        )
-      )
+        val promise = Promise[Result]
+
+        F.runAsync(reg) {
+            case Left(bad) =>
+              promise.failure(bad)
+              IO.unit
+            case Right(good) =>
+              promise.success(good)
+              IO.unit
+          }
+          .unsafeRunSync()
+
+        promise.future
+      }
     }
-    convertResult(resultContainer)
+    Accumulator.apply(sink)
   }
 
   def convertResponseToHeader(response: Response[F]): ResponseHeader =
@@ -76,27 +93,13 @@ class PlayRouteBuilder[F[_]](
       }.toMap
     )
 
-  def convertResult(r: F[Result]): PlayAccumulator = {
-    val promise = Promise[Result]
-
-    F.runAsync(r) {
-        case Left(bad) =>
-          promise.failure(bad)
-          IO.unit
-        case Right(good) =>
-          promise.success(good)
-          IO.unit
-      }
-      .unsafeRunSync()
-    Accumulator.done(promise.future)
-  }
-
   /**
     * Play's route matching is synchronous so must await for the future, effectively... :-(
     */
   def build: _root_.play.api.routing.Router.Routes = {
     case requestHeader if {
-          val optionalResponse: OptionT[F, Response[F]] = r.apply(requestHeaderToRequest(requestHeader))
+          val optionalResponse: OptionT[F, Response[F]] =
+            r.apply(requestHeaderToRequest(requestHeader))
           val efff: F[Option[Response[F]]] = optionalResponse.value
           val completion = Promise[Boolean]()
           F.runAsync(efff) {
