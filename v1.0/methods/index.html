@@ -87,8 +87,8 @@ Http4s has a list of all the <a href="../api/org/http4s/Method$.html">methods</a
 <pre><code class="language-scala">import cats.effect._
 // import cats.effect._
 
-import io.circe.generic._
-// import io.circe.generic._
+import io.circe.generic.auto._
+// import io.circe.generic.auto._
 
 import io.circe.syntax._
 // import io.circe.syntax._
@@ -100,13 +100,11 @@ import org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
 // import org.http4s.circe._
 
-@JsonCodec case class TweetWithId(id: Int, message: String)
+case class TweetWithId(id: Int, message: String)
 // defined class TweetWithId
-// defined object TweetWithId
 
-@JsonCodec case class Tweet(message: String)
+case class Tweet(message: String)
 // defined class Tweet
-// defined object Tweet
 
 def getTweet(tweetId: Int): IO[Option[TweetWithId]] = ???
 // getTweet: (tweetId: Int)cats.effect.IO[Option[TweetWithId]]
@@ -121,10 +119,10 @@ def deleteTweet(id: Int): IO[Unit] = ???
 // deleteTweet: (id: Int)cats.effect.IO[Unit]
 
 implicit val tweetWithIdEncoder = jsonEncoderOf[IO, TweetWithId]
-// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$2@7966f89e
+// tweetWithIdEncoder: org.http4s.EntityEncoder[cats.effect.IO,TweetWithId] = org.http4s.EntityEncoder$$anon$2@62569685
 
 implicit val tweetDecoder = jsonOf[IO, Tweet]
-// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$3@13aee60
+// tweetDecoder: org.http4s.EntityDecoder[cats.effect.IO,Tweet] = org.http4s.EntityDecoder$$anon$3@cf0076b
 
 val tweetService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
@@ -143,7 +141,7 @@ val tweetService = HttpRoutes.of[IO] {
     deleteTweet(tweetId)
       .flatMap(_ =&gt; Ok())
 }
-// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$49831/1306596954@74bb8542)
+// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$51293/1147234995@1b88e981)
 </code></pre>
 
 <p>There&rsquo;s also <a href="../api/org/http4s/server/middleware/DefaultHead$.html"><code>DefaultHead</code></a> which replicates the functionality of the native
