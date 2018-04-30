@@ -9,13 +9,13 @@ Http4s has a list of all the [methods] you're familiar with, and a few more.
 
 ```tut:book
 import cats.effect._
-import io.circe.generic._
+import io.circe.generic.auto._
 import io.circe.syntax._
 import org.http4s._, org.http4s.dsl.io._
 import org.http4s.circe._
 
-@JsonCodec case class TweetWithId(id: Int, message: String)
-@JsonCodec case class Tweet(message: String)
+case class TweetWithId(id: Int, message: String)
+case class Tweet(message: String)
 
 def getTweet(tweetId: Int): IO[Option[TweetWithId]] = ???
 def addTweet(tweet: Tweet): IO[TweetWithId] = ???

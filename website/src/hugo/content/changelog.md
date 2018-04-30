@@ -32,6 +32,7 @@ it.
   * scala-xml-1.1.0
 
 # v0.18.10-SNAPSHOT (unreleased)
+* Eliminate dependency on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
 * Dependency upgrades:
   * cats-effect-0.10.1
   * fs2-0.10.4

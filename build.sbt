@@ -27,12 +27,10 @@ lazy val core = libraryProject("core")
       fs2Io,
       http4sWebsocket,
       log4s,
-      macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
-    macroParadiseSetting
   )
 
 lazy val testing = libraryProject("testing")
@@ -43,7 +41,6 @@ lazy val testing = libraryProject("testing")
       scalacheck,
       specs2Core
     ),
-    macroParadiseSetting
   )
   .dependsOn(core)
 
@@ -262,7 +259,6 @@ lazy val docs = http4sProject("docs")
       circeLiteral,
       cryptobits
     ),
-    macroParadiseSetting,
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -374,7 +370,6 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
-    macroParadiseSetting,
     javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)
