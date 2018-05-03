@@ -33,7 +33,7 @@ final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def render(writer: Writer): writer.type = writer << nioCharset.name
 }
 
-object Charset {
+object Charset extends PlatformCharsets {
   val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
   val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
   val `UTF-8` = Charset(StandardCharsets.UTF_8)
@@ -47,7 +47,7 @@ object Charset {
   private val cache: HashMap[String, NioCharset] = {
     val map = new HashMap[String, NioCharset]
     for {
-      cs <- NioCharset.availableCharsets.values.asScala
+      cs <- availableCharsets
       name <- cs.name :: cs.aliases.asScala.toList
     } map.put(name.toLowerCase(Locale.ROOT), cs)
     map
