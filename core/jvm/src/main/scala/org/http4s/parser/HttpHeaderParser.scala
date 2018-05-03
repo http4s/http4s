@@ -19,7 +19,6 @@ package org.http4s
 package parser
 
 import java.util
-import java.lang.reflect.InvocationTargetException
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.Header.Parsed
 import org.http4s.syntax.string._
@@ -47,10 +46,46 @@ object HttpHeaderParser
 
   private val allParsers =
     new util.concurrent.ConcurrentHashMap[CaseInsensitiveString, HeaderParser]
-
-  // Constructor
-  gatherBuiltIn()
-
+  addParser("ACCEPT-CHARSET".ci,            ACCEPT_CHARSET)
+  addParser("ACCEPT".ci,                    ACCEPT)
+  addParser("ACCEPT-ENCODING".ci,           ACCEPT_ENCODING)
+  addParser("ACCEPT-LANGUAGE".ci,           ACCEPT_LANGUAGE)
+  addParser("ACCEPT-RANGES".ci,             ACCEPT_RANGES)
+  addParser("AGE".ci,                       AGE)
+  addParser("ALLOW".ci,                     ALLOW)
+  addParser("AUTHORIZATION".ci,             AUTHORIZATION)
+  addParser("CACHE-CONTROL".ci,             CACHE_CONTROL)
+  addParser("CONNECTION".ci,                CONNECTION)
+  addParser("CONTENT-DISPOSITION".ci,       CONTENT_DISPOSITION)
+  addParser("CONTENT-ENCODING".ci,          CONTENT_ENCODING)
+  addParser("CONTENT-LENGTH".ci,            CONTENT_LENGTH)
+  addParser("CONTENT-RANGE".ci,             CONTENT_RANGE)
+  addParser("CONTENT-TYPE".ci,              CONTENT_TYPE)
+  addParser("COOKIE".ci,                    COOKIE)
+  addParser("DATE".ci,                      DATE)
+  addParser("ETAG".ci,                      ETAG)
+  addParser("EXPIRES".ci,                   EXPIRES)
+  addParser("HOST".ci,                      HOST)
+  addParser("IF-MODIFIED-SINCE".ci,         IF_MODIFIED_SINCE)
+  addParser("IF-NONE-MATCH".ci,             IF_NONE_MATCH)
+  addParser("LAST-EVENT-ID".ci,             LAST_EVENT_ID)
+  addParser("LAST-MODIFIED".ci,             LAST_MODIFIED)
+  addParser("LOCATION".ci,                  LOCATION)
+  addParser("PROXY-AUTHENTICATE".ci,        PROXY_AUTHENTICATE)
+  addParser("RANGE".ci,                     RANGE)
+  addParser("REFERER".ci,                   REFERER)
+  addParser("RETRY-AFTER".ci,               RETRY_AFTER)
+  addParser("SET-COOKIE".ci,                SET_COOKIE)
+  addParser("STRICT-TRANSPORT-SECURITY".ci, STRICT_TRANSPORT_SECURITY)
+  addParser("TRANSFER-ENCODING".ci,         TRANSFER_ENCODING)
+  addParser("USER-AGENT".ci,                USER_AGENT)
+  addParser("WWW-AUTHENTICATE".ci,          WWW_AUTHENTICATE)
+  addParser("X-B3-FLAGS".ci,                X_B3_FLAGS)
+  addParser("X-B3-PARENTSPANID".ci,         X_B3_PARENTSPANID)
+  addParser("X-B3-SAMPLED".ci,              X_B3_SAMPLED)
+  addParser("X-B3-SPANID".ci,               X_B3_SPANID)
+  addParser("X-B3-TRACEID".ci,              X_B3_TRACEID)
+  addParser("X-FORWARDED-FOR".ci,           X_FORWARDED_FOR)
   /** Add a parser to the global header parser registry
     *
     * @param key name of the header to register the parser for
@@ -77,9 +112,6 @@ object HttpHeaderParser
         catch {
           // We need a way to bail on invalid dates without throwing.  There should be a better way.
           case _: ParseFailure =>
-            ParseResult.success(header)
-          case e: InvocationTargetException if e.getCause.isInstanceOf[ParseFailure] =>
-            // TODO curse this runtime reflection
             ParseResult.success(header)
         }
     }
@@ -110,15 +142,4 @@ object HttpHeaderParser
     assert(results.forall(_.isRight))
   }
 
-  private def gatherBuiltIn(): Unit =
-    this.getClass.getMethods
-      .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
-      .foreach { method =>
-        val key = method.getName.replace('_', '-').ci
-        val parser = { value: String =>
-          method.invoke(this, value)
-        }.asInstanceOf[HeaderParser]
-
-        addParser(key, parser)
-      }
 }
