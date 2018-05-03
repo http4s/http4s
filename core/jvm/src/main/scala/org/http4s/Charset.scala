@@ -19,7 +19,7 @@
 package org.http4s
 
 import java.nio.charset.{StandardCharsets, Charset => NioCharset}
-import java.util.{HashMap, Locale}
+import java.util.HashMap
 import org.http4s.util._
 import scala.collection.JavaConverters._
 
@@ -33,7 +33,7 @@ final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def render(writer: Writer): writer.type = writer << nioCharset.name
 }
 
-object Charset extends PlatformCharsets {
+object Charset extends PlatformCharsets with PlatformCasing {
   val `US-ASCII` = Charset(StandardCharsets.US_ASCII)
   val `ISO-8859-1` = Charset(StandardCharsets.ISO_8859_1)
   val `UTF-8` = Charset(StandardCharsets.UTF_8)
@@ -49,14 +49,14 @@ object Charset extends PlatformCharsets {
     for {
       cs <- availableCharsets
       name <- cs.name :: cs.aliases.asScala.toList
-    } map.put(name.toLowerCase(Locale.ROOT), cs)
+    } map.put(toLowerCase(name), cs)
     map
   }
 
   def fromNioCharset(nioCharset: NioCharset): Charset = Charset(nioCharset)
 
   def fromString(name: String): ParseResult[Charset] =
-    cache.get(name.toLowerCase(Locale.ROOT)) match {
+    cache.get(toLowerCase(name)) match {
       case nioCharset: NioCharset => Right(Charset.apply(nioCharset))
       case null => Left(ParseFailure("Invalid charset", s"$name is not a supported Charset"))
     }

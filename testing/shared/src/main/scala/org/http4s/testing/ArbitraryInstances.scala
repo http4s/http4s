@@ -11,7 +11,6 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.{Pure, Stream}
 import java.nio.charset.{Charset => NioCharset}
 import java.time._
-import java.util.Locale
 import org.http4s.headers._
 import org.http4s.syntax.literals._
 import org.http4s.syntax.string._
@@ -20,12 +19,11 @@ import org.scalacheck._
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.rng.Seed
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.util.Try
 
-trait ArbitraryInstances {
+trait ArbitraryInstances extends PlatformCharsets with PlatformCasing {
   private implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }

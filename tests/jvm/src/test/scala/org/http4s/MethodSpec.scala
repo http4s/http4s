@@ -1,11 +1,10 @@
 package org.http4s
 
 import cats.kernel.laws.discipline.EqTests
-import java.util.Locale
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Prop.forAll
 
-class MethodSpec extends Http4sSpec {
+class MethodSpec extends Http4sSpec with PlatformCasing {
   import Method._
 
   "parses own string rendering to equal value" in {
@@ -23,8 +22,8 @@ class MethodSpec extends Http4sSpec {
   "name is case sensitive" in {
     prop { m: Method =>
       {
-        val upper = m.name.toUpperCase(Locale.ROOT)
-        val lower = m.name.toLowerCase(Locale.ROOT)
+        val upper = toUpperCase(m.name)
+        val lower = toLowerCase(m.name)
         (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
       }
     }
