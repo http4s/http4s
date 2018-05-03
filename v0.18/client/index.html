@@ -121,10 +121,10 @@ val service = HttpService[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$40881/925186677@510ac109)
+// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$40434/3610121@64bbc2c1)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$2102208008
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1015556329
 
 val server = builder.unsafeRunSync
 // server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
@@ -143,7 +143,7 @@ create the client.</p>
 // import org.http4s.client.blaze._
 
 val httpClient = Http1Client[IO]().unsafeRunSync
-// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$40915/669755344@4c964af),IO$355420062)
+// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$40468/1996788704@6483bede),IO$149460503)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -152,7 +152,7 @@ val httpClient = Http1Client[IO]().unsafeRunSync
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$91909351
+// helloJames: cats.effect.IO[String] = IO$357874752
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -190,7 +190,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = fs2.async.parallelTraverse(people)(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1627959601
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$247335183
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -273,7 +273,7 @@ val withQuery = withPath.withQueryParam(&quot;hello&quot;, &quot;world&quot;)
 <p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
 
 <pre><code class="language-scala">httpClient.expect[String](Uri.uri(&quot;https://google.com/&quot;))
-// res2: cats.effect.IO[String] = IO$684866232
+// res2: cats.effect.IO[String] = IO$1413598914
 </code></pre>
 
 <p>If you need to do something more complicated like setting request headers, you
@@ -296,7 +296,7 @@ val request = GET(
 // request: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=GET, uri=https://my-lovely-api.com/, headers=Headers(Authorization: &lt;REDACTED&gt;, Accept: application/json)))
 
 httpClient.expect[String](request)
-// res3: cats.effect.IO[String] = IO$1402544050
+// res3: cats.effect.IO[String] = IO$654055665
 </code></pre>
 
 <h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
@@ -316,10 +316,10 @@ val postRequest = POST(
     &quot;client_secret&quot; -&gt; &quot;s3cr3t&quot;
   )
 )
-// postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO$725580829
+// postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO$2120518383
 
 httpClient.expect[AuthResponse](postRequest)
-// res5: cats.effect.IO[AuthResponse] = IO$847063644
+// res5: cats.effect.IO[AuthResponse] = IO$779951465
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>
