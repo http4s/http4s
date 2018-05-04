@@ -2,7 +2,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import fs2._
@@ -20,15 +20,13 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(service: HttpService[F])(
-      implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
+  )(app: HttpApp[F])(implicit ec: ExecutionContext = ExecutionContext.global): HttpApp[F] =
     Kleisli { req =>
       if (!logBody)
-        OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> service(req).value)
+        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> app(req)
       else
-        OptionT
-          .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
+        async
+          .refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]])
           .flatMap { vec =>
             val newBody = Stream
               .eval(vec.get)
@@ -47,7 +45,7 @@ object RequestLogger {
                 )
             )
 
-            service(changedRequest)
+            app(changedRequest)
           }
     }
 }

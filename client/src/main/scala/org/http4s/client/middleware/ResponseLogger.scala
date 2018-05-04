@@ -20,11 +20,11 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(service: HttpService[F])(
+  )(app: HttpApp[F])(
       implicit F: Effect[F],
-      ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
+      ec: ExecutionContext = ExecutionContext.global): HttpApp[F] =
     Kleisli { req =>
-      service(req).semiflatMap { response =>
+      app(req).flatMap { response =>
         if (!logBody)
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
             logger) *> F.delay(response)
