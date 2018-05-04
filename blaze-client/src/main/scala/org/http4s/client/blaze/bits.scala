@@ -17,7 +17,7 @@ private[blaze] object bits {
   val DefaultMaxTotalConnections = 10
   val DefaultMaxWaitQueueLimit = 256
 
-  val ClientTickWheel = new TickWheelExecutor()
+  lazy val ClientTickWheel = new TickWheelExecutor()
 
   /** Caution: trusts all certificates and disables endpoint identification */
   lazy val TrustingSslContext: SSLContext = {

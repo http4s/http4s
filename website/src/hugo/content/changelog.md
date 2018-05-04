@@ -31,8 +31,10 @@ it.
   * blaze-0.14.0-M3
   * scala-xml-1.1.0
 
-# v0.18.10-SNAPSHOT (unreleased)
+# v0.18.10 (2018-05-03)
 * Eliminate dependency on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
+* Add `Logging` middleware for client [#1820](https://github.com/http4s/http4s/pull/1820)
+* Make blaze-client tick wheel executor lazy [#1822](https://github.com/http4s/http4s/pull/1822)
 * Dependency upgrades:
   * cats-effect-0.10.1
   * fs2-0.10.4
