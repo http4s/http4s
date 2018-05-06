@@ -76,7 +76,10 @@ lazy val tests = libraryCrossProject("tests", CrossType.Full)
 lazy val testsJVM = tests.jvm.dependsOn(testingJVM)
 lazy val testsJS  = tests.js
   .settings(
-    libraryDependencies ++= Seq("org.scala-js" %% "scalajs-test-interface" % scalaJSVersion),
+    libraryDependencies ++= Seq(
+      "org.scala-js" %% "scalajs-test-interface" % scalaJSVersion,
+      "io.github.cquiroz" %%% "scala-java-time-tzdb" % "2.0.0-M13_2018c"
+    ),
     scalaJSStage in Test := FastOptStage,
     testFrameworks := Seq(TestFramework("org.specs2.runner.Specs2Framework"))
   )
