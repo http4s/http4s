@@ -55,7 +55,8 @@ object PrometheusMetrics {
       requestDuration: Histogram,
       activeRequests: Gauge,
       requestCounter: Counter,
-      abnormalTerminations: Counter
+      abnormalTerminations: Counter,
+      tag: Option[String]
   )
 
   private def metricsService[F[_]: Sync](
@@ -101,19 +102,44 @@ object PrometheusMetrics {
       now <- Sync[F].delay(System.nanoTime)
       _ <- emptyResponseHandler.traverse_(status =>
         Sync[F].delay {
-          serviceMetrics.requestDuration
+          serviceMetrics.tag.fold(
+            serviceMetrics.requestDuration
             .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase))
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+          )(tag => 
+            serviceMetrics.requestDuration
+            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase), tag)
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
+          )
 
-          serviceMetrics.requestDuration
+          serviceMetrics.tag.fold(
+            serviceMetrics.requestDuration
             .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase))
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
-
-          serviceMetrics.requestCounter
+          )(tag => 
+            serviceMetrics.requestDuration
+            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase), tag)
+            .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
+          )
+          
+          serviceMetrics.tag.fold(
+            serviceMetrics.requestCounter
             .labels(reportMethod(m), reportStatus(status))
             .inc()
+          )(tag => 
+            serviceMetrics.requestCounter
+            .labels(reportMethod(m), reportStatus(status), tag)
+            .inc()
+          )
+          
       })
-      _ <- Sync[F].delay(serviceMetrics.activeRequests.dec())
+      _ <- Sync[F].delay{
+        serviceMetrics.tag.fold(
+          serviceMetrics.activeRequests.dec()
+        )(tag => 
+          serviceMetrics.activeRequests.labels(tag).dec()
+        )
+      }
     } yield ()
 
   private def onResponse[F[_]: Sync](
@@ -213,22 +239,24 @@ object PrometheusMetrics {
   def apply[F[_]: Sync](
       c: CollectorRegistry,
       prefix: String = "org_http4s_server",
+      tag: Option[String] = Option.empty[String],
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
       errorResponseHandler: Throwable => Option[Status] = e => Status.InternalServerError.some
   ): Kleisli[F, HttpRoutes[F], HttpRoutes[F]] = Kleisli { routes: HttpRoutes[F] =>
     Sync[F].delay {
-      val serviceMetrics =
+      val serviceMetrics: ServiceMetrics = tag.fold(
         ServiceMetrics(
           requestDuration = Histogram
             .build()
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
-            .labelNames("method", "serving_phase")
+            .labelNames("method", "serving_phase", "tag")
             .register(c),
           activeRequests = Gauge
             .build()
             .name(prefix + "_" + "active_request_count")
             .help("Total Active Requests.")
+            .labelNames("tag")
             .register(c),
           requestCounter = Counter
             .build()
@@ -241,8 +269,39 @@ object PrometheusMetrics {
             .name(prefix + "_" + "abnormal_terminations_total")
             .help("Total Abnormal Terminations.")
             .labelNames("termination_type")
-            .register(c)
+            .register(c),
+          tag = Option.empty[String]
         )
+      )(tag => 
+        ServiceMetrics(
+          requestDuration = Histogram
+            .build()
+            .name(prefix + "_" + "response_duration_seconds")
+            .help("Response Duration in seconds.")
+            .labelNames("method", "serving_phase", "tag")
+            .register(c),
+          activeRequests = Gauge
+            .build()
+            .name(prefix + "_" + "active_request_count")
+            .help("Total Active Requests.")
+            .labelNames("tag")
+            .register(c),
+          requestCounter = Counter
+            .build()
+            .name(prefix + "_" + "response_total")
+            .help("Total Responses.")
+            .labelNames("method", "code", "tag")
+            .register(c),
+          abnormalTerminations = Counter
+            .build()
+            .name(prefix + "_" + "abnormal_terminations_total")
+            .help("Total Abnormal Terminations.")
+            .labelNames("termination_type", "tag")
+            .register(c),
+          tag = tag.some
+        )
+      )
+        
       Kleisli(
         metricsService[F](serviceMetrics, routes, emptyResponseHandler, errorResponseHandler)(_)
       )
