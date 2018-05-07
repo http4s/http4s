@@ -24,10 +24,10 @@ import org.http4s.internal.parboiled2.support.{::, HNil}
 
 private[parser] trait CookieHeader {
 
-  def SET_COOKIE(value: String): ParseResult[`Set-Cookie`] =
+  def SET_COOKIE(value: String): Either[ParseFailure,`Set-Cookie`] =
     new SetCookieParser(value).parse
 
-  def COOKIE(value: String): ParseResult[headers.Cookie] =
+  def COOKIE(value: String): Either[ParseFailure,headers.Cookie] =
     new CookieParser(value).parse
 
   // scalastyle:off public.methods.have.type
