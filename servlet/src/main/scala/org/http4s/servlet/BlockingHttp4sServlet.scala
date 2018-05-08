@@ -49,8 +49,8 @@ class BlockingHttp4sServlet[F[_]](
       )
 
       F.runAsync(render) {
-          case Right(_) => Sync[IO].unit
-          case Left(t) => Sync[IO].delay(errorHandler(servletResponse)(t))
+          case Right(_) => IO.unit
+          case Left(t) => IO(errorHandler(servletResponse)(t))
         }
         .unsafeRunSync()
     } catch errorHandler(servletResponse)
