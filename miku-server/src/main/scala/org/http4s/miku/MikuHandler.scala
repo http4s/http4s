@@ -31,8 +31,11 @@ import scala.util.{Failure, Success}
   *
   * A note about "lastResponseSent" to help understand:
   * By reassigning the variable with a `flatMap` (which doesn't require synchronization at all, since
-  * you can consider this handler essentially single threaded), this means that, while we can run the
-  * `handle` action asynchronously by forking it into a thread done in `handle`
+  * you can consider this handler essentially single threaded), this means that, we can run the
+  * `handle` action asynchronously by forking it into a thread in `handle`, all the while
+  * ensuring in-order writes for the handler thread by attaching the callback using `flatMap`.
+  * This ensures we can schedule more work asynchronously by streaming `lastResponseSent` like a
+  * FIFO asynchronous queue.
   *
   */
 sealed abstract class MikuHandler[F[_]](
@@ -64,6 +67,7 @@ sealed abstract class MikuHandler[F[_]](
 
   /**
     * Handle the given request.
+    * Note: Handle implementations fork into user ExecutionContext
     */
   def handle(channel: Channel, request: HttpRequest, dateString: String): F[DefaultHttpResponse]
 
