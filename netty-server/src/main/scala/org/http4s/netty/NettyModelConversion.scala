@@ -59,22 +59,20 @@ object NettyModelConversion {
 
       val method: ParseResult[Method] =
         Method.fromString(request.method().name())
-      val version: HV = {
-        if (request.protocolVersion() == HttpVersion.HTTP_1_1)
-          HV.`HTTP/1.1`
-        else
-          HV.`HTTP/1.0`
-      }
-      uri.flatMap { u =>
-        method.map { m =>
-          Request[F](
-            m,
-            u,
-            version,
-            Headers(headerBuf.toList),
-            requestBody,
-            AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, connection))
-          )
+      val version: ParseResult[HV] = HV.fromString(request.protocolVersion().text())
+      //Avoid extra map(x => x) until we enable better-monadic-for
+      version.flatMap { v =>
+        uri.flatMap { u =>
+          method.map { m =>
+            Request[F](
+              m,
+              u,
+              v,
+              Headers(headerBuf.toList),
+              requestBody,
+              AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, connection))
+            )
+          }
         }
       } match { //Micro-optimization: No fold call
         case Right(http4sRequest) => F.pure(http4sRequest)
@@ -165,8 +163,10 @@ object NettyModelConversion {
     val httpVersion: HttpVersion =
       if (httpResponse.httpVersion == HV.`HTTP/1.1`)
         HttpVersion.HTTP_1_1
-      else
+      else if (httpResponse.httpVersion == HV.`HTTP/1.0`)
         HttpVersion.HTTP_1_0
+      else
+        HttpVersion.valueOf(httpResponse.httpVersion.toString)
 
     httpResponse.attributes.get(websocketKey[F]) match {
       case None => F.pure(toNonWSResponse[F](httpResponse, httpVersion, dateString))

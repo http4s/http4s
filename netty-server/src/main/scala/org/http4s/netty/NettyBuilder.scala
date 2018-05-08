@@ -20,7 +20,6 @@ import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.http4s.server._
-import org.http4s.util.bug
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -124,7 +123,8 @@ class NettyBuilder[F[_]](
 
   def start: F[Server[F]] = F.delay {
     val eventLoop: MultithreadEventLoopGroup = transport match {
-      case NettyTransport.Nio => new NioEventLoopGroup()
+      case NettyTransport.Nio =>
+        new NioEventLoopGroup()
       case NettyTransport.Native =>
         if (Epoll.isAvailable)
           new EpollEventLoopGroup()
@@ -136,7 +136,7 @@ class NettyBuilder[F[_]](
 
     val allChannels: DefaultChannelGroup = new DefaultChannelGroup(eventLoop.next())
 
-    val (_, boundAddress) = startNetty(eventLoop, allChannels)
+    val boundAddress = startNetty(eventLoop, allChannels)
     val server = new Server[F] {
       def shutdown: F[Unit] = F.delay {
         // First, close all opened sockets
@@ -144,7 +144,7 @@ class NettyBuilder[F[_]](
         // Now shutdown the event loop
         eventLoop.shutdownGracefully()
 
-        logger.info("All channels shut down gracefully")
+        logger.info(s"All channels shut down. Server bound at ${baseUri} shut down gracefully")
       }
 
       def onShutdown(f: => Unit): this.type = {
@@ -288,11 +288,11 @@ class NettyBuilder[F[_]](
       pipeline.addLast("encoder", new HttpResponseEncoder())
       pipeline.addLast("decompressor", new HttpContentDecompressor())
 
-      idleTimeout match {
-        case Duration.Inf => //Do nothing
-        case Duration(timeout, timeUnit) =>
-          pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
-
+      //Ensure finite length + positive timeout value
+      if (idleTimeout.isFinite() && idleTimeout.length > 0) {
+        pipeline.addLast(
+          "idle-handler",
+          new IdleStateHandler(0, 0, idleTimeout.length, idleTimeout.unit))
       }
 
       val requestHandler = newRequestHandler()
@@ -350,7 +350,7 @@ class NettyBuilder[F[_]](
         bootstrapNative(serverChannelEventLoop, channelPublisher, address)
       else {
         logger.info(
-          "Native transport not available. Falling back to nio2 transport. Please use .withTransport(Jdk)")
+          "Native transport not available. Falling back to nio transport. Please use .withTransport(Nio)")
         bootstrapNIO(serverChannelEventLoop, channelPublisher, address)
       }
   }
@@ -380,7 +380,7 @@ class NettyBuilder[F[_]](
   private def startNetty(
       eventLoop: MultithreadEventLoopGroup,
       allChannels: DefaultChannelGroup
-  ): (Channel, InetSocketAddress) = {
+  ): InetSocketAddress = {
 
     //Resolve address
     val resolvedAddress = new InetSocketAddress(socketAddress.getHostName, socketAddress.getPort)
@@ -395,11 +395,11 @@ class NettyBuilder[F[_]](
     //Cast downcast here is unfortunately necessary... because netty.
     val boundAddress = serverChannel.localAddress().asInstanceOf[InetSocketAddress]
     if (boundAddress == null) {
-      val e = bug("no bound address")
+      val e = new NettyBuilder.ServerInitException("no bound address")
       logger.error(e)("Error in server initialization")
       throw e
     }
-    (serverChannel, boundAddress)
+    boundAddress
   }
 
 }
@@ -487,6 +487,8 @@ object NettyBuilder {
       | |_||_\__|\__| .__/ |_|/__/
       |             |_|
       |             """.stripMargin.split("\n").toList
+
+  private[netty] class ServerInitException(message: String) extends Exception(message)
 }
 
 sealed trait NettyTransport extends Product with Serializable
