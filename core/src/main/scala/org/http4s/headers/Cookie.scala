@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
-  override def parse(s: String): ParseResult[Cookie] =
+  override def parse(s: String): Either[ParseFailure,Cookie] =
     HttpHeaderParser.COOKIE(s)
 }
 

@@ -31,7 +31,7 @@ import org.http4s.syntax.string._
   */
 private[parser] trait SimpleHeaders {
 
-  def ALLOW(value: String): ParseResult[Allow] =
+  def ALLOW(value: String): Either[ParseFailure,Allow] =
     new Http4sHeaderParser[Allow](value) {
       def entry = rule {
         oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { ts: Seq[String] =>
@@ -46,7 +46,7 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
-  def CONNECTION(value: String): ParseResult[Connection] =
+  def CONNECTION(value: String): Either[ParseFailure,Connection] =
     new Http4sHeaderParser[Connection](value) {
       def entry = rule(
         oneOrMore(Token).separatedBy(ListSep) ~ EOL ~> { xs: Seq[String] =>
@@ -55,7 +55,7 @@ private[parser] trait SimpleHeaders {
       )
     }.parse
 
-  def CONTENT_LENGTH(value: String): ParseResult[`Content-Length`] =
+  def CONTENT_LENGTH(value: String): Either[ParseFailure,`Content-Length`] =
     new Http4sHeaderParser[`Content-Length`](value) {
       def entry = rule {
         Digits ~ EOL ~> { s: String =>
@@ -64,7 +64,7 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
-  def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] =
+  def CONTENT_ENCODING(value: String): Either[ParseFailure,`Content-Encoding`] =
     new Http4sHeaderParser[`Content-Encoding`](value)
     with org.http4s.ContentCoding.ContentCodingParser {
       def entry = rule {
@@ -74,7 +74,7 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
-  def CONTENT_DISPOSITION(value: String): ParseResult[`Content-Disposition`] =
+  def CONTENT_DISPOSITION(value: String): Either[ParseFailure,`Content-Disposition`] =
     new Http4sHeaderParser[`Content-Disposition`](value) {
       def entry = rule {
         Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOL ~> {
@@ -84,14 +84,14 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
-  def DATE(value: String): ParseResult[Date] =
+  def DATE(value: String): Either[ParseFailure,Date] =
     new Http4sHeaderParser[Date](value) {
       def entry = rule {
         HttpDate ~ EOL ~> (Date(_))
       }
     }.parse
 
-  def EXPIRES(value: String): ParseResult[Expires] =
+  def EXPIRES(value: String): Either[ParseFailure,Expires] =
     new Http4sHeaderParser[Expires](value) {
       def entry = rule {
         HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
@@ -102,7 +102,7 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
-  def RETRY_AFTER(value: String): ParseResult[`Retry-After`] =
+  def RETRY_AFTER(value: String): Either[ParseFailure,`Retry-After`] =
     new Http4sHeaderParser[`Retry-After`](value) {
       def entry = rule {
         HttpDate ~ EOL ~> ((t: org.http4s.HttpDate) => `Retry-After`(t)) | // Date value

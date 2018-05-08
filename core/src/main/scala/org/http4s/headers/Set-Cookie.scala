@@ -18,7 +18,7 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] {
       case h :: t => Some(NonEmptyList(h, t))
     }
 
-  override def parse(s: String): ParseResult[`Set-Cookie`] =
+  override def parse(s: String): Either[ParseFailure,`Set-Cookie`] =
     HttpHeaderParser.SET_COOKIE(s)
 }
 
