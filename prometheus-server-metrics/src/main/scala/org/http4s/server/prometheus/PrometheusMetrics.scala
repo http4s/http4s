@@ -103,15 +103,15 @@ object PrometheusMetrics {
       _ <- emptyResponseHandler.traverse_(status =>
         Sync[F].delay {
           serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase)) ++ serviceMetrics.tags.values.toSeq : _*)
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
         
           serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase)) ++ serviceMetrics.tags.values.toSeq : _*)
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
           serviceMetrics.requestCounter
-            .labels(reportMethod(m), reportStatus(status), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), reportStatus(status)) ++ serviceMetrics.tags.values.toSeq : _*)
             .inc()
           
       })
@@ -133,15 +133,15 @@ object PrometheusMetrics {
         Sync[F].delay {
           val now = System.nanoTime
           serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase)) ++ serviceMetrics.tags.values.toSeq : _*)
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
 
           serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase)) ++ serviceMetrics.tags.values.toSeq : _*)
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
           serviceMetrics.requestCounter
-            .labels(reportMethod(m), reportStatus(r.status), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), reportStatus(r.status)) ++ serviceMetrics.tags.values.toSeq : _*)
             .inc()
 
           serviceMetrics.activeRequests.labels(serviceMetrics.tags.values.toSeq : _*).dec()
@@ -150,7 +150,7 @@ object PrometheusMetrics {
       .handleErrorWith(e =>
         Stream.eval(Sync[F].delay {
           serviceMetrics.abnormalTerminations.labels(
-            AbnormalTermination.report(AbnormalTermination.Abnormal), serviceMetrics.tags.values.toSeq : _*
+            Seq(AbnormalTermination.report(AbnormalTermination.Abnormal)) ++ serviceMetrics.tags.values.toSeq : _*
           )
         }) *> Stream.raiseError[Byte](e).covary[F])
     r.copy(body = newBody)
@@ -168,19 +168,19 @@ object PrometheusMetrics {
       _ <- errorResponseHandler.traverse_(status =>
         Sync[F].delay {
           serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), ServingPhase.report(ServingPhase.HeaderPhase)) ++ serviceMetrics.tags.values.toSeq : _*)
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, headerTime))
 
           serviceMetrics.requestDuration
-            .labels(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), ServingPhase.report(ServingPhase.BodyPhase)) ++ serviceMetrics.tags.values.toSeq : _*)
             .observe(SimpleTimer.elapsedSecondsFromNanos(start, now))
 
           serviceMetrics.requestCounter
-            .labels(reportMethod(m), reportStatus(status), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(reportMethod(m), reportStatus(status)) ++ serviceMetrics.tags.values.toSeq : _*)
             .inc()
 
           serviceMetrics.abnormalTerminations
-            .labels(AbnormalTermination.report(AbnormalTermination.ServerError), serviceMetrics.tags.values.toSeq : _*)
+            .labels(Seq(AbnormalTermination.report(AbnormalTermination.ServerError)) ++ serviceMetrics.tags.values.toSeq : _*)
             .inc()
 
       })
@@ -229,7 +229,7 @@ object PrometheusMetrics {
             .build()
             .name(prefix + "_" + "response_duration_seconds")
             .help("Response Duration in seconds.")
-            .labelNames("method", "serving_phase", tags.keys.toSeq : _*)
+            .labelNames(Seq("method", "serving_phase") ++ tags.keys.toSeq : _*)
             .register(c),
           activeRequests = Gauge
             .build()
@@ -241,13 +241,13 @@ object PrometheusMetrics {
             .build()
             .name(prefix + "_" + "response_total")
             .help("Total Responses.")
-            .labelNames("method", "code", tags.keys.toSeq : _*)
+            .labelNames(Seq("method", "code") ++ tags.keys.toSeq : _*)
             .register(c),
           abnormalTerminations = Counter
             .build()
             .name(prefix + "_" + "abnormal_terminations_total")
             .help("Total Abnormal Terminations.")
-            .labelNames("termination_type", tags.keys.toSeq : _*)
+            .labelNames(Seq("termination_type") ++ tags.keys.toSeq : _*)
             .register(c),
           tags = tags
         )
