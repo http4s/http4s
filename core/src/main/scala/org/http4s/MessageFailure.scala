@@ -51,19 +51,19 @@ object ParseFailure {
 }
 
 object ParseResult {
-  def fail(sanitized: String, details: String): Either[ParseFailure,Nothing] =
+  def fail(sanitized: String, details: String): ParseResult[Nothing] =
     Either.left(ParseFailure(sanitized, details))
 
-  def success[A](a: A): Either[ParseFailure,A] =
+  def success[A](a: A): ParseResult[A] =
     Either.right(a)
 
-  def fromTryCatchNonFatal[A](sanitized: String)(f: => A): Either[ParseFailure,A] =
+  def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {
       case NonFatal(e) => Either.left(ParseFailure(sanitized, e.getMessage))
     }
 
-  implicit val parseResultMonad: MonadError[Either[ParseFailure,?], ParseFailure] =
+  implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] =
     catsStdInstancesForEither[ParseFailure]
 }
 

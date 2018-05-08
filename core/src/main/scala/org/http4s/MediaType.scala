@@ -109,7 +109,7 @@ object MediaRange {
   /**
     * Parse a MediaRange
     */
-  def parse(s: String): Either[ParseFailure,MediaRange] =
+  def parse(s: String): ParseResult[MediaRange] =
     new Http4sParser[MediaRange](s, "Invalid Media Range") with MediaRangeParser {
       def main = MediaRangeFull
     }.parse
@@ -148,7 +148,7 @@ object MediaRange {
       override def show(s: MediaRange): String =
         s"${s.mainType}/*${MediaRange.extensionsToString(s)}"
 
-      override def parse(s: String): Either[ParseFailure,MediaRange] =
+      override def parse(s: String): ParseResult[MediaRange] =
         MediaRange.parse(s)
 
       override def render(writer: Writer, mr: MediaRange): writer.type = mr match {
