@@ -140,7 +140,7 @@ object Uri extends UriFunctions {
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
-  def fromString(s: String): Either[ParseFailure,Uri] =
+  def fromString(s: String): ParseResult[Uri] =
     new RequestUriParser(s, StandardCharsets.UTF_8).Uri
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid URI", e.format(s)))
@@ -155,7 +155,7 @@ object Uri extends UriFunctions {
     fromString(s).valueOr(throw _)
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
-  def requestTarget(s: String): Either[ParseFailure,Uri] =
+  def requestTarget(s: String): ParseResult[Uri] =
     new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
       .run()(PbParser.DeliveryScheme.Either)
       .leftMap(e => ParseFailure("Invalid request target", e.format(s)))
@@ -189,7 +189,7 @@ object Uri extends UriFunctions {
     val http: Scheme = new Scheme("http")
     val https: Scheme = new Scheme("https")
 
-    def parse(s: String): Either[ParseFailure,Scheme] =
+    def parse(s: String): ParseResult[Scheme] =
       new Http4sParser[Scheme](s, "Invalid scheme") with Parser {
         def main = scheme
       }.parse
@@ -206,7 +206,7 @@ object Uri extends UriFunctions {
       new Show[Scheme] with HttpCodec[Scheme] with Order[Scheme] {
         def show(s: Scheme): String = s.toString
 
-        def parse(s: String): Either[ParseFailure,Scheme] =
+        def parse(s: String): ParseResult[Scheme] =
           Scheme.parse(s)
 
         def render(writer: Writer, scheme: Scheme): writer.type =

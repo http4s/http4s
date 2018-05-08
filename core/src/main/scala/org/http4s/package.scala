@@ -15,7 +15,6 @@ package object http4s { // scalastyle:ignore
 
   type DecodeResult[F[_], A] = EitherT[F, DecodeFailure, A]
 
-  @deprecated("Deprecated in favor of using Either", "0.19")
   type ParseResult[+A] = Either[ParseFailure, A]
 
   val DefaultCharset = Charset.`UTF-8`
