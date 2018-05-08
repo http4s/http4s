@@ -125,7 +125,7 @@ class Http4sServlet[F[_]](
         } else {
           logger.warn(
             s"Async context timed out, but response was already committed: ${request.method} ${request.uri.path}")
-          F.pure(())
+          F.unit
         }
       } {
         case Right(()) => IO(ctx.complete())
