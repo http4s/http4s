@@ -112,7 +112,7 @@ lazy val blazeClient = libraryProject("blaze-client")
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
-lazy val mikuServer = libraryProject("miku-server")
+lazy val nettyServer = libraryProject("netty-server")
   .settings(
     description := "netty implementation for http4s servers",
     libraryDependencies ++= Seq(

@@ -1,4 +1,4 @@
-package org.http4s.miku
+package org.http4s.netty
 
 import java.net.InetSocketAddress
 

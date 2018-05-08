@@ -1,4 +1,4 @@
-package org.http4s.miku
+package org.http4s.netty
 
 import fs2.Chunk
 import io.netty.handler.codec.http.HttpContent

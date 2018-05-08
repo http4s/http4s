@@ -1,4 +1,4 @@
-package org.http4s.miku
+package org.http4s.netty
 
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -16,11 +16,7 @@ import io.netty.channel.epoll.{Epoll, EpollEventLoopGroup, EpollServerSocketChan
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.http.{
-  HttpContentDecompressor,
-  HttpRequestDecoder,
-  HttpResponseEncoder
-}
+import io.netty.handler.codec.http.{HttpContentDecompressor, HttpRequestDecoder, HttpResponseEncoder}
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
 import org.http4s.HttpService
@@ -32,10 +28,6 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-
-sealed trait NettyTransport
-case object Jdk extends NettyTransport
-case object Native extends NettyTransport
 
 /** Netty server builder.
   *
@@ -62,20 +54,20 @@ case object Native extends NettyTransport
   * @param F
   * @tparam F
   */
-class MikuBuilder[F[_]](
+class NettyBuilder[F[_]](
     httpService: HttpService[F],
     socketAddress: InetSocketAddress,
     idleTimeout: Duration,
     maxInitialLineLength: Int,
     maxHeaderSize: Int,
     maxChunkSize: Int,
-    sslBits: Option[MikuSSLConfig],
+    sslBits: Option[NettySSLConfig],
     serviceErrorHandler: ServiceErrorHandler[F],
     transport: NettyTransport,
     ec: ExecutionContext,
     enableWebsockets: Boolean,
     banner: immutable.Seq[String],
-    nettyChannelOptions: MikuBuilder.NettyChannelOptions
+    nettyChannelOptions: NettyBuilder.NettyChannelOptions
 )(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
@@ -85,7 +77,7 @@ class MikuBuilder[F[_]](
   implicit val e = ec
   private val logger = getLogger
 
-  type Self = MikuBuilder[F]
+  type Self = NettyBuilder[F]
 
   def copy(
       httpService: HttpService[F] = httpService,
@@ -94,15 +86,15 @@ class MikuBuilder[F[_]](
       maxInitialLineLength: Int = maxInitialLineLength,
       maxHeaderSize: Int = maxHeaderSize,
       maxChunkSize: Int = maxChunkSize,
-      sslBits: Option[MikuSSLConfig] = sslBits,
+      sslBits: Option[NettySSLConfig] = sslBits,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       ec: ExecutionContext = ec,
       enableWebsockets: Boolean = enableWebsockets,
       banner: immutable.Seq[String] = banner,
       transport: NettyTransport = transport,
-      nettyChannelOptions: MikuBuilder.NettyChannelOptions = nettyChannelOptions
-  ): MikuBuilder[F] =
-    new MikuBuilder[F](
+      nettyChannelOptions: NettyBuilder.NettyChannelOptions = nettyChannelOptions
+  ): NettyBuilder[F] =
+    new NettyBuilder[F](
       httpService,
       socketAddress,
       idleTimeout,
@@ -118,23 +110,23 @@ class MikuBuilder[F[_]](
       nettyChannelOptions
     )
 
-  def bindSocketAddress(socketAddress: InetSocketAddress): MikuBuilder[F] =
+  def bindSocketAddress(socketAddress: InetSocketAddress): NettyBuilder[F] =
     copy(socketAddress = socketAddress)
 
-  def withExecutionContext(executionContext: ExecutionContext): MikuBuilder[F] =
+  def withExecutionContext(executionContext: ExecutionContext): NettyBuilder[F] =
     copy(ec = executionContext)
 
-  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): MikuBuilder[F] =
+  def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): NettyBuilder[F] =
     copy(serviceErrorHandler = serviceErrorHandler)
 
   //Todo: Router-hack thingy
-  def mountService(service: HttpService[F], prefix: String): MikuBuilder[F] =
+  def mountService(service: HttpService[F], prefix: String): NettyBuilder[F] =
     copy(httpService = service)
 
   def start: F[Server[F]] = F.delay {
     val eventLoop: MultithreadEventLoopGroup = transport match {
-      case Jdk => new NioEventLoopGroup()
-      case Native =>
+      case NettyTransport.Nio => new NioEventLoopGroup()
+      case NettyTransport.Native =>
         if (Epoll.isAvailable)
           new EpollEventLoopGroup()
         else {
@@ -172,10 +164,10 @@ class MikuBuilder[F[_]](
     server
   }
 
-  def withBanner(banner: immutable.Seq[String]): MikuBuilder[F] =
+  def withBanner(banner: immutable.Seq[String]): NettyBuilder[F] =
     copy(banner = banner)
 
-  def withIdleTimeout(idleTimeout: Duration): MikuBuilder[F] =
+  def withIdleTimeout(idleTimeout: Duration): NettyBuilder[F] =
     copy(idleTimeout = idleTimeout)
 
   def withSSL(
@@ -184,33 +176,33 @@ class MikuBuilder[F[_]](
       protocol: String,
       trustStore: Option[SSLKeyStoreSupport.StoreInfo],
       clientAuth: Boolean
-  ): MikuBuilder[F] = {
+  ): NettyBuilder[F] = {
     val auth = if (clientAuth) ClientAuthRequired else NoClientAuth
     val bits = MikuKeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, auth)
     copy(sslBits = Some(bits))
   }
 
-  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): MikuBuilder[F] = {
+  def withSSLContext(sslContext: SSLContext, clientAuth: Boolean): NettyBuilder[F] = {
     val auth = if (clientAuth) ClientAuthRequired else NoClientAuth
     copy(sslBits = Some(MikuSSLContextBits(sslContext, auth)))
   }
 
-  def withWebSockets(enableWebsockets: Boolean): MikuBuilder[F] =
+  def withWebSockets(enableWebsockets: Boolean): NettyBuilder[F] =
     copy(enableWebsockets = enableWebsockets)
 
   /** Netty-only option **/
-  def withTransport(transport: NettyTransport): MikuBuilder[F] =
+  def withTransport(transport: NettyTransport): NettyBuilder[F] =
     copy(transport = transport)
 
   /** Netty-only option **/
-  def withChannelOptions(channelOptions: MikuBuilder.NettyChannelOptions) =
+  def withChannelOptions(channelOptions: NettyBuilder.NettyChannelOptions) =
     copy(nettyChannelOptions = channelOptions)
 
   protected[this] def newRequestHandler(): ChannelInboundHandler =
     if (enableWebsockets)
-      MikuHandler.websocket[F](httpService, serviceErrorHandler)
+      Http4sNettyHandler.websocket[F](httpService, serviceErrorHandler)
     else
-      MikuHandler.default[F](httpService, serviceErrorHandler)
+      Http4sNettyHandler.default[F](httpService, serviceErrorHandler)
 
   /** Return our SSL context.
     *
@@ -345,9 +337,9 @@ class MikuBuilder[F[_]](
       serverChannelEventLoop: EventLoopGroup,
       channelPublisher: HandlerPublisher[Channel],
       address: InetSocketAddress): Bootstrap = transport match {
-    case Jdk =>
+    case NettyTransport.Nio =>
       bootstrapNIO(serverChannelEventLoop, channelPublisher, address)
-    case Native =>
+    case NettyTransport.Native =>
       if (Epoll.isAvailable)
         bootstrapNative(serverChannelEventLoop, channelPublisher, address)
       else {
@@ -406,7 +398,7 @@ class MikuBuilder[F[_]](
 
 }
 
-object MikuBuilder {
+object NettyBuilder {
 
   /** Ensure we construct our netty channel options in a typeful, immutable way, despite
     * the underlying being disgusting
@@ -448,7 +440,7 @@ object MikuBuilder {
   }
 
   def apply[F[_]: Effect] =
-    new MikuBuilder[F](
+    new NettyBuilder[F](
       httpService = HttpService.empty[F],
       socketAddress = ServerBuilder.DefaultSocketAddress,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
@@ -457,7 +449,7 @@ object MikuBuilder {
       maxChunkSize = 8192,
       sslBits = None,
       serviceErrorHandler = DefaultServiceErrorHandler[F],
-      transport = Native,
+      transport = NettyTransport.Native,
       ec = ExecutionContext.global,
       enableWebsockets = false,
       banner = MikuBanner,
@@ -489,4 +481,11 @@ object MikuBuilder {
       | |_||_\__|\__| .__/ |_|/__/
       |             |_|
       |             """.stripMargin.split("\n").toList
+}
+
+sealed trait NettyTransport extends Product with Serializable
+
+object NettyTransport {
+  case object Nio extends NettyTransport
+  case object Native extends NettyTransport
 }

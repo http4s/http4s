@@ -1,10 +1,10 @@
-package org.http4s.miku
+package org.http4s.netty
 
 import javax.net.ssl.SSLContext
 
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 
-sealed trait MikuSSLConfig
+sealed trait NettySSLConfig
 
 sealed trait ClientAuth
 case object ClientAuthRequired extends ClientAuth
@@ -17,7 +17,7 @@ final case class MikuKeyStoreBits(
     protocol: String,
     trustStore: Option[StoreInfo],
     clientAuth: ClientAuth
-) extends MikuSSLConfig
+) extends NettySSLConfig
 
 final case class MikuSSLContextBits(sslContext: SSLContext, clientAuth: ClientAuth)
-    extends MikuSSLConfig
+    extends NettySSLConfig

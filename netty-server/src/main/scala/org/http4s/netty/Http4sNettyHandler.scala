@@ -1,4 +1,4 @@
-package org.http4s.miku
+package org.http4s.netty
 
 import java.io.IOException
 import java.time.{Instant, ZoneId}
@@ -37,8 +37,10 @@ import scala.util.{Failure, Success}
   * This ensures we can schedule more work asynchronously by streaming `lastResponseSent` like a
   * FIFO asynchronous queue.
   *
+  * P.s this class was named `MikuHandler`. Record of this will exist honor of the fallen glorious module name
+  * `http4s-miku`, slain by a bolt of lightning thrown by Zeus during a battle of module naming.
   */
-sealed abstract class MikuHandler[F[_]](
+private[netty] abstract class Http4sNettyHandler[F[_]](
     implicit F: Effect[F]
 ) extends ChannelInboundHandlerAdapter {
 
@@ -192,13 +194,13 @@ sealed abstract class MikuHandler[F[_]](
   }
 }
 
-object MikuHandler {
+object Http4sNettyHandler {
   private class DefaultHandler[F[_]](
       service: HttpService[F],
       serviceErrorHandler: ServiceErrorHandler[F])(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ) extends MikuHandler[F] {
+  ) extends Http4sNettyHandler[F] {
     private[this] val unwrapped: Request[F] => F[Response[F]] =
       service.mapF(_.getOrElse(Response.notFound[F])).run
 
@@ -222,7 +224,7 @@ object MikuHandler {
       serviceErrorHandler: ServiceErrorHandler[F])(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ) extends MikuHandler[F] {
+  ) extends Http4sNettyHandler[F] {
     private[this] val unwrapped: Request[F] => F[Response[F]] =
       service.mapF(_.getOrElse(Response.notFound[F])).run
 
@@ -244,10 +246,10 @@ object MikuHandler {
   def default[F[_]](service: HttpService[F], serviceErrorHandler: ServiceErrorHandler[F])(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ): MikuHandler[F] = new DefaultHandler[F](service, serviceErrorHandler)
+  ): Http4sNettyHandler[F] = new DefaultHandler[F](service, serviceErrorHandler)
 
   def websocket[F[_]](service: HttpService[F], serviceErrorHandler: ServiceErrorHandler[F])(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ): MikuHandler[F] = new WebsocketHandler[F](service, serviceErrorHandler)
+  ): Http4sNettyHandler[F] = new WebsocketHandler[F](service, serviceErrorHandler)
 }
