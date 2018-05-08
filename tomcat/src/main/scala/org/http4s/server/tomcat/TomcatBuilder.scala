@@ -12,7 +12,7 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.util.ServerInfo
 import org.apache.tomcat.util.descriptor.web.{FilterDef, FilterMap}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.collection.immutable
@@ -113,7 +113,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
   override def mountService(service: HttpRoutes[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (ctx, index, builder) =>
-      val servlet = new Http4sServlet(
+      val servlet = new AsyncHttp4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
