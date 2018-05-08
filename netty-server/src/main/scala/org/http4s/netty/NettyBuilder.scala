@@ -1,4 +1,5 @@
-package org.http4s.netty
+package org.http4s
+package netty
 
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -8,7 +9,6 @@ import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 import cats.effect.{Effect, IO}
 import com.typesafe.netty.HandlerPublisher
 import com.typesafe.netty.http.HttpStreamsServerHandler
-import fs2.Pipe
 import fs2.interop.reactivestreams._
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel._
@@ -16,10 +16,9 @@ import io.netty.channel.epoll.{Epoll, EpollEventLoopGroup, EpollServerSocketChan
 import io.netty.channel.group.DefaultChannelGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.http.{HttpContentDecompressor, HttpRequestDecoder, HttpResponseEncoder}
+import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
-import org.http4s.HttpService
 import org.http4s.server._
 import org.http4s.util.bug
 import org.log4s.getLogger
@@ -145,7 +144,7 @@ class NettyBuilder[F[_]](
         // Now shutdown the event loop
         eventLoop.shutdownGracefully()
 
-        logger.info("Shut down gracefully :)")
+        logger.info("All channels shut down gracefully")
       }
 
       def onShutdown(f: => Unit): this.type = {
@@ -160,7 +159,7 @@ class NettyBuilder[F[_]](
       def isSecure: Boolean = sslBits.isDefined
     }
     banner.foreach(logger.info(_))
-    logger.info(s"༼ つ ◕_◕ ༽つ Started Miku(Netty) Server at ${server.baseUri} ༼ つ ◕_◕ ༽つ")
+    logger.info(s"Started Http4s Netty Server at ${server.baseUri} ༼ つ ◕_◕ ༽つ")
     server
   }
 
@@ -195,8 +194,17 @@ class NettyBuilder[F[_]](
     copy(transport = transport)
 
   /** Netty-only option **/
-  def withChannelOptions(channelOptions: NettyBuilder.NettyChannelOptions) =
+  def withChannelOptions(channelOptions: NettyBuilder.NettyChannelOptions): NettyBuilder[F] =
     copy(nettyChannelOptions = channelOptions)
+
+  def withHttpCodecOptions(
+      maxInitialLineLength: Int,
+      maxHeaderSize: Int,
+      maxChunkSize: Int): NettyBuilder[F] =
+    copy(
+      maxInitialLineLength = maxInitialLineLength,
+      maxHeaderSize = maxHeaderSize,
+      maxChunkSize = maxChunkSize)
 
   protected[this] def newRequestHandler(): ChannelInboundHandler =
     if (enableWebsockets)
@@ -246,63 +254,61 @@ class NettyBuilder[F[_]](
   /** A stream transformation that registers our channels and
     * adds the necessary codecs and transport handlers
     */
-  def channelPipe(
+  def registerChannel(
       eventLoop: MultithreadEventLoopGroup,
-      allChannels: DefaultChannelGroup): Pipe[F, Channel, Unit] = { s =>
-    s.evalMap { connChannel =>
-      F.delay {
+      allChannels: DefaultChannelGroup): Channel => F[Unit] = { connChannel =>
+    F.delay {
 
-        // Setup the channel for explicit reads
-        connChannel
-          .config()
-          .setOption(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
+      // Setup the channel for explicit reads
+      connChannel
+        .config()
+        .setOption(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE)
 
-        val pipeline = connChannel.pipeline()
-        getContext() match {
-          case Some((ctx, auth)) => //Ignore client authentication for now
-            val engine = ctx.createSSLEngine()
-            engine.setUseClientMode(false)
-            auth match {
-              case NoClientAuth => ()
-              case ClientAuthRequired =>
-                engine.setNeedClientAuth(true)
-              case ClientAuthOptional =>
-                engine.setWantClientAuth(true)
-            }
-            pipeline.addLast("ssl", new SslHandler(engine))
+      val pipeline = connChannel.pipeline()
+      getContext() match {
+        case Some((ctx, auth)) =>
+          val engine = ctx.createSSLEngine()
+          engine.setUseClientMode(false)
+          auth match {
+            case NoClientAuth => ()
+            case ClientAuthRequired =>
+              engine.setNeedClientAuth(true)
+            case ClientAuthOptional =>
+              engine.setWantClientAuth(true)
+          }
+          pipeline.addLast("ssl", new SslHandler(engine))
 
-          case None => //Do nothing
-        }
-
-        // Netty HTTP decoders/encoders/etc
-        pipeline.addLast(
-          "decoder",
-          new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
-        pipeline.addLast("encoder", new HttpResponseEncoder())
-        pipeline.addLast("decompressor", new HttpContentDecompressor())
-
-        idleTimeout match {
-          case Duration.Inf => //Do nothing
-          case Duration(timeout, timeUnit) =>
-            pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
-
-        }
-
-        val requestHandler = newRequestHandler()
-
-        // Use the streams handler to close off the connection.
-        pipeline.addLast(
-          "http-handler",
-          new HttpStreamsServerHandler(Seq[ChannelHandler](requestHandler).asJava))
-
-        pipeline.addLast("request-handler", requestHandler)
-
-        // And finally, register the channel with the event loop
-        val childChannelEventLoop = eventLoop.next()
-        childChannelEventLoop.register(connChannel)
-        allChannels.add(connChannel)
-        ()
+        case None => //Do nothing
       }
+
+      // Netty HTTP decoders/encoders/etc
+      pipeline.addLast(
+        "decoder",
+        new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
+      pipeline.addLast("encoder", new HttpResponseEncoder())
+      pipeline.addLast("decompressor", new HttpContentDecompressor())
+
+      idleTimeout match {
+        case Duration.Inf => //Do nothing
+        case Duration(timeout, timeUnit) =>
+          pipeline.addLast("idle-handler", new IdleStateHandler(0, 0, timeout, timeUnit))
+
+      }
+
+      val requestHandler = newRequestHandler()
+
+      // Use the streams handler to close off the connection.
+      pipeline.addLast(
+        "http-handler",
+        new HttpStreamsServerHandler(Seq[ChannelHandler](requestHandler).asJava))
+
+      pipeline.addLast("request-handler", requestHandler)
+
+      // And finally, register the channel with the event loop
+      val childChannelEventLoop = eventLoop.next()
+      childChannelEventLoop.register(connChannel)
+      allChannels.add(connChannel)
+      ()
     }
   }
 
@@ -381,7 +387,7 @@ class NettyBuilder[F[_]](
     val (serverChannel, channelSource) = bind(eventLoop, allChannels, resolvedAddress)
     F.runAsync(
         channelSource
-          .through(channelPipe(eventLoop, allChannels))
+          .evalMap(registerChannel(eventLoop, allChannels))
           .compile
           .drain
       )(_.fold(IO.raiseError, _ => IO.unit)) //This shouldn't ever throw an error in the first place.
