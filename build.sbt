@@ -125,7 +125,8 @@ lazy val servlet = libraryProject("servlet")
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       jettyServer % "test",
-      jettyServlet % "test"
+      jettyServlet % "test",
+      mockito % "test"
     )
   )
   .dependsOn(server % "compile;test->test")
