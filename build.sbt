@@ -122,9 +122,7 @@ lazy val mikuServer = libraryProject("miku-server")
       nettyHttpCodec,
       nettyUnixCommon,
       nettyNativeTransport
-    ),
-
-    scalacOptions -= "-Ywarn-value-discard"
+    )
   )
   .dependsOn(server % "compile;test->test")
 

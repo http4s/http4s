@@ -74,7 +74,8 @@ class MikuBuilder[F[_]](
     transport: NettyTransport,
     ec: ExecutionContext,
     enableWebsockets: Boolean,
-    banner: immutable.Seq[String]
+    banner: immutable.Seq[String],
+    nettyChannelOptions: MikuBuilder.NettyChannelOptions
 )(implicit F: Effect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
@@ -86,7 +87,7 @@ class MikuBuilder[F[_]](
 
   type Self = MikuBuilder[F]
 
-  protected def copy(
+  def copy(
       httpService: HttpService[F] = httpService,
       socketAddress: InetSocketAddress = socketAddress,
       idleTimeout: Duration = Duration.Inf,
@@ -98,7 +99,8 @@ class MikuBuilder[F[_]](
       ec: ExecutionContext = ec,
       enableWebsockets: Boolean = enableWebsockets,
       banner: immutable.Seq[String] = banner,
-      transport: NettyTransport = transport
+      transport: NettyTransport = transport,
+      nettyChannelOptions: MikuBuilder.NettyChannelOptions = nettyChannelOptions
   ): MikuBuilder[F] =
     new MikuBuilder[F](
       httpService,
@@ -112,7 +114,8 @@ class MikuBuilder[F[_]](
       transport,
       ec,
       enableWebsockets,
-      banner
+      banner,
+      nettyChannelOptions
     )
 
   def bindSocketAddress(socketAddress: InetSocketAddress): MikuBuilder[F] =
@@ -154,7 +157,9 @@ class MikuBuilder[F[_]](
       }
 
       def onShutdown(f: => Unit): this.type = {
-        Runtime.getRuntime.addShutdownHook(new Thread(() => f))
+        Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
+          def run(): Unit = f
+        }))
         this
       }
 
@@ -192,6 +197,14 @@ class MikuBuilder[F[_]](
 
   def withWebSockets(enableWebsockets: Boolean): MikuBuilder[F] =
     copy(enableWebsockets = enableWebsockets)
+
+  /** Netty-only option **/
+  def withTransport(transport: NettyTransport): MikuBuilder[F] =
+    copy(transport = transport)
+
+  /** Netty-only option **/
+  def withChannelOptions(channelOptions: MikuBuilder.NettyChannelOptions) =
+    copy(nettyChannelOptions = channelOptions)
 
   protected[this] def newRequestHandler(): ChannelInboundHandler =
     if (enableWebsockets)
@@ -301,13 +314,17 @@ class MikuBuilder[F[_]](
     }
   }
 
+  private def addChannelOptions(b: Bootstrap) =
+    nettyChannelOptions.foldLeft(b)((boot, o) => boot.option(o._1, o._2))
+
   private def bootstrapNative(
       serverChannelEventLoop: EventLoopGroup,
       channelPublisher: HandlerPublisher[Channel],
       address: InetSocketAddress): Bootstrap =
-    new Bootstrap()
-      .channel(classOf[EpollServerSocketChannel])
-      .group(serverChannelEventLoop)
+    addChannelOptions(
+      new Bootstrap()
+        .channel(classOf[EpollServerSocketChannel])
+        .group(serverChannelEventLoop))
       .option(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE) // publisher does ctx.read()
       .handler(channelPublisher)
       .localAddress(address)
@@ -316,9 +333,10 @@ class MikuBuilder[F[_]](
       serverChannelEventLoop: EventLoopGroup,
       channelPublisher: HandlerPublisher[Channel],
       address: InetSocketAddress): Bootstrap =
-    new Bootstrap()
-      .channel(classOf[NioServerSocketChannel])
-      .group(serverChannelEventLoop)
+    addChannelOptions(
+      new Bootstrap()
+        .channel(classOf[NioServerSocketChannel])
+        .group(serverChannelEventLoop))
       .option(ChannelOption.AUTO_READ, java.lang.Boolean.FALSE) // publisher does ctx.read()
       .handler(channelPublisher)
       .localAddress(address)
@@ -389,6 +407,46 @@ class MikuBuilder[F[_]](
 }
 
 object MikuBuilder {
+
+  /** Ensure we construct our netty channel options in a typeful, immutable way, despite
+    * the underlying being disgusting
+    */
+  abstract class NettyChannelOptions {
+
+    /** Prepend to the channel options **/
+    def prepend[O](channelOption: ChannelOption[O], value: O): NettyChannelOptions
+
+    /** Append to the channel options **/
+    def append[O](channelOption: ChannelOption[O], value: O): NettyChannelOptions
+
+    /** Remove a channel option, if present **/
+    def remove[O](channelOption: ChannelOption[O]): NettyChannelOptions
+
+    private[http4s] def foldLeft[O](initial: O)(f: (O, (ChannelOption[Any], Any)) => O): O
+  }
+
+  object NettyChannelOptions {
+    val empty = new NettyCOptions(Vector.empty)
+  }
+
+  private[http4s] final class NettyCOptions(
+      private[http4s] val underlying: Vector[(ChannelOption[Any], Any)])
+      extends NettyChannelOptions {
+
+    def prepend[O](channelOption: ChannelOption[O], value: O): NettyChannelOptions =
+      new NettyCOptions((channelOption.asInstanceOf[ChannelOption[Any]], value: Any) +: underlying)
+
+    def append[O](channelOption: ChannelOption[O], value: O): NettyChannelOptions =
+      new NettyCOptions(
+        underlying :+ ((channelOption.asInstanceOf[ChannelOption[Any]], value: Any)))
+
+    def remove[O](channelOption: ChannelOption[O]): NettyChannelOptions =
+      new NettyCOptions(underlying.filterNot(_._1 == channelOption))
+
+    private[http4s] def foldLeft[O](initial: O)(f: (O, (ChannelOption[Any], Any)) => O) =
+      underlying.foldLeft[O](initial)(f)
+  }
+
   def apply[F[_]: Effect] =
     new MikuBuilder[F](
       httpService = HttpService.empty[F],
@@ -402,7 +460,8 @@ object MikuBuilder {
       transport = Native,
       ec = ExecutionContext.global,
       enableWebsockets = false,
-      banner = MikuBanner
+      banner = MikuBanner,
+      nettyChannelOptions = NettyChannelOptions.empty
     )
   ServerBuilder.DefaultSocketAddress.isUnresolved
 

@@ -3,12 +3,8 @@ package org.http4s.miku
 import java.net.InetSocketAddress
 
 import cats.effect.{Async, Effect, IO}
-import cats.syntax.all._
-import com.typesafe.netty.http.{
-  DefaultStreamedHttpResponse,
-  DefaultWebSocketHttpResponse,
-  StreamedHttpRequest
-}
+import cats.implicits.{catsSyntaxEither => _, _}
+import com.typesafe.netty.http._
 import fs2.interop.reactivestreams._
 import fs2.{Chunk, Pull, Stream}
 import io.netty.buffer.{ByteBuf, Unpooled}
@@ -54,9 +50,13 @@ object NettyModelConversion {
       val requestBody = convertRequestBody(request)
       val uri: ParseResult[Uri] = Uri.fromString(request.uri())
       val headerBuf = new ListBuffer[Header]
-      request.headers().entries().forEach { entry =>
-        headerBuf += Header(entry.getKey, entry.getValue)
+      val headersIterator = request.headers().iteratorAsString()
+      var mapEntry: java.util.Map.Entry[String, String] = null
+      while (headersIterator.hasNext) {
+        mapEntry = headersIterator.next()
+        headerBuf += Header(mapEntry.getKey, mapEntry.getValue)
       }
+
       val method: ParseResult[Method] =
         Method.fromString(request.method().name())
       val version: HV = {
@@ -84,7 +84,7 @@ object NettyModelConversion {
   }
 
   /** Capture a request's connection info from its channel and headers. */
-  private def createRemoteConnection(channel: Channel): Connection =
+  private[this] def createRemoteConnection(channel: Channel): Connection =
     Connection(
       channel.localAddress().asInstanceOf[InetSocketAddress],
       channel.remoteAddress().asInstanceOf[InetSocketAddress],
@@ -94,7 +94,7 @@ object NettyModelConversion {
   /** Create the source for the request body
     * Todo: Turn off scalastyle due to non-exhaustive match
     */
-  private def convertRequestBody[F[_]](request: HttpRequest)(
+  private[this] def convertRequestBody[F[_]](request: HttpRequest)(
       implicit F: Effect[F]
   ): Stream[F, Byte] =
     request match {
@@ -117,7 +117,7 @@ object NettyModelConversion {
     }
 
   /** Create a Netty streamed response. */
-  private def responseToPublisher[F[_]](
+  private[this] def responseToPublisher[F[_]](
       response: Response[F]
   )(implicit F: Effect[F], ec: ExecutionContext): StreamUnicastPublisher[F, HttpContent] = {
     def go(s: Stream[F, Byte]): Pull[F, HttpContent, Unit] =
@@ -130,13 +130,17 @@ object NettyModelConversion {
               Pull.done
             else {
               val c = new DefaultLastHttpContent()
-              h.foreach(header => c.trailingHeaders().add(header.name.toString(), header.value))
+              h.foreach(appendToNettyHeaders(_, c.trailingHeaders()))
               Pull.output1(c) >> Pull.done
             }
           }
       }
     go(response.body).stream.toUnicastPublisher()
   }
+
+  // Method reference for performance
+  private[this] def appendToNettyHeaders(header: Header, nettyHeaders: HttpHeaders) =
+    nettyHeaders.add(header.name.toString(), header.value)
 
   /** Create a Netty response from the result */
   def toNettyResponse[F[_]](
@@ -168,7 +172,7 @@ object NettyModelConversion {
     }
   }
 
-  private def toNonWSResponse[F[_]](httpResponse: Response[F], httpVersion: HttpVersion)(
+  private[this] def toNonWSResponse[F[_]](httpResponse: Response[F], httpVersion: HttpVersion)(
       implicit F: Effect[F],
       ec: ExecutionContext
   ): DefaultHttpResponse =
@@ -180,20 +184,20 @@ object NettyModelConversion {
           HttpResponseStatus.valueOf(httpResponse.status.code),
           publisher
         )
-      httpResponse.headers.foreach(h => response.headers().add(h.name.value, h.value))
+      httpResponse.headers.foreach(appendToNettyHeaders(_, response.headers()))
       response
     } else {
       val response = new DefaultFullHttpResponse(
         httpVersion,
         HttpResponseStatus.valueOf(httpResponse.status.code)
       )
-      httpResponse.headers.foreach(h => response.headers().add(h.name.value, h.value))
+      httpResponse.headers.foreach(appendToNettyHeaders(_, response.headers()))
       if (HttpUtil.isContentLengthSet(response))
         response.headers().remove(`Content-Length`.name.toString())
       response
     }
 
-  private def toWSResponse[F[_]](
+  private[this] def toWSResponse[F[_]](
       httpRequest: Request[F],
       httpResponse: Response[F],
       httpVersion: HttpVersion,
@@ -237,7 +241,7 @@ object NettyModelConversion {
                 HttpResponseStatus.OK,
                 processor,
                 factory)
-            wsContext.headers.foreach(h => resp.headers().add(h.name.toString(), h.value))
+            wsContext.headers.foreach(appendToNettyHeaders(_, resp.headers()))
             resp
           }
           .handleErrorWith(_ => wsContext.failureResponse.map(toNonWSResponse[F](_, httpVersion)))
@@ -246,7 +250,7 @@ object NettyModelConversion {
       F.pure(toNonWSResponse[F](httpResponse, httpVersion))
     }
 
-  private def wsbitsToNetty(w: WebSocketFrame): WSFrame =
+  private[this] def wsbitsToNetty(w: WebSocketFrame): WSFrame =
     w match {
       case Text(str, last) => new TextWebSocketFrame(last, 0, str)
       case Binary(data, last) => new BinaryWebSocketFrame(last, 0, Unpooled.wrappedBuffer(data))
@@ -257,7 +261,7 @@ object NettyModelConversion {
       case Close(data) => new CloseWebSocketFrame(true, 0, Unpooled.wrappedBuffer(data))
     }
 
-  private def nettyWsToHttp4s(w: WSFrame): WebSocketFrame =
+  private[this] def nettyWsToHttp4s(w: WSFrame): WebSocketFrame =
     w match {
       case c: TextWebSocketFrame => Text(bytebufToArray(c.content()), c.isFinalFragment)
       case c: BinaryWebSocketFrame => Binary(bytebufToArray(c.content()), c.isFinalFragment)
@@ -269,7 +273,7 @@ object NettyModelConversion {
     }
 
   /** Convert a Chunk to a Netty ByteBuf. */
-  private def chunkToNetty(bytes: Chunk[Byte]): HttpContent =
+  private[this] def chunkToNetty(bytes: Chunk[Byte]): HttpContent =
     if (bytes.isEmpty)
       CachedEmpty
     else
@@ -282,14 +286,14 @@ object NettyModelConversion {
           new DefaultHttpContent(Unpooled.wrappedBuffer(bytes.toArray))
       }
 
-  private def bytebufToArray(buf: ByteBuf): Array[Byte] = {
+  private[this] def bytebufToArray(buf: ByteBuf): Array[Byte] = {
     val array = new Array[Byte](buf.readableBytes())
     buf.readBytes(array)
     buf.release()
     array
   }
 
-  private val CachedEmpty: DefaultHttpContent =
+  private[this] val CachedEmpty: DefaultHttpContent =
     new DefaultHttpContent(Unpooled.EMPTY_BUFFER)
 
 }

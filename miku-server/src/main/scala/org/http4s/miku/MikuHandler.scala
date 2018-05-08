@@ -61,11 +61,13 @@ sealed abstract class MikuHandler[F[_]](service: HttpService[F])(
             case Left(error) =>
               IO {
                 logger.error(error)("Exception caught in channelRead future")
-                p.complete(Failure(error))
+                p.complete(Failure(error)); ()
               }
 
             case Right(httpResponse) =>
-              IO(p.complete(Success(httpResponse)))
+              IO {
+                p.complete(Success(httpResponse)); ()
+              }
 
           }
           .unsafeRunSync()
@@ -82,12 +84,12 @@ sealed abstract class MikuHandler[F[_]](service: HttpService[F])(
                 // read, in case we ignored an earlier read complete
                 ctx.read()
               }
-              ctx.writeAndFlush(response)
+              ctx.writeAndFlush(response); ()
             }(trampoline)
             .recover[Unit] {
               case error: Exception =>
                 logger.error(error)("Exception caught in channelRead future")
-                sendSimpleErrorResponse(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE)
+                sendSimpleErrorResponse(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE); ()
             }(trampoline)
         }(trampoline)
 
@@ -107,11 +109,11 @@ sealed abstract class MikuHandler[F[_]](service: HttpService[F])(
     // which will be using channel read complete and read to implement
     // their own back pressure
     if (requestsInFlight.get() == 0) {
-      ctx.read()
+      ctx.read(); ()
     } else {
       // otherwise forward it, so that any handler publishers downstream
       // can handle it
-      ctx.fireChannelReadComplete()
+      ctx.fireChannelReadComplete(); ()
     }
   }
 
@@ -121,32 +123,33 @@ sealed abstract class MikuHandler[F[_]](service: HttpService[F])(
       // sending/receiving the response.
       case e: IOException =>
         logger.trace(e)("Benign IO exception caught in Netty")
-        ctx.channel().close()
+        ctx.channel().close(); ()
       case e: TooLongFrameException =>
         logger.warn(e)("Handling TooLongFrameException")
-        sendSimpleErrorResponse(ctx, HttpResponseStatus.REQUEST_URI_TOO_LONG)
+        sendSimpleErrorResponse(ctx, HttpResponseStatus.REQUEST_URI_TOO_LONG); ()
       case e: IllegalArgumentException
           if Option(e.getMessage)
             .exists(_.contains("Header value contains a prohibited character")) =>
         // https://github.com/netty/netty/blob/netty-3.9.3.Final/src/main/java/org/jboss/netty/handler/codec/http/HttpHeaders.java#L1075-L1080
         logger.debug(e)("Handling Header value error")
-        sendSimpleErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST)
+        sendSimpleErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST); ()
       case e =>
         logger.error(e)("Exception caught in Netty")
-        ctx.channel().close()
+        ctx.channel().close(); ()
     }
 
-  override def channelActive(ctx: ChannelHandlerContext): Unit =
+  override def channelActive(ctx: ChannelHandlerContext): Unit = {
     // AUTO_READ is off, so need to do the first read explicitly.
     // this method is called when the channel is registered with the event loop,
     // so ctx.read is automatically safe here w/o needing an isRegistered().
-    ctx.read()
+    ctx.read(); ()
+  }
 
   override def userEventTriggered(ctx: ChannelHandlerContext, evt: scala.Any): Unit =
     evt match {
       case _: IdleStateEvent if ctx.channel().isOpen =>
         logger.trace(s"Closing connection due to idle timeout")
-        ctx.close()
+        ctx.close(); ()
       case _ => super.userEventTriggered(ctx, evt)
     }
 
