@@ -144,7 +144,8 @@ object NettyModelConversion {
 
   /** Create a Netty response from the result */
   def toNettyResponse[F[_]](
-      http4sResponse: Response[F]
+      http4sResponse: Response[F],
+      dateString: String
   )(implicit F: Effect[F], ec: ExecutionContext): DefaultHttpResponse = {
     val httpVersion: HttpVersion =
       if (http4sResponse.httpVersion == HV.`HTTP/1.1`)
@@ -152,13 +153,14 @@ object NettyModelConversion {
       else
         HttpVersion.HTTP_1_0
 
-    toNonWSResponse[F](http4sResponse, httpVersion)
+    toNonWSResponse[F](http4sResponse, httpVersion, dateString)
   }
 
   /** Create a Netty response from the result */
   def toNettyResponseWithWebsocket[F[_]](
       httpRequest: Request[F],
-      httpResponse: Response[F]
+      httpResponse: Response[F],
+      dateString: String
   )(implicit F: Effect[F], ec: ExecutionContext): F[DefaultHttpResponse] = {
     val httpVersion: HttpVersion =
       if (httpResponse.httpVersion == HV.`HTTP/1.1`)
@@ -167,16 +169,20 @@ object NettyModelConversion {
         HttpVersion.HTTP_1_0
 
     httpResponse.attributes.get(websocketKey[F]) match {
-      case None => F.pure(toNonWSResponse[F](httpResponse, httpVersion))
-      case Some(wsContext) => toWSResponse[F](httpRequest, httpResponse, httpVersion, wsContext)
+      case None => F.pure(toNonWSResponse[F](httpResponse, httpVersion, dateString))
+      case Some(wsContext) =>
+        toWSResponse[F](httpRequest, httpResponse, httpVersion, wsContext, dateString)
     }
   }
 
-  private[this] def toNonWSResponse[F[_]](httpResponse: Response[F], httpVersion: HttpVersion)(
+  private[this] def toNonWSResponse[F[_]](
+      httpResponse: Response[F],
+      httpVersion: HttpVersion,
+      dateString: String)(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ): DefaultHttpResponse =
-    if (httpResponse.status.isEntityAllowed) {
+  ): DefaultHttpResponse = {
+    val defaultResponse = if (httpResponse.status.isEntityAllowed) {
       val publisher = responseToPublisher[F](httpResponse)
       val response =
         new DefaultStreamedHttpResponse(
@@ -196,12 +202,17 @@ object NettyModelConversion {
         response.headers().remove(`Content-Length`.name.toString())
       response
     }
+    if (!defaultResponse.headers().contains(HttpHeaderNames.DATE))
+      defaultResponse.headers().add(HttpHeaderNames.DATE, dateString)
+    defaultResponse
+  }
 
   private[this] def toWSResponse[F[_]](
       httpRequest: Request[F],
       httpResponse: Response[F],
       httpVersion: HttpVersion,
-      wsContext: WebSocketContext[F]
+      wsContext: WebSocketContext[F],
+      dateString: String
   )(
       implicit F: Effect[F],
       ec: ExecutionContext
@@ -244,10 +255,11 @@ object NettyModelConversion {
             wsContext.headers.foreach(appendToNettyHeaders(_, resp.headers()))
             resp
           }
-          .handleErrorWith(_ => wsContext.failureResponse.map(toNonWSResponse[F](_, httpVersion)))
+          .handleErrorWith(_ =>
+            wsContext.failureResponse.map(toNonWSResponse[F](_, httpVersion, dateString)))
       }
     } else {
-      F.pure(toNonWSResponse[F](httpResponse, httpVersion))
+      F.pure(toNonWSResponse[F](httpResponse, httpVersion, dateString))
     }
 
   private[this] def wsbitsToNetty(w: WebSocketFrame): WSFrame =

@@ -1,6 +1,9 @@
 package org.http4s.miku
 
 import java.io.IOException
+import java.time.{Instant, ZoneId}
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicLong
 
 import cats.effect.{Async, Effect, IO}
@@ -28,36 +31,52 @@ import scala.util.{Failure, Success}
   * @param ec
   * @tparam F
   */
-sealed abstract class MikuHandler[F[_]](service: HttpService[F])(
+sealed abstract class MikuHandler[F[_]](
     implicit F: Effect[F]
 ) extends ChannelInboundHandlerAdapter {
-  val unwrapped: Request[F] => F[Response[F]] =
-    service.mapF(_.getOrElse(Response.notFound[F])).run
 
   // We keep track of whether there are requests in flight.  If there are, we don't respond to read
   // complete, since back pressure is the responsibility of the streams.
-  private val requestsInFlight = new AtomicLong()
+  private[this] val requestsInFlight = new AtomicLong()
 
   // This is used essentially as a queue, each incoming request attaches callbacks to this
   // and replaces it to ensure that responses are written out in the same order that they came
   // in.
-  private var lastResponseSent: Future[Unit] = Future.successful(())
+  private[this] var lastResponseSent: Future[Unit] = Future.successful(())
+
+  // Cache the formatter thread locally
+  private[this] val RFC7231InstantFormatter =
+    DateTimeFormatter
+      .ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
+      .withLocale(Locale.US)
+      .withZone(ZoneId.of("GMT"))
+
+  // Compute the formatted date string only once per second, and cache the result.
+  // This should help microscopically under load.
+  private[this] var cachedDate: Long = Long.MinValue
+  private[this] var cachedDateString: String = _
 
   protected val logger = getLogger
 
   /**
     * Handle the given request.
     */
-  def handle(channel: Channel, request: HttpRequest): F[DefaultHttpResponse]
+  def handle(channel: Channel, request: HttpRequest, dateString: String): F[DefaultHttpResponse]
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
     logger.trace(s"channelRead: ctx = $ctx, msg = $msg")
+    val newTick: Long = System.currentTimeMillis() / 1000
+    if (cachedDate < newTick) {
+      cachedDateString = RFC7231InstantFormatter.format(Instant.ofEpochSecond(newTick))
+      cachedDate = newTick
+    }
+
     msg match {
       case req: HttpRequest =>
         requestsInFlight.incrementAndGet()
         val p: Promise[HttpResponse] = Promise[HttpResponse]
         //Start execution of the handler.
-        F.runAsync(handle(ctx.channel(), req)) {
+        F.runAsync(handle(ctx.channel(), req, cachedDateString)) {
             case Left(error) =>
               IO {
                 logger.error(error)("Exception caught in channelRead future")
@@ -171,8 +190,14 @@ object MikuHandler {
       serviceErrorHandler: ServiceErrorHandler[F])(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ) extends MikuHandler[F](service) {
-    override def handle(channel: Channel, request: HttpRequest): F[DefaultHttpResponse] = {
+  ) extends MikuHandler[F] {
+    private[this] val unwrapped: Request[F] => F[Response[F]] =
+      service.mapF(_.getOrElse(Response.notFound[F])).run
+
+    override def handle(
+        channel: Channel,
+        request: HttpRequest,
+        dateString: String): F[DefaultHttpResponse] = {
       logger.trace("Http request received by netty: " + request)
       NettyModelConversion
         .fromNettyRequest[F](channel, request)
@@ -181,7 +206,7 @@ object MikuHandler {
             .suspend(unwrapped(request))
             .recoverWith(serviceErrorHandler(request))
         }
-        .map(NettyModelConversion.toNettyResponse[F])
+        .map(NettyModelConversion.toNettyResponse[F](_, dateString))
     }
   }
 
@@ -190,8 +215,14 @@ object MikuHandler {
       serviceErrorHandler: ServiceErrorHandler[F])(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ) extends MikuHandler[F](service) {
-    override def handle(channel: Channel, request: HttpRequest): F[DefaultHttpResponse] = {
+  ) extends MikuHandler[F] {
+    private[this] val unwrapped: Request[F] => F[Response[F]] =
+      service.mapF(_.getOrElse(Response.notFound[F])).run
+
+    override def handle(
+        channel: Channel,
+        request: HttpRequest,
+        dateString: String): F[DefaultHttpResponse] = {
       logger.trace("Http request received by netty: " + request)
       NettyModelConversion
         .fromNettyRequest[F](channel, request)
@@ -199,7 +230,7 @@ object MikuHandler {
           Async.shift(ec) >> F
             .suspend(unwrapped(request))
             .recoverWith(serviceErrorHandler(request))
-            .flatMap(NettyModelConversion.toNettyResponseWithWebsocket[F](request, _))
+            .flatMap(NettyModelConversion.toNettyResponseWithWebsocket[F](request, _, dateString))
         }
     }
   }
