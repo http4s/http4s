@@ -26,10 +26,14 @@ import scala.util.{Failure, Success}
   * in
   * https://github.com/playframework/playframework/blob/master/framework/src/play-netty-server
   *
-  * @param service
-  * @param F
-  * @param ec
-  * @tparam F
+  * Variables inside this handler are essentially local to a thread in the
+  * MultithreadedEventLoopGroup, as they are not mutated anywhere else.
+  *
+  * A note about "lastResponseSent" to help understand:
+  * By reassigning the variable with a `flatMap` (which doesn't require synchronization at all, since
+  * you can consider this handler essentially single threaded), this means that, while we can run the
+  * `handle` action asynchronously by forking it into a thread done in `handle`
+  *
   */
 sealed abstract class MikuHandler[F[_]](
     implicit F: Effect[F]
@@ -199,13 +203,12 @@ object MikuHandler {
         request: HttpRequest,
         dateString: String): F[DefaultHttpResponse] = {
       logger.trace("Http request received by netty: " + request)
-      NettyModelConversion
+      Async.shift(ec) >> NettyModelConversion
         .fromNettyRequest[F](channel, request)
-        .flatMap { request =>
-          Async.shift(ec) >> F
-            .suspend(unwrapped(request))
-            .recoverWith(serviceErrorHandler(request))
-        }
+        .flatMap(
+          request =>
+            F.suspend(unwrapped(request))
+              .recoverWith(serviceErrorHandler(request)))
         .map(NettyModelConversion.toNettyResponse[F](_, dateString))
     }
   }
@@ -224,11 +227,10 @@ object MikuHandler {
         request: HttpRequest,
         dateString: String): F[DefaultHttpResponse] = {
       logger.trace("Http request received by netty: " + request)
-      NettyModelConversion
+      Async.shift(ec) >> NettyModelConversion
         .fromNettyRequest[F](channel, request)
         .flatMap { request =>
-          Async.shift(ec) >> F
-            .suspend(unwrapped(request))
+          F.suspend(unwrapped(request))
             .recoverWith(serviceErrorHandler(request))
             .flatMap(NettyModelConversion.toNettyResponseWithWebsocket[F](request, _, dateString))
         }
