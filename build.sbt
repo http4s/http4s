@@ -32,7 +32,7 @@ lazy val core = libraryProject("core")
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scodecBits,
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
-    ),
+    )
   )
 
 lazy val testing = libraryProject("testing")
@@ -42,7 +42,7 @@ lazy val testing = libraryProject("testing")
       catsEffectLaws,
       scalacheck,
       specs2Core
-    ),
+    )
   )
   .dependsOn(core)
 
@@ -111,6 +111,22 @@ lazy val blazeClient = libraryProject("blaze-client")
     description := "blaze implementation for http4s clients"
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
+
+lazy val mikuServer = libraryProject("miku-server")
+  .settings(
+    description := "netty implementation for http4s servers",
+    libraryDependencies ++= Seq(
+      fs2ReactiveStreams,
+      nettyReactiveStreams,
+      nettyHandler,
+      nettyHttpCodec,
+      nettyUnixCommon,
+      nettyNativeTransport
+    ),
+
+    scalacOptions -= "-Ywarn-value-discard"
+  )
+  .dependsOn(server % "compile;test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
