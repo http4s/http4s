@@ -78,7 +78,7 @@ class PooledClientSpec extends Http4sSpec {
     "raise error NoConnectionAllowedException if no connections are permitted for key" in {
       val u = uri("https://httpbin.org/get")
       val resp = failClient.expect[String](u).attempt.unsafeRunTimed(timeout)
-      resp must beSome(
+      resp must_== Some(
         Left(NoConnectionAllowedException(RequestKey(u.scheme.get, u.authority.get))))
     }
 
