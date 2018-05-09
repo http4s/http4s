@@ -8,6 +8,7 @@ import com.typesafe.sbt.git.JGit
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import java.lang.{Runtime => JRuntime}
 import sbt.Keys._
 import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
@@ -70,6 +71,15 @@ object Http4sPlugin extends AutoPlugin {
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
     scalacOptions in (Test, compile) -= "-Ywarn-unused:params",
+
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, minor)) if minor >= 12 =>
+          Seq("-Ybackend-parallelism", JRuntime.getRuntime.availableProcessors.toString)
+        case _ =>
+          Seq.empty
+      },
+    },
 
     http4sMimaVersion := {
       version.value match {
