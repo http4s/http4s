@@ -5,7 +5,7 @@ import javax.servlet.ServletConfig
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse, HttpSession}
 
 import cats.effect.Effect
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.server.ServerSoftware
