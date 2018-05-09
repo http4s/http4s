@@ -68,5 +68,5 @@ class BoopickleSpec extends Http4sSpec with BooPickleInstances {
     }
   }
 
-  checkAll("EntityCodec[IO, Json]", EntityCodecTests[IO, Fruit].entityCodec)
+  checkAll("EntityCodec[IO, Fruit]", EntityCodecTests[IO, Fruit].entityCodec)
 }
