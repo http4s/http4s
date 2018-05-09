@@ -175,6 +175,16 @@ lazy val argonaut = libraryProject("argonaut")
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
+lazy val boopickle = libraryProject("boopickle")
+  .settings(
+    description := "Provides Boopickle codecs for http4s",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.boopickle
+    ),
+    mimaPreviousArtifacts := Set.empty
+  )
+  .dependsOn(core, testing % "test->test")
+
 lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
