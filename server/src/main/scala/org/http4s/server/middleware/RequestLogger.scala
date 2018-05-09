@@ -25,7 +25,7 @@ object RequestLogger {
     Kleisli { req =>
       if (!logBody)
         OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> routes(req).value)
+          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> routes(req).value)
       else
         OptionT
           .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
@@ -43,7 +43,7 @@ object RequestLogger {
                   Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
-                    redactHeadersWhen)(logger)
+                    redactHeadersWhen)(logger.info(_))
                 )
             )
 

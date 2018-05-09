@@ -23,7 +23,7 @@ object RequestLogger {
   )(app: HttpApp[F])(implicit ec: ExecutionContext = ExecutionContext.global): HttpApp[F] =
     Kleisli { req =>
       if (!logBody)
-        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> app(req)
+        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> app(req)
       else
         async
           .refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]])
@@ -41,7 +41,7 @@ object RequestLogger {
                   Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
-                    redactHeadersWhen)(logger)
+                    redactHeadersWhen)(logger.info(_))
                 )
             )
 
