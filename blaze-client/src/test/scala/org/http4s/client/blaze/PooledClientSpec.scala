@@ -17,32 +17,35 @@ class PooledClientSpec extends Http4sSpec {
   private val timeout = 30.seconds
 
   private val failClient = Http1Client[IO](
-    BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = _ => 0)).unsafeRunSync()
+    BlazeClientConfig.insecure.copy(maxConnectionsPerRequestKey = _ => 0)).unsafeRunSync()
   private val successClient = Http1Client[IO](
-    BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = _ => 1)).unsafeRunSync()
+    BlazeClientConfig.insecure.copy(maxConnectionsPerRequestKey = _ => 1)).unsafeRunSync()
   private val client = Http1Client[IO](
-    BlazeClientConfig.defaultConfig.copy(maxConnectionsPerRequestKey = _ => 3)).unsafeRunSync()
+    BlazeClientConfig.insecure.copy(maxConnectionsPerRequestKey = _ => 3)).unsafeRunSync()
 
   private val failTimeClient =
     Http1Client[IO](
-      BlazeClientConfig.defaultConfig
+      BlazeClientConfig.insecure
         .copy(maxConnectionsPerRequestKey = _ => 1, responseHeaderTimeout = 2 seconds))
       .unsafeRunSync()
 
   private val successTimeClient =
     Http1Client[IO](
-      BlazeClientConfig.defaultConfig
+      BlazeClientConfig.insecure
         .copy(maxConnectionsPerRequestKey = _ => 1, responseHeaderTimeout = 20 seconds))
       .unsafeRunSync()
 
   private val drainTestClient =
     Http1Client[IO](
-      BlazeClientConfig.defaultConfig
+      BlazeClientConfig.insecure
         .copy(maxConnectionsPerRequestKey = _ => 1, responseHeaderTimeout = 20 seconds))
       .unsafeRunSync()
 
-  val jettyServ = new JettyScaffold(5)
+  val jettyServ = new JettyScaffold(5, false)
   var addresses = Vector.empty[InetSocketAddress]
+
+  val jettySslServ = new JettyScaffold(1, true)
+  var sslAddress: InetSocketAddress = _
 
   private def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =
@@ -72,19 +75,26 @@ class PooledClientSpec extends Http4sSpec {
   step {
     jettyServ.startServers(testServlet)
     addresses = jettyServ.addresses
+
+    jettySslServ.startServers(testServlet)
+    sslAddress = jettySslServ.addresses.head
   }
 
   "Blaze Http1Client" should {
     "raise error NoConnectionAllowedException if no connections are permitted for key" in {
-      val u = uri("https://httpbin.org/get")
+      val name = sslAddress.getHostName
+      val port = sslAddress.getPort
+      val u = Uri.fromString(s"https://$name:$port/simple").yolo
       val resp = failClient.expect[String](u).attempt.unsafeRunTimed(timeout)
       resp must_== Some(
         Left(NoConnectionAllowedException(RequestKey(u.scheme.get, u.authority.get))))
     }
 
     "make simple https requests" in {
-      val resp =
-        successClient.expect[String](uri("https://httpbin.org/get")).unsafeRunTimed(timeout)
+      val name = sslAddress.getHostName
+      val port = sslAddress.getPort
+      val u = Uri.fromString(s"https://$name:$port/simple").yolo
+      val resp = successClient.expect[String](u).unsafeRunTimed(timeout)
       resp.map(_.length > 0) must beSome(true)
     }
 
@@ -173,5 +183,6 @@ class PooledClientSpec extends Http4sSpec {
     drainTestClient.shutdown.unsafeRunSync()
     client.shutdown.unsafeRunSync()
     jettyServ.stopServers()
+    jettySslServ.stopServers()
   }
 }
