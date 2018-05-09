@@ -27,7 +27,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-        log: String => Unit)(implicit F: Effect[F]): F[Unit] = {
+      log: String => Unit)(implicit F: Effect[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
