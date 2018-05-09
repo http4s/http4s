@@ -27,7 +27,7 @@ object ResponseLogger {
       app(req).flatMap { response =>
         if (!logBody)
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-            logger) *> F.delay(response)
+            logger.info(_)) *> F.delay(response)
         else
           async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
             vec =>
@@ -44,7 +44,7 @@ object ResponseLogger {
                     Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logger)
+                      redactHeadersWhen)(logger.info(_))
                   }
               )
           }
