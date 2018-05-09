@@ -77,7 +77,6 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
       prometheusClient,
       prometheusHotspot
     ),
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
