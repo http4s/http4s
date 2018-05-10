@@ -77,14 +77,19 @@ object ResponseLogger {
                   response = response.copy(
                     body = response.body
                     // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                      .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
-                      .onFinalize {
-                        Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
-                          logHeaders,
-                          logBody,
-                          redactHeadersWhen)(logger)
-                      }
-                  ))
+                      .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))),
+                  dispose =
+                    Logger
+                      .logMessage[F, Response[F]](response.withBodyStream(newBody))(
+                        logHeaders,
+                        logBody,
+                        redactHeadersWhen)(logger)
+                      .attempt
+                      .flatMap {
+                        case Left(t) => F.delay(logger.error(t)("Error logging response body"))
+                        case Right(()) => F.unit
+                      } *> dr.dispose
+                )
             }
       }
     })
