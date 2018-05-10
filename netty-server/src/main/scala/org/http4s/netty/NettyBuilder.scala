@@ -122,21 +122,11 @@ class NettyBuilder[F[_]](
     copy(httpService = service)
 
   def start: F[Server[F]] = F.delay {
-    val eventLoop: MultithreadEventLoopGroup = transport match {
-      case NettyTransport.Nio =>
-        new NioEventLoopGroup()
-      case NettyTransport.Native =>
-        if (Epoll.isAvailable)
-          new EpollEventLoopGroup()
-        else {
-          logger.info("Falling back to NIO EventLoopGroup")
-          new NioEventLoopGroup()
-        }
-    }
+    val eventLoop = getEventLoop
 
     val allChannels: DefaultChannelGroup = new DefaultChannelGroup(eventLoop.next())
 
-    val boundAddress = startNetty(eventLoop, allChannels)
+    val (_, boundAddress) = startNetty(eventLoop, allChannels)
     val server = new Server[F] {
       def shutdown: F[Unit] = F.delay {
         // First, close all opened sockets
@@ -312,6 +302,18 @@ class NettyBuilder[F[_]](
     }
   }
 
+  private[netty] def getEventLoop: MultithreadEventLoopGroup = transport match {
+    case NettyTransport.Nio =>
+      new NioEventLoopGroup()
+    case NettyTransport.Native =>
+      if (Epoll.isAvailable)
+        new EpollEventLoopGroup()
+      else {
+        logger.info("Falling back to NIO EventLoopGroup")
+        new NioEventLoopGroup()
+      }
+  }
+
   private def addChannelOptions(b: Bootstrap) =
     nettyChannelOptions.foldLeft(b)((boot, o) => boot.option(o._1, o._2))
 
@@ -339,7 +341,7 @@ class NettyBuilder[F[_]](
       .handler(channelPublisher)
       .localAddress(address)
 
-  protected def getBootstrap(
+  private[netty] def getBootstrap(
       serverChannelEventLoop: EventLoopGroup,
       channelPublisher: HandlerPublisher[Channel],
       address: InetSocketAddress): Bootstrap = transport match {
@@ -358,7 +360,7 @@ class NettyBuilder[F[_]](
   /** Bind our server to our address and create the channel handler stream, which we must
     * bind the handlers to.
     */
-  def bind(
+  private[netty] def bind(
       eventLoop: MultithreadEventLoopGroup,
       allChannels: DefaultChannelGroup,
       address: InetSocketAddress): (Channel, fs2.Stream[F, Channel]) = {
@@ -369,18 +371,17 @@ class NettyBuilder[F[_]](
       new HandlerPublisher(serverChannelEventLoop, classOf[Channel])
 
     val bootstrap: Bootstrap = getBootstrap(serverChannelEventLoop, channelPublisher, address)
-
-    //Actually bind the server toe ht address
+    //Actually bind the server to the address
     val channel = bootstrap.bind.await().channel()
     allChannels.add(channel)
 
     (channel, channelPublisher.toStream[F]())
   }
 
-  private def startNetty(
+  private[netty] def startNetty(
       eventLoop: MultithreadEventLoopGroup,
       allChannels: DefaultChannelGroup
-  ): InetSocketAddress = {
+  ): (Channel, InetSocketAddress) = {
 
     //Resolve address
     val resolvedAddress = new InetSocketAddress(socketAddress.getHostName, socketAddress.getPort)
@@ -399,7 +400,7 @@ class NettyBuilder[F[_]](
       logger.error(e)("Error in server initialization")
       throw e
     }
-    boundAddress
+    (serverChannel, boundAddress)
   }
 
 }

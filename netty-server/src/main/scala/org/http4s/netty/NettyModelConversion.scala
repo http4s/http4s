@@ -43,7 +43,12 @@ object NettyModelConversion {
   def fromNettyRequest[F[_]](channel: Channel, request: HttpRequest)(
       implicit F: Effect[F]
   ): F[Request[F]] = {
-    val connection = createRemoteConnection(channel)
+    //Useful for testing, since embedded channels will _not_
+    //have connection info
+    val attributeMap = createRemoteConnection(channel) match {
+      case Some(conn) => AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, conn))
+      case None => AttributeMap.empty
+    }
     if (request.decoderResult().isFailure)
       F.raiseError(ParseFailure("Malformed request", "Netty codec parsing unsuccessful"))
     else {
@@ -70,7 +75,7 @@ object NettyModelConversion {
               v,
               Headers(headerBuf.toList),
               requestBody,
-              AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, connection))
+              attributeMap
             )
           }
         }
@@ -82,12 +87,17 @@ object NettyModelConversion {
   }
 
   /** Capture a request's connection info from its channel and headers. */
-  private[this] def createRemoteConnection(channel: Channel): Connection =
-    Connection(
-      channel.localAddress().asInstanceOf[InetSocketAddress],
-      channel.remoteAddress().asInstanceOf[InetSocketAddress],
-      channel.pipeline().get(classOf[SslHandler]) != null
-    )
+  private[this] def createRemoteConnection(channel: Channel): Option[Connection] =
+    channel.localAddress() match {
+      case address: InetSocketAddress =>
+        Some(
+          Connection(
+            address,
+            channel.remoteAddress().asInstanceOf[InetSocketAddress],
+            channel.pipeline().get(classOf[SslHandler]) != null
+          ))
+      case _ => None
+    }
 
   /** Create the source for the request body
     * Todo: Turn off scalastyle due to non-exhaustive match

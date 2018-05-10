@@ -12,9 +12,9 @@ import io.netty.channel.{ChannelInboundHandlerAdapter, _}
 import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http._
 import io.netty.handler.timeout.IdleStateEvent
+import org.http4s.{HttpService, Request, Response}
 import org.http4s.server.ServiceErrorHandler
 import org.http4s.util.execution.trampoline
-import org.http4s.{HttpService, Request, Response}
 import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future, Promise}
