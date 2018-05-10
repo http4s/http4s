@@ -36,6 +36,14 @@ it.
   * blaze-0.14.0-M3
   * scala-xml-1.1.0
 
+# v0.18.11
+* Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)
+* Fix deadlock in client loggers.  `RequestLogger.apply` and `ResponseLogger.apply` are each replaced by `apply0` to maintain binary compatibility. [#1837](https://github.com/http4s/http4s/pull/1837)
+* New `http4s-boopickle` module supports entity codecs through `boopickle.Pickler` [#1826](https://github.com/http4s/http4s/pull/1826)
+* Log as much of the response as is consumed in the client. Previously, failure to consume the entire body prevented any part of the body from being logged. [#1846](https://github.com/http4s/http4s/pull/1846)
+* Dependency upgrades:
+  * prometheus-client-java-0.4.0
+
 # v0.18.10 (2018-05-03)
 * Eliminate dependency on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
 * Add `Logging` middleware for client [#1820](https://github.com/http4s/http4s/pull/1820)

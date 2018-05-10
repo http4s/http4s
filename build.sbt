@@ -74,7 +74,7 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusHotspot
-    )
+    ),
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
@@ -125,7 +125,8 @@ lazy val servlet = libraryProject("servlet")
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       jettyServer % "test",
-      jettyServlet % "test"
+      jettyServlet % "test",
+      mockito % "test"
     )
   )
   .dependsOn(server % "compile;test->test")
@@ -171,6 +172,16 @@ lazy val argonaut = libraryProject("argonaut")
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+
+lazy val boopickle = libraryProject("boopickle")
+  .settings(
+    description := "Provides Boopickle codecs for http4s",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.boopickle
+    ),
+    mimaPreviousArtifacts := Set.empty
+  )
+  .dependsOn(core, testing % "test->test")
 
 lazy val circe = libraryProject("circe")
   .settings(
