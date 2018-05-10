@@ -4,6 +4,11 @@ import fs2.Chunk
 import io.netty.handler.codec.http.HttpContent
 import org.reactivestreams.{Publisher, Subscriber, Subscription}
 
+/** This is a publisher that simply synchronously releases all bytes upon
+  * passing it to a subscriber of chunks
+  *
+  * @param pub
+  */
 private[http4s] final class NettySafePublisher(pub: Publisher[HttpContent])
     extends Publisher[Chunk[Byte]] {
   import NettySafePublisher._

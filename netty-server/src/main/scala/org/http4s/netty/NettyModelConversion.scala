@@ -20,6 +20,7 @@ import org.http4s.websocket.WebSocketContext
 import org.http4s.websocket.WebsocketBits._
 import org.http4s.{HttpVersion => HV, _}
 import org.reactivestreams.{Processor, Subscriber, Subscription}
+import org.log4s.getLogger
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
@@ -34,6 +35,8 @@ import scala.concurrent.ExecutionContext
   */
 object NettyModelConversion {
 
+  private[this] val logger = getLogger
+
   /** Turn a netty http request into an http4s request
     *
     * @param channel the netty channel
@@ -42,7 +45,7 @@ object NettyModelConversion {
     */
   def fromNettyRequest[F[_]](channel: Channel, request: HttpRequest)(
       implicit F: Effect[F]
-  ): F[Request[F]] = {
+  ): F[(Request[F], F[Unit])] = {
     //Useful for testing, since embedded channels will _not_
     //have connection info
     val attributeMap = createRemoteConnection(channel) match {
@@ -52,7 +55,7 @@ object NettyModelConversion {
     if (request.decoderResult().isFailure)
       F.raiseError(ParseFailure("Malformed request", "Netty codec parsing unsuccessful"))
     else {
-      val requestBody = convertRequestBody(request)
+      val (requestBody, cleanup) = convertRequestBody[F](request)
       val uri: ParseResult[Uri] = Uri.fromString(request.uri())
       val headerBuf = new ListBuffer[Header]
       val headersIterator = request.headers().iteratorAsString()
@@ -80,7 +83,7 @@ object NettyModelConversion {
           }
         }
       } match { //Micro-optimization: No fold call
-        case Right(http4sRequest) => F.pure(http4sRequest)
+        case Right(http4sRequest) => F.pure((http4sRequest, cleanup))
         case Left(err) => F.raiseError(err)
       }
     }
@@ -104,25 +107,47 @@ object NettyModelConversion {
     */
   private[this] def convertRequestBody[F[_]](request: HttpRequest)(
       implicit F: Effect[F]
-  ): Stream[F, Byte] =
+  ): (Stream[F, Byte], F[Unit]) =
     request match {
       case full: FullHttpRequest =>
         val content = full.content()
         val buffers = content.nioBuffers()
         if (buffers.isEmpty)
-          Stream.empty.covary[F]
+          (Stream.empty.covary[F], F.unit)
         else {
           val content = full.content()
           val arr = new Array[Byte](content.readableBytes())
           content.readBytes(arr)
           content.release()
-          Stream
-            .chunk(Chunk.bytes(arr))
-            .covary[F]
+          (
+            Stream
+              .chunk(Chunk.bytes(arr))
+              .covary[F],
+            F.unit) //No cleanup action needed
         }
       case streamed: StreamedHttpRequest =>
-        new NettySafePublisher(streamed).toStream[F]()(F, trampoline).flatMap(Stream.chunk(_))
+        val stream =
+          new NettySafePublisher(streamed).toStream[F]()(F, trampoline).flatMap(Stream.chunk(_))
+        (stream, drainStream(stream))
     }
+
+  private[this] def drainStream[F[_]](f: Stream[F, Byte])(implicit F: Effect[F]): F[Unit] =
+    f.pull.uncons
+      .flatMap {
+        case None => Pull.done
+        //Note: It is normal to hit this block, as
+        //Netty sends a `LastHttpContent` chunk often which is ignored by the initial stream.
+        case Some((_, more)) =>
+          more.pull.uncons.flatMap {
+            case None => Pull.done //Body was drained fine.
+            case Some((_, rest)) =>
+              logger.info("Body not read to completion. Draining body")
+              rest.pull.echo >> Pull.done
+          }
+      }
+      .stream
+      .compile
+      .drain
 
   /** Create a Netty streamed response. */
   private[this] def responseToPublisher[F[_]](

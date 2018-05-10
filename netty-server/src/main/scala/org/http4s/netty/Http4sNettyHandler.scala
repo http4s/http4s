@@ -69,9 +69,13 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
 
   /**
     * Handle the given request.
-    * Note: Handle implementations fork into user ExecutionContext
+    * Note: Handle implementations fork into user ExecutionContext?
+    * Returns the cleanup action along with the drain action
     */
-  def handle(channel: Channel, request: HttpRequest, dateString: String): F[DefaultHttpResponse]
+  def handle(
+      channel: Channel,
+      request: HttpRequest,
+      dateString: String): F[(DefaultHttpResponse, F[Unit])]
 
   override def channelRead(ctx: ChannelHandlerContext, msg: Object): Unit = {
     logger.trace(s"channelRead: ctx = $ctx, msg = $msg")
@@ -84,7 +88,7 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
     msg match {
       case req: HttpRequest =>
         requestsInFlight.incrementAndGet()
-        val p: Promise[HttpResponse] = Promise[HttpResponse]
+        val p: Promise[(HttpResponse, F[Unit])] = Promise[(HttpResponse, F[Unit])]
         //Start execution of the handler.
         F.runAsync(handle(ctx.channel(), req, cachedDateString)) {
             case Left(error) =>
@@ -93,31 +97,37 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
                 p.complete(Failure(error)); ()
               }
 
-            case Right(httpResponse) =>
+            case Right(r) =>
               IO {
-                p.complete(Success(httpResponse)); ()
+                p.complete(Success(r)); ()
               }
 
           }
           .unsafeRunSync()
-        val futureResponse: Future[HttpResponse] = p.future
+        val futureResponse: Future[(HttpResponse, F[Unit])] = p.future
 
         //This attaches all writes sequentially using
         //LastResponseSent as a queue. `trampoline` ensures we do not
         //CTX switch the writes.
         lastResponseSent = lastResponseSent.flatMap[Unit] { _ =>
           futureResponse
-            .map[Unit] { response =>
-              if (requestsInFlight.decrementAndGet() == 0) {
-                // Since we've now gone down to zero, we need to issue a
-                // read, in case we ignored an earlier read complete
-                ctx.read()
-              }
-              ctx.writeAndFlush(response); ()
+            .map[Unit] {
+              case (response, cleanup) =>
+                if (requestsInFlight.decrementAndGet() == 0) {
+                  // Since we've now gone down to zero, we need to issue a
+                  // read, in case we ignored an earlier read complete
+                  ctx.read()
+                }
+                ctx
+                  .writeAndFlush(response)
+                  .addListener(new ChannelFutureListener {
+                    def operationComplete(future: ChannelFuture): Unit =
+                      F.runAsync(cleanup)(_ => IO.unit).unsafeRunSync()
+                  }); ()
+
             }(trampoline)
             .recover[Unit] {
-              case error: Exception =>
-                logger.error(error)("Exception caught in channelRead future")
+              case _: Exception =>
                 sendSimpleErrorResponse(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE); ()
             }(trampoline)
         }(trampoline)
@@ -207,15 +217,17 @@ object Http4sNettyHandler {
     override def handle(
         channel: Channel,
         request: HttpRequest,
-        dateString: String): F[DefaultHttpResponse] = {
+        dateString: String): F[(DefaultHttpResponse, F[Unit])] = {
       logger.trace("Http request received by netty: " + request)
       Async.shift(ec) >> NettyModelConversion
         .fromNettyRequest[F](channel, request)
-        .flatMap(
-          request =>
-            F.suspend(unwrapped(request))
-              .recoverWith(serviceErrorHandler(request)))
-        .map(NettyModelConversion.toNettyResponse[F](_, dateString))
+        .flatMap {
+          case (req, cleanup) =>
+            F.suspend(unwrapped(req))
+              .recoverWith(serviceErrorHandler(req))
+              .map(response =>
+                (NettyModelConversion.toNettyResponse[F](response, dateString), cleanup))
+        }
     }
   }
 
@@ -231,14 +243,16 @@ object Http4sNettyHandler {
     override def handle(
         channel: Channel,
         request: HttpRequest,
-        dateString: String): F[DefaultHttpResponse] = {
+        dateString: String): F[(DefaultHttpResponse, F[Unit])] = {
       logger.trace("Http request received by netty: " + request)
       Async.shift(ec) >> NettyModelConversion
         .fromNettyRequest[F](channel, request)
-        .flatMap { request =>
-          F.suspend(unwrapped(request))
-            .recoverWith(serviceErrorHandler(request))
-            .flatMap(NettyModelConversion.toNettyResponseWithWebsocket[F](request, _, dateString))
+        .flatMap {
+          case (req, cleanup) =>
+            F.suspend(unwrapped(req))
+              .recoverWith(serviceErrorHandler(req))
+              .flatMap(NettyModelConversion.toNettyResponseWithWebsocket[F](req, _, dateString))
+              .map((_, cleanup))
         }
     }
   }
