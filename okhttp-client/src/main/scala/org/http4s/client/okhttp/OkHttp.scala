@@ -66,7 +66,7 @@ object OkHttp {
       ec: ExecutionContext): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
-        ec.execute(() => cb(Left(e)))
+        ec.execute(new Runnable { override def run(): Unit = cb(Left(e)) })
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
@@ -82,10 +82,13 @@ object OkHttp {
               Status
                 .fromInt(response.code())
                 .getOrElse(Status.apply(response.code())))
-            .withBodyStream(readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
+            .withBodyStream(
+              readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
           F.delay({ bodyStream.close(); () })
         )
-        ec.execute(() => cb(Right(dr)))
+        ec.execute(new Runnable {
+          override def run(): Unit = cb(Right(dr))
+        })
       }
     }
 
@@ -114,9 +117,9 @@ object OkHttp {
               .runAsync(_ => IO.unit)
               .unsafeRunSync()
         }
-        // if it's a GET or HEAD, okhttp wants us to pass null
+      // if it's a GET or HEAD, okhttp wants us to pass null
       case _ if req.method == Method.GET || req.method == Method.HEAD => null
-        // for anything else we can pass a body which produces no output
+      // for anything else we can pass a body which produces no output
       case _ =>
         new RequestBody {
           override def contentType(): OKMediaType = null
