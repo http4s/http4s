@@ -28,34 +28,33 @@ class LoggerSpec extends Http4sSpec {
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 
   "ResponseLogger" should {
-    val responseLoggerService = ResponseLogger(true, true)(testApp)
+    val responseLoggerClient =
+      ResponseLogger(true, true)(Client.fromHttpApp(testApp))
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
-      responseLoggerService(req) must returnStatus(Status.Ok)
+      responseLoggerClient.status(req).unsafeRunSync() must_== Status.Ok
     }
 
     "not affect a Post" in {
       val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = responseLoggerService(req)
-      res must returnStatus(Status.Ok)
-      res must returnBody(expectedBody)
+      val res = responseLoggerClient.expect[String](req)
+      res.unsafeRunSync() must_== expectedBody
     }
   }
 
   "RequestLogger" should {
-    val requestLoggerService = RequestLogger(true, true)(testApp)
+    val requestLoggerClient = RequestLogger.apply(true, true)(Client.fromHttpApp(testApp))
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
-      requestLoggerService(req) must returnStatus(Status.Ok)
+      requestLoggerClient.status(req).unsafeRunSync() must_== Status.Ok
     }
 
     "not affect a Post" in {
       val req = Request[IO](uri = uri("/post"), method = POST).withBodyStream(body)
-      val res = requestLoggerService(req)
-      res must returnStatus(Status.Ok)
-      res must returnBody(expectedBody)
+      val res = requestLoggerClient.expect[String](req)
+      res.unsafeRunSync() must_== expectedBody
     }
   }
 

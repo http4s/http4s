@@ -17,7 +17,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
     extends Http4sSpec
     with Http4sClientDsl[IO] {
   val timeout = 20.seconds
-  val jettyServ = new JettyScaffold(1)
+  val jettyServ = new JettyScaffold(1, false)
   var address: InetSocketAddress = null
 
   def testServlet = new HttpServlet {

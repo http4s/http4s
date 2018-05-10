@@ -8,6 +8,7 @@ import com.typesafe.sbt.git.JGit
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import java.lang.{Runtime => JRuntime}
 import sbt.Keys._
 import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
@@ -71,6 +72,15 @@ object Http4sPlugin extends AutoPlugin {
     // https://github.com/tkawachi/sbt-doctest/issues/102
     scalacOptions in (Test, compile) -= "-Ywarn-unused:params",
 
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, minor)) if minor >= 12 =>
+          Seq("-Ybackend-parallelism", JRuntime.getRuntime.availableProcessors.toString)
+        case _ =>
+          Seq.empty
+      },
+    },
+
     http4sMimaVersion := {
       version.value match {
         case VersionNumber(Seq(major, minor, patch), _, _) if patch.toInt > 0 =>
@@ -85,6 +95,7 @@ object Http4sPlugin extends AutoPlugin {
     }).toSet,
 
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
 
     scalafmtVersion := "1.4.0",
     scalafmt in Test := {
@@ -264,6 +275,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.5"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M3"
+  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10.1"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
@@ -294,7 +306,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.3.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.18.3"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.4.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"

@@ -15,11 +15,9 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
   )(client: Client[F]): Client[F] =
-    Client.fromHttpApp(
-      ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
-        RequestLogger(logHeaders, logBody, redactHeadersWhen)(
-          client.toHttpApp
-        )
+    ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen)(
+      RequestLogger.apply(logHeaders, logBody, redactHeadersWhen)(
+        client
       )
     )
 
