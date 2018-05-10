@@ -49,21 +49,21 @@ class BoopickleSpec extends Http4sSpec with BooPickleInstances {
   "boopickle encoder" should {
     "have octet-stream content type" in {
       encoder.headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.`application/octet-stream`))
+        `Content-Type`(MediaType.application.`octet-stream`))
     }
   }
 
   "booEncoderOf" should {
     "have octect-stream content type" in {
       booEncoderOf[IO, Fruit].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.`application/octet-stream`))
+        `Content-Type`(MediaType.application.`octet-stream`))
     }
   }
 
   "booOf" should {
     "decode a class from a boopickle decoder" in {
       val result = booOf[IO, Fruit]
-        .decode(Request[IO]().withBody(Banana(10.0): Fruit).unsafeRunSync, strict = true)
+        .decode(Request[IO]().withEntity(Banana(10.0): Fruit), strict = true)
       result.value.unsafeRunSync must_== Right(Banana(10.0))
     }
   }

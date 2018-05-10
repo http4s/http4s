@@ -28,7 +28,7 @@ object ResponseLogger {
         case dr @ DisposableResponse(response, _) =>
           if (!logBody)
             Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              logger) *> F.delay(dr)
+              logger.info(_)) *> F.delay(dr)
           else
             async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
               vec =>
@@ -47,7 +47,7 @@ object ResponseLogger {
                       .logMessage[F, Response[F]](response.withBodyStream(newBody))(
                         logHeaders,
                         logBody,
-                        redactHeadersWhen)(logger)
+                        redactHeadersWhen)(logger.info(_))
                       .attempt
                       .flatMap {
                         case Left(t) => F.delay(logger.error(t)("Error logging response body"))

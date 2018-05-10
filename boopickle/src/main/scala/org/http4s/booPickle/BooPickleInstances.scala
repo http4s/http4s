@@ -38,7 +38,7 @@ trait BooPickleInstances {
     * Create an `EntityDecoder` for `A` given a `Pickler[A]`
     */
   def booOf[F[_]: Sync, A: Pickler]: EntityDecoder[F, A] =
-    EntityDecoder.decodeBy(MediaType.`application/octet-stream`)(booDecoderByteBuffer[F, A])
+    EntityDecoder.decodeBy(MediaType.application.`octet-stream`)(booDecoderByteBuffer[F, A])
 
   /**
     * Create an `EntityEncoder` for `A` given a `Pickler[A]`
@@ -48,6 +48,6 @@ trait BooPickleInstances {
       .contramap[A] { v =>
         Chunk.ByteBuffer(Pickle.intoBytes(v))
       }
-      .withContentType(`Content-Type`(MediaType.`application/octet-stream`))
+      .withContentType(`Content-Type`(MediaType.application.`octet-stream`))
 
 }

@@ -179,7 +179,6 @@ lazy val boopickle = libraryProject("boopickle")
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle
     ),
-    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(core, testing % "test->test")
 

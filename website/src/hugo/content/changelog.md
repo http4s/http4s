@@ -30,13 +30,15 @@ it.
   * Introduces an `Http[F[_], G[_]]` type alias
   * `HttpService` is replaced by `HttpRoutes`, which is an `Http[OptionT[F, ?], ?]`.  `HttpRoutes.of` replaces `HttpService` constructor from `PartialFunction`s.
   * `HttpApp` is an `Http[F, F]`, representing a total HTTP function.
-* Deprecate the `ParseResult[A]` alias in favor of explicit `Either[ParseFailure, A]`. [#1829](https://github.com/http4s/http4s/pull/1829)
+* Add `BlockingHttp4sServlet` for use in Google App Engine and Servlet 2.5 containers.  Rename `Http4sServlet` to `AsyncHttp4sServlet`. [#1830](https://github.com/http4s/http4s/pull/1830)
+* Generalize `Logger` middleware to log with `String => Unit` instead of `logger.info(_)` [#1839](https://github.com/http4s/http4s/pull/1839)
+* Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Dependency upgrades:
   * async-http-client-2.4.5
   * blaze-0.14.0-M3
   * scala-xml-1.1.0
 
-# v0.18.11
+# v0.18.11 (2018-05-10)
 * Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)
 * Fix deadlock in client loggers.  `RequestLogger.apply` and `ResponseLogger.apply` are each replaced by `apply0` to maintain binary compatibility. [#1837](https://github.com/http4s/http4s/pull/1837)
 * New `http4s-boopickle` module supports entity codecs through `boopickle.Pickler` [#1826](https://github.com/http4s/http4s/pull/1826)
