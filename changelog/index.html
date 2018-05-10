@@ -116,13 +116,29 @@ it.</p>
 <li><code>HttpService</code> is replaced by <code>HttpRoutes</code>, which is an <code>Http[OptionT[F, ?], ?]</code>.  <code>HttpRoutes.of</code> replaces <code>HttpService</code> constructor from <code>PartialFunction</code>s.</li>
 <li><code>HttpApp</code> is an <code>Http[F, F]</code>, representing a total HTTP function.</li>
 </ul></li>
-<li>Deprecate the <code>ParseResult[A]</code> alias in favor of explicit <code>Either[ParseFailure, A]</code>. <a href="https://github.com/http4s/http4s/pull/1829">#1829</a></li>
+<li>Add <code>BlockingHttp4sServlet</code> for use in Google App Engine and Servlet 2.5 containers.  Rename <code>Http4sServlet</code> to <code>AsyncHttp4sServlet</code>. <a href="https://github.com/http4s/http4s/pull/1830">#1830</a></li>
+<li>Generalize <code>Logger</code> middleware to log with <code>String =&gt; Unit</code> instead of <code>logger.info(_)</code> <a href="https://github.com/http4s/http4s/pull/1839">#1839</a></li>
+<li>Rename <code>RequestLogger.apply0</code> and <code>ResponseLogger.apply0</code> to <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code>.  <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
 <li>Dependency upgrades:
 
 <ul>
 <li>async-http-client-2.4.5</li>
 <li>blaze-0.14.0-M3</li>
 <li>scala-xml-1.1.0</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-11-2018-05-10">v0.18.11 (2018-05-10)</h1>
+
+<ul>
+<li>Prevent zero-padding of servlet input chunks <a href="https://github.com/http4s/http4s/pull/1835">#1835</a></li>
+<li>Fix deadlock in client loggers.  <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code> are each replaced by <code>apply0</code> to maintain binary compatibility. <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
+<li>New <code>http4s-boopickle</code> module supports entity codecs through <code>boopickle.Pickler</code> <a href="https://github.com/http4s/http4s/pull/1826">#1826</a></li>
+<li>Log as much of the response as is consumed in the client. Previously, failure to consume the entire body prevented any part of the body from being logged. <a href="https://github.com/http4s/http4s/pull/1846">#1846</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>prometheus-client-java-0.4.0</li>
 </ul></li>
 </ul>
 
