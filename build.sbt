@@ -180,8 +180,7 @@ lazy val boopickle = libraryProject("boopickle")
     description := "Provides Boopickle codecs for http4s",
     libraryDependencies ++= Seq(
       Http4sPlugin.boopickle
-    ),
-    mimaPreviousArtifacts := Set.empty
+    )
   )
   .dependsOn(core, testing % "test->test")
 
