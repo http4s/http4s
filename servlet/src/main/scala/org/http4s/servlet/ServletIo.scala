@@ -89,7 +89,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         } else if (len == 0) {
           logger.warn("Encountered a read of length 0")
           cb(rightSome(Chunk.empty))
-        } else cb(rightSome(Chunk.bytes(buf)))
+        } else cb(rightSome(Chunk.bytes(buf, 0, len)))
       }
 
       if (in.isFinished) Stream.empty
