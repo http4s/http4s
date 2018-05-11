@@ -7,5 +7,5 @@ import cats.effect.{Effect, IO}
 class OkHttpClientSpec
     extends ClientRouteTestBattery(
       "OkHttp",
-      OkHttp()(Effect[IO], Http4sSpec.TestExecutionContext)
+      OkHttp()(Effect[IO], Http4sSpec.TestExecutionContext).unsafeRunSync()
     )
