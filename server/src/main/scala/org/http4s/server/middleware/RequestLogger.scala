@@ -39,15 +39,18 @@ object RequestLogger {
               req.body
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
-                .onFinalize(
+            )
+
+            val response = routes(changedRequest)
+            response.map { resp =>
+              resp.withBodyStream(
+                resp.body.onFinalize(
                   Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
                     redactHeadersWhen)(logger.info(_))
-                )
-            )
-
-            routes(changedRequest)
+                ))
+            }
           }
     }
 }
