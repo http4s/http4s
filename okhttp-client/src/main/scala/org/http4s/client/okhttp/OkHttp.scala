@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
 
 object OkHttp {
 
-  val defaultconfig = new OkHttpClient.Builder()
+  val defaultconfig: OkHttpClient.Builder = new OkHttpClient.Builder()
     .protocols(
       List(
         Protocol.HTTP_2,
@@ -37,7 +37,7 @@ object OkHttp {
 
   def apply[F[_]](config: OkHttpClient.Builder = defaultconfig)(
       implicit F: Effect[F],
-      ec: ExecutionContext): Client[F] = {
+      ec: ExecutionContext): F[Client[F]] = F.delay {
     val client = config.build()
     Client(
       Kleisli { req =>
@@ -59,7 +59,7 @@ object OkHttp {
   def stream[F[_]](config: OkHttpClient.Builder = defaultconfig)(
       implicit F: Effect[F],
       ec: ExecutionContext): Stream[F, Client[F]] =
-    Stream.bracket(F.delay(apply(config)))(c => Stream.emit(c), _.shutdown)
+    Stream.bracket(apply(config))(c => Stream.emit(c), _.shutdown)
 
   private def handler[F[_]](cb: Either[Throwable, DisposableResponse[F]] => Unit)(
       implicit F: Effect[F],
