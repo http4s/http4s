@@ -122,9 +122,7 @@ lazy val nettyServer = libraryProject("netty-server")
       nettyUnixCommon,
       nettyNativeTransport
     ),
-    mimaPreviousArtifacts := Set.empty,
-    scalacOptions -= "-Ywarn-dead-code",
-    scalacOptions -= "-Ywarn-unused:imports"
+    mimaPreviousArtifacts := Set.empty
   )
   .dependsOn(server % "compile;test->test")
 

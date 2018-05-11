@@ -68,21 +68,20 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
       val method: ParseResult[Method] =
         Method.fromString(request.method().name())
       val version: ParseResult[HV] = HV.fromString(request.protocolVersion().text())
-      //Avoid extra map(x => x) until we enable better-monadic-for
-      version.flatMap { v =>
-        uri.flatMap { u =>
-          method.map { m =>
-            Request[F](
-              m,
-              u,
-              v,
-              Headers(headerBuf.toList),
-              requestBody,
-              attributeMap
-            )
-          }
-        }
-      } match { //Micro-optimization: No fold call
+
+      (for {
+        v <- version
+        u <- uri
+        m <- method
+      } yield
+        Request[F](
+          m,
+          u,
+          v,
+          Headers(headerBuf.toList),
+          requestBody,
+          attributeMap
+        )) match {
         case Right(http4sRequest) => F.pure((http4sRequest, cleanup))
         case Left(err) => F.raiseError(err)
       }
