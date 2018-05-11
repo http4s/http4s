@@ -3,111 +3,236 @@ package netty
 
 import java.util.concurrent.ArrayBlockingQueue
 
-import dsl.io._
 import cats.effect.IO
+import cats.syntax.all._
+import com.typesafe.netty.http.{DefaultStreamedHttpRequest, StreamedHttpResponse}
 import fs2.Stream
 import fs2.interop.reactivestreams._
-import com.typesafe.netty.http.{
-  DefaultStreamedHttpRequest,
-  DefaultStreamedHttpResponse,
-  StreamedHttpResponse
-}
 import io.netty.buffer.Unpooled
-import io.netty.channel.{
-  ChannelHandlerContext,
-  ChannelInboundHandlerAdapter,
-  ChannelOutboundHandlerAdapter,
-  ChannelPromise
-}
+import io.netty.channel._
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.http.{HttpVersion => NettyHttpVersion, _}
+import org.http4s.dsl.io._
 import org.http4s.server.DefaultServiceErrorHandler
-import io.netty.channel.group.DefaultChannelGroup
-import io.netty.handler.codec.http.{
-  DefaultHttpContent,
-  HttpContent,
-  HttpResponse,
-  HttpResponseStatus
-}
-//import io.netty.channel.{ChannelHandler, ChannelOption}
-import io.netty.handler.codec.http.{
-  DefaultFullHttpRequest,
-  HttpMethod,
-  HttpVersion => NettyHttpVersion
-}
-import io.netty.util.ReferenceCounted
 import org.log4s.getLogger
+import org.specs2.matcher.MatchResult
 
-//import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 
 class Http4sNettyHandlerSpec extends Http4sSpec {
-  def beReleased(r: ReferenceCounted) = r.refCnt() == 0
-
   def generateDefaultContent: HttpContent =
-    new DefaultHttpContent(Unpooled.wrappedBuffer(Array[Byte](1, 2, 3, 4, 5)))
+    new DefaultHttpContent(Unpooled.wrappedBuffer(Array[Byte](1, 2, 3)))
 
-  val basicService: HttpService[IO] = HttpService {
-    case r @ GET -> Root / "ping" =>
-      r.body.compile.drain.flatMap(_ => Ok())
-    case POST -> Root / "noConsumeBody" => Ok()
-    case POST -> Root / "consumeBody" => Ok("hi!")
+  def fillBuffer(): List[HttpContent] = List.fill(2)(generateDefaultContent)
+
+  def setupChannel(handler: ChannelHandler): (NettyInterceptor, EmbeddedChannel) = {
+    val interceptor = NettyInterceptor.empty
+    (interceptor, new EmbeddedChannel(interceptor, handler))
   }
 
-  val interceptor: NettyOutboundInterceptor =
-    NettyOutboundInterceptor.empty
+  def isConnectionClosed(h: HttpResponse): Boolean =
+    h.headers().contains(HttpHeaderNames.CONNECTION) && h
+      .headers()
+      .get(HttpHeaderNames.CONNECTION)
+      .equalsIgnoreCase("close")
 
-  val defaultHandler =
-    Http4sNettyHandler.default[IO](basicService, DefaultServiceErrorHandler[IO])
+  def matchStreamedResponse[A](r: HttpResponse)(
+      f: StreamedHttpResponse => MatchResult[A]): MatchResult[Any] =
+    r match {
+      case h: StreamedHttpResponse =>
+        f(h)
+      case _ =>
+        ko("Invalid Response Type: Streamed response expected")
+    }
 
-  val channel = new EmbeddedChannel(interceptor, defaultHandler)
+  def matchFullResponse[A](r: HttpResponse)(
+      f: FullHttpResponse => MatchResult[A]): MatchResult[Any] =
+    r match {
+      case h: FullHttpResponse =>
+        f(h)
+      case _ =>
+        ko("Invalid Response Type: Full response expected")
+    }
 
-  "Http4sNettyHandlerSpec" should {
+  "Http4sNettyHandlerSpec: common ops" should {
+    lazy val basicService: HttpService[IO] = HttpService {
+      case GET -> Root / "ping" => Ok()
+      case POST -> Root / "noConsume" => Ok()
+      case r @ POST -> Root / "consumeAll" =>
+        r.body.compile.drain >> Ok("hi!")
+      case GET -> Root / "noEntity" =>
+        IO(Response(NoContent, body = Stream.emits(Array[Byte](1, 2, 3, 4, 5)).covary[IO]))
+    }
+
+    def setupBasicChannel: (NettyInterceptor, EmbeddedChannel) =
+      setupChannel(Http4sNettyHandler.default[IO](basicService, DefaultServiceErrorHandler[IO]))
+
     "Return a simple Ok response when calling the handler ping route" in {
+      val (interceptor, channel) = setupBasicChannel
       val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/ping")
       channel.writeInbound(request)
-      val response = interceptor.readBlocking
-      response match {
-        case r: DefaultStreamedHttpResponse =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-        case _ =>
-          ko("Invalid response type for an entity that's allowed a body")
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.OK
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
       }
     }
 
-    "Release all incoming bytes despite user not using the incoming body stream for a full request" in {
+    "Release all incoming bytes in a GET request regardless of outcome" in {
+      val (interceptor, channel) = setupBasicChannel
       val content = Unpooled.wrappedBuffer(new Array[Byte](1))
       val request =
         new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/ping", content)
       channel.writeInbound(request)
-      val response = interceptor.readBlocking
-      response match {
-        case r: DefaultStreamedHttpResponse =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          //Check buffer was released
-          content.refCnt() must_== 0
-        case _ =>
-          ko("Invalid response type for an entity that's allowed a body")
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.OK
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        //Check buffer was released
+        content.refCnt() must_== 0
+        //Channel must have remained open
+        channel.isOpen must_== true
+        channel.close().await(100) must_== true
       }
     }
 
-    "Release all incoming bytes despite user not using the incoming body stream for a full request" in {
-      val buffers: List[HttpContent] = List.fill(3)(generateDefaultContent)
+    "Release all incoming bytes when body stream has been drained and keep the connection alive" in {
+      val (interceptor, channel) = setupBasicChannel
+      val buffers: List[HttpContent] = fillBuffer()
+      val publisherStream = Stream.emits(buffers).covary[IO].toUnicastPublisher()
+      val request = new DefaultStreamedHttpRequest(
+        NettyHttpVersion.HTTP_1_1,
+        HttpMethod.POST,
+        "/consumeAll",
+        publisherStream)
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.OK
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        forall(buffers)(_.refCnt() must_== 0)
+        channel.isOpen must_== true
+        channel.close().await(100) must_== true
+      }
+    }
+
+    "Release all incoming bytes despite user not using the incoming body stream for a full request and" +
+      "close the connection" in {
+      val (interceptor, channel) = setupBasicChannel
+      val buffers: List[HttpContent] = fillBuffer()
+      val publisherStream = Stream.emits(buffers).covary[IO].toUnicastPublisher()
+      val request = new DefaultStreamedHttpRequest(
+        NettyHttpVersion.HTTP_1_1,
+        HttpMethod.POST,
+        "/noConsume",
+        publisherStream)
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.OK
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
+        //Unconsumed bodies closes the channel and connection
+        channel.isOpen must_== false
+      }
+
+    }
+
+    "Release all incoming bytes for a not found route and close the connection" in {
+      val (interceptor, channel) = setupBasicChannel
+      val buffers: List[HttpContent] = fillBuffer()
+      val publisherStream = Stream.emits(buffers).covary[IO].toUnicastPublisher()
+      val request = new DefaultStreamedHttpRequest(
+        NettyHttpVersion.HTTP_1_1,
+        HttpMethod.POST,
+        "/TheMooseIsLoose",
+        publisherStream)
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) {
+        case r =>
+          r.status() must_== HttpResponseStatus.NOT_FOUND
+          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
+          //Unconsumed bodies closes the channel and connection
+          channel.isOpen must_== false
+      }
+    }
+
+    "Not emit the body for a response that does not allow one" in {
+      val (interceptor, channel) = setupBasicChannel
+      val buffers: List[HttpContent] = fillBuffer()
       val publisherStream = Stream.emits(buffers).covary[IO].toUnicastPublisher()
       val request = new DefaultStreamedHttpRequest(
         NettyHttpVersion.HTTP_1_1,
         HttpMethod.GET,
-        "/ping",
+        "/noEntity",
         publisherStream)
       channel.writeInbound(request)
-      val response = interceptor.readBlocking
-      response match {
-        case r: DefaultStreamedHttpResponse =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          forall(buffers)(_.refCnt() must_== 0)
-        case _ =>
-          ko("Invalid response type for an entity that's allowed a body")
+      matchFullResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.NO_CONTENT
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        //`eventually` combinator just does the same thing
+        forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
+        //Unconsumed bodies closes the channel and connection
+        channel.isOpen must_== false
+      }
+    }
+  }
+
+  "Http4sNettyHandlerSpec errors" should {
+    lazy val exceptionService = HttpService[IO] {
+      case GET -> Root / "sync" =>
+        sys.error("Synchronous error!")
+      case GET -> Root / "async" =>
+        IO.raiseError(new Exception("Asynchronous error!"))
+      case GET -> Root / "sync" / "422" =>
+        throw InvalidMessageBodyFailure("lol, I didn't even look")
+      case GET -> Root / "async" / "422" =>
+        IO.raiseError(InvalidMessageBodyFailure("lol, I didn't even look"))
+    }
+
+    def setupErrorChannel: (NettyInterceptor, EmbeddedChannel) =
+      setupChannel(Http4sNettyHandler.default[IO](exceptionService, DefaultServiceErrorHandler[IO]))
+
+    "Handle a synchronous, uncaught error" in {
+      val (interceptor, channel) = setupErrorChannel
+      val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/sync")
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.INTERNAL_SERVER_ERROR
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        isConnectionClosed(r) must_== true
+      }
+    }
+
+    "Handle an asynchronous error" in {
+      val (interceptor, channel) = setupErrorChannel
+      val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/async")
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.INTERNAL_SERVER_ERROR
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        isConnectionClosed(r) must_== true
+      }
+    }
+
+    "Handle a synchronous error with unprocessable entity" in {
+      val (interceptor, channel) = setupErrorChannel
+      val request =
+        new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/sync/422")
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.UNPROCESSABLE_ENTITY
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        isConnectionClosed(r) must_== false
+      }
+    }
+
+    "Handle an asynchronous error with unprocessable entity" in {
+      val (interceptor, channel) = setupErrorChannel
+      val request =
+        new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/async/422")
+      channel.writeInbound(request)
+      matchStreamedResponse(interceptor.readBlocking) { r =>
+        r.status() must_== HttpResponseStatus.UNPROCESSABLE_ENTITY
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        isConnectionClosed(r) must_== false
       }
     }
 
@@ -115,14 +240,26 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
 
 }
 
-private[netty] class NettyOutboundInterceptor(q: ArrayBlockingQueue[HttpResponse])
+/** A class that simply lets us intercept the
+  * netty outbound response and signals a successful read,
+  * for the sake of executing the post-response finalizers.
+  *
+  * EmbeddedChannel is weird. Without the interceptor,
+  * despite being passed down the writes chain, writes aren't
+  * added to the out buffer (possibly because it's a forked action).
+  */
+private[netty] class NettyInterceptor(q: ArrayBlockingQueue[HttpResponse])
     extends ChannelOutboundHandlerAdapter {
 
   private[this] val logger = getLogger
 
   override def write(ctx: ChannelHandlerContext, msg: Any, promise: ChannelPromise): Unit =
     msg match {
-      case h: HttpResponse => q.put(h);
+      case h: HttpResponse =>
+        //Necessary, as it allows us to run the consumption
+        //And bytebuf release finalizers.
+        ctx.writeAndFlush(msg, promise).awaitUninterruptibly(2000)
+        q.put(h)
 
       case _ =>
         logger.error("Intercepted message other than http response: " + msg.toString)
@@ -132,6 +269,6 @@ private[netty] class NettyOutboundInterceptor(q: ArrayBlockingQueue[HttpResponse
 
 }
 
-object NettyOutboundInterceptor {
-  def empty = new NettyOutboundInterceptor(new ArrayBlockingQueue[HttpResponse](1))
+object NettyInterceptor {
+  def empty = new NettyInterceptor(new ArrayBlockingQueue[HttpResponse](1))
 }

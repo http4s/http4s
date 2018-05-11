@@ -8,12 +8,12 @@ import com.typesafe.netty.http._
 import fs2.interop.reactivestreams._
 import fs2.{Chunk, Pull, Stream}
 import io.netty.buffer.{ByteBuf, Unpooled}
-import io.netty.channel.Channel
+import io.netty.channel.{Channel, ChannelFuture, ChannelFutureListener}
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx.{WebSocketFrame => WSFrame, _}
 import io.netty.handler.ssl.SslHandler
 import org.http4s.Request.Connection
-import org.http4s.headers.`Content-Length`
+import org.http4s.headers.{`Content-Length`, Connection => ConnHeader}
 import org.http4s.server.websocket.websocketKey
 import org.http4s.util.execution.trampoline
 import org.http4s.websocket.WebSocketContext
@@ -45,7 +45,7 @@ object NettyModelConversion {
     */
   def fromNettyRequest[F[_]](channel: Channel, request: HttpRequest)(
       implicit F: Effect[F]
-  ): F[(Request[F], F[Unit])] = {
+  ): F[(Request[F], Channel => F[Unit])] = {
     //Useful for testing, since embedded channels will _not_
     //have connection info
     val attributeMap = createRemoteConnection(channel) match {
@@ -107,13 +107,13 @@ object NettyModelConversion {
     */
   private[this] def convertRequestBody[F[_]](request: HttpRequest)(
       implicit F: Effect[F]
-  ): (Stream[F, Byte], F[Unit]) =
+  ): (Stream[F, Byte], Channel => F[Unit]) =
     request match {
       case full: FullHttpRequest =>
         val content = full.content()
         val buffers = content.nioBuffers()
         if (buffers.isEmpty)
-          (Stream.empty.covary[F], F.unit)
+          (Stream.empty.covary[F], _ => F.unit)
         else {
           val content = full.content()
           val arr = new Array[Byte](content.readableBytes())
@@ -123,26 +123,41 @@ object NettyModelConversion {
             Stream
               .chunk(Chunk.bytes(arr))
               .covary[F],
-            F.unit) //No cleanup action needed
+            _ => F.unit) //No cleanup action needed
         }
       case streamed: StreamedHttpRequest =>
         val stream =
           new NettySafePublisher(streamed).toStream[F]()(F, trampoline).flatMap(Stream.chunk(_))
-        (stream, drainStream(stream))
+        (stream, drainBody(_, stream))
     }
 
-  private[this] def drainStream[F[_]](f: Stream[F, Byte])(implicit F: Effect[F]): F[Unit] =
+  private[this] def drainBody[F[_]](c: Channel, f: Stream[F, Byte])(
+      implicit F: Effect[F]): F[Unit] =
     f.pull.uncons
       .flatMap {
-        case None => Pull.done
+        case None =>
+          Pull.done
         //Note: It is normal to hit this block, as
         //Netty sends a `LastHttpContent` chunk often which is ignored by the initial stream.
         case Some((_, more)) =>
           more.pull.uncons.flatMap {
             case None => Pull.done //Body was drained fine.
             case Some((_, rest)) =>
-              logger.info("Body not read to completion. Draining body")
-              rest.pull.echo >> Pull.done
+              Pull.eval(F.delay {
+                logger.info("Body not read to completion. Closing connection")
+                if (c.isOpen) {
+                  c.close()
+                    .addListener(new ChannelFutureListener {
+                      def operationComplete(future: ChannelFuture): Unit =
+                        //Drain the rest of the body in the buffers of the Publisher.
+                        //This ensures we release all reference counted objects
+                        F.runAsync(rest.compile.drain)(_ => IO.unit).unsafeRunSync()
+                    })
+                } else {
+                  //Channel already closed, just drain
+                  F.runAsync(rest.compile.drain)(_ => IO.unit).unsafeRunSync()
+                }
+              }) >> Pull.done
           }
       }
       .stream
@@ -177,6 +192,7 @@ object NettyModelConversion {
 
   /** Create a Netty response from the result */
   def toNettyResponse[F[_]](
+      httpRequest: Request[F],
       http4sResponse: Response[F],
       dateString: String
   )(implicit F: Effect[F], ec: ExecutionContext): DefaultHttpResponse = {
@@ -186,7 +202,7 @@ object NettyModelConversion {
       else
         HttpVersion.HTTP_1_0
 
-    toNonWSResponse[F](http4sResponse, httpVersion, dateString)
+    toNonWSResponse[F](httpRequest, http4sResponse, httpVersion, dateString)
   }
 
   /** Create a Netty response from the result */
@@ -204,13 +220,14 @@ object NettyModelConversion {
         HttpVersion.valueOf(httpResponse.httpVersion.toString)
 
     httpResponse.attributes.get(websocketKey[F]) match {
-      case None => F.pure(toNonWSResponse[F](httpResponse, httpVersion, dateString))
+      case None => F.pure(toNonWSResponse[F](httpRequest, httpResponse, httpVersion, dateString))
       case Some(wsContext) =>
         toWSResponse[F](httpRequest, httpResponse, httpVersion, wsContext, dateString)
     }
   }
 
   private[this] def toNonWSResponse[F[_]](
+      httpRequest: Request[F],
       httpResponse: Response[F],
       httpVersion: HttpVersion,
       dateString: String)(
@@ -239,6 +256,14 @@ object NettyModelConversion {
     }
     if (!defaultResponse.headers().contains(HttpHeaderNames.DATE))
       defaultResponse.headers().add(HttpHeaderNames.DATE, dateString)
+
+    ConnHeader
+      .from(httpRequest.headers)
+      .map(
+        c =>
+          if (!defaultResponse.headers().contains(HttpHeaderNames.CONNECTION))
+            defaultResponse.headers().add(HttpHeaderNames.CONNECTION, c.value))
+
     defaultResponse
   }
 
@@ -291,10 +316,11 @@ object NettyModelConversion {
             resp
           }
           .handleErrorWith(_ =>
-            wsContext.failureResponse.map(toNonWSResponse[F](_, httpVersion, dateString)))
+            wsContext.failureResponse.map(
+              toNonWSResponse[F](httpRequest, _, httpVersion, dateString)))
       }
     } else {
-      F.pure(toNonWSResponse[F](httpResponse, httpVersion, dateString))
+      F.pure(toNonWSResponse[F](httpRequest, httpResponse, httpVersion, dateString))
     }
 
   private[this] def wsbitsToNetty(w: WebSocketFrame): WSFrame =

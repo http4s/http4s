@@ -244,7 +244,7 @@ class NettyBuilder[F[_]](
   /** A stream transformation that registers our channels and
     * adds the necessary codecs and transport handlers
     */
-  def registerChannel(
+  private[netty] def registerChannel(
       eventLoop: MultithreadEventLoopGroup,
       allChannels: DefaultChannelGroup): Channel => F[Unit] = { connChannel =>
     F.delay {
