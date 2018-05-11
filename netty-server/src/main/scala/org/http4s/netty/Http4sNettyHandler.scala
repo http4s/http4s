@@ -223,19 +223,21 @@ object Http4sNettyHandler {
     private[this] val unwrapped: Request[F] => F[Response[F]] =
       service.mapF(_.getOrElse(Response.notFound[F])).run
 
+    private[this] val converter: NettyModelConversion[F] =
+      new NettyModelConversion[F]()
+
     override def handle(
         channel: Channel,
         request: HttpRequest,
         dateString: String): F[(DefaultHttpResponse, Channel => F[Unit])] = {
       logger.trace("Http request received by netty: " + request)
-      Async.shift(ec) >> NettyModelConversion
-        .fromNettyRequest[F](channel, request)
+      Async.shift(ec) >> converter
+        .fromNettyRequest(channel, request)
         .flatMap {
           case (req, cleanup) =>
             F.suspend(unwrapped(req))
               .recoverWith(serviceErrorHandler(req))
-              .map(response =>
-                (NettyModelConversion.toNettyResponse[F](req, response, dateString), cleanup))
+              .map(response => (converter.toNettyResponse(req, response, dateString), cleanup))
         }
     }
   }
@@ -249,18 +251,21 @@ object Http4sNettyHandler {
     private[this] val unwrapped: Request[F] => F[Response[F]] =
       service.mapF(_.getOrElse(Response.notFound[F])).run
 
+    private[this] val converter: NettyModelConversion[F] =
+      new NettyModelConversion[F]()
+
     override def handle(
         channel: Channel,
         request: HttpRequest,
         dateString: String): F[(DefaultHttpResponse, Channel => F[Unit])] = {
       logger.trace("Http request received by netty: " + request)
-      Async.shift(ec) >> NettyModelConversion
-        .fromNettyRequest[F](channel, request)
+      Async.shift(ec) >> converter
+        .fromNettyRequest(channel, request)
         .flatMap {
           case (req, cleanup) =>
             F.suspend(unwrapped(req))
               .recoverWith(serviceErrorHandler(req))
-              .flatMap(NettyModelConversion.toNettyResponseWithWebsocket[F](req, _, dateString))
+              .flatMap(converter.toNettyResponseWithWebsocket(req, _, dateString))
               .map((_, cleanup))
         }
     }
