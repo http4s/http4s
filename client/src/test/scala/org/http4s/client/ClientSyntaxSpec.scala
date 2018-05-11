@@ -257,7 +257,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     }
 
     "toService disposes of the response on success" in {
-      assertDisposes(_.toKleisli(_ => IO.pure(())).run(req))
+      assertDisposes(_.toKleisli(_ => IO.unit).run(req))
     }
 
     "toService disposes of the response on failure" in {

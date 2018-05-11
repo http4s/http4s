@@ -11,7 +11,7 @@ private final class BasicManager[F[_], A <: Connection[F]](builder: ConnectionBu
     builder(requestKey).map(NextConnection(_, fresh = true))
 
   override def shutdown(): F[Unit] =
-    F.pure(())
+    F.unit
 
   override def invalidate(connection: A): F[Unit] =
     F.delay(connection.shutdown())
