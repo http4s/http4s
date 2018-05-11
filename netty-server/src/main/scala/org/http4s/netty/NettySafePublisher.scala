@@ -32,9 +32,8 @@ object NettySafePublisher {
       subscriber.onNext(Chunk.Bytes(bytes))
     }
 
-    def onSubscribe(s: Subscription): Unit = {
+    def onSubscribe(s: Subscription): Unit =
       subscriber.onSubscribe(s)
-    }
 
   }
 

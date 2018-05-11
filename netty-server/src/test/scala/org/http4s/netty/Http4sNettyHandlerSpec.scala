@@ -50,15 +50,12 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
       f: StreamedHttpResponse => MatchResult[A]): MatchResult[Any] = {
     channel.writeInbound(request)
     val response = interceptor.readBlocking
-    val matches = response match {
+    response match {
       case h: StreamedHttpResponse =>
         f(h)
       case _ =>
         ko("Invalid Response Type: Streamed response expected")
     }
-    if (channel.isOpen)
-      channel.close()
-    matches
   }
 
   private def matchFullResponse[A](
@@ -75,7 +72,6 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
       case _ =>
         ko("Invalid Response Type: Full response expected")
     }
-
   }
 
   "Http4sNettyHandlerSpec: common ops" should {
@@ -357,6 +353,28 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
         HttpUtil.isTransferEncodingChunked(r) must_== true
         r.headers.contains(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.GZIP, true) must_== true
+      }
+    }
+
+    "Echo request bodies without a hitch" in {
+      val service: HttpService[IO] = HttpService {
+        case r =>
+          IO(Response[IO](Ok).withBodyStream(r.body))
+      }
+      val (interceptor, channel) = setupChannel(defaultHandler(service))
+      val buffers: List[HttpContent] = fillBuffer()
+      val publisherStream = Stream.emits(buffers).covary[IO].toUnicastPublisher()
+      val request = new DefaultStreamedHttpRequest(
+        NettyHttpVersion.HTTP_1_1,
+        HttpMethod.GET,
+        "/",
+        publisherStream)
+      matchStreamedResponse(request, channel, interceptor) { r =>
+        r.status() must_== HttpResponseStatus.OK
+        r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+        HttpUtil.isTransferEncodingChunked(r) must_== true
+        //`eventually` combinator just does the same thing
+        forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
       }
     }
   }
