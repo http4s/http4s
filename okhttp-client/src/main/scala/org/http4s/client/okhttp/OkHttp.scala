@@ -28,17 +28,20 @@ import scala.concurrent.ExecutionContext
 
 object OkHttp {
 
-  val defaultconfig: OkHttpClient.Builder = new OkHttpClient.Builder()
-    .protocols(
-      List(
-        Protocol.HTTP_2,
-        Protocol.HTTP_1_1
-      ).asJava)
+  def defaultconfig[F[_]]()(implicit F: Effect[F]): F[OkHttpClient.Builder] = F.delay {
+    new OkHttpClient.Builder()
+      .protocols(
+        List(
+          Protocol.HTTP_2,
+          Protocol.HTTP_1_1
+        ).asJava)
+  }
 
-  def apply[F[_]](config: OkHttpClient.Builder = defaultconfig)(
+
+  def apply[F[_]](config: F[OkHttpClient.Builder] = null)(
       implicit F: Effect[F],
-      ec: ExecutionContext): F[Client[F]] = F.delay {
-    val client = config.build()
+      ec: ExecutionContext): F[Client[F]] = F.map(Option(config).getOrElse(defaultconfig[F]())) { c =>
+    val client = c.build()
     Client(
       Kleisli { req =>
         F.async[DisposableResponse[F]] { cb =>
@@ -56,10 +59,10 @@ object OkHttp {
     )
   }
 
-  def stream[F[_]](config: OkHttpClient.Builder = defaultconfig)(
+  def stream[F[_]](config: F[OkHttpClient.Builder] = null)(
       implicit F: Effect[F],
       ec: ExecutionContext): Stream[F, Client[F]] =
-    Stream.bracket(apply(config))(c => Stream.emit(c), _.shutdown)
+    Stream.bracket(apply(Option(config).getOrElse(defaultconfig[F]())))(c => Stream.emit(c), _.shutdown)
 
   private def handler[F[_]](cb: Either[Throwable, DisposableResponse[F]] => Unit)(
       implicit F: Effect[F],
