@@ -38,23 +38,23 @@ lazy val `sbt-java-gen` = project
     buildInfoPackage := "org.lyranthe.fs2_grpc.buildinfo",
     addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
     libraryDependencies ++= List(
-      "io.grpc"              % "grpc-core"       % "1.11.0",
-      "com.thesamet.scalapb" %% "compilerplugin" % "0.7.2"
+      "io.grpc"              % "grpc-core"       % "1.12.0",
+      "com.thesamet.scalapb" %% "compilerplugin" % "0.7.4"
     )
   )
 
 lazy val `java-runtime` = project
   .enablePlugins(GitVersioning)
   .settings(
-    scalaVersion := "2.12.5",
+    scalaVersion := "2.12.6",
     crossScalaVersions := List(scalaVersion.value, "2.11.12"),
     publishTo := sonatypePublishTo.value,
     libraryDependencies ++= List(
-      "co.fs2"        %% "fs2-core"         % "0.10.3",
+      "co.fs2"        %% "fs2-core"         % "0.10.4",
       "org.typelevel" %% "cats-effect"      % "0.10.1",
       "org.typelevel" %% "cats-effect-laws" % "0.10.1" % "test",
-      "io.grpc"       % "grpc-core"         % "1.11.0",
-      "io.grpc"       % "grpc-netty-shaded" % "1.11.0" % "test",
+      "io.grpc"       % "grpc-core"         % "1.12.0",
+      "io.grpc"       % "grpc-netty-shaded" % "1.12.0" % "test",
       "io.monix"      %% "minitest"         % "2.1.1"  % "test"
     ),
     testFrameworks += new TestFramework("minitest.runner.Framework"),
