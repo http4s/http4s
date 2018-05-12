@@ -323,12 +323,12 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
     httpResponse.headers.foreach(appendSomeToNetty(_, response.headers()))
     val transferEncoding = `Transfer-Encoding`.from(httpResponse.headers)
     `Content-Length`.from(httpResponse.headers) match {
-      case Some(len) if transferEncoding.forall(!_.hasChunked) || minorIs0 =>
+      case Some(clenHeader) if transferEncoding.forall(!_.hasChunked) || minorIs0 =>
         // HTTP 1.1: we have a length and no chunked encoding
         // HTTP 1.0: we have a length
 
         //Ignore transfer-encoding if it's not chunked
-        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, len)
+        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, clenHeader.length)
 
       case _ =>
         if (!minorIs0) {

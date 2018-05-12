@@ -5,5 +5,5 @@ import org.http4s.server.{ServerBuilder, ServerSpec}
 
 class NettyServerSpec extends ServerSpec {
   def builder: ServerBuilder[IO] =
-    NettyBuilder[IO]
+    NettyBuilder[IO].withTransport(NettyTransport.Nio)
 }

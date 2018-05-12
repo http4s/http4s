@@ -124,7 +124,7 @@ lazy val nettyServer = libraryProject("netty-server")
     ),
     mimaPreviousArtifacts := Set.empty
   )
-  .dependsOn(server % "compile;test->test")
+  .dependsOn(server % "compile;test->test", blazeClient % "test->test")
 
 lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
