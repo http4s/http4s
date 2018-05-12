@@ -330,26 +330,6 @@ lazy val docs = http4sProject("docs")
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
-lazy val website = http4sProject("website")
-  .enablePlugins(HugoPlugin, GhpagesPlugin, PrivateProjectPlugin)
-  .settings(
-    description := "Common area of http4s.org",
-    baseURL in Hugo := {
-      if (isTravisBuild.value) new URI(s"https://http4s.org")
-      else new URI(s"http://127.0.0.1:${previewFixedPort.value.getOrElse(4000)}")
-    },
-    makeSite := makeSite.dependsOn(http4sBuildData).value,
-    // all .md|markdown files go into `content` dir for hugo processing
-    ghpagesNoJekyll := true,
-    excludeFilter in ghpagesCleanSite :=
-      new FileFilter {
-        val v = ghpagesRepository.value.getCanonicalPath + "/v"
-        def accept(f: File) =
-          f.getCanonicalPath.startsWith(v) &&
-            f.getCanonicalPath.charAt(v.size).isDigit
-      }
-  )
-
 lazy val examples = http4sProject("examples")
   .enablePlugins(PrivateProjectPlugin)
   .settings(

@@ -3,10 +3,16 @@ contentDir = "../../target/scala-2.12/tut"
 dataDir = "../../target/hugo-data"
 languageCode = "en-us"
 title = "http4s"
-theme = "http4s.org"
-themesDir = "../../../website/src/hugo/themes"
+theme = "hugo-theme-learn"
+themesDir = "themes"
 
-[[menu.main]]
-    name = "Scaladoc"
-    weight = 10000
-    url = "/api"
+[params]
+disableInlineCopyToClipboard = true
+
+[outputs]
+home = [ "HTML", "RSS", "JSON"]
+
+[[menu.shortcuts]]
+name = "Scaladoc"
+url = "/api"
+weight = 10000
