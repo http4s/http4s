@@ -6,6 +6,8 @@ import cats.syntax.all._
 import fs2.{Pipe, Pull, Stream}
 import io.netty.util.ResourceLeakDetector
 import org.http4s.client.blaze._
+//import org.http4s.client.asynchttpclient._
+//import org.http4s.server.blaze._
 import org.http4s.dsl.io._
 import org.http4s.multipart._
 import org.specs2.specification.AfterAll
@@ -33,7 +35,8 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
 
   val server = NettyBuilder[IO].mountService(service).start.unsafeRunSync()
 
-  val client = Http1Client[IO]().unsafeRunSync()
+  val client = Http1Client[IO]().unsafeRunSync
+  val client2 = Http1Client[IO]().unsafeRunSync
 
   def failStreamAt[A](count: Int): Pipe[IO, A, A] = {
     def go(currCount: Int, current: Stream[IO, A]): Pull[IO, A, Unit] =
@@ -81,8 +84,17 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
         .unsafeRunSync() must_== ((0, length))
     }
 
+    "Work normally for a partially fetched body" in {
+      //Todo: Hacky workaround to check the body doesn't interrupt other requests
+      //From a different client
+      client2
+        .fetch(Request[IO](GET, server.baseUri / "longbody"))(
+          r => r.body.take(1).compile.drain.attempt >> IO.pure(r.status)
+        )
+        .unsafeRunSync() must_== Ok
+    }
+
     "Proxy a request back properly" in {
-      IO.unit >> IO.unit
       val multipart =
         Multipart[IO](Vector(Part.formData("hi", "hello"), Part.formData("beep", "boop")))
       val program = for {
@@ -95,16 +107,7 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
       program.unsafeRunSync() must beSome("beep")
     }
 
-    "Work normally for a partially fetched body" in {
-      client
-        .fetch(Request[IO](GET, server.baseUri / "longbody"))(
-          r => r.body.take(1).compile.drain.attempt >> IO.pure(r.status)
-        )
-        .unsafeRunSync() must_== Ok
-    }
-
     "Handle an uncaught synchronous exception in the default error handler" in {
-      IO.unit >> IO.unit
       client
         .fetch(Request[IO](POST, server.baseUri / "syncError"))(IO.pure)
         .unsafeRunSync()
@@ -123,6 +126,7 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
   override def afterAll(): Unit = {
     server.shutdown.attempt.unsafeRunSync()
     client.shutdown.attempt.unsafeRunSync()
+    client2.shutdown.attempt.unsafeRunSync()
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED)
     ()
   }

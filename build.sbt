@@ -76,7 +76,7 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusHotspot
-    ),
+    )
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
@@ -119,7 +119,6 @@ lazy val nettyServer = libraryProject("netty-server")
       nettyReactiveStreams,
       nettyHandler,
       nettyHttpCodec,
-//      nettyUnixCommon,
       nettyNativeTransport
     ),
     mimaPreviousArtifacts := Set.empty
