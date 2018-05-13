@@ -1,8 +1,9 @@
 package org.http4s.netty
 
 import java.net.InetSocketAddress
+import java.util.concurrent.atomic.AtomicBoolean
 
-import cats.effect.{Async, Effect, IO}
+import cats.effect.{Effect, IO}
 import cats.implicits.{catsSyntaxEither => _, _}
 import com.typesafe.netty.http._
 import fs2.interop.reactivestreams._
@@ -13,7 +14,7 @@ import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.websocketx.{WebSocketFrame => WSFrame, _}
 import io.netty.handler.ssl.SslHandler
 import org.http4s.Request.Connection
-import org.http4s.headers.{`Content-Length`, Connection => ConnHeader, `Transfer-Encoding`}
+import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`, Connection => ConnHeader}
 import org.http4s.server.websocket.websocketKey
 import org.http4s.util.execution.trampoline
 import org.http4s.websocket.WebSocketContext
@@ -124,46 +125,38 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
             _ => F.unit) //No cleanup action needed
         }
       case streamed: StreamedHttpRequest =>
+        val isDrained = new AtomicBoolean(false)
         val stream =
-          new NettySafePublisher(streamed).toStream[F]()(F, trampoline).flatMap(Stream.chunk(_))
-        (stream, drainBody(_, stream))
+          new NettySafePublisher(streamed)
+            .toStream[F]()(F, trampoline)
+            .flatMap(Stream.chunk(_))
+            .onFinalize(F.delay { isDrained.compareAndSet(false, true); () })
+        (stream, drainBody(_, stream, isDrained))
     }
 
   /** Return an action that will drain the channel stream
     * in the case that it wasn't drained.
     */
-  private[this] def drainBody(c: Channel, f: Stream[F, Byte]): F[Unit] =
-    f.pull.uncons
-      .flatMap {
-        case None =>
-          Pull.done
-        //Note: It is normal to hit this block, as
-        //Netty sends a `LastHttpContent` chunk often which is ignored by the initial stream.
-        case Some((_, more)) =>
-          more.pull.uncons.flatMap {
-            case None => Pull.done //Body was drained fine.
-            case Some((_, rest)) =>
-              Pull.eval(F.delay {
-                logger.info("Body not read to completion. Closing connection")
-                if (c.isOpen) {
-                  c.close()
-                    .addListener(new ChannelFutureListener {
-                      def operationComplete(future: ChannelFuture): Unit =
-                        //Drain the rest of the body in the buffers of the Publisher.
-                        //This ensures we release all reference counted objects
-                        F.runAsync(rest.compile.drain)(_ => IO.unit).unsafeRunSync()
-                    })
-                } else {
-                  //Channel already closed, just drain, in case
-                  //The publisher hasn't released all the remaining elements already
-                  F.runAsync(rest.compile.drain)(_ => IO.unit).unsafeRunSync()
-                }
-              }) >> Pull.done
-          }
+  private[this] def drainBody(c: Channel, f: Stream[F, Byte], isDrained: AtomicBoolean): F[Unit] =
+    F.delay {
+      if (isDrained.compareAndSet(false, true)) {
+        if (c.isOpen) {
+          logger.info("Response body not drained to completion. Draining and closing connection")
+          c.close().addListener {
+            new ChannelFutureListener {
+              def operationComplete(future: ChannelFuture): Unit = {
+                //Drain the stream regardless. Some bytebufs often
+                //Remain in the buffers. Draining them solves this issue
+                F.runAsync(f.compile.drain)(_ => IO.unit).unsafeRunSync(); ()
+              }
+            }
+          }; ()
+        } else {
+          //Drain anyway, don't close the channel
+          F.runAsync(f.compile.drain)(_ => IO.unit).unsafeRunSync()
+        }
       }
-      .stream
-      .compile
-      .drain
+    }
 
   /** Create a Netty streamed response. */
   private[this] def responseToPublisher(
@@ -174,16 +167,9 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
         case Some((chnk, stream)) =>
           Pull.output1[F, HttpContent](chunkToNetty(chnk)) >> go(stream)
         case None =>
-          Pull.eval(response.trailerHeaders).flatMap { h =>
-            if (h.isEmpty)
-              Pull.done
-            else {
-              val c = new DefaultLastHttpContent()
-              h.foreach(appendAllToNetty(_, c.trailingHeaders()))
-              Pull.output1(c) >> Pull.done
-            }
-          }
+          Pull.done
       }
+
     go(response.body).stream.toUnicastPublisher()
   }
 
@@ -397,7 +383,7 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
             }
 
             F.runAsync {
-                Async.shift[F](ec) >> subscriber.stream
+                subscriber.stream
                   .through(wsContext.webSocket.receive)
                   .compile
                   .drain
