@@ -42,6 +42,9 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
     ()
   }
 
+  private def isTransferEncodingChunked(r: HttpResponse): Boolean =
+    r.headers().contains(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED, true)
+
   private def defaultHandler(s: HttpService[IO]): Http4sNettyHandler[IO] =
     Http4sNettyHandler.default[IO](s, DefaultServiceErrorHandler[IO])
 
@@ -49,9 +52,9 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
     Http4sNettyHandler.websocket[IO](s, DefaultServiceErrorHandler[IO])
 
   private def isConnectionClosed(h: HttpResponse): Boolean =
-    h.headers().contains(HttpHeaderNames.CONNECTION) && h
+    h.headers().contains(HttpHeaders.Names.CONNECTION) && h
       .headers()
-      .get(HttpHeaderNames.CONNECTION)
+      .get(HttpHeaders.Names.CONNECTION)
       .equalsIgnoreCase("close")
 
   private def matchStreamedResponse[A](
@@ -111,8 +114,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupBasicChannel
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/ping")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
         }
       }
 
@@ -122,8 +125,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val request =
           new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/ping", content)
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           //Check buffer was released
           content.refCnt() must_== 0
         //Channel must have remained open
@@ -140,8 +143,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
           "/consumeAll",
           publisherStream)
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           forall(buffers)(_.refCnt() must_== 0)
         }
       }
@@ -156,8 +159,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
           "/noConsume",
           publisherStream)
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
         }
 
@@ -173,8 +176,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
           "/TheMooseIsLoose",
           publisherStream)
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.NOT_FOUND
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.NOT_FOUND
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
         }
       }
@@ -189,8 +192,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
           "/noEntity",
           publisherStream)
         matchFullResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.NO_CONTENT
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.NO_CONTENT
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           //`eventually` combinator just does the same thing
           forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
         }
@@ -218,8 +221,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupErrorChannel
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/sync")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.INTERNAL_SERVER_ERROR
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.INTERNAL_SERVER_ERROR
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           isConnectionClosed(r) must_== true
         }
       }
@@ -229,8 +232,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val request =
           new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/async")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.INTERNAL_SERVER_ERROR
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.INTERNAL_SERVER_ERROR
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           isConnectionClosed(r) must_== true
         }
       }
@@ -240,8 +243,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val request =
           new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/sync/422")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.UNPROCESSABLE_ENTITY
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.UNPROCESSABLE_ENTITY
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           isConnectionClosed(r) must_== false
         }
       }
@@ -251,8 +254,8 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val request =
           new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/async/422")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.UNPROCESSABLE_ENTITY
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.getStatus() must_== HttpResponseStatus.UNPROCESSABLE_ENTITY
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
           isConnectionClosed(r) must_== false
         }
       }
@@ -268,9 +271,9 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(dateService))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          HttpDate.unsafeFromString(r.headers().get(HttpHeaderNames.DATE)) must_== HttpDate.Epoch
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          HttpDate.unsafeFromString(r.headers().get(HttpHeaders.Names.DATE)) must_== HttpDate.Epoch
         }
       }
 
@@ -282,9 +285,9 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(service))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_0, HttpMethod.GET, "/")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_0
-          r.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) must_== false
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_0
+          r.headers().contains(HttpHeaders.Names.TRANSFER_ENCODING) must_== false
         }
       }
 
@@ -298,10 +301,10 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(service))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          r.headers().contains(HttpHeaderNames.CONTENT_LENGTH) must_== false
-          HttpUtil.isTransferEncodingChunked(r) must_== true
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.headers().contains(HttpHeaders.Names.CONTENT_LENGTH) must_== false
+          isTransferEncodingChunked(r) must_== true
         }
       }
 
@@ -313,10 +316,10 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(service))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          r.headers().contains(HttpHeaderNames.CONTENT_LENGTH) must_== true
-          r.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) must_== false
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.headers().contains(HttpHeaders.Names.CONTENT_LENGTH) must_== true
+          r.headers().contains(HttpHeaders.Names.TRANSFER_ENCODING) must_== false
         }
       }
 
@@ -328,10 +331,10 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(service))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.HEAD, "/")
         matchFullResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          r.headers().contains(HttpHeaderNames.CONTENT_LENGTH) must_== true
-          r.headers().contains(HttpHeaderNames.TRANSFER_ENCODING) must_== false
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          r.headers().contains(HttpHeaders.Names.CONTENT_LENGTH) must_== true
+          r.headers().contains(HttpHeaders.Names.TRANSFER_ENCODING) must_== false
           r.content().readableBytes() must_== 0
         }
       }
@@ -344,9 +347,9 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(service))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          HttpUtil.isTransferEncodingChunked(r) must_== true
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          isTransferEncodingChunked(r) must_== true
         }
       }
 
@@ -361,10 +364,10 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         val (interceptor, channel) = setupChannel(getHandler(service))
         val request = new DefaultFullHttpRequest(NettyHttpVersion.HTTP_1_1, HttpMethod.GET, "/")
         matchStreamedResponse(request, channel, interceptor) { r =>
-          r.status() must_== HttpResponseStatus.OK
-          r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-          HttpUtil.isTransferEncodingChunked(r) must_== true
-          r.headers.contains(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.GZIP, true) must_== true
+          r.getStatus() must_== HttpResponseStatus.OK
+          r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+          isTransferEncodingChunked(r) must_== true
+          r.headers.contains(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.GZIP, true) must_== true
         }
       }
 
@@ -388,9 +391,9 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
         channel.writeInbound(request)
         interceptor.readBlocking match {
           case r: StreamedHttpResponse =>
-            r.status() must_== HttpResponseStatus.OK
-            r.protocolVersion() must_== NettyHttpVersion.HTTP_1_1
-            HttpUtil.isTransferEncodingChunked(r) must_== true
+            r.getStatus() must_== HttpResponseStatus.OK
+            r.getProtocolVersion() must_== NettyHttpVersion.HTTP_1_1
+            isTransferEncodingChunked(r) must_== true
             //`eventually` combinator just does the same thing
             forall(buffers)(_.refCnt() must be_==(0).eventually(20, 300.milliseconds))
           case _ =>

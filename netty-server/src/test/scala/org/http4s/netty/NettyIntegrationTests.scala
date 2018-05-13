@@ -82,6 +82,7 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
     }
 
     "Proxy a request back properly" in {
+      IO.unit >> IO.unit
       val multipart =
         Multipart[IO](Vector(Part.formData("hi", "hello"), Part.formData("beep", "boop")))
       val program = for {

@@ -53,13 +53,13 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
       case Some(conn) => AttributeMap(AttributeEntry(Request.Keys.ConnectionInfo, conn))
       case None => AttributeMap.empty
     }
-    if (request.decoderResult().isFailure)
+    if (request.getDecoderResult().isFailure)
       F.raiseError(ParseFailure("Malformed request", "Netty codec parsing unsuccessful"))
     else {
       val (requestBody, cleanup) = convertRequestBody(request)
-      val uri: ParseResult[Uri] = Uri.fromString(request.uri())
+      val uri: ParseResult[Uri] = Uri.fromString(request.getUri())
       val headerBuf = new ListBuffer[Header]
-      val headersIterator = request.headers().iteratorAsString()
+      val headersIterator = request.headers().iterator()
       var mapEntry: java.util.Map.Entry[String, String] = null
       while (headersIterator.hasNext) {
         mapEntry = headersIterator.next()
@@ -67,8 +67,8 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
       }
 
       val method: ParseResult[Method] =
-        Method.fromString(request.method().name())
-      val version: ParseResult[HV] = HV.fromString(request.protocolVersion().text())
+        Method.fromString(request.getMethod().name())
+      val version: ParseResult[HV] = HV.fromString(request.getProtocolVersion().text())
 
       (for {
         v <- version
@@ -268,25 +268,25 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
           val contentLength = `Content-Length`.from(httpResponse.headers)
           (transferEncoding, contentLength) match {
             case (Some(enc), _) if enc.hasChunked && !minorVersionIs0 =>
-              r.headers().add(HttpHeaderNames.TRANSFER_ENCODING, enc.toString)
+              r.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, enc.toString)
             case (_, Some(len)) =>
-              r.headers().add(HttpHeaderNames.CONTENT_LENGTH, len.length)
+              r.headers().add(HttpHeaders.Names.CONTENT_LENGTH, len.length)
             case _ => // no-op
           }
         }
         r
       }
     //Add the cached date if not present
-    if (!response.headers().contains(HttpHeaderNames.DATE))
-      response.headers().add(HttpHeaderNames.DATE, dateString)
+    if (!response.headers().contains(HttpHeaders.Names.DATE))
+      response.headers().add(HttpHeaders.Names.DATE, dateString)
 
     ConnHeader
       .from(httpRequest.headers) match {
       case Some(conn) =>
-        response.headers().add(HttpHeaderNames.CONNECTION, conn.value)
+        response.headers().add(HttpHeaders.Names.CONNECTION, conn.value)
       case None =>
         if (minorVersionIs0) //Close by default for Http 1.0
-          response.headers().add(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE)
+          response.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.CLOSE)
     }
 
     response
@@ -314,7 +314,7 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
         // HTTP 1.0: we have a length
 
         //Ignore transfer-encoding if it's not chunked
-        response.headers().add(HttpHeaderNames.CONTENT_LENGTH, clenHeader.length)
+        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH, clenHeader.length)
 
       case _ =>
         if (!minorIs0) {
@@ -323,12 +323,12 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
               tr.values.map { v =>
                 //Necessary due to the way netty does transfer encoding checks.
                 if (v != TransferCoding.chunked)
-                  response.headers().add(HttpHeaderNames.TRANSFER_ENCODING, v.coding)
+                  response.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, v.coding)
               }
-              response.headers().add(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED)
+              response.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
             case None =>
               //Netty reactive streams transfers bodies as chunked transfer encoding anyway.
-              response.headers().add(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED)
+              response.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
           }
         }
       //Http 1.0 without a content length means yolo mode. No guarantees on what may happen

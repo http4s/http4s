@@ -203,8 +203,8 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
       ctx: ChannelHandlerContext,
       status: HttpResponseStatus): ChannelFuture = {
     val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, status)
-    response.headers().set(HttpHeaderNames.CONNECTION, "close")
-    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, "0")
+    response.headers().set(HttpHeaders.Names.CONNECTION, "close")
+    response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0")
     val f = ctx.channel().write(response)
     f.addListener(ChannelFutureListener.CLOSE)
     f

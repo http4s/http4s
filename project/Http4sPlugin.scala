@@ -296,11 +296,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val nettyHandler                     = "io.netty"               % "netty-handler"                      % "4.1.24.Final"
+  lazy val nettyHandler                     = "io.netty"               % "netty-handler"                      % "4.0.56.Final"
   lazy val nettyHttpCodec                   = "io.netty"               % "netty-codec-http"                   % nettyHandler.revision
   lazy val nettyNativeTransport             = "io.netty"               % "netty-transport-native-epoll"       % nettyHandler.revision classifier "linux-x86_64"
-  lazy val nettyUnixCommon                  = "io.netty"               % "netty-transport-native-unix-common" % nettyHandler.revision
-  lazy val nettyReactiveStreams             = "com.typesafe.netty"     % "netty-reactive-streams-http"        % "2.0.0"
+  lazy val nettyReactiveStreams             = "com.typesafe.netty"     % "netty-reactive-streams-http"        % "1.0.8"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.4.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"

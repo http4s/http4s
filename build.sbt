@@ -119,7 +119,7 @@ lazy val nettyServer = libraryProject("netty-server")
       nettyReactiveStreams,
       nettyHandler,
       nettyHttpCodec,
-      nettyUnixCommon,
+//      nettyUnixCommon,
       nettyNativeTransport
     ),
     mimaPreviousArtifacts := Set.empty
