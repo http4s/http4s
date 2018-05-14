@@ -103,7 +103,7 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
     }
 
   /** Create the source for the request body
-    * Todo: Turn off scalastyle due to non-exhaustive match
+    *
     */
   private[this] def convertRequestBody(
       request: HttpRequest): (Stream[F, Byte], Channel => F[Unit]) =
@@ -325,10 +325,14 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
                 if (v != TransferCoding.chunked)
                   response.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, v.coding)
               }
-              response.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
+              response
+                .headers()
+                .add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
             case None =>
               //Netty reactive streams transfers bodies as chunked transfer encoding anyway.
-              response.headers().add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
+              response
+                .headers()
+                .add(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
           }
         }
       //Http 1.0 without a content length means yolo mode. No guarantees on what may happen

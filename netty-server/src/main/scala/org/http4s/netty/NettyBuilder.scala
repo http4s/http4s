@@ -30,7 +30,7 @@ import scala.concurrent.duration.Duration
 /** Netty server builder.
   *
   *
-  * @param httpService
+  * @param mounts
   * @param socketAddress
   * @param idleTimeout
   * @param maxInitialLineLength The maximum length of the initial line. This effectively restricts the maximum length of a URL that the server will
@@ -53,9 +53,10 @@ import scala.concurrent.duration.Duration
   * @tparam F
   */
 class NettyBuilder[F[_]](
-    httpService: HttpService[F],
+    mounts: Vector[NettyMount[F]],
     socketAddress: InetSocketAddress,
     idleTimeout: Duration,
+    eventLoopThreads: Int,
     maxInitialLineLength: Int,
     maxHeaderSize: Int,
     maxChunkSize: Int,
@@ -77,10 +78,11 @@ class NettyBuilder[F[_]](
 
   type Self = NettyBuilder[F]
 
-  def copy(
-      httpService: HttpService[F] = httpService,
+  private def copy(
+      mounts: Vector[NettyMount[F]] = mounts,
       socketAddress: InetSocketAddress = socketAddress,
       idleTimeout: Duration = Duration.Inf,
+      eventLoopThreads: Int = eventLoopThreads,
       maxInitialLineLength: Int = maxInitialLineLength,
       maxHeaderSize: Int = maxHeaderSize,
       maxChunkSize: Int = maxChunkSize,
@@ -93,9 +95,10 @@ class NettyBuilder[F[_]](
       nettyChannelOptions: NettyBuilder.NettyChannelOptions = nettyChannelOptions
   ): NettyBuilder[F] =
     new NettyBuilder[F](
-      httpService,
+      mounts,
       socketAddress,
       idleTimeout,
+      eventLoopThreads,
       maxInitialLineLength,
       maxHeaderSize,
       maxChunkSize,
@@ -117,9 +120,18 @@ class NettyBuilder[F[_]](
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): NettyBuilder[F] =
     copy(serviceErrorHandler = serviceErrorHandler)
 
-  //Todo: Router-hack thingy
-  def mountService(service: HttpService[F], prefix: String): NettyBuilder[F] =
-    copy(httpService = service)
+  def mountService(service: HttpService[F], prefix: String): NettyBuilder[F] = {
+    val prefixedService =
+      if (prefix.isEmpty || prefix == "/") service
+      else {
+        val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
+
+        service.local { req: Request[F] =>
+          req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
+        }
+      }
+    copy(mounts = mounts :+ NettyMount[F](prefixedService, prefix))
+  }
 
   def start: F[Server[F]] = F.delay {
     val eventLoop = getEventLoop
@@ -196,11 +208,18 @@ class NettyBuilder[F[_]](
       maxHeaderSize = maxHeaderSize,
       maxChunkSize = maxChunkSize)
 
-  protected[this] def newRequestHandler(): ChannelInboundHandler =
+  /** Netty-only option **/
+  def withEventLoopThreads(eventLoopThreads: Int): NettyBuilder[F] =
+    copy(eventLoopThreads = eventLoopThreads)
+
+  protected[this] def newRequestHandler(): ChannelInboundHandler = {
+    val finalService = Router(mounts.map(mount => mount.prefix -> mount.service): _*)
+
     if (enableWebsockets)
-      Http4sNettyHandler.websocket[F](httpService, serviceErrorHandler)
+      Http4sNettyHandler.websocket[F](finalService, serviceErrorHandler)
     else
-      Http4sNettyHandler.default[F](httpService, serviceErrorHandler)
+      Http4sNettyHandler.default[F](finalService, serviceErrorHandler)
+  }
 
   /** Return our SSL context.
     *
@@ -304,13 +323,13 @@ class NettyBuilder[F[_]](
 
   private[netty] def getEventLoop: MultithreadEventLoopGroup = transport match {
     case NettyTransport.Nio =>
-      new NioEventLoopGroup()
+      new NioEventLoopGroup(eventLoopThreads)
     case NettyTransport.Native =>
       if (Epoll.isAvailable)
-        new EpollEventLoopGroup()
+        new EpollEventLoopGroup(eventLoopThreads)
       else {
         logger.info("Falling back to NIO EventLoopGroup")
-        new NioEventLoopGroup()
+        new NioEventLoopGroup(eventLoopThreads)
       }
   }
 
@@ -407,10 +426,13 @@ class NettyBuilder[F[_]](
 
 object NettyBuilder {
 
+  //This means, let netty choose
+  private[this] val DefaultEventLoopThreads = 0
+
   /** Ensure we construct our netty channel options in a typeful, immutable way, despite
     * the underlying being disgusting
     */
-  abstract class NettyChannelOptions {
+  sealed abstract class NettyChannelOptions {
 
     /** Prepend to the channel options **/
     def prepend[O](channelOption: ChannelOption[O], value: O): NettyChannelOptions
@@ -448,9 +470,10 @@ object NettyBuilder {
 
   def apply[F[_]: Effect] =
     new NettyBuilder[F](
-      httpService = HttpService.empty[F],
+      mounts = Vector.empty,
       socketAddress = ServerBuilder.DefaultSocketAddress,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+      eventLoopThreads = DefaultEventLoopThreads,
       maxInitialLineLength = 4096,
       maxHeaderSize = 8192,
       maxChunkSize = 8192,
@@ -498,3 +521,5 @@ object NettyTransport {
   case object Nio extends NettyTransport
   case object Native extends NettyTransport
 }
+
+private[netty] case class NettyMount[F[_]](service: HttpService[F], prefix: String)

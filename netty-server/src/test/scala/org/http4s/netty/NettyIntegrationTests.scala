@@ -2,12 +2,10 @@ package org.http4s
 package netty
 
 import cats.effect.IO
-import cats.syntax.all._
+import cats.implicits._
 import fs2.{Pipe, Pull, Stream}
 import io.netty.util.ResourceLeakDetector
 import org.http4s.client.blaze._
-//import org.http4s.client.asynchttpclient._
-//import org.http4s.server.blaze._
 import org.http4s.dsl.io._
 import org.http4s.multipart._
 import org.specs2.specification.AfterAll
@@ -36,7 +34,6 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
   val server = NettyBuilder[IO].mountService(service).start.unsafeRunSync()
 
   val client = Http1Client[IO]().unsafeRunSync
-  val client2 = Http1Client[IO]().unsafeRunSync
 
   def failStreamAt[A](count: Int): Pipe[IO, A, A] = {
     def go(currCount: Int, current: Stream[IO, A]): Pull[IO, A, Unit] =
@@ -55,7 +52,8 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
   //but it will essentially
   ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID)
 
-  "Http4s Netty server integration test" should {
+  sequential ^ ("Http4s Netty server integration test" should {
+
     "Properly return the ping response" in {
       client.get(server.baseUri / "ping")(r => IO(r.status)).unsafeRunSync() must_== Ok
     }
@@ -82,16 +80,6 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
         .fetch(Request[IO](HEAD, server.baseUri / "head"))(r =>
           r.body.compile.toList.map(b => (b.length, r.contentLength.getOrElse(0))))
         .unsafeRunSync() must_== ((0, length))
-    }
-
-    "Work normally for a partially fetched body" in {
-      //Todo: Hacky workaround to check the body doesn't interrupt other requests
-      //From a different client
-      client2
-        .fetch(Request[IO](GET, server.baseUri / "longbody"))(
-          r => r.body.take(1).compile.drain.attempt >> IO.pure(r.status)
-        )
-        .unsafeRunSync() must_== Ok
     }
 
     "Proxy a request back properly" in {
@@ -121,12 +109,19 @@ class NettyIntegrationTests extends Http4sSpec with AfterAll {
         .status must_== InternalServerError
     }
 
-  }
+    "Work normally for a partially fetched body" in {
+      client
+        .fetch(Request[IO](GET, server.baseUri / "longbody"))(
+          r => r.body.take(1).compile.drain.attempt >> IO.pure(r.status)
+        )
+        .unsafeRunSync() must_== Ok
+    }
+
+  })
 
   override def afterAll(): Unit = {
     server.shutdown.attempt.unsafeRunSync()
     client.shutdown.attempt.unsafeRunSync()
-    client2.shutdown.attempt.unsafeRunSync()
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED)
     ()
   }

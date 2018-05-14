@@ -42,7 +42,8 @@ import scala.util.{Failure, Success}
   * `http4s-miku`, slain by a bolt of lightning thrown by Zeus during a battle of module naming.
   */
 private[netty] abstract class Http4sNettyHandler[F[_]](
-    implicit F: Effect[F]
+    implicit F: Effect[F],
+    ec: ExecutionContext
 ) extends ChannelInboundHandlerAdapter {
   import Http4sNettyHandler.InvalidMessageException
 
@@ -107,13 +108,12 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
 
           }
           .unsafeRunSync()
-        val futureResponse: Future[(HttpResponse, Channel => F[Unit])] = p.future
 
         //This attaches all writes sequentially using
         //LastResponseSent as a queue. `trampoline` ensures we do not
         //CTX switch the writes.
         lastResponseSent = lastResponseSent.flatMap[Unit] { _ =>
-          futureResponse
+          p.future
             .map[Unit] {
               case (response, cleanup) =>
                 if (requestsInFlight.decrementAndGet() == 0) {
@@ -125,7 +125,13 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
                   .writeAndFlush(response)
                   .addListener(new ChannelFutureListener {
                     def operationComplete(future: ChannelFuture): Unit =
-                      F.runAsync(cleanup(future.channel()))(_ => IO.unit).unsafeRunSync()
+                      //Run cleanup action on the user-supplied pool.
+                      //We might tweak this later on to run on the same or in a cleanup pool
+                      //Benching this would be interesting
+                      ec.execute(new Runnable {
+                        def run(): Unit =
+                          F.runAsync(cleanup(future.channel()))(_ => IO.unit).unsafeRunSync()
+                      })
                   }); ()
 
             }(trampoline)
