@@ -210,7 +210,8 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
   def toNettyResponseWithWebsocket(
       httpRequest: Request[F],
       httpResponse: Response[F],
-      dateString: String
+      dateString: String,
+      maxPayloadLength: Int
   )(implicit ec: ExecutionContext): F[DefaultHttpResponse] = {
     //Http version is 1.0. We can assume it's most likely not.
     var minorIs0 = false
@@ -226,7 +227,13 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
 
     httpResponse.attributes.get(websocketKey[F]) match {
       case Some(wsContext) if !minorIs0 =>
-        toWSResponse(httpRequest, httpResponse, httpVersion, wsContext, dateString)
+        toWSResponse(
+          httpRequest,
+          httpResponse,
+          httpVersion,
+          wsContext,
+          dateString,
+          maxPayloadLength)
       case _ =>
         F.pure(toNonWSResponse(httpRequest, httpResponse, httpVersion, dateString, minorIs0))
     }
@@ -362,15 +369,15 @@ final class NettyModelConversion[F[_]](implicit F: Effect[F]) {
       httpResponse: Response[F],
       httpVersion: HttpVersion,
       wsContext: WebSocketContext[F],
-      dateString: String
+      dateString: String,
+      maxPayloadLength: Int
   )(implicit ec: ExecutionContext): F[DefaultHttpResponse] =
     if (httpRequest.headers.exists(
         h => h.name.toString.equalsIgnoreCase("Upgrade") && h.value.equalsIgnoreCase("websocket")
       )) {
       val wsProtocol = if (httpRequest.isSecure.exists(identity)) "wss" else "ws"
       val wsUrl = s"$wsProtocol://${httpRequest.serverAddr}${httpRequest.pathInfo}"
-      val bufferLimit = 65535 //Todo: Configurable. Probably param
-      val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, bufferLimit)
+      val factory = new WebSocketServerHandshakerFactory(wsUrl, "*", true, maxPayloadLength)
       StreamSubscriber[F, WebSocketFrame].flatMap { subscriber =>
         F.delay {
             val processor = new Processor[WSFrame, WSFrame] {

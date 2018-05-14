@@ -49,7 +49,7 @@ class Http4sNettyHandlerSpec extends Http4sSpec {
     Http4sNettyHandler.default[IO](s, DefaultServiceErrorHandler[IO])
 
   private def webSocketService(s: HttpService[IO]): Http4sNettyHandler[IO] =
-    Http4sNettyHandler.websocket[IO](s, DefaultServiceErrorHandler[IO])
+    Http4sNettyHandler.websocket[IO](s, DefaultServiceErrorHandler[IO], 65536)
 
   private def isConnectionClosed(h: HttpResponse): Boolean =
     h.headers().contains(HttpHeaders.Names.CONNECTION) && h

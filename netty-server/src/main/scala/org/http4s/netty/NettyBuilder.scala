@@ -65,6 +65,7 @@ class NettyBuilder[F[_]](
     transport: NettyTransport,
     ec: ExecutionContext,
     enableWebsockets: Boolean,
+    maxWSPayloadLength: Option[Int],
     banner: immutable.Seq[String],
     nettyChannelOptions: NettyBuilder.NettyChannelOptions
 )(implicit F: Effect[F])
@@ -90,6 +91,7 @@ class NettyBuilder[F[_]](
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       ec: ExecutionContext = ec,
       enableWebsockets: Boolean = enableWebsockets,
+      maxWSPayloadLength: Option[Int] = maxWSPayloadLength,
       banner: immutable.Seq[String] = banner,
       transport: NettyTransport = transport,
       nettyChannelOptions: NettyBuilder.NettyChannelOptions = nettyChannelOptions
@@ -107,6 +109,7 @@ class NettyBuilder[F[_]](
       transport,
       ec,
       enableWebsockets,
+      maxWSPayloadLength,
       banner,
       nettyChannelOptions
     )
@@ -216,10 +219,16 @@ class NettyBuilder[F[_]](
     val finalService = Router(mounts.map(mount => mount.prefix -> mount.service): _*)
 
     if (enableWebsockets)
-      Http4sNettyHandler.websocket[F](finalService, serviceErrorHandler)
+      Http4sNettyHandler.websocket[F](
+        finalService,
+        serviceErrorHandler,
+        maxWSPayloadLength.getOrElse(NettyBuilder.DefaultWSMaxFrameLength))
     else
       Http4sNettyHandler.default[F](finalService, serviceErrorHandler)
   }
+
+  def withMaxWSPayloadLength(maxLen: Option[Int]): NettyBuilder[F] =
+    copy(maxWSPayloadLength = maxLen)
 
   /** Return our SSL context.
     *
@@ -426,8 +435,10 @@ class NettyBuilder[F[_]](
 
 object NettyBuilder {
 
-  //This means, let netty choose
+  //This means, let netty choose the # of threads
   private[this] val DefaultEventLoopThreads = 0
+
+  private val DefaultWSMaxFrameLength = 65536
 
   /** Ensure we construct our netty channel options in a typeful, immutable way, despite
     * the underlying being disgusting
@@ -482,6 +493,7 @@ object NettyBuilder {
       transport = NettyTransport.Native,
       ec = ExecutionContext.global,
       enableWebsockets = false,
+      maxWSPayloadLength = None,
       banner = MikuBanner,
       nettyChannelOptions = NettyChannelOptions.empty
     )

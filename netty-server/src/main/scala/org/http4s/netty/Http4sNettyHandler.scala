@@ -250,7 +250,8 @@ object Http4sNettyHandler {
 
   private class WebsocketHandler[F[_]](
       service: HttpService[F],
-      serviceErrorHandler: ServiceErrorHandler[F])(
+      serviceErrorHandler: ServiceErrorHandler[F],
+      maxWSPayloadLength: Int)(
       implicit F: Effect[F],
       ec: ExecutionContext
   ) extends Http4sNettyHandler[F] {
@@ -271,7 +272,8 @@ object Http4sNettyHandler {
           case (req, cleanup) =>
             F.suspend(unwrapped(req))
               .recoverWith(serviceErrorHandler(req))
-              .flatMap(converter.toNettyResponseWithWebsocket(req, _, dateString))
+              .flatMap(
+                converter.toNettyResponseWithWebsocket(req, _, dateString, maxWSPayloadLength))
               .map((_, cleanup))
         }
     }
@@ -282,8 +284,12 @@ object Http4sNettyHandler {
       ec: ExecutionContext
   ): Http4sNettyHandler[F] = new DefaultHandler[F](service, serviceErrorHandler)
 
-  def websocket[F[_]](service: HttpService[F], serviceErrorHandler: ServiceErrorHandler[F])(
+  def websocket[F[_]](
+      service: HttpService[F],
+      serviceErrorHandler: ServiceErrorHandler[F],
+      maxWSPayloadLength: Int)(
       implicit F: Effect[F],
       ec: ExecutionContext
-  ): Http4sNettyHandler[F] = new WebsocketHandler[F](service, serviceErrorHandler)
+  ): Http4sNettyHandler[F] =
+    new WebsocketHandler[F](service, serviceErrorHandler, maxWSPayloadLength)
 }
