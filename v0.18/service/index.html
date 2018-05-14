@@ -30,13 +30,10 @@
           <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
-          <div class="dropdown-menu" aria-labelledby="doc-menu-item"> 
-  <a class="dropdown-item" href="/v0.18/">v0.18 (development)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (stable)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (stable)</a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
-  <div class="dropdown-divider"></div>    
-  <a class="dropdown-item" href="/v0.15/">v0.15 (EOL)</a>
 </div>
 
         </li>
@@ -147,7 +144,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$50773/864362748@52b08067)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$50360/1949432192@2b219562)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -185,7 +182,7 @@ val tweetService = HttpService[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$50773/864362748@331fe33e)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$50360/1949432192@1747a128)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -214,10 +211,10 @@ import org.http4s.implicits._
 // import org.http4s.implicits._
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$50979/379009144@1c2d98ca)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$50566/1732386895@febeb74)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$792698543
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1214072270
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run

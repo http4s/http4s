@@ -30,13 +30,10 @@
           <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
-          <div class="dropdown-menu" aria-labelledby="doc-menu-item"> 
-  <a class="dropdown-item" href="/v0.18/">v0.18 (development)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (stable)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (stable)</a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
-  <div class="dropdown-divider"></div>    
-  <a class="dropdown-item" href="/v0.15/">v0.15 (EOL)</a>
 </div>
 
         </li>
@@ -120,7 +117,7 @@ final case class User(name: String, age: Int)
 // defined class User
 
 implicit val UserEncoder: Encoder[User] = deriveEncoder[User]
-// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@5779ce67
+// UserEncoder: io.circe.Encoder[User] = io.circe.generic.encoding.DerivedObjectEncoder$$anon$1@4e6fc264
 
 trait UserRepo[F[_]] {
   def find(userId: String): F[Option[User]]
@@ -163,7 +160,7 @@ def check[A](actual:        IO[Response[IO]],
 <pre><code class="language-scala">val success: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(Some(User(&quot;johndoe&quot;, 42)))
 }
-// success: UserRepo[cats.effect.IO] = $anon$1@34c660c5
+// success: UserRepo[cats.effect.IO] = $anon$1@51500b4c
 
 val response: IO[Response[IO]] = service[IO](success).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -189,7 +186,7 @@ check[Json](response, Status.Ok, Some(expectedJson))
 <pre><code class="language-scala">val foundNone: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.pure(None)
 } 
-// foundNone: UserRepo[cats.effect.IO] = $anon$1@30102fb
+// foundNone: UserRepo[cats.effect.IO] = $anon$1@337653dd
 
 val response: IO[Response[IO]] = service[IO](foundNone).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/user/not-used&quot;) )
@@ -205,7 +202,7 @@ check[Json](response, Status.NotFound, None)
 <pre><code class="language-scala">val doesNotMatter: UserRepo[IO] = new UserRepo[IO] {
   def find(id: String): IO[Option[User]] = IO.raiseError(new RuntimeException(&quot;Should not get called!&quot;))
 } 
-// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@15d0672f
+// doesNotMatter: UserRepo[cats.effect.IO] = $anon$1@2f18069d
 
 val response: IO[Response[IO]] = service[IO](doesNotMatter).orNotFound.run(
   Request(method = Method.GET, uri = Uri.uri(&quot;/not-a-matching-path&quot;) )

@@ -30,13 +30,10 @@
           <a class="nav-link dropdown-toggle" href="https://http4s.org/#" id="docs-menu-item" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Documentation
           </a>
-          <div class="dropdown-menu" aria-labelledby="doc-menu-item"> 
-  <a class="dropdown-item" href="/v0.18/">v0.18 (development)</a>
-  <a class="dropdown-item" href="/v0.17/">v0.17 (stable)</a>
-  <a class="dropdown-item" href="/v0.16/">v0.16 (stable)</a>
+          <div class="dropdown-menu" aria-labelledby="doc-menu-item">
+  <a class="dropdown-item" href="/v1.0/">v1.0 (development)</a>
+  <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/versions/">Help me choose...</a>
-  <div class="dropdown-divider"></div>    
-  <a class="dropdown-item" href="/v0.15/">v0.15 (EOL)</a>
 </div>
 
         </li>
@@ -225,7 +222,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@2a1f739c
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@6c9050f4
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -292,7 +289,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@57f77432
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@1a0c572
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res10: User = User(Alice)
@@ -362,7 +359,7 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$983208347
+// helloAlice: cats.effect.IO[Hello] = IO$304292044
 
 helloAlice.unsafeRunSync
 // res13: Hello = Hello(Alice)
