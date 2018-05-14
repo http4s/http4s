@@ -18,6 +18,12 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
 object Part {
   private val ChunkSize = 8192
 
+  @deprecated(
+    """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2
+       Moreover, it allows the creation of potentially incorrect multipart bodies
+    """.stripMargin,
+    "0.18.12"
+  )
   def empty[F[_]]: Part[F] =
     Part(Headers.empty, EmptyBody)
 
