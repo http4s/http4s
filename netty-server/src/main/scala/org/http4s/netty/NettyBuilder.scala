@@ -304,7 +304,6 @@ class NettyBuilder[F[_]](
         "decoder",
         new HttpRequestDecoder(maxInitialLineLength, maxHeaderSize, maxChunkSize))
       pipeline.addLast("encoder", new HttpResponseEncoder())
-      pipeline.addLast("decompressor", new HttpContentDecompressor())
 
       //Ensure finite length + positive timeout value
       if (idleTimeout.isFinite() && idleTimeout.length > 0) {
