@@ -154,22 +154,24 @@ object MultipartParser {
     }
   }
 
-  private val CRLFBytesN = Array[Byte]('\r', '\n')
-  private val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
-  private val DashDashBytesN = Array[Byte]('-', '-')
-  private val BoundaryBytesN: Boundary => Array[Byte] = boundary => boundary.value.getBytes("UTF-8")
+  private[this] val CRLFBytesN = Array[Byte]('\r', '\n')
+  private[this] val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
+  private[this] val DashDashBytesN = Array[Byte]('-', '-')
+  private[this] val BoundaryBytesN: Boundary => Array[Byte] = boundary =>
+    boundary.value.getBytes("UTF-8")
   val StartLineBytesN: Boundary => Array[Byte] = BoundaryBytesN.andThen(DashDashBytesN ++ _)
 
-  private val ExpectedBytesN: Boundary => Array[Byte] =
+  private[this] val ExpectedBytesN: Boundary => Array[Byte] =
     BoundaryBytesN.andThen(CRLFBytesN ++ DashDashBytesN ++ _)
+  private[this] val dashByte: Byte = '-'.toByte
+  private[this] val cachedEmpty = Stream.empty
 
-  private val EndlineBytesN: Boundary => Array[Byte] =
-    BoundaryBytesN.andThen(CRLFBytesN ++ DashDashBytesN ++ _ ++ DashDashBytesN)
+  private type SplitStream[F[_]] = Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])]
 
   def parseStreamed[F[_]: Sync](
       boundary: Boundary,
       limit: Int = 1024): Pipe[F, Byte, Multipart[F]] = { st =>
-    ignorePreludeStage[F](boundary, st, limit)
+    ignorePrelude[F](boundary, st, limit)
       .fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }
@@ -177,7 +179,7 @@ object MultipartParser {
   def parseToPartsStream[F[_]: Sync](
       boundary: Boundary,
       limit: Int = 1024): Pipe[F, Byte, Part[F]] = { st =>
-    ignorePreludeStage[F](boundary, st, limit)
+    ignorePrelude[F](boundary, st, limit)
   }
 
   private def splitAndIgnorePrev[F[_]](
@@ -359,7 +361,7 @@ object MultipartParser {
     * Ignore the prelude and remove the first boundary
     *
     */
-  private def ignorePreludeStage[F[_]: Sync](
+  private def ignorePrelude[F[_]: Sync](
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int): Stream[F, Part[F]] = {
@@ -367,7 +369,7 @@ object MultipartParser {
 
     def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
       if (state == values.length) {
-        streamStageIgnoreRest(b, strim ++ s, limit).pull.echo
+        pullParts[F](b, strim ++ s, limit)
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, rest)) =>
@@ -388,19 +390,117 @@ object MultipartParser {
     }.stream
   }
 
-  private def parseToPartStreamed[F[_]: Sync](s: Stream[F, Byte], limit: Int): Stream[F, Part[F]] =
-    splitLimited[F](DoubleCRLFBytesN, s, limit).flatMap {
-      case (l, r) =>
-        l.pull.uncons.flatMap {
-          case None =>
-            Pull.raiseError(
-              MalformedMessageBodyFailure("Invalid Separation between headers and body"))
-          case Some(_) =>
-            parseHeaders[F](l).map(Part[F](_, r)).pull.echo *> Pull.done
-        }
-    }.stream
+  private def pullParts[F[_]: Sync](
+      boundary: Boundary,
+      s: Stream[F, Byte],
+      limit: Int
+  ): Pull[F, Part[F], Unit] = {
+    val values = DoubleCRLFBytesN
+    val expectedBytes = ExpectedBytesN(boundary)
 
-  private def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): Stream[F, Headers] = {
+    splitOrFinish[F](values, s, limit).flatMap {
+      case (l, r) =>
+        if (r == cachedEmpty) { //We can abuse reference equality here for efficiency
+          Pull.raiseError(MalformedMessageBodyFailure("Cannot parse empty stream"))
+        } else {
+          tailrecParts2[F](boundary, l, r, expectedBytes, limit)
+        }
+    }
+  }
+
+  private def tailrecParts2[F[_]: Sync](
+      b: Boundary,
+      headerStream: Stream[F, Byte],
+      rest: Stream[F, Byte],
+      expectedBytes: Array[Byte],
+      limit: Int): Pull[F, Part[F], Unit] =
+    Pull
+      .eval(parseHeadersF(headerStream))
+      .flatMap { hdrs =>
+        splitHalf(expectedBytes, rest).flatMap {
+          case (l, r) =>
+            if (r == cachedEmpty) {
+              Pull.raiseError(MalformedMessageBodyFailure("Part not terminated properly"))
+            } else {
+              Pull.output1(Part[F](hdrs, l)) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
+                case (hdrStream, remaining) =>
+                  if (hdrStream == cachedEmpty) { //Empty returned if it worked fine
+                    Pull.done
+                  } else {
+                    tailrecParts2[F](b, hdrStream, remaining, expectedBytes, limit)
+                  }
+              }
+            }
+        }
+      }
+
+  //noinspection ScalaStyle
+  private def splitOrFinish[F[_]: Sync](
+      values: Array[Byte],
+      stream: Stream[F, Byte],
+      limit: Int): SplitStream[F] = {
+
+    def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] =
+      if (c.size <= 0) {
+        Pull.raiseError(MalformedMessageBodyFailure("empty chunk"))
+      } else if (c.size == 1) {
+        rest.pull.unconsChunk.flatMap {
+          case Some((chnk, remaining)) =>
+            if (chnk.size <= 0)
+              Pull.raiseError(MalformedMessageBodyFailure("empty chunk"))
+            else if (c(0) == dashByte && chnk(0) == dashByte) {
+              Pull.pure((cachedEmpty, cachedEmpty))
+            } else {
+              val (ix, l, r, add) =
+                splitOnChunkLimited[F](
+                  values,
+                  0,
+                  Chunk.bytes(c.toArray[Byte] ++ chnk.toArray[Byte]),
+                  Stream.empty,
+                  Stream.empty)
+              go(remaining, ix, l, r, add)
+            }
+          case None =>
+            Pull.raiseError(MalformedMessageBodyFailure(""))
+        }
+      } else if (c(0) == dashByte && c(1) == dashByte) {
+        Pull.pure((cachedEmpty, cachedEmpty))
+      } else {
+        val (ix, l, r, add) =
+          splitOnChunkLimited[F](values, 0, c, Stream.empty, Stream.empty)
+        go(rest, ix, l, r, add)
+      }
+
+    def go(
+        s: Stream[F, Byte],
+        state: Int,
+        lacc: Stream[F, Byte],
+        racc: Stream[F, Byte],
+        limitCTR: Int): SplitStream[F] =
+      if (limitCTR >= limit) {
+        Pull.raiseError(
+          MalformedMessageBodyFailure(s"Part header was longer than $limit-byte limit"))
+      } else if (state == values.length) {
+        Pull.pure((lacc, racc ++ s))
+      } else {
+        s.pull.unconsChunk.flatMap {
+          case Some((chnk, str)) =>
+            val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
+            go(str, ix, l, r, limitCTR + add)
+          case None =>
+            Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
+        }
+      }
+
+    stream.pull.unconsChunk.flatMap {
+      case Some((chunk, rest)) =>
+        checkIfLast(chunk, rest)
+      case None =>
+        Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
+    }
+  }
+
+  private def parseHeadersF[F[_]: Sync](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap {
         case (l, r) =>
@@ -408,13 +508,14 @@ object MultipartParser {
             .fold("")(_ ++ _)
             .map { string =>
               val ix = string.indexOf(':')
-              if (string.indexOf(':') >= 0)
+              if (string.indexOf(':') >= 0) {
                 headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
-              else
+              } else {
                 headers
+              }
             }
             .pull
-            .echo *> r.pull.uncons.flatMap {
+            .echo >> r.pull.uncons.flatMap {
             case Some(_) =>
               tailrecParse(r, headers)
             case None =>
@@ -422,66 +523,19 @@ object MultipartParser {
           }
       }
 
-    tailrecParse(strim, Headers.empty).stream
+    tailrecParse(strim, Headers.empty).stream.compile
       .fold(Headers.empty)(_ ++ _)
   }
 
-  private def streamStageIgnoreRest[F[_]: Sync](
-      boundary: Boundary,
-      s: Stream[F, Byte],
-      limit: Int
-  ): Stream[F, Part[F]] = {
-    val endlineBytes = EndlineBytesN(boundary)
-    val values = ExpectedBytesN(boundary)
-    splitOrFail[F](endlineBytes, s).flatMap {
-      case (l, _) =>
-        streamStageParsePart[F](boundary, values, l ++ Stream.chunk(Chunk.bytes(values)), limit).pull.echo
-    }.stream
-  }
-
-  private def streamStageParsePart[F[_]: Sync](
-      boundary: Boundary,
-      values: Array[Byte],
-      s: Stream[F, Byte],
-      limit: Int
-  ): Stream[F, Part[F]] =
-    splitHalf[F](values, s).flatMap {
-      case (l, r) =>
-        r.pull.unconsChunk.flatMap {
-          case None =>
-            parseToPartStreamed[F](l, limit).pull.echo *>
-              Pull.done
-          case Some(_) =>
-            tailrecParts[F](boundary, values, l, r, limit)
-        }
-    }.stream
-
-  private def tailrecParts[F[_]: Sync](
-      b: Boundary,
-      values: Array[Byte],
-      last: Stream[F, Byte],
-      next: Stream[F, Byte],
-      limit: Int
-  ): Pull[F, Part[F], Unit] =
-    parseToPartStreamed[F](last, limit).pull.echo *> splitHalf[F](values, next).flatMap {
-      case (l, r) =>
-        r.pull.uncons.flatMap {
-          case None =>
-            Pull.done
-          case Some(_) =>
-            tailrecParts[F](b, values, l, r, limit)
-        }
-    }
-
   private def splitHalf[F[_]: Sync](
       values: Array[Byte],
-      stream: Stream[F, Byte]): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] = {
+      stream: Stream[F, Byte]): SplitStream[F] = {
 
     def go(
         s: Stream[F, Byte],
         state: Int,
         lacc: Stream[F, Byte],
-        racc: Stream[F, Byte]): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] =
+        racc: Stream[F, Byte]): SplitStream[F] =
       if (state == values.length) {
         Pull.pure((lacc, racc ++ s))
       } else {
@@ -504,36 +558,6 @@ object MultipartParser {
         go(rest, ix, l, r)
       case None =>
         Pull.pure((Stream.empty, Stream.empty))
-    }
-  }
-
-  private def splitOrFail[F[_]: Sync](
-      values: Array[Byte],
-      stream: Stream[F, Byte]): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] = {
-
-    def go(
-        s: Stream[F, Byte],
-        state: Int,
-        lacc: Stream[F, Byte],
-        racc: Stream[F, Byte]): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] =
-      if (state == values.length) {
-        Pull.pure((lacc, racc ++ s))
-      } else {
-        s.pull.unconsChunk.flatMap {
-          case Some((chnk, str)) =>
-            val (ix, l, r) = splitOnChunk[F](values, state, chnk, lacc, racc)
-            go(str, ix, l, r)
-          case None =>
-            Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
-        }
-      }
-
-    stream.pull.unconsChunk.flatMap {
-      case Some((chunk, rest)) =>
-        val (ix, l, r) = splitOnChunk[F](values, 0, chunk, Stream.empty, Stream.empty)
-        go(rest, ix, l, r)
-      case None =>
-        Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
     }
   }
 
@@ -645,46 +669,6 @@ object MultipartParser {
       splitCompleteLimited(state, middleChunked, currState, i, acc, carry, c)
     } else {
       splitPartialLimited(state, middleChunked, currState, i, acc, carry, c)
-    }
-  }
-
-  private def splitLimited[F[_]: Sync](
-      values: Array[Byte],
-      stream: Stream[F, Byte],
-      limit: Int): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] = {
-
-    def go(
-        s: Stream[F, Byte],
-        state: Int,
-        lacc: Stream[F, Byte],
-        racc: Stream[F, Byte],
-        limitCTR: Int): Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])] =
-      if (limitCTR >= limit) {
-        Pull.raiseError(
-          MalformedMessageBodyFailure(s"Part header was longer than $limit-byte limit"))
-      } else if (state == values.length) {
-        Pull.pure((lacc, racc ++ s))
-      } else {
-        s.pull.unconsChunk.flatMap {
-          case Some((chnk, str)) =>
-            val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
-            go(str, ix, l, r, limitCTR + add)
-          case None =>
-            if (state != 0) {
-              Pull.raiseError(MalformedMessageBodyFailure("Invalid boundary - partial boundary"))
-            } else {
-              Pull.pure((lacc, racc))
-            }
-        }
-      }
-
-    stream.pull.unconsChunk.flatMap {
-      case Some((chunk, rest)) =>
-        val (ix, l, r, add) =
-          splitOnChunkLimited[F](values, 0, chunk, Stream.empty, Stream.empty)
-        go(rest, ix, l, r, add)
-      case None =>
-        Pull.pure((Stream.empty, Stream.empty))
     }
   }
 
