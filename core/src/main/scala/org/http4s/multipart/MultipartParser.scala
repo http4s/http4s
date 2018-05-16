@@ -24,6 +24,9 @@ object MultipartParser {
 
   final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
+  @deprecated(
+    "This parser buffers the entire contents to memory. Consider using the streaming alternatives",
+    "0.18.12")
   def parse[F[_]: Sync](boundary: Boundary): Pipe[F, Byte, Either[Headers, ByteVector]] = s => {
     val bufferedMultipartT = s.compile.toVector.map(ByteVector(_))
     val parts = bufferedMultipartT.flatMap(parseToParts(_)(boundary))
@@ -73,6 +76,7 @@ object MultipartParser {
       Option((byteVector, ByteVector.empty))
     }
   }
+
   @tailrec
   def splitParts(byteVector: ByteVector)(boundary: Boundary)(
       acc: List[Either[Headers, ByteVector]]): List[Either[Headers, ByteVector]] = {
@@ -255,6 +259,7 @@ object MultipartParser {
     * remove.
     *
     */
+  @deprecated("Jose messed up", "0.18.12")
   private[http4s] def splitPartialMatch[F[_]: Sync](
       state: Int,
       middleChunked: Boolean,
@@ -532,7 +537,7 @@ object MultipartParser {
             .fold("")(_ ++ _)
             .map { string =>
               val ix = string.indexOf(':')
-              if (string.indexOf(':') >= 0) {
+              if (ix >= 0) {
                 headers.put(Header(string.substring(0, ix), string.substring(ix + 1).trim))
               } else {
                 headers
