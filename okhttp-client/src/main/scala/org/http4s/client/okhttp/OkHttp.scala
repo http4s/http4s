@@ -4,6 +4,7 @@ import java.io.IOException
 
 import cats.data._
 import cats.effect._
+import cats.implicits._
 import cats.effect.implicits._
 import okhttp3.{
   Call,
@@ -82,9 +83,11 @@ object OkHttp {
       )
     }
 
+  /* Create a bracketed stream of a Client with the default config  */
   def stream[F[_]]()(implicit F: Effect[F], ec: ExecutionContext): Stream[F, Client[F]] =
     stream(defaultConfig[F]())
 
+  /* Create a bracketed stream of a Client with a supplied config */
   def stream[F[_]](config: F[OkHttpClient.Builder])(
       implicit F: Effect[F],
       ec: ExecutionContext): Stream[F, Client[F]] =
@@ -104,19 +107,25 @@ object OkHttp {
           case Protocol.HTTP_1_0 => HttpVersion.`HTTP/1.0`
           case _ => HttpVersion.`HTTP/1.1`
         }
+        val status = Status.fromInt(response.code())
         val bodyStream = response.body.byteStream()
-        val dr = new DisposableResponse[F](
-          Response[F](headers = getHeaders(response), httpVersion = protocol)
-            .withStatus(
-              Status
-                .fromInt(response.code())
-                .getOrElse(Status.apply(response.code())))
-            .withBodyStream(
-              readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
-          F.delay({ bodyStream.close(); () })
-        )
+        val dr = status.map { s =>
+          new DisposableResponse[F](
+            Response[F](headers = getHeaders(response), httpVersion = protocol)
+              .withStatus(s)
+              .withBodyStream(
+                readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
+            F.delay({
+              bodyStream.close(); ()
+            })
+          )
+        }.leftMap { t =>
+          // we didn't understand the status code, close the body and return a failure
+          bodyStream.close()
+          t
+        }
         ec.execute(new Runnable {
-          override def run(): Unit = cb(Right(dr))
+          override def run(): Unit = cb(dr)
         })
       }
     }
