@@ -6,6 +6,7 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import scala.annotation.tailrec
 import scodec.bits.ByteVector
+import multipart.file._
 
 import java.nio.file._
 
@@ -713,17 +714,21 @@ object MultipartParser {
   def parseStreamedFile[F[_]: Sync](
       boundary: Boundary,
       limit: Int = 1024,
-      maxSizeBeforeWrite: Int = 52428800): Pipe[F, Byte, Multipart[F]] = { st =>
-    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite)
-      .fold(Vector.empty[Part[F]])(_ :+ _)
-      .map(Multipart(_, boundary))
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 20,
+      failOnLimit: Boolean = false): Pipe[F, Byte, MixedMultipart[F]] = { st =>
+    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
+      .fold(Vector.empty[MixedPart[F]])(_ :+ _)
+      .map(MixedMultipart(_, boundary))
   }
 
   def parseToPartsStreamedFile[F[_]: Sync](
       boundary: Boundary,
       limit: Int = 1024,
-      maxSizeBeforeWrite: Int = 52428800): Pipe[F, Byte, Part[F]] = { st =>
-    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite)
+      maxSizeBeforeWrite: Int = 52428800,
+      maxParts: Int = 20,
+      failOnLimit: Boolean = false): Pipe[F, Byte, MixedPart[F]] = { st =>
+    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
   }
 
   /** The first part of our streaming stages:
@@ -735,12 +740,14 @@ object MultipartParser {
       b: Boundary,
       stream: Stream[F, Byte],
       limit: Int,
-      maxSizeBeforeWrite: Int): Stream[F, Part[F]] = {
+      maxSizeBeforeWrite: Int,
+      maxParts: Int,
+      failOnLimit: Boolean): Stream[F, MixedPart[F]] = {
     val values = StartLineBytesN(b)
 
-    def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
+    def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, MixedPart[F], Unit] =
       if (state == values.length) {
-        pullPartsFileStream[F](b, strim ++ s, limit, maxSizeBeforeWrite)
+        pullPartsFileStream[F](b, strim ++ s, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, rest)) =>
@@ -773,8 +780,10 @@ object MultipartParser {
       boundary: Boundary,
       s: Stream[F, Byte],
       limit: Int,
-      maxBeforeWrite: Int
-  ): Pull[F, Part[F], Unit] = {
+      maxBeforeWrite: Int,
+      maxParts: Int,
+      failOnLimit: Boolean
+  ): Pull[F, MixedPart[F], Unit] = {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
 
@@ -787,7 +796,17 @@ object MultipartParser {
         if (r == streamEmpty) {
           Pull.raiseError(MalformedMessageBodyFailure("Cannot parse empty stream"))
         } else {
-          tailrecPartsFileStream[F](boundary, l, r, expectedBytes, limit, maxBeforeWrite)
+          tailrecPartsFileStream[F](
+            boundary,
+            l,
+            r,
+            expectedBytes,
+            limit,
+            maxBeforeWrite,
+            1,
+            maxParts,
+            failOnLimit
+          )
         }
     }
   }
@@ -814,37 +833,61 @@ object MultipartParser {
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
       expectedBytes: Array[Byte],
-      limit: Int,
-      maxBeforeWrite: Int): Pull[F, Part[F], Unit] =
+      headerLimit: Int,
+      maxBeforeWrite: Int,
+      partsCounter: Int,
+      partsLimit: Int,
+      failOnLimit: Boolean): Pull[F, MixedPart[F], Unit] =
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
         splitWithFileStream(expectedBytes, rest, maxBeforeWrite).flatMap {
-          case (l, r, fileRef) =>
+          case (partBody, rest, fileRef) =>
             //We hit a boundary, but the rest of the stream is empty
             //and thus it's not a properly capped multipart body
-            if (r == streamEmpty) {
+            if (rest == streamEmpty) {
               cleanupFileOption[F](fileRef) >> Pull.raiseError(
                 MalformedMessageBodyFailure("Part not terminated properly"))
             } else {
-              Pull.output1(Part[F](hdrs, l)) >> splitOrFinish(DoubleCRLFBytesN, r, limit).flatMap {
-                case (hdrStream, remaining) =>
-                  if (hdrStream == streamEmpty) { //Empty returned if it worked fine
-                    Pull.done
-                  } else {
-                    tailrecPartsFileStream[F](
-                      b,
-                      hdrStream,
-                      remaining,
-                      expectedBytes,
-                      limit,
-                      maxBeforeWrite)
-                      .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError(e))
-                  }
-              }
+              Pull.output1(makeMixedPart(hdrs, partBody, fileRef)) >> splitOrFinish(
+                DoubleCRLFBytesN,
+                rest,
+                headerLimit)
+                .flatMap {
+                  case (hdrStream, remaining) =>
+                    if (hdrStream == streamEmpty) { //Empty returned if it worked fine
+                      Pull.done
+                    } else if (partsCounter >= partsLimit) {
+                      if (failOnLimit) {
+                        Pull.raiseError(MalformedMessageBodyFailure("Parts limit exceeded"))
+                      } else {
+                        Pull.done
+                      }
+                    } else {
+                      tailrecPartsFileStream[F](
+                        b,
+                        hdrStream,
+                        remaining,
+                        expectedBytes,
+                        headerLimit,
+                        maxBeforeWrite,
+                        partsCounter + 1,
+                        partsLimit,
+                        failOnLimit)
+                        .handleErrorWith(e => cleanupFileOption(fileRef) >> Pull.raiseError(e))
+                    }
+                }
             }
         }
       }
+
+  private[this] def makeMixedPart[F[_]](
+      hdrs: Headers,
+      body: Stream[F, Byte],
+      path: Option[Path]): MixedPart[F] = path match {
+    case Some(p) => FilePart(hdrs, body, p)
+    case None => PurePart(hdrs, body)
+  }
 
   /** Split the stream on `values`, but when
     */
@@ -867,10 +910,7 @@ object MultipartParser {
             .through(io.file.writeAll[F](fileRef, List(StandardOpenOption.APPEND)))
             .compile
             .drain) >> Pull.pure(
-          (
-            io.file.readAll[F](fileRef, maxBeforeWrite).onFinalize(cleanupFile[F](fileRef)),
-            racc ++ s,
-            Some(fileRef)))
+          (io.file.readAll[F](fileRef, maxBeforeWrite), racc ++ s, Some(fileRef)))
       } else if (limitCTR >= maxBeforeWrite) {
         Pull.eval(
           lacc
