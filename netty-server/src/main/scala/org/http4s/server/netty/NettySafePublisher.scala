@@ -1,4 +1,4 @@
-package org.http4s.netty
+package org.http4s.server.netty
 
 import fs2.Chunk
 import io.netty.handler.codec.http.HttpContent

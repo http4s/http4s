@@ -1,4 +1,4 @@
-package org.http4s.netty
+package org.http4s.server.netty
 
 import java.io.IOException
 import java.time.{Instant, ZoneId}
@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import cats.effect.{Async, Effect, IO}
 import cats.syntax.all._
+import fs2.internal.NonFatal
 import io.netty.channel.{ChannelInboundHandlerAdapter, _}
 import io.netty.handler.codec.TooLongFrameException
 import io.netty.handler.codec.http._
@@ -72,7 +73,7 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
 
   /**
     * Handle the given request.
-    * Note: Handle implementations fork into user ExecutionContext?
+    * Note: Handle implementations fork into user ExecutionContext
     * Returns the cleanup action along with the drain action
     */
   def handle(
@@ -136,7 +137,8 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
 
             }(trampoline)
             .recover[Unit] {
-              case _: Exception =>
+              case NonFatal(e) =>
+                logger.warn(e)("Error caught during write action")
                 sendSimpleErrorResponse(ctx, HttpResponseStatus.SERVICE_UNAVAILABLE); ()
             }(trampoline)
         }(trampoline)
@@ -184,7 +186,7 @@ private[netty] abstract class Http4sNettyHandler[F[_]](
         sendSimpleErrorResponse(ctx, HttpResponseStatus.BAD_REQUEST); ()
 
       case InvalidMessageException =>
-        sendSimpleErrorResponse(ctx, HttpResponseStatus.UNPROCESSABLE_ENTITY); ()
+        sendSimpleErrorResponse(ctx, HttpResponseStatus.INTERNAL_SERVER_ERROR); ()
       case e =>
         logger.error(e)("Exception caught in Netty")
         ctx.channel().close(); ()

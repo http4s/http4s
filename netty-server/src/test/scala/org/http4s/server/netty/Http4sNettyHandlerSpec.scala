@@ -1,4 +1,5 @@
 package org.http4s
+package server
 package netty
 
 import java.util.concurrent.ArrayBlockingQueue

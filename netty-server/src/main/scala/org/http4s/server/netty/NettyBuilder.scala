@@ -1,4 +1,5 @@
 package org.http4s
+package server
 package netty
 
 import java.io.FileInputStream
@@ -19,7 +20,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http._
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.timeout.IdleStateHandler
-import org.http4s.server._
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
@@ -269,7 +269,7 @@ class NettyBuilder[F[_]](
       (context, clientAuth)
   }
 
-  /** A stream transformation that registers our channels and
+  /** An effectful function that registers our channels and
     * adds the necessary codecs and transport handlers
     */
   private[netty] def registerChannel(
