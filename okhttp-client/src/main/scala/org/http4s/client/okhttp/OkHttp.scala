@@ -22,11 +22,14 @@ import org.http4s.client.{Client, DisposableResponse}
 import fs2.Stream._
 import fs2._
 import fs2.io._
+import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
 object OkHttp {
+
+  private val logger = getLogger
 
   def defaultConfig[F[_]]()(implicit F: Effect[F]): F[OkHttpClient.Builder] = F.delay {
     new OkHttpClient.Builder()
@@ -124,7 +127,12 @@ object OkHttp {
               })
               .compile
               .drain
-              .runAsync(_ => IO.unit)
+              .runAsync {
+                case Left(t) =>
+                  IO { logger.warn(t)("Unable to write to OkHttp sink") }
+                case Right(_) =>
+                  IO.unit
+              }
               .unsafeRunSync()
         }
       // if it's a GET or HEAD, okhttp wants us to pass null
