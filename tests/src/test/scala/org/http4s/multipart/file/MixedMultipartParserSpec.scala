@@ -48,7 +48,7 @@ object MixedMultipartParserSpec extends Specification {
       Stream.emits(front.getBytes(charset)) ++ unspool(back, limit, charset)
     }
 
-  "form streaming parsing" should {
+  "form streaming mixed parsing" should {
     Fragments.foreach(List(1, 2, 3, 5, 8, 13, 21, 987)) { chunkSize =>
       s"produce the body from a single part with chunk size ${chunkSize}" in {
         val unprocessedInput =
@@ -627,7 +627,7 @@ object MixedMultipartParserSpec extends Specification {
         MultipartParser.parseStreamedFile[IO](boundary, maxSizeBeforeWrite = 10))
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       multipartMaterialized.parts match {
-        case Vector(f @ FilePart(headers, _, filePath), PurePart(_, _)) =>
+        case Vector(f @ FilePart(headers, _, filePath), BasicPart(_, _)) =>
           val expected = ruinDelims("""this is a test
                                       |here's another test
                                       |catch me if you can!

@@ -886,7 +886,7 @@ object MultipartParser {
       body: Stream[F, Byte],
       path: Option[Path]): MixedPart[F] = path match {
     case Some(p) => FilePart(hdrs, body, p)
-    case None => PurePart(hdrs, body)
+    case None => BasicPart(hdrs, body)
   }
 
   /** Split the stream on `values`, but when

@@ -23,7 +23,7 @@ sealed abstract class MixedPart[F[_]] {
     headers.get(`Content-Disposition`).flatMap(_.parameters.get("filename"))
 }
 
-final case class PurePart[F[_]](headers: Headers, bodyStream: Stream[F, Byte])
+final case class BasicPart[F[_]](headers: Headers, bodyStream: Stream[F, Byte])
     extends MixedPart[F] {
 
   def body(implicit F: Sync[F]): Stream[F, Byte] = bodyStream
@@ -42,7 +42,7 @@ object MixedPart {
   private val ChunkSize = 8192
 
   def formData[F[_]: Sync](name: String, value: String, headers: Header*): MixedPart[F] =
-    PurePart(
+    BasicPart(
       `Content-Disposition`("form-data", Map("name" -> name)) +: headers,
       Stream.emit(value).through(utf8Encode))
 
@@ -57,7 +57,7 @@ object MixedPart {
       filename: String,
       entityBody: EntityBody[F],
       headers: Header*): MixedPart[F] =
-    PurePart(
+    BasicPart(
       `Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
         Header("Content-Transfer-Encoding", "binary") +: headers,
       entityBody)
