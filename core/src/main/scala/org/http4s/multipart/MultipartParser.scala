@@ -6,7 +6,6 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import scala.annotation.tailrec
 import scodec.bits.ByteVector
-import multipart.file._
 
 import java.nio.file._
 
@@ -712,10 +711,10 @@ object MultipartParser {
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
-      failOnLimit: Boolean = false): Pipe[F, Byte, MixedMultipart[F]] = { st =>
+      failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
     ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
-      .fold(Vector.empty[MixedPart[F]])(_ :+ _)
-      .map(MixedMultipart(_, boundary))
+      .fold(Vector.empty[Part[F]])(_ :+ _)
+      .map(Multipart(_, boundary))
   }
 
   def parseToPartsStreamedFile[F[_]: Sync](
@@ -723,7 +722,7 @@ object MultipartParser {
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
-      failOnLimit: Boolean = false): Pipe[F, Byte, MixedPart[F]] = { st =>
+      failOnLimit: Boolean = false): Pipe[F, Byte, Part[F]] = { st =>
     ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
   }
 
@@ -738,10 +737,10 @@ object MultipartParser {
       limit: Int,
       maxSizeBeforeWrite: Int,
       maxParts: Int,
-      failOnLimit: Boolean): Stream[F, MixedPart[F]] = {
+      failOnLimit: Boolean): Stream[F, Part[F]] = {
     val values = StartLineBytesN(b)
 
-    def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, MixedPart[F], Unit] =
+    def go(s: Stream[F, Byte], state: Int, strim: Stream[F, Byte]): Pull[F, Part[F], Unit] =
       if (state == values.length) {
         pullPartsFileStream[F](b, strim ++ s, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
       } else {
@@ -779,7 +778,7 @@ object MultipartParser {
       maxBeforeWrite: Int,
       maxParts: Int,
       failOnLimit: Boolean
-  ): Pull[F, MixedPart[F], Unit] = {
+  ): Pull[F, Part[F], Unit] = {
     val values = DoubleCRLFBytesN
     val expectedBytes = ExpectedBytesN(boundary)
 
@@ -821,7 +820,8 @@ object MultipartParser {
     F.delay(Files.delete(path))
       .handleErrorWith { err =>
         logger.error(err)("Caught error during file cleanup for multipart")
-        F.raiseError(err)
+        //Swallow and report io exceptions in case
+        F.unit
       }
 
   private[this] def tailrecPartsFileStream[F[_]: Sync](
@@ -833,7 +833,7 @@ object MultipartParser {
       maxBeforeWrite: Int,
       partsCounter: Int,
       partsLimit: Int,
-      failOnLimit: Boolean): Pull[F, MixedPart[F], Unit] =
+      failOnLimit: Boolean): Pull[F, Part[F], Unit] =
     Pull
       .eval(parseHeaders(headerStream))
       .flatMap { hdrs =>
@@ -845,7 +845,7 @@ object MultipartParser {
               cleanupFileOption[F](fileRef) >> Pull.raiseError(
                 MalformedMessageBodyFailure("Part not terminated properly"))
             } else {
-              Pull.output1(makeMixedPart(hdrs, partBody, fileRef)) >> splitOrFinish(
+              Pull.output1(makePart(hdrs, partBody, fileRef)) >> splitOrFinish(
                 DoubleCRLFBytesN,
                 rest,
                 headerLimit)
@@ -877,12 +877,10 @@ object MultipartParser {
         }
       }
 
-  private[this] def makeMixedPart[F[_]](
-      hdrs: Headers,
-      body: Stream[F, Byte],
-      path: Option[Path]): MixedPart[F] = path match {
-    case Some(p) => FilePart(hdrs, body, p)
-    case None => BasicPart(hdrs, body)
+  private[this] def makePart[F[_]](hdrs: Headers, body: Stream[F, Byte], path: Option[Path])(
+      implicit F: Sync[F]): Part[F] = path match {
+    case Some(p) => Part(hdrs, body.onFinalize(F.delay(Files.delete(p))))
+    case None => Part(hdrs, body)
   }
 
   /** Split the stream on `values`, but when

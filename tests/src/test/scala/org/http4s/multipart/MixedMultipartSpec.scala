@@ -1,6 +1,5 @@
 package org.http4s
 package multipart
-package file
 
 import cats._
 import cats.effect._
@@ -15,6 +14,9 @@ import org.specs2.Specification
 import scodec.bits.ByteVector
 
 class MixedMultipartSpec extends Specification {
+  implicit val multipartDecoder: EntityDecoder[IO, Multipart[IO]] =
+    MultipartDecoder.mixedMultipart[IO]()
+
   sequential
 
   def is = s2"""
@@ -33,31 +35,20 @@ class MixedMultipartSpec extends Specification {
     authority = Some(Authority(host = RegName("example.com"))),
     path = "/path/to/some/where")
 
-  implicit val decoder = MixedMultipartDecoder.decoder[IO]()
-
   def toBV(entityBody: EntityBody[IO]): ByteVector =
     ByteVector(entityBody.compile.toVector.unsafeRunSync())
 
-  implicit def partIOEq: Eq[MixedPart[IO]] = Eq.instance[MixedPart[IO]] {
-    case (a @ BasicPart(_, _), b @ BasicPart(_, _)) =>
+  implicit def partIOEq: Eq[Part[IO]] = Eq.instance[Part[IO]] {
+    case (a, b) =>
       a.headers === b.headers && {
         for {
           abv <- a.body.compile.toVector
           bbv <- b.body.compile.toVector
         } yield abv === bbv
       }.unsafeRunSync()
-
-    case (a @ FilePart(_, _, f1), b @ FilePart(_, _, f2)) =>
-      a.headers === b.headers && {
-        for {
-          abv <- a.fileStream.compile.toVector
-          bbv <- b.fileStream.compile.toVector
-        } yield abv === bbv
-      }.unsafeRunSync() & f1.equals(f2)
-    case _ => false
   }
 
-  implicit def multipartIOEq: Eq[MixedMultipart[IO]] = Eq.instance[MixedMultipart[IO]] { (a, b) =>
+  implicit def multipartIOEq: Eq[Multipart[IO]] = Eq.instance[Multipart[IO]] { (a, b) =>
     a.headers === b.headers &&
     a.boundary === b.boundary &&
     a.parts === b.parts
@@ -65,13 +56,13 @@ class MixedMultipartSpec extends Specification {
 
   def encodeAndDecodeMultipart = {
 
-    val field1 = MixedPart.formData[IO]("field1", "Text_Field_1", `Content-Type`(`text/plain`))
-    val field2 = MixedPart.formData[IO]("field2", "Text_Field_2")
-    val multipart = MixedMultipart(Vector(field1, field2))
-    val entity = EntityEncoder[IO, MixedMultipart[IO]].toEntity(multipart)
+    val field1 = Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(`text/plain`))
+    val field2 = Part.formData[IO]("field2", "Text_Field_2")
+    val multipart = Multipart(Vector(field1, field2))
+    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, MixedMultipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
@@ -82,13 +73,13 @@ class MixedMultipartSpec extends Specification {
 
   def encodeAndDecodeMultipartMissingContentType = {
 
-    val field1 = MixedPart.formData[IO]("field1", "Text_Field_1")
-    val multipart = MixedMultipart[IO](Vector(field1))
+    val field1 = Part.formData[IO]("field1", "Text_Field_1")
+    val multipart = Multipart[IO](Vector(field1))
 
-    val entity = EntityEncoder[IO, MixedMultipart[IO]].toEntity(multipart)
+    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
-    val decoded = EntityDecoder[IO, MixedMultipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
@@ -102,16 +93,16 @@ class MixedMultipartSpec extends Specification {
 
     val file = new File(getClass.getResource("/ball.png").toURI)
 
-    val field1 = MixedPart.formData[IO]("field1", "Text_Field_1")
-    val field2 = MixedPart.fileData[IO]("image", file, `Content-Type`(`image/png`))
+    val field1 = Part.formData[IO]("field1", "Text_Field_1")
+    val field2 = Part.fileData[IO]("image", file, `Content-Type`(`image/png`))
 
-    val multipart = MixedMultipart[IO](Vector(field1, field2))
+    val multipart = Multipart[IO](Vector(field1, field2))
 
-    val entity = EntityEncoder[IO, MixedMultipart[IO]].toEntity(multipart)
+    val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
     val body = entity.unsafeRunSync().body
     val request = Request(method = Method.POST, uri = url, body = body, headers = multipart.headers)
 
-    val decoded = EntityDecoder[IO, MixedMultipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight.like {
@@ -148,7 +139,7 @@ Content-Type: application/pdf
       body = Stream.emit(body).through(text.utf8Encode),
       headers = header)
 
-    val decoded = EntityDecoder[IO, MixedMultipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight
@@ -175,7 +166,7 @@ I am a big moose
       uri = url,
       body = Stream.emit(body).through(text.utf8Encode),
       headers = header)
-    val decoded = EntityDecoder[IO, MixedMultipart[IO]].decode(request, true)
+    val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
     val result = decoded.value.unsafeRunSync()
 
     result must beRight
