@@ -89,9 +89,13 @@ class ZipkinHeaderSpec extends Http4sSpec with HeaderLaws {
       val not16Chars = "abcd1234"
       `X-B3-TraceId`.parse(not16Chars) must beLeft
     }
-    "no parse when more than 16 chars" >> {
-      val not16Chars = "abcd1234abcd12345"
-      `X-B3-TraceId`.parse(not16Chars) must beLeft
+    "no parse when more than 16 but less than 32 chars" >> {
+      val not16Or32Chars = "abcd1234a"
+      `X-B3-TraceId`.parse(not16Or32Chars) must beLeft
+    }
+    "no parse when more than 32 chars" >> {
+      val not16Or32Chars = "2abcd1234a1493b12"
+      `X-B3-TraceId`.parse(not16Or32Chars) must beLeft
     }
     "no parse when contains non-hex char" >> {
       val containsZ = "abcd1z34abcd1234"
@@ -101,11 +105,17 @@ class ZipkinHeaderSpec extends Http4sSpec with HeaderLaws {
     "parses a Long when contains 16-char case-insensitive hex string and trailing whitespace" >> {
       val long = 2159330025234698493L
       val hexString = "1dF77B37a2f310fD \t "
-
       `X-B3-TraceId`.parse(hexString) must_=== {
-        Right(`X-B3-TraceId`(long))
+        Right(`X-B3-TraceId`(long, None))
       }
     }
-
+    "parses a two Longs when contains 32-char case-insensitive hex string and trailing whitespace" >> {
+      val msbLong = 2159330025234698493L
+      val lsbLong = 7000848103853419616L
+      val hexString = "1dF77B37a2f310fD6128024224a66C60 \t "
+      `X-B3-TraceId`.parse(hexString) must_=== {
+        Right(`X-B3-TraceId`(msbLong, Some(lsbLong)))
+      }
+    }
   }
 }
