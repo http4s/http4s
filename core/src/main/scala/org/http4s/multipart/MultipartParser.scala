@@ -459,10 +459,9 @@ object MultipartParser {
       stream: Stream[F, Byte],
       limit: Int): SplitStream[F] = {
 
-    /** Check if a particular chunk a final chunk, that is,
-      * whether it's the boundary plus an extra "--", indicating it's
-      * the last boundary
-      */
+    //Check if a particular chunk a final chunk, that is,
+    //whether it's the boundary plus an extra "--", indicating it's
+    //the last boundary
     def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] =
       if (c.size <= 0) {
         Pull.raiseError(MalformedMessageBodyFailure("Invalid Chunk: Chunk is empty"))
@@ -707,9 +706,6 @@ object MultipartParser {
 
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
-    * @param maxSizeBeforeWrite Defaults to 50 megabytes
-    * @tparam F
-    * @return
     */
   def parseStreamedFile[F[_]: Sync](
       boundary: Boundary,
@@ -828,7 +824,7 @@ object MultipartParser {
         F.raiseError(err)
       }
 
-  private def tailrecPartsFileStream[F[_]: Sync](
+  private[this] def tailrecPartsFileStream[F[_]: Sync](
       b: Boundary,
       headerStream: Stream[F, Byte],
       rest: Stream[F, Byte],
@@ -935,11 +931,15 @@ object MultipartParser {
         racc: Stream[F, Byte],
         limitCTR: Int): SplitFileStream[F] =
       if (limitCTR >= maxBeforeWrite) {
-        for {
-          path <- Pull.eval(F.delay(Files.createTempFile("", "")))
-          _ <- Pull.eval(lacc.through(io.file.writeAll[F](path)).compile.drain)
-          split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
-        } yield split
+        Pull
+          .eval(F.delay(Files.createTempFile("", "")))
+          .flatMap { path =>
+            (for {
+              _ <- Pull.eval(lacc.through(io.file.writeAll[F](path)).compile.drain)
+              split <- streamAndWrite(s, state, Stream.empty, racc, 0, path)
+            } yield split)
+              .handleErrorWith(e => Pull.eval(cleanupFile(path)) >> Pull.raiseError(e))
+          }
       } else if (state == values.length) {
         Pull.pure((lacc, racc ++ s, None))
       } else {
