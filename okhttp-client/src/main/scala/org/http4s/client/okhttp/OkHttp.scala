@@ -37,10 +37,14 @@ object OkHttp {
         ).asJava)
   }
 
+  /** Create an okhttp client with the default config */
+  def apply[F[_]]()(implicit F: Effect[F], ec: ExecutionContext): F[Client[F]] =
+    apply(defaultconfig[F]())
 
-  def apply[F[_]](config: F[OkHttpClient.Builder] = null)(
+  /** Create an okhttp client with a supplied config */
+  def apply[F[_]](config: F[OkHttpClient.Builder])(
       implicit F: Effect[F],
-      ec: ExecutionContext): F[Client[F]] = F.map(Option(config).getOrElse(defaultconfig[F]())) { c =>
+      ec: ExecutionContext): F[Client[F]] = F.map(config) { c =>
     val client = c.build()
     Client(
       Kleisli { req =>
