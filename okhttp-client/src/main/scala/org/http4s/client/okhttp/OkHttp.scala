@@ -26,6 +26,7 @@ import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 object OkHttp {
 
@@ -57,10 +58,25 @@ object OkHttp {
           }
         },
         F.delay({
-          client.dispatcher.executorService().shutdown()
-          client.connectionPool().evictAll()
+          try {
+            client.dispatcher.executorService().shutdown()
+          } catch {
+            case NonFatal(t) =>
+              logger.warn(t)("Unable to shut down dispatcher when disposing of OkHttp client")
+          }
+          try {
+            client.connectionPool().evictAll()
+          } catch {
+            case NonFatal(t) =>
+              logger.warn(t)("Unable to evict connection pool when disposing of OkHttp client")
+          }
           if (client.cache() != null) {
-            client.cache().close()
+            try {
+              client.cache().close()
+            } catch {
+              case NonFatal(t) =>
+                logger.warn(t)("Unable to close cache when disposing of OkHttp client")
+            }
           }
         })
       )
