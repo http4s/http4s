@@ -28,7 +28,7 @@ import scala.concurrent.ExecutionContext
 
 object OkHttp {
 
-  def defaultconfig[F[_]]()(implicit F: Effect[F]): F[OkHttpClient.Builder] = F.delay {
+  def defaultConfig[F[_]]()(implicit F: Effect[F]): F[OkHttpClient.Builder] = F.delay {
     new OkHttpClient.Builder()
       .protocols(
         List(
@@ -39,29 +39,29 @@ object OkHttp {
 
   /** Create an okhttp client with the default config */
   def apply[F[_]]()(implicit F: Effect[F], ec: ExecutionContext): F[Client[F]] =
-    apply(defaultconfig[F]())
+    apply(defaultConfig[F]())
 
   /** Create an okhttp client with a supplied config */
-  def apply[F[_]](config: F[OkHttpClient.Builder])(
-      implicit F: Effect[F],
-      ec: ExecutionContext): F[Client[F]] = F.map(config) { c =>
-    val client = c.build()
-    Client(
-      Kleisli { req =>
-        F.async[DisposableResponse[F]] { cb =>
-          client.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-          ()
-        }
-      },
-      F.delay({
-        client.dispatcher.executorService().shutdown()
-        client.connectionPool().evictAll()
-        if (client.cache() != null) {
-          client.cache().close()
-        }
-      })
-    )
-  }
+  def apply[F[_]](
+      config: F[OkHttpClient.Builder])(implicit F: Effect[F], ec: ExecutionContext): F[Client[F]] =
+    F.map(config) { c =>
+      val client = c.build()
+      Client(
+        Kleisli { req =>
+          F.async[DisposableResponse[F]] { cb =>
+            client.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+            ()
+          }
+        },
+        F.delay({
+          client.dispatcher.executorService().shutdown()
+          client.connectionPool().evictAll()
+          if (client.cache() != null) {
+            client.cache().close()
+          }
+        })
+      )
+    }
 
   def stream[F[_]]()(implicit F: Effect[F], ec: ExecutionContext): Stream[F, Client[F]] =
     stream(defaultConfig[F]())
