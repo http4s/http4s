@@ -4,6 +4,7 @@ package multipart
 import java.nio.charset.StandardCharsets
 
 import cats.effect._
+import cats.instances.string._
 import fs2._
 import org.http4s.headers._
 import org.http4s.util._
@@ -394,16 +395,16 @@ object MultipartParserSpec extends Specification {
       s"produce the body from a single part with chunk size ${chunkSize}" in {
         val unprocessedInput =
           """
-            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-            |Content-Type: application/octet-stream
-            |Content-Transfer-Encoding: binary
-            |
-            |this is a test
-            |here's another test
-            |catch me if you can!
-            |
-            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+              |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+              |Content-Type: application/octet-stream
+              |Content-Transfer-Encoding: binary
+              |
+              |this is a test
+              |here's another test
+              |catch me if you can!
+              |
+              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
         val input = ruinDelims(unprocessedInput)
 
@@ -416,12 +417,12 @@ object MultipartParserSpec extends Specification {
         )
 
         val expected = ruinDelims("""this is a test
-                                    |here's another test
-                                    |catch me if you can!
-                                    |""".stripMargin)
+              |here's another test
+              |catch me if you can!
+              |""".stripMargin)
 
         val results =
-          unspool(input, chunkSize).through(MultipartParser.parseStreamed(boundary))
+          unspool(input, chunkSize).through(MultipartParser.parseStreamed[IO](boundary))
 
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
         val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
@@ -429,7 +430,7 @@ object MultipartParserSpec extends Specification {
           .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
           .through(asciiDecode)
           .compile
-          .fold("")(_ ++ _)
+          .foldMonoid
 
         headers mustEqual expectedHeaders
         bodies.attempt.unsafeRunSync() must beRight(expected)
@@ -439,19 +440,19 @@ object MultipartParserSpec extends Specification {
     "produce the body from a single part that doesn't start with a \r\n" in {
       val unprocessedInput =
         """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary
-          |
-          |this is a test
-          |here's another test
-          |catch me if you can!
-          |
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!
+            |
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
       val results =
-        unspool(input, 15).through(MultipartParser.parseStreamed(boundary))
+        unspool(input, 15).through(MultipartParser.parseStreamed[IO](boundary))
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
       val expectedHeaders = Headers(
@@ -463,9 +464,9 @@ object MultipartParserSpec extends Specification {
       )
 
       val expected = ruinDelims("""this is a test
-                                  |here's another test
-                                  |catch me if you can!
-                                  |""".stripMargin)
+            |here's another test
+            |catch me if you can!
+            |""".stripMargin)
 
       val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
       val bodies =
@@ -473,7 +474,7 @@ object MultipartParserSpec extends Specification {
           .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
           .through(asciiDecode)
           .compile
-          .fold("")(_ ++ _)
+          .foldMonoid
 
       headers mustEqual expectedHeaders
       bodies.attempt.unsafeRunSync() must beRight(expected)
@@ -482,19 +483,20 @@ object MultipartParserSpec extends Specification {
     "parse utf8 headers properly" in {
       val unprocessedInput =
         """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="http4s很棒"; filename="我老婆太漂亮.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary
-          |
-          |this is a test
-          |here's another test
-          |catch me if you can!
-          |
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            |Content-Disposition: form-data; name="http4s很棒"; filename="我老婆太漂亮.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!
+            |
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
       val results =
-        unspool(input, 15, StandardCharsets.UTF_8).through(MultipartParser.parseStreamed(boundary))
+        unspool(input, 15, StandardCharsets.UTF_8)
+          .through(MultipartParser.parseStreamed[IO](boundary))
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
 
       val expectedHeaders = Headers(
@@ -504,9 +506,9 @@ object MultipartParserSpec extends Specification {
       )
 
       val expected = ruinDelims("""this is a test
-                                  |here's another test
-                                  |catch me if you can!
-                                  |""".stripMargin)
+            |here's another test
+            |catch me if you can!
+            |""".stripMargin)
 
       val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
       val bodies =
@@ -514,7 +516,7 @@ object MultipartParserSpec extends Specification {
           .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
           .through(asciiDecode)
           .compile
-          .fold("")(_ ++ _)
+          .foldMonoid
 
       headers mustEqual expectedHeaders
       bodies.attempt.unsafeRunSync() must beRight(expected)
@@ -523,15 +525,15 @@ object MultipartParserSpec extends Specification {
     "discard preamble and epilogue" in {
       val unprocessedInput =
         """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary
-          |
-          |this is a test
-          |here's another test
-          |catch me if you can!
-          |
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!
+            |
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
 
@@ -544,9 +546,9 @@ object MultipartParserSpec extends Specification {
       )
 
       val expected = ruinDelims("""this is a test
-                                  |here's another test
-                                  |catch me if you can!
-                                  |""".stripMargin)
+            |here's another test
+            |catch me if you can!
+            |""".stripMargin)
 
       val preamble: Stream[IO, Byte] =
         Stream
@@ -570,7 +572,7 @@ object MultipartParserSpec extends Specification {
           crlf ++
           unspool(input, 15) ++
           epilogue
-      ).through(MultipartParser.parseStreamed(boundary))
+      ).through(MultipartParser.parseStreamed[IO](boundary))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
@@ -578,7 +580,7 @@ object MultipartParserSpec extends Specification {
         .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
         .through(asciiDecode)
         .compile
-        .fold("")(_ ++ _)
+        .foldMonoid
 
       headers mustEqual expectedHeaders
       bodies.attempt.unsafeRunSync() must beRight(expected)
@@ -589,27 +591,27 @@ object MultipartParserSpec extends Specification {
       // absurdly low cap in the argument to MultipartParser.parse to trigger failure.
       val unprocessedInput =
         """
-        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-        |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-        |Content-Type: application/octet-stream
-        |Content-Transfer-Encoding: binary
-        |
-        |this is a test
-        |here's another test
-        |catch me if you can!
-        |
-        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+          |Content-Type: application/octet-stream
+          |Content-Transfer-Encoding: binary
+          |
+          |this is a test
+          |here's another test
+          |catch me if you can!
+          |
+          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
       val input = ruinDelims(unprocessedInput)
 
       val headerSection =
         """
-          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary""".stripMargin
+            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary""".stripMargin
       val maxSize = ruinDelims(headerSection).length
 
       val results =
-        unspool(input, 15).through(MultipartParser.parseStreamed(boundary, maxSize))
+        unspool(input, 15).through(MultipartParser.parseStreamed[IO](boundary, maxSize))
 
       results.compile.toVector.unsafeRunSync() must throwA(
         MalformedMessageBodyFailure(s"Part header was longer than $maxSize-byte limit"))
@@ -618,10 +620,10 @@ object MultipartParserSpec extends Specification {
     "handle a miserably large body on one line" in {
       val input =
         ruinDelims("""--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-                     |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-                     |Content-Type: application/octet-stream
-                     |Content-Transfer-Encoding: binary
-                     |
+              |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+              |Content-Type: application/octet-stream
+              |Content-Transfer-Encoding: binary
+              |
         """.stripMargin)
       val end = "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--"
 
@@ -648,7 +650,7 @@ object MultipartParserSpec extends Specification {
           body ++
           crlf ++
           unspool(end)
-      ).through(MultipartParser.parseStreamed(boundary))
+      ).through(MultipartParser.parseStreamed[IO](boundary))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
@@ -658,16 +660,16 @@ object MultipartParserSpec extends Specification {
     "produce the body from a single part input of one chunk" in {
       val unprocessedInput =
         """
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary
-          |
-          |this is a test
-          |here's another test
-          |catch me if you can!
-          |
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!
+            |
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
 
@@ -680,18 +682,18 @@ object MultipartParserSpec extends Specification {
       )
 
       val expected = ruinDelims("""this is a test
-                                  |here's another test
-                                  |catch me if you can!
-                                  |""".stripMargin)
+            |here's another test
+            |catch me if you can!
+            |""".stripMargin)
 
-      val results = unspool(input).through(MultipartParser.parseStreamed(boundary))
+      val results = unspool(input).through(MultipartParser.parseStreamed[IO](boundary))
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers = multipartMaterialized.parts.foldLeft(Headers.empty)(_ ++ _.headers)
       val bodies = multipartMaterialized.parts
         .foldLeft(Stream.empty.covary[IO]: Stream[IO, Byte])(_ ++ _.body)
         .through(asciiDecode)
         .compile
-        .fold("")(_ ++ _)
+        .foldMonoid
 
       headers mustEqual expectedHeaders
       bodies.attempt.unsafeRunSync() must beRight(expected)
@@ -700,78 +702,6 @@ object MultipartParserSpec extends Specification {
     "produce the body from a two-part input" in {
       val unprocessedInput =
         """
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary
-          |
-          |this is a test
-          |here's another test
-          |catch me if you can!
-          |
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="foo"
-          |
-          |bar
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
-
-      val input = ruinDelims(unprocessedInput)
-
-      val results = unspool(input).through(MultipartParser.parseStreamed(boundary))
-      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
-      val bodies = multipartMaterialized
-        .parts(1)
-        .body
-        .through(asciiDecode)
-        .compile
-        .fold("")(_ ++ _)
-
-      bodies.attempt.unsafeRunSync() must beRight("bar")
-    }
-
-    "parse uneven input properly" in {
-      val unprocessed =
-        Stream
-          .segment(
-            List(
-              "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI\n",
-              "Content-Disposition: form-data; name=\"upload\"; filename=\"integration.txt\"\n",
-              """Content-Type: application/octet-stream
-                |Content-Transfer-Encoding: binary
-                |
-                |this is a test
-                |here's another test
-                |catch me if you can!
-                |
-                |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-                |Content-Disposition: form-data; name="foo"
-                |
-                |""".stripMargin,
-              """bar
-                |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
-            ).map(_.replaceAllLiterally("\n", "\r\n"))
-              .map(str => Segment.chunk(Chunk.bytes(str.getBytes)))
-              .foldLeft(Segment.empty[Byte])(_ ++ _)
-          )
-          .covary[IO]
-
-      val results = unprocessed.through(MultipartParser.parseStreamed(boundary))
-      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
-      val bodies = multipartMaterialized
-        .parts(1)
-        .body
-        .through(asciiDecode)
-        .compile
-        .fold("")(_ ++ _)
-
-      bodies.attempt.unsafeRunSync() must beRight("bar")
-    }
-
-    Fragments.foreach(List.range(0, 100)) { count =>
-      s"parse randomized chunk length properly iteration #$count" in {
-
-        val unprocessedInput =
-          """
             |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
             |Content-Disposition: form-data; name="upload"; filename="integration.txt"
             |Content-Type: application/octet-stream
@@ -785,18 +715,90 @@ object MultipartParserSpec extends Specification {
             |Content-Disposition: form-data; name="foo"
             |
             |bar
-            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin.replaceAllLiterally("\n", "\r\n")
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+
+      val input = ruinDelims(unprocessedInput)
+
+      val results = unspool(input).through(MultipartParser.parseStreamed[IO](boundary))
+      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+      val bodies = multipartMaterialized
+        .parts(1)
+        .body
+        .through(asciiDecode)
+        .compile
+        .foldMonoid
+
+      bodies.attempt.unsafeRunSync() must beRight("bar")
+    }
+
+    "parse uneven input properly" in {
+      val unprocessed =
+        Stream
+          .segment(
+            List(
+              "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI\n",
+              "Content-Disposition: form-data; name=\"upload\"; filename=\"integration.txt\"\n",
+              """Content-Type: application/octet-stream
+                  |Content-Transfer-Encoding: binary
+                  |
+                  |this is a test
+                  |here's another test
+                  |catch me if you can!
+                  |
+                  |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+                  |Content-Disposition: form-data; name="foo"
+                  |
+                  |""".stripMargin,
+              """bar
+                  |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+            ).map(_.replaceAllLiterally("\n", "\r\n"))
+              .map(str => Segment.chunk(Chunk.bytes(str.getBytes)))
+              .foldLeft(Segment.empty[Byte])(_ ++ _)
+          )
+          .covary[IO]
+
+      val results = unprocessed.through(MultipartParser.parseStreamed[IO](boundary))
+      val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
+      val bodies = multipartMaterialized
+        .parts(1)
+        .body
+        .through(asciiDecode)
+        .compile
+        .foldMonoid
+
+      bodies.attempt.unsafeRunSync() must beRight("bar")
+    }
+
+    Fragments.foreach(List.range(0, 100)) { count =>
+      s"parse randomized chunk length properly iteration #$count" in {
+
+        val unprocessedInput =
+          """
+              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+              |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+              |Content-Type: application/octet-stream
+              |Content-Transfer-Encoding: binary
+              |
+              |this is a test
+              |here's another test
+              |catch me if you can!
+              |
+              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+              |Content-Disposition: form-data; name="foo"
+              |
+              |bar
+              |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin.replaceAllLiterally("\n", "\r\n")
 
         val unprocessed = jumble(unprocessedInput)
 
-        val results = unprocessed.through(MultipartParser.parseStreamed(boundary))
+        val results = unprocessed.through(MultipartParser.parseStreamed[IO](boundary))
         val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
         val bodies = multipartMaterialized
           .parts(1)
           .body
           .through(asciiDecode)
           .compile
-          .fold("")(_ ++ _)
+          .foldMonoid
 
         bodies.attempt.unsafeRunSync() must beRight("bar")
       }
@@ -805,21 +807,21 @@ object MultipartParserSpec extends Specification {
     "produce the correct headers from a two part input" in {
       val unprocessedInput =
         """
-          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
-          |Content-Disposition: form-data; name="field1"
-          |Content-Type: text/plain
-          |
-          |Text_Field_1
-          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
-          |Content-Disposition: form-data; name="field2"
-          |
-          |Text_Field_2
-          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
+            |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+            |Content-Disposition: form-data; name="field1"
+            |Content-Type: text/plain
+            |
+            |Text_Field_1
+            |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+            |Content-Disposition: form-data; name="field2"
+            |
+            |Text_Field_2
+            |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
 
       val input = ruinDelims(unprocessedInput)
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
-      val results = unspool(input).through(MultipartParser.parseStreamed(boundaryTest))
+      val results = unspool(input).through(MultipartParser.parseStreamed[IO](boundaryTest))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers =
@@ -835,20 +837,55 @@ object MultipartParserSpec extends Specification {
       )
     }
 
+    "parse parts lazily" in {
+      //Intentionally mangle the end, which would fail if we consume the whole thing,
+      //but not if we only take one part, as each part should parse lazily
+      val unprocessedInput =
+        """
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field1"
+          |Content-Type: text/plain
+          |
+          |Text_Field_1
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0
+          |Content-Disposition: form-data; name="field2"
+          |
+          |Text_Field_2
+          |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6""".stripMargin
+
+      val input = ruinDelims(unprocessedInput)
+
+      val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
+      val results = unspool(input).through(MultipartParser.parseToPartsStream[IO](boundaryTest))
+
+      val firstPart = results.take(1).compile.last.map(_.get).unsafeRunSync()
+      val confirmedError = results.compile.drain.attempt.unsafeRunSync()
+
+      firstPart.headers must_== Headers(
+        `Content-Disposition`("form-data", Map("name" -> "field1")),
+        `Content-Type`(MediaType.`text/plain`))
+      firstPart.body
+        .through(text.utf8Decode[IO])
+        .compile
+        .foldMonoid
+        .unsafeRunSync() must_== "Text_Field_1"
+      confirmedError must beAnInstanceOf[Left[MalformedMessageBodyFailure, _]]
+    }
+
     "fail with an MalformedMessageBodyFailure without an end line" in {
       val unprocessedInput =
         """
-          |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
-          |Content-Disposition: form-data; name="upload"; filename="integration.txt"
-          |Content-Type: application/octet-stream
-          |Content-Transfer-Encoding: binary
-          |
-          |this is a test
-          |here's another test
-          |catch me if you can!""".stripMargin
+            |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+            |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+            |Content-Type: application/octet-stream
+            |Content-Transfer-Encoding: binary
+            |
+            |this is a test
+            |here's another test
+            |catch me if you can!""".stripMargin
       val input = ruinDelims(unprocessedInput)
 
-      val results = unspool(input).through(MultipartParser.parseStreamed(boundary))
+      val results = unspool(input).through(MultipartParser.parseStreamed[IO](boundary))
 
       results.compile.toVector.unsafeRunSync() must throwA[MalformedMessageBodyFailure]
     }
