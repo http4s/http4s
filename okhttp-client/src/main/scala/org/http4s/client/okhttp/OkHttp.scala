@@ -109,21 +109,23 @@ object OkHttp {
         }
         val status = Status.fromInt(response.code())
         val bodyStream = response.body.byteStream()
-        val dr = status.map { s =>
-          new DisposableResponse[F](
-            Response[F](headers = getHeaders(response), httpVersion = protocol)
-              .withStatus(s)
-              .withBodyStream(
-                readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
-            F.delay({
-              bodyStream.close(); ()
-            })
-          )
-        }.leftMap { t =>
-          // we didn't understand the status code, close the body and return a failure
-          bodyStream.close()
-          t
-        }
+        val dr = status
+          .map { s =>
+            new DisposableResponse[F](
+              Response[F](headers = getHeaders(response), httpVersion = protocol)
+                .withStatus(s)
+                .withBodyStream(
+                  readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
+              F.delay({
+                bodyStream.close(); ()
+              })
+            )
+          }
+          .leftMap { t =>
+            // we didn't understand the status code, close the body and return a failure
+            bodyStream.close()
+            t
+          }
         ec.execute(new Runnable {
           override def run(): Unit = cb(dr)
         })
