@@ -390,11 +390,6 @@ object MultipartParserSpec extends Specification {
     }
   }
 
-//  def multipartStreamingTests(
-//      name: String,
-//      multipartPipe: Boundary => Pipe[IO, Byte, Multipart[IO]],
-//      multipartLimitPipe: (Boundary, Int) => Pipe[IO, Byte, Multipart[IO]],
-//      partsPipe: Boundary => Pipe[IO, Byte, Part[IO]]): Fragment = {
   "form streaming parsing" should {
     Fragments.foreach(List(1, 2, 3, 5, 8, 13, 21, 987)) { chunkSize =>
       s"produce the body from a single part with chunk size ${chunkSize}" in {
