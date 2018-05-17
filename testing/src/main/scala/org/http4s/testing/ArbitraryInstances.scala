@@ -374,8 +374,9 @@ trait ArbitraryInstances {
   implicit val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
     Arbitrary {
       for {
-        long <- arbitrary[Long]
-      } yield `X-B3-TraceId`(long)
+        msb <- arbitrary[Long]
+        lsb <- Gen.option(arbitrary[Long])
+      } yield `X-B3-TraceId`(msb, lsb)
     }
 
   implicit val arbitraryXB3SpanId: Arbitrary[`X-B3-SpanId`] =
