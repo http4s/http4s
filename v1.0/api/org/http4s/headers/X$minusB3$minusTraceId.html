@@ -514,7 +514,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: X$minusB3$minusTraceId" class="name">X-B3-TraceId</span><span class="params">(<span name="id">id: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span title="gt4s: X$minusB3$minusTraceId" class="name">X-B3-TraceId</span><span class="params">(<span name="idMostSigBits">idMostSigBits: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="idLeastSigBits">idLeastSigBits: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
@@ -575,9 +575,9 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.X-B3-TraceId#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(id:Long):org.http4s.headers.X-B3-TraceId"></a><a id="&lt;init&gt;:X-B3-TraceId"></a>
+      <a id="&lt;init&gt;(idMostSigBits:Long,idLeastSigBits:Option[Long]):org.http4s.headers.X-B3-TraceId"></a><a id="&lt;init&gt;:X-B3-TraceId"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/X$minusB3$minusTraceId.html#&lt;init&gt;(id:Long):org.http4s.headers.X-B3-TraceId" title="Permalink">
+      <a href="../../../org/http4s/headers/X$minusB3$minusTraceId.html#&lt;init&gt;(idMostSigBits:Long,idLeastSigBits:Option[Long]):org.http4s.headers.X-B3-TraceId" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -586,7 +586,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: X$minusB3$minusTraceId" class="name">X-B3-TraceId</span><span class="params">(<span name="id">id: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>)</span>
+        <span title="gt4s: X$minusB3$minusTraceId" class="name">X-B3-TraceId</span><span class="params">(<span name="idMostSigBits">idMostSigBits: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>, <span name="idLeastSigBits">idLeastSigBits: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>)</span>
       </span>
       
       
@@ -707,6 +707,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.headers.X-B3-TraceId#asUUID" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="asUUID:java.util.UUID"></a><a id="asUUID:UUID"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/X$minusB3$minusTraceId.html#asUUID:java.util.UUID" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asUUID</span><span class="result">: <span class="extype" name="java.util.UUID">UUID</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
@@ -923,10 +939,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Header.html" class="extype" name="org.http4s.Header">Header</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.headers.X-B3-TraceId#id" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="id:Long"></a>
+    </li><li name="org.http4s.headers.X-B3-TraceId#idLeastSigBits" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="idLeastSigBits:Option[Long]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/headers/X$minusB3$minusTraceId.html#id:Long" title="Permalink">
+      <a href="../../../org/http4s/headers/X$minusB3$minusTraceId.html#idLeastSigBits:Option[Long]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -935,7 +951,23 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">id</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>
+        <span class="name">idLeastSigBits</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.headers.X-B3-TraceId#idMostSigBits" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="idMostSigBits:Long"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/headers/X$minusB3$minusTraceId.html#idMostSigBits:Long" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">idMostSigBits</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a></span>
       </span>
       
       
