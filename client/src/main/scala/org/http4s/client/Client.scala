@@ -56,7 +56,7 @@ final case class DisposableResponse[F[_]](response: Response[F], dispose: F[Unit
   *             a [[Request]].  This is a low-level operation intended for client
   *             implementations and middleware.
   *
-  * @param shutdown an effect to shut down this Shutdown this client, closing any
+  * @param shutdown an effect to shut down this client, closing any
   *                 open connections and freeing resources
   */
 final case class Client[F[_]](
