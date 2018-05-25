@@ -60,7 +60,13 @@ object RequestLogger {
                     )
                   )
                 )
-            }
+            }.orElse(
+              OptionT.liftF(Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                    logHeaders,
+                    logBody,
+                    redactHeadersWhen)(logger.info(_))) *>
+              OptionT.none[F, Response[F]]
+            )
           }
     }
 }
