@@ -65,7 +65,7 @@ object RequestLogger {
               OptionT.liftF(Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
-                    redactHeadersWhen)(logger.info(_))) *>
+                    redactHeadersWhen)(logger)) *>
               OptionT.none[F, Response[F]]
             )
           }
