@@ -49,8 +49,9 @@ object RequestLogger {
                     Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logger.info(_))) *>
-                    Sync[OptionT[F, ?]].raiseError[Response[F]](e)
+                      redactHeadersWhen)(logger.info(_)) *>
+                      Sync[F].raiseError[Response[F]](e)
+                  )
                 case Right(resp) =>
                   Sync[OptionT[F, ?]].pure(
                     resp.withBodyStream(
@@ -64,12 +65,15 @@ object RequestLogger {
                   )
               }
               .orElse(
-                OptionT.liftF(
-                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                    logHeaders,
-                    logBody,
-                    redactHeadersWhen)(logger.info(_))) *>
-                  OptionT.none[F, Response[F]]
+                OptionT(
+                  Logger
+                    .logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                      logHeaders,
+                      logBody,
+                      redactHeadersWhen
+                    )(logger.info(_))
+                    .as(Option.empty[Response[F]])
+                )
               )
           }
     }
