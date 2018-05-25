@@ -168,7 +168,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart].</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/1ee0133001094a6d42758a3203b2dd6bbc4454ee/core/src/main/scala/org/http4s/multipart/MultipartParser.scala" target="_blank">MultipartParser.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart].</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/8ea023b25dc30012952557231c5f319dd1092861/core/src/main/scala/org/http4s/multipart/MultipartParser.scala" target="_blank">MultipartParser.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -545,22 +545,6 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.multipart.MultipartParser#parse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="parse[F[_]](boundary:org.http4s.multipart.Boundary)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]"></a><a id="parse[F[_]](Boundary)(Sync[F]):Pipe[F,Byte,Either[Headers,ByteVector]]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/multipart/MultipartParser$.html#parse[F[_]](boundary:org.http4s.multipart.Boundary)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">parse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>]]</span>
-      </span>
-      
-      
     </li><li name="org.http4s.multipart.MultipartParser#parseStreamed" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="parseStreamed[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int)(implicitevidence$2:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]"></a><a id="parseStreamed[F[_]](Boundary,Int)(Sync[F]):Pipe[F,Byte,Multipart[F]]"></a>
       <span class="permalink">
@@ -577,6 +561,23 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       
+    </li><li name="org.http4s.multipart.MultipartParser#parseStreamedFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="parseStreamedFile[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$17:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]"></a><a id="parseStreamedFile[F[_]](Boundary,Int,Int,Int,Boolean)(Sync[F]):Pipe[F,Byte,Multipart[F]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseStreamedFile[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$17:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Multipart[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parseStreamedFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">1024</span></span>, <span name="maxSizeBeforeWrite">maxSizeBeforeWrite: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">52428800</span></span>, <span name="maxParts">maxParts: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">20</span></span>, <span name="failOnLimit">failOnLimit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseStreamedFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseStreamedFile.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="Multipart.html" class="extype" name="org.http4s.multipart.Multipart">Multipart</a>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseStreamedFile.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Same as the other streamed parsing, except
+after a particular size, it buffers on a File.</p>
     </li><li name="org.http4s.multipart.MultipartParser#parseToParts" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="parseToParts[F[_]](byteVector:scodec.bits.ByteVector)(boundary:org.http4s.multipart.Boundary)(implicitF:cats.effect.Sync[F]):F[scodec.bits.ByteVector]"></a><a id="parseToParts[F[_]](ByteVector)(Boundary)(Sync[F]):F[ByteVector]"></a>
       <span class="permalink">
@@ -610,6 +611,22 @@ splitHeader - Splits a Header into the Name and Value
       </span>
       <span class="symbol">
         <span class="name">parseToPartsStream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">1024</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToPartsStream.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToPartsStream.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="Part.html" class="extype" name="org.http4s.multipart.Part">Part</a>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToPartsStream.F">F</span>]]</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.multipart.MultipartParser#parseToPartsStreamedFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="parseToPartsStreamedFile[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$18:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Part[F]]"></a><a id="parseToPartsStreamedFile[F[_]](Boundary,Int,Int,Int,Boolean)(Sync[F]):Pipe[F,Byte,Part[F]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#parseToPartsStreamedFile[F[_]](boundary:org.http4s.multipart.Boundary,limit:Int,maxSizeBeforeWrite:Int,maxParts:Int,failOnLimit:Boolean)(implicitevidence$18:cats.effect.Sync[F]):fs2.Pipe[F,Byte,org.http4s.multipart.Part[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parseToPartsStreamedFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">1024</span></span>, <span name="maxSizeBeforeWrite">maxSizeBeforeWrite: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">52428800</span></span>, <span name="maxParts">maxParts: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a> = <span class="symbol">20</span></span>, <span name="failOnLimit">failOnLimit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToPartsStreamedFile.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToPartsStreamedFile.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="Part.html" class="extype" name="org.http4s.multipart.Part">Part</a>[<span class="extype" name="org.http4s.multipart.MultipartParser.parseToPartsStreamedFile.F">F</span>]]</span>
       </span>
       
       
@@ -770,7 +787,29 @@ splitHeader - Splits a Header into the Name and Value
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.multipart.MultipartParser#parse" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parse[F[_]](boundary:org.http4s.multipart.Boundary)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]"></a><a id="parse[F[_]](Boundary)(Sync[F]):Pipe[F,Byte,Either[Headers,ByteVector]]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/multipart/MultipartParser$.html#parse[F[_]](boundary:org.http4s.multipart.Boundary)(implicitevidence$1:cats.effect.Sync[F]):fs2.Pipe[F,Byte,Either[org.http4s.Headers,scodec.bits.ByteVector]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.18.12) This parser buffers the entire contents to memory. Consider using the streaming alternatives">parse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="boundary">boundary: <a href="Boundary.html" class="extype" name="org.http4s.multipart.Boundary">Boundary</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Pipe">Pipe</span>[<span class="extype" name="org.http4s.multipart.MultipartParser.parse.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <span class="extype" name="scala.Either">Either</span>[<a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>, <a href="http://scodec.org/api/scodec-bits/1.1.5/scodec/bits/ByteVector.html#scodec.bits.ByteVector" class="extype" name="scodec.bits.ByteVector">ByteVector</a>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.18.12)</i> This parser buffers the entire contents to memory. Consider using the streaming alternatives</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
