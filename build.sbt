@@ -11,6 +11,12 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
+// check for library updates whenever the project is [re]load
+onLoad in Global := { s =>
+  if (sys.props.contains("doobie.skipDependencyUpdates")) s
+  else "dependencyUpdates" :: s
+}
+
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
