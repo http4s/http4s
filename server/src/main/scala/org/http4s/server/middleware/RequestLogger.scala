@@ -42,31 +42,35 @@ object RequestLogger {
             )
 
             val response = routes(changedRequest)
-            response.attempt.flatMap {
-              case Left(e) => 
-                OptionT.liftF(Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                    logHeaders,
-                    logBody,
-                    redactHeadersWhen)(logger.info(_))) *>
-                Sync[OptionT[F, ?]].raiseError[Response[F]](e)
-              case Right(resp) =>
-                Sync[OptionT[F, ?]].pure(
-                  resp.withBodyStream(
-                    resp.body.onFinalize(
-                      Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+            response.attempt
+              .flatMap {
+                case Left(e) =>
+                  OptionT.liftF(
+                    Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logger.info(_))
+                      redactHeadersWhen)(logger.info(_))) *>
+                    Sync[OptionT[F, ?]].raiseError[Response[F]](e)
+                case Right(resp) =>
+                  Sync[OptionT[F, ?]].pure(
+                    resp.withBodyStream(
+                      resp.body.onFinalize(
+                        Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                          logHeaders,
+                          logBody,
+                          redactHeadersWhen)(logger.info(_))
+                      )
                     )
                   )
-                )
-            }.orElse(
-              OptionT.liftF(Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+              }
+              .orElse(
+                OptionT.liftF(
+                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
                     redactHeadersWhen)(logger.info(_))) *>
-              OptionT.none[F, Response[F]]
-            )
+                  OptionT.none[F, Response[F]]
+              )
           }
     }
 }
