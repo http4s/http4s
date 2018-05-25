@@ -121,6 +121,17 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val okHttpClient = libraryProject("okhttp-client")
+  .settings(
+    description := "okhttp implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.okhttp
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
+
 lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
