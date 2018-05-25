@@ -42,16 +42,39 @@ object RequestLogger {
             )
 
             val response = service(changedRequest)
-            response.map { resp =>
-              resp.withBodyStream(
-                resp.body.onFinalize(
-                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                    logHeaders,
-                    logBody,
-                    redactHeadersWhen)(logger)
+
+            response.attempt
+              .flatMap {
+                case Left(e) =>
+                  OptionT.liftF(
+                    Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                      logHeaders,
+                      logBody,
+                      redactHeadersWhen)(logger) *>
+                      Sync[F].raiseError[Response[F]](e)
+                  )
+                case Right(resp) =>
+                  Sync[OptionT[F, ?]].pure(
+                    resp.withBodyStream(
+                      resp.body.onFinalize(
+                        Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                          logHeaders,
+                          logBody,
+                          redactHeadersWhen)(logger)
+                      )
+                    )
+                  )
+              }
+              .orElse(
+                OptionT(
+                  Logger
+                    .logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                      logHeaders,
+                      logBody,
+                      redactHeadersWhen)(logger)
+                    .as(Option.empty[Response[F]])
                 )
               )
-            }
           }
     }
 }
