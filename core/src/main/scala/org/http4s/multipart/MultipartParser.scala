@@ -375,8 +375,7 @@ object MultipartParser {
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, rest)) =>
-            val bytes = chnk
-            val (ix, strim) = splitAndIgnorePrev(values, state, bytes)
+            val (ix, strim) = splitAndIgnorePrev(values, state, chnk)
             go(rest, ix, strim)
           case None =>
             Pull.raiseError(MalformedMessageBodyFailure("Malformed Malformed match"))
@@ -751,8 +750,7 @@ object MultipartParser {
       } else {
         s.pull.unconsChunk.flatMap {
           case Some((chnk, rest)) =>
-            val bytes = chnk
-            val (ix, strim) = splitAndIgnorePrev(values, state, bytes)
+            val (ix, strim) = splitAndIgnorePrev(values, state, chnk)
             go(rest, ix, strim)
           case None =>
             Pull.raiseError(MalformedMessageBodyFailure("Malformed Malformed match"))
