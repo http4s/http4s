@@ -100,7 +100,7 @@ lazy val client = libraryProject("client")
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
-    libraryDependencies += blaze
+    libraryDependencies += blaze,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -145,7 +145,7 @@ lazy val servlet = libraryProject("servlet")
       jettyServer % "test",
       jettyServlet % "test",
       mockito % "test"
-    )
+    ),
   )
   .dependsOn(server % "compile;test->test")
 
@@ -216,7 +216,7 @@ lazy val json4s = libraryProject("json4s")
     libraryDependencies ++= Seq(
       jawnJson4s,
       json4sCore
-    )
+    ),
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -240,7 +240,7 @@ lazy val scalaXml = libraryProject("scala-xml")
     libraryDependencies ++= scalaVersion(VersionNumber(_).numbers match {
       case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
       case _ => Seq.empty
-    }).value
+    }).value,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -449,7 +449,8 @@ lazy val examplesWar = exampleProject("examples-war")
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       logbackClassic % "runtime"
-    )
+    ),
+    containerLibs in Jetty := List(jettyRunner),
   )
   .dependsOn(servlet)
 

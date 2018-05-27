@@ -19,6 +19,7 @@ it.
 * Dependency upgrades:
   * jetty-9.4.10.v20180503
   * json4s-3.5.4
+  * tomcat-9.0.8
 
 # v0.18.11 (2018-05-09)
 * Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)
