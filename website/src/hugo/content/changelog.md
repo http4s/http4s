@@ -8,7 +8,19 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.11
+# v0.18.12 (2018-05-27)
+* Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
+* Log requests with an unconsumed body [#1861](https://github.com/http4s/http4s/pull/1861)
+* Log requests when the service returns `None` or raises an error [#1875](https://github.com/http4s/http4s/pull/1875)
+* Support streaming parsing of multipart and storing large parts as temp files [#1865](https://github.com/http4s/http4s/pull/1865)
+* Add an OkHttp client, with HTTP/2 support [#1864](https://github.com/http4s/http4s/pull/1864)
+* Add `Host` header to requests to `Client.fromHttpService` if the request URI is absolute [#1874](https://github.com/http4s/http4s/pull/1874)
+* Log `"service returned None"` or `"service raised error"` in service `ResponseLogger` when the service does not produce a successful response [#1879](https://github.com/http4s/http4s/pull/1879)
+* Dependency upgrades:
+  * jetty-9.4.10.v20180503
+  * json4s-3.5.4
+
+# v0.18.11 (2018-05-09)
 * Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)
 * Fix deadlock in client loggers.  `RequestLogger.apply` and `ResponseLogger.apply` are each replaced by `apply0` to maintain binary compatibility. [#1837](https://github.com/http4s/http4s/pull/1837)
 * New `http4s-boopickle` module supports entity codecs through `boopickle.Pickler` [#1826](https://github.com/http4s/http4s/pull/1826)
