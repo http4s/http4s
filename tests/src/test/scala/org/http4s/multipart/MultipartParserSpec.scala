@@ -479,7 +479,6 @@ object MultipartParserSpec extends Specification {
             |
             |Text_Field_2
             |--RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0--""".stripMargin
-
         val input = ruinDelims(unprocessedInput)
 
         val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")

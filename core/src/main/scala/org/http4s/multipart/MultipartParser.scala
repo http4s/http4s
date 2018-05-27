@@ -7,10 +7,13 @@ import fs2._
 
 import java.nio.file._
 
+import java.nio.file._
+
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
 
   private[this] val logger = org.log4s.getLogger
+
   private[this] val CRLFBytesN = Array[Byte]('\r', '\n')
   private[this] val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
   private[this] val DashDashBytesN = Array[Byte]('-', '-')
@@ -105,17 +108,9 @@ object MultipartParser {
 
   /** Split a chunk in the case of a partial match:
     *
-    * If it is a chunk that is between a partial match
-    * (middle chunked), the prior partial match is added to
-    * the accumulator, and the current partial match is
-    * considered to carry over.
-    *
-    * If it is a fresh chunk (no carry over partial match),
-    * everything prior to the partial match is added to the accumulator,
-    * and the partial match is considered the carry over.
-    *
-    * Else, if the whole block is a partial match,
-    * add it to the carry over
+    * DO NOT USE. Was made private[http4s] because
+    * Jose messed up hard like 5 patches ago and now it breaks bincompat to
+    * remove.
     *
     */
   private def splitPartialMatch[F[_]: Sync](
