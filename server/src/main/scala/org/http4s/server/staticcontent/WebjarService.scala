@@ -46,12 +46,12 @@ object WebjarService {
   type WebjarAssetFilter = WebjarAsset => Boolean
 
   /**
-    * Creates a new HttpService that will filter the webjars
+    * Creates a new [[HttpRoutes]] that will filter the webjars
     *
     * @param config The configuration for this service
-    * @return The HttpService
+    * @return The HttpRoutes
     */
-  def apply[F[_]: Effect](config: Config[F]): HttpService[F] = Kleisli {
+  def apply[F[_]: Effect](config: Config[F]): HttpRoutes[F] = Kleisli {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       OptionT

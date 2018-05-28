@@ -12,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object ServerTestRoutes extends Http4sDsl[IO] {
 
-  val textPlain: Header = `Content-Type`(MediaType.`text/plain`, `UTF-8`)
+  val textPlain: Header = `Content-Type`(MediaType.text.plain, `UTF-8`)
 
   val connClose = Connection("close".ci)
   val connKeep = Connection("keep-alive".ci)
@@ -98,7 +98,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
       (Status.NotModified, Set[Header](connKeep), ""))
   )
 
-  def apply() = HttpService[IO] {
+  def apply() = HttpRoutes.of[IO] {
     case req if req.method == Method.GET && req.pathInfo == "/get" =>
       Ok("get")
 

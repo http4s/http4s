@@ -27,12 +27,10 @@ lazy val core = libraryProject("core")
       fs2Io,
       http4sWebsocket,
       log4s,
-      macroCompat,
       parboiled,
       scalaReflect(scalaOrganization.value, scalaVersion.value) % "provided",
       scalaCompiler(scalaOrganization.value, scalaVersion.value) % "provided"
     ),
-    macroParadiseSetting
   )
 
 lazy val testing = libraryProject("testing")
@@ -43,7 +41,6 @@ lazy val testing = libraryProject("testing")
       scalacheck,
       specs2Core
     ),
-    macroParadiseSetting
   )
   .dependsOn(core)
 
@@ -77,7 +74,7 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusHotspot
-    )
+    ),
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
@@ -128,7 +125,8 @@ lazy val servlet = libraryProject("servlet")
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       jettyServer % "test",
-      jettyServlet % "test"
+      jettyServlet % "test",
+      mockito % "test"
     )
   )
   .dependsOn(server % "compile;test->test")
@@ -174,6 +172,15 @@ lazy val argonaut = libraryProject("argonaut")
     )
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
+
+lazy val boopickle = libraryProject("boopickle")
+  .settings(
+    description := "Provides Boopickle codecs for http4s",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.boopickle
+    ),
+  )
+  .dependsOn(core, testing % "test->test")
 
 lazy val circe = libraryProject("circe")
   .settings(
@@ -228,6 +235,17 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
+lazy val mimedbGenerator = http4sProject("mimedb-generator")
+  .enablePlugins(PrivateProjectPlugin)
+  .settings(
+    description := "MimeDB source code generator",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.treeHugger,
+      Http4sPlugin.circeGeneric
+    )
+  )
+  .dependsOn(blazeClient, circe)
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .enablePlugins(PrivateProjectPlugin)
@@ -262,7 +280,6 @@ lazy val docs = http4sProject("docs")
       circeLiteral,
       cryptobits
     ),
-    macroParadiseSetting,
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -274,6 +291,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
+        mimedbGenerator,
         loadTest
       ),
     scalacOptions in Tut ~= {
@@ -374,7 +392,6 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
-    macroParadiseSetting,
     javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)

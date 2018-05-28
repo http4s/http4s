@@ -9,28 +9,28 @@ import org.http4s.server.middleware.URITranslation
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
   val config = ResourceService.Config[IO]("", executionContext = Http4sSpec.TestExecutionContext)
-  val s = resourceService(config)
+  val routes = resourceService(config)
 
   "ResourceService" should {
 
     "Respect UriTranslation" in {
-      val s2 = URITranslation.translateRoot("/foo")(s)
+      val app = URITranslation.translateRoot("/foo")(routes).orNotFound
 
       {
         val req = Request[IO](uri = uri("foo/testresource.txt"))
-        s2.orNotFound(req) must returnBody(testResource)
-        s2.orNotFound(req) must returnStatus(Status.Ok)
+        app(req) must returnBody(testResource)
+        app(req) must returnStatus(Status.Ok)
       }
 
       {
         val req = Request[IO](uri = uri("testresource.txt"))
-        s2.orNotFound(req) must returnStatus(Status.NotFound)
+        app(req) must returnStatus(Status.NotFound)
       }
     }
 
     "Serve available content" in {
       val req = Request[IO](uri = Uri.fromString("testresource.txt").yolo)
-      val rb = s.orNotFound(req)
+      val rb = routes.orNotFound(req)
 
       rb must returnBody(testResource)
       rb must returnStatus(Status.Ok)
@@ -45,7 +45,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
       rb must returnBody(testResourceGzipped)
       rb must returnStatus(Status.Ok)
-      rb must returnValue(haveMediaType(MediaType.`text/plain`))
+      rb must returnValue(haveMediaType(MediaType.text.plain))
       rb must returnValue(haveContentCoding(ContentCoding.gzip))
     }
 
@@ -58,13 +58,13 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
       rb must returnBody(testResource)
       rb must returnStatus(Status.Ok)
-      rb must returnValue(haveMediaType(MediaType.`text/plain`))
+      rb must returnValue(haveMediaType(MediaType.text.plain))
       rb must not(returnValue(haveContentCoding(ContentCoding.gzip)))
     }
 
     "Generate non on missing content" in {
       val req = Request[IO](uri = Uri.fromString("testresource.txtt").yolo)
-      s.orNotFound(req) must returnStatus(Status.NotFound)
+      routes.orNotFound(req) must returnStatus(Status.NotFound)
     }
 
     "Not send unmodified files" in {

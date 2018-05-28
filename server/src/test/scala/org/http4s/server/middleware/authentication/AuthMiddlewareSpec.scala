@@ -179,17 +179,15 @@ class AuthMiddlewareSpec extends Http4sSpec {
           case POST -> Root as _ => Ok()
         }
 
-      val regularService: HttpService[IO] = HttpService[IO] {
-        case GET -> Root => Ok()
-      }
+      val regularRoutes: HttpRoutes[IO] = HttpRoutes.pure(Response[IO](Ok))
 
       val middleware = AuthMiddleware(authUser)
 
       val service = middleware(authedService)
 
-      (service <+> regularService).orNotFound(Request[IO](method = Method.POST)) must returnStatus(
+      (service <+> regularRoutes).orNotFound(Request[IO](method = Method.POST)) must returnStatus(
         Unauthorized)
-      (service <+> regularService).orNotFound(Request[IO](method = Method.GET)) must returnStatus(
+      (service <+> regularRoutes).orNotFound(Request[IO](method = Method.GET)) must returnStatus(
         Unauthorized)
     }
 
@@ -203,8 +201,8 @@ class AuthMiddlewareSpec extends Http4sSpec {
           case POST -> Root as _ => Ok()
         }
 
-      val regularService: HttpService[IO] = HttpService[IO] {
-        case GET -> Root => Ok()
+      val regularRoutes: HttpRoutes[IO] = HttpRoutes.of {
+        case GET -> _ => Ok()
       }
 
       val middleware = AuthMiddleware.withFallThrough(authUser)
@@ -212,13 +210,12 @@ class AuthMiddlewareSpec extends Http4sSpec {
       val service = middleware(authedService)
 
       //Unauthenticated
-      (service <+> regularService).orNotFound(Request[IO](method = Method.POST)) must returnStatus(
+      (service <+> regularRoutes).orNotFound(Request[IO](method = Method.POST)) must returnStatus(
         NotFound)
       //Matched normally
-      (service <+> regularService).orNotFound(Request[IO](method = Method.GET)) must returnStatus(
-        Ok)
+      (service <+> regularRoutes).orNotFound(Request[IO](method = Method.GET)) must returnStatus(Ok)
       //Unmatched
-      (service <+> regularService).orNotFound(Request[IO](method = Method.PUT)) must returnStatus(
+      (service <+> regularRoutes).orNotFound(Request[IO](method = Method.PUT)) must returnStatus(
         NotFound)
 
     }

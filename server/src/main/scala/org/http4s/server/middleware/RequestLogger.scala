@@ -20,12 +20,12 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(service: HttpService[F])(
-      implicit ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
+  )(@deprecatedName('service) routes: HttpRoutes[F])(
+      implicit ec: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
     Kleisli { req =>
       if (!logBody)
-        OptionT(
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> service(req).value)
+        OptionT(Logger
+          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> routes(req).value)
       else
         OptionT
           .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
@@ -39,15 +39,42 @@ object RequestLogger {
               req.body
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
-                .onFinalize(
-                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                    logHeaders,
-                    logBody,
-                    redactHeadersWhen)(logger)
-                )
             )
 
-            service(changedRequest)
+            val response = routes(changedRequest)
+            response.attempt
+              .flatMap {
+                case Left(e) =>
+                  OptionT.liftF(
+                    Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                      logHeaders,
+                      logBody,
+                      redactHeadersWhen)(logger.info(_)) *>
+                      Sync[F].raiseError[Response[F]](e)
+                  )
+                case Right(resp) =>
+                  Sync[OptionT[F, ?]].pure(
+                    resp.withBodyStream(
+                      resp.body.onFinalize(
+                        Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                          logHeaders,
+                          logBody,
+                          redactHeadersWhen)(logger.info(_))
+                      )
+                    )
+                  )
+              }
+              .orElse(
+                OptionT(
+                  Logger
+                    .logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                      logHeaders,
+                      logBody,
+                      redactHeadersWhen
+                    )(logger.info(_))
+                    .as(Option.empty[Response[F]])
+                )
+              )
           }
     }
 }

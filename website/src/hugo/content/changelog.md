@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0-SNAPSHOT
+# v1.0.0-SNAPSHOT (unreleased)
 * Add accumulating version of circe `EntityDecoder` [#1647](https://github.com/http4/http4s/1647)
 * Add ETag support to `StaticFile` [#1652](https://github.com/http4s/http4s/pull/1652)
 * Reintroduce the option for fallthrough for authenticated services [#1670]((https://github.com/http4s/http4s/pull/1670)
@@ -22,10 +22,38 @@ it.
 * Add `Show[ETag]` instance [#1749](https://github.com/http4s/http4s/pull/1749)
 * Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
 * Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
+* Generate `MediaType`s from [MimeDB](https://github.com/jshttp/mime-db)(https://github.com/http4s/http4s/pull/1770)
+  * Continue phasing out `Renderable` with `MediaRange` and `MediaType`.
+  * Media types are now namespaced by main type.  This reduces backticks.  For example, `` MediaType.`text/plain` `` is replaced by `MediaType.text.plain`.
+* Remove `Registry`. [#1770](https://github.com/http4s/http4s/pull/1770)
+* Deprecate `HttpService`: [#1693](https://github.com/http4s/http4s/pull/1693)
+  * Introduces an `Http[F[_], G[_]]` type alias
+  * `HttpService` is replaced by `HttpRoutes`, which is an `Http[OptionT[F, ?], ?]`.  `HttpRoutes.of` replaces `HttpService` constructor from `PartialFunction`s.
+  * `HttpApp` is an `Http[F, F]`, representing a total HTTP function.
+* Add `BlockingHttp4sServlet` for use in Google App Engine and Servlet 2.5 containers.  Rename `Http4sServlet` to `AsyncHttp4sServlet`. [#1830](https://github.com/http4s/http4s/pull/1830)
+* Generalize `Logger` middleware to log with `String => Unit` instead of `logger.info(_)` [#1839](https://github.com/http4s/http4s/pull/1839)
+* Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Dependency upgrades:
-  * async-http-client-2.4.2
+  * async-http-client-2.4.5
   * blaze-0.14.0-M3
   * scala-xml-1.1.0
+
+# v0.18.11 (2018-05-10)
+* Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)
+* Fix deadlock in client loggers.  `RequestLogger.apply` and `ResponseLogger.apply` are each replaced by `apply0` to maintain binary compatibility. [#1837](https://github.com/http4s/http4s/pull/1837)
+* New `http4s-boopickle` module supports entity codecs through `boopickle.Pickler` [#1826](https://github.com/http4s/http4s/pull/1826)
+* Log as much of the response as is consumed in the client. Previously, failure to consume the entire body prevented any part of the body from being logged. [#1846](https://github.com/http4s/http4s/pull/1846)
+* Dependency upgrades:
+  * prometheus-client-java-0.4.0
+
+# v0.18.10 (2018-05-03)
+* Eliminate dependency on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
+* Add `Logging` middleware for client [#1820](https://github.com/http4s/http4s/pull/1820)
+* Make blaze-client tick wheel executor lazy [#1822](https://github.com/http4s/http4s/pull/1822)
+* Dependency upgrades:
+  * cats-effect-0.10.1
+  * fs2-0.10.4
+  * specs2-4.1.0
 
 # v0.18.9 (2018-04-17)
 * Log any exceptions when writing the header in blaze-server for HTTP/1 [#1781](https://github.com/http4s/http4s/pull/1781)
@@ -35,7 +63,6 @@ it.
 * Fix blaze-client to reset the connection start time on each invocation of the `F[DisposableResponse]`. This fixes the "timeout after 0 milliseconds" error. [#1792](https://github.com/http4s/http4s/pull/1792)
 * Depdency upgrades:
   * blaze-0.12.13
-  * cats-effect-0.10.1
   * http4s-websocket-0.2.1
   * specs2-4.0.4
   * tomcat-9.0.7

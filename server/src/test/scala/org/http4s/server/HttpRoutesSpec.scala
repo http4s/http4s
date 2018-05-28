@@ -4,30 +4,30 @@ package server
 import cats.effect._
 import cats.implicits._
 
-class HttpServiceSpec extends Http4sSpec {
+class HttpRoutesSpec extends Http4sSpec {
 
-  val srvc1 = HttpService[IO] {
+  val routes1 = HttpRoutes.of[IO] {
     case req if req.pathInfo == "/match" =>
       Response[IO](Status.Ok).withEntity("match").pure[IO]
 
     case req if req.pathInfo == "/conflict" =>
-      Response[IO](Status.Ok).withEntity("srvc1conflict").pure[IO]
+      Response[IO](Status.Ok).withEntity("routes1conflict").pure[IO]
 
     case req if req.pathInfo == "/notfound" =>
       Response[IO](Status.NotFound).withEntity("notfound").pure[IO]
   }
 
-  val srvc2 = HttpService[IO] {
-    case req if req.pathInfo == "/srvc2" =>
-      Response[IO](Status.Ok).withEntity("srvc2").pure[IO]
+  val routes2 = HttpRoutes.of[IO] {
+    case req if req.pathInfo == "/routes2" =>
+      Response[IO](Status.Ok).withEntity("routes2").pure[IO]
 
     case req if req.pathInfo == "/conflict" =>
-      Response[IO](Status.Ok).withEntity("srvc2conflict").pure[IO]
+      Response[IO](Status.Ok).withEntity("routes2conflict").pure[IO]
   }
 
-  val aggregate1 = srvc1 <+> srvc2
+  val aggregate1 = routes1 <+> routes2
 
-  "HttpService" should {
+  "HttpRoutes" should {
     "Return a valid Response from the first service of an aggregate" in {
       aggregate1.orNotFound(Request[IO](uri = uri("/match"))) must returnBody("match")
     }
@@ -37,11 +37,11 @@ class HttpServiceSpec extends Http4sSpec {
     }
 
     "Accept the first matching route in the case of overlapping paths" in {
-      aggregate1.orNotFound(Request[IO](uri = uri("/conflict"))) must returnBody("srvc1conflict")
+      aggregate1.orNotFound(Request[IO](uri = uri("/conflict"))) must returnBody("routes1conflict")
     }
 
     "Fall through the first service that doesn't match to a second matching service" in {
-      aggregate1.orNotFound(Request[IO](uri = uri("/srvc2"))) must returnBody("srvc2")
+      aggregate1.orNotFound(Request[IO](uri = uri("/routes2"))) must returnBody("routes2")
     }
 
     "Properly fall through two aggregated service if no path matches" in {

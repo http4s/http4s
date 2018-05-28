@@ -6,7 +6,6 @@ import cats.effect._
 import cats.implicits._
 import fs2._
 import java.io.File
-import org.http4s.MediaType._
 import org.http4s.headers._
 import org.http4s.Uri._
 import org.http4s.EntityEncoder._
@@ -49,7 +48,8 @@ class MultipartSpec extends Specification {
 
   def encodeAndDecodeMultipart = {
 
-    val field1 = Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(`text/plain`))
+    val field1 =
+      Part.formData[IO]("field1", "Text_Field_1", `Content-Type`(MediaType.text.plain))
     val field2 = Part.formData[IO]("field2", "Text_Field_2")
     val multipart = Multipart(Vector(field1, field2))
     val entity = EntityEncoder[IO, Multipart[IO]].toEntity(multipart)
@@ -87,7 +87,7 @@ class MultipartSpec extends Specification {
     val file = new File(getClass.getResource("/ball.png").toURI)
 
     val field1 = Part.formData[IO]("field1", "Text_Field_1")
-    val field2 = Part.fileData[IO]("image", file, `Content-Type`(`image/png`))
+    val field2 = Part.fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
 
     val multipart = Multipart[IO](Vector(field1, field2))
 
@@ -125,7 +125,7 @@ Content-Type: application/pdf
       """.replaceAllLiterally("\n", "\r\n")
     val header = Headers(
       `Content-Type`(
-        MediaType.multipart("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
+        MediaType.multipartType("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
     val request = Request[IO](
       method = Method.POST,
       uri = url,
@@ -153,7 +153,8 @@ I am a big moose
 
       """.replaceAllLiterally("\n", "\r\n")
     val header = Headers(
-      `Content-Type`(MediaType.multipart("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
+      `Content-Type`(
+        MediaType.multipartType("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
     val request = Request[IO](
       method = Method.POST,
       uri = url,

@@ -38,8 +38,9 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_]](service: HttpService[F], config: CORSConfig = DefaultCORSConfig)(
-      implicit F: Applicative[F]): HttpService[F] =
+  def apply[F[_]](
+      @deprecatedName('service) routes: HttpRoutes[F],
+      config: CORSConfig = DefaultCORSConfig)(implicit F: Applicative[F]): HttpRoutes[F] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
       def createOptionsResponse(origin: Header, acrm: Header): Response[F] =
@@ -85,7 +86,7 @@ object CORS {
           OptionT.some(createOptionsResponse(origin, acrm))
         case (_, Some(origin), _) =>
           if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString))) {
-            service(req).map { resp =>
+            routes(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)
             }
@@ -95,7 +96,7 @@ object CORS {
           }
         case _ =>
           // This request is out of scope for CORS
-          service(req)
+          routes(req)
       }
     }
 }

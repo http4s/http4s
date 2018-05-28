@@ -8,6 +8,7 @@ import com.typesafe.sbt.git.JGit
 import com.typesafe.sbt.pgp.PgpKeys.publishSigned
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import java.lang.{Runtime => JRuntime}
 import sbt.Keys._
 import sbt._
 import sbtrelease.ReleasePlugin.autoImport._
@@ -61,7 +62,7 @@ object Http4sPlugin extends AutoPlugin {
   ) ++ signingSettings
 
   override lazy val projectSettings: Seq[Setting[_]] = Seq(
-    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.4"),
+    scalaVersion := (sys.env.get("TRAVIS_SCALA_VERSION") orElse sys.env.get("SCALA_VERSION") getOrElse "2.12.6"),
 
     // Rig will take care of this on production builds.  We haven't fully
     // implemented that machinery yet, so we're going to live without this
@@ -70,6 +71,15 @@ object Http4sPlugin extends AutoPlugin {
 
     // https://github.com/tkawachi/sbt-doctest/issues/102
     scalacOptions in (Test, compile) -= "-Ywarn-unused:params",
+
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, minor)) if minor >= 12 =>
+          Seq("-Ybackend-parallelism", JRuntime.getRuntime.availableProcessors.toString)
+        case _ =>
+          Seq.empty
+      },
+    },
 
     http4sMimaVersion := {
       version.value match {
@@ -85,6 +95,7 @@ object Http4sPlugin extends AutoPlugin {
     }).toSet,
 
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
 
     scalafmtVersion := "1.4.0",
     scalafmt in Test := {
@@ -227,9 +238,6 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  val macroParadiseSetting =
-    libraryDependencies += compilerPlugin("org.scalamacros" % "paradise" % "2.1.1" cross CrossVersion.full)
-
   def latestPerMinorVersion(file: File): Map[(Int, Int), Version] =
     JGit(file).tags.collect {
       case ref if ref.getName.startsWith("refs/tags/v") =>
@@ -265,10 +273,11 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.1"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.2"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.5"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M3"
+  lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10.1"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
@@ -279,7 +288,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.3"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.4"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
@@ -295,10 +304,10 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.1" // YourKit hack
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.6.1"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
-  lazy val macroCompat                      = "org.typelevel"          %% "macro-compat"              % "1.1.1"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.3.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.18.3"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.4.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
@@ -306,9 +315,10 @@ object Http4sPlugin extends AutoPlugin {
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.0"
-  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.0.4"
+  lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
+  lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
   lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.7"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.15"

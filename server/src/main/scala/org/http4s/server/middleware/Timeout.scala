@@ -13,8 +13,8 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 object Timeout {
 
   @deprecated("Exists to support deprecated methods", "0.18.4")
-  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpService[F])(
-      implicit executionContext: ExecutionContext): HttpService[F] =
+  private def race[F[_]: Effect](timeoutResponse: F[Response[F]])(service: HttpRoutes[F])(
+      implicit executionContext: ExecutionContext): HttpRoutes[F] =
     service.mapF { resp =>
       OptionT(fs2AsyncRace(resp.value, timeoutResponse.map(_.some)).map(_.merge))
     }
@@ -49,17 +49,18 @@ object Timeout {
     * and is discarded.
     *
     * @param timeout Finite duration to wait before returning `response`
-    * @param service [[HttpService]] to transform
+    * @param routes [[HttpRoutes]] to transform
     */
   @deprecated(
-    "Use apply(FiniteDuration, F[Response[F]](HttpService[F]) instead. That cancels the losing effect.",
+    "Use apply(FiniteDuration, F[Response[F]](HttpRoutes[F]) instead. That cancels the losing effect.",
     "0.18.4")
-  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(service: HttpService[F])(
+  def apply[F[_]: Effect](timeout: Duration, response: F[Response[F]])(
+      @deprecatedName('service) routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
-      scheduler: Scheduler): HttpService[F] =
+      scheduler: Scheduler): HttpRoutes[F] =
     timeout match {
-      case fd: FiniteDuration => race(scheduler.effect.delay(response, fd))(service)
-      case _ => service
+      case fd: FiniteDuration => race(scheduler.effect.delay(response, fd))(routes)
+      case _ => routes
     }
 
   /** Transform the service to return a timeout response after the given
@@ -70,13 +71,13 @@ object Timeout {
     * @param timeout Finite duration to wait before returning `response`
     */
   @deprecated(
-    "Use apply(FiniteDuration)(HttpService[F]) instead. That cancels the losing effect.",
+    "Use apply(FiniteDuration)(HttpRoutes[F]) instead. That cancels the losing effect.",
     "0.18.4")
-  def apply[F[_]: Effect](timeout: Duration)(service: HttpService[F])(
+  def apply[F[_]: Effect](timeout: Duration)(@deprecatedName('service) routes: HttpRoutes[F])(
       implicit executionContext: ExecutionContext,
-      scheduler: Scheduler): HttpService[F] =
+      scheduler: Scheduler): HttpRoutes[F] =
     apply(timeout, Response[F](Status.InternalServerError).withBody("The service timed out."))(
-      service)
+      routes)
 
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
@@ -84,12 +85,14 @@ object Timeout {
     *
     * @param timeout Finite duration to wait before returning a `500
     * Internal Server Error` response
-    * @param service [[HttpService]] to transform
+    * @param service [[HttpRoutes]] to transform
     */
   def apply[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
-      service: HttpService[F])(implicit F: Concurrent[F], T: Timer[F]): HttpService[F] = {
+      @deprecatedName('service) routes: HttpRoutes[F])(
+      implicit F: Concurrent[F],
+      T: Timer[F]): HttpRoutes[F] = {
     val OTC = Concurrent[OptionT[F, ?]]
-    service
+    routes
       .mapF(respF => OTC.race(respF, OptionT.liftF(T.sleep(timeout) *> timeoutResponse)))
       .map(_.merge)
   }
@@ -100,11 +103,12 @@ object Timeout {
     *
     * @param timeout Finite duration to wait before returning a `500
     * Internal Server Error` response
-    * @param service [[HttpService]] to transform
+    * @param service [[HttpRoutes]] to transform
     */
-  def apply[F[_]](timeout: FiniteDuration)(
-      service: HttpService[F])(implicit F: Concurrent[F], T: Timer[F]): HttpService[F] =
+  def apply[F[_]](timeout: FiniteDuration)(@deprecatedName('service) routes: HttpRoutes[F])(
+      implicit F: Concurrent[F],
+      T: Timer[F]): HttpRoutes[F] =
     apply(
       timeout,
-      Response[F](Status.InternalServerError).withEntity("The service timed out.").pure[F])(service)
+      Response[F](Status.InternalServerError).withEntity("The response timed out.").pure[F])(routes)
 }

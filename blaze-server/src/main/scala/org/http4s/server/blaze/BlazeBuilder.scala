@@ -154,15 +154,11 @@ class BlazeBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  override def mountService(service: HttpService[F], prefix: String): Self = {
+  override def mountService(service: HttpRoutes[F], prefix: String): Self = {
     val prefixedService =
       if (prefix.isEmpty || prefix == "/") service
       else {
-        val newCaret = prefix match {
-          case "/" => 0
-          case x if x.startsWith("/") => x.length
-          case x => x.length + 1
-        }
+        val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
 
         service.local { req: Request[F] =>
           req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
@@ -344,4 +340,4 @@ object BlazeBuilder {
     )
 }
 
-private final case class ServiceMount[F[_]](service: HttpService[F], prefix: String)
+private final case class ServiceMount[F[_]](service: HttpRoutes[F], prefix: String)

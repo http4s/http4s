@@ -63,7 +63,7 @@ use `AuthMiddleware.withFallThrough`. Alternatively, to customize the behavior o
 wish to always return 401, use `AuthMiddleware.noSpider` and specify the `onAuthFailure` handler.
 
 Finally, we can create our `AuthedService`, and wrap it with our authentication middleware, getting the
-final `HttpService` to be exposed. Notice that we now have access to the user object in the service implementation:
+final `HttpRoutes` to be exposed. Notice that we now have access to the user object in the service implementation:
 
 ```tut:book:silent
 val authedService: AuthedService[User, IO] =
@@ -71,7 +71,7 @@ val authedService: AuthedService[User, IO] =
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
 
-val service: HttpService[IO] = middleware(authedService)
+val service: HttpRoutes[IO] = middleware(authedService)
 ```
 
 ## Returning an Error Response
@@ -93,7 +93,7 @@ val authUser: Kleisli[IO, Request[IO], Either[String,User]] = Kleisli(_ => IO(??
 val onFailure: AuthedService[String, IO] = Kleisli(req => OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
-val service: HttpService[IO] = middleware(authedService)
+val service: HttpRoutes[IO] = middleware(authedService)
 ```
 
 ## Implementing authUser

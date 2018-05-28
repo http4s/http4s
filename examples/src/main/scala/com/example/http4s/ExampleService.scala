@@ -5,7 +5,7 @@ import cats.implicits._
 import fs2.{Scheduler, Stream}
 import io.circe.Json
 import org.http4s._
-import org.http4s.MediaType._
+import org.http4s.MediaType
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
@@ -22,7 +22,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   // service with the longest matching prefix.
   def service(
       implicit scheduler: Scheduler,
-      executionContext: ExecutionContext = ExecutionContext.global): HttpService[F] =
+      executionContext: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
     Router[F](
       "" -> rootService,
       "/auth" -> authService,
@@ -31,8 +31,8 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
   def rootService(
       implicit scheduler: Scheduler,
-      executionContext: ExecutionContext): HttpService[F] =
-    HttpService[F] {
+      executionContext: ExecutionContext): HttpRoutes[F] =
+    HttpRoutes.of[F] {
       case GET -> Root =>
         // Supports Play Framework template -- see src/main/twirl.
         Ok(html.index())
@@ -60,7 +60,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case GET -> Root / "content-change" =>
         // EntityEncoder typically deals with appropriate headers, but they can be overridden
-        Ok("<h2>This will have an html content type!</h2>", `Content-Type`(`text/html`))
+        Ok("<h2>This will have an html content type!</h2>", `Content-Type`(MediaType.text.html))
 
       case req @ GET -> "static" /: path =>
         // captures everything after "/static" into `path`
@@ -72,14 +72,14 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
       //////////////// Dealing with the message body ////////////////
       case req @ POST -> Root / "echo" =>
         // The body can be used in the response
-        Ok(req.body).map(_.putHeaders(`Content-Type`(`text/plain`)))
+        Ok(req.body).map(_.putHeaders(`Content-Type`(MediaType.text.plain)))
 
       case GET -> Root / "echo" =>
         Ok(html.submissionForm("echo data"))
 
       case req @ POST -> Root / "echo2" =>
         // Even more useful, the body can be transformed in the response
-        Ok(req.body.drop(6), `Content-Type`(`text/plain`))
+        Ok(req.body.drop(6), `Content-Type`(MediaType.text.plain))
 
       case GET -> Root / "echo2" =>
         Ok(html.submissionForm("echo data"))
@@ -146,7 +146,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
     // http4s intends to be a forward looking library made with http2.0 in mind
     val data = <html><body><img src="image.jpg"/></body></html>
     Ok(data)
-      .withContentType(Some(`Content-Type`(`text/html`)))
+      .withContentType(Some(`Content-Type`(MediaType.text.`text/html`)))
       .push("/image.jpg")(req)
        */
 
@@ -194,7 +194,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   // AuthedService to an authentication store.
   val basicAuth: AuthMiddleware[F, String] = BasicAuth(realm, authStore)
 
-  def authService: HttpService[F] =
+  def authService: HttpRoutes[F] =
     basicAuth(AuthedService[String, F] {
       // AuthedServices look like Services, but the user is extracted with `as`.
       case GET -> Root / "protected" as user =>

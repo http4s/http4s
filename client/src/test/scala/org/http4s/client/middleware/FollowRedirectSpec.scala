@@ -15,25 +15,27 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
   private val loopCounter = new AtomicInteger(0)
 
-  val service = HttpService[IO] {
-    case req @ _ -> Root / "ok" =>
-      Ok(
-        req.body,
-        Header("X-Original-Method", req.method.toString),
-        Header(
-          "X-Original-Content-Length",
-          req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
-        Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
-      )
-    case _ -> Root / "different-authority" =>
-      TemporaryRedirect(Location(uri("http://www.example.com/ok")))
-    case _ -> Root / status =>
-      Response[IO](status = Status.fromInt(status.toInt).yolo)
-        .putHeaders(Location(uri("/ok")))
-        .pure[IO]
-  }
+  val app = HttpRoutes
+    .of[IO] {
+      case req @ _ -> Root / "ok" =>
+        Ok(
+          req.body,
+          Header("X-Original-Method", req.method.toString),
+          Header(
+            "X-Original-Content-Length",
+            req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
+          Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
+        )
+      case _ -> Root / "different-authority" =>
+        TemporaryRedirect(Location(uri("http://www.example.com/ok")))
+      case _ -> Root / status =>
+        Response[IO](status = Status.fromInt(status.toInt).yolo)
+          .putHeaders(Location(uri("/ok")))
+          .pure[IO]
+    }
+    .orNotFound
 
-  val defaultClient = Client.fromHttpService(service)
+  val defaultClient = Client.fromHttpApp(app)
   val client = FollowRedirect(3)(defaultClient)
 
   case class RedirectResponse(
@@ -131,12 +133,14 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
     }.pendingUntilFixed
 
     "Not redirect more than 'maxRedirects' iterations" in {
-      val statefulService = HttpService[IO] {
-        case GET -> Root / "loop" =>
-          val body = loopCounter.incrementAndGet.toString
-          MovedPermanently(Location(uri("/loop"))).map(_.withEntity(body))
-      }
-      val client = FollowRedirect(3)(Client.fromHttpService(statefulService))
+      val statefulApp = HttpRoutes
+        .of[IO] {
+          case GET -> Root / "loop" =>
+            val body = loopCounter.incrementAndGet.toString
+            MovedPermanently(Location(uri("/loop"))).map(_.withEntity(body))
+        }
+        .orNotFound
+      val client = FollowRedirect(3)(Client.fromHttpApp(statefulApp))
       client.fetch(Request[IO](uri = uri("http://localhost/loop"))) {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => IO.pure(-1)
@@ -145,7 +149,7 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
     "Dispose of original response when redirecting" in {
       var disposed = 0
-      val disposingService = service.orNotFound.map { mr =>
+      val disposingService = app.map { mr =>
         DisposableResponse(mr, IO { disposed = disposed + 1; () })
       }
       val client = FollowRedirect(3)(Client(disposingService, IO.unit))

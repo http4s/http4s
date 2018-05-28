@@ -10,7 +10,7 @@ import org.http4s.multipart.Part
 class MultipartHttpEndpoint[F[_]](fileService: FileService[F])(implicit F: Sync[F])
     extends Http4sDsl[F] {
 
-  val service: HttpService[F] = HttpService {
+  val service: HttpRoutes[F] = HttpRoutes.of {
     case GET -> Root / ApiVersion / "multipart" =>
       Ok("Send a file (image, sound, etc) via POST Method")
 

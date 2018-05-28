@@ -20,14 +20,14 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(service: HttpService[F])(
+  )(@deprecatedName('service) routes: HttpRoutes[F])(
       implicit F: Effect[F],
-      ec: ExecutionContext = ExecutionContext.global): HttpService[F] =
+      ec: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
     Kleisli { req =>
-      service(req).semiflatMap { response =>
+      routes(req).semiflatMap { response =>
         if (!logBody)
           Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-            logger) *> F.delay(response)
+            logger.info(_)) *> F.delay(response)
         else
           async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
             vec =>
@@ -44,7 +44,7 @@ object ResponseLogger {
                     Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logger)
+                      redactHeadersWhen)(logger.info(_))
                   }
               )
           }

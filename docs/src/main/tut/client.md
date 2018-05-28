@@ -32,7 +32,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
@@ -103,13 +103,96 @@ It is best to run your `F` "at the end of the world."  The "end of
 the world" varies by context:
 
 * In a command line app, it's your main method.
-* In an `HttpService[F]`, an `F[Response[F]]` is returned to be run by the
+* In an `HttpApp[F]`, an `F[Response[F]]` is returned to be run by the
   server.
 * Here in the REPL, the last line is the end of the world.  Here we go:
 
 ```tut:book
 val greetingsStringEffect = greetingList.map(_.mkString("\n"))
 greetingsStringEffect.unsafeRunSync
+```
+
+## Constructing a URI
+
+Before you can make a call, you'll need a `Uri` to represent the endpoint you
+want to access.
+
+There are a number of ways to construct a `Uri`.
+
+If you have a literal string, you can use `Uri.uri(...)`:
+
+```tut:book
+Uri.uri("https://my-awesome-service.com/foo/bar?wow=yeah")
+```
+
+This only works with literal strings because it uses a macro to validate the URI
+format at compile-time.
+
+Otherwise, you'll need to use `Uri.fromString(...)` and handle the case where
+validation fails:
+
+```tut:book
+val validUri = "https://my-awesome-service.com/foo/bar?wow=yeah"
+val invalidUri = "yeah whatever"
+
+val uri: Either[ParseFailure, Uri] = Uri.fromString(validUri)
+
+val parseFailure: Either[ParseFailure, Uri] = Uri.fromString(invalidUri)
+```
+
+You can also build up a URI incrementally, e.g.:
+
+```tut:book
+val baseUri = Uri.uri("http://foo.com")
+val withPath = baseUri.withPath("/bar/baz")
+val withQuery = withPath.withQueryParam("hello", "world")
+```
+
+## Examples
+
+### Send a GET request, treating the response as a string
+
+You can send a GET by calling the `expect` method on the client, passing a `Uri`:
+
+```tut:book
+httpClient.expect[String](Uri.uri("https://google.com/"))
+```
+
+If you need to do something more complicated like setting request headers, you
+can build up a request object and pass that to `expect`:
+
+```tut:book
+import org.http4s.client.dsl.io._
+import org.http4s.headers._
+import org.http4s.MediaType
+
+val request = GET(
+  Uri.uri("https://my-lovely-api.com/"),
+  Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),
+  Accept(MediaType.application.json)
+)
+
+httpClient.expect[String](request)
+```
+
+### Post a form, decoding the JSON response to a case class
+
+```tut:book
+case class AuthResponse(access_token: String)
+
+// See the JSON page for details on how to define this
+implicit val authResponseEntityDecoder: EntityDecoder[IO, AuthResponse] = null
+
+val postRequest = POST(
+  Uri.uri("https://my-lovely-api.com/oauth2/token"),
+  UrlForm(
+    "grant_type" -> "client_credentials",
+    "client_id" -> "my-awesome-client",
+    "client_secret" -> "s3cr3t"
+  )
+)
+
+httpClient.expect[AuthResponse](postRequest)
 ```
 
 ## Cleaning up

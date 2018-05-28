@@ -2,11 +2,11 @@ package org.http4s
 package parser
 
 import org.http4s.MediaRange._
-import org.http4s.MediaType._
+import org.http4s.MediaType
+import org.http4s.testing._
 import org.specs2.mutable.Specification
 
 class MediaRangeSpec extends Specification with Http4s {
-
   def ext = Map("foo" -> "bar")
 
   "MediaRanges" should {
@@ -27,8 +27,8 @@ class MediaRangeSpec extends Specification with Http4s {
     }
 
     "Be satisfiedBy MediaTypes correctly" in {
-      `text/*`.satisfiedBy(`text/css`) must be_==(true)
-      `text/*`.satisfiedBy(`text/css`) must be_==(true)
+      `text/*`.satisfiedBy(MediaType.text css) must be_==(true)
+      `text/*`.satisfiedBy(MediaType.text css) must be_==(true)
       `text/*`.satisfiedBy(`audio/aiff`) must be_==(false)
     }
 
@@ -41,35 +41,35 @@ class MediaRangeSpec extends Specification with Http4s {
   "MediaTypes" should {
 
     "Perform equality correctly" in {
-      `text/html` must be_==(`text/html`)
+      MediaType.text.html must be_==(MediaType.text.html)
 
-      `text/html`.withExtensions(ext) must be_!=(`text/html`)
+      MediaType.text.html.withExtensions(ext) must be_!=(MediaType.text.html)
 
-      `text/html` must be_!=(`text/css`)
+      MediaType.text.html must be_!=(MediaType.text css)
     }
 
     "Be satisfiedBy MediaTypes correctly" in {
-      `text/html`.satisfiedBy(`text/css`) must be_==(false)
-      `text/html`.satisfiedBy(`text/html`) must be_==(true)
+      MediaType.text.html.satisfiedBy(MediaType.text css) must be_==(false)
+      MediaType.text.html.satisfiedBy(MediaType.text.html) must be_==(true)
 
-      `text/html`.satisfies(`text/css`) must be_==(false)
+      MediaType.text.html.satisfies(MediaType.text css) must be_==(false)
     }
 
     "Not be satisfied by MediaRanges" in {
-      `text/html`.satisfiedBy(`text/*`) must be_==(false)
+      MediaType.text.html.satisfiedBy(`text/*`) must be_==(false)
     }
 
     "Satisfy MediaRanges" in {
-      `text/html`.satisfies(`text/*`) must be_==(true)
-      `text/*`.satisfies(`text/html`) must be_==(false)
+      MediaType.text.html.satisfies(`text/*`) must be_==(true)
+      `text/*`.satisfies(MediaType.text.html) must be_==(false)
     }
 
     "be satisfied regardless of extensions" in {
-      `text/html`.withExtensions(ext).satisfies(`text/*`) must be_==(true)
-      `text/*`.satisfies(`text/html`.withExtensions(ext)) must be_==(false)
+      MediaType.text.html.withExtensions(ext).satisfies(`text/*`) must be_==(true)
+      `text/*`.satisfies(MediaType.text.html.withExtensions(ext)) must be_==(false)
 
-      `text/html`.satisfies(`text/*`.withExtensions(ext)) must be_==(true)
-      `text/*`.withExtensions(ext).satisfies(`text/html`) must be_==(false)
+      MediaType.text.html.satisfies(`text/*`.withExtensions(ext)) must be_==(true)
+      `text/*`.withExtensions(ext).satisfies(MediaType.text.html) must be_==(false)
     }
   }
 

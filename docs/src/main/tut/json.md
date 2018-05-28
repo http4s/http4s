@@ -229,7 +229,7 @@ case class Hello(greeting: String)
 
 implicit val decoder = jsonOf[IO, User]
 
-val jsonService = HttpService[IO] {
+val jsonService = HttpRoutes.of[IO] {
   case req @ POST -> Root / "hello" =>
     for {
 	  // Decode a User request

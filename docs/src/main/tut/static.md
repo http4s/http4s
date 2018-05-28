@@ -22,7 +22,7 @@ import org.http4s._
 import org.http4s.dsl.io._
 import java.io.File
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
     StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
@@ -37,7 +37,7 @@ deliver them from there. Append to the `List` as needed.
 def static(file: String, request: Request[IO]) =
   StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
     static(path, request)
 }
@@ -64,7 +64,7 @@ import org.http4s.server.staticcontent.WebjarService.{WebjarAsset, Config}
 def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(".js")
 
-val webjars: HttpService[IO] = webjarService(
+val webjars: HttpRoutes[IO] = webjarService(
   Config(
     filter = isJsAsset
   )

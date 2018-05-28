@@ -11,7 +11,6 @@ import org.http4s.util.bug
 import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext
 
 /**
   * Determines the mode of I/O used for reading request bodies and writing response bodies.
@@ -22,7 +21,7 @@ sealed abstract class ServletIo[F[_]: Async] {
   protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F]
 
   /** May install a listener on the servlet response. */
-  protected[servlet] def initWriter(servletResponse: HttpServletResponse)(implicit ec: ExecutionContext): BodyWriter[F]
+  protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter[F]
 }
 
 /**
@@ -36,7 +35,7 @@ final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends Servlet
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse)(implicit ec: ExecutionContext): BodyWriter[F] = { (response: Response[F], timeout: F[Unit]) =>
+      servletResponse: HttpServletResponse): BodyWriter[F] = { (response: Response[F], timeout: F[Unit]) =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.chunks
@@ -90,7 +89,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
         } else if (len == 0) {
           logger.warn("Encountered a read of length 0")
           cb(rightSome(Chunk.empty))
-        } else cb(rightSome(Chunk.bytes(buf)))
+        } else cb(rightSome(Chunk.bytes(buf, 0, len)))
       }
 
       if (in.isFinished) Stream.empty
@@ -165,7 +164,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
     }
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse)(implicit ec: ExecutionContext): BodyWriter[F] = {
+      servletResponse: HttpServletResponse): BodyWriter[F] = {
     sealed trait State
     case object Init extends State
     case object Ready extends State

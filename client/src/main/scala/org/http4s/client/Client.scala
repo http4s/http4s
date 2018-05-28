@@ -10,6 +10,7 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.syntax.kleisli._
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
 import org.log4s.getLogger
@@ -100,7 +101,7 @@ final case class Client[F[_]](
     toKleisli(f)
 
   /**
-    * Returns this client as an [[HttpService]].  It is the responsibility of
+    * Returns this client as an [[HttpApp]].  It is the responsibility of
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
@@ -108,6 +109,23 @@ final case class Client[F[_]](
     * [[toKleisli]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */
+  def toHttpApp: HttpApp[F] =
+    open
+      .map {
+        case DisposableResponse(response, dispose) =>
+          response.copy(body = response.body.onFinalize(dispose))
+      }
+
+  /**
+    * Returns this client as an [[HttpService]].  It is the
+    * responsibility of callers of this service to run the response
+    * body to dispose of the underlying HTTP connection.
+    *
+    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
+    * [[toKleisli]], and [[streaming]] are safer alternatives, as their
+    * signatures guarantee disposal of the HTTP connection.
+    */
+  @deprecated("Use toHttpApp. Call `.mapF(OptionT.liftF)` if OptionT is really desired.", "0.19")
   def toHttpService: HttpService[F] =
     open
       .map {
@@ -280,7 +298,16 @@ object Client {
     *
     * @param service the service to respond to requests to this client
     */
-  def fromHttpService[F[_]](service: HttpService[F])(implicit F: Sync[F]): Client[F] = {
+  @deprecated("Use fromHttpApp instead. Call service.orNotFound to turn into an HttpApp.", "0.19")
+  def fromHttpService[F[_]](service: HttpRoutes[F])(implicit F: Sync[F]): Client[F] =
+    fromHttpApp(service.orNotFound)
+
+  /** Creates a client from the specified [[HttpApp]].  Useful for
+    * generating pre-determined responses for requests in testing.
+    *
+    * @param app the [[HttpApp]] to respond to requests to this client
+    */
+  def fromHttpApp[F[_]](app: HttpApp[F])(implicit F: Sync[F]): Client[F] = {
     val isShutdown = new AtomicBoolean(false)
 
     def interruptible(body: EntityBody[F], disposed: AtomicBoolean): Stream[F, Byte] = {
@@ -304,11 +331,11 @@ object Client {
         .through(killable("client was shut down", isShutdown))
     }
 
-    def disposableService(service: HttpService[F]): Kleisli[F, Request[F], DisposableResponse[F]] =
+    def disposableApp: Kleisli[F, Request[F], DisposableResponse[F]] =
       Kleisli { req: Request[F] =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.withBodyStream(interruptible(req.body, disposed))
-        service(req0).getOrElse(Response.notFound).map { resp =>
+        app(req0).map { resp =>
           DisposableResponse(
             resp.copy(body = interruptible(resp.body, disposed)),
             F.delay(disposed.set(true))
@@ -316,7 +343,7 @@ object Client {
         }
       }
 
-    Client(disposableService(service), F.delay(isShutdown.set(true)))
+    Client(disposableApp, F.delay(isShutdown.set(true)))
   }
 
   private def DefaultOnError[F[_]](resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
