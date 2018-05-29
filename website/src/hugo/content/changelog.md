@@ -34,9 +34,23 @@ it.
 * Generalize `Logger` middleware to log with `String => Unit` instead of `logger.info(_)` [#1839](https://github.com/http4s/http4s/pull/1839)
 * Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Dependency upgrades:
-  * async-http-client-2.4.5
+  * async-http-client-2.4.7
   * blaze-0.14.0-M3
+  * prometheus-0.4.0
   * scala-xml-1.1.0
+
+# v0.18.12 (2018-05-27)
+* Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
+* Log requests with an unconsumed body [#1861](https://github.com/http4s/http4s/pull/1861)
+* Log requests when the service returns `None` or raises an error [#1875](https://github.com/http4s/http4s/pull/1875)
+* Support streaming parsing of multipart and storing large parts as temp files [#1865](https://github.com/http4s/http4s/pull/1865)
+* Add an OkHttp client, with HTTP/2 support [#1864](https://github.com/http4s/http4s/pull/1864)
+* Add `Host` header to requests to `Client.fromHttpService` if the request URI is absolute [#1874](https://github.com/http4s/http4s/pull/1874)
+* Log `"service returned None"` or `"service raised error"` in service `ResponseLogger` when the service does not produce a successful response [#1879](https://github.com/http4s/http4s/pull/1879)
+* Dependency upgrades:
+  * jetty-9.4.10.v20180503
+  * json4s-3.5.4
+  * tomcat-9.0.8
 
 # v0.18.11 (2018-05-10)
 * Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)

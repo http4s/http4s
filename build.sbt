@@ -11,6 +11,11 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
+// check for library updates whenever the project is [re]load
+onLoad in Global := { s =>
+  "dependencyUpdates" :: s
+}
+
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -93,7 +98,7 @@ lazy val client = libraryProject("client")
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
-    libraryDependencies += blaze
+    libraryDependencies += blaze,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -119,6 +124,17 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val okHttpClient = libraryProject("okhttp-client")
+  .settings(
+    description := "okhttp implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.okhttp
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
+
 lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
@@ -127,7 +143,7 @@ lazy val servlet = libraryProject("servlet")
       jettyServer % "test",
       jettyServlet % "test",
       mockito % "test"
-    )
+    ),
   )
   .dependsOn(server % "compile;test->test")
 
@@ -198,7 +214,7 @@ lazy val json4s = libraryProject("json4s")
     libraryDependencies ++= Seq(
       jawnJson4s,
       json4sCore
-    )
+    ),
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -222,7 +238,7 @@ lazy val scalaXml = libraryProject("scala-xml")
     libraryDependencies ++= scalaVersion(VersionNumber(_).numbers match {
       case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
       case _ => Seq.empty
-    }).value
+    }).value,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -438,7 +454,8 @@ lazy val examplesWar = exampleProject("examples-war")
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       logbackClassic % "runtime"
-    )
+    ),
+    containerLibs in Jetty := List(jettyRunner),
   )
   .dependsOn(servlet)
 
