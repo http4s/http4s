@@ -392,4 +392,54 @@ val averageTemperatureService = HttpService[IO] {
 }
 ```
 
+#### Optional query parameters
+
+To accept a optional query parameter a `OptionalQueryParamDecoderMatcher` can be used.
+
+```tut:book
+import java.time.Year
+import org.http4s.client.dsl.io._
+
+implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
+
+object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Year]("year")
+
+def getAverageTemperatureForCurrentYear: IO[String] = ???
+def getAverageTemperatureForYear(y: Year): IO[String] = ???
+
+val service2 = HttpService[IO] {
+  case GET -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
+    maybeYear match {
+      case None =>
+        Ok(getAverageTemperatureForCurrentYear)
+      case Some(year) =>
+        Ok(getAverageTemperatureForYear(year))
+    }
+}
+```
+
+#### Missing required query parameters
+
+A request with a missing required query parameter will fall through to the following `case` statements and may eventually return a 404. To provide contextual error handling, optional query parameters or fallback routes can be used.
+
+#### Invalid query parameter handling
+
+To validate query parsing you can use `ValidatingQueryParamDecoderMatcher` which returns a `ParseFailure` if the parameter cannot be decoded. Be careful not to return the raw invalid value in a `BadRequest` because it could be used for [Cross Site Scripting](https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)) attacks.
+
+```tut:book
+implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
+  QueryParamDecoder[Int].map(Year.of)
+
+object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
+
+val service = HttpService[IO] {
+  case GET -> Root / "temperature" :? YearQueryParamMatcher(yearValidated) =>
+    yearValidated.fold(
+      parseFailures => BadRequest("unable to parse argument year"),
+      year => Ok(getAverageTemperatureForYear(year))
+    )
+}
+```
+
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
