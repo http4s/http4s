@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.12 (2018-05-27)
+# v0.18.12 (2018-05-28)
 * Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
 * Log requests with an unconsumed body [#1861](https://github.com/http4s/http4s/pull/1861)
 * Log requests when the service returns `None` or raises an error [#1875](https://github.com/http4s/http4s/pull/1875)
