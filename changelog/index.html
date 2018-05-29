@@ -31,7 +31,7 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.19/">v1.0 (development)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
   <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
@@ -122,9 +122,29 @@ it.</p>
 <li>Dependency upgrades:
 
 <ul>
-<li>async-http-client-2.4.5</li>
+<li>async-http-client-2.4.7</li>
 <li>blaze-0.14.0-M3</li>
+<li>prometheus-0.4.0</li>
 <li>scala-xml-1.1.0</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-12-2018-05-27">v0.18.12 (2018-05-27)</h1>
+
+<ul>
+<li>Deprecated <code>Part.empty</code> <a href="https://github.com/http4s/http4s/pull/1858">#1858</a></li>
+<li>Log requests with an unconsumed body <a href="https://github.com/http4s/http4s/pull/1861">#1861</a></li>
+<li>Log requests when the service returns <code>None</code> or raises an error <a href="https://github.com/http4s/http4s/pull/1875">#1875</a></li>
+<li>Support streaming parsing of multipart and storing large parts as temp files <a href="https://github.com/http4s/http4s/pull/1865">#1865</a></li>
+<li>Add an OkHttp client, with HTTP/2 support <a href="https://github.com/http4s/http4s/pull/1864">#1864</a></li>
+<li>Add <code>Host</code> header to requests to <code>Client.fromHttpService</code> if the request URI is absolute <a href="https://github.com/http4s/http4s/pull/1874">#1874</a></li>
+<li>Log <code>&quot;service returned None&quot;</code> or <code>&quot;service raised error&quot;</code> in service <code>ResponseLogger</code> when the service does not produce a successful response <a href="https://github.com/http4s/http4s/pull/1879">#1879</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>jetty-9.4.10.v20180503</li>
+<li>json4s-3.5.4</li>
+<li>tomcat-9.0.8</li>
 </ul></li>
 </ul>
 
