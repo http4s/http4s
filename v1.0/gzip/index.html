@@ -31,7 +31,7 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.19/">v1.0 (development)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
   <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
@@ -106,7 +106,7 @@ in its body. We&rsquo;ll use <code>as[String]</code> to examine the body.</p>
   case _ =&gt;
     Ok(&quot;I repeat myself when I'm under stress. &quot; * 3)
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$55873/2135420582@9f2b823)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$57291/495344824@786d8e4e)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -128,7 +128,7 @@ body.length
 // import org.http4s.server.middleware._
 
 val zipService = GZip(service)
-// zipService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$56136/1978823783@16c04cac)
+// zipService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.middleware.GZip$$$Lambda$57554/369653893@40b477ec)
 
 // Do not call 'unsafeRun' in your code - see note at bottom.
 val response = zipService.orNotFound(request).unsafeRunSync
