@@ -2,32 +2,32 @@ package org.http4s
 package server
 package middleware
 
-import cats.Functor
-import cats.data.{NonEmptyList, OptionT}
-import cats.effect.Effect
-import cats.syntax.eq._
-import cats.syntax.functor._
+import cats.{FlatMap, Functor, ~>}
+import cats.data.{Kleisli, NonEmptyList}
+import cats.effect.Sync
+import cats.implicits._
 import fs2._
 import org.http4s.headers._
 
 object ChunkAggregator {
-  def apply[F[_]](@deprecatedName('service) routes: HttpRoutes[F])(
-      implicit F: Effect[F]): HttpRoutes[F] =
-    routes.flatMapF { response =>
-      OptionT.liftF(
+  def apply[F[_], G[_], A](f: G ~> F)(@deprecatedName('service) http: Kleisli[F, A, Response[G]])(
+      implicit F: FlatMap[F],
+      G: Sync[G]): Kleisli[F, A, Response[G]] =
+    http.flatMapF { response =>
+      f(
         response.body.chunks.compile
           .fold((Segment.empty[Byte], 0L)) {
             case ((seg, len), c) => (seg ++ c.toSegment, len + c.size)
           }
           .map {
             case (body, len) =>
-              removeChunkedTransferEncoding[F](response.withBodyStream(Stream.segment(body)), len)
+              removeChunkedTransferEncoding[G](response.withBodyStream(Stream.segment(body)), len)
           })
     }
 
-  private def removeChunkedTransferEncoding[F[_]: Functor](
-      resp: Response[F],
-      len: Long): Response[F] =
+  private def removeChunkedTransferEncoding[G[_]: Functor](
+      resp: Response[G],
+      len: Long): Response[G] =
     resp.transformHeaders { headers =>
       val hs = headers.flatMap {
         // Remove the `TransferCoding.chunked` value from the `Transfer-Encoding` header,
