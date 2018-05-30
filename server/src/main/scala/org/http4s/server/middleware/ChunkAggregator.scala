@@ -10,9 +10,8 @@ import fs2._
 import org.http4s.headers._
 
 object ChunkAggregator {
-  def apply[F[_], G[_], A](f: G ~> F)(@deprecatedName('service) http: Kleisli[F, A, Response[G]])(
-      implicit F: FlatMap[F],
-      G: Sync[G]): Kleisli[F, A, Response[G]] =
+  def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(
+      @deprecatedName('service) http: Kleisli[F, A, Response[G]]): Kleisli[F, A, Response[G]] =
     http.flatMapF { response =>
       f(
         response.body.chunks.compile

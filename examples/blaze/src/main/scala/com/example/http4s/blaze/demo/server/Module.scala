@@ -10,7 +10,7 @@ import com.example.http4s.blaze.demo.server.endpoints.auth.{
 }
 import com.example.http4s.blaze.demo.server.service.{FileService, GitHubService}
 import fs2.Scheduler
-import org.http4s.{HttpRoutes, Request}
+import org.http4s.HttpRoutes
 import org.http4s.client.Client
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
@@ -32,9 +32,8 @@ class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], S: Schedu
   val fileHttpEndpoint: HttpRoutes[F] =
     new FileHttpEndpoint[F](fileService).service
 
-  val nonStreamFileHttpEndpoint =
-    // TODO type inference crashes compiler on 2.12.6. Why?
-    ChunkAggregator[OptionT[F, ?], F, Request[F]](OptionT.liftK[F])(fileHttpEndpoint)
+  val nonStreamFileHttpEndpoint: HttpRoutes[F] =
+    ChunkAggregator(OptionT.liftK[F])(fileHttpEndpoint)
 
   private val hexNameHttpEndpoint: HttpRoutes[F] =
     new HexNameHttpEndpoint[F].service
