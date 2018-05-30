@@ -22,7 +22,7 @@ it.
 * Add `Show[ETag]` instance [#1749](https://github.com/http4s/http4s/pull/1749)
 * Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
 * Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
-* Generate `MediaType`s from [MimeDB](https://github.com/jshttp/mime-db)(https://github.com/http4s/http4s/pull/1770)
+* Generate `MediaType`s from [MimeDB](https://github.com/jshttp/mime-db) [#1770](https://github.com/http4s/http4s/pull/1770)
   * Continue phasing out `Renderable` with `MediaRange` and `MediaType`.
   * Media types are now namespaced by main type.  This reduces backticks.  For example, `` MediaType.`text/plain` `` is replaced by `MediaType.text.plain`.
 * Remove `Registry`. [#1770](https://github.com/http4s/http4s/pull/1770)
