@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.applicative._
 import org.http4s.dsl.io._
@@ -9,7 +10,7 @@ import org.http4s.dsl.io._
 class UrlFormLifterSpec extends Http4sSpec {
   val urlForm = UrlForm("foo" -> "bar")
 
-  val app = UrlFormLifter(HttpRoutes.of[IO] {
+  val app = UrlFormLifter(OptionT.liftK[IO])(HttpRoutes.of[IO] {
     case r @ POST -> _ =>
       r.uri.multiParams.get("foo") match {
         case Some(ps) =>
