@@ -31,11 +31,12 @@ class ChunkAggregatorSpec extends Http4sSpec {
           Ok(body, `Transfer-Encoding`(NonEmptyList(TransferCoding.chunked, transferCodings)))
             .map(_.removeHeader(`Content-Length`))))
 
-      ChunkAggregator(routes).run(Request()).value.unsafeRunSync must beSome.like {
-        case response =>
-          response.status must_== Ok
-          responseCheck(response)
-      }
+      ChunkAggregator(OptionT.liftK[IO])(routes).run(Request()).value.unsafeRunSync must beSome
+        .like {
+          case response =>
+            response.status must_== Ok
+            responseCheck(response)
+        }
     }
 
     "handle an empty body" in {
@@ -47,7 +48,7 @@ class ChunkAggregatorSpec extends Http4sSpec {
 
     "handle a none" in {
       val routes: HttpRoutes[IO] = HttpRoutes.empty
-      ChunkAggregator(routes).run(Request()).value must returnValue(None)
+      ChunkAggregator(OptionT.liftK[IO])(routes).run(Request()).value must returnValue(None)
     }
 
     "handle chunks" in {
