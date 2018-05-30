@@ -37,6 +37,7 @@ it.
 * Generalize `ChunkAggegator` middleware to work on `Kleisli[F, A, Response[G]]` given `G ~> F`, `FlatMap[F]`, and `Sync[G]`. [#1886](https://github.com/http4s/http4s/pull/1886)
 * Generalize `EntityLimiter` middleware to work on `Kleisli[F, Request[G], B]`. [#1892](https://github.com/http4s/http4s/pull/1892)
 * Generalize `HSTS` middleware to work on `Kleisli[F, A, Response[G]]` given `Functor[F]` and `Functor[G]`. [#1893](https://github.com/http4s/http4s/pull/1893)
+* Generalize `UrlFormLifter` middleware to work on `Kleisli[F, Request[G], Response[G]]` given `G ~> F`, `Sync[F]` and `Sync[G]`.  [#1894](https://github.com/http4s/http4s/pull/1894)
 * Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Move `org.http4s.server.ServerSoftware` to `org.http4s.ServerSoftware` [#1884](https://github.com/http4s/http4s/pull/1884)
 * Dependency upgrades:
@@ -136,7 +137,7 @@ it.
 * Make `Retry` use the correct duration units [#1698](https://github.com/http4s/http4s/pull/1698)
 * Dependency upgrades:
   * tomcat-9.0.6
-	
+
 # v0.18.1 (2018-02-27)
 * Fix the rendering of trailer headers in blaze [#1629](https://github.com/http4s/http4s/pull/1629)
 * Fix race condition between shutdown and parsing in Http1SeverStage [#1675](https://github.com/http4s/http4s/pull/1675)
@@ -157,7 +158,7 @@ it.
   * fs2-0.10.0
   * fs2-reactive-streams-0.5.0
   * jawn-fs2-0.12.0
-	
+
 # v0.18.0-M9 (2018-01-26)
 * Emit Exit Codes On Server Shutdown [#1638](https://github.com/http4s/http4s/pull/1638) [#1637](https://github.com/http4s/http4s/pull/1637)
 * Register Termination Signal and Frame in Http4sWSStage [#1631](https://github.com/http4s/http4s/pull/1631)
@@ -185,7 +186,7 @@ it.
 * Relax various typeclass constraints from `Effect` to `Sync` or `Async`. [#1587](https://github.com/http4s/http4s/pull/1587)
 * Operate on `Segment` instead of `Chunk` [#1588](https://github.com/http4s/http4s/pull/1588)
    * `EntityDecoder.collectBinary` and `EntityDecoder.binary` now
-     return `Segment[Byte, Unit]` instead of `Chunk[Byte]`.  
+     return `Segment[Byte, Unit]` instead of `Chunk[Byte]`.
    * Add `EntityDecoder.binaryChunk`.
    * Add `EntityEncoder.segmentEncoder`.
    * `http4sMonoidForChunk` replaced by `http4sMonoidForSegment`.
@@ -455,14 +456,14 @@ it.
   the exact same internal code as was in http4s-core, with no external
   dependencies. By publishing an extra module, we enable a
   `publishLocal` workflow.
-* Charset fixes: 
+* Charset fixes:
   * Deprecate `CharsetRange.isSatisfiedBy` in favor of
     and ```Accept-Charset`.isSatisfiedBy`` in favor of
     ```Accept-Charset`.satisfiedBy``.
   * Fix definition of `satisfiedBy` to respect priority of
     ```Charset`.*``.
   * Add `CharsetRange.matches`.
-* ContentCoding fixes: 
+* ContentCoding fixes:
   * Deprecate `ContentCoding.satisfiedBy` and
     `ContentCoding.satisfies` in favor of ```Accept-Encoding`.satisfiedBy``.
   * Deprecate ```Accept-Encoding`.preferred``, which has no reasonable
@@ -471,9 +472,9 @@ it.
   * Fix definition of `satisfiedBy` to respect priority of
     `ContentCoding.*`.
   * Add `ContentCoding.matches` and `ContentCoding.registered`.
-  * Add `Arbitrary[ContentCoding]` and ```Arbitrary[`Accept-Encoding`]`` 
+  * Add `Arbitrary[ContentCoding]` and ```Arbitrary[`Accept-Encoding`]``
     instances.
-* LanguageTag fixes: 
+* LanguageTag fixes:
   * Deprecate `LanguageTag.satisfiedBy` and
     `LanguageTag.satisfies` in favor of ```Accept-Language`.satisfiedBy``.
   * Fix definition of `satisfiedBy` to respect priority of
@@ -761,7 +762,7 @@ Several dependencies are upgraded:
 # v0.17.0-M1 (2017-04-08)
 * First release on cats and fs2
     * All scalaz types and typeclasses replaced by cats equivalengts
-	* `scalaz.concurrent.Task` replaced by `fs2.Task`	
+	* `scalaz.concurrent.Task` replaced by `fs2.Task`
 	* `scalaz.stream.Process` replaced by `fs2.Stream`
 * Roughly at feature parity with v0.16.0-M1. Notable exceptions:
 	* Multipart not yet supported
