@@ -118,6 +118,11 @@ it.</p>
 </ul></li>
 <li>Add <code>BlockingHttp4sServlet</code> for use in Google App Engine and Servlet 2.5 containers.  Rename <code>Http4sServlet</code> to <code>AsyncHttp4sServlet</code>. <a href="https://github.com/http4s/http4s/pull/1830">#1830</a></li>
 <li>Generalize <code>Logger</code> middleware to log with <code>String =&gt; Unit</code> instead of <code>logger.info(_)</code> <a href="https://github.com/http4s/http4s/pull/1839">#1839</a></li>
+<li>Generalize <code>AutoSlash</code> middleware to work on <code>Kleisli[F, Request[G], B]</code> given <code>MonoidK[F]</code> and <code>Functor[G]</code>. <a href="https://github.com/http4s/http4s/pull/1885">#1885</a></li>
+<li>Generalize <code>CORS</code> middleware to work on <code>Http[F, G]</code> given <code>Applicative[F]</code> and <code>Functor[G]</code>. <a href="https://github.com/http4s/http4s/pull/1889">#1889</a></li>
+<li>Generalize <code>ChunkAggegator</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>G ~&gt; F</code>, <code>FlatMap[F]</code>, and <code>Sync[G]</code>. <a href="https://github.com/http4s/http4s/pull/1886">#1886</a></li>
+<li>Generalize <code>EntityLimiter</code> middleware to work on <code>Kleisli[F, Request[G], B]</code>. <a href="https://github.com/http4s/http4s/pull/1892">#1892</a></li>
+<li>Generalize <code>HSTS</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>Functor[F]</code> and <code>Functor[G]</code>. <a href="https://github.com/http4s/http4s/pull/1893">#1893</a></li>
 <li>Rename <code>RequestLogger.apply0</code> and <code>ResponseLogger.apply0</code> to <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code>.  <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
 <li>Move <code>org.http4s.server.ServerSoftware</code> to <code>org.http4s.ServerSoftware</code> <a href="https://github.com/http4s/http4s/pull/1884">#1884</a></li>
 <li>Dependency upgrades:
