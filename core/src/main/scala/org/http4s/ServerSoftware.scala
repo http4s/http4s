@@ -1,4 +1,4 @@
-package org.http4s.server
+package org.http4s
 
 final case class ServerSoftware(
     product: String,

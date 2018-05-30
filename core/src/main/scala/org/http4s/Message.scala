@@ -7,7 +7,6 @@ import fs2.text._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
-import org.http4s.server.ServerSoftware
 import org.log4s.getLogger
 
 /**
