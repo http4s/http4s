@@ -14,19 +14,18 @@ import cats.implicits._
   * requiring more optimization should implement their own HEAD handler.
   */
 object DefaultHead {
-  def apply[F[_]: Monad](@deprecatedName('service) routes: HttpRoutes[F]): HttpRoutes[F] =
+  def apply[F[_], G[_], B](@deprecatedName('service) http: Kleisli[F, Request[G], B])(
+    implicit F: MonoidK[F],
+    G: Functor[G]): Kleisli[F, Request[G], B] = {
     Kleisli { req =>
-      req.method match {
-        case Method.HEAD =>
-          (routes <+> headAsTruncatedGet(routes))(req)
-        case _ =>
-          routes(req)
+      http(req) <+> {
+        req.method match {
+          case Method.HEAD => {
+            http(req.withMethod(Method.GET).withEmptyBody)
+          }
+          case _ => http(req) 
+        }
       }
     }
-
-  private def headAsTruncatedGet[F[_]: Functor](routes: HttpRoutes[F]): HttpRoutes[F] =
-    Kleisli { req =>
-      val getReq = req.withMethod(Method.GET)
-      routes(getReq).map(response => response.copy(body = response.body.drain))
-    }
+  }
 }
