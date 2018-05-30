@@ -408,7 +408,7 @@ object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Ye
 def getAverageTemperatureForCurrentYear: IO[String] = ???
 def getAverageTemperatureForYear(y: Year): IO[String] = ???
 
-val service2 = HttpService[IO] {
+val routes2 = HttpRoutes.of[IO] {
   case GET -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
     maybeYear match {
       case None =>
@@ -433,7 +433,7 @@ implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 
-val service = HttpService[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "temperature" :? YearQueryParamMatcher(yearValidated) =>
     yearValidated.fold(
       parseFailures => BadRequest("unable to parse argument year"),
