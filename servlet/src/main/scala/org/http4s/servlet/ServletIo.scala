@@ -35,19 +35,20 @@ final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends Servlet
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = { (response: Response[F], timeout: F[Unit]) =>
-    val out = servletResponse.getOutputStream
-    val flush = response.isChunked
-    response.body.chunks
-      .map { chunk =>
-        // Avoids copying for specialized chunks
-        val byteChunk = chunk.toBytes
-        out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
-        if (flush)
-          servletResponse.flushBuffer()
-      }
-      .compile
-      .drain
+      servletResponse: HttpServletResponse): BodyWriter[F] = {
+    (response: Response[F], timeout: F[Unit]) =>
+      val out = servletResponse.getOutputStream
+      val flush = response.isChunked
+      response.body.chunks
+        .map { chunk =>
+          // Avoids copying for specialized chunks
+          val byteChunk = chunk.toBytes
+          out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
+          if (flush)
+            servletResponse.flushBuffer()
+        }
+        .compile
+        .drain
   }
 }
 

@@ -101,16 +101,16 @@ class AsyncHttp4sServlet[F[_]](
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
       async
-        .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter, F.pure(()))) { _ =>
-          IO {
-            if (servletRequest.isAsyncStarted)
-              servletRequest.getAsyncContext.complete()
-          }
+        .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter, F.pure(()))) {
+          _ =>
+            IO {
+              if (servletRequest.isAsyncStarted)
+                servletRequest.getAsyncContext.complete()
+            }
         }
   }
 
-  private class AsyncTimeoutHandler(cb: Callback[Unit])
-      extends AbstractAsyncListener {
+  private class AsyncTimeoutHandler(cb: Callback[Unit]) extends AbstractAsyncListener {
     override def onTimeout(event: AsyncEvent): Unit = {
       val req = event.getAsyncContext.getRequest.asInstanceOf[HttpServletRequest]
       logger.info(s"Request timed out: ${req.getMethod} ${req.getServletPath}${req.getPathInfo}")

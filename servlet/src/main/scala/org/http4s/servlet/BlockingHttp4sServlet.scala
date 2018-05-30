@@ -37,7 +37,7 @@ class BlockingHttp4sServlet[F[_]](
   private def handleRequest(
       request: Request[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] = {
+      bodyWriter: BodyWriter[F]): F[Unit] =
     // Note: We're catching silly user errors in the lift => flatten.
     optionTSync
       .suspend(serviceFn(request))
@@ -45,7 +45,6 @@ class BlockingHttp4sServlet[F[_]](
       .recoverWith(serviceErrorHandler(request))
       // TODO replace with F.never in cats-effect-1.0
       .flatMap(renderResponse(_, servletResponse, bodyWriter, F.async(cb => ())))
-  }
 
   private def errorHandler(servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
     case t: Throwable if servletResponse.isCommitted =>

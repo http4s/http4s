@@ -53,10 +53,10 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
     // Note: the servlet API gives us no undeprecated method to both set
     // a body and a status reason.  We sacrifice the status reason.
     F.delay {
-      servletResponse.setStatus(response.status.code)
-      for (header <- response.headers if header.isNot(`Transfer-Encoding`))
-        servletResponse.addHeader(header.name.toString, header.value)
-    }
+        servletResponse.setStatus(response.status.code)
+        for (header <- response.headers if header.isNot(`Transfer-Encoding`))
+          servletResponse.addHeader(header.name.toString, header.value)
+      }
       .attempt
       .flatMap {
         case Right(()) => bodyWriter(response, timeout)
