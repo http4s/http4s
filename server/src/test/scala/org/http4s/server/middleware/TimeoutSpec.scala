@@ -6,7 +6,10 @@ import cats.effect._
 import cats.implicits._
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
+
+import cats.data.OptionT
 import org.http4s.dsl.io._
+
 import scala.concurrent.CancellationException
 import scala.concurrent.duration._
 
@@ -42,7 +45,7 @@ class TimeoutSpec extends Http4sSpec {
 
     "return the provided response if the result takes too long" in {
       val customTimeout = Response[IO](Status.GatewayTimeout) // some people return 504 here.
-      val altTimeoutService = Timeout(1.nanosecond, IO.pure(customTimeout))(routes)
+      val altTimeoutService = Timeout(1.nanosecond, OptionT.pure[IO](customTimeout))(routes)
       checkStatus(altTimeoutService.orNotFound(neverReq), customTimeout.status)
     }
 

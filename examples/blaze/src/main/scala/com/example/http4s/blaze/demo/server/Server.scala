@@ -13,10 +13,9 @@ class HttpServer[F[_]](implicit F: ConcurrentEffect[F]) extends StreamApp[F] {
 
   override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
-      implicit val T = Timer.derive[F](F, IO.timer)
       for {
         client <- Http1Client.stream[F]()
-        ctx <- Stream(new Module[F](client)(F, scheduler, T))
+        ctx <- Stream(new Module[F](client))
         exitCode <- BlazeBuilder[F]
           .bindHttp(8080, "0.0.0.0")
           .mountService(ctx.fileHttpEndpoint, s"/${endpoints.ApiVersion}")

@@ -17,7 +17,7 @@ import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
 import scala.concurrent.duration._
 
-class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], S: Scheduler, T: Timer[F]) {
+class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], S: Scheduler) {
 
   private val fileService = new FileService[F]
 

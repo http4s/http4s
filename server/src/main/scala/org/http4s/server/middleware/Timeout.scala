@@ -2,11 +2,12 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.OptionT
+import cats.data.{Kleisli, OptionT}
 import cats.effect._
 import cats.implicits._
 import fs2._
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -87,13 +88,15 @@ object Timeout {
     * Internal Server Error` response
     * @param service [[HttpRoutes]] to transform
     */
-  def apply[F[_]](timeout: FiniteDuration, timeoutResponse: F[Response[F]])(
-      @deprecatedName('service) routes: HttpRoutes[F])(
-      implicit F: Concurrent[F],
-      T: Timer[F]): HttpRoutes[F] = {
-    val OTC = Concurrent[OptionT[F, ?]]
-    routes
-      .mapF(respF => OTC.race(respF, OptionT.liftF(T.sleep(timeout) *> timeoutResponse)))
+  def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
+      @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
+      implicit F: Concurrent[F]): Kleisli[F, A, Response[G]] = {
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val T = Timer.derive[F]
+
+    http
+      .mapF(respF => F.race(respF, T.sleep(timeout) *> timeoutResponse))
       .map(_.merge)
   }
 
@@ -105,10 +108,11 @@ object Timeout {
     * Internal Server Error` response
     * @param service [[HttpRoutes]] to transform
     */
-  def apply[F[_]](timeout: FiniteDuration)(@deprecatedName('service) routes: HttpRoutes[F])(
+  def apply[F[_], G[_], A](timeout: FiniteDuration)(
+      @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
-      T: Timer[F]): HttpRoutes[F] =
+      W: EntityEncoder[G, String]): Kleisli[F, A, Response[G]] =
     apply(
       timeout,
-      Response[F](Status.InternalServerError).withEntity("The response timed out.").pure[F])(routes)
+      Response[G](Status.InternalServerError).withEntity("The response timed out.").pure[F])(http)
 }
