@@ -390,9 +390,9 @@
       
       
     </li><li name="org.http4s.server.middleware.EntityLimiter#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](routes:org.http4s.HttpRoutes[F],limit:Long):org.http4s.HttpRoutes[F]"></a><a id="apply[F[_]](HttpRoutes[F],Long):HttpRoutes[F]"></a>
+      <a id="apply[F[_],G[_],B](http:cats.data.Kleisli[F,org.http4s.Request[G],B],limit:Long):cats.data.Kleisli[F,org.http4s.Request[G],B]"></a><a id="apply[F[_],G[_],B](Kleisli[F,Request[G],B],Long):Kleisli[F,Request[G],B]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/EntityLimiter$.html#apply[F[_]](routes:org.http4s.HttpRoutes[F],limit:Long):org.http4s.HttpRoutes[F]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/EntityLimiter$.html#apply[F[_],G[_],B](http:cats.data.Kleisli[F,org.http4s.Request[G],B],limit:Long):cats.data.Kleisli[F,org.http4s.Request[G],B]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -401,7 +401,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="routes">routes: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.F">F</span>]</span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a> = <span class="symbol"><span class="name"><a href="#DefaultMaxEntitySize:Long">DefaultMaxEntitySize</a></span></span></span>)</span><span class="result">: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.F">F</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="B">B</span>]</span><span class="params">(<span name="http">http: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.G">G</span>], <span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.B">B</span>]</span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a> = <span class="symbol"><span class="name"><a href="#DefaultMaxEntitySize:Long">DefaultMaxEntitySize</a></span></span></span>)</span><span class="result">: <a href="http://typelevel.org/cats/api/cats/data/Kleisli.html#cats.data.Kleisli" class="extype" name="cats.data.Kleisli">Kleisli</a>[<span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.F">F</span>, <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.G">G</span>], <span class="extype" name="org.http4s.server.middleware.EntityLimiter.apply.B">B</span>]</span>
       </span>
       
       
