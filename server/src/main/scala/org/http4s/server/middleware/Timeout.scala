@@ -90,15 +90,11 @@ object Timeout {
     */
   def apply[F[_], G[_], A](timeout: FiniteDuration, timeoutResponse: F[Response[G]])(
       @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
-      implicit F: Concurrent[F]): Kleisli[F, A, Response[G]] = {
-
-    import scala.concurrent.ExecutionContext.Implicits.global
-    val T = Timer.derive[F]
-
+      implicit F: Concurrent[F],
+      T: Timer[F]): Kleisli[F, A, Response[G]] =
     http
       .mapF(respF => F.race(respF, T.sleep(timeout) *> timeoutResponse))
       .map(_.merge)
-  }
 
   /** Transform the service to return a timeout response after the given
     * duration if the service has not yet responded.  If the timeout
@@ -111,6 +107,7 @@ object Timeout {
   def apply[F[_], G[_], A](timeout: FiniteDuration)(
       @deprecatedName('service) http: Kleisli[F, A, Response[G]])(
       implicit F: Concurrent[F],
+      T: Timer[F],
       W: EntityEncoder[G, String]): Kleisli[F, A, Response[G]] =
     apply(
       timeout,

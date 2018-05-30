@@ -25,6 +25,8 @@ class TimeoutSpec extends Http4sSpec {
       }
   }
 
+  implicit val T = Timer.derive[OptionT[IO, ?]]
+
   val app = Timeout(5.milliseconds)(routes).orNotFound
 
   val fastReq = Request[IO](GET, uri("/fast"))
