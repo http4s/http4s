@@ -123,6 +123,7 @@ it.</p>
 <li>Generalize <code>ChunkAggegator</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>G ~&gt; F</code>, <code>FlatMap[F]</code>, and <code>Sync[G]</code>. <a href="https://github.com/http4s/http4s/pull/1886">#1886</a></li>
 <li>Generalize <code>EntityLimiter</code> middleware to work on <code>Kleisli[F, Request[G], B]</code>. <a href="https://github.com/http4s/http4s/pull/1892">#1892</a></li>
 <li>Generalize <code>HSTS</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>Functor[F]</code> and <code>Functor[G]</code>. <a href="https://github.com/http4s/http4s/pull/1893">#1893</a></li>
+<li>Generalize <code>UrlFormLifter</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>G ~&gt; F</code>, <code>Sync[F]</code> and <code>Sync[G]</code>.  <a href="https://github.com/http4s/http4s/pull/1894">#1894</a></li>
 <li>Rename <code>RequestLogger.apply0</code> and <code>ResponseLogger.apply0</code> to <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code>.  <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
 <li>Move <code>org.http4s.server.ServerSoftware</code> to <code>org.http4s.ServerSoftware</code> <a href="https://github.com/http4s/http4s/pull/1884">#1884</a></li>
 <li>Dependency upgrades:
@@ -286,8 +287,7 @@ it.</p>
 <li>Dependency upgrades:
 
 <ul>
-<li>tomcat-9.0.6
-<br /></li>
+<li>tomcat-9.0.6</li>
 </ul></li>
 </ul>
 
@@ -320,8 +320,7 @@ it.</p>
 <ul>
 <li>fs2-0.10.0</li>
 <li>fs2-reactive-streams-0.5.0</li>
-<li>jawn-fs2-0.12.0
-<br /></li>
+<li>jawn-fs2-0.12.0</li>
 </ul></li>
 </ul>
 
@@ -368,7 +367,7 @@ it.</p>
 
 <ul>
 <li><code>EntityDecoder.collectBinary</code> and <code>EntityDecoder.binary</code> now
-return <code>Segment[Byte, Unit]</code> instead of <code>Chunk[Byte]</code>.<br /></li>
+return <code>Segment[Byte, Unit]</code> instead of <code>Chunk[Byte]</code>.</li>
 <li>Add <code>EntityDecoder.binaryChunk</code>.</li>
 <li>Add <code>EntityEncoder.segmentEncoder</code>.</li>
 <li><code>http4sMonoidForChunk</code> replaced by <code>http4sMonoidForSegment</code>.</li>
@@ -1142,7 +1141,7 @@ trouble for some multipart implementations</li>
 
 <ul>
 <li>All scalaz types and typeclasses replaced by cats equivalengts</li>
-<li><code>scalaz.concurrent.Task</code> replaced by <code>fs2.Task</code><br /></li>
+<li><code>scalaz.concurrent.Task</code> replaced by <code>fs2.Task</code></li>
 <li><code>scalaz.stream.Process</code> replaced by <code>fs2.Stream</code></li>
 </ul></li>
 <li>Roughly at feature parity with v0.16.0-M1. Notable exceptions:
