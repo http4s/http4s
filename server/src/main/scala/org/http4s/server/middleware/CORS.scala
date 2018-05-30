@@ -3,7 +3,7 @@ package server
 package middleware
 
 import cats._
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
@@ -38,12 +38,14 @@ object CORS {
     * based on information in CORS config.
     * Currently, you cannot make permissions depend on request details
     */
-  def apply[F[_]](
-      @deprecatedName('service) routes: HttpRoutes[F],
-      config: CORSConfig = DefaultCORSConfig)(implicit F: Applicative[F]): HttpRoutes[F] =
+  def apply[F[_], G[_]](
+      @deprecatedName('service) http: Http[F, G],
+      config: CORSConfig = DefaultCORSConfig)(
+      implicit F: Applicative[F],
+      G: Functor[G]): Http[F, G] =
     Kleisli { req =>
       // In the case of an options request we want to return a simple response with the correct Headers set.
-      def createOptionsResponse(origin: Header, acrm: Header): Response[F] =
+      def createOptionsResponse(origin: Header, acrm: Header): Response[G] =
         corsHeaders(origin.value, acrm.value, isPreflight = true)(Response())
 
       def methodBasedHeader(isPreflight: Boolean) =
@@ -53,7 +55,7 @@ object CORS {
           config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
 
       def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(
-          resp: Response[F]): Response[F] =
+          resp: Response[G]): Response[G] =
         methodBasedHeader(isPreflight)
           .fold(resp)(h => resp.putHeaders(h))
           .putHeaders(
@@ -83,20 +85,20 @@ object CORS {
       (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
         case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
           logger.debug(s"Serving OPTIONS with CORS headers for $acrm ${req.uri}")
-          OptionT.some(createOptionsResponse(origin, acrm))
+          createOptionsResponse(origin, acrm).pure[F]
         case (_, Some(origin), _) =>
           if (allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString))) {
-            routes(req).map { resp =>
+            http(req).map { resp =>
               logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
               corsHeaders(origin.value, req.method.renderString, isPreflight = false)(resp)
             }
           } else {
             logger.debug(s"CORS headers were denied for ${req.method} ${req.uri}")
-            OptionT.some(Response(status = Status.Forbidden))
+            Response(status = Status.Forbidden).pure[F]
           }
         case _ =>
           // This request is out of scope for CORS
-          routes(req)
+          http(req)
       }
     }
 }
