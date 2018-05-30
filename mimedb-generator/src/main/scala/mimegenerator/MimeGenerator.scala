@@ -108,9 +108,9 @@ object MimeLoader {
     val all
       : Tree = (LAZYVAL("allMediaTypes", ListClass.TYPE_OF(TYPE_REF(REF(mediaTypeClassName)))) := reducedAll)
     val compressible: Tree = (VAL("Compressible", BooleanClass) := TRUE)
-    val uncompressible: Tree = (VAL("Uncompressible", BooleanClass) := TRUE)
+    val uncompressible: Tree = (VAL("Uncompressible", BooleanClass) := FALSE)
     val binary: Tree = (VAL("Binary", BooleanClass) := TRUE)
-    val notBinary: Tree = (VAL("NotBinary", BooleanClass) := TRUE)
+    val notBinary: Tree = (VAL("NotBinary", BooleanClass) := FALSE)
 
     (((TRAITDEF(objectName).withFlags(PRIVATEWITHIN(privateWithin))) := BLOCK(
       List(all, compressible, uncompressible, binary, notBinary) ::: l.flatMap(_._1))))
