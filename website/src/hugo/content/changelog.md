@@ -34,7 +34,7 @@ it.
 * Generalize `Logger` middleware to log with `String => Unit` instead of `logger.info(_)` [#1839](https://github.com/http4s/http4s/pull/1839)
 * Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Dependency upgrades:
-  * async-http-client-2.4.7
+  * async-http-client-2.4.8
   * blaze-0.14.0-M3
   * prometheus-0.4.0
   * scala-xml-1.1.0
