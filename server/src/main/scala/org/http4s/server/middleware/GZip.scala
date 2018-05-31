@@ -17,16 +17,16 @@ object GZip {
 
   // TODO: It could be possible to look for F.pure type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply[F[_]: Functor](
-      @deprecatedName('service) routes: HttpRoutes[F],
+  def apply[F[_]: Functor, G[_]: Functor](
+      @deprecatedName('service) http: Http[F, G],
       bufferSize: Int = 32 * 1024,
       level: Int = Deflater.DEFAULT_COMPRESSION,
-      isZippable: Response[F] => Boolean = defaultIsZippable[F](_: Response[F])): HttpRoutes[F] =
-    Kleisli { req =>
+      isZippable: Response[G] => Boolean = defaultIsZippable[G](_: Response[G])): Http[F, G] =
+    Kleisli { req: Request[G] =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if satisfiedByGzip(acceptEncoding) =>
-          routes.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
-        case _ => routes(req)
+          http.map(zipOrPass(_, bufferSize, level, isZippable)).apply(req)
+        case _ => http(req)
       }
     }
 
