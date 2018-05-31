@@ -2,12 +2,14 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
+import cats.~>
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s._
+
 import scala.concurrent.ExecutionContext
 
 /**
@@ -16,65 +18,59 @@ import scala.concurrent.ExecutionContext
 object RequestLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_]: Effect](
-      logHeaders: Boolean,
-      logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('service) routes: HttpRoutes[F])(
-      implicit ec: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
-    Kleisli { req =>
-      if (!logBody)
-        OptionT(Logger
-          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> routes(req).value)
-      else
-        OptionT
-          .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
+  def apply[F[_] : Sync, G[_] : Effect, A](f: G ~> F, logAction: String => Unit = logger.info(_))(
+    logHeaders: Boolean,
+    logBody: Boolean,
+    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+  )(@deprecatedName('service) http: Kleisli[F, Request[G], Response[G]])(
+    implicit ec: ExecutionContext = ExecutionContext.global): Kleisli[F, Request[G], Response[G]] = {
+
+    Kleisli { req: Request[G] =>
+      if (!logBody) {
+        f(Logger
+          .logMessage[G, Request[G]](req)(logHeaders, logBody)(logAction)) *> http(req)
+      }
+      else {
+        f(async.refOf[G, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
           .flatMap { vec =>
+
             val newBody = Stream
               .eval(vec.get)
-              .flatMap(v => Stream.emits(v).covary[F])
-              .flatMap(c => Stream.segment(c).covary[F])
+              .flatMap(v => Stream.emits(v).covary[G])
+              .flatMap(c => Stream.segment(c).covary[G])
 
             val changedRequest = req.withBodyStream(
               req.body
-              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
             )
-
-            val response = routes(changedRequest)
+            val response: F[Response[G]] = http(changedRequest)
             response.attempt
               .flatMap {
                 case Left(e) =>
-                  OptionT.liftF(
-                    Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                  f(
+                    Logger.logMessage[G, Request[G]](req.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logger.info(_)) *>
-                      Sync[F].raiseError[Response[F]](e)
+                      redactHeadersWhen)(logAction) *>
+                      Sync[G].raiseError[Response[G]](e)
                   )
                 case Right(resp) =>
-                  Sync[OptionT[F, ?]].pure(
-                    resp.withBodyStream(
-                      resp.body.onFinalize(
-                        Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                          logHeaders,
-                          logBody,
-                          redactHeadersWhen)(logger.info(_))
+                  f(
+                    Sync[G].pure(
+                      resp.withBodyStream(
+                        resp.body.onFinalize(
+                          Logger.logMessage[G, Request[G]](req.withBodyStream(newBody))(
+                            logHeaders,
+                            logBody,
+                            redactHeadersWhen)(logAction)
+                        )
                       )
                     )
                   )
               }
-              .orElse(
-                OptionT(
-                  Logger
-                    .logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen
-                    )(logger.info(_))
-                    .as(Option.empty[Response[F]])
-                )
-              )
           }
+      }
     }
+  }
 }

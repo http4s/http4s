@@ -2,30 +2,36 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.Kleisli
 import cats.effect._
+import cats.{Monad, ~>}
 import fs2._
 import org.http4s.util.CaseInsensitiveString
+import org.log4s.getLogger
+
+import scala.concurrent.ExecutionContext
 
 /**
   * Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
-  def apply[F[_]: Effect](
-      logHeaders: Boolean,
-      logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('httpService) httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
-      RequestLogger(logHeaders, logBody, redactHeadersWhen)(
-        httpRoutes
-      )
+  private[this] val logger = getLogger
+
+  def apply[F[_] : Sync, G[_] : Effect](f: G ~> F, logAction: String => Unit = logger.info(_))(
+    logHeaders: Boolean,
+    logBody: Boolean,
+    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
+  )(@deprecatedName('httpService) http: Kleisli[F, Request[G], Response[G]])(
+                                       implicit ec: ExecutionContext): Kleisli[F, Request[G], Response[G]] =
+    ResponseLogger(f, logAction)(logHeaders, logBody, redactHeadersWhen)(
+      RequestLogger(f, logAction)(logHeaders, logBody, redactHeadersWhen)(http)
     )
 
-  def logMessage[F[_], A <: Message[F]](message: A)(
-      logHeaders: Boolean,
-      logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => Unit)(implicit F: Effect[F]): F[Unit] = {
+  def logMessage[F[_] : Sync, A <: Message[F]](message: A)(
+    logHeaders: Boolean,
+    logBody: Boolean,
+    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+                                                log: String => Unit): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -63,7 +69,7 @@ object Logger {
       Stream("").covary[F]
     }
 
-    if (!logBody && !logHeaders) F.unit
+    if (!logBody && !logHeaders) Monad[F].unit
     else {
       bodyText
         .map(body => s"$prelude $headers $body")
