@@ -15,7 +15,7 @@ import cats.implicits._
   */
 object DefaultHead {
   def apply[F[_]: Functor, G[_]](@deprecatedName('service) http: Http[F, G])(
-    implicit F: MonoidK[F]): Http[F, G] = {
+      implicit F: MonoidK[F]): Http[F, G] =
     Kleisli { req =>
       req.method match {
         case Method.HEAD => {
@@ -26,12 +26,10 @@ object DefaultHead {
         }
       }
     }
-  }
 
-  private def headAsTruncatedGet[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] = {
+  private def headAsTruncatedGet[F[_]: Functor, G[_]](http: Http[F, G]): Http[F, G] =
     Kleisli { req =>
       val getReq = req.withMethod(Method.GET)
       http(getReq).map(response => response.copy(body = response.body.drain))
     }
-  }
 }
