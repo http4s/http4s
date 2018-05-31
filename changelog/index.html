@@ -125,6 +125,7 @@ it.</p>
 <li>Generalize <code>HSTS</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>Functor[F]</code> and <code>Functor[G]</code>. <a href="https://github.com/http4s/http4s/pull/1893">#1893</a></li>
 <li>Generalize <code>UrlFormLifter</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>G ~&gt; F</code>, <code>Sync[F]</code> and <code>Sync[G]</code>.  <a href="https://github.com/http4s/http4s/pull/1894">#1894</a></li>
 <li>Generalize <code>Timeout</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>Concurrent[F]</code> and <code>Timer[F]</code>. <a href="https://github.com/http4s/http4s/pull/1899">#1899</a></li>
+<li>Generalize <code>VirtualHost</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>Applicative[F]</code>.  <a href="https://github.com/http4s/http4s/pull/1902">#1902</a></li>
 <li>Rename <code>RequestLogger.apply0</code> and <code>ResponseLogger.apply0</code> to <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code>.  <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
 <li>Move <code>org.http4s.server.ServerSoftware</code> to <code>org.http4s.ServerSoftware</code> <a href="https://github.com/http4s/http4s/pull/1884">#1884</a></li>
 <li>Dependency upgrades:
