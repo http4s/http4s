@@ -22,7 +22,7 @@ object VirtualHost {
     * security of the underlying transport protocol.
     */
   final case class HostService[F[_], G[_]](
-      @deprecatedName('service) http: Kleisli[F, Request[G], Response[G]],
+      @deprecatedName('service) http: Http[F, G],
       p: Host => Boolean)
 
   /** Create a [[HostService]] that will match based on the exact host string
@@ -30,7 +30,7 @@ object VirtualHost {
     * given, it is ignored.
     */
   def exact[F[_], G[_]](
-      @deprecatedName('service) http: Kleisli[F, Request[G], Response[G]],
+      @deprecatedName('service) http: Http[F, G],
       requestHost: String,
       port: Option[Int] = None): HostService[F, G] =
     HostService(http, h => h.host.equalsIgnoreCase(requestHost) && (port.isEmpty || port == h.port))
@@ -40,7 +40,7 @@ object VirtualHost {
     * given. If the port is not given, it is ignored.
     */
   def wildcard[F[_], G[_]](
-      @deprecatedName('service) http: Kleisli[F, Request[G], Response[G]],
+      @deprecatedName('service) http: Http[F, G],
       wildcardHost: String,
       port: Option[Int] = None): HostService[F, G] =
     regex(http, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
@@ -50,7 +50,7 @@ object VirtualHost {
     * is given. If the port is not given, it is ignored.
     */
   def regex[F[_], G[_]](
-      @deprecatedName('service) http: Kleisli[F, Request[G], Response[G]],
+      @deprecatedName('service) http: Http[F, G],
       hostRegex: String,
       port: Option[Int] = None): HostService[F, G] = {
     val r = hostRegex.r
@@ -61,7 +61,7 @@ object VirtualHost {
 
   def apply[F[_], G[_]](first: HostService[F, G], rest: HostService[F, G]*)(
       implicit F: Applicative[F],
-      W: EntityEncoder[G, String]): Kleisli[F, Request[G], Response[G]] =
+      W: EntityEncoder[G, String]): Http[F, G] =
     Kleisli { req =>
       req.headers
         .get(Host)
