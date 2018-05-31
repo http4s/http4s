@@ -1,5 +1,6 @@
 package com.example.http4s.blaze.demo.server
 
+import cats.data.OptionT
 import cats.effect._
 import cats.syntax.semigroupk._ // For <+>
 import com.example.http4s.blaze.demo.server.endpoints._
@@ -31,7 +32,8 @@ class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], S: Schedu
   val fileHttpEndpoint: HttpRoutes[F] =
     new FileHttpEndpoint[F](fileService).service
 
-  val nonStreamFileHttpEndpoint = ChunkAggregator(fileHttpEndpoint)
+  val nonStreamFileHttpEndpoint: HttpRoutes[F] =
+    ChunkAggregator(OptionT.liftK[F])(fileHttpEndpoint)
 
   private val hexNameHttpEndpoint: HttpRoutes[F] =
     new HexNameHttpEndpoint[F].service

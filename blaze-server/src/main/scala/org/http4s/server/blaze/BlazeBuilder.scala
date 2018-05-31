@@ -158,11 +158,7 @@ class BlazeBuilder[F[_]](
     val prefixedService =
       if (prefix.isEmpty || prefix == "/") service
       else {
-        val newCaret = prefix match {
-          case "/" => 0
-          case x if x.startsWith("/") => x.length
-          case x => x.length + 1
-        }
+        val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
 
         service.local { req: Request[F] =>
           req.withAttribute(Request.Keys.PathInfoCaret(newCaret))

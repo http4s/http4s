@@ -22,14 +22,54 @@ it.
 * Add `Show[ETag]` instance [#1749](https://github.com/http4s/http4s/pull/1749)
 * Replace `fs2.Scheduler` with `cats.effect.Timer` in `Retry` [#1754](https://github.com/http4s/http4s/pull/1754)
 * Remove `Sync` constraint from `EntityEncoder[Multipart]` [#1762](https://github.com/http4s/http4s/pull/1762)
+* Generate `MediaType`s from [MimeDB](https://github.com/jshttp/mime-db) [#1770](https://github.com/http4s/http4s/pull/1770)
+  * Continue phasing out `Renderable` with `MediaRange` and `MediaType`.
+  * Media types are now namespaced by main type.  This reduces backticks.  For example, `` MediaType.`text/plain` `` is replaced by `MediaType.text.plain`.
+* Remove `Registry`. [#1770](https://github.com/http4s/http4s/pull/1770)
 * Deprecate `HttpService`: [#1693](https://github.com/http4s/http4s/pull/1693)
   * Introduces an `Http[F[_], G[_]]` type alias
   * `HttpService` is replaced by `HttpRoutes`, which is an `Http[OptionT[F, ?], ?]`.  `HttpRoutes.of` replaces `HttpService` constructor from `PartialFunction`s.
   * `HttpApp` is an `Http[F, F]`, representing a total HTTP function.
+* Add `BlockingHttp4sServlet` for use in Google App Engine and Servlet 2.5 containers.  Rename `Http4sServlet` to `AsyncHttp4sServlet`. [#1830](https://github.com/http4s/http4s/pull/1830)
+* Generalize `Logger` middleware to log with `String => Unit` instead of `logger.info(_)` [#1839](https://github.com/http4s/http4s/pull/1839)
+* Generalize `AutoSlash` middleware to work on `Kleisli[F, Request[G], B]` given `MonoidK[F]` and `Functor[G]`. [#1885](https://github.com/http4s/http4s/pull/1885)
+* Generalize `CORS` middleware to work on `Http[F, G]` given `Applicative[F]` and `Functor[G]`. [#1889](https://github.com/http4s/http4s/pull/1889)
+* Generalize `ChunkAggegator` middleware to work on `Kleisli[F, A, Response[G]]` given `G ~> F`, `FlatMap[F]`, and `Sync[G]`. [#1886](https://github.com/http4s/http4s/pull/1886)
+* Generalize `EntityLimiter` middleware to work on `Kleisli[F, Request[G], B]`. [#1892](https://github.com/http4s/http4s/pull/1892)
+* Generalize `HSTS` middleware to work on `Kleisli[F, A, Response[G]]` given `Functor[F]` and `Functor[G]`. [#1893](https://github.com/http4s/http4s/pull/1893)
+* Generalize `UrlFormLifter` middleware to work on `Kleisli[F, Request[G], Response[G]]` given `G ~> F`, `Sync[F]` and `Sync[G]`.  [#1894](https://github.com/http4s/http4s/pull/1894)
+* Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
+* Move `org.http4s.server.ServerSoftware` to `org.http4s.ServerSoftware` [#1884](https://github.com/http4s/http4s/pull/1884)
 * Dependency upgrades:
-  * async-http-client-2.4.5
+  * async-http-client-2.4.8
   * blaze-0.14.0-M3
+  * prometheus-0.4.0
   * scala-xml-1.1.0
+
+# v0.18.13 (unreleased)
+* Dependency upgrades:
+  * argonaut-6.2.2
+
+# v0.18.12 (2018-05-28)
+* Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
+* Log requests with an unconsumed body [#1861](https://github.com/http4s/http4s/pull/1861)
+* Log requests when the service returns `None` or raises an error [#1875](https://github.com/http4s/http4s/pull/1875)
+* Support streaming parsing of multipart and storing large parts as temp files [#1865](https://github.com/http4s/http4s/pull/1865)
+* Add an OkHttp client, with HTTP/2 support [#1864](https://github.com/http4s/http4s/pull/1864)
+* Add `Host` header to requests to `Client.fromHttpService` if the request URI is absolute [#1874](https://github.com/http4s/http4s/pull/1874)
+* Log `"service returned None"` or `"service raised error"` in service `ResponseLogger` when the service does not produce a successful response [#1879](https://github.com/http4s/http4s/pull/1879)
+* Dependency upgrades:
+  * jetty-9.4.10.v20180503
+  * json4s-3.5.4
+  * tomcat-9.0.8
+
+# v0.18.11 (2018-05-10)
+* Prevent zero-padding of servlet input chunks [#1835](https://github.com/http4s/http4s/pull/1835)
+* Fix deadlock in client loggers.  `RequestLogger.apply` and `ResponseLogger.apply` are each replaced by `apply0` to maintain binary compatibility. [#1837](https://github.com/http4s/http4s/pull/1837)
+* New `http4s-boopickle` module supports entity codecs through `boopickle.Pickler` [#1826](https://github.com/http4s/http4s/pull/1826)
+* Log as much of the response as is consumed in the client. Previously, failure to consume the entire body prevented any part of the body from being logged. [#1846](https://github.com/http4s/http4s/pull/1846)
+* Dependency upgrades:
+  * prometheus-client-java-0.4.0
 
 # v0.18.10 (2018-05-03)
 * Eliminate dependency on Macro Paradise and macro-compat [#1816](https://github.com/http4s/http4s/pull/1816)
@@ -97,7 +137,7 @@ it.
 * Make `Retry` use the correct duration units [#1698](https://github.com/http4s/http4s/pull/1698)
 * Dependency upgrades:
   * tomcat-9.0.6
-	
+
 # v0.18.1 (2018-02-27)
 * Fix the rendering of trailer headers in blaze [#1629](https://github.com/http4s/http4s/pull/1629)
 * Fix race condition between shutdown and parsing in Http1SeverStage [#1675](https://github.com/http4s/http4s/pull/1675)
@@ -118,7 +158,7 @@ it.
   * fs2-0.10.0
   * fs2-reactive-streams-0.5.0
   * jawn-fs2-0.12.0
-	
+
 # v0.18.0-M9 (2018-01-26)
 * Emit Exit Codes On Server Shutdown [#1638](https://github.com/http4s/http4s/pull/1638) [#1637](https://github.com/http4s/http4s/pull/1637)
 * Register Termination Signal and Frame in Http4sWSStage [#1631](https://github.com/http4s/http4s/pull/1631)
@@ -146,7 +186,7 @@ it.
 * Relax various typeclass constraints from `Effect` to `Sync` or `Async`. [#1587](https://github.com/http4s/http4s/pull/1587)
 * Operate on `Segment` instead of `Chunk` [#1588](https://github.com/http4s/http4s/pull/1588)
    * `EntityDecoder.collectBinary` and `EntityDecoder.binary` now
-     return `Segment[Byte, Unit]` instead of `Chunk[Byte]`.  
+     return `Segment[Byte, Unit]` instead of `Chunk[Byte]`.
    * Add `EntityDecoder.binaryChunk`.
    * Add `EntityEncoder.segmentEncoder`.
    * `http4sMonoidForChunk` replaced by `http4sMonoidForSegment`.
@@ -416,14 +456,14 @@ it.
   the exact same internal code as was in http4s-core, with no external
   dependencies. By publishing an extra module, we enable a
   `publishLocal` workflow.
-* Charset fixes: 
+* Charset fixes:
   * Deprecate `CharsetRange.isSatisfiedBy` in favor of
     and ```Accept-Charset`.isSatisfiedBy`` in favor of
     ```Accept-Charset`.satisfiedBy``.
   * Fix definition of `satisfiedBy` to respect priority of
     ```Charset`.*``.
   * Add `CharsetRange.matches`.
-* ContentCoding fixes: 
+* ContentCoding fixes:
   * Deprecate `ContentCoding.satisfiedBy` and
     `ContentCoding.satisfies` in favor of ```Accept-Encoding`.satisfiedBy``.
   * Deprecate ```Accept-Encoding`.preferred``, which has no reasonable
@@ -432,9 +472,9 @@ it.
   * Fix definition of `satisfiedBy` to respect priority of
     `ContentCoding.*`.
   * Add `ContentCoding.matches` and `ContentCoding.registered`.
-  * Add `Arbitrary[ContentCoding]` and ```Arbitrary[`Accept-Encoding`]`` 
+  * Add `Arbitrary[ContentCoding]` and ```Arbitrary[`Accept-Encoding`]``
     instances.
-* LanguageTag fixes: 
+* LanguageTag fixes:
   * Deprecate `LanguageTag.satisfiedBy` and
     `LanguageTag.satisfies` in favor of ```Accept-Language`.satisfiedBy``.
   * Fix definition of `satisfiedBy` to respect priority of
@@ -722,7 +762,7 @@ Several dependencies are upgraded:
 # v0.17.0-M1 (2017-04-08)
 * First release on cats and fs2
     * All scalaz types and typeclasses replaced by cats equivalengts
-	* `scalaz.concurrent.Task` replaced by `fs2.Task`	
+	* `scalaz.concurrent.Task` replaced by `fs2.Task`
 	* `scalaz.stream.Process` replaced by `fs2.Stream`
 * Roughly at feature parity with v0.16.0-M1. Notable exceptions:
 	* Multipart not yet supported

@@ -9,7 +9,7 @@ import fs2._
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Status.Successful
-import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.headers.{Accept, Host, MediaRangeAndQValue}
 import org.http4s.syntax.kleisli._
 import scala.concurrent.SyncVar
 import scala.util.control.NoStackTrace
@@ -334,7 +334,8 @@ object Client {
     def disposableApp: Kleisli[F, Request[F], DisposableResponse[F]] =
       Kleisli { req: Request[F] =>
         val disposed = new AtomicBoolean(false)
-        val req0 = req.withBodyStream(interruptible(req.body, disposed))
+        val req0 =
+          addHostHeaderIfUriIsAbsolute(req.withBodyStream(interruptible(req.body, disposed)))
         app(req0).map { resp =>
           DisposableResponse(
             resp.copy(body = interruptible(resp.body, disposed)),
@@ -345,6 +346,13 @@ object Client {
 
     Client(disposableApp, F.delay(isShutdown.set(true)))
   }
+
+  private def addHostHeaderIfUriIsAbsolute[F[_]](req: Request[F]): Request[F] =
+    req.uri.host match {
+      case Some(host) if req.headers.get(Host).isEmpty =>
+        req.withHeaders(req.headers.put(Host(host.value, req.uri.port)))
+      case _ => req
+    }
 
   private def DefaultOnError[F[_]](resp: Response[F])(implicit F: Applicative[F]): F[Throwable] =
     F.pure(UnexpectedStatus(resp.status))

@@ -20,14 +20,14 @@ object RequestLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(app: HttpApp[F])(implicit ec: ExecutionContext = ExecutionContext.global): HttpApp[F] =
-    Kleisli { req =>
+  )(client: Client[F])(implicit ec: ExecutionContext = ExecutionContext.global): Client[F] =
+    client.copy(open = Kleisli { req =>
       if (!logBody)
-        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> app(req)
+        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> client.open(
+          req)
       else
-        async
-          .refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]])
-          .flatMap { vec =>
+        async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).flatMap {
+          vec =>
             val newBody = Stream
               .eval(vec.get)
               .flatMap(v => Stream.emits(v).covary[F])
@@ -41,11 +41,11 @@ object RequestLogger {
                   Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                     logHeaders,
                     logBody,
-                    redactHeadersWhen)(logger)
+                    redactHeadersWhen)(logger.info(_))
                 )
             )
 
-            app(changedRequest)
-          }
-    }
+            client.open(changedRequest)
+        }
+    })
 }

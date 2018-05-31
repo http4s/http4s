@@ -5,7 +5,6 @@ package middleware
 import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
-import org.log4s.{Logger ⇒ SLogger}
 
 /**
   * Simple Middleware for Logging All Requests and Responses
@@ -16,11 +15,9 @@ object Logger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
   )(client: Client[F]): Client[F] =
-    Client.fromHttpApp(
-      ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
-        RequestLogger(logHeaders, logBody, redactHeadersWhen)(
-          client.toHttpApp
-        )
+    ResponseLogger.apply(logHeaders, logBody, redactHeadersWhen)(
+      RequestLogger.apply(logHeaders, logBody, redactHeadersWhen)(
+        client
       )
     )
 
@@ -28,7 +25,7 @@ object Logger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      logger: SLogger)(implicit F: Effect[F]): F[Unit] = {
+      log: String => Unit)(implicit F: Effect[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -70,7 +67,7 @@ object Logger {
     else {
       bodyText
         .map(body => s"$prelude $headers $body")
-        .map(text => logger.info(text))
+        .map(text => log(text))
         .compile
         .drain
     }

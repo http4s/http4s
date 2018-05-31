@@ -20,34 +20,41 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(app: HttpApp[F])(
+  )(client: Client[F])(
       implicit F: Effect[F],
-      ec: ExecutionContext = ExecutionContext.global): HttpApp[F] =
-    Kleisli { req =>
-      app(req).flatMap { response =>
-        if (!logBody)
-          Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-            logger) *> F.delay(response)
-        else
-          async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
-            vec =>
-              val newBody = Stream
-                .eval(vec.get)
-                .flatMap(v => Stream.emits(v).covary[F])
-                .flatMap(c => Stream.segment(c).covary[F])
+      ec: ExecutionContext = ExecutionContext.global): Client[F] =
+    client.copy(open = Kleisli { req =>
+      client.open(req).flatMap {
+        case dr @ DisposableResponse(response, _) =>
+          if (!logBody)
+            Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
+              logger.info(_)) *> F.delay(dr)
+          else
+            async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
+              vec =>
+                val newBody = Stream
+                  .eval(vec.get)
+                  .flatMap(v => Stream.emits(v).covary[F])
+                  .flatMap(c => Stream.segment(c).covary[F])
 
-              response.copy(
-                body = response.body
-                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                  .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
-                  .onFinalize {
-                    Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen)(logger)
-                  }
-              )
-          }
+                dr.copy(
+                  response = response.copy(
+                    body = response.body
+                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                      .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))),
+                  dispose =
+                    Logger
+                      .logMessage[F, Response[F]](response.withBodyStream(newBody))(
+                        logHeaders,
+                        logBody,
+                        redactHeadersWhen)(logger.info(_))
+                      .attempt
+                      .flatMap {
+                        case Left(t) => F.delay(logger.error(t)("Error logging response body"))
+                        case Right(()) => F.unit
+                      } *> dr.dispose
+                )
+            }
       }
-    }
+    })
 }

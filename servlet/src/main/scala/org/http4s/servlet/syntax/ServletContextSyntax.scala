@@ -17,7 +17,7 @@ final class ServletContextOps private[syntax] (val self: ServletContext) extends
   /** Wraps an [[HttpRoutes]] and mounts it as a servlet */
   def mountService[F[_]: Effect](name: String, service: HttpRoutes[F], mapping: String = "/*")(
       implicit ec: ExecutionContext = ExecutionContext.global): ServletRegistration.Dynamic = {
-    val servlet = new Http4sServlet(
+    val servlet = new AsyncHttp4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       executionContext = ec,

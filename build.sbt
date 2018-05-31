@@ -11,6 +11,11 @@ enablePlugins(PrivateProjectPlugin)
 
 cancelable in Global := true
 
+// check for library updates whenever the project is [re]load
+onLoad in Global := { s =>
+  "dependencyUpdates" :: s
+}
+
 lazy val core = libraryProject("core")
   .enablePlugins(BuildInfoPlugin)
   .settings(
@@ -74,7 +79,7 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
     libraryDependencies ++= Seq(
       prometheusClient,
       prometheusHotspot
-    )
+    ),
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
@@ -93,7 +98,7 @@ lazy val client = libraryProject("client")
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
-    libraryDependencies += blaze
+    libraryDependencies += blaze,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -119,14 +124,26 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val okHttpClient = libraryProject("okhttp-client")
+  .settings(
+    description := "okhttp implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.okhttp
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
+
 lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       jettyServer % "test",
-      jettyServlet % "test"
-    )
+      jettyServlet % "test",
+      mockito % "test"
+    ),
   )
   .dependsOn(server % "compile;test->test")
 
@@ -172,6 +189,15 @@ lazy val argonaut = libraryProject("argonaut")
   )
   .dependsOn(core, testing % "test->test", jawn % "compile;test->test")
 
+lazy val boopickle = libraryProject("boopickle")
+  .settings(
+    description := "Provides Boopickle codecs for http4s",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.boopickle
+    ),
+  )
+  .dependsOn(core, testing % "test->test")
+
 lazy val circe = libraryProject("circe")
   .settings(
     description := "Provides Circe codecs for http4s",
@@ -188,7 +214,7 @@ lazy val json4s = libraryProject("json4s")
     libraryDependencies ++= Seq(
       jawnJson4s,
       json4sCore
-    )
+    ),
   )
   .dependsOn(jawn % "compile;test->test")
 
@@ -212,7 +238,7 @@ lazy val scalaXml = libraryProject("scala-xml")
     libraryDependencies ++= scalaVersion(VersionNumber(_).numbers match {
       case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sPlugin.scalaXml)
       case _ => Seq.empty
-    }).value
+    }).value,
   )
   .dependsOn(core, testing % "test->test")
 
@@ -224,6 +250,17 @@ lazy val twirl = http4sProject("twirl")
   )
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
+
+lazy val mimedbGenerator = http4sProject("mimedb-generator")
+  .enablePlugins(PrivateProjectPlugin)
+  .settings(
+    description := "MimeDB source code generator",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.treeHugger,
+      Http4sPlugin.circeGeneric
+    )
+  )
+  .dependsOn(blazeClient, circe)
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
@@ -270,6 +307,7 @@ lazy val docs = http4sProject("docs")
         examplesJetty,
         examplesTomcat,
         examplesWar,
+        mimedbGenerator,
         loadTest
       ),
     scalacOptions in Tut ~= {
@@ -416,7 +454,8 @@ lazy val examplesWar = exampleProject("examples-war")
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       logbackClassic % "runtime"
-    )
+    ),
+    containerLibs in Jetty := List(jettyRunner),
   )
   .dependsOn(servlet)
 
