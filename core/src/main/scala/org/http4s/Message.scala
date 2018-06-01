@@ -375,7 +375,7 @@ object Response {
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 
-  def notFoundFor[F[_]: Monad](request: Request[F])(
+  def notFoundFor[F[_]: Applicative](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Monad[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
+    Applicative[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
 }
