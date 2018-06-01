@@ -94,30 +94,28 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * embed a new token if not present, or regenerate the current one to mitigate
     * BREACH
     */
-  private[middleware] def validateOrEmbed(
-      r: Request[G],
-      http: Http[OptionT[F, ?], G]): OptionT[F, Response[G]] =
+  private[middleware] def validateOrEmbed(r: Request[G], http: Http[F, G]): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieName) match {
       case Some(c) =>
-        OptionT.liftF(
-          (for {
-            raw <- extractRaw(c.content)
-            res <- http(r)
-            newToken <- OptionT.liftF(signToken(raw))
-          } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
-            .getOrElse(Response[G](Status.Unauthorized)))
+        (for {
+          raw <- extractRaw(c.content)
+          res <- OptionT.liftF(http(r))
+          newToken <- OptionT.liftF(signToken(raw))
+        } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
+          .getOrElse(Response[G](Status.Unauthorized))
       case None =>
-        http(r).semiflatMap(embedNew)
+        http(r).flatMap(embedNew)
     }
 
   /** Check for CSRF validity for an unsafe action. **/
-  private[middleware] def checkCSRF(r: Request[G], http: Http[OptionT[F, ?], G]): F[Response[G]] =
+  private[middleware] def checkCSRF(r: Request[G], http: Http[F, G]): F[Response[G]] =
     (for {
       c1 <- OptionT.fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
       c2 <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)))
       raw1 <- extractRaw(c1.content)
       raw2 <- extractRaw(c2.value)
-      response <- if (CSRF.isEqual(raw1, raw2)) http(r) else OptionT.none[F, Response[G]]
+      response <- if (CSRF.isEqual(raw1, raw2)) OptionT.liftF(http(r))
+      else OptionT.none[F, Response[G]]
       newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
     } yield response.addCookie(ResponseCookie(name = cookieName, content = newToken)))
       .getOrElse(Response[G](Status.Unauthorized))
@@ -126,11 +124,11 @@ final class CSRF[F[_], G[_]] private[middleware] (
   private[middleware] def filter(
       predicate: Request[G] => Boolean,
       r: Request[G],
-      http: Http[OptionT[F, ?], G]): OptionT[F, Response[G]] =
+      http: Http[F, G]): F[Response[G]] =
     if (predicate(r)) {
       validateOrEmbed(r, http)
     } else {
-      OptionT.liftF(checkCSRF(r, http))
+      checkCSRF(r, http)
     }
 
   /** Constructs a middleware that will check for the csrf token
@@ -145,7 +143,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     *
     */
   def validate(predicate: Request[G] => Boolean = _.method.isSafe)
-    : Middleware[OptionT[F, ?], Request[G], Response[G], Request[G], Response[G]] = { http =>
+    : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
     Kleisli { r: Request[G] =>
       filter(predicate, r, http)
     }
@@ -156,8 +154,8 @@ final class CSRF[F[_], G[_]] private[middleware] (
     generateToken.map(content => res.addCookie(ResponseCookie(cookieName, content)))
 
   /** Middleware to embed a csrf token into routes that do not have one. **/
-  def withNewToken: Middleware[OptionT[F, ?], Request[G], Response[G], Request[G], Response[G]] =
-    _.andThen(res => OptionT.liftF(embedNew(res)))
+  def withNewToken: Middleware[F, Request[G], Response[G], Request[G], Response[G]] =
+    _.andThen(embedNew _)
 
 }
 
