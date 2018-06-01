@@ -23,11 +23,11 @@ package object metrics {
     }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
-  def metricsResponse[F[_]: Monad](
+  def metricsResponse[F[_]: Applicative](
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper): F[Response[F]] = {
     implicit val encoder = metricRegistryEncoder[F](mapper)
-    Monad[F].pure(Response[F](Status.Ok).withEntity(registry))
+    Applicative[F].pure(Response[F](Status.Ok).withEntity(registry))
   }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
