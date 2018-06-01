@@ -369,9 +369,9 @@ for serious static content serving.
       
       <p class="shortcomment cmt">Encodes a metric registry in JSON format</p>
     </li><li name="org.http4s.server.metrics#metricsResponse" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="metricsResponse[F[_]](registry:com.codahale.metrics.MetricRegistry,mapper:com.fasterxml.jackson.databind.ObjectMapper)(implicitevidence$2:cats.Monad[F]):F[org.http4s.Response[F]]"></a><a id="metricsResponse[F[_]](MetricRegistry,ObjectMapper)(Monad[F]):F[Response[F]]"></a>
+      <a id="metricsResponse[F[_]](registry:com.codahale.metrics.MetricRegistry,mapper:com.fasterxml.jackson.databind.ObjectMapper)(implicitevidence$2:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="metricsResponse[F[_]](MetricRegistry,ObjectMapper)(Applicative[F]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/metrics/index.html#metricsResponse[F[_]](registry:com.codahale.metrics.MetricRegistry,mapper:com.fasterxml.jackson.databind.ObjectMapper)(implicitevidence$2:cats.Monad[F]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/metrics/index.html#metricsResponse[F[_]](registry:com.codahale.metrics.MetricRegistry,mapper:com.fasterxml.jackson.databind.ObjectMapper)(implicitevidence$2:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -380,7 +380,7 @@ for serious static content serving.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">metricsResponse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="registry">registry: <span class="extype" name="com.codahale.metrics.MetricRegistry">MetricRegistry</span></span>, <span name="mapper">mapper: <span class="extype" name="com.fasterxml.jackson.databind.ObjectMapper">ObjectMapper</span> = <span class="symbol">defaultMapper</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.server.metrics.metricsResponse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.metrics.metricsResponse.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.metrics.metricsResponse.F">F</span>]]</span>
+        <span class="name">metricsResponse</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="registry">registry: <span class="extype" name="com.codahale.metrics.MetricRegistry">MetricRegistry</span></span>, <span name="mapper">mapper: <span class="extype" name="com.fasterxml.jackson.databind.ObjectMapper">ObjectMapper</span> = <span class="symbol">defaultMapper</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.metrics.metricsResponse.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.metrics.metricsResponse.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.metrics.metricsResponse.F">F</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Returns an OK response with a JSON dump of a MetricRegistry</p>
