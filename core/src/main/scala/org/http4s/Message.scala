@@ -377,5 +377,5 @@ object Response {
 
   def notFoundFor[F[_]: Applicative](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Applicative[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
+    Response(Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 }

@@ -3,6 +3,7 @@ package server
 
 import cats._
 import cats.effect.Sync
+import cats.syntax.applicative._
 import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.json.MetricsModule
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -27,7 +28,7 @@ package object metrics {
       registry: MetricRegistry,
       mapper: ObjectMapper = defaultMapper): F[Response[F]] = {
     implicit val encoder = metricRegistryEncoder[F](mapper)
-    Applicative[F].pure(Response[F](Status.Ok).withEntity(registry))
+    Response(Status.Ok).withEntity(registry).pure[F]
   }
 
   /** Returns an OK response with a JSON dump of a MetricRegistry */
