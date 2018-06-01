@@ -48,7 +48,7 @@ import org.http4s.util.{CaseInsensitiveString, encodeHex}
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
-final class CSRF[F[_]] private[middleware] (
+final class CSRF[F[_], G[_]] private[middleware] (
     val headerName: String = "X-Csrf-Token",
     val cookieName: String = "csrf-token",
     key: SecretKey,
@@ -163,26 +163,26 @@ final class CSRF[F[_]] private[middleware] (
 object CSRF {
 
   /** Default method for constructing CSRF middleware **/
-  def apply[F[_]: Sync](
+  def apply[F[_]: Sync, G[_]](
       headerName: String = "X-Csrf-Token",
       cookieName: String = "csrf-token",
       key: SecretKey,
-      clock: Clock = Clock.systemUTC()): CSRF[F] =
-    new CSRF[F](headerName, cookieName, key, clock)
+      clock: Clock = Clock.systemUTC()): CSRF[F, G] =
+    new CSRF[F, G](headerName, cookieName, key, clock)
 
   /** Sugar for instantiating a middleware by generating a key **/
-  def withGeneratedKey[F[_]: Sync](
+  def withGeneratedKey[F[_]: Sync, G[_]](
       headerName: String = "X-Csrf-Token",
       cookieName: String = "csrf-token",
-      clock: Clock = Clock.systemUTC()): F[CSRF[F]] =
+      clock: Clock = Clock.systemUTC()): F[CSRF[F, G]] =
     generateSigningKey().map(apply(headerName, cookieName, _, clock))
 
   /** Sugar for pre-loading a key **/
-  def withKeyBytes[F[_]: Sync](
+  def withKeyBytes[F[_]: Sync, G[_]](
       keyBytes: Array[Byte],
       headerName: String = "X-Csrf-Token",
       cookieName: String = "csrf-token",
-      clock: Clock = Clock.systemUTC()): F[CSRF[F]] =
+      clock: Clock = Clock.systemUTC()): F[CSRF[F, G]] =
     buildSigningKey(keyBytes).map(apply(headerName, cookieName, _, clock))
 
   val SigningAlgo: String = "HmacSHA1"

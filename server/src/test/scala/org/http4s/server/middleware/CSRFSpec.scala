@@ -38,7 +38,7 @@ class CSRFSpec extends Http4sSpec {
   val passThroughRequest: Request[IO] = Request[IO]()
   val orElse: Response[IO] = Response[IO](Status.NotFound)
 
-  val csrf = CSRF.withGeneratedKey[IO](clock = testClock).unsafeRunSync()
+  val csrf = CSRF.withGeneratedKey[IO, IO](clock = testClock).unsafeRunSync()
   "CSRF" should {
     "pass through and embed a new token for a safe, fresh request" in {
       val response =
