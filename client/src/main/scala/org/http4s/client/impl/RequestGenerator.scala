@@ -19,7 +19,7 @@ trait EntityRequestGenerator[F[_]] extends Any with EmptyRequestGenerator[F] {
 
   /** Make a [[org.http4s.Request]] using this Method */
   final def apply[A](uri: Uri, body: A, headers: Header*)(
-      implicit F: Monad[F],
+      implicit F: Applicative[F],
       w: EntityEncoder[F, A]): F[Request[F]] = {
     val h = w.headers ++ headers
     val entity = w.toEntity(body)
