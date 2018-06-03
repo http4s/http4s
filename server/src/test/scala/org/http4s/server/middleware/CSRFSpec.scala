@@ -27,22 +27,22 @@ class CSRFSpec extends Http4sSpec {
       Instant.ofEpochMilli(clockTick.incrementAndGet())
   }
 
-  val dummyRoutes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-    case GET -> Root =>
-      Ok()
-    case POST -> Root =>
-      Ok()
-  }
+  val dummyRoutes: HttpApp[IO] = HttpRoutes
+    .of[IO] {
+      case GET -> Root =>
+        Ok()
+      case POST -> Root =>
+        Ok()
+    }
+    .orNotFound
 
   val dummyRequest: Request[IO] = Request[IO](method = Method.POST)
   val passThroughRequest: Request[IO] = Request[IO]()
-  val orElse: Response[IO] = Response[IO](Status.NotFound)
 
   val csrf = CSRF.withGeneratedKey[IO, IO](clock = testClock).unsafeRunSync()
   "CSRF" should {
     "pass through and embed a new token for a safe, fresh request" in {
-      val response =
-        csrf.validate()(dummyRoutes)(passThroughRequest).getOrElse(orElse).unsafeRunSync()
+      val response = csrf.validate()(dummyRoutes)(passThroughRequest).unsafeRunSync()
 
       response.status must_== Status.Ok
       response.cookies.exists(_.name == csrf.cookieName) must_== true
@@ -53,7 +53,6 @@ class CSRFSpec extends Http4sSpec {
         csrf
           .validate()(dummyRoutes)(
             passThroughRequest.addCookie(RequestCookie(csrf.cookieName, "MOOSE")))
-          .getOrElse(orElse)
           .unsafeRunSync()
 
       response.status must_== Status.Unauthorized // Must fail
@@ -67,7 +66,6 @@ class CSRFSpec extends Http4sSpec {
           raw1 <- csrf.extractRaw(oldToken).getOrElse("Invalid1")
           response <- csrf
             .validate()(dummyRoutes)(passThroughRequest.addCookie(csrf.cookieName, oldToken))
-            .getOrElse(orElse)
           newCookie <- IO.pure(
             response.cookies
               .find(_.name == csrf.cookieName)
@@ -89,62 +87,62 @@ class CSRFSpec extends Http4sSpec {
 
     "validate for the correct csrf token" in {
       (for {
-        token <- OptionT.liftF(csrf.generateToken)
+        token <- csrf.generateToken
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
             .putHeaders(Header(csrf.headerName, token))
             .addCookie(csrf.cookieName, token)
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Ok
+      } yield res).unsafeRunSync().status must_== Status.Ok
     }
 
     "not validate if token is missing in both" in {
       csrf
         .validate()(dummyRoutes)(dummyRequest)
-        .getOrElse(orElse)
         .unsafeRunSync()
         .status must_== Status.Unauthorized
     }
 
     "not validate for token missing in header" in {
       (for {
-        token <- OptionT.liftF(csrf.generateToken)
+        token <- csrf.generateToken
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest.addCookie(csrf.cookieName, token)
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
+      } yield res).unsafeRunSync().status must_== Status.Unauthorized
     }
 
     "not validate for token missing in cookie" in {
       (for {
-        token <- OptionT.liftF(csrf.generateToken)
+        token <- csrf.generateToken
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest.putHeaders(Header(csrf.headerName, token))
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
+      } yield res).unsafeRunSync().status must_== Status.Unauthorized
     }
 
     "not validate for different tokens" in {
       (for {
-        token1 <- OptionT.liftF(csrf.generateToken)
-        token2 <- OptionT.liftF(csrf.generateToken)
+        token1 <- csrf.generateToken
+        token2 <- csrf.generateToken
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
             .withHeaders(Headers(Header(csrf.headerName, token1)))
             .addCookie(csrf.cookieName, token2)
         )
-      } yield res).getOrElse(orElse).unsafeRunSync().status must_== Status.Unauthorized
+      } yield res).unsafeRunSync().status must_== Status.Unauthorized
     }
 
     "not return the same token to mitigate BREACH" in {
       (for {
         token <- OptionT.liftF(csrf.generateToken)
         raw1 <- csrf.extractRaw(token)
-        res <- csrf.validate()(dummyRoutes)(
-          dummyRequest
-            .putHeaders(Header(csrf.headerName, token))
-            .addCookie(csrf.cookieName, token)
-        )
+        res <- OptionT.liftF(
+          csrf.validate()(dummyRoutes)(
+            dummyRequest
+              .putHeaders(Header(csrf.headerName, token))
+              .addCookie(csrf.cookieName, token)
+          ))
         r <- OptionT.fromOption[IO](res.cookies.find(_.name == csrf.cookieName).map(_.content))
         raw2 <- csrf.extractRaw(r)
       } yield r != token && raw1 == raw2).value.unsafeRunSync() must beSome(true)
@@ -154,11 +152,12 @@ class CSRFSpec extends Http4sSpec {
       val response = (for {
         token1 <- OptionT.liftF(csrf.generateToken)
         token2 <- OptionT.liftF(csrf.generateToken)
-        res <- csrf.validate()(dummyRoutes)(
-          dummyRequest
-            .putHeaders(Header(csrf.headerName, token1))
-            .addCookie(csrf.cookieName, token2)
-        )
+        res <- OptionT.liftF(
+          csrf.validate()(dummyRoutes)(
+            dummyRequest
+              .putHeaders(Header(csrf.headerName, token1))
+              .addCookie(csrf.cookieName, token2)
+          ))
       } yield res).getOrElse(Response.notFound).unsafeRunSync()
 
       response.status must_== Status.Unauthorized
