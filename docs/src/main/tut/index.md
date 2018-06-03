@@ -49,21 +49,22 @@ At the end of the process, you'll see:
 Template applied in ./quickstart
 ```
 
-In addition to sbt build machinery, a Scala source files are
+In addition to sbt build machinery, some Scala source files are
 generated:
 
 ```sh
 $ cd quickstart
-$ find . -name '*.scala'
+$ find src/main -name '*.scala'
 ./src/main/scala/com/example/http4squickstart/HelloWorldServer.scala
+./src/main/scala/com/example/http4squickstart/HelloWorldService.scala
 ```
 
-`HelloWorldService.scala` defines a runnable class by extending `StreamApp[IO]`.
-A `StreamApp[IO]` must define a method `stream(args: List[String],
-requestShutdown: IO[Unit])` which acts the entry point to your application. That
-method starts blaze, http4s' native server backend.
+`HelloWorldServer.scala` defines a runnable object `HelloWorldServer extends StreamApp[IO]`
+ overriding the `stream(args: List[String],
+requestShutdown: IO[Unit])` method which acts as the entry point to your application by
+ starting blaze, http4s' native server backend.
 
-The `service` method defines a simple `HttpService` that responds to `GET
+`HelloWorldService` defines a `service` value containing a simple `HttpService` that responds to `GET
 /hello/$USERNAME` with a JSON greeting.  Let's try it:
 
 ```sh
