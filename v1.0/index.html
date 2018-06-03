@@ -119,20 +119,21 @@ the <a href="/versions/">versions</a> page for other suggestions.</dd>
 <pre><code>Template applied in ./quickstart
 </code></pre>
 
-<p>In addition to sbt build machinery, a Scala source files are
+<p>In addition to sbt build machinery, some Scala source files are
 generated:</p>
 
 <pre><code class="language-sh">$ cd quickstart
-$ find . -name '*.scala'
+$ find src/main -name '*.scala'
 ./src/main/scala/com/example/http4squickstart/HelloWorldServer.scala
+./src/main/scala/com/example/http4squickstart/HelloWorldService.scala
 </code></pre>
 
-<p><code>HelloWorldService.scala</code> defines a runnable class by extending <code>StreamApp[IO]</code>.
-A <code>StreamApp[IO]</code> must define a method <code>stream(args: List[String],
-requestShutdown: IO[Unit])</code> which acts the entry point to your application. That
-method starts blaze, http4s&rsquo; native server backend.</p>
+<p><code>HelloWorldServer.scala</code> defines a runnable object <code>HelloWorldServer extends StreamApp[IO]</code>
+ overriding the <code>stream(args: List[String],
+requestShutdown: IO[Unit])</code> method which acts as the entry point to your application by
+ starting blaze, http4s&rsquo; native server backend.</p>
 
-<p>The <code>service</code> method defines a simple <code>HttpService</code> that responds to <code>GET
+<p><code>HelloWorldService</code> defines a <code>service</code> value containing a simple <code>HttpService</code> that responds to <code>GET
 /hello/$USERNAME</code> with a JSON greeting.  Let&rsquo;s try it:</p>
 
 <pre><code class="language-sh">$ sbt run
