@@ -40,11 +40,11 @@ An `HttpService[F]` is a simple alias for
 `Kleisli[F, Request, Response]`.  If that's meaningful to you,
 great.  If not, don't panic: `Kleisli` is just a convenient wrapper
 around a `Request => F[Response]`, and `F` is an effectful
-operation.  We'll teach you what you need to know as we go, or you
-can, uh, fork a task to read these introductions first:
+operation.  We'll teach you what you need to know as we go, or if you
+prefer you can read these introductions first:
 
-* [Scalaz Task: The Missing Documentation]
-* [Kleisli: Composing monadic functions]
+* [cats-effect: The IO Monad for Scala]
+* [Cats Kleisli Datatype]
 
 ### Defining your service
 
@@ -177,6 +177,6 @@ object Main extends StreamApp[IO] {
 
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
-[Kleisli: Composing monadic functions]: http://eed3si9n.com/learning-scalaz/Composing+monadic+functions.html
-[Scalaz Task: The Missing Documentation]: http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/
+[Cats Kleisli Datatype]: https://typelevel.org/cats/datatypes/kleisli.html
+[cats-effect: The IO Monad for Scala]: https://typelevel.org/cats-effect/
 [http4s-dsl]: ../dsl
