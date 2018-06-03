@@ -276,7 +276,7 @@ trait ArbitraryInstances {
   implicit val http4sArbitraryMediaRange: Arbitrary[MediaRange] =
     Arbitrary {
       for {
-        `type` <- genToken
+        `type` <- genToken.map(_.toLowerCase)
         extensions <- http4sGenMediaRangeExtensions
       } yield new MediaRange(`type`, extensions)
     }
