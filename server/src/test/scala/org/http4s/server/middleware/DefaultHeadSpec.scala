@@ -7,7 +7,7 @@ import fs2.Stream._
 import org.http4s.dsl.io._
 
 class DefaultHeadSpec extends Http4sSpec {
-  val app = DefaultHead[IO](HttpRoutes.of[IO] {
+  val app = DefaultHead(HttpRoutes.of[IO] {
     case GET -> Root / "hello" =>
       Ok("hello")
 
@@ -39,7 +39,7 @@ class DefaultHeadSpec extends Http4sSpec {
 
     "allow GET body to clean up on fallthrough" in {
       var cleanedUp = false
-      val app = DefaultHead[IO](HttpRoutes.of[IO] {
+      val app = DefaultHead(HttpRoutes.of[IO] {
         case GET -> _ =>
           val body: EntityBody[IO] = eval_(IO({ cleanedUp = true }))
           Ok(body)
