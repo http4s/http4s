@@ -127,6 +127,7 @@ it.</p>
 <li>Generalize <code>Timeout</code> middleware to work on <code>Kleisli[F, A, Response[G]]</code> given <code>Concurrent[F]</code> and <code>Timer[F]</code>. <a href="https://github.com/http4s/http4s/pull/1899">#1899</a></li>
 <li>Generalize <code>VirtualHost</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>Applicative[F]</code>.  <a href="https://github.com/http4s/http4s/pull/1902">#1902</a></li>
 <li>Generalize <code>URITranslate</code> middleware to work on <code>Kleisli[F, Request[G], B]</code> given <code>Functor[G]</code>.  <a href="https://github.com/http4s/http4s/pull/1895">#1895</a></li>
+<li>Generalize <code>CSRF</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>Sync[F]</code> and <code>Applicative[G]</code>.  <a href="https://github.com/http4s/http4s/pull/1909">#1909</a></li>
 <li>Rename <code>RequestLogger.apply0</code> and <code>ResponseLogger.apply0</code> to <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code>.  <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
 <li>Move <code>org.http4s.server.ServerSoftware</code> to <code>org.http4s.ServerSoftware</code> <a href="https://github.com/http4s/http4s/pull/1884">#1884</a></li>
 <li>Fix <code>Uncompressible</code> and <code>NotBinary</code> flags in <code>MimeDB</code> generator. <a href="https://github.com/http4s/http4s/pull/1884">#1900</a></li>
