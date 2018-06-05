@@ -91,7 +91,7 @@ object OkHttp {
   def stream[F[_]](config: F[OkHttpClient.Builder])(
       implicit F: Effect[F],
       ec: ExecutionContext): Stream[F, Client[F]] =
-    Stream.bracket(apply(config))(c => Stream.emit(c), _.shutdown)
+    Stream.bracket(apply(config))(_.shutdown)
 
   private def handler[F[_]](cb: Either[Throwable, DisposableResponse[F]] => Unit)(
       implicit F: Effect[F],

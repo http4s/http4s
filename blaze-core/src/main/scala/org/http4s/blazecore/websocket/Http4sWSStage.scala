@@ -3,18 +3,21 @@ package blazecore
 package websocket
 
 import cats.effect._
+import cats.effect.concurrent.Deferred
 import cats.implicits._
 import fs2._
 import fs2.async.mutable.Signal
 import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
 import org.http4s.blaze.util.Execution.{directec, trampoline}
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.websocket.WebsocketBits._
-
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: ExecutionContext)
+private[http4s] class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(
+    implicit F: ConcurrentEffect[F],
+    val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
   import Http4sWSStage.unsafeRunSync
 
@@ -89,7 +92,7 @@ class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(implicit F: Effect[F], val ec: 
       .compile
       .drain
 
-    async.unsafeRunAsync {
+    unsafeRunAsync {
       wsStream.attempt.flatMap {
         case Left(_) => sendClose
         case Right(_) => ().pure[F]
@@ -114,12 +117,9 @@ object Http4sWSStage {
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
 
   private def unsafeRunSync[F[_], A](fa: F[A])(implicit F: Effect[F], ec: ExecutionContext): A =
-    async
-      .promise[IO, Either[Throwable, A]]
-      .flatMap { p =>
-        F.runAsync(Async.shift(ec) *> fa) { r =>
-          p.complete(r)
-        } *> p.get.rethrow
-      }
-      .unsafeRunSync
+    Deferred[IO, Either[Throwable, A]].flatMap { p =>
+      F.runAsync(Async.shift(ec) *> fa) { r =>
+        p.complete(r)
+      } *> p.get.rethrow
+    }.unsafeRunSync
 }

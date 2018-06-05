@@ -66,7 +66,7 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit F: Effect[F])
+)(implicit F: ConcurrentEffect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -321,7 +321,7 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Effect[F]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,

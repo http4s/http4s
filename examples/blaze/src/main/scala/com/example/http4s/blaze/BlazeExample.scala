@@ -9,12 +9,12 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object BlazeExample extends BlazeExampleApp[IO]
 
-class BlazeExampleApp[F[_]: Effect] extends StreamApp[F] {
-  def stream(args: List[String], requestShutdown: F[Unit]): fs2.Stream[F, ExitCode] =
-    Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
-      BlazeBuilder[F]
-        .bindHttp(8080)
-        .mountService(new ExampleService[F].service, "/http4s")
-        .serve
-    }
+class BlazeExampleApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
+  def stream(args: List[String], requestShutdown: F[Unit]): fs2.Stream[F, ExitCode] = {
+    implicit val timer = Timer.derive[F]
+    BlazeBuilder[F]
+      .bindHttp(8080)
+      .mountService(new ExampleService[F].service, "/http4s")
+      .serve
+  }
 }

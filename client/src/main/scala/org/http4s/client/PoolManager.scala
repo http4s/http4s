@@ -1,13 +1,11 @@
 package org.http4s
 package client
 
+import cats.effect._
 import java.time.Instant
 import java.util.concurrent.TimeoutException
-
-import cats.effect._
-import fs2.async
 import org.log4s.getLogger
-
+import org.http4s.internal.unsafeRunAsync
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -95,7 +93,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit =
     if (numConnectionsCheckHolds(key)) {
       incrConnection(key)
-      async.unsafeRunAsync(builder(key)) {
+      unsafeRunAsync(builder(key)) {
         case Right(conn) =>
           IO(callback(Right(NextConnection(conn, fresh = true))))
         case Left(error) =>

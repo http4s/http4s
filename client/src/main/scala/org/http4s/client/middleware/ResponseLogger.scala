@@ -4,11 +4,11 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
-import scala.concurrent.ExecutionContext
 
 /**
   * Simple middleware for logging responses as they are processed
@@ -20,9 +20,7 @@ object ResponseLogger {
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(client: Client[F])(
-      implicit F: Effect[F],
-      ec: ExecutionContext = ExecutionContext.global): Client[F] =
+  )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
     client.copy(open = Kleisli { req =>
       client.open(req).flatMap {
         case dr @ DisposableResponse(response, _) =>
@@ -30,7 +28,7 @@ object ResponseLogger {
             Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
               logger.info(_)) *> F.delay(dr)
           else
-            async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).map {
+            Ref[F].of(Vector.empty[Segment[Byte, Unit]]).map {
               vec =>
                 val newBody = Stream
                   .eval(vec.get)
@@ -41,7 +39,7 @@ object ResponseLogger {
                   response = response.copy(
                     body = response.body
                     // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                      .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))),
+                      .observe(_.segments.flatMap(s => Stream.eval_(vec.update(_ :+ s))))),
                   dispose =
                     Logger
                       .logMessage[F, Response[F]](response.withBodyStream(newBody))(

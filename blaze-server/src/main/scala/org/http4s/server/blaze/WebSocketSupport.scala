@@ -2,20 +2,20 @@ package org.http4s.server.blaze
 
 import cats.effect._
 import cats.implicits._
-import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 import org.http4s._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.websocket.Http4sWSStage
 import org.http4s.headers._
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.syntax.string._
 import org.http4s.websocket.WebsocketHandshake
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
-  protected implicit def F: Effect[F]
+  protected implicit def F: ConcurrentEffect[F]
 
   override protected def renderResponse(
       req: Request[F],
@@ -32,7 +32,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
           WebsocketHandshake.serverHandshake(hdrs) match {
             case Left((code, msg)) =>
               logger.info(s"Invalid handshake $code, $msg")
-              async.unsafeRunAsync {
+              unsafeRunAsync {
                 wsContext.failureResponse
                   .map(
                     _.replaceAllHeaders(

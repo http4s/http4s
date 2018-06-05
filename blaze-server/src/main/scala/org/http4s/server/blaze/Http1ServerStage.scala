@@ -3,9 +3,8 @@ package server
 package blaze
 
 import cats.data.OptionT
-import cats.effect.{Effect, IO, Sync}
+import cats.effect.{ConcurrentEffect, IO, Sync}
 import cats.implicits._
-import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.http.parser.BaseExceptions.{BadMessage, ParserException}
 import org.http4s.blaze.pipeline.Command.EOF
@@ -16,6 +15,7 @@ import org.http4s.blaze.util.Execution._
 import org.http4s.blazecore.Http1Stage
 import org.http4s.blazecore.util.{BodylessWriter, Http1Writer}
 import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.syntax.string._
 import org.http4s.util.StringWriter
 import scala.concurrent.{ExecutionContext, Future}
@@ -23,7 +23,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 
 private[blaze] object Http1ServerStage {
 
-  def apply[F[_]: Effect](
+  def apply[F[_]: ConcurrentEffect](
       routes: HttpRoutes[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
@@ -55,7 +55,7 @@ private[blaze] class Http1ServerStage[F[_]](
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F])(implicit protected val F: ConcurrentEffect[F])
     extends Http1Stage[F]
     with TailStage[ByteBuffer] {
 
@@ -220,7 +220,7 @@ private[blaze] class Http1ServerStage[F[_]](
           closeOnFinish)
     }
 
-    async.unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
+    unsafeRunAsync(bodyEncoder.write(rr, resp.body)) {
       case Right(requireClose) =>
         if (closeOnFinish || requireClose) {
           logger.trace("Request/route requested closing connection.")

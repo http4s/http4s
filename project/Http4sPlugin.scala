@@ -140,7 +140,6 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.spire-math", name = "jawn-json4s"), // jawn-0.12 is incompatible with jawn-fs2-0.12
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -283,25 +282,25 @@ object Http4sPlugin extends AutoPlugin {
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M3"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
-  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10.1"
+  lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "1.0.0-RC2"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.9.3"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.10.0-M1"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.4"
-  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.0-M1"
+  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.6.0"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.1"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.11.1"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.2"
+  lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.12.1"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0-M1"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.10.v20180503"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision

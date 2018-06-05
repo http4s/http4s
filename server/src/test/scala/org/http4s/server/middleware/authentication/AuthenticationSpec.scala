@@ -6,7 +6,6 @@ package authentication
 import cats.data.NonEmptyList
 import cats.effect._
 import cats.implicits._
-import fs2._
 import org.http4s.dsl.io._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
@@ -211,7 +210,7 @@ class AuthenticationSpec extends Http4sSpec {
             res.status mustNotEqual NotFound
         })
         .toList
-      async.parallelSequence(results).unsafeRunSync
+      results.parSequence.unsafeRunSync
 
       ok
     }
@@ -228,7 +227,7 @@ class AuthenticationSpec extends Http4sSpec {
         })
         .toList
 
-      val res = async.parallelSequence(results).unsafeRunSync
+      val res = results.parSequence.unsafeRunSync
       res.filter(s => s == Ok).size must_=== 1
       res.filter(s => s == Unauthorized).size must_=== n - 1
 

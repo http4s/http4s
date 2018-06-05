@@ -9,18 +9,15 @@ import com.example.http4s.blaze.demo.server.endpoints.auth.{
   GitHubHttpEndpoint
 }
 import com.example.http4s.blaze.demo.server.service.{FileService, GitHubService}
-import fs2.Scheduler
 import org.http4s.HttpRoutes
 import org.http4s.client.Client
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
-class Module[F[_]](client: Client[F])(
-    implicit F: ConcurrentEffect[F],
-    S: Scheduler,
-    T: Timer[OptionT[F, ?]]) {
+class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[F]) {
 
   private val fileService = new FileService[F]
 
@@ -47,8 +44,10 @@ class Module[F[_]](client: Client[F])(
   private val timeoutHttpEndpoint: HttpRoutes[F] =
     new TimeoutHttpEndpoint[F].service
 
-  private val timeoutEndpoints: HttpRoutes[F] =
+  private val timeoutEndpoints: HttpRoutes[F] = {
+    implicit val timerOptionT = Timer.derive[OptionT[F, ?]]
     Timeout(1.second)(timeoutHttpEndpoint)
+  }
 
   private val mediaHttpEndpoint: HttpRoutes[F] =
     new JsonXmlHttpEndpoint[F].service
