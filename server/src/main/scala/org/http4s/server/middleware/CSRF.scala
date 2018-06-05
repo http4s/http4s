@@ -48,11 +48,11 @@ import org.http4s.util.{CaseInsensitiveString, encodeHex}
   * @param key the CSRF signing key
   * @param clock clock used as a nonce
   */
-final class CSRF[F[_]] private[middleware] (
+final class CSRF[F[_], G[_]] private[middleware] (
     val headerName: String = "X-Csrf-Token",
     val cookieName: String = "csrf-token",
     key: SecretKey,
-    clock: Clock = Clock.systemUTC())(implicit F: Sync[F]) {
+    clock: Clock = Clock.systemUTC())(implicit F: Sync[F], G: Applicative[G]) {
 
   /** Sign our token using the current time in milliseconds as a nonce
     * Signing and generating a token is potentially a unsafe operation
@@ -94,43 +94,41 @@ final class CSRF[F[_]] private[middleware] (
     * embed a new token if not present, or regenerate the current one to mitigate
     * BREACH
     */
-  private[middleware] def validateOrEmbed(
-      r: Request[F],
-      routes: HttpRoutes[F]): OptionT[F, Response[F]] =
+  private[middleware] def validateOrEmbed(r: Request[G], http: Http[F, G]): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieName) match {
       case Some(c) =>
-        OptionT.liftF(
-          (for {
-            raw <- extractRaw(c.content)
-            res <- routes(r)
-            newToken <- OptionT.liftF(signToken(raw))
-          } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
-            .getOrElse(Response[F](Status.Unauthorized)))
+        (for {
+          raw <- extractRaw(c.content)
+          res <- OptionT.liftF(http(r))
+          newToken <- OptionT.liftF(signToken(raw))
+        } yield res.addCookie(ResponseCookie(name = cookieName, content = newToken)))
+          .getOrElse(Response[G](Status.Unauthorized))
       case None =>
-        routes(r).semiflatMap(embedNew)
+        http(r).flatMap(embedNew)
     }
 
   /** Check for CSRF validity for an unsafe action. **/
-  private[middleware] def checkCSRF(r: Request[F], routes: HttpRoutes[F]): F[Response[F]] =
+  private[middleware] def checkCSRF(r: Request[G], http: Http[F, G]): F[Response[G]] =
     (for {
       c1 <- OptionT.fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
       c2 <- OptionT.fromOption[F](r.headers.get(CaseInsensitiveString(headerName)))
       raw1 <- extractRaw(c1.content)
       raw2 <- extractRaw(c2.value)
-      response <- if (CSRF.isEqual(raw1, raw2)) routes(r) else OptionT.none
+      response <- if (CSRF.isEqual(raw1, raw2)) OptionT.liftF(http(r))
+      else OptionT.none[F, Response[G]]
       newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
     } yield response.addCookie(ResponseCookie(name = cookieName, content = newToken)))
-      .getOrElse(Response[F](Status.Unauthorized))
+      .getOrElse(Response[G](Status.Unauthorized))
 
   /** Check predicate, then apply the correct csrf policy **/
   private[middleware] def filter(
-      predicate: Request[F] => Boolean,
-      r: Request[F],
-      routes: HttpRoutes[F]): OptionT[F, Response[F]] =
+      predicate: Request[G] => Boolean,
+      r: Request[G],
+      http: Http[F, G]): F[Response[G]] =
     if (predicate(r)) {
-      validateOrEmbed(r, routes)
+      validateOrEmbed(r, http)
     } else {
-      OptionT.liftF(checkCSRF(r, routes))
+      checkCSRF(r, http)
     }
 
   /** Constructs a middleware that will check for the csrf token
@@ -144,45 +142,46 @@ final class CSRF[F[_]] private[middleware] (
     *
     *
     */
-  def validate(predicate: Request[F] => Boolean = _.method.isSafe): HttpMiddleware[F] = { routes =>
-    Kleisli { r: Request[F] =>
-      filter(predicate, r, routes)
+  def validate(predicate: Request[G] => Boolean = _.method.isSafe)
+    : Middleware[F, Request[G], Response[G], Request[G], Response[G]] = { http =>
+    Kleisli { r: Request[G] =>
+      filter(predicate, r, http)
     }
   }
 
   /** Embed a token into a response **/
-  def embedNew(res: Response[F]): F[Response[F]] =
+  def embedNew(res: Response[G]): F[Response[G]] =
     generateToken.map(content => res.addCookie(ResponseCookie(cookieName, content)))
 
   /** Middleware to embed a csrf token into routes that do not have one. **/
-  def withNewToken: HttpMiddleware[F] =
-    _.andThen(res => OptionT.liftF(embedNew(res)))
+  def withNewToken: Middleware[F, Request[G], Response[G], Request[G], Response[G]] =
+    _.andThen(embedNew _)
 
 }
 
 object CSRF {
 
   /** Default method for constructing CSRF middleware **/
-  def apply[F[_]: Sync](
+  def apply[F[_]: Sync, G[_]: Applicative](
       headerName: String = "X-Csrf-Token",
       cookieName: String = "csrf-token",
       key: SecretKey,
-      clock: Clock = Clock.systemUTC()): CSRF[F] =
-    new CSRF[F](headerName, cookieName, key, clock)
+      clock: Clock = Clock.systemUTC()): CSRF[F, G] =
+    new CSRF[F, G](headerName, cookieName, key, clock)
 
   /** Sugar for instantiating a middleware by generating a key **/
-  def withGeneratedKey[F[_]: Sync](
+  def withGeneratedKey[F[_]: Sync, G[_]: Applicative](
       headerName: String = "X-Csrf-Token",
       cookieName: String = "csrf-token",
-      clock: Clock = Clock.systemUTC()): F[CSRF[F]] =
+      clock: Clock = Clock.systemUTC()): F[CSRF[F, G]] =
     generateSigningKey().map(apply(headerName, cookieName, _, clock))
 
   /** Sugar for pre-loading a key **/
-  def withKeyBytes[F[_]: Sync](
+  def withKeyBytes[F[_]: Sync, G[_]: Applicative](
       keyBytes: Array[Byte],
       headerName: String = "X-Csrf-Token",
       cookieName: String = "csrf-token",
-      clock: Clock = Clock.systemUTC()): F[CSRF[F]] =
+      clock: Clock = Clock.systemUTC()): F[CSRF[F, G]] =
     buildSigningKey(keyBytes).map(apply(headerName, cookieName, _, clock))
 
   val SigningAlgo: String = "HmacSHA1"
