@@ -11,6 +11,7 @@ it.
 # v0.18.13 (unreleased)
 * Dependency upgrades:
   * argonaut-6.2.2
+  * fs2-0.10.5
 
 # v0.18.12 (2018-05-28)
 * Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
