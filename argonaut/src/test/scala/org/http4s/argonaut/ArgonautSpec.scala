@@ -21,8 +21,9 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   "json encoder" should {
     val json = Json("test" -> jString("ArgonautSupport"))
 
-    "not have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== None
+    "have json content type" in {
+      jsonEncoder.headers.get(`Content-Type`) must_== Some(
+        `Content-Type`(MediaType.application.json))
     }
 
     "write compact JSON" in {
@@ -33,21 +34,21 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2)
       import custom._
       writeToString(json) must_== ("""{
-          |  "test" : "ArgonautSupport"
-          |}""".stripMargin)
+                                     |  "test" : "ArgonautSupport"
+                                     |}""".stripMargin)
     }
 
     "write JSON according to explicit printer" in {
       writeToString(json)(jsonEncoderWithPrettyParams(PrettyParams.spaces2)) must_== ("""{
-          |  "test" : "ArgonautSupport"
-          |}""".stripMargin)
+                                                                                        |  "test" : "ArgonautSupport"
+                                                                                        |}""".stripMargin)
     }
   }
 
   "jsonEncoderOf" should {
     "have json content type" in {
       jsonEncoderOf[IO, Foo].headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.json, Charset.`UTF-8`))
+        `Content-Type`(MediaType.application.json))
     }
 
     "write compact JSON" in {
@@ -58,14 +59,14 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       val custom = ArgonautInstances.withPrettyParams(PrettyParams.spaces2)
       import custom._
       writeToString(foo)(jsonEncoderOf) must_== ("""{
-          |  "bar" : 42
-          |}""".stripMargin)
+                                                   |  "bar" : 42
+                                                   |}""".stripMargin)
     }
 
     "write JSON according to explicit printer" in {
       writeToString(foo)(jsonEncoderWithPrinterOf(PrettyParams.spaces2)) must_== ("""{
-          |  "bar" : 42
-          |}""".stripMargin)
+                                                                                    |  "bar" : 42
+                                                                                    |}""".stripMargin)
     }
   }
 
