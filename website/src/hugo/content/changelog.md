@@ -54,6 +54,7 @@ it.
   * scala-xml-1.1.0
 
 # v0.18.13 (unreleased)
+* Removed json content type encoder for argonaut instances
 * Dependency upgrades:
   * argonaut-6.2.2
 

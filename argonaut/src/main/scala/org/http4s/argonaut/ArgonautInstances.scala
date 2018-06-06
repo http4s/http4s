@@ -6,7 +6,6 @@ import _root_.argonaut.Argonaut._
 import cats.Applicative
 import cats.effect.Sync
 import org.http4s.argonaut.Parser.facade
-import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
   implicit def jsonDecoder[F[_]: Sync]: EntityDecoder[F, Json] =
@@ -34,7 +33,6 @@ trait ArgonautInstances {
     EntityEncoder
       .stringEncoder(Charset.`UTF-8`)
       .contramap[Json](prettyParams.pretty)
-      .withContentType(`Content-Type`(MediaType.application.json, Charset.`UTF-8`))
 
   def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: EncodeJson[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrettyParams)

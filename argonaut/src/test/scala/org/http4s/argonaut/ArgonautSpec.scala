@@ -21,9 +21,8 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   "json encoder" should {
     val json = Json("test" -> jString("ArgonautSupport"))
 
-    "have json content type" in {
-      jsonEncoder.headers.get(`Content-Type`) must_== Some(
-        `Content-Type`(MediaType.application.json, Charset.`UTF-8`))
+    "not have json content type" in {
+      jsonEncoder.headers.get(`Content-Type`) must_== None
     }
 
     "write compact JSON" in {
