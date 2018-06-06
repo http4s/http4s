@@ -54,7 +54,7 @@ it.
   * scala-xml-1.1.0
 
 # v0.18.13 (unreleased)
-* Removed json content type encoder for argonaut instances
+* Removed charset for argonaut instances [#1914](https://github.com/http4s/http4s/pull/1914)
 * Dependency upgrades:
   * argonaut-6.2.2
 
