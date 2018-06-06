@@ -20,6 +20,8 @@ trait ServerBuilder[F[_]] {
 
   type Self <: ServerBuilder[F]
 
+  protected implicit def F: Concurrent[F]
+
   def bindSocketAddress(socketAddress: InetSocketAddress): Self
 
   final def bindHttp(port: Int = DefaultHttpPort, host: String = DefaultHost): Self =
@@ -56,7 +58,7 @@ trait ServerBuilder[F[_]] {
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
     */
-  final def serve(implicit F: Concurrent[F]): Stream[F, ExitCode] =
+  final def serve: Stream[F, ExitCode] =
     for {
       signal <- Stream.eval(async.signalOf[F, Boolean](false))
       exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))

@@ -53,10 +53,12 @@ it.
   * `Logger` (client and server)
   * `RequestLogger` (client and server)
   * `ResponseLogger` (client and server)
-  * `ServerBuilder#serve`
+  * `ServerBuilder#serve` (moved to abstract member of `ServerBuilder`)
 * `Effect` constraint strengthened to `ConcurrentEffect`:
   * `AsyncHttpClient`
   * `BlazeBuilder`
+  * `JettyBuilder`
+  * `TomcatBuilder`
 * Implicit `ExecutionContext` removed from:
   * `RequestLogger` (client and server)
   * `ResponseLogger` (client and server)

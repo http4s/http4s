@@ -29,12 +29,11 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-) extends ServletContainer[F]
+)(implicit protected val F: ConcurrentEffect[F]) extends ServletContainer[F]
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F] {
 
-  private val F = Effect[F]
   type Self = TomcatBuilder[F]
 
   private[this] val logger = getLogger
@@ -226,7 +225,7 @@ sealed class TomcatBuilder[F[_]: Effect] private (
 
 object TomcatBuilder {
 
-  def apply[F[_]: Effect]: TomcatBuilder[F] =
+  def apply[F[_]: ConcurrentEffect]: TomcatBuilder[F] =
     new TomcatBuilder[F](
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,

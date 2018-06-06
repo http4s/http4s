@@ -66,7 +66,7 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit F: ConcurrentEffect[F])
+)(implicit protected val F: ConcurrentEffect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]

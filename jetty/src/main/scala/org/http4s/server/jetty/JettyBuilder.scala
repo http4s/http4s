@@ -31,13 +31,12 @@ sealed class JettyBuilder[F[_]: Effect] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-) extends ServletContainer[F]
+)(implicit protected val F: ConcurrentEffect[F]) extends ServletContainer[F]
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F] {
 
-  private val F = Effect[F]
   type Self = JettyBuilder[F]
 
   private[this] val logger = getLogger
@@ -233,7 +232,7 @@ sealed class JettyBuilder[F[_]: Effect] private (
 }
 
 object JettyBuilder {
-  def apply[F[_]: Effect] = new JettyBuilder[F](
+  def apply[F[_]: ConcurrentEffect] = new JettyBuilder[F](
     socketAddress = ServerBuilder.DefaultSocketAddress,
     executionContext = ExecutionContext.global,
     idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
