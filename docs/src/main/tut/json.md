@@ -194,10 +194,10 @@ POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
 ```
 
 If we are always decoding from JSON to a typed model, we can use
-the following one-liner:
+the following import:
 
 ```tut:book
-implicit def decoders[F[_]: Sync, A: Decoder]: EntityDecoder[F, A] = jsonOf[F, A]
+import org.http4s.circe.CirceEntityDecoder._
 ```
 
 This creates an `EntityDecoder[A]` for every `A` that has a `Decoder` instance.
