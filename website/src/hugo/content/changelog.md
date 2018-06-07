@@ -9,6 +9,7 @@ ordered chronologically, so each release contains all changes described below
 it.
 
 # v0.18.13 (unreleased)
+* Downcase type in `MediaRange` generator [#1907](https://github.com/http4s/http4s/pull/1907)
 * Dependency upgrades:
   * argonaut-6.2.2
 
