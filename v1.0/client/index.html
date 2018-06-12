@@ -120,10 +120,10 @@ val service = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$41763/1484791541@70b6151c)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$41467/254090359@1ee4461c)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1076147441
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$700309058
 
 val server = builder.unsafeRunSync
 // server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
@@ -134,15 +134,18 @@ val server = builder.unsafeRunSync
 <p>A good default choice is the <code>Http1Client</code>.  The <code>Http1Client</code> maintains a connection pool and
 speaks HTTP 1.x.</p>
 
-<p>Note: In production code you would want to use <code>Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]</code>
+<p>Note: In production code you would want to use <code>Http1Client.stream[F[_]: Effect]: Stream[F, Client[F]]</code>
 to safely acquire and release resources. In the documentation we are forced to use <code>.unsafeRunSync</code> to
 create the client.</p>
 
 <pre><code class="language-scala">import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
-val httpClient = Http1Client[IO]().unsafeRunSync
-// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$41793/1714554980@650bdb18),IO$310767609)
+import org.http4s.client._
+// import org.http4s.client._
+
+val httpClient: Client[IO] = Http1Client[IO]().unsafeRunSync
+// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$41499/1604801789@ec661ba),IO$1526178633)
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -151,7 +154,7 @@ val httpClient = Http1Client[IO]().unsafeRunSync
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$1975619084
+// helloJames: cats.effect.IO[String] = IO$152757069
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -189,7 +192,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = fs2.async.parallelTraverse(people)(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1693392568
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1823437951
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -272,7 +275,7 @@ val withQuery = withPath.withQueryParam(&quot;hello&quot;, &quot;world&quot;)
 <p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
 
 <pre><code class="language-scala">httpClient.expect[String](Uri.uri(&quot;https://google.com/&quot;))
-// res2: cats.effect.IO[String] = IO$381382776
+// res2: cats.effect.IO[String] = IO$1118803546
 </code></pre>
 
 <p>If you need to do something more complicated like setting request headers, you
@@ -295,7 +298,7 @@ val request = GET(
 // request: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=GET, uri=https://my-lovely-api.com/, headers=Headers(Authorization: &lt;REDACTED&gt;, Accept: application/json)))
 
 httpClient.expect[String](request)
-// res3: cats.effect.IO[String] = IO$2023628526
+// res3: cats.effect.IO[String] = IO$2019674154
 </code></pre>
 
 <h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
@@ -318,7 +321,7 @@ val postRequest = POST(
 // postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=POST, uri=https://my-lovely-api.com/oauth2/token, headers=Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78)))
 
 httpClient.expect[AuthResponse](postRequest)
-// res5: cats.effect.IO[AuthResponse] = IO$1099640968
+// res5: cats.effect.IO[AuthResponse] = IO$404656279
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>
