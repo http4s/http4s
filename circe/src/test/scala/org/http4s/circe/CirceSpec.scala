@@ -169,12 +169,17 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
   }
 
-  "CirceEntityDecoder" should {
+  "CirceEntityEncDec" should {
     "decode json without defining EntityDecoder" in {
       import org.http4s.circe.CirceEntityDecoder._
       val request = Request[IO]().withEntity(Json.obj("bar" -> Json.fromDoubleOrNull(42)))
       val result = request.attemptAs[Foo]
       result.value.unsafeRunSync must_== Right(Foo(42))
+    }
+
+    "encode without defining EntityEncoder using default printer" in {
+      import org.http4s.circe.CirceEntityEncoder._
+      writeToString(foo) must_== """{"bar":42}"""
     }
   }
 
