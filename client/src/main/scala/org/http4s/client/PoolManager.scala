@@ -171,6 +171,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
                     s"No connections available for the desired key. Evicting random and creating a new connection: $stats")
                   val randKey = keys.iterator.drop(Random.nextInt(keys.size)).next()
                   idleQueues(randKey).dequeue().shutdown()
+                  if (idleQueues.get(randKey).exists(_.isEmpty)) idleQueues.remove(randKey)
                   decrConnection(randKey)
                   createConnection(key, callback)
                 } else {
