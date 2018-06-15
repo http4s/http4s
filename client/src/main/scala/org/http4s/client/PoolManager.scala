@@ -199,22 +199,22 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
 
   private def releaseRecyclable(key: RequestKey, connection: A): F[Unit] =
-    waitQueue.dequeueFirst(_.key == key) match {
+    F.delay(waitQueue.dequeueFirst(_.key == key)) flatMap {
       case Some(Waiting(_, callback, at)) =>
         if (isExpired(at)) {
-          logger.debug(s"Request expired")
+          F.delay(logger.debug(s"Request expired")) >>
           F.delay(callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
         } else {
-          logger.debug(s"Fulfilling waiting connection request: $stats")
+          F.delay(logger.debug(s"Fulfilling waiting connection request: $stats")) >>
           F.delay(callback(Right(NextConnection(connection, fresh = false))))
         }
 
       case None if waitQueue.isEmpty =>
-        logger.debug(s"Returning idle connection to pool: $stats")
+        F.delay(logger.debug(s"Returning idle connection to pool: $stats")) >>
         addToIdleQueue(connection, key)
 
       case None =>
-        findFirstAllowedWaiter match {
+        findFirstAllowedWaiter flatMap {
           case Some(Waiting(k, cb, _)) =>
             // This is the first waiter not blocked on the request key limit.
             // close the undesired connection and wait for another
@@ -238,9 +238,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
       connection.shutdown()
     }
 
-    findFirstAllowedWaiter match {
+    findFirstAllowedWaiter flatMap {
       case Some(Waiting(k, callback, _)) =>
-        logger.debug(s"Connection returned could not be recycled, new connection needed: $stats")
+        F.delay(logger.debug(s"Connection returned could not be recycled, new connection needed: $stats")) >>
         createConnection(k, callback)
 
       case None =>
@@ -279,7 +279,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
   }
 
-  private def findFirstAllowedWaiter = {
+  private def findFirstAllowedWaiter: F[Option[Waiting]] = F.delay {
     val (expired, rest) = waitQueue.span(w => isExpired(w.at))
     expired.foreach(
       _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
@@ -299,11 +299,11 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of Unit
     */
   override def invalidate(connection: A): F[Unit] = semaphore.withPermit {
-    decrConnection(connection.requestKey)
-    if (!connection.isClosed) connection.shutdown()
-    findFirstAllowedWaiter match {
+    decrConnection(connection.requestKey) >>
+    F.delay(if (!connection.isClosed) connection.shutdown()) >>
+    findFirstAllowedWaiter.flatMap {
       case Some(Waiting(k, callback, _)) =>
-        logger.debug(s"Invalidated connection, new connection needed: $stats")
+        F.delay(logger.debug(s"Invalidated connection, new connection needed: $stats")) >>
         createConnection(k, callback)
 
       case None =>
