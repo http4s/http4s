@@ -165,7 +165,9 @@ POST(uri("/hello"), User("Bob").asJson).unsafeRunSync
 If within some route we serve json only, we can use:
 
 ```tut:book
+{
 import org.http4s.circe.CirceEntityEncoder._
+}
 ```
 
 Thus there's no more need in calling `asJson` on result.
@@ -220,7 +222,7 @@ For more convenience there is import combining both encoding
 and decoding derivation: 
 
 ```tut:book
-org.http4s.circe.CirceEntityEncDec._
+import org.http4s.circe.CirceEntityCodec._
 ```
 
 ## Putting it all together
