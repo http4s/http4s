@@ -2,6 +2,7 @@ package org.http4s
 package client
 
 import cats.effect._
+import cats.effect.concurrent.Semaphore
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import org.log4s.getLogger
@@ -19,6 +20,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     maxConnectionsPerRequestKey: RequestKey => Int,
     responseHeaderTimeout: Duration,
     requestTimeout: Duration,
+    semaphore: Semaphore[F],
     implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
     extends ConnectionManager[F, A] {
 
@@ -139,52 +141,55 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of NextConnection
     */
   def borrow(key: RequestKey): F[NextConnection] =
-    F.async { callback =>
-      logger.debug(s"Requesting connection: $stats")
-      synchronized {
-        if (!isClosed) {
-          @tailrec
-          def go(): Unit =
-            getConnectionFromQueue(key) match {
-              case Some(conn) if !conn.isClosed =>
-                logger.debug(s"Recycling connection: $stats")
-                callback(Right(NextConnection(conn, fresh = false)))
+    F.asyncF { callback =>
+      semaphore.withPermit {
+        F.delay {
+          logger.debug(s"Requesting connection: $stats")
 
-              case Some(closedConn @ _) =>
-                logger.debug(s"Evicting closed connection: $stats")
-                decrConnection(key)
-                go()
+          if (!isClosed) {
+            @tailrec
+            def go(): Unit =
+              getConnectionFromQueue(key) match {
+                case Some(conn) if !conn.isClosed =>
+                  logger.debug(s"Recycling connection: $stats")
+                  callback(Right(NextConnection(conn, fresh = false)))
 
-              case None if numConnectionsCheckHolds(key) =>
-                logger.debug(s"Active connection not found. Creating new one. $stats")
-                createConnection(key, callback)
+                case Some(closedConn @ _) =>
+                  logger.debug(s"Evicting closed connection: $stats")
+                  decrConnection(key)
+                  go()
 
-              case None if maxConnectionsPerRequestKey(key) <= 0 =>
-                callback(Left(NoConnectionAllowedException(key)))
-
-              case None if curTotal == maxTotal =>
-                val keys = idleQueues.keys
-                if (keys.nonEmpty) {
-                  logger.debug(
-                    s"No connections available for the desired key. Evicting random and creating a new connection: $stats")
-                  val randKey = keys.iterator.drop(Random.nextInt(keys.size)).next()
-                  idleQueues(randKey).dequeue().shutdown()
-                  decrConnection(randKey)
+                case None if numConnectionsCheckHolds(key) =>
+                  logger.debug(s"Active connection not found. Creating new one. $stats")
                   createConnection(key, callback)
-                } else {
-                  logger.debug(
-                    s"No connections available for the desired key. Adding to waitQueue: $stats")
+
+                case None if maxConnectionsPerRequestKey(key) <= 0 =>
+                  callback(Left(NoConnectionAllowedException(key)))
+
+                case None if curTotal == maxTotal =>
+                  val keys = idleQueues.keys
+                  if (keys.nonEmpty) {
+                    logger.debug(
+                      s"No connections available for the desired key. Evicting random and creating a new connection: $stats")
+                    val randKey = keys.iterator.drop(Random.nextInt(keys.size)).next()
+                    idleQueues(randKey).dequeue().shutdown()
+                    decrConnection(randKey)
+                    createConnection(key, callback)
+                  } else {
+                    logger.debug(
+                      s"No connections available for the desired key. Adding to waitQueue: $stats")
+                    addToWaitQueue(key, callback)
+                  }
+
+                case None => // we're full up. Add to waiting queue.
+                  logger.debug(s"No connections available.  Waiting on new connection: $stats")
                   addToWaitQueue(key, callback)
-                }
+              }
 
-              case None => // we're full up. Add to waiting queue.
-                logger.debug(s"No connections available.  Waiting on new connection: $stats")
-                addToWaitQueue(key, callback)
-            }
-
-          go()
-        } else {
-          callback(Left(new IllegalStateException("Connection pool is closed")))
+            go()
+          } else {
+            callback(Left(new IllegalStateException("Connection pool is closed")))
+          }
         }
       }
     }
@@ -260,8 +265,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param connection The connection to be released.
     * @return An effect of Unit
     */
-  def release(connection: A): F[Unit] = F.delay {
-    synchronized {
+  def release(connection: A): F[Unit] = semaphore.withPermit {
+    F.delay {
       logger.debug(s"Recycling connection: $stats")
       val key = connection.requestKey
       if (connection.isRecyclable) {
@@ -291,8 +296,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param connection The connection to invalidate
     * @return An effect of Unit
     */
-  override def invalidate(connection: A): F[Unit] =
-    F.delay(synchronized {
+  override def invalidate(connection: A): F[Unit] = semaphore.withPermit {
+    F.delay {
       decrConnection(connection.requestKey)
       if (!connection.isClosed) connection.shutdown()
       findFirstAllowedWaiter match {
@@ -303,7 +308,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
         case None =>
           logger.debug(s"Invalidated connection, no pending requests. Shrinking pool: $stats")
       }
-    })
+    }
+  }
 
   /**
     * Synchronous Immediate Disposal of a Connection and Its Resources.
@@ -315,11 +321,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
     */
   private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
     logger.debug(s"Disposing of connection: $stats")
-    synchronized {
-      decrConnection(key)
-      connection.foreach { s =>
-        if (!s.isClosed) s.shutdown()
-      }
+    decrConnection(key)
+    connection.foreach { s =>
+      if (!s.isClosed) s.shutdown()
     }
   }
 
@@ -331,9 +335,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * @return An effect Of Unit
     */
-  def shutdown(): F[Unit] = F.delay {
-    logger.info(s"Shutting down connection pool: $stats")
-    synchronized {
+  def shutdown(): F[Unit] = semaphore.withPermit {
+    F.delay {
+      logger.info(s"Shutting down connection pool: $stats")
       if (!isClosed) {
         isClosed = true
         idleQueues.foreach(_._2.foreach(_.shutdown()))

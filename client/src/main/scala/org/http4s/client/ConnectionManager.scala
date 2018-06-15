@@ -2,7 +2,7 @@ package org.http4s
 package client
 
 import cats.effect._
-
+import cats.effect.concurrent.Semaphore
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
@@ -71,5 +71,6 @@ object ConnectionManager {
       maxConnectionsPerRequestKey,
       responseHeaderTimeout,
       requestTimeout,
+      Effect[F].toIO(Semaphore.uncancelable(1)).unsafeRunSync(),
       executionContext)
 }
