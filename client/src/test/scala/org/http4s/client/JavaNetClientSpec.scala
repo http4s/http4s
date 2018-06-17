@@ -5,5 +5,6 @@ import cats.effect.IO
 import org.http4s.Http4sSpec._
 
 class JavaNetClientSpec
-    extends ClientRouteTestBattery("JavaNetClient",
+    extends ClientRouteTestBattery(
+      "JavaNetClient",
       JavaNetClient(TestBlockingExecutionContext)(TestExecutionContext).create[IO])

@@ -5,7 +5,9 @@ import cats.implicits._
 import scala.concurrent.ExecutionContext
 
 package object internal {
-  def blocking[F[_], A](fa: F[A], blockingExecutionContext: ExecutionContext)(implicit F: Async[F], ec: ExecutionContext): F[A] =
+  def blocking[F[_], A](fa: F[A], blockingExecutionContext: ExecutionContext)(
+      implicit F: Async[F],
+      ec: ExecutionContext): F[A] =
     for {
       _ <- Async.shift[F](blockingExecutionContext)
       att <- fa.attempt

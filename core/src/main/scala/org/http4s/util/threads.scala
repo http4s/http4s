@@ -82,8 +82,10 @@ object threads {
 
   private[http4s] def newBlockingPool(name: String): ExecutorService =
     new ThreadPoolExecutor(
-      0, Int.MaxValue,
-      60, TimeUnit.SECONDS,
+      0,
+      Int.MaxValue,
+      60,
+      TimeUnit.SECONDS,
       new SynchronousQueue[Runnable](false),
       threadFactory(i => s"$name-$i", daemon = true)
     )

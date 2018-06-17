@@ -26,28 +26,29 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
   * back after blocking.
   */
 sealed abstract class JavaNetClient private (
-  val connectTimeout: Duration,
-  val readTimeout: Duration,
-  val proxy: Option[Proxy],
-  val hostnameVerifier: Option[HostnameVerifier],
-  val sslSocketFactory: Option[SSLSocketFactory],
-  val blockingExecutionContext: ExecutionContext,
+    val connectTimeout: Duration,
+    val readTimeout: Duration,
+    val proxy: Option[Proxy],
+    val hostnameVerifier: Option[HostnameVerifier],
+    val sslSocketFactory: Option[SSLSocketFactory],
+    val blockingExecutionContext: ExecutionContext,
 )(implicit ec: ExecutionContext) {
   private def copy(
-    connectTimeout: Duration = connectTimeout,
-    readTimeout: Duration = readTimeout,
-    proxy: Option[Proxy] = proxy,
-    hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
-    sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
-    blockingExecutionContext: ExecutionContext = blockingExecutionContext
-  ): JavaNetClient = new JavaNetClient(
-    connectTimeout = connectTimeout,
-    readTimeout = readTimeout,
-    proxy = proxy,
-    hostnameVerifier = hostnameVerifier,
-    sslSocketFactory = sslSocketFactory,
-    blockingExecutionContext = blockingExecutionContext
-  ) {}
+      connectTimeout: Duration = connectTimeout,
+      readTimeout: Duration = readTimeout,
+      proxy: Option[Proxy] = proxy,
+      hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
+      sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
+      blockingExecutionContext: ExecutionContext = blockingExecutionContext
+  ): JavaNetClient =
+    new JavaNetClient(
+      connectTimeout = connectTimeout,
+      readTimeout = readTimeout,
+      proxy = proxy,
+      hostnameVerifier = hostnameVerifier,
+      sslSocketFactory = sslSocketFactory,
+      blockingExecutionContext = blockingExecutionContext
+    ) {}
 
   def withConnectTimeout(connectTimeout: Duration): JavaNetClient =
     copy(connectTimeout = connectTimeout)
@@ -104,46 +105,49 @@ sealed abstract class JavaNetClient private (
     } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
   }
 
-  def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) = for {
-    _ <- writeBody(req, conn)
-    code <- F.delay(conn.getResponseCode)
-    status <- F.fromEither(Status.fromInt(code))
-    headers <- F.delay(Headers(
-      conn.getHeaderFields.asScala
-        .filter(_._1 != null)
-        .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
-        .toList
-    ))
-    body = readInputStream(F.delay(conn.getInputStream), 4096)
-  } yield Response(status = status, headers = headers, body = body)
+  private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) =
+    for {
+      _ <- writeBody(req, conn)
+      code <- F.delay(conn.getResponseCode)
+      status <- F.fromEither(Status.fromInt(code))
+      headers <- F.delay(
+        Headers(
+          conn.getHeaderFields.asScala
+            .filter(_._1 != null)
+            .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
+            .toList
+        ))
+      body = readInputStream(F.delay(conn.getInputStream), 4096)
+    } yield Response(status = status, headers = headers, body = body)
 
-  def timeoutMillis(d: Duration): Int = d match {
-    case d: FiniteDuration if d > Duration.Zero => (d.toMillis max 0 min Int.MaxValue).toInt
+  private def timeoutMillis(d: Duration): Int = d match {
+    case d: FiniteDuration if d > Duration.Zero => d.toMillis.max(0).min(Int.MaxValue).toInt
     case _ => 0
   }
 
-  def openConnection[F[_]](url: URL)(implicit F: Sync[F]) = proxy match {
+  private def openConnection[F[_]](url: URL)(implicit F: Sync[F]) = proxy match {
     case Some(p) =>
       F.delay(url.openConnection(p).asInstanceOf[HttpURLConnection])
     case None =>
       F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
   }
 
-  def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) =
+  private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
-      F.delay(conn.setChunkedStreamingMode(4096)) *>
-      req.body.to(writeOutputStream(F.delay(conn.getOutputStream), false)).compile.drain
-    } else req.contentLength match {
-      case Some(len) if len >= 0L =>
-        F.delay(conn.setDoOutput(true)) *>
-        F.delay(conn.setFixedLengthStreamingMode(len)) *>
+        F.delay(conn.setChunkedStreamingMode(4096)) *>
         req.body.to(writeOutputStream(F.delay(conn.getOutputStream), false)).compile.drain
-      case _ =>
-        F.delay(conn.setDoOutput(false))
-    }
+    } else
+      req.contentLength match {
+        case Some(len) if len >= 0L =>
+          F.delay(conn.setDoOutput(true)) *>
+            F.delay(conn.setFixedLengthStreamingMode(len)) *>
+            req.body.to(writeOutputStream(F.delay(conn.getOutputStream), false)).compile.drain
+        case _ =>
+          F.delay(conn.setDoOutput(false))
+      }
 
-  def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
+  private def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
     conn match {
       case connSsl: HttpsURLConnection =>
         for {
@@ -155,12 +159,14 @@ sealed abstract class JavaNetClient private (
 }
 
 object JavaNetClient {
-  def apply(blockingExecutionContext: ExecutionContext)(implicit ec: ExecutionContext): JavaNetClient = new JavaNetClient(
-    connectTimeout = Duration.Inf,
-    readTimeout = Duration.Inf,
-    proxy = None,
-    hostnameVerifier = None,
-    sslSocketFactory = None,
-    blockingExecutionContext = blockingExecutionContext
-  ){}
+  def apply(blockingExecutionContext: ExecutionContext)(
+      implicit ec: ExecutionContext): JavaNetClient =
+    new JavaNetClient(
+      connectTimeout = Duration.Inf,
+      readTimeout = Duration.Inf,
+      proxy = None,
+      hostnameVerifier = None,
+      sslSocketFactory = None,
+      blockingExecutionContext = blockingExecutionContext
+    ) {}
 }
