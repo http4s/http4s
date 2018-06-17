@@ -14,7 +14,7 @@ import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
 import org.http4s.testing._
-import org.http4s.util.threads.newDaemonPool
+import org.http4s.util.threads.{newBlockingPool, newDaemonPool}
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
@@ -122,6 +122,9 @@ trait Http4sSpec
 object Http4sSpec {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
+
+  val TestBlockingExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(newBlockingPool("http4s-spec-blocking"))
 
   val TestScheduler: Scheduler = {
     val (sched, _) = Scheduler

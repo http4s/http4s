@@ -2,33 +2,51 @@ package org.http4s
 package client
 
 import cats.data.Kleisli
-import cats.effect.Sync
+import cats.effect.{Effect, Sync}
 import cats.implicits._
 import fs2.io.{readInputStream, writeOutputStream}
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
+import org.http4s.internal.blocking
 import scala.collection.JavaConverters._
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
+/** A [[Client]] based on `java.net.HttpUrlConnection`.
+  *
+  * `JavaNetClient` adds no dependencies beyond `http4s-client`.  This
+  * client is generally not production grade, but convenient for
+  * exploration in a REPL.
+  *
+  * All I/O operations in this client are blocking.
+  *
+  * @param blockingExecutionContext An `ExecutionContext` on which
+  * blocking operations will be performed.
+  * @param ec The `ExecutionContext` to which work will be shifted
+  * back after blocking.
+  */
 sealed abstract class JavaNetClient private (
   val connectTimeout: Duration,
   val readTimeout: Duration,
   val proxy: Option[Proxy],
   val hostnameVerifier: Option[HostnameVerifier],
-  val sslSocketFactory: Option[SSLSocketFactory]
-) {
+  val sslSocketFactory: Option[SSLSocketFactory],
+  val blockingExecutionContext: ExecutionContext,
+)(implicit ec: ExecutionContext) {
   private def copy(
     connectTimeout: Duration = connectTimeout,
     readTimeout: Duration = readTimeout,
     proxy: Option[Proxy] = proxy,
     hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
     sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
+    blockingExecutionContext: ExecutionContext = blockingExecutionContext
   ): JavaNetClient = new JavaNetClient(
     connectTimeout = connectTimeout,
     readTimeout = readTimeout,
     proxy = proxy,
     hostnameVerifier = hostnameVerifier,
-    sslSocketFactory = sslSocketFactory
+    sslSocketFactory = sslSocketFactory,
+    blockingExecutionContext = blockingExecutionContext
   ) {}
 
   def withConnectTimeout(connectTimeout: Duration): JavaNetClient =
@@ -58,51 +76,60 @@ sealed abstract class JavaNetClient private (
   def withoutSslSocketFactory: JavaNetClient =
     withSslSocketFactoryOption(None)
 
-  def apply[F[_]](implicit F: Sync[F]): Client[F] = Client(
-    open = Kleisli { req =>
-      for {
-        url <- F.delay(new URL(req.uri.toString))
-        conn <- openConnection(url)
-        _ <- if (req.uri.scheme === Some(Uri.Scheme.https)) configureSsl(conn) else F.unit
-        _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
-        _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
-        _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-        _ <- F.delay(req.headers.foreach {
-          case Header(name, value) => conn.setRequestProperty(name.value, value)
-        })
-        _ <- F.delay(conn.setInstanceFollowRedirects(false))
-        _ <- F.delay(conn.setDoInput(true))
-        _ <- writeBody(conn, req)
-        status <- F.fromEither(Status.fromInt(conn.getResponseCode))
-        headers <- F.delay(Headers(
-          conn.getHeaderFields.asScala
-            .filter(_._1 != null)
-            .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
-            .toList
-        ))
-        body = readInputStream(F.delay(conn.getInputStream), 4096)
-      } yield DisposableResponse(
-        Response(status = status, headers = headers, body = body),
-        F.delay(conn.getInputStream.close())
-      )
-    },
-    shutdown = F.unit
-  )
+  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): JavaNetClient =
+    copy(blockingExecutionContext = blockingExecutionContext)
 
-  private def timeoutMillis(d: Duration): Int = d match {
+  /** Creates the `JavaNetClient`.
+    *
+    * The shutdown of this client is a no-op.  Creation of the client
+    * allocates no resources, and any resources allocated while using
+    * this client are reclaimed by the JVM at its own leisure.
+    */
+  def create[F[_]](implicit F: Effect[F]): Client[F] = Client(open, F.unit)
+
+  private def open[F[_]](implicit F: Effect[F]) = Kleisli { req: Request[F] =>
+    for {
+      url <- F.delay(new URL(req.uri.toString))
+      conn <- openConnection(url)
+      _ <- configureSsl(conn)
+      _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
+      _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
+      _ <- F.delay(conn.setRequestMethod(req.method.renderString))
+      _ <- F.delay(req.headers.foreach {
+        case Header(name, value) => conn.setRequestProperty(name.value, value)
+      })
+      _ <- F.delay(conn.setInstanceFollowRedirects(false))
+      _ <- F.delay(conn.setDoInput(true))
+      resp <- blocking(fetchResponse(req, conn), blockingExecutionContext)
+    } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
+  }
+
+  def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) = for {
+    _ <- writeBody(req, conn)
+    code <- F.delay(conn.getResponseCode)
+    status <- F.fromEither(Status.fromInt(code))
+    headers <- F.delay(Headers(
+      conn.getHeaderFields.asScala
+        .filter(_._1 != null)
+        .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
+        .toList
+    ))
+    body = readInputStream(F.delay(conn.getInputStream), 4096)
+  } yield Response(status = status, headers = headers, body = body)
+
+  def timeoutMillis(d: Duration): Int = d match {
     case d: FiniteDuration if d > Duration.Zero => (d.toMillis max 0 min Int.MaxValue).toInt
     case _ => 0
   }
 
-  private def openConnection[F[_]](url: URL)(implicit F: Sync[F]): F[HttpURLConnection] =
-    proxy match {
-      case Some(p) =>
-        F.delay(url.openConnection(p).asInstanceOf[HttpURLConnection])
-      case None =>
-        F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
-    }
+  def openConnection[F[_]](url: URL)(implicit F: Sync[F]) = proxy match {
+    case Some(p) =>
+      F.delay(url.openConnection(p).asInstanceOf[HttpURLConnection])
+    case None =>
+      F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
+  }
 
-  private def writeBody[F[_]](conn: HttpURLConnection, req: Request[F])(implicit F: Sync[F]): F[Unit] =
+  def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
       F.delay(conn.setChunkedStreamingMode(4096)) *>
@@ -116,19 +143,24 @@ sealed abstract class JavaNetClient private (
         F.delay(conn.setDoOutput(false))
     }
 
-  private def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]): F[Unit] =
-    for {
-      connSsl <- F.delay(conn.asInstanceOf[HttpsURLConnection])
-      _ <- hostnameVerifier.fold(F.unit)(hv => F.delay(connSsl.setHostnameVerifier(hv)))
-      _ <- sslSocketFactory.fold(F.unit)(sslf => F.delay(connSsl.setSSLSocketFactory(sslf)))
-    } yield ()
+  def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
+    conn match {
+      case connSsl: HttpsURLConnection =>
+        for {
+          _ <- hostnameVerifier.fold(F.unit)(hv => F.delay(connSsl.setHostnameVerifier(hv)))
+          _ <- sslSocketFactory.fold(F.unit)(sslf => F.delay(connSsl.setSSLSocketFactory(sslf)))
+        } yield ()
+      case _ => F.unit
+    }
 }
 
-object JavaNetClient extends JavaNetClient(
-  connectTimeout = Duration.Inf,
-  readTimeout = Duration.Inf,
-  proxy = None,
-  hostnameVerifier = None,
-  sslSocketFactory = None
-)
-
+object JavaNetClient {
+  def apply(blockingExecutionContext: ExecutionContext)(implicit ec: ExecutionContext): JavaNetClient = new JavaNetClient(
+    connectTimeout = Duration.Inf,
+    readTimeout = Duration.Inf,
+    proxy = None,
+    hostnameVerifier = None,
+    sslSocketFactory = None,
+    blockingExecutionContext = blockingExecutionContext
+  ){}
+}
