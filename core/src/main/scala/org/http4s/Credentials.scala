@@ -85,7 +85,7 @@ object BasicCredentials {
     creds match {
       case Credentials.Token(AuthScheme.Basic, token) => {
         val basicCredentials = BasicCredentials(token)
-        Some(basicCredentials.username, basicCredentials.password)
+        Some((basicCredentials.username, basicCredentials.password))
       }
       case _ =>
         None
