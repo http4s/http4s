@@ -30,7 +30,7 @@ sealed abstract class JavaNetClient private (
     val proxy: Option[Proxy],
     val hostnameVerifier: Option[HostnameVerifier],
     val sslSocketFactory: Option[SSLSocketFactory],
-    val blockingExecutionContext: ExecutionContext,
+    val blockingExecutionContext: ExecutionContext
 )(implicit ec: ExecutionContext) {
   private def copy(
       connectTimeout: Duration = connectTimeout,
