@@ -4,10 +4,9 @@ package client
 import cats.data.Kleisli
 import cats.effect.{Effect, Sync}
 import cats.implicits._
-import fs2.io.{readInputStream, writeOutputStream}
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
-import org.http4s.internal.blocking
+import org.http4s.internal.{blocking, readInputStream, writeOutputStream}
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.{Duration, FiniteDuration}
@@ -105,7 +104,7 @@ sealed abstract class JavaNetClient private (
     } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
   }
 
-  private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) =
+  private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Effect[F]) =
     for {
       _ <- writeBody(req, conn)
       code <- F.delay(conn.getResponseCode)
@@ -117,7 +116,7 @@ sealed abstract class JavaNetClient private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-      body = readInputStream(F.delay(conn.getInputStream), 4096)
+      body = readInputStream(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
     } yield Response(status = status, headers = headers, body = body)
 
   private def timeoutMillis(d: Duration): Int = d match {
@@ -132,17 +131,23 @@ sealed abstract class JavaNetClient private (
       F.delay(url.openConnection().asInstanceOf[HttpURLConnection])
   }
 
-  private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Sync[F]) =
+  private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(implicit F: Effect[F]) =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
-        req.body.to(writeOutputStream(F.delay(conn.getOutputStream), false)).compile.drain
+        req.body
+          .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
+          .compile
+          .drain
     } else
       req.contentLength match {
         case Some(len) if len >= 0L =>
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
-            req.body.to(writeOutputStream(F.delay(conn.getOutputStream), false)).compile.drain
+            req.body
+              .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
+              .compile
+              .drain
         case _ =>
           F.delay(conn.setDoOutput(false))
       }
