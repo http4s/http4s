@@ -4,11 +4,9 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.{Monad, ~>}
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 
 /**
@@ -17,21 +15,22 @@ import scala.concurrent.ExecutionContext
 object Logger {
   private[this] val logger = getLogger
 
-  def apply[F[_] : Sync, G[_] : Effect](f: G ~> F, logAction: String => Unit = logger.info(_))(
-    logHeaders: Boolean,
-    logBody: Boolean,
-    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('httpService) http: Kleisli[F, Request[G], Response[G]])(
-                                       implicit ec: ExecutionContext): Kleisli[F, Request[G], Response[G]] =
-    ResponseLogger(f, logAction)(logHeaders, logBody, redactHeadersWhen)(
-      RequestLogger(f, logAction)(logHeaders, logBody, redactHeadersWhen)(http)
+  def apply[F[_]: Effect](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: String => Unit = logger.info(_)
+  )(@deprecatedName('httpService) http: Kleisli[F, Request[F], Response[F]])(
+      implicit ec: ExecutionContext): Kleisli[F, Request[F], Response[F]] =
+    ResponseLogger(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger(logHeaders, logBody, redactHeadersWhen, logAction)(http)
     )
 
-  def logMessage[F[_] : Sync, A <: Message[F]](message: A)(
-    logHeaders: Boolean,
-    logBody: Boolean,
-    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-                                                log: String => Unit): F[Unit] = {
+  def logMessage[F[_], A <: Message[F]](message: A)(
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
+      log: String => Unit)(implicit F: Sync[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)
@@ -69,7 +68,7 @@ object Logger {
       Stream("").covary[F]
     }
 
-    if (!logBody && !logHeaders) Monad[F].unit
+    if (!logBody && !logHeaders) F.unit
     else {
       bodyText
         .map(body => s"$prelude $headers $body")

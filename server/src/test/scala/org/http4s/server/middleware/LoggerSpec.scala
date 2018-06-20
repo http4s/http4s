@@ -2,11 +2,9 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.OptionT
 import cats.effect._
 import fs2.io.readInputStream
 import org.http4s.dsl.io._
-
 import scala.io.Source
 
 /**
@@ -14,11 +12,13 @@ import scala.io.Source
   */
 class LoggerSpec extends Http4sSpec {
 
-  val testRoutes = HttpRoutes.of[IO] {
+  val testApp = HttpApp[IO] {
     case GET -> Root / "request" =>
       Ok("request response")
     case req @ POST -> Root / "post" =>
       Ok(req.body)
+    case r =>
+      IO.pure(Response[IO](Ok).withEntity(r.body))
   }
 
   def testResource = getClass.getResourceAsStream("/testresource.txt")
@@ -28,7 +28,7 @@ class LoggerSpec extends Http4sSpec {
   val expectedBody: String = Source.fromInputStream(testResource).mkString
 
   "ResponseLogger" should {
-    val app = ResponseLogger(OptionT.liftK[IO])(true, true)(testRoutes).orNotFound
+    val app = ResponseLogger(logHeaders = true, logBody = true)(testApp)
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
@@ -44,7 +44,7 @@ class LoggerSpec extends Http4sSpec {
   }
 
   "RequestLogger" should {
-    val app = RequestLogger(OptionT.liftK[IO])(true, true)(testRoutes).orNotFound
+    val app = RequestLogger(logHeaders = true, logBody = true)(testApp)
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))
@@ -60,7 +60,7 @@ class LoggerSpec extends Http4sSpec {
   }
 
   "Logger" should {
-    val app = Logger(OptionT.liftK[IO])(true, true)(testRoutes).orNotFound
+    val app = Logger(logHeaders = true, logBody = true)(testApp)
 
     "not affect a Get" in {
       val req = Request[IO](uri = uri("/request"))

@@ -5,11 +5,9 @@ package middleware
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
-import cats.~>
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s._
-
 import scala.concurrent.ExecutionContext
 
 /**
@@ -18,53 +16,49 @@ import scala.concurrent.ExecutionContext
 object RequestLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_] : Sync, G[_] : Effect, A](f: G ~> F, logAction: String => Unit = logger.info(_))(
-    logHeaders: Boolean,
-    logBody: Boolean,
-    redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('service) http: Kleisli[F, Request[G], Response[G]])(
-    implicit ec: ExecutionContext = ExecutionContext.global): Kleisli[F, Request[G], Response[G]] = {
-
-    Kleisli { req: Request[G] =>
+  def apply[F[_]: Effect](
+      logHeaders: Boolean,
+      logBody: Boolean,
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: String => Unit = logger.info(_)
+  )(@deprecatedName('service) http: Kleisli[F, Request[F], Response[F]])(
+      implicit ec: ExecutionContext = ExecutionContext.global,
+      F: Sync[F]): Kleisli[F, Request[F], Response[F]] =
+    Kleisli { req =>
       if (!logBody) {
-        f(Logger
-          .logMessage[G, Request[G]](req)(logHeaders, logBody)(logAction)) *> http(req)
-      }
-      else {
-        f(async.refOf[G, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
+        Logger
+          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logAction) *> http(req)
+      } else {
+        async
+          .refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]])
           .flatMap { vec =>
-
             val newBody = Stream
               .eval(vec.get)
-              .flatMap(v => Stream.emits(v).covary[G])
-              .flatMap(c => Stream.segment(c).covary[G])
+              .flatMap(v => Stream.emits(v).covary[F])
+              .flatMap(c => Stream.segment(c).covary[F])
 
             val changedRequest = req.withBodyStream(
               req.body
-                // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+              // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
                 .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
             )
-            val response: F[Response[G]] = http(changedRequest)
+            val response: F[Response[F]] = http(changedRequest)
             response.attempt
               .flatMap {
                 case Left(e) =>
-                  f(
-                    Logger.logMessage[G, Request[G]](req.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen)(logAction) *>
-                      Sync[G].raiseError[Response[G]](e)
-                  )
+                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                    logHeaders,
+                    logBody,
+                    redactHeadersWhen)(logAction) *>
+                    F.raiseError[Response[F]](e)
                 case Right(resp) =>
-                  f(
-                    Sync[G].pure(
-                      resp.withBodyStream(
-                        resp.body.onFinalize(
-                          Logger.logMessage[G, Request[G]](req.withBodyStream(newBody))(
-                            logHeaders,
-                            logBody,
-                            redactHeadersWhen)(logAction)
-                        )
+                  F.pure(
+                    resp.withBodyStream(
+                      resp.body.onFinalize(
+                        Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                          logHeaders,
+                          logBody,
+                          redactHeadersWhen)(logAction)
                       )
                     )
                   )
@@ -72,5 +66,5 @@ object RequestLogger {
           }
       }
     }
-  }
+
 }
