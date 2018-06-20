@@ -57,6 +57,7 @@ lazy val `java-runtime` = project
       "io.grpc"       % "grpc-netty-shaded" % "1.12.0" % "test",
       "io.monix"      %% "minitest"         % "2.1.1"  % "test"
     ),
+    mimaPreviousArtifacts := Set(organization.value %% name.value % "0.3.0"),
     testFrameworks += new TestFramework("minitest.runner.Framework"),
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
   )
