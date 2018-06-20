@@ -17,8 +17,8 @@ class LoggerSpec extends Http4sSpec {
       Ok("request response")
     case req @ POST -> Root / "post" =>
       Ok(req.body)
-    case r =>
-      IO.pure(Response[IO](Ok).withEntity(r.body))
+    case _ =>
+      Ok()
   }
 
   def testResource = getClass.getResourceAsStream("/testresource.txt")
