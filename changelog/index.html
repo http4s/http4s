@@ -133,6 +133,7 @@ it.</p>
 <li>Fix <code>Uncompressible</code> and <code>NotBinary</code> flags in <code>MimeDB</code> generator. <a href="https://github.com/http4s/http4s/pull/1884">#1900</a></li>
 <li>Generalize <code>DefaultHead</code> middleware to work on <code>Http[F, G]</code> given <code>Functor[F]</code> and <code>MonoidK[F]</code> <a href="https://github.com/http4s/http4s/pull/1903">#1903</a></li>
 <li>Generalize <code>GZip</code> middleware to work on <code>Http[F, G]</code> given <code>Functor[F]</code> and <code>Functor[G]</code> <a href="https://github.com/http4s/http4s/pull/1903">#1903</a></li>
+<li>Removed charset for argonaut instances <a href="https://github.com/http4s/http4s/pull/1914">#1914</a></li>
 <li>Dependency upgrades:
 
 <ul>
@@ -146,11 +147,13 @@ it.</p>
 <h1 id="v0-18-13-unreleased">v0.18.13 (unreleased)</h1>
 
 <ul>
-<li>Removed charset for argonaut instances <a href="https://github.com/http4s/http4s/pull/1914">#1914</a></li>
+<li>Downcase type in <code>MediaRange</code> generator <a href="https://github.com/http4s/http4s/pull/1907">#1907</a></li>
+<li>Fixed bug where <code>PoolManager</code> would try to dequeue from an empty queue <a href="https://github.com/http4s/http4s/pull/1922">#1922</a></li>
 <li>Dependency upgrades:
 
 <ul>
 <li>argonaut-6.2.2</li>
+<li>fs2-0.10.5</li>
 </ul></li>
 </ul>
 
