@@ -137,6 +137,7 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.github.zainab-ali", name = "fs2-reactive-streams"), // fs2-reactive-streams-0.5 is incompatible with fs2-0.10
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
@@ -294,7 +295,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.4"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.5"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision

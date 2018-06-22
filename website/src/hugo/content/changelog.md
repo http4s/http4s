@@ -46,7 +46,9 @@ it.
 * Move `org.http4s.server.ServerSoftware` to `org.http4s.ServerSoftware` [#1884](https://github.com/http4s/http4s/pull/1884)
 * Fix `Uncompressible` and `NotBinary` flags in `MimeDB` generator. [#1900](https://github.com/http4s/http4s/pull/1884)
 * Generalize `DefaultHead` middleware to work on `Http[F, G]` given `Functor[F]` and `MonoidK[F]` [#1903](https://github.com/http4s/http4s/pull/1903)
-* Generalize `GZip` middleware to work on `Http[F, G]` given `Functor[F]` and `Functor[G]` [#1903](https://github.com/http4s/http4s/pull/1903)
+* Generalize `GZip` middleware to work on `Http[F, G]` given `Functor[F]` and `Functor[G]` [#1903]
+(https://github.com/http4s/http4s/pull/1903)
+* Removed charset for argonaut instances [#1914](https://github.com/http4s/http4s/pull/1914)
 * Dependency upgrades:
   * async-http-client-2.4.8
   * blaze-0.14.0-M3
@@ -54,9 +56,11 @@ it.
   * scala-xml-1.1.0
 
 # v0.18.13 (unreleased)
-* Removed charset for argonaut instances [#1914](https://github.com/http4s/http4s/pull/1914)
+* Downcase type in `MediaRange` generator [#1907](https://github.com/http4s/http4s/pull/1907)
+* Fixed bug where `PoolManager` would try to dequeue from an empty queue [#1922](https://github.com/http4s/http4s/pull/1922)
 * Dependency upgrades:
   * argonaut-6.2.2
+  * fs2-0.10.5
 
 # v0.18.12 (2018-05-28)
 * Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
