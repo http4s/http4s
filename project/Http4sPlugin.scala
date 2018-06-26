@@ -137,7 +137,7 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
-    dependencyUpdatesFilter -= moduleFilter(organization = "com.github.zainab-ali", name = "fs2-reactive-streams"), // fs2-reactive-streams-0.6 is incompatible with fs2-0.10
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.github.zainab-ali", name = "fs2-reactive-streams"), // fs2-reactive-streams-0.5 is incompatible with fs2-0.10
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", name = "async-http-client"), // asynchttpclient-2.2 is incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s", name = "blaze-http"), // blaze-0.13 dropped websocket support

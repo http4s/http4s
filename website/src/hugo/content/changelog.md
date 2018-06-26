@@ -10,8 +10,10 @@ it.
 
 # v0.18.13 (unreleased)
 * Downcase type in `MediaRange` generator [#1907](https://github.com/http4s/http4s/pull/1907)
+* Fixed bug where `PoolManager` would try to dequeue from an empty queue [#1922](https://github.com/http4s/http4s/pull/1922)
 * Dependency upgrades:
   * argonaut-6.2.2
+  * fs2-0.10.5
 
 # v0.18.12 (2018-05-28)
 * Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
