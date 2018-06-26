@@ -79,11 +79,10 @@ trait CirceInstances {
 
   protected def defaultPrinter: Printer
 
-  implicit def jsonEncoder[F[_]: EntityEncoder[?[_], String]: Applicative]: EntityEncoder[F, Json] =
+  implicit def jsonEncoder[F[_]: Applicative]: EntityEncoder[F, Json] =
     jsonEncoderWithPrinter(defaultPrinter)
 
-  def jsonEncoderWithPrinter[F[_]: EntityEncoder[?[_], String]: Applicative](
-      printer: Printer): EntityEncoder[F, Json] =
+  def jsonEncoderWithPrinter[F[_]: Applicative](printer: Printer): EntityEncoder[F, Json] =
     EntityEncoder[F, Chunk[Byte]]
       .contramap[Json] { json =>
         val bytes = printer.prettyByteBuffer(json)
@@ -91,11 +90,10 @@ trait CirceInstances {
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def jsonEncoderOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](
-      implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
-  def jsonEncoderWithPrinterOf[F[_]: EntityEncoder[?[_], String]: Applicative, A](printer: Printer)(
+  def jsonEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
       implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinter[F](printer).contramap[A](encoder.apply)
 
