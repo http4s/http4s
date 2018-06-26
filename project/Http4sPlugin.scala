@@ -137,6 +137,7 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.github.zainab-ali", name = "fs2-reactive-streams"), // fs2-reactive-streams-0.6 is incompatible with fs2-0.10
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", name = "async-http-client"), // asynchttpclient-2.2 is incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s", name = "blaze-http"), // blaze-0.13 dropped websocket support
@@ -144,6 +145,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang.modules", name = "scala-xml"), // scala-xml-1.1 is (arguably) incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
     dependencyUpdatesFilter -= moduleFilter(organization = "org.spire-math", name = "jawn-json4s"), // jawn-0.12 is incompatible with http4s-0.18
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline"), // discipline-0.10 is incompatible with scalacheck-1.13
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -286,7 +288,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.4"
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.5"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
   lazy val fs2Scodec                        = "co.fs2"                 %% "fs2-scodec"                % fs2Io.revision
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
@@ -296,7 +298,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.11.1"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.2"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.10.v20180503"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.11.v20180605"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.4"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
@@ -306,6 +308,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.19.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.10.0"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.4.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
@@ -319,8 +322,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
-  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.8"
+  lazy val tomcatCatalina                   = "org.apache.tomcat"      %  "tomcat-catalina"           % "9.0.10"
   lazy val tomcatCoyote                     = "org.apache.tomcat"      %  "tomcat-coyote"             % tomcatCatalina.revision
   lazy val twirlApi                         = "com.typesafe.play"      %% "twirl-api"                 % "1.3.15"
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.18.3"
 }
