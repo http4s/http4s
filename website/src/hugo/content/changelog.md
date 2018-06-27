@@ -536,7 +536,7 @@ it.
 * Upgraded dependencies:
     * async-http-client-2.0.35
 
-# v0.18.0-M1 (2107-08-24)
+# v0.18.0-M1 (2017-08-24)
 
 This release is the product of a long period of parallel development
 across different foundation libraries, making a detailed changelog
