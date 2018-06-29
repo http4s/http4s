@@ -20,12 +20,12 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
-import fs2.Scheduler
+import fs2.Stream
 import org.http4s._
 import org.http4s.dsl.io._
 
 // An infinite stream of the periodic elapsed time
-val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
+val seconds = Stream.awakeEvery[IO](1.second)
 
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "seconds" =>
@@ -91,7 +91,7 @@ import io.circe.Json
 // Uncomment this line to create an application with a main method that can be run
 // object TWStream extends TWStreamApp[IO]
 
-abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
+abstract class TWStreamApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
 
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade

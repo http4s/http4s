@@ -224,6 +224,8 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 case class User(name: String)
 case class Hello(greeting: String)
 

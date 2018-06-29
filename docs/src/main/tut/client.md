@@ -31,6 +31,7 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
@@ -91,7 +92,7 @@ def hello(name: String): IO[String] = {
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 
-val greetingList = fs2.async.parallelTraverse(people)(hello)
+val greetingList = people.parTraverse(hello)
 ```
 
 Observe how simply we could combine a single `F[String]` returned
