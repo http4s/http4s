@@ -254,11 +254,12 @@ power here.  This stream emits the elapsed time every 100 milliseconds
 for one second:
 
 ```tut:book
+import fs2.Stream
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
 val drip: fs2.Stream[IO, String] =
-  fs2.Scheduler[IO](2).flatMap { s =>
-    import scala.concurrent.duration._
-    s.awakeEvery[IO](100.millis).map(_.toString).take(10)
-  }
+  Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
 
 We can see it for ourselves in the REPL:
