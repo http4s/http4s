@@ -137,6 +137,7 @@ object Http4sPlugin extends AutoPlugin {
       IO.write(dest, buildData)
     },
 
+    dependencyUpdatesFilter -= moduleFilter(organization = "com.github.zainab-ali", name = "fs2-reactive-streams"), // fs2-reactive-streams-0.5 is incompatible with fs2-0.10
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
@@ -278,7 +279,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.8"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.4.9"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M3"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
