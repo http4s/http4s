@@ -162,6 +162,18 @@ Ok(Hello("Alice").asJson).unsafeRunSync
 POST(uri("/hello"), User("Bob").asJson).unsafeRunSync
 ```
 
+If within some route we serve json only, we can use:
+
+```tut:book
+{
+import org.http4s.circe.CirceEntityEncoder._
+}
+```
+
+Thus there's no more need in calling `asJson` on result.
+However, it may introduce ambiguity errors when we also build
+some json by hand within the same scope. 
+
 ## Receiving raw JSON
 
 Just as we needed an `EntityEncoder[JSON]` to send JSON from a server
@@ -191,6 +203,30 @@ an implicit `Decoder[A]` and makes a `EntityDecoder[A]`:
 implicit val userDecoder = jsonOf[IO, User]
 Ok("""{"name":"Alice"}""").flatMap(_.as[User]).unsafeRunSync
 POST(uri("/hello"), """{"name":"Bob"}""").flatMap(_.as[User]).unsafeRunSync
+```
+
+If we are always decoding from JSON to a typed model, we can use
+the following import:
+
+```tut:book
+{
+import org.http4s.circe.CirceEntityDecoder._
+}
+```
+
+This creates an `EntityDecoder[A]` for every `A` that has a `Decoder` instance.
+
+However, be cautious when using this. Having this implicit
+in scope does mean that we would always try to decode HTTP entities
+from JSON (even if it is XML or plain text, for instance).
+
+For more convenience there is import combining both encoding 
+and decoding derivation: 
+
+```tut:book
+{
+import org.http4s.circe.CirceEntityCodec._
+}
 ```
 
 ## Putting it all together
