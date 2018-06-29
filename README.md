@@ -1,6 +1,7 @@
 # fs2-grpc - gRPC implementation for FS2/cats-effect
 
 [![Join the chat at https://gitter.im/fs2-grpc/Lobby](https://badges.gitter.im/fs2-grpc/Lobby.svg)](https://gitter.im/fs2-grpc/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/fiadliel/fs2-grpc.svg?branch=master)](https://travis-ci.org/fiadliel/fs2-grpc)
 
 ## SBT configuration
 
