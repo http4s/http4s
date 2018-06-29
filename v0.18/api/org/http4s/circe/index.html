@@ -166,6 +166,18 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="object" href="CirceEntityCodec$.html" title=""></a>
+                        <a href="CirceEntityCodec$.html" title="">CirceEntityCodec</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="CirceEntityDecoder$.html" title=""></a>
+                        <a class="trait" href="CirceEntityDecoder.html" title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOf"></a>
+                        <a href="CirceEntityDecoder.html" title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOf">CirceEntityDecoder</a>
+                      </li><li class="current-entities indented3">
+                        <a class="object" href="CirceEntityEncoder$.html" title=""></a>
+                        <a class="trait" href="CirceEntityEncoder.html" title="Derive EntityEncoder if implicit Encoder is in the scope without need to explicitly call jsonEncoderOf"></a>
+                        <a href="CirceEntityEncoder.html" title="Derive EntityEncoder if implicit Encoder is in the scope without need to explicitly call jsonEncoderOf">CirceEntityEncoder</a>
+                      </li><li class="current-entities indented3">
                         <a class="object" href="CirceInstances$.html" title=""></a>
                         <a class="trait" href="CirceInstances.html" title=""></a>
                         <a href="CirceInstances.html" title="">CirceInstances</a>
@@ -448,7 +460,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/879300d1b86220a35be54101cd5c06e6e8f8b09d/circe/src/main/scala/org/http4s/circe/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d7390ed6702a86c1f4e951af5a0aae1db92c3bbf/circe/src/main/scala/org/http4s/circe/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -500,7 +512,41 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.circe.CirceInstances" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.circe.CirceEntityDecoder" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CirceEntityDecoderextendsAnyRef"></a><a id="CirceEntityDecoder:CirceEntityDecoder"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#CirceEntityDecoderextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Derive EntityDecoder if implicit Decoder is in the scope without need to explicitly call jsonOf" href="CirceEntityDecoder.html"><span class="name">CirceEntityDecoder</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Derive <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> if implicit <span class="extype" name="Decoder">Decoder</span> is in the scope without need to explicitly call <code>jsonOf</code>
+</p>
+    </li><li name="org.http4s.circe.CirceEntityEncoder" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CirceEntityEncoderextendsAnyRef"></a><a id="CirceEntityEncoder:CirceEntityEncoder"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#CirceEntityEncoderextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Derive EntityEncoder if implicit Encoder is in the scope without need to explicitly call jsonEncoderOf" href="CirceEntityEncoder.html"><span class="name">CirceEntityEncoder</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Derive <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> if implicit <span class="extype" name="Encoder">Encoder</span> is in the scope without need to explicitly call <code>jsonEncoderOf</code>
+</p>
+    </li><li name="org.http4s.circe.CirceInstances" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="CirceInstancesextendsAnyRef"></a><a id="CirceInstances:CirceInstances"></a>
       <span class="permalink">
       <a href="../../../org/http4s/circe/index.html#CirceInstancesextendsAnyRef" title="Permalink">
@@ -735,6 +781,54 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li><li name="org.http4s.circe.CirceEntityCodec" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CirceEntityCodec"></a><a id="CirceEntityCodec:CirceEntityCodec"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#CirceEntityCodec" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CirceEntityCodec$.html"><span class="name">CirceEntityCodec</span></a><span class="result"> extends <a href="CirceEntityDecoder.html" class="extype" name="org.http4s.circe.CirceEntityDecoder">CirceEntityDecoder</a> with <a href="CirceEntityEncoder.html" class="extype" name="org.http4s.circe.CirceEntityEncoder">CirceEntityEncoder</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.circe.CirceEntityDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CirceEntityDecoder"></a><a id="CirceEntityDecoder:CirceEntityDecoder"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#CirceEntityDecoder" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CirceEntityDecoder$.html"><span class="name">CirceEntityDecoder</span></a><span class="result"> extends <a href="CirceEntityDecoder.html" class="extype" name="org.http4s.circe.CirceEntityDecoder">CirceEntityDecoder</a></span>
+      </span>
+      
+      
+    </li><li name="org.http4s.circe.CirceEntityEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CirceEntityEncoder"></a><a id="CirceEntityEncoder:CirceEntityEncoder"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/circe/index.html#CirceEntityEncoder" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CirceEntityEncoder$.html"><span class="name">CirceEntityEncoder</span></a><span class="result"> extends <a href="CirceEntityEncoder.html" class="extype" name="org.http4s.circe.CirceEntityEncoder">CirceEntityEncoder</a></span>
+      </span>
+      
+      
     </li><li name="org.http4s.circe.CirceInstances" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="CirceInstances"></a><a id="CirceInstances:CirceInstances"></a>
       <span class="permalink">

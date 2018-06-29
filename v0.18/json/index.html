@@ -222,7 +222,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@7c431829
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@b0b1eb0
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -255,6 +255,17 @@ POST(uri(&quot;/hello&quot;), User(&quot;Bob&quot;).asJson).unsafeRunSync
 // res7: org.http4s.Request[cats.effect.IO] = Request(method=POST, uri=/hello, headers=Headers(Content-Type: application/json, Content-Length: 14))
 </code></pre>
 
+<p>If within some route we serve json only, we can use:</p>
+
+<pre><code class="language-scala">{
+import org.http4s.circe.CirceEntityEncoder._
+}
+</code></pre>
+
+<p>Thus there&rsquo;s no more need in calling <code>asJson</code> on result.
+However, it may introduce ambiguity errors when we also build
+some json by hand within the same scope.</p>
+
 <h2 id="receiving-raw-json">Receiving raw JSON</h2>
 
 <p>Just as we needed an <code>EntityEncoder[JSON]</code> to send JSON from a server
@@ -265,13 +276,13 @@ or client, we need an <code>EntityDecoder[JSON]</code> to receive it.</p>
 response body to JSON using the <a href="../api/org/http4s/MessageOps.html#as[T](implicitF:cats.FlatMap[F],implicitdecoder:org.http4s.EntityDecoder[F,T]):F[T]"><code>as</code> syntax</a>:</p>
 
 <pre><code class="language-scala">Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[Json]).unsafeRunSync
-// res8: io.circe.Json =
+// res9: io.circe.Json =
 // {
 //   &quot;name&quot; : &quot;Alice&quot;
 // }
 
 POST(uri(&quot;/hello&quot;),&quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[Json]).unsafeRunSync
-// res9: io.circe.Json =
+// res10: io.circe.Json =
 // {
 //   &quot;name&quot; : &quot;Bob&quot;
 // }
@@ -289,13 +300,35 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@fe1de4b
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$2@10d45944
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
-// res10: User = User(Alice)
+// res11: User = User(Alice)
 
 POST(uri(&quot;/hello&quot;), &quot;&quot;&quot;{&quot;name&quot;:&quot;Bob&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
-// res11: User = User(Bob)
+// res12: User = User(Bob)
+</code></pre>
+
+<p>If we are always decoding from JSON to a typed model, we can use
+the following import:</p>
+
+<pre><code class="language-scala">{
+import org.http4s.circe.CirceEntityDecoder._
+}
+</code></pre>
+
+<p>This creates an <code>EntityDecoder[A]</code> for every <code>A</code> that has a <code>Decoder</code> instance.</p>
+
+<p>However, be cautious when using this. Having this implicit
+in scope does mean that we would always try to decode HTTP entities
+from JSON (even if it is XML or plain text, for instance).</p>
+
+<p>For more convenience there is import combining both encoding
+and decoding derivation:</p>
+
+<pre><code class="language-scala">{
+import org.http4s.circe.CirceEntityCodec._
+}
 </code></pre>
 
 <h2 id="putting-it-all-together">Putting it all together</h2>
@@ -359,10 +392,10 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$523820567
+// helloAlice: cats.effect.IO[Hello] = IO$1975035927
 
 helloAlice.unsafeRunSync
-// res13: Hello = Hello(Alice)
+// res16: Hello = Hello(Alice)
 </code></pre>
 
         </div>
