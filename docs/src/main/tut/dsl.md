@@ -258,7 +258,7 @@ import fs2.Stream
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-val drip: fs2.Stream[IO, String] =
+val drip: Stream[IO, String] =
   Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
 
