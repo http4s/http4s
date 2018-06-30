@@ -22,7 +22,7 @@ object ResponseLogger {
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: String => Unit = logger.info(_))(
       @deprecatedName('service) http: Kleisli[F, A, Response[F]])(
-      implicit ec: ExecutionContext = ExecutionContext.global,
+      implicit ec: ExecutionContext,
       F: Sync[F]): Kleisli[F, A, Response[F]] =
     Kleisli[F, A, Response[F]] { req =>
       http(req)
