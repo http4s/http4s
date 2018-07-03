@@ -151,7 +151,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           getConnectionFromQueue(key).flatMap {
             case Some(conn) if !conn.isClosed =>
               semaphore.release *>
-              F.delay(logger.debug(s"Recycling connection: $stats")) *>
+                F.delay(logger.debug(s"Recycling connection: $stats")) *>
                 F.delay(NextConnection(conn, fresh = false))
 
             case Some(closedConn @ _) =>
@@ -166,19 +166,20 @@ private final class PoolManager[F[_], A <: Connection[F]](
 
             case None if maxConnectionsPerRequestKey(key) <= 0 =>
               semaphore.release *>
-              F.raiseError(NoConnectionAllowedException(key))
+                F.raiseError(NoConnectionAllowedException(key))
 
             case None if curTotal == maxTotal =>
               val keys = idleQueues.keys
               if (keys.nonEmpty) {
-                F.delay {
-                    logger.debug(
-                      s"No connections available for the desired key. Evicting random and creating a new connection: $stats")
-                    val randKey = keys.iterator.drop(Random.nextInt(keys.size)).next()
-                    idleQueues(randKey).dequeue().shutdown()
-                    randKey
-                  }.flatMap(decrConnection) *>
+                F.delay(logger.debug(
+                  s"No connections available for the desired key. Evicting random and creating a new connection: $stats")) *>
+                  F.delay(keys.iterator.drop(Random.nextInt(keys.size)).next()).flatMap { randKey =>
+                    getConnectionFromQueue(randKey).map(_.fold(logger.warn(
+                      s"No connection to evict from the idleQueue for $randKey"))(_.shutdown())) *>
+                      decrConnection(randKey)
+                  } *>
                   F.asyncF(createConnection(key, _) *> semaphore.release)
+
               } else {
                 F.delay(logger.debug(
                   s"No connections available for the desired key. Adding to waitQueue: $stats")) *>

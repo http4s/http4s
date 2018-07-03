@@ -41,6 +41,7 @@ it.
 * Generalize `Timeout` middleware to work on `Kleisli[F, A, Response[G]]` given `Concurrent[F]` and `Timer[F]`. [#1899](https://github.com/http4s/http4s/pull/1899)
 * Generalize `VirtualHost` middleware to work on `Kleisli[F, Request[G], Response[G]]` given `Applicative[F]`.  [#1902](https://github.com/http4s/http4s/pull/1902)
 * Generalize `URITranslate` middleware to work on `Kleisli[F, Request[G], B]` given `Functor[G]`.  [#1895](https://github.com/http4s/http4s/pull/1895)
+* Generalize `CSRF` middleware to work on `Kleisli[F, Request[G], Response[G]]` given `Sync[F]` and `Applicative[G]`.  [#1909](https://github.com/http4s/http4s/pull/1909)
 * Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Move `org.http4s.server.ServerSoftware` to `org.http4s.ServerSoftware` [#1884](https://github.com/http4s/http4s/pull/1884)
 * Fix `Uncompressible` and `NotBinary` flags in `MimeDB` generator. [#1900](https://github.com/http4s/http4s/pull/1884)
@@ -70,6 +71,7 @@ it.
 * Implicit `Timer` added to:
   * `AsyncHttpClient`
 * `Http4sWsStage` removed from public API
+* Removed charset for argonaut instances [#1914](https://github.com/http4s/http4s/pull/1914)
 * Dependency upgrades:
   * async-http-client-2.4.8
   * blaze-0.14.0-M3
@@ -83,8 +85,11 @@ it.
   * scala-xml-1.1.0
 
 # v0.18.13 (unreleased)
+* Downcase type in `MediaRange` generator [#1907](https://github.com/http4s/http4s/pull/1907)
+* Fixed bug where `PoolManager` would try to dequeue from an empty queue [#1922](https://github.com/http4s/http4s/pull/1922)
 * Dependency upgrades:
   * argonaut-6.2.2
+  * fs2-0.10.5
 
 # v0.18.12 (2018-05-28)
 * Deprecated `Part.empty` [#1858](https://github.com/http4s/http4s/pull/1858)
@@ -560,7 +565,7 @@ it.
 * Upgraded dependencies:
     * async-http-client-2.0.35
 
-# v0.18.0-M1 (2107-08-24)
+# v0.18.0-M1 (2017-08-24)
 
 This release is the product of a long period of parallel development
 across different foundation libraries, making a detailed changelog

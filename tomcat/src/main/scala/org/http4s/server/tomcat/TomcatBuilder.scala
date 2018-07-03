@@ -29,7 +29,8 @@ sealed class TomcatBuilder[F[_]: Effect] private (
     mounts: Vector[Mount[F]],
     private val serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit protected val F: ConcurrentEffect[F]) extends ServletContainer[F]
+)(implicit protected val F: ConcurrentEffect[F])
+    extends ServletContainer[F]
     with ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F] {

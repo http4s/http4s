@@ -2,30 +2,34 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.Kleisli
 import cats.effect._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
+import org.log4s.getLogger
 
 /**
   * Simple Middleware for Logging All Requests and Responses
   */
 object Logger {
+  private[this] val logger = getLogger
+
   def apply[F[_]: Concurrent](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('httpService) httpRoutes: HttpRoutes[F]): HttpRoutes[F] =
-    ResponseLogger(logHeaders, logBody, redactHeadersWhen)(
-      RequestLogger(logHeaders, logBody, redactHeadersWhen)(
-        httpRoutes
-      )
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: String => Unit = logger.info(_)
+  )(@deprecatedName('httpService) http: Kleisli[F, Request[F], Response[F]])
+    : Kleisli[F, Request[F], Response[F]] =
+    ResponseLogger(logHeaders, logBody, redactHeadersWhen, logAction)(
+      RequestLogger(logHeaders, logBody, redactHeadersWhen, logAction)(http)
     )
 
   def logMessage[F[_], A <: Message[F]](message: A)(
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains)(
-      log: String => Unit)(implicit F: Concurrent[F]): F[Unit] = {
+      log: String => Unit)(implicit F: Sync[F]): F[Unit] = {
 
     val charset = message.charset
     val isBinary = message.contentType.exists(_.mediaType.binary)

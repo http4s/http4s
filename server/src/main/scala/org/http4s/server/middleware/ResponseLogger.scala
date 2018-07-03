@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
@@ -16,17 +16,20 @@ import org.log4s.getLogger
 object ResponseLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_]](
+  def apply[F[_], A](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('service) routes: HttpRoutes[F])(implicit F: Concurrent[F]): HttpRoutes[F] =
-    Kleisli { req =>
-      routes(req)
-        .semiflatMap { response =>
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: String => Unit = logger.info(_))(
+      @deprecatedName('service) http: Kleisli[F, A, Response[F]])(
+      implicit F: Concurrent[F]
+  ): Kleisli[F, A, Response[F]] =
+    Kleisli[F, A, Response[F]] { req =>
+      http(req)
+        .flatMap { response =>
           if (!logBody)
             Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              logger.info(_)) *> F.delay(response)
+              logAction) *> F.delay(response)
           else
             Ref[F].of(Vector.empty[Segment[Byte, Unit]]).map { vec =>
               val newBody = Stream
@@ -42,13 +45,14 @@ object ResponseLogger {
                     Logger.logMessage[F, Response[F]](response.withBodyStream(newBody))(
                       logHeaders,
                       logBody,
-                      redactHeadersWhen)(logger.info(_))
+                      redactHeadersWhen)(logAction)
                   }
               )
             }
         }
         .handleErrorWith(t =>
-          OptionT.liftF(F.delay(logger.info(s"service raised an error: ${t.getClass}")) *> F
-            .raiseError[Response[F]](t)))
+          F.delay(logger.info(s"service raised an error: ${t.getClass}")) *> F
+            .raiseError[Response[F]](t))
     }
+
 }
