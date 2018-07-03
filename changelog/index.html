@@ -133,12 +133,57 @@ it.</p>
 <li>Fix <code>Uncompressible</code> and <code>NotBinary</code> flags in <code>MimeDB</code> generator. <a href="https://github.com/http4s/http4s/pull/1884">#1900</a></li>
 <li>Generalize <code>DefaultHead</code> middleware to work on <code>Http[F, G]</code> given <code>Functor[F]</code> and <code>MonoidK[F]</code> <a href="https://github.com/http4s/http4s/pull/1903">#1903</a></li>
 <li>Generalize <code>GZip</code> middleware to work on <code>Http[F, G]</code> given <code>Functor[F]</code> and <code>Functor[G]</code> <a href="https://github.com/http4s/http4s/pull/1903">#1903</a></li>
+<li><code>jawnDecoder</code> takes a <code>RawFacade</code> instead of a <code>Facade</code></li>
+<li><code>Effect</code> constraint relaxed to <code>Sync</code>:
+
+<ul>
+<li><code>Logger.logMessage</code></li>
+</ul></li>
+<li><code>Effect</code> constraint changed to <code>Concurrent</code>:
+
+<ul>
+<li><code>Logger</code> (client and server)</li>
+<li><code>RequestLogger</code> (client and server)</li>
+<li><code>ResponseLogger</code> (client and server)</li>
+<li><code>ServerBuilder#serve</code> (moved to abstract member of <code>ServerBuilder</code>)</li>
+</ul></li>
+<li><code>Effect</code> constraint strengthened to <code>ConcurrentEffect</code>:
+
+<ul>
+<li><code>AsyncHttpClient</code></li>
+<li><code>BlazeBuilder</code></li>
+<li><code>JettyBuilder</code></li>
+<li><code>TomcatBuilder</code></li>
+</ul></li>
+<li>Implicit <code>ExecutionContext</code> removed from:
+
+<ul>
+<li><code>RequestLogger</code> (client and server)</li>
+<li><code>ResponseLogger</code> (client and server)</li>
+<li><code>ServerBuilder#serve</code></li>
+<li><code>ArbitraryInstances.arbitraryEntityDecoder</code></li>
+<li><code>ArbitraryInstances.cogenEntity</code></li>
+<li><code>ArbitraryInstances.cogenEntityBody</code></li>
+<li><code>ArbitraryInstances.cogenMessage</code></li>
+</ul></li>
+<li>Implicit <code>Timer</code> added to:
+
+<ul>
+<li><code>AsyncHttpClient</code></li>
+</ul></li>
+<li><code>Http4sWsStage</code> removed from public API</li>
 <li>Removed charset for argonaut instances <a href="https://github.com/http4s/http4s/pull/1914">#1914</a></li>
 <li>Dependency upgrades:
 
 <ul>
 <li>async-http-client-2.4.8</li>
 <li>blaze-0.14.0-M3</li>
+<li>cats-effect-1.0.0-RC2</li>
+<li>circe-0.10.0-M1</li>
+<li>fs2-1.0.0-M1</li>
+<li>fs2-reactive-streams-0.6.0</li>
+<li>jawn-0.12.1</li>
+<li>jawn-fs2-0.13.0-M1</li>
 <li>prometheus-0.4.0</li>
 <li>scala-xml-1.1.0</li>
 </ul></li>
