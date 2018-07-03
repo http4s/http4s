@@ -80,4 +80,13 @@ object threads {
       timeout: Boolean = false): ExecutionContext =
     ExecutionContext.fromExecutorService(newDaemonPool(name, min, cpuFactor, timeout))
 
+  private[http4s] def newBlockingPool(name: String): ExecutorService =
+    new ThreadPoolExecutor(
+      0,
+      Int.MaxValue,
+      60,
+      TimeUnit.SECONDS,
+      new SynchronousQueue[Runnable](false),
+      threadFactory(i => s"$name-$i", daemon = true)
+    )
 }
