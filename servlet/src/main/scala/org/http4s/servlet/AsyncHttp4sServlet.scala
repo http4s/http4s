@@ -4,9 +4,9 @@ package servlet
 import cats.data.OptionT
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2.async
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.server._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -54,7 +54,7 @@ class AsyncHttp4sServlet[F[_]](
       ctx.setTimeout(asyncTimeoutMillis)
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
-      async.unsafeRunAsync(
+      unsafeRunAsync(
         toRequest(servletRequest).fold(
           onParseFailure(_, servletResponse, bodyWriter),
           handleRequest(ctx, _, bodyWriter)
@@ -93,13 +93,12 @@ class AsyncHttp4sServlet[F[_]](
       val response = F.pure(Response[F](Status.InternalServerError))
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      async
-        .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter)) { _ =>
-          IO {
-            if (servletRequest.isAsyncStarted)
-              servletRequest.getAsyncContext.complete()
-          }
+      unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter)) { _ =>
+        IO {
+          if (servletRequest.isAsyncStarted)
+            servletRequest.getAsyncContext.complete()
         }
+      }
   }
 
   private class AsyncTimeoutHandler(request: Request[F], bodyWriter: BodyWriter[F])
@@ -107,7 +106,7 @@ class AsyncHttp4sServlet[F[_]](
     override def onTimeout(event: AsyncEvent): Unit = {
       val ctx = event.getAsyncContext
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-      async.unsafeRunAsync {
+      unsafeRunAsync {
         if (!servletResponse.isCommitted) {
           val response =
             F.pure(

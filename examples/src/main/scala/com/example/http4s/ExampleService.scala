@@ -2,7 +2,7 @@ package com.example.http4s
 
 import cats.effect._
 import cats.implicits._
-import fs2.{Scheduler, Stream}
+import fs2.Stream
 import io.circe.Json
 import org.http4s._
 import org.http4s.MediaType
@@ -13,25 +13,20 @@ import org.http4s.server._
 import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.twirl._
-import scala.concurrent._
 import scala.concurrent.duration._
 
 class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
-  def service(
-      implicit scheduler: Scheduler,
-      executionContext: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
+  def service(implicit timer: Timer[F]): HttpRoutes[F] =
     Router[F](
       "" -> rootService,
       "/auth" -> authService,
       "/science" -> new ScienceExperiments[F].service
     )
 
-  def rootService(
-      implicit scheduler: Scheduler,
-      executionContext: ExecutionContext): HttpRoutes[F] =
+  def rootService(implicit timer: Timer[F]): HttpRoutes[F] =
     HttpRoutes.of[F] {
       case GET -> Root =>
         // Supports Play Framework template -- see src/main/twirl.
@@ -171,13 +166,12 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
   def helloWorldService: F[Response[F]] = Ok("Hello World!")
 
   // This is a mock data source, but could be a Process representing results from a database
-  def dataStream(n: Int)(implicit scheduler: Scheduler, ec: ExecutionContext): Stream[F, String] = {
+  def dataStream(n: Int)(implicit timer: Timer[F]): Stream[F, String] = {
     val interval = 100.millis
-    val stream =
-      scheduler
-        .awakeEvery[F](interval)
-        .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
-        .take(n.toLong)
+    val stream = Stream
+      .awakeEvery[F](interval)
+      .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
+      .take(n.toLong)
 
     Stream.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }

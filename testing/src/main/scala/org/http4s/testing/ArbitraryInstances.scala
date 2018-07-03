@@ -708,11 +708,8 @@ trait ArbitraryInstances {
       }
     }
 
-  implicit def cogenEntityBody[F[_]](
-      implicit F: Effect[F],
-      ec: TestContext): Cogen[EntityBody[F]] = {
-    val _ = ec // TODO unused as of cats-effect-0.10, remove in http4s-0.19
-    catsEffectLawsCogenForIO[Vector[Byte], Vector[Byte]].contramap { stream =>
+  implicit def cogenEntityBody[F[_]](implicit F: Effect[F]): Cogen[EntityBody[F]] =
+    catsEffectLawsCogenForIO[Vector[Byte]].contramap { stream =>
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
@@ -720,7 +717,6 @@ trait ArbitraryInstances {
         case Left(t) => IO.raiseError(t)
       } *> readBytes
     }
-  }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =
     Arbitrary(Gen.sized { size =>
@@ -730,7 +726,7 @@ trait ArbitraryInstances {
       } yield Entity(body.covary[F], length)
     })
 
-  implicit def cogenEntity[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Entity[F]] =
+  implicit def cogenEntity[F[_]](implicit F: Effect[F]): Cogen[Entity[F]] =
     Cogen[(EntityBody[F], Option[Long])].contramap(entity => (entity.body, entity.length))
 
   implicit def arbitraryEntityEncoder[F[_], A](
@@ -743,7 +739,6 @@ trait ArbitraryInstances {
   implicit def arbitraryEntityDecoder[F[_], A](
       implicit
       F: Effect[F],
-      ec: TestContext,
       g: Arbitrary[DecodeResult[F, A]]) =
     Arbitrary(
       for {
@@ -755,7 +750,7 @@ trait ArbitraryInstances {
           def consumes = mrs
         })
 
-  implicit def cogenMessage[F[_]](implicit F: Effect[F], ec: TestContext): Cogen[Message[F]] =
+  implicit def cogenMessage[F[_]](implicit F: Effect[F]): Cogen[Message[F]] =
     Cogen[(Headers, EntityBody[F])].contramap(m => (m.headers, m.body))
 
   implicit def cogenHeaders: Cogen[Headers] =

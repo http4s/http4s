@@ -46,12 +46,41 @@ it.
 * Move `org.http4s.server.ServerSoftware` to `org.http4s.ServerSoftware` [#1884](https://github.com/http4s/http4s/pull/1884)
 * Fix `Uncompressible` and `NotBinary` flags in `MimeDB` generator. [#1900](https://github.com/http4s/http4s/pull/1884)
 * Generalize `DefaultHead` middleware to work on `Http[F, G]` given `Functor[F]` and `MonoidK[F]` [#1903](https://github.com/http4s/http4s/pull/1903)
-* Generalize `GZip` middleware to work on `Http[F, G]` given `Functor[F]` and `Functor[G]` [#1903]
-(https://github.com/http4s/http4s/pull/1903)
+* Generalize `GZip` middleware to work on `Http[F, G]` given `Functor[F]` and `Functor[G]` [#1903](https://github.com/http4s/http4s/pull/1903)
+* `jawnDecoder` takes a `RawFacade` instead of a `Facade`
+* `Effect` constraint relaxed to `Sync`:
+  * `Logger.logMessage`
+* `Effect` constraint changed to `Concurrent`:
+  * `Logger` (client and server)
+  * `RequestLogger` (client and server)
+  * `ResponseLogger` (client and server)
+  * `ServerBuilder#serve` (moved to abstract member of `ServerBuilder`)
+* `Effect` constraint strengthened to `ConcurrentEffect`:
+  * `AsyncHttpClient`
+  * `BlazeBuilder`
+  * `JettyBuilder`
+  * `TomcatBuilder`
+* Implicit `ExecutionContext` removed from:
+  * `RequestLogger` (client and server)
+  * `ResponseLogger` (client and server)
+  * `ServerBuilder#serve`
+  * `ArbitraryInstances.arbitraryEntityDecoder`
+  * `ArbitraryInstances.cogenEntity`
+  * `ArbitraryInstances.cogenEntityBody`
+  * `ArbitraryInstances.cogenMessage`
+* Implicit `Timer` added to:
+  * `AsyncHttpClient`
+* `Http4sWsStage` removed from public API
 * Removed charset for argonaut instances [#1914](https://github.com/http4s/http4s/pull/1914)
 * Dependency upgrades:
   * async-http-client-2.4.8
   * blaze-0.14.0-M3
+  * cats-effect-1.0.0-RC2
+  * circe-0.10.0-M1
+  * fs2-1.0.0-M1
+  * fs2-reactive-streams-0.6.0
+  * jawn-0.12.1
+  * jawn-fs2-0.13.0-M1
   * prometheus-0.4.0
   * scala-xml-1.1.0
 

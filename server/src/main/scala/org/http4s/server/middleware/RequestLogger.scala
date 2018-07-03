@@ -4,11 +4,11 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s._
-import scala.concurrent.ExecutionContext
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed
@@ -16,21 +16,21 @@ import scala.concurrent.ExecutionContext
 object RequestLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_]: Effect](
+  def apply[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
       logAction: String => Unit = logger.info(_)
-  )(@deprecatedName('service) http: Kleisli[F, Request[F], Response[F]])(
-      implicit ec: ExecutionContext,
-      F: Sync[F]): Kleisli[F, Request[F], Response[F]] =
+  )(@deprecatedName('service) httpApp: HttpApp[F])(
+      implicit F: Concurrent[F]
+  ): HttpApp[F] =
     Kleisli { req =>
       if (!logBody) {
         Logger
-          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logAction) *> http(req)
+          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logAction) *> httpApp(req)
       } else {
-        async
-          .refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]])
+        Ref[F]
+          .of(Vector.empty[Segment[Byte, Unit]])
           .flatMap { vec =>
             val newBody = Stream
               .eval(vec.get)
@@ -40,9 +40,9 @@ object RequestLogger {
             val changedRequest = req.withBodyStream(
               req.body
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
+                .observe(_.segments.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
             )
-            val response: F[Response[F]] = http(changedRequest)
+            val response: F[Response[F]] = httpApp(changedRequest)
             response.attempt
               .flatMap {
                 case Left(e) =>

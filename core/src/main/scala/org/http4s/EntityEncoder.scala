@@ -171,10 +171,10 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def readerEncoder[F[_], R <: Reader](
       implicit F: Sync[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
-    entityBodyEncoder[F].contramap { r: F[R] =>
+    entityBodyEncoder[F].contramap { fr: F[R] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
-      val readToBytes: F[Option[Chunk[Byte]]] = r.map { r =>
+      def readToBytes(r: Reader): F[Option[Chunk[Byte]]] = F.delay {
         // Read into the buffer
         val readChars = r.read(charBuffer)
 
@@ -193,15 +193,15 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
         }
       }
 
-      def useReader =
+      def useReader(r: Reader) =
         Stream
-          .eval(readToBytes)
+          .eval(readToBytes(r))
           .repeat
           .unNoneTerminate
           .flatMap(Stream.chunk[Byte])
 
       // The reader is closed at the end like InputStream
-      Stream.bracket(r)(_ => useReader, t => F.delay(t.close()))
+      Stream.bracket(fr)(r => F.delay(r.close())).flatMap(useReader)
     }
 
   implicit def multipartEncoder[F[_]]: EntityEncoder[F, Multipart[F]] =

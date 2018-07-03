@@ -29,8 +29,8 @@ class ScalaXmlSpec extends Http4sSpec {
 
     "parse XML in parallel" in {
       // https://github.com/http4s/http4s/issues/1209
-      val resp = fs2.async
-        .parallelTraverse((0 to 5).toList)(_ =>
+      val resp = ((0 to 5).toList)
+        .parTraverse(_ =>
           server(Request(body = strBody(
             """<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><h1>h1</h1></html>"""))))
         .unsafeRunSync

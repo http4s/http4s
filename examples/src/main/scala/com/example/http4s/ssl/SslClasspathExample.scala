@@ -1,17 +1,16 @@
 package com.example.http4s.ssl
 
-import cats.effect.{Effect, Sync}
-import javax.net.ssl.{KeyManagerFactory, SSLContext}
-
+import cats.effect.{ConcurrentEffect, Sync, Timer}
 import com.example.http4s.ExampleService
 import fs2.StreamApp.ExitCode
-import fs2.{Scheduler, Stream, StreamApp}
+import fs2.{Stream, StreamApp}
+import java.security.{KeyStore, Security}
+import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.server.middleware.HSTS
 import org.http4s.server.{SSLContextSupport, ServerBuilder}
-import java.security.{KeyStore, Security}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-abstract class SslClasspathExample[F[_]: Effect] extends StreamApp[F] {
+abstract class SslClasspathExample[F[_]: ConcurrentEffect] extends StreamApp[F] {
 
   def loadContextFromClasspath(keystorePassword: String, keyManagerPass: String): F[SSLContext] =
     Sync[F].delay {
@@ -37,12 +36,12 @@ abstract class SslClasspathExample[F[_]: Effect] extends StreamApp[F] {
 
   def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
     for {
-      scheduler <- Scheduler(corePoolSize = 2)
       context <- Stream.eval(loadContextFromClasspath("password", "secure"))
+      timer = Timer.derive[F]
       exitCode <- builder
         .withSSLContext(context)
         .bindHttp(8443, "0.0.0.0")
-        .mountService(HSTS(new ExampleService[F].service(scheduler)), "/http4s")
+        .mountService(HSTS(new ExampleService[F].service(timer)), "/http4s")
         .serve
     } yield exitCode
 

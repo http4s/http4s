@@ -64,8 +64,8 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
       }
 
       val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
-      async
-        .parallelTraverse((0 until 10).toVector)(_ => fetchBody.run(url).map(_.length))
+      (0 until 10).toVector
+        .parTraverse(_ => fetchBody.run(url).map(_.length))
         .unsafeRunTimed(timeout)
         .forall(_ mustNotEqual 0)
     }

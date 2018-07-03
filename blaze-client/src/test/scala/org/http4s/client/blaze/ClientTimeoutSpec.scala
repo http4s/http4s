@@ -3,6 +3,7 @@ package client
 package blaze
 
 import cats.effect._
+import fs2.Stream
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.HeadStage
@@ -84,7 +85,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 1000.millis
-        testScheduler
+        Stream
           .awakeEvery[IO](interval)
           .map(_ => "1".toByte)
           .take(n.toLong)
@@ -104,7 +105,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 2.seconds
-        testScheduler
+        Stream
           .awakeEvery[IO](interval)
           .map(_ => "1".toByte)
           .take(n.toLong)
@@ -124,7 +125,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       def dataStream(n: Int): EntityBody[IO] = {
         val interval = 100.millis
-        testScheduler
+        Stream
           .awakeEvery[IO](interval)
           .map(_ => "1".toByte)
           .take(n.toLong)
