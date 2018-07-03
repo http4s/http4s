@@ -3,6 +3,7 @@ package client
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
+import cats.implicits._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
@@ -63,14 +64,16 @@ object ConnectionManager {
       maxConnectionsPerRequestKey: RequestKey => Int,
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
-      executionContext: ExecutionContext): ConnectionManager[F, A] =
-    new PoolManager[F, A](
-      builder,
-      maxTotal,
-      maxWaitQueueLimit,
-      maxConnectionsPerRequestKey,
-      responseHeaderTimeout,
-      requestTimeout,
-      Effect[F].toIO(Semaphore.uncancelable(1)).unsafeRunSync(),
-      executionContext)
+      executionContext: ExecutionContext): F[ConnectionManager[F, A]] =
+    Semaphore.uncancelable(1).map { semaphore =>
+      new PoolManager[F, A](
+        builder,
+        maxTotal,
+        maxWaitQueueLimit,
+        maxConnectionsPerRequestKey,
+        responseHeaderTimeout,
+        requestTimeout,
+        semaphore,
+        executionContext)
+    }
 }

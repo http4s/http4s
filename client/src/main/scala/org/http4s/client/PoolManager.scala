@@ -43,10 +43,6 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def stats =
     s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit closed=${isClosed}"
 
-//  def statsForRequestKey(key: RequestKey): String = synchronized {
-//    s"allocated=${allocated.get(key)} idleQueues.size=${idleQueues.get(key).map(_.size)} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit"
-//  }
-
   private def getConnectionFromQueue(key: RequestKey): F[Option[A]] = F.delay {
     idleQueues.get(key).flatMap { q =>
       if (q.nonEmpty) {
