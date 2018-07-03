@@ -432,7 +432,23 @@ for serious static content serving.
 
         <div class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder#bindSocketAddress" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.server.ServerBuilder#F" visbl="prt" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="F:cats.effect.Concurrent[F]"></a><a id="F:Concurrent[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#F:cats.effect.Concurrent[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.Concurrent">Concurrent</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="org.http4s.server.ServerBuilder#bindSocketAddress" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="bindSocketAddress(socketAddress:java.net.InetSocketAddress):ServerBuilder.this.Self"></a><a id="bindSocketAddress(InetSocketAddress):Self"></a>
       <span class="permalink">
       <a href="../../../org/http4s/server/ServerBuilder.html#bindSocketAddress(socketAddress:java.net.InetSocketAddress):ServerBuilder.this.Self" title="Permalink">
@@ -984,9 +1000,9 @@ parsing a request or handling a context timeout.
               
         </dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serve(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve(Effect[F],ExecutionContext):Stream[F,ExitCode]"></a>
+      <a id="serve:fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#serve(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#serve:fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -995,16 +1011,16 @@ parsing a request or handling a context timeout.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
 that runs for the rest of the JVM's life.
 </p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:fs2.async.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
+      <a id="serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:fs2.async.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1013,7 +1029,7 @@ that runs for the rest of the JVM's life.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.async.immutable.Signal">Signal</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="fs2.async.Ref">Ref</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.async.immutable.Signal">Signal</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.

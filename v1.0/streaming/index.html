@@ -98,12 +98,12 @@ simplicity itself:</p>
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.effect._
-import fs2.Scheduler
+import fs2.Stream
 import org.http4s._
 import org.http4s.dsl.io._
 
 // An infinite stream of the periodic elapsed time
-val seconds = Scheduler[IO](2).flatMap(_.awakeEvery[IO](1.second))
+val seconds = Stream.awakeEvery[IO](1.second)
 
 val service = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;seconds&quot; =&gt;
@@ -135,7 +135,7 @@ Here&rsquo;s some code intended to consume <a href="https://dev.twitter.com/stre
 
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.http4s&quot; %% &quot;http4s-circe&quot; % &quot;1.0.0-SNAPSHOT&quot;,
-  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.9.3&quot;
+  &quot;io.circe&quot; %% &quot;circe-generic&quot; % &quot;0.10.0-M1&quot;
 )
 </code></pre>
 
@@ -166,7 +166,7 @@ import io.circe.Json
 // Uncomment this line to create an application with a main method that can be run
 // object TWStream extends TWStreamApp[IO]
 
-abstract class TWStreamApp[F[_]: Effect] extends StreamApp[F] {
+abstract class TWStreamApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
 
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
