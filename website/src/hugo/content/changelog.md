@@ -8,7 +8,14 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.13 (unreleased)
+# v0.18.14 (2018-07-03)
+* Add `CirceEntityCodec` to provide an implicit `EntityEncoder` or `EntityDecoder` from an `Encoder` or `Decoder`, respectively. [#1917](https://github.com/http4s/http4s/pull/1917)
+* Add a client backend based on `java.net.HttpURLConnection`.  Note that this client blocks and is primarily intended for use in a REPL. [#1882](https://github.com/http4s/http4s/pull/1882)
+* Dependency upgrades:
+  * jetty-9.4.11
+  * tomcat-9.0.10
+	
+# v0.18.13 (2018-06-22)
 * Downcase type in `MediaRange` generator [#1907](https://github.com/http4s/http4s/pull/1907)
 * Fixed bug where `PoolManager` would try to dequeue from an empty queue [#1922](https://github.com/http4s/http4s/pull/1922)
 * Dependency upgrades:
