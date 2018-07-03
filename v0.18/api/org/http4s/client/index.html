@@ -311,6 +311,10 @@
                         <a class="class" href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection."></a>
                         <a href="DisposableResponse.html" title="Contains a Response that needs to be disposed of to free the underlying HTTP connection.">DisposableResponse</a>
                       </li><li class="current-entities indented3">
+                        <a class="object" href="JavaNetClient$.html" title=""></a>
+                        <a class="class" href="JavaNetClient.html" title="A Client based on java.net.HttpUrlConnection."></a>
+                        <a href="JavaNetClient.html" title="A Client based on java.net.HttpUrlConnection.">JavaNetClient</a>
+                      </li><li class="current-entities indented3">
                         <span class="separator"></span>
                         <a class="class" href="NoConnectionAllowedException.html" title=""></a>
                         <a href="NoConnectionAllowedException.html" title="">NoConnectionAllowedException</a>
@@ -581,7 +585,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d7390ed6702a86c1f4e951af5a0aae1db92c3bbf/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ed19bf95e51aa725ed3294b3104500f6f5c9c495/client/src/main/scala/org/http4s/client/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -722,6 +726,25 @@ must have a mechanism to free resources associated with it.
       
       <p class="shortcomment cmt">Contains a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> that needs to be disposed of to free the underlying
 HTTP connection.</p>
+    </li><li name="org.http4s.client.JavaNetClient" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="JavaNetClientextendsAnyRef"></a><a id="JavaNetClient:JavaNetClient"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/index.html#JavaNetClientextendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="A Client based on java.net.HttpUrlConnection." href="JavaNetClient.html"><span class="name">JavaNetClient</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> based on <code>java.net.HttpUrlConnection</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> based on <code>java.net.HttpUrlConnection</code>.</p><p><code>JavaNetClient</code> adds no dependencies beyond <code>http4s-client</code>.  This
+client is generally not production grade, but convenient for
+exploration in a REPL.</p><p>All I/O operations in this client are blocking.
+</p></div></div>
     </li><li name="org.http4s.ClientTypes.Middleware" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Middleware[F[_]]=org.http4s.client.Client[F]=&gt;org.http4s.client.Client[F]"></a><a id="Middleware[F[_]]:Middleware[F]"></a>
       <span class="permalink">
@@ -823,6 +846,22 @@ HTTP connection.</p>
       </span>
       <span class="symbol">
         <a title="" href="ConnectionManager$.html"><span class="name">ConnectionManager</span></a>
+      </span>
+      
+      
+    </li><li name="org.http4s.client.JavaNetClient" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="JavaNetClient"></a><a id="JavaNetClient:JavaNetClient"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/index.html#JavaNetClient" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="JavaNetClient$.html"><span class="name">JavaNetClient</span></a>
       </span>
       
       

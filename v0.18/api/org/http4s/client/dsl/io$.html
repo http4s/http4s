@@ -183,7 +183,7 @@
 <span class="kw">val</span> r: IO[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).as[<span class="std">String</span>]
 <span class="kw">val</span> r2: DecodeResult[<span class="std">String</span>] = client(GET(uri(<span class="lit">"https://www.foo.bar/"</span>))).attemptAs[<span class="std">String</span>] <span class="cmt">// implicitly resolve the decoder</span>
 <span class="kw">val</span> req1 = r.unsafeRunSync
-<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/d7390ed6702a86c1f4e951af5a0aae1db92c3bbf/client/src/main/scala/org/http4s/client/dsl/io.scala" target="_blank">io.scala</a></dd></dl><div class="toggleContainer block">
+<span class="kw">val</span> req2 = r.unsafeRunSync <span class="cmt">// Each invocation fetches a new Result based on the behavior of the Client</span></pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/ed19bf95e51aa725ed3294b3104500f6f5c9c495/client/src/main/scala/org/http4s/client/dsl/io.scala" target="_blank">io.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
