@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v1.0.0-SNAPSHOT (unreleased)
+# v0.19.0-M1 (2018-07-04)
 * Add accumulating version of circe `EntityDecoder` [#1647](https://github.com/http4/http4s/1647)
 * Add ETag support to `StaticFile` [#1652](https://github.com/http4s/http4s/pull/1652)
 * Reintroduce the option for fallthrough for authenticated services [#1670]((https://github.com/http4s/http4s/pull/1670)
