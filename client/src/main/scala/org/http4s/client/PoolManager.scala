@@ -230,27 +230,25 @@ private final class PoolManager[F[_], A <: Connection[F]](
         }
     }
 
-  private def releaseNonRecyclable(key: RequestKey, connection: A): F[Unit] = {
+  private def releaseNonRecyclable(key: RequestKey, connection: A): F[Unit] =
     decrConnection(key) *>
-    F.delay {
-      if (!connection.isClosed) {
-        logger.debug(s"Connection returned was busy.  Shutting down: $stats")
-        connection.shutdown()
-      }
-    } *>
-    findFirstAllowedWaiter.flatMap {
-      case Some(Waiting(k, callback, _)) =>
-        F.delay(
-          logger
+      F.delay {
+        if (!connection.isClosed) {
+          logger.debug(s"Connection returned was busy.  Shutting down: $stats")
+          connection.shutdown()
+        }
+      } *>
+      findFirstAllowedWaiter.flatMap {
+        case Some(Waiting(k, callback, _)) =>
+          F.delay(logger
             .debug(s"Connection returned could not be recycled, new connection needed: $stats")) *>
-          createConnection(k, callback)
+            createConnection(k, callback)
 
-      case None =>
-        F.delay(
-          logger.debug(
-            s"Connection could not be recycled, no pending requests. Shrinking pool: $stats"))
-    }
-  }
+        case None =>
+          F.delay(
+            logger.debug(
+              s"Connection could not be recycled, no pending requests. Shrinking pool: $stats"))
+      }
 
   /**
     * This is how connections are returned to the ConnectionPool.
