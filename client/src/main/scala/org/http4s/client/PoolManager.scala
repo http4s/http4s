@@ -3,13 +3,10 @@ package client
 
 import cats.effect._
 import cats.effect.concurrent.Semaphore
+import cats.implicits._
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import org.log4s.getLogger
-import cats.implicits._
-//import cats.syntax.all._
-
-//import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
