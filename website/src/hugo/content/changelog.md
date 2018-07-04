@@ -42,14 +42,19 @@ it.
 * Generalize `VirtualHost` middleware to work on `Kleisli[F, Request[G], Response[G]]` given `Applicative[F]`.  [#1902](https://github.com/http4s/http4s/pull/1902)
 * Generalize `URITranslate` middleware to work on `Kleisli[F, Request[G], B]` given `Functor[G]`.  [#1895](https://github.com/http4s/http4s/pull/1895)
 * Generalize `CSRF` middleware to work on `Kleisli[F, Request[G], Response[G]]` given `Sync[F]` and `Applicative[G]`.  [#1909](https://github.com/http4s/http4s/pull/1909)
+* Generalize `ResponseLogger` middleware to work on `Kleisli[F, A, Response[F]]` given `Effect[F]`.  [#1916](https://github.com/http4s/http4s/pull/1916)
+* Make `Logger`, `RequestLogger`, and `ResponseLogger` work on `HttpApp[F]` so a `Response` is guaranteed unless the service raises an error [#1916](https://github.com/http4s/http4s/pull/1916)
 * Rename `RequestLogger.apply0` and `ResponseLogger.apply0` to `RequestLogger.apply` and `ResponseLogger.apply`.  [#1837](https://github.com/http4s/http4s/pull/1837)
 * Move `org.http4s.server.ServerSoftware` to `org.http4s.ServerSoftware` [#1884](https://github.com/http4s/http4s/pull/1884)
 * Fix `Uncompressible` and `NotBinary` flags in `MimeDB` generator. [#1900](https://github.com/http4s/http4s/pull/1884)
 * Generalize `DefaultHead` middleware to work on `Http[F, G]` given `Functor[F]` and `MonoidK[F]` [#1903](https://github.com/http4s/http4s/pull/1903)
 * Generalize `GZip` middleware to work on `Http[F, G]` given `Functor[F]` and `Functor[G]` [#1903](https://github.com/http4s/http4s/pull/1903)
 * `jawnDecoder` takes a `RawFacade` instead of a `Facade`
+* Change `BasicCredentials` extractor to return `(String, String)` [#1924](https://github.com/http4s/http4s/1925)
 * `Effect` constraint relaxed to `Sync`:
   * `Logger.logMessage`
+* `Effect` constraint relaxed to `Async`:
+  * `JavaNetClient`
 * `Effect` constraint changed to `Concurrent`:
   * `Logger` (client and server)
   * `RequestLogger` (client and server)
@@ -68,12 +73,14 @@ it.
   * `ArbitraryInstances.cogenEntity`
   * `ArbitraryInstances.cogenEntityBody`
   * `ArbitraryInstances.cogenMessage`
+  * `JavaNetClient`
 * Implicit `Timer` added to:
   * `AsyncHttpClient`
+  * `JavaNetClient.create`
 * `Http4sWsStage` removed from public API
 * Removed charset for argonaut instances [#1914](https://github.com/http4s/http4s/pull/1914)
 * Dependency upgrades:
-  * async-http-client-2.4.8
+  * async-http-client-2.4.9
   * blaze-0.14.0-M3
   * cats-effect-1.0.0-RC2
   * circe-0.10.0-M1
@@ -84,7 +91,14 @@ it.
   * prometheus-0.4.0
   * scala-xml-1.1.0
 
-# v0.18.13 (unreleased)
+# v0.18.14 (2018-07-03)
+* Add `CirceEntityCodec` to provide an implicit `EntityEncoder` or `EntityDecoder` from an `Encoder` or `Decoder`, respectively. [#1917](https://github.com/http4s/http4s/pull/1917)
+* Add a client backend based on `java.net.HttpURLConnection`.  Note that this client blocks and is primarily intended for use in a REPL. [#1882](https://github.com/http4s/http4s/pull/1882)
+* Dependency upgrades:
+  * jetty-9.4.11
+  * tomcat-9.0.10
+	
+# v0.18.13 (2018-06-22)
 * Downcase type in `MediaRange` generator [#1907](https://github.com/http4s/http4s/pull/1907)
 * Fixed bug where `PoolManager` would try to dequeue from an empty queue [#1922](https://github.com/http4s/http4s/pull/1922)
 * Dependency upgrades:
