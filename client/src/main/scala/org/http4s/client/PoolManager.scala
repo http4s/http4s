@@ -6,7 +6,6 @@ import cats.effect.concurrent.Semaphore
 import java.time.Instant
 import java.util.concurrent.TimeoutException
 import org.log4s.getLogger
-import org.http4s.internal.unsafeRunAsync
 import cats.implicits._
 //import cats.syntax.all._
 
@@ -95,13 +94,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     if (numConnectionsCheckHolds(key)) {
       incrConnection(key) *>
-        F.delay {
-          unsafeRunAsync(builder(key)) {
+        F.liftIO {
+          F.runAsync(Async.shift(executionContext) *> builder(key)) {
             case Right(conn) =>
               IO(callback(Right(NextConnection(conn, fresh = true))))
             case Left(error) =>
-              disposeConnection(key, None)
-              IO(callback(Left(error)))
+              Effect[F].toIO(disposeConnection(key, None)) *>
+                IO(callback(Left(error)))
           }
         }
     } else {
@@ -324,13 +323,16 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param key        The request key for the connection. Not used internally.
     * @param connection An Option of a Connection to Dispose Of.
     */
-  private def disposeConnection(key: RequestKey, connection: Option[A]): Unit = {
-    logger.debug(s"Disposing of connection: $stats")
-    decrConnection(key)
-    connection.foreach { s =>
-      if (!s.isClosed) s.shutdown()
+  private def disposeConnection(key: RequestKey, connection: Option[A]): F[Unit] =
+    semaphore.withPermit {
+      F.delay(logger.debug(s"Disposing of connection: $stats")) *>
+        decrConnection(key) *>
+        F.delay {
+          connection.foreach { s =>
+            if (!s.isClosed) s.shutdown()
+          }
+        }
     }
-  }
 
   /**
     * Shuts down the connection pool permanently.
