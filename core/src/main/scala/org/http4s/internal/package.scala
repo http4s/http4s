@@ -1,6 +1,6 @@
 package org.http4s
 
-import cats.effect.{Async, Effect, IO}
+import cats.effect.{Async, Effect, IO, Timer}
 import cats.implicits._
 import scala.concurrent.ExecutionContext
 
@@ -10,4 +10,14 @@ package object internal {
   private[http4s] def unsafeRunAsync[F[_], A](fa: F[A])(
       f: Either[Throwable, A] => IO[Unit])(implicit F: Effect[F], ec: ExecutionContext): Unit =
     F.runAsync(Async.shift(ec) *> fa)(f).unsafeRunSync
+
+  private[http4s] def blocking[F[_], A](fa: F[A], blockingExecutionContext: ExecutionContext)(
+      implicit F: Async[F],
+      timer: Timer[F]): F[A] =
+    for {
+      _ <- Async.shift[F](blockingExecutionContext)
+      att <- fa.attempt
+      _ <- timer.shift
+      fa0 <- F.fromEither(att)
+    } yield fa0
 }
