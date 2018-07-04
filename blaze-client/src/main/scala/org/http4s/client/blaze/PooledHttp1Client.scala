@@ -18,12 +18,14 @@ object PooledHttp1Client {
       maxWaitQueueLimit: Int = bits.DefaultMaxWaitQueueLimit,
       maxConnectionsPerRequestKey: RequestKey => Int = _ => bits.DefaultMaxTotalConnections,
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Client[F] =
-    Effect[F].toIO {
-      Http1Client.mkClient(
-        config.copy(
-          maxTotalConnections = maxTotalConnections,
-          maxWaitQueueLimit = maxWaitQueueLimit,
-          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey
-        ))
-    }.unsafeRunSync()
+    Effect[F]
+      .toIO {
+        Http1Client.mkClient(
+          config.copy(
+            maxTotalConnections = maxTotalConnections,
+            maxWaitQueueLimit = maxWaitQueueLimit,
+            maxConnectionsPerRequestKey = maxConnectionsPerRequestKey
+          ))
+      }
+      .unsafeRunSync()
 }
