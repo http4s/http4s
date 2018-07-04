@@ -231,13 +231,13 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
 
   private def releaseNonRecyclable(key: RequestKey, connection: A): F[Unit] = {
-    decrConnection(key)
-
-    if (!connection.isClosed) {
-      logger.debug(s"Connection returned was busy.  Shutting down: $stats")
-      connection.shutdown()
-    }
-
+    decrConnection(key) *>
+    F.delay {
+      if (!connection.isClosed) {
+        logger.debug(s"Connection returned was busy.  Shutting down: $stats")
+        connection.shutdown()
+      }
+    } *>
     findFirstAllowedWaiter.flatMap {
       case Some(Waiting(k, callback, _)) =>
         F.delay(
