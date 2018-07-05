@@ -80,22 +80,22 @@ a full list.
 ### JSON
 With `jsonOf` for the `EntityDecoder`, and `jsonEncoderOf` for the `EntityEncoder`:
 
-- argonaut: `"org.http4s" %% "http4s-argonaut" % Http4sVersion`
-- circe: `"org.http4s" %% "http4s-circe" % Http4sVersion`
-- json4s-native: `"org.http4s" %% "http4s-json4s-native" % Http4sVersion`
-- json4s-jackson: `"org.http4s" %% "http4s-json4s-jackson" % Http4sVersion`
+- argonaut: `"org.http4s" %% "http4s-argonaut" % http4sVersion`
+- circe: `"org.http4s" %% "http4s-circe" % http4sVersion`
+- json4s-native: `"org.http4s" %% "http4s-json4s-native" % http4sVersion`
+- json4s-jackson: `"org.http4s" %% "http4s-json4s-jackson" % http4sVersion`
 
 ### XML
 For scala-xml (xml literals), import `org.http4s.scalaxml`. No direct naming
 required here, because there is no Decoder instance for `String` that would
 cause conflicts with the builtin Decoders.
 
-- scala-xml: `"org.http4s" %% "http4s-scala-xml" % Http4sVersion`
+- scala-xml: `"org.http4s" %% "http4s-scala-xml" % http4sVersion`
 
 ### Twirl
 If you're working with [twirl] templates, there's a bridge for that too:
 
-- scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
+- scala-twirl: `"org.http4s" %% "http4s-twirl" % http4sVersion`
 
 [introduction-to-functional-streams]: https://youtu.be/cahvyadYfX8
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
