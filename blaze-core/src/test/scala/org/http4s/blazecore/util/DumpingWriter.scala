@@ -2,10 +2,12 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Effect, IO}
+import cats.effect.{Concurrent, IO}
+import cats.effect.IO._
 import fs2._
 import org.http4s.blaze.util.Execution
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object DumpingWriter {
   def dump(p: EntityBody[IO]): Array[Byte] = {
@@ -15,7 +17,7 @@ object DumpingWriter {
   }
 }
 
-class DumpingWriter(implicit protected val F: Effect[IO]) extends EntityBodyWriter[IO] {
+class DumpingWriter(implicit protected val F: Concurrent[IO]) extends EntityBodyWriter[IO] {
   override implicit protected def ec: ExecutionContext = Execution.trampoline
 
   private var buffer = Segment.empty[Byte]

@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 private[http4s] class CachingStaticWriter[F[_]](
     out: TailStage[ByteBuffer],
     bufferSize: Int = 8 * 1024)(
-    implicit protected val F: Effect[F],
+    implicit protected val F: Concurrent[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 

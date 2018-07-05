@@ -12,7 +12,7 @@ import org.log4s.getLogger
 import scala.concurrent.{ExecutionContext, Future}
 
 private[http4s] class IdentityWriter[F[_]](size: Int, out: TailStage[ByteBuffer])(
-    implicit protected val F: Effect[F],
+    implicit protected val F: Concurrent[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 

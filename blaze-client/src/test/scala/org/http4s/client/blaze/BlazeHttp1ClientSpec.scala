@@ -3,6 +3,7 @@ package client
 package blaze
 
 import cats.effect.IO
+import scala.concurrent.ExecutionContext.Implicits.global
 import org.http4s.util.threads.newDaemonPoolExecutionContext
 
 class BlazeHttp1ClientSpec

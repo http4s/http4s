@@ -10,7 +10,7 @@ import scala.concurrent._
 
 private[http4s] trait EntityBodyWriter[F[_]] {
 
-  implicit protected def F: Effect[F]
+  implicit protected def F: Concurrent[F]
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
   implicit protected def ec: ExecutionContext

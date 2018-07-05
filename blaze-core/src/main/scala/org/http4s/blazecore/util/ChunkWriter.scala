@@ -2,13 +2,12 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.{Effect, IO}
+import cats.effect.{Async, Concurrent}
 import cats.implicits._
 import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
-import org.http4s.internal.unsafeRunAsync
 import org.http4s.util.StringWriter
 import scala.concurrent._
 
@@ -29,7 +28,7 @@ private[util] object ChunkWriter {
   def TransferEncodingChunked = transferEncodingChunkedBuffer.duplicate()
 
   def writeTrailer[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
-      implicit F: Effect[F],
+      implicit F: Concurrent[F],
       ec: ExecutionContext): Future[Boolean] = {
     val promise = Promise[Boolean]
     val f = trailer.map { trailerHeaders =>
@@ -41,11 +40,13 @@ private[util] object ChunkWriter {
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
       } else ChunkEndBuffer
     }
-    unsafeRunAsync(f) {
-      case Right(buffer) =>
-        IO { promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))); () }
-      case Left(t) =>
-        IO { promise.failure(t); () }
+    F.start {
+      Async.shift(ec) *> f.attempt.flatMap {
+        case Right(buffer) =>
+          F.delay { promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))); () }
+        case Left(t) =>
+          F.delay { promise.failure(t); () }
+      }
     }
     promise.future
   }

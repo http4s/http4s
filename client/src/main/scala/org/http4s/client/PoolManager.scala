@@ -20,7 +20,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
     responseHeaderTimeout: Duration,
     requestTimeout: Duration,
     semaphore: Semaphore[F],
-    implicit private val executionContext: ExecutionContext)(implicit F: Effect[F])
+    implicit private val executionContext: ExecutionContext)(implicit F: Concurrent[F])
     extends ConnectionManager[F, A] {
 
   private sealed case class Waiting(
@@ -90,16 +90,15 @@ private final class PoolManager[F[_], A <: Connection[F]](
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     if (numConnectionsCheckHolds(key)) {
-      incrConnection(key) *>
-        F.liftIO {
-          F.runAsync(Async.shift(executionContext) *> builder(key)) {
-            case Right(conn) =>
-              IO(callback(Right(NextConnection(conn, fresh = true))))
-            case Left(error) =>
-              Effect[F].toIO(disposeConnection(key, None)) *>
-                IO(callback(Left(error)))
-          }
+      F.start {
+        incrConnection(key) *>
+          Async.shift(executionContext) *> builder(key).attempt.flatMap {
+          case Right(conn) =>
+            F.delay(callback(Right(NextConnection(conn, fresh = true))))
+          case Left(error) =>
+            disposeConnection(key, None) *> F.delay(callback(Left(error)))
         }
+      }.void
     } else {
       addToWaitQueue(key, callback)
     }

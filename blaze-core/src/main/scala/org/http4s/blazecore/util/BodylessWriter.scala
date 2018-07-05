@@ -18,7 +18,7 @@ import scala.concurrent._
   * @param ec an ExecutionContext which will be used to complete operations
   */
 private[http4s] class BodylessWriter[F[_]](pipe: TailStage[ByteBuffer], close: Boolean)(
-    implicit protected val F: Effect[F],
+    implicit protected val F: Concurrent[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
 

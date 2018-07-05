@@ -2,7 +2,7 @@ package org.http4s
 package blazecore
 package util
 
-import cats.effect.Effect
+import cats.effect.Concurrent
 import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
@@ -10,7 +10,7 @@ import org.http4s.util.StringWriter
 import scala.concurrent._
 
 private[http4s] class FlushingChunkWriter[F[_]](pipe: TailStage[ByteBuffer], trailer: F[Headers])(
-    implicit protected val F: Effect[F],
+    implicit protected val F: Concurrent[F],
     protected val ec: ExecutionContext)
     extends Http1Writer[F] {
   import ChunkWriter._

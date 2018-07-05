@@ -14,14 +14,7 @@ object Http1Client {
     * @param config blaze client configuration options
     */
   def apply[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
-      implicit F: Effect[F]): F[Client[F]] =
-    mkClient(config)
-
-  def stream[F[_]: Effect](
-      config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Stream[F, Client[F]] =
-    Stream.bracket(apply(config))(_.shutdown)
-
-  private[blaze] def mkClient[F[_]: Effect](config: BlazeClientConfig): F[Client[F]] = {
+      implicit F: Concurrent[F]): F[Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)
 
     ConnectionManager
@@ -37,4 +30,7 @@ object Http1Client {
       .map(pool => BlazeClient(pool, config, pool.shutdown()))
   }
 
+  def stream[F[_]: ConcurrentEffect](
+      config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Stream[F, Client[F]] =
+    Stream.bracket(apply(config))(_.shutdown)
 }

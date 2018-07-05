@@ -19,7 +19,8 @@ private[blaze] object Http1Support {
     *
     * @param config The client configuration object
     */
-  def apply[F[_]: Effect](config: BlazeClientConfig): ConnectionBuilder[F, BlazeConnection[F]] = {
+  def apply[F[_]: Concurrent](
+      config: BlazeClientConfig): ConnectionBuilder[F, BlazeConnection[F]] = {
     val builder = new Http1Support(config)
     builder.makeClient
   }
@@ -27,7 +28,7 @@ private[blaze] object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Effect[F]) {
+final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Concurrent[F]) {
 
   private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group)
