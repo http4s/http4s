@@ -14,7 +14,7 @@ object Http1Client {
     * @param config blaze client configuration options
     */
   def apply[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
-      implicit F: Concurrent[F]): F[Client[F]] = {
+      implicit F: ConcurrentEffect[F]): F[Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = Http1Support(config)
 
     ConnectionManager

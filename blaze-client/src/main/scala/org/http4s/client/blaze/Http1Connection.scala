@@ -22,7 +22,7 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 private final class Http1Connection[F[_]](val requestKey: RequestKey, config: BlazeClientConfig)(
-    implicit protected val F: Concurrent[F])
+    implicit protected val F: Effect[F])
     extends Http1Stage[F]
     with BlazeConnection[F] {
   import org.http4s.client.blaze.Http1Connection._

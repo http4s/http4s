@@ -1,7 +1,7 @@
 package org.http4s
 package blazecore
 
-import cats.effect.Concurrent
+import cats.effect.Effect
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -24,7 +24,7 @@ trait Http1Stage[F[_]] { self: TailStage[ByteBuffer] =>
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
   protected implicit def executionContext: ExecutionContext
 
-  protected implicit def F: Concurrent[F]
+  protected implicit def F: Effect[F]
 
   protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 

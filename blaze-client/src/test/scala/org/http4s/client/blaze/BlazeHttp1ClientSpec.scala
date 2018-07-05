@@ -3,8 +3,8 @@ package client
 package blaze
 
 import cats.effect.IO
-import scala.concurrent.ExecutionContext.Implicits.global
 import org.http4s.util.threads.newDaemonPoolExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class BlazeHttp1ClientSpec
     extends ClientRouteTestBattery(
