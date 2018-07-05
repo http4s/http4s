@@ -86,7 +86,7 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
-<h1 id="v1-0-0-snapshot-unreleased">v1.0.0-SNAPSHOT (unreleased)</h1>
+<h1 id="v0-19-0-m1-2018-07-04">v0.19.0-M1 (2018-07-04)</h1>
 
 <ul>
 <li>Add accumulating version of circe <code>EntityDecoder</code> <a href="https://github.com/http4/http4s/1647">#1647</a></li>
@@ -128,16 +128,24 @@ it.</p>
 <li>Generalize <code>VirtualHost</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>Applicative[F]</code>.  <a href="https://github.com/http4s/http4s/pull/1902">#1902</a></li>
 <li>Generalize <code>URITranslate</code> middleware to work on <code>Kleisli[F, Request[G], B]</code> given <code>Functor[G]</code>.  <a href="https://github.com/http4s/http4s/pull/1895">#1895</a></li>
 <li>Generalize <code>CSRF</code> middleware to work on <code>Kleisli[F, Request[G], Response[G]]</code> given <code>Sync[F]</code> and <code>Applicative[G]</code>.  <a href="https://github.com/http4s/http4s/pull/1909">#1909</a></li>
+<li>Generalize <code>ResponseLogger</code> middleware to work on <code>Kleisli[F, A, Response[F]]</code> given <code>Effect[F]</code>.  <a href="https://github.com/http4s/http4s/pull/1916">#1916</a></li>
+<li>Make <code>Logger</code>, <code>RequestLogger</code>, and <code>ResponseLogger</code> work on <code>HttpApp[F]</code> so a <code>Response</code> is guaranteed unless the service raises an error <a href="https://github.com/http4s/http4s/pull/1916">#1916</a></li>
 <li>Rename <code>RequestLogger.apply0</code> and <code>ResponseLogger.apply0</code> to <code>RequestLogger.apply</code> and <code>ResponseLogger.apply</code>.  <a href="https://github.com/http4s/http4s/pull/1837">#1837</a></li>
 <li>Move <code>org.http4s.server.ServerSoftware</code> to <code>org.http4s.ServerSoftware</code> <a href="https://github.com/http4s/http4s/pull/1884">#1884</a></li>
 <li>Fix <code>Uncompressible</code> and <code>NotBinary</code> flags in <code>MimeDB</code> generator. <a href="https://github.com/http4s/http4s/pull/1884">#1900</a></li>
 <li>Generalize <code>DefaultHead</code> middleware to work on <code>Http[F, G]</code> given <code>Functor[F]</code> and <code>MonoidK[F]</code> <a href="https://github.com/http4s/http4s/pull/1903">#1903</a></li>
 <li>Generalize <code>GZip</code> middleware to work on <code>Http[F, G]</code> given <code>Functor[F]</code> and <code>Functor[G]</code> <a href="https://github.com/http4s/http4s/pull/1903">#1903</a></li>
 <li><code>jawnDecoder</code> takes a <code>RawFacade</code> instead of a <code>Facade</code></li>
+<li>Change <code>BasicCredentials</code> extractor to return <code>(String, String)</code> <a href="https://github.com/http4s/http4s/1925">#1924</a></li>
 <li><code>Effect</code> constraint relaxed to <code>Sync</code>:
 
 <ul>
 <li><code>Logger.logMessage</code></li>
+</ul></li>
+<li><code>Effect</code> constraint relaxed to <code>Async</code>:
+
+<ul>
+<li><code>JavaNetClient</code></li>
 </ul></li>
 <li><code>Effect</code> constraint changed to <code>Concurrent</code>:
 
@@ -165,18 +173,20 @@ it.</p>
 <li><code>ArbitraryInstances.cogenEntity</code></li>
 <li><code>ArbitraryInstances.cogenEntityBody</code></li>
 <li><code>ArbitraryInstances.cogenMessage</code></li>
+<li><code>JavaNetClient</code></li>
 </ul></li>
 <li>Implicit <code>Timer</code> added to:
 
 <ul>
 <li><code>AsyncHttpClient</code></li>
+<li><code>JavaNetClient.create</code></li>
 </ul></li>
 <li><code>Http4sWsStage</code> removed from public API</li>
 <li>Removed charset for argonaut instances <a href="https://github.com/http4s/http4s/pull/1914">#1914</a></li>
 <li>Dependency upgrades:
 
 <ul>
-<li>async-http-client-2.4.8</li>
+<li>async-http-client-2.4.9</li>
 <li>blaze-0.14.0-M3</li>
 <li>cats-effect-1.0.0-RC2</li>
 <li>circe-0.10.0-M1</li>
@@ -189,7 +199,21 @@ it.</p>
 </ul></li>
 </ul>
 
-<h1 id="v0-18-13-unreleased">v0.18.13 (unreleased)</h1>
+<h1 id="v0-18-14-2018-07-03">v0.18.14 (2018-07-03)</h1>
+
+<ul>
+<li>Add <code>CirceEntityCodec</code> to provide an implicit <code>EntityEncoder</code> or <code>EntityDecoder</code> from an <code>Encoder</code> or <code>Decoder</code>, respectively. <a href="https://github.com/http4s/http4s/pull/1917">#1917</a></li>
+<li>Add a client backend based on <code>java.net.HttpURLConnection</code>.  Note that this client blocks and is primarily intended for use in a REPL. <a href="https://github.com/http4s/http4s/pull/1882">#1882</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>jetty-9.4.11</li>
+<li>tomcat-9.0.10
+<br /></li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-13-2018-06-22">v0.18.13 (2018-06-22)</h1>
 
 <ul>
 <li>Downcase type in <code>MediaRange</code> generator <a href="https://github.com/http4s/http4s/pull/1907">#1907</a></li>
