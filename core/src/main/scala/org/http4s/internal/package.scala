@@ -14,10 +14,5 @@ package object internal {
   private[http4s] def blocking[F[_], A](fa: F[A], blockingExecutionContext: ExecutionContext)(
       implicit F: Async[F],
       timer: Timer[F]): F[A] =
-    for {
-      _ <- Async.shift[F](blockingExecutionContext)
-      att <- fa.attempt
-      _ <- timer.shift
-      fa0 <- F.fromEither(att)
-    } yield fa0
+    F.bracket(Async.shift[F](blockingExecutionContext))(_ => fa)(_ => timer.shift)
 }
