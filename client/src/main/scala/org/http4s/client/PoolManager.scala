@@ -90,9 +90,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
     */
   private def createConnection(key: RequestKey, callback: Callback[NextConnection]): F[Unit] =
     if (numConnectionsCheckHolds(key)) {
-      F.start {
-        incrConnection(key) *>
-          Async.shift(executionContext) *> builder(key).attempt.flatMap {
+      incrConnection(key) *> F.start {
+        Async.shift(executionContext) *> builder(key).attempt.flatMap {
           case Right(conn) =>
             F.delay(callback(Right(NextConnection(conn, fresh = true))))
           case Left(error) =>
