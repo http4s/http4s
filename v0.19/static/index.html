@@ -31,7 +31,7 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.19/">v1.0 (development)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
   <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
@@ -109,12 +109,12 @@ import org.http4s.dsl.io._
 import java.io.File
 // import java.io.File
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / &quot;index.html&quot; =&gt;
     StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$63468/49916794@5691e345)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$66448/1955717968@73504c7c)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -126,11 +126,11 @@ deliver them from there. Append to the <code>List</code> as needed.</p>
   StaticFile.fromResource(&quot;/&quot; + file, Some(request)).getOrElseF(NotFound())
 // static: (file: String, request: org.http4s.Request[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]]
 
-val service = HttpService[IO] {
+val service = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, request)
 }
-// service: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$63468/49916794@15739ef4)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$66448/1955717968@78c9785b)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -162,12 +162,12 @@ def isJsAsset(asset: WebjarAsset): Boolean =
   asset.asset.endsWith(&quot;.js&quot;)
 // isJsAsset: (asset: org.http4s.server.staticcontent.WebjarService.WebjarAsset)Boolean
 
-val webjars: HttpService[IO] = webjarService(
+val webjars: HttpRoutes[IO] = webjarService(
   Config(
     filter = isJsAsset
   )
 )
-// webjars: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$63534/1131769762@534552c2)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$66505/672269277@1e8a4ff6)
 </code></pre>
 
         </div>

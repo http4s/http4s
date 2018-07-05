@@ -133,6 +133,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
+    </li><li name="org.http4s.booPickle" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="booPickle"></a><a id="booPickle:booPickle"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/index.html#booPickle" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="../booPickle/index.html"><span class="name">booPickle</span></a>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s">http4s</a></dd></dl></div>
     </li><li name="org.http4s.circe" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="circe"></a><a id="circe:circe"></a>
       <span class="permalink">
@@ -432,7 +448,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="JawnInstances.html" class="extype" name="org.http4s.jawn.JawnInstances">JawnInstances</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="JawnInstances.html" class="extype" name="org.http4s.jawn.JawnInstances">JawnInstances</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -492,7 +508,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="" href="JawnInstances.html"><span class="name">JawnInstances</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></span>
+        <a title="" href="JawnInstances.html"><span class="name">JawnInstances</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
       
@@ -505,9 +521,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
               <h3>Value Members</h3>
               <ol>
                 <li name="org.http4s.jawn.JawnInstances#jawnDecoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jawnDecoder[F[_],J](implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:jawn.Facade[J]):org.http4s.EntityDecoder[F,J]"></a><a id="jawnDecoder[F[_],J](Sync[F],Facade[J]):EntityDecoder[F,J]"></a>
+      <a id="jawnDecoder[F[_],J](implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:jawn.RawFacade[J]):org.http4s.EntityDecoder[F,J]"></a><a id="jawnDecoder[F[_],J](Sync[F],RawFacade[J]):EntityDecoder[F,J]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/jawn/index.html#jawnDecoder[F[_],J](implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:jawn.Facade[J]):org.http4s.EntityDecoder[F,J]" title="Permalink">
+      <a href="../../../org/http4s/jawn/index.html#jawnDecoder[F[_],J](implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:jawn.RawFacade[J]):org.http4s.EntityDecoder[F,J]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -516,7 +532,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">jawnDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="J">J</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="jawn.Facade">Facade</span>[<span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.J">J</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.F">F</span>, <span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.J">J</span>]</span>
+        <span class="name">jawnDecoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="J">J</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="jawn.RawFacade">RawFacade</span>[<span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.J">J</span>]</span>)</span><span class="result">: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.F">F</span>, <span class="extype" name="org.http4s.jawn.JawnInstances.jawnDecoder.J">J</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="JawnInstances.html" class="extype" name="org.http4s.jawn.JawnInstances">JawnInstances</a></dd></dl></div>
@@ -533,9 +549,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <div class="parent" name="org.http4s.jawn.JawnInstances">
               <h3>Inherited from <a href="JawnInstances.html" class="extype" name="org.http4s.jawn.JawnInstances">JawnInstances</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.AnyRef" class="extype" name="scala.collection.immutable.List">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.4/scala/collection/immutable/List.html#scala.Any" class="extype" name="scala.collection.immutable.List">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
         
         </div>

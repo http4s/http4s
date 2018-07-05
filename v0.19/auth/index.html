@@ -31,7 +31,7 @@
             Documentation
           </a>
           <div class="dropdown-menu" aria-labelledby="doc-menu-item">
-  <a class="dropdown-item" href="/v0.19/">v0.19 (development)</a>
+  <a class="dropdown-item" href="/v0.19/">v1.0 (development)</a>
   <a class="dropdown-item" href="/v0.18/">v0.18 (stable)</a>
   <a class="dropdown-item" href="/v0.17/">v0.17 (EOL)</a>
   <a class="dropdown-item" href="/v0.16/">v0.16 (EOL)</a>
@@ -138,14 +138,14 @@ use <code>AuthMiddleware.withFallThrough</code>. Alternatively, to customize the
 wish to always return 401, use <code>AuthMiddleware.noSpider</code> and specify the <code>onAuthFailure</code> handler.</p>
 
 <p>Finally, we can create our <code>AuthedService</code>, and wrap it with our authentication middleware, getting the
-final <code>HttpService</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
+final <code>HttpRoutes</code> to be exposed. Notice that we now have access to the user object in the service implementation:</p>
 
 <pre><code class="language-scala">val authedService: AuthedService[User, IO] =
   AuthedService {
     case GET -&gt; Root / &quot;welcome&quot; as user =&gt; Ok(s&quot;Welcome, ${user.name}&quot;)
   }
 
-val service: HttpService[IO] = middleware(authedService)
+val service: HttpRoutes[IO] = middleware(authedService)
 </code></pre>
 
 <h2 id="returning-an-error-response">Returning an Error Response</h2>
@@ -166,7 +166,7 @@ error handling, we recommend an error <a href="https://typelevel.org/blog/2014/1
 val onFailure: AuthedService[String, IO] = Kleisli(req =&gt; OptionT.liftF(Forbidden(req.authInfo)))
 val middleware = AuthMiddleware(authUser, onFailure)
 
-val service: HttpService[IO] = middleware(authedService)
+val service: HttpRoutes[IO] = middleware(authedService)
 </code></pre>
 
 <h2 id="implementing-authuser">Implementing authUser</h2>
