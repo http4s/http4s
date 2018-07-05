@@ -1,8 +1,8 @@
 package org.http4s.server.middleware
 
 import cats.effect._
-import org.http4s.{Http4sSpec, Request, Status}
-import org.http4s.server.MockRoute
+import org.http4s.{Http4sSpec, HttpRoutes, Request, Response, Status}
+import org.http4s.server.{MockRoute, Router}
 
 class AutoSlashSpec extends Http4sSpec {
 
@@ -27,9 +27,23 @@ class AutoSlashSpec extends Http4sSpec {
       AutoSlash(route).orNotFound(req) must returnStatus(Status.Ok)
     }
 
-    "Not crash on empy path" in {
+    "Not crash on empty path" in {
       val req = Request[IO](uri = uri(""))
       AutoSlash(route).orNotFound(req) must returnStatus(Status.NotFound)
+    }
+
+    "Work with prefixed routes" in {
+      // See https://github.com/http4s/http4s/issues/1378
+      val service = {
+        import org.http4s.dsl.io._
+        HttpRoutes.of[IO] {
+          case GET -> Root / "ping" =>
+            IO.pure(Response[IO](Status.Ok))
+        }
+      }
+      val router = Router("/public" -> AutoSlash(service))
+      val req = Request[IO](uri = uri("/public/ping/"))
+      router.orNotFound(req) must returnStatus(Status.Ok)
     }
   }
 }
