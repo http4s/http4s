@@ -156,17 +156,17 @@ scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.audio.ogg) { msg: Mess
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$7@22ea22a6
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$7@497c5d7c
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.video.ogg) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$7@2c6b7fd9
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$7@40bb9e6f
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$$anon$1$$anon$6@6bd5a907
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$$anon$1$$anon$6@325c45e0
 
 scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
 Audio()
@@ -187,10 +187,10 @@ a full list.</p>
 <p>With <code>jsonOf</code> for the <code>EntityDecoder</code>, and <code>jsonEncoderOf</code> for the <code>EntityEncoder</code>:</p>
 
 <ul>
-<li>argonaut: <code>&quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % Http4sVersion</code></li>
-<li>circe: <code>&quot;org.http4s&quot; %% &quot;http4s-circe&quot; % Http4sVersion</code></li>
-<li>json4s-native: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % Http4sVersion</code></li>
-<li>json4s-jackson: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % Http4sVersion</code></li>
+<li>argonaut: <code>&quot;org.http4s&quot; %% &quot;http4s-argonaut&quot; % http4sVersion</code></li>
+<li>circe: <code>&quot;org.http4s&quot; %% &quot;http4s-circe&quot; % http4sVersion</code></li>
+<li>json4s-native: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-native&quot; % http4sVersion</code></li>
+<li>json4s-jackson: <code>&quot;org.http4s&quot; %% &quot;http4s-json4s-jackson&quot; % http4sVersion</code></li>
 </ul>
 
 <h3 id="xml">XML</h3>
@@ -200,7 +200,7 @@ required here, because there is no Decoder instance for <code>String</code> that
 cause conflicts with the builtin Decoders.</p>
 
 <ul>
-<li>scala-xml: <code>&quot;org.http4s&quot; %% &quot;http4s-scala-xml&quot; % Http4sVersion</code></li>
+<li>scala-xml: <code>&quot;org.http4s&quot; %% &quot;http4s-scala-xml&quot; % http4sVersion</code></li>
 </ul>
 
 <h3 id="twirl">Twirl</h3>
@@ -208,7 +208,7 @@ cause conflicts with the builtin Decoders.</p>
 <p>If you&rsquo;re working with <a href="https://github.com/playframework/twirl">twirl</a> templates, there&rsquo;s a bridge for that too:</p>
 
 <ul>
-<li>scala-twirl: <code>&quot;org.http4s&quot; %% &quot;http4s-twirl&quot; % Http4sVersion</code></li>
+<li>scala-twirl: <code>&quot;org.http4s&quot; %% &quot;http4s-twirl&quot; % http4sVersion</code></li>
 </ul>
 
         </div>
