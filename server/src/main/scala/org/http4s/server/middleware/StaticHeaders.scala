@@ -5,6 +5,9 @@ import cats.data.{Kleisli, NonEmptyList}
 import org.http4s.{CacheDirective, Header, Headers, HttpService}
 import org.http4s.headers.`Cache-Control`
 
+/**
+  * Simple Middleware for adding a static set of headers to responses returned by the service.
+  */
 object StaticHeaders {
 
   def apply[F[_]: Functor](headers: Headers)(service: HttpService[F]): HttpService[F] = 
