@@ -10,11 +10,12 @@ import org.http4s.headers.`Cache-Control`
   */
 object StaticHeaders {
 
-  def apply[F[_]: Functor](headers: Headers)(service: HttpService[F]): HttpService[F] = 
+  def apply[F[_]: Functor](headers: Headers)(service: HttpService[F]): HttpService[F] =
     Kleisli { req =>
       service(req).map(resp => resp.copy(headers = headers ++ resp.headers))
     }
 
   private val noCacheHeader: Header = `Cache-Control`(NonEmptyList.of(CacheDirective.`no-cache`()))
-  def `no-cache`[F[_]: Functor](service: HttpService[F]): HttpService[F] = StaticHeaders[F](Headers(noCacheHeader))(service)
+  def `no-cache`[F[_]: Functor](service: HttpService[F]): HttpService[F] =
+    StaticHeaders[F](Headers(noCacheHeader))(service)
 }

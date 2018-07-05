@@ -4,7 +4,6 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 
-
 class StaticHeadersSpec extends Http4sSpec {
 
   val testService = HttpService[IO] {
@@ -17,9 +16,10 @@ class StaticHeadersSpec extends Http4sSpec {
   "NoCache middleware" should {
     "add a no-cache header to a response" in {
       val req = Request[IO](uri = uri("/request"))
-      val resp = StaticHeaders.`no-cache`(testService).orNotFound(req) 
-      
-      val check = resp.map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache")).unsafeRunSync 
+      val resp = StaticHeaders.`no-cache`(testService).orNotFound(req)
+
+      val check =
+        resp.map(_.headers.toList.map(_.toString).contains("Cache-Control: no-cache")).unsafeRunSync
       check must_=== true
     }
   }
