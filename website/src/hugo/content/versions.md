@@ -40,13 +40,13 @@ title: Versions
   </thead>
   <tbody>
     <tr>
-      <td><a href="/v0.19">0.19.0&#8209;SNAPSHOT</a></td>
-      <td class="text-center"><span class="badge badge-danger">Development</span></td>
+      <td><a href="/v0.19">{{% latestInSeries "0.19" %}}</a></td>
+      <td class="text-center"><span class="badge badge-danger">Milestone</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td>cats&#8209;1</td>
-      <td>fs2&#8209;0.10</td>
+      <td>fs2&#8209;1</td>
       <td>1.8+</td>
     </tr>
     <tr>
