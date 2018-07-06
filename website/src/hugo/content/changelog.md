@@ -8,6 +8,10 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.15 (2018-07-05)
+* Bugfix for `AutoSlash` Middleware in Router [#1937](https://github.com/http4s/http4s/pull/1937)
+* Add `StaticHeaders` middleware that appends static headers to a service [#1939](https://github.com/http4s/http4s/pull/1939)
+
 # v0.19.0-M1 (2018-07-04)
 * Add accumulating version of circe `EntityDecoder` [#1647](https://github.com/http4/http4s/1647)
 * Add ETag support to `StaticFile` [#1652](https://github.com/http4s/http4s/pull/1652)
