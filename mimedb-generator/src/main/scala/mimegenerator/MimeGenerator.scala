@@ -27,7 +27,6 @@ object MimeLoader {
   val maxSizePerSection = 500
   val readMimeDB: Stream[IO, List[Mime]] = {
     import scala.concurrent.ExecutionContext.Implicits.global
-//    implicit val timer = Timer[IO]
     for {
       client <- Http1Client.stream[IO]()
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
