@@ -1,15 +1,14 @@
 package com.example.http4s.blaze
 
-import cats.effect.IO
+import cats.effect.{ExitCode, IO, IOApp}
 import org.http4s._
 import org.http4s.Uri._
 import org.http4s.client.blaze.Http1Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object ClientMultipartPostExample extends Http4sClientDsl[IO] {
+object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
 
   val bottle = getClass.getResource("/beerbottle.png")
 
@@ -32,5 +31,5 @@ object ClientMultipartPostExample extends Http4sClientDsl[IO] {
     Http1Client[IO]().flatMap(_.expect[String](request)).unsafeRunSync()
   }
 
-  def main(args: Array[String]): Unit = println(go)
+  def run(args: List[String]): IO[ExitCode] = IO(println(go)).map(_ => ExitCode.Success)
 }

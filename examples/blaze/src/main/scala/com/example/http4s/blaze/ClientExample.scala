@@ -1,13 +1,14 @@
 package com.example.http4s.blaze
 
-object ClientExample {
+import cats.effect.{ExitCode, IO, IOApp}
+
+object ClientExample extends IOApp {
 
   def getSite() = {
 
     import cats.effect.IO
     import org.http4s.Http4s._
     import org.http4s.client._
-    import scala.concurrent.ExecutionContext.Implicits.global
 
     val client: Client[IO] = blaze.Http1Client[IO]().unsafeRunSync()
 
@@ -39,6 +40,5 @@ object ClientExample {
     client.shutdownNow()
   }
 
-  def main(args: Array[String]): Unit = getSite()
-
+  def run(args: List[String]): IO[ExitCode] = IO(getSite()).map(_ => ExitCode.Success)
 }
