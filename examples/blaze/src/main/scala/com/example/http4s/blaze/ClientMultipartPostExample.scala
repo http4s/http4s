@@ -7,6 +7,7 @@ import org.http4s.client.blaze.Http1Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ClientMultipartPostExample extends Http4sClientDsl[IO] {
 

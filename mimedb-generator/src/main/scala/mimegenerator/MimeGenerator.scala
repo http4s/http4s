@@ -9,7 +9,9 @@ import fs2.Stream
 import org.http4s.circe._
 import org.http4s.client.blaze._
 import org.http4s.Uri
-import treehugger.forest._, definitions._, treehuggerDSL._
+import treehugger.forest._
+import definitions._
+import treehuggerDSL._
 
 /**
   * MimeLoader is able to generate a scala file with a database of MediaTypes.
@@ -23,7 +25,9 @@ object MimeLoader {
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
-  val readMimeDB: Stream[IO, List[Mime]] =
+  val readMimeDB: Stream[IO, List[Mime]] = {
+    import scala.concurrent.ExecutionContext.Implicits.global
+//    implicit val timer = Timer[IO]
     for {
       client <- Http1Client.stream[IO]()
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
@@ -45,6 +49,7 @@ object MimeLoader {
         .toList
         .sortBy(m => (m.mainType, m.secondaryType))
     }
+  }
 
   /**
     * This method will generate trees to produce code for a mime mime type set

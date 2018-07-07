@@ -7,6 +7,7 @@ object ClientExample {
     import cats.effect.IO
     import org.http4s.Http4s._
     import org.http4s.client._
+    import scala.concurrent.ExecutionContext.Implicits.global
 
     val client: Client[IO] = blaze.Http1Client[IO]().unsafeRunSync()
 
