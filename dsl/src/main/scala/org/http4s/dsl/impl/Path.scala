@@ -170,6 +170,16 @@ protected class PathVar[A](cast: String => Try[A]) {
       None
 }
 
+// This class can be removed in favor of PathVar, but it must be retained in
+// 0.18.x to retain binary compatibility.
+protected class NumericPathVar[A <: AnyVal](cast: String => A) {
+  def unapply(str: String): Option[A] =
+    if (!str.isEmpty)
+      Try(cast(str)).toOption
+    else
+      None
+}
+
 /**
   * Integer extractor of a path variable:
   * {{{
@@ -177,7 +187,7 @@ protected class PathVar[A](cast: String => Try[A]) {
   *      case Root / "user" / IntVar(userId) => ...
   * }}}
   */
-object IntVar extends PathVar(str => Try(str.toInt))
+object IntVar extends NumericPathVar(_.toInt)
 
 /**
   * Long extractor of a path variable:
@@ -186,7 +196,7 @@ object IntVar extends PathVar(str => Try(str.toInt))
   *      case Root / "user" / LongVar(userId) => ...
   * }}}
   */
-object LongVar extends PathVar(str => Try(str.toLong))
+object LongVar extends NumericPathVar(_.toLong)
 
 /**
   * UUID extractor of a path variable:
