@@ -171,7 +171,7 @@ protected class PathVar[A](cast: String => Try[A]) {
 }
 
 // This class can be removed in favor of PathVar, but it must be retained in
-// 0.18.x to retain binary compatibility.
+// 0.18.x to preserve binary compatibility.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] =
     if (!str.isEmpty)
