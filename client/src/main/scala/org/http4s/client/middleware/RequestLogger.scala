@@ -24,8 +24,9 @@ object RequestLogger {
     client.copy(open = Kleisli {
       req =>
         if (!logBody)
-          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> client.open(
-            req)
+          Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(
+            logger.info(_)
+          ) *> client.open(req)
         else
           Ref[F].of(Vector.empty[Segment[Byte, Unit]]).flatMap { vec =>
             val newBody = Stream
