@@ -240,7 +240,8 @@ lazy val playJson = libraryProject("play-json")
     libraryDependencies ++= Seq(
       jawnPlay,
       Http4sPlugin.playJson
-    )
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
   )
   .dependsOn(jawn % "compile;test->test")
 
