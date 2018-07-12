@@ -91,6 +91,8 @@ title: Adopters
 [http4s-index](https://github.com/stephennancekivell/http4s-index)
 : lists the files and folders becoming a simple light weight web server
 
+[Dashing](https://github.com/benfradet/dashing)
+: Dashboards to monitor an open source organization's health
 
 ## Giter8 templates
 
