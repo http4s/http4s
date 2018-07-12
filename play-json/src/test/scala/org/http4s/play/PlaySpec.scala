@@ -44,7 +44,6 @@ class PlaySpec extends JawnDecodeSupportSpec[JsValue] {
 
   }
 
-
   "jsonOf" should {
     "decode JSON from a Play decoder" in {
       val result = jsonOf[IO, Foo].decode(
