@@ -11,7 +11,7 @@ lazy val root = project.in(file("."))
     sonatypeProfileName := "org.lyranthe",
     skip in publish := true,
     pomExtra in Global := {
-      <url>https://github.com/fiadliel/http4s-timer</url>
+      <url>https://github.com/fiadliel/fs2-grpc</url>
         <licenses>
           <license>
             <name>MIT</name>
