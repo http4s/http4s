@@ -4,7 +4,6 @@ import cats.effect.Sync
 import org.http4s.EntityDecoder
 import play.api.libs.json.Reads
 
-
 /**
   * Derive [[EntityDecoder]] if implicit [[Reads]] is in the scope without need to explicitly call `jsonOf`
   */
