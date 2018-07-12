@@ -37,10 +37,7 @@ lazy val `sbt-java-gen` = project
     crossSbtVersions := List(sbtVersion.value, "0.13.17"),
     buildInfoPackage := "org.lyranthe.fs2_grpc.buildinfo",
     addSbtPlugin("com.thesamet" % "sbt-protoc" % "0.99.18"),
-    libraryDependencies ++= List(
-      "io.grpc"              % "grpc-core"       % "1.12.0",
-      "com.thesamet.scalapb" %% "compilerplugin" % "0.7.4"
-    )
+    libraryDependencies += "com.thesamet.scalapb" %% "compilerplugin" % "0.7.4"
   )
 
 lazy val `java-runtime` = project
