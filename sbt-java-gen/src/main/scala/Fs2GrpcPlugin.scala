@@ -85,6 +85,8 @@ object Fs2Grpc extends AutoPlugin {
 
 object Fs2GrpcPlugin extends AutoPlugin {
   object autoImport {
+    val grpcJavaVersion: String = scalapb.compiler.Version.grpcJavaVersion
+
     object CodeGeneratorOption {
       case object FlatPackage extends CodeGeneratorOption {
         override def toString = "flat_package"
