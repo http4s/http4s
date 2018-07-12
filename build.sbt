@@ -47,7 +47,7 @@ lazy val `java-runtime` = project
     crossScalaVersions := List(scalaVersion.value, "2.11.12"),
     publishTo := sonatypePublishTo.value,
     libraryDependencies ++= List(
-      "co.fs2"        %% "fs2-core"         % "0.10.4",
+      "co.fs2"        %% "fs2-core"         % "0.10.5",
       "org.typelevel" %% "cats-effect"      % "0.10.1",
       "org.typelevel" %% "cats-effect-laws" % "0.10.1" % "test",
       "io.grpc"       % "grpc-core"         % "1.12.0",
@@ -56,5 +56,5 @@ lazy val `java-runtime` = project
     ),
     mimaPreviousArtifacts := Set(organization.value %% name.value % "0.3.0"),
     testFrameworks += new TestFramework("minitest.runner.Framework"),
-    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.6" cross CrossVersion.binary)
+    addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.7" cross CrossVersion.binary)
   )
