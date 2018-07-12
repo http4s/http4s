@@ -7,4 +7,3 @@ jdk:
   - oraclejdk10
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
-  - cd example && sbt ++$TRAVIS_SCALA_VERSION test
