@@ -162,7 +162,16 @@ object /: {
     }
 }
 
-// Base class for Integer and Long path variable extractors.
+protected class PathVar[A](cast: String => Try[A]) {
+  def unapply(str: String): Option[A] =
+    if (!str.isEmpty)
+      cast(str).toOption
+    else
+      None
+}
+
+// This class can be removed in favor of PathVar, but it must be retained in
+// 0.18.x to preserve binary compatibility.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] =
     if (!str.isEmpty)
@@ -188,6 +197,15 @@ object IntVar extends NumericPathVar(_.toInt)
   * }}}
   */
 object LongVar extends NumericPathVar(_.toLong)
+
+/**
+  * UUID extractor of a path variable:
+  * {{{
+  *   Path("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
+  *      case Root / "user" / UUIDVar(userId) => ...
+  * }}}
+  */
+object UUIDVar extends PathVar(str => Try(java.util.UUID.fromString(str)))
 
 /**
   * Multiple param extractor:

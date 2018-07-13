@@ -22,6 +22,7 @@ trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F
 
   val IntVar: impl.IntVar.type = impl.IntVar
   val LongVar: impl.LongVar.type = impl.LongVar
+  val UUIDVar: impl.UUIDVar.type = impl.UUIDVar
 
   type QueryParamDecoderMatcher[T] = impl.QueryParamDecoderMatcher[T]
   type QueryParamMatcher[T] = impl.QueryParamMatcher[T]
