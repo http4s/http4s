@@ -59,7 +59,9 @@ object RequestLogger {
   )(client: Client[F])(implicit ec: ExecutionContext = ExecutionContext.global): Client[F] =
     client.copy(open = Kleisli { req =>
       if (!logBody)
-        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody)(logger) *> client.open(req)
+        Logger.logMessage[F, Request[F]](req)(logHeaders, logBody, redactHeadersWhen)(
+          logger
+        ) *> client.open(req)
       else
         async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]).flatMap {
           vec =>
