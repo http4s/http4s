@@ -6,6 +6,7 @@ import java.net.URL
 
 import cats.effect.Sync
 import fs2.io.readInputStream
+import fs2.io.file.readAll
 import org.http4s.headers.`Content-Disposition`
 import org.http4s.Header
 
@@ -13,7 +14,7 @@ trait PlatformPart {
   private val ChunkSize = 8192
 
   def fileData[F[_]: Sync](name: String, file: File, headers: Header*): Part[F] =
-    fileData(name, file.getName, new FileInputStream(file), headers: _*)
+    fileData(name, file.getName, readAll(file), headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)
@@ -36,4 +37,5 @@ trait PlatformPart {
   private def fileData[F[_]](name: String, filename: String, in: => InputStream, headers: Header*)(
       implicit F: Sync[F]): Part[F] =
     fileData(name, filename, readInputStream(F.delay(in), ChunkSize), headers: _*)
+
 }

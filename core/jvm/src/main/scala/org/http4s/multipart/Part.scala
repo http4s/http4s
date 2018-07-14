@@ -4,7 +4,6 @@ package multipart
 import cats.effect.{ContextShift, Sync}
 import fs2.Stream
 import fs2.text.utf8Encode
-import java.io.{File, FileInputStream, InputStream}
 import java.net.URL
 import org.http4s.headers.`Content-Disposition`
 import scala.concurrent.ExecutionContext
@@ -18,8 +17,6 @@ final case class Part[F[_]](headers: Headers, body: Stream[F, Byte]) {
 }
 
 object Part extends PlatformPart {
-  private val ChunkSize = 8192
-
   @deprecated(
     """Empty parts are not allowed by the multipart spec, see: https://tools.ietf.org/html/rfc7578#section-4.2
        Moreover, it allows the creation of potentially incorrect multipart bodies

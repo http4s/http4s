@@ -188,7 +188,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
       Http4sPlugin.okhttp
     ),
   )
-  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+  .dependsOn(coreJVM, testingJVM % "test->test", clientJVM % "compile;test->test")
 
 lazy val servlet = libraryProject("servlet")
   .settings(
@@ -254,7 +254,7 @@ lazy val boopickle = libraryProject("boopickle")
       Http4sPlugin.boopickle
     ),
   )
-  .dependsOn(core, testing % "test->test")
+  .dependsOn(coreJVM, testingJVM % "test->test")
 
 lazy val circe = libraryCrossProject("circe")
   .settings(
@@ -338,7 +338,7 @@ lazy val mimedbGenerator = http4sProject("mimedb-generator")
       Http4sPlugin.circeGeneric
     )
   )
-  .dependsOn(blazeClient, circe)
+  .dependsOn(blazeClient, circeJVM)
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
