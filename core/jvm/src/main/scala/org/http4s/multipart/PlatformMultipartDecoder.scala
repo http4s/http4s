@@ -3,31 +3,8 @@ package multipart
 
 import cats.effect._
 import cats.implicits._
-import scala.concurrent.ExecutionContext
 
-private[http4s] object MultipartDecoder extends PlatformMultipartDecoder {
-
-  def decoder[F[_]: Sync]: EntityDecoder[F, Multipart[F]] =
-    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
-      msg.contentType.flatMap(_.mediaType.extensions.get("boundary")) match {
-        case Some(boundary) =>
-          DecodeResult {
-            msg.body
-              .through(MultipartParser.parseToPartsStream[F](Boundary(boundary)))
-              .compile
-              .toVector
-              .map[Either[DecodeFailure, Multipart[F]]](parts =>
-                Right(Multipart(parts, Boundary(boundary))))
-              .handleError {
-                case e: InvalidMessageBodyFailure => Left(e)
-                case e => Left(InvalidMessageBodyFailure("Invalid multipart body", Some(e)))
-              }
-          }
-        case None =>
-          DecodeResult.failure(
-            InvalidMessageBodyFailure("Missing boundary extension to Content-Type"))
-      }
-    }
+private[http4s] trait PlatformMultipartDecoder {
 
   /** Multipart decoder that streams all parts past a threshold
     * (anything above maxSizeBeforeWrite) into a temporary file.
@@ -55,8 +32,7 @@ private[http4s] object MultipartDecoder extends PlatformMultipartDecoder {
     * @return A multipart/form-data encoded vector of parts with some part bodies held in
     *         temporary files.
     */
-  def mixedMultipart[F[_]: Sync: ContextShift](
-      blockingExecutionContext: ExecutionContext,
+  def mixedMultipart[F[_]: Sync](
       headerLimit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 50,
@@ -69,7 +45,6 @@ private[http4s] object MultipartDecoder extends PlatformMultipartDecoder {
               .through(
                 MultipartParser.parseToPartsStreamedFile[F](
                   Boundary(boundary),
-                  blockingExecutionContext,
                   headerLimit,
                   maxSizeBeforeWrite,
                   maxParts,

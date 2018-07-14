@@ -13,8 +13,8 @@ trait PlatformEntityEncoderInstances {
 
   protected[http4s] val DefaultChunkSize = 4096
 
-//  // TODO parameterize chunk size
-//  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  // TODO parameterize chunk size
+  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
     filePathEncoder[F].contramap(_.toPath)
 

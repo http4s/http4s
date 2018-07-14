@@ -185,7 +185,6 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(
-    MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlockingExecutionContext))
+  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO]())
 
 }

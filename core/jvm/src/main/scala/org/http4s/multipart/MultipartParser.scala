@@ -2,33 +2,27 @@ package org.http4s
 package multipart
 
 import cats.effect._
-import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.io.file.{readAll, writeAll}
 import java.nio.file._
 import scala.concurrent.ExecutionContext
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
-object MultipartParser {
+trait MultipartParserBase {
 
-  private[this] val logger = org.log4s.getLogger
-
-  private[this] val CRLFBytesN = Array[Byte]('\r', '\n')
-  private[this] val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
+  private[multipart] val CRLFBytesN = Array[Byte]('\r', '\n')
+  private[multipart] val DoubleCRLFBytesN = Array[Byte]('\r', '\n', '\r', '\n')
   private[this] val DashDashBytesN = Array[Byte]('-', '-')
   private[this] val BoundaryBytesN: Boundary => Array[Byte] = boundary =>
     boundary.value.getBytes("UTF-8")
   val StartLineBytesN: Boundary => Array[Byte] = BoundaryBytesN.andThen(DashDashBytesN ++ _)
 
-  private[this] val ExpectedBytesN: Boundary => Array[Byte] =
+  private[multipart] val ExpectedBytesN: Boundary => Array[Byte] =
     BoundaryBytesN.andThen(CRLFBytesN ++ DashDashBytesN ++ _)
   private[this] val dashByte: Byte = '-'.toByte
-  private[this] val streamEmpty = Stream.empty
-  private[this] val PullUnit = Pull.pure[Pure, Unit](())
+  private[multipart] val streamEmpty = Stream.empty
 
   private type SplitStream[F[_]] = Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte])]
-  private type SplitFileStream[F[_]] =
-    Pull[F, Nothing, (Stream[F, Byte], Stream[F, Byte], Option[Path])]
 
   def parseStreamed[F[_]: Sync](
       boundary: Boundary,
@@ -44,7 +38,7 @@ object MultipartParser {
     ignorePrelude[F](boundary, st, limit)
   }
 
-  private def splitAndIgnorePrev[F[_]](
+  private[multipart] def splitAndIgnorePrev[F[_]](
       values: Array[Byte],
       state: Int,
       c: Chunk[Byte]): (Int, Stream[F, Byte]) = {
@@ -276,7 +270,7 @@ object MultipartParser {
     * and raise an error if we lack a match
     */
   //noinspection ScalaStyle
-  private def splitOrFinish[F[_]: Sync](
+  private[multipart] def splitOrFinish[F[_]: Sync](
       values: Array[Byte],
       stream: Stream[F, Byte],
       limit: Int): SplitStream[F] = {
@@ -374,7 +368,7 @@ object MultipartParser {
   /** Take the stream of headers separated by
     * double CRLF bytes and return the headers
     */
-  private def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): F[Headers] = {
+  private[multipart] def parseHeaders[F[_]: Sync](strim: Stream[F, Byte]): F[Headers] = {
     def tailrecParse(s: Stream[F, Byte], headers: Headers): Pull[F, Headers, Unit] =
       splitHalf[F](CRLFBytesN, s).flatMap {
         case (l, r) =>
@@ -556,21 +550,13 @@ object MultipartParser {
   /** Same as the other streamed parsing, except
     * after a particular size, it buffers on a File.
     */
-  def parseStreamedFile[F[_]: Sync: ContextShift](
+  def parseStreamedFile[F[_]: Sync](
       boundary: Boundary,
-      blockingExecutionContext: ExecutionContext,
       limit: Int = 1024,
       maxSizeBeforeWrite: Int = 52428800,
       maxParts: Int = 20,
       failOnLimit: Boolean = false): Pipe[F, Byte, Multipart[F]] = { st =>
-    ignorePreludeFileStream[F](
-      boundary,
-      st,
-      limit,
-      maxSizeBeforeWrite,
-      maxParts,
-      failOnLimit,
-      blockingExecutionContext)
+    ignorePreludeFileStream[F](boundary, st, limit, maxSizeBeforeWrite, maxParts, failOnLimit)
       .fold(Vector.empty[Part[F]])(_ :+ _)
       .map(Multipart(_, boundary))
   }

@@ -1,7 +1,7 @@
 package org.http4s
 package multipart
 
-import java.io.{File, FileInputStream, InputStream}
+import java.io.{File, InputStream}
 import java.net.URL
 
 import cats.effect.Sync
@@ -14,7 +14,7 @@ trait PlatformPart {
   private val ChunkSize = 8192
 
   def fileData[F[_]: Sync](name: String, file: File, headers: Header*): Part[F] =
-    fileData(name, file.getName, readAll(file), headers: _*)
+    fileData(name, file.getName, readAll(file.toPath, ChunkSize), headers: _*)
 
   def fileData[F[_]: Sync](name: String, resource: URL, headers: Header*): Part[F] =
     fileData(name, resource.getPath.split("/").last, resource.openStream(), headers: _*)

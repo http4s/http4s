@@ -11,7 +11,7 @@ import org.http4s.util._
 import org.specs2.mutable._
 import org.specs2.specification.core.{Fragment, Fragments}
 
-object MultipartParserSpec extends Specification {
+class MultipartParserSpec extends Specification {
 
   implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
 
