@@ -184,7 +184,8 @@ class PathSpec extends Http4sSpec {
       "valid" >> {
         "a UUID" in {
           (Path("/user/13251d88-7a73-4fcf-b935-54dfae9f023e") match {
-            case Root / "user"/ UUIDVar(userId) => userId.toString == "13251d88-7a73-4fcf-b935-54dfae9f023e"
+            case Root / "user" / UUIDVar(userId) =>
+              userId.toString == "13251d88-7a73-4fcf-b935-54dfae9f023e"
             case _ => false
           }) must beTrue
         }
@@ -192,19 +193,19 @@ class PathSpec extends Http4sSpec {
       "invalid" >> {
         "a number" in {
           (Path("/user/123") match {
-            case Root / "user"/ UUIDVar(userId @ _) => true
+            case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "a word" in {
           (Path("/user/invalid") match {
-            case Root / "user"/ UUIDVar(userId @ _) => true
+            case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
         "a bad UUID" in {
           (Path("/user/13251d88-7a73-4fcf-b935") match {
-            case Root / "user"/ UUIDVar(userId @ _) => true
+            case Root / "user" / UUIDVar(userId @ _) => true
             case _ => false
           }) must beFalse
         }
