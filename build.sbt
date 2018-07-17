@@ -106,11 +106,11 @@ lazy val prometheusMetrics = libraryProject("prometheus-metrics")
     server % "test->compile",
     client % "test->compile"
   )
-lazy val client = libraryProject("client")
+lazy val client = libraryCrossProject("client", CrossType.Full)
   .settings(
     description := "Base library for building http4s clients"
   )
-  .dependsOn(core, testing)
+  .dependsOn(core, testing % "test->test")
 
 lazy val clientJVM = client.jvm
 lazy val clientJS = client.js
