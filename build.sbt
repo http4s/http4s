@@ -188,7 +188,7 @@ lazy val okHttpClient = libraryProject("okhttp-client")
       Http4sPlugin.okhttp
     ),
   )
-  .dependsOn(coreJVM, testingJVM % "test->test", clientJVM % "compile;test->test")
+  .dependsOn(coreJVM, testingJVM % "test->test", clientTesting % "compile;test->test")
 
 lazy val servlet = libraryProject("servlet")
   .settings(

@@ -14,8 +14,8 @@ addSbtPlugin("io.verizon.build"    %  "sbt-rig"                   % "5.0.39")
 addSbtPlugin("org.tpolecat"        %  "tut-plugin"                % "0.6.10")
 addSbtPlugin("pl.project13.scala"  %  "sbt-jmh"                   % "0.3.4")
 addSbtPlugin("com.timushev.sbt"    %  "sbt-updates"               % "0.3.4")
-addSbtPlugin("org.scala-js"        %  "sbt-scalajs"           % "0.6.23")
-addSbtPlugin("org.portable-scala"  % "sbt-scalajs-crossproject"      % "0.4.0")
+addSbtPlugin("org.scala-js"        %  "sbt-scalajs"           % "0.6.24")
+addSbtPlugin("org.portable-scala"  % "sbt-scalajs-crossproject"      % "0.5.0")
 addSbtPlugin("org.portable-scala"  % "sbt-platform-deps" % "1.0.0")
 
 libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3"
