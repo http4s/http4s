@@ -187,10 +187,6 @@
                         <a href="Methods.html" title="">Methods</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="NumericPathVar.html" title=""></a>
-                        <a href="NumericPathVar.html" title="">NumericPathVar</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="class" href="OptionalMultiQueryParamDecoderMatcher.html" title="Capture a query parameter that appears 0 or more times."></a>
                         <a href="OptionalMultiQueryParamDecoderMatcher.html" title="Capture a query parameter that appears 0 or more times.">OptionalMultiQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
@@ -209,6 +205,10 @@
                         <a class="object" href="Path$.html" title=""></a>
                         <a class="trait" href="Path.html" title="Base class for path extractors."></a>
                         <a href="Path.html" title="Base class for path extractors.">Path</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="PathVar.html" title=""></a>
+                        <a href="PathVar.html" title="">PathVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body."></a>
@@ -237,6 +237,10 @@
                         <span class="separator"></span>
                         <a class="trait" href="Statuses.html" title=""></a>
                         <a href="Statuses.html" title="">Statuses</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="UUIDVar$.html" title="UUID extractor of a path variable:"></a>
+                        <a href="UUIDVar$.html" title="UUID extractor of a path variable:">UUIDVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="ValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder."></a>
@@ -437,22 +441,6 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
       </span>
       
       
-    </li><li name="org.http4s.dsl.impl.NumericPathVar" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NumericPathVar[A&lt;:AnyVal]extendsAnyRef"></a><a id="NumericPathVar[A&lt;:AnyVal]:NumericPathVar[A]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/index.html#NumericPathVar[A&lt;:AnyVal]extendsAnyRef" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="NumericPathVar.html"><span class="name">NumericPathVar</span></a><span class="tparams">[<span name="A">A &lt;: <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.dsl.impl.OptionalMultiQueryParamDecoderMatcher" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="OptionalMultiQueryParamDecoderMatcher[T]extendsAnyRef"></a><a id="OptionalMultiQueryParamDecoderMatcher[T]:OptionalMultiQueryParamDecoderMatcher[T]"></a>
       <span class="permalink">
@@ -564,6 +552,22 @@ distinguishes this from other <code>EntityResponseGenerator</code>s.
       </span>
       
       <p class="shortcomment cmt">Base class for path extractors.</p>
+    </li><li name="org.http4s.dsl.impl.PathVar" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PathVar[A]extendsAnyRef"></a><a id="PathVar[A]:PathVar[A]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#PathVar[A]extendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="PathVar.html"><span class="name">PathVar</span></a><span class="tparams">[<span name="A">A</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.dsl.impl.ProxyAuthenticateResponseGenerator" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ProxyAuthenticateResponseGenerator[F[_]]extendsAnywithResponseGenerator"></a><a id="ProxyAuthenticateResponseGenerator[F[_]]:ProxyAuthenticateResponseGenerator[F]"></a>
       <span class="permalink">
@@ -810,7 +814,7 @@ distinguishes this from other <code>ResponseGenerator</code>s.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="Integer extractor of a path variable:" href="IntVar$.html"><span class="name">IntVar</span></a><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>
+        <a title="Integer extractor of a path variable:" href="IntVar$.html"><span class="name">IntVar</span></a><span class="result"> extends <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Integer extractor of a path variable:</p><div class="fullcomment"><div class="comment cmt"><p>Integer extractor of a path variable:</p><pre>Path(<span class="lit">"/user/123"</span>) <span class="kw">match</span> {
@@ -827,7 +831,7 @@ distinguishes this from other <code>ResponseGenerator</code>s.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a title="Long extractor of a path variable:" href="LongVar$.html"><span class="name">LongVar</span></a><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
+        <a title="Long extractor of a path variable:" href="LongVar$.html"><span class="name">LongVar</span></a><span class="result"> extends <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
       </span>
       
       <p class="shortcomment cmt">Long extractor of a path variable:</p><div class="fullcomment"><div class="comment cmt"><p>Long extractor of a path variable:</p><pre>Path(<span class="lit">"/user/123"</span>) <span class="kw">match</span> {
@@ -882,6 +886,23 @@ distinguishes this from other <code>ResponseGenerator</code>s.
       <p class="shortcomment cmt">Root extractor:</p><div class="fullcomment"><div class="comment cmt"><p>Root extractor:</p><pre>Path(<span class="lit">"/"</span>) <span class="kw">match</span> {
   <span class="kw">case</span> Root <span class="kw">=&gt;</span> ...
 }</pre></div></div>
+    </li><li name="org.http4s.dsl.impl.UUIDVar" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="UUIDVar"></a><a id="UUIDVar:UUIDVar"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/dsl/impl/index.html#UUIDVar" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="UUID extractor of a path variable:" href="UUIDVar$.html"><span class="name">UUIDVar</span></a><span class="result"> extends <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<span class="extype" name="java.util.UUID">UUID</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">UUID extractor of a path variable:</p><div class="fullcomment"><div class="comment cmt"><p>UUID extractor of a path variable:</p><pre>Path(<span class="lit">"/user/13251d88-7a73-4fcf-b935-54dfae9f023e"</span>) <span class="kw">match</span> {
+   <span class="kw">case</span> Root / <span class="lit">"user"</span> / UUIDVar(userId) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl.impl.~" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="~"></a><a id="~:~"></a>
       <span class="permalink">

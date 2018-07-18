@@ -187,10 +187,6 @@
                         <a href="Methods.html" title="">Methods</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">NumericPathVar</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="class" href="OptionalMultiQueryParamDecoderMatcher.html" title="Capture a query parameter that appears 0 or more times."></a>
                         <a href="OptionalMultiQueryParamDecoderMatcher.html" title="Capture a query parameter that appears 0 or more times.">OptionalMultiQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
@@ -209,6 +205,10 @@
                         <a class="object" href="Path$.html" title=""></a>
                         <a class="trait" href="Path.html" title="Base class for path extractors."></a>
                         <a href="Path.html" title="Base class for path extractors.">Path</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="PathVar.html" title=""></a>
+                        <a href="PathVar.html" title="">PathVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body."></a>
@@ -239,6 +239,10 @@
                         <a href="Statuses.html" title="">Statuses</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
+                        <a class="object" href="" title="UUID extractor of a path variable:"></a>
+                        <a href="" title="UUID extractor of a path variable:">UUIDVar</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
                         <a class="class" href="ValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder."></a>
                         <a href="ValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder.">ValidatingQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
@@ -254,12 +258,12 @@
             </div>
           </div>
           <div id="content">
-            <body class="class type">
+            <body class="object value">
       <div id="definition">
-        <div class="big-circle class">c</div>
+        <div class="big-circle object">o</div>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.dsl">dsl</a>.<a href="index.html" class="extype" name="org.http4s.dsl.impl">impl</a></p>
-        <h1>NumericPathVar<span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html" title="Permalink">
+        <h1>UUIDVar<span class="permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -269,25 +273,21 @@
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">class</span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">NumericPathVar</span><span class="tparams">[<span name="A">A &lt;: <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">UUIDVar</span><span class="result"> extends <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<span class="extype" name="java.util.UUID">UUID</span>]</span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>UUID extractor of a path variable:</p><pre>Path(<span class="lit">"/user/13251d88-7a73-4fcf-b935-54dfae9f023e"</span>) <span class="kw">match</span> {
+   <span class="kw">case</span> Root / <span class="lit">"user"</span> / UUIDVar(userId) <span class="kw">=&gt;</span> ...</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dsl/src/main/scala/org/http4s/dsl/impl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">
-              Known Subclasses
-            </span>
-            <div class="subClasses hiddenContent"><a href="IntVar$.html" class="extype" name="org.http4s.dsl.impl.IntVar">IntVar</a>, <a href="LongVar$.html" class="extype" name="org.http4s.dsl.impl.LongVar">LongVar</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<span class="extype" name="java.util.UUID">UUID</span>], <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -312,12 +312,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.dsl.impl.NumericPathVar"><span>NumericPathVar</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
-                  </ol>
-                </div><div class="ancestors">
-                  <span class="filtertype">Implicitly<br />
-                  </span>
-                  <ol id="implicits"> <li class="in" name="scala.Predef.any2stringadd" data-hidden="true"><span>by any2stringadd</span></li><li class="in" name="scala.Predef.StringFormat" data-hidden="true"><span>by StringFormat</span></li><li class="in" name="scala.Predef.Ensuring" data-hidden="true"><span>by Ensuring</span></li><li class="in" name="scala.Predef.ArrowAssoc" data-hidden="true"><span>by ArrowAssoc</span></li>
+                    <li class="in" name="org.http4s.dsl.impl.UUIDVar"><span>UUIDVar</span></li><li class="in" name="org.http4s.dsl.impl.PathVar"><span>PathVar</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -335,26 +330,7 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.dsl.impl.NumericPathVar#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(cast:String=&gt;A):org.http4s.dsl.impl.NumericPathVar[A]"></a><a id="&lt;init&gt;:NumericPathVar[A]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#&lt;init&gt;(cast:String=&gt;A):org.http4s.dsl.impl.NumericPathVar[A]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">NumericPathVar</span><span class="params">(<span name="cast">cast: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span></span>)</span>
-      </span>
-      
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -366,7 +342,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -382,7 +358,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html###():Int" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -395,53 +371,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="+(other:String):String"></a><a id="+(String):String"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#+(other:String):String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method any2stringadd in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
-    </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(NumericPathVar[A],B)"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#-&gt;[B](y:B):(A,B)" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method ArrowAssoc in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
-                <span class="name">@inline</span><span class="args">()</span>
-              
-        </dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -457,7 +390,7 @@
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -473,7 +406,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#clone():Object" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -494,90 +427,10 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((NumericPathVar[A])⇒Boolean,⇒Any):NumericPathVar[A]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((NumericPathVar[A])⇒Boolean):NumericPathVar[A]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):NumericPathVar[A]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
-    </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):NumericPathVar[A]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#ensuring(cond:Boolean):A" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method Ensuring in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -593,7 +446,7 @@
     </li><li name="scala.AnyRef#equals" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a><a id="equals(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#equals(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#equals(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -609,7 +462,7 @@
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#finalize():Unit" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -628,33 +481,10 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#formatted(fmtstr:String):String" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method StringFormat in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
-                <span class="name">@inline</span><span class="args">()</span>
-              
-        </dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -673,7 +503,7 @@
     </li><li name="scala.AnyRef#hashCode" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#hashCode():Int" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#hashCode():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -692,7 +522,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -708,7 +538,7 @@
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -724,7 +554,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#notify():Unit" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -743,7 +573,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -762,7 +592,7 @@
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -778,7 +608,7 @@
     </li><li name="scala.AnyRef#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#toString():String" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -791,10 +621,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.NumericPathVar#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="unapply(str:String):Option[A]"></a><a id="unapply(String):Option[A]"></a>
+    </li><li name="org.http4s.dsl.impl.PathVar#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unapply(str:String):Option[A]"></a><a id="unapply(String):Option[UUID]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#unapply(str:String):Option[A]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#unapply(str:String):Option[A]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -803,14 +633,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]</span>
+        <span class="name">unapply</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="java.util.UUID">UUID</span>]</span>
       </span>
       
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#wait():Unit" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -832,7 +662,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -854,7 +684,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/UUIDVar$.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -875,26 +705,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(NumericPathVar[A],B)"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/NumericPathVar.html#→[B](y:B):(A,B)" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]] performed by method ArrowAssoc in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
               </ol>
             </div>
@@ -905,28 +715,14 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="org.http4s.dsl.impl.PathVar">
+              <h3>Inherited from <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<span class="extype" name="java.util.UUID">UUID</span>]</h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
             </div>
-        <div class="conversion" name="scala.Predef.any2stringadd">
-              <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]]
-              </h3>
-            </div><div class="conversion" name="scala.Predef.StringFormat">
-              <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]]
-              </h3>
-            </div><div class="conversion" name="scala.Predef.Ensuring">
-              <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]]
-              </h3>
-            </div><div class="conversion" name="scala.Predef.ArrowAssoc">
-              <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<span class="extype" name="org.http4s.dsl.impl.NumericPathVar.A">A</span>]]
-              </h3>
-            </div>
+        
         </div>
 
         <div id="groupedMembers">

@@ -187,10 +187,6 @@
                         <a href="Methods.html" title="">Methods</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
-                        <a class="class" href="NumericPathVar.html" title=""></a>
-                        <a href="NumericPathVar.html" title="">NumericPathVar</a>
-                      </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="class" href="OptionalMultiQueryParamDecoderMatcher.html" title="Capture a query parameter that appears 0 or more times."></a>
                         <a href="OptionalMultiQueryParamDecoderMatcher.html" title="Capture a query parameter that appears 0 or more times.">OptionalMultiQueryParamDecoderMatcher</a>
                       </li><li class="current-entities indented4">
@@ -209,6 +205,10 @@
                         <a class="object" href="Path$.html" title=""></a>
                         <a class="trait" href="Path.html" title="Base class for path extractors."></a>
                         <a href="Path.html" title="Base class for path extractors.">Path</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="class" href="PathVar.html" title=""></a>
+                        <a href="PathVar.html" title="">PathVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="trait" href="ProxyAuthenticateResponseGenerator.html" title="Helper for the generation of a org.http4s.Response which must contain a Proxy-Authenticate header and may contain a body."></a>
@@ -237,6 +237,10 @@
                         <span class="separator"></span>
                         <a class="trait" href="Statuses.html" title=""></a>
                         <a href="Statuses.html" title="">Statuses</a>
+                      </li><li class="current-entities indented4">
+                        <span class="separator"></span>
+                        <a class="object" href="UUIDVar$.html" title="UUID extractor of a path variable:"></a>
+                        <a href="UUIDVar$.html" title="UUID extractor of a path variable:">UUIDVar</a>
                       </li><li class="current-entities indented4">
                         <span class="separator"></span>
                         <a class="class" href="ValidatingQueryParamDecoderMatcher.html" title="param extractor using org.http4s.QueryParamDecoder."></a>
@@ -272,7 +276,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">LongVar</span><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
+        <span class="name">LongVar</span><span class="result"> extends <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
       </span>
       </h4>
 
@@ -282,7 +286,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>], <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>], <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -308,7 +312,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.dsl.impl.LongVar"><span>LongVar</span></li><li class="in" name="org.http4s.dsl.impl.NumericPathVar"><span>NumericPathVar</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.dsl.impl.LongVar"><span>LongVar</span></li><li class="in" name="org.http4s.dsl.impl.PathVar"><span>PathVar</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
               <span class="filtertype"></span>
@@ -617,7 +621,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.NumericPathVar#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.dsl.impl.PathVar#unapply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="unapply(str:String):Option[A]"></a><a id="unapply(String):Option[Long]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/dsl/impl/LongVar$.html#unapply(str:String):Option[A]" title="Permalink">
@@ -632,7 +636,7 @@
         <span class="name">unapply</span><span class="params">(<span name="str">str: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -711,8 +715,8 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.dsl.impl.NumericPathVar">
-              <h3>Inherited from <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.impl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</h3>
+        <div class="parent" name="org.http4s.dsl.impl.PathVar">
+              <h3>Inherited from <a href="PathVar.html" class="extype" name="org.http4s.dsl.impl.PathVar">PathVar</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Long.html#scala.Long" class="extype" name="scala.Long">Long</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
