@@ -4,11 +4,6 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderer, Writer}
 
-object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
-  override def parse(s: String): ParseResult[Expires] =
-    HttpHeaderParser.EXPIRES(s)
-}
-
 /**
   * Constructs an `Expires` header.
   *
@@ -18,8 +13,14 @@ object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
   *
   * @param expirationDate the date of expiration
   */
-final case class Expires(expirationDate: HttpDate) extends Header.Parsed {
-  val key = `Expires`
-  override val value = Renderer.renderString(expirationDate)
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
+final case class Expires(expirationDate: java.time.Instant)
+object Expires {
+  implicit val expiresHeader: Header[Expires] =
+      new Header[Expires] {
+        val name = CaseInsensitiveString("Expires")
+        def parse(s: String) = HttpHeaderParser.EXPIRES(s).toOption
+        def toRawHeaders(a: Expires) = List(RawHeader(
+          name, Renderer.renderString(a.expirationDate)))
+        val isSingleton = true
+      }
 }
