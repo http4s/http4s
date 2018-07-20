@@ -29,7 +29,8 @@ private[blaze] object Http1Support {
   */
 final private class Http1Support[F[_]](config: BlazeClientConfig)(implicit F: Effect[F]) {
 
-  private val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
+  // SSLContext.getDefault is effectful and can fail - don't force it until we have to.
+  private lazy val sslContext = config.sslContext.getOrElse(SSLContext.getDefault)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group)
 
 ////////////////////////////////////////////////////
