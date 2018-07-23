@@ -28,7 +28,8 @@ object PrometheusClientMetrics {
       destination: String,
       responseDuration: Histogram,
       activeRequests: Gauge,
-      responseCounter: Counter
+      responseCounter: Counter,
+      clientErrorsCounter: Counter
   )
 
   private def metricsClient[F[_]: Sync](
@@ -47,19 +48,22 @@ object PrometheusClientMetrics {
       end <- Sync[F].delay(System.nanoTime())
       result <- responseAttempt.fold(
         e =>
-          onClientError(request, e, start, end, metrics) *>
+          onClientError(request, metrics) *>
             Sync[F].raiseError[DisposableResponse[F]](e),
         r => onResponse(request, r.response, start, end, metrics) *> r.pure[F]
       )
     } yield result
 
-  private def onClientError[F[_]: Sync](
-      request: Request[F],
-      e: Throwable,
-      start: Long,
-      end: Long,
-      metrics: ClientMetrics): F[Unit] =
-    ??? //TODO when would this happen? how should we update metrics?
+  private def onClientError[F[_]: Sync](request: Request[F], metrics: ClientMetrics): F[Unit] =
+    Sync[F].delay {
+      //not updating responseDuration or responseCounter, since we did not receive a response
+      metrics.activeRequests
+        .labels(reportDestination(request.attributes, metrics.destination))
+        .dec()
+      metrics.clientErrorsCounter
+        .labels(reportDestination(request.attributes, metrics.destination))
+        .inc()
+    }
 
   private def onResponse[F[_]: Sync](
       request: Request[F],
@@ -109,6 +113,12 @@ object PrometheusClientMetrics {
             .name(prefix + "_" + "response_total")
             .help("Total Responses.")
             .labelNames("destination", "code")
+            .register(c),
+          clientErrorsCounter = Counter
+            .build()
+            .name(prefix + "_" + "client_errors_total")
+            .help("Total Client Errors.")
+            .labelNames("destination")
             .register(c)
         )
         client.copy(open = Kleisli(metricsClient[F](clientMetrics, client)(_)))
