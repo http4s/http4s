@@ -63,7 +63,8 @@ object BlazeClient {
               case Left(Command.EOF) =>
                 invalidate(next.connection).flatMap { _ =>
                   if (next.fresh)
-                    F.raiseError(new java.io.IOException(s"Failed to connect to endpoint: $key"))
+                    F.raiseError(
+                      new java.net.ConnectException(s"Failed to connect to endpoint: $key"))
                   else {
                     manager.borrow(key).flatMap { newConn =>
                       loop(newConn)
