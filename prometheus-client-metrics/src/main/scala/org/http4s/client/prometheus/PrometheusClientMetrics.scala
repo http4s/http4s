@@ -3,7 +3,8 @@ package org.http4s.client.prometheus
 import io.prometheus.client._
 import cats.implicits._
 import cats.data.Kleisli
-import cats.effect.Sync
+import cats.effect.{Sync, Timer}
+import java.util.concurrent.TimeUnit
 import org.http4s._
 import org.http4s.client.{Client, DisposableResponse}
 
@@ -36,20 +37,22 @@ object PrometheusClientMetrics {
       clientErrorsCounter: Counter
   )
 
-  private def metricsClient[F[_]: Sync](
+  private def now[F[_]: Timer]: F[Long] = Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
+
+  private def metricsClient[F[_]: Sync: Timer](
       metrics: ClientMetrics[F],
       client: Client[F]
   )(
       request: Request[F]
   ): F[DisposableResponse[F]] =
     for {
-      startTime <- Sync[F].delay(System.nanoTime())
+      startTime <- now
       _ <- Sync[F].delay(
         metrics.activeRequests
           .labels(metrics.destination(request))
           .inc())
       responseAttempt <- client.open(request).attempt
-      responseReceivedTime <- Sync[F].delay(System.nanoTime())
+      responseReceivedTime <- now
       result <- responseAttempt.fold(
         e =>
           onClientError(request, metrics) *>
@@ -72,7 +75,7 @@ object PrometheusClientMetrics {
         .inc()
     }
 
-  private def onResponse[F[_]: Sync](
+  private def onResponse[F[_]: Sync: Timer](
       request: Request[F],
       response: Response[F],
       startTime: Long,
@@ -93,8 +96,7 @@ object PrometheusClientMetrics {
         .labels(metrics.destination(request))
         .dec()
       response.copy(body = response.body.onFinalize {
-        Sync[F].delay {
-          val bodyFinishTime = System.nanoTime
+        now.map { bodyFinishTime =>
           metrics.responseDuration
             .labels(
               metrics.destination(request),
@@ -105,7 +107,7 @@ object PrometheusClientMetrics {
       })
     }
 
-  def apply[F[_]: Sync](
+  def apply[F[_]: Sync: Timer](
       c: CollectorRegistry,
       prefix: String = "org_http4s_client",
       destination: Request[F] => String = { _: Request[F] =>
