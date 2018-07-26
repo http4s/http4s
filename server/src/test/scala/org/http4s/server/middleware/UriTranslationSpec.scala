@@ -27,25 +27,34 @@ class UriTranslationSpec extends Http4sSpec {
       service.orNotFound(req) must returnStatus(NotFound)
     }
 
-    "Not match a request missing the prefix" in {
+    "not match a request missing the prefix" in {
       val req = Request[IO](uri = Uri(path = "/foo"))
       trans1.orNotFound(req) must returnStatus(NotFound)
       trans2.orNotFound(req) must returnStatus(NotFound)
       service.orNotFound(req) must returnStatus(Ok)
     }
 
-    "Not match a request with a different prefix" in {
+    "not match a request with a different prefix" in {
       val req = Request[IO](uri = Uri(path = "/http5s/foo"))
       trans1.orNotFound(req) must returnStatus(NotFound)
       trans2.orNotFound(req) must returnStatus(NotFound)
       service.orNotFound(req) must returnStatus(NotFound)
     }
 
-    "Split the Uri into scriptName and pathInfo" in {
+    "split the Uri into scriptName and pathInfo" in {
       val req = Request[IO](uri = Uri(path = "/http4s/checkattr"))
       val resp = trans1.orNotFound(req).unsafeRunSync()
       resp.status must be(Ok)
       resp must haveBody("/http4s /checkattr")
+    }
+
+    "do nothing for an empty or / prefix" in {
+      val emptyPrefix = URITranslation.translateRoot("")(service)
+      val slashPrefix = URITranslation.translateRoot("/")(service)
+
+      val req = Request[IO](uri = Uri(path = "/foo"))
+      emptyPrefix.orNotFound(req) must returnStatus(Ok)
+      slashPrefix.orNotFound(req) must returnStatus(Ok)
     }
   }
 }

@@ -7,26 +7,22 @@ import cats.data.{Kleisli, OptionT}
 
 object URITranslation {
   def translateRoot[F[_]: Applicative](prefix: String)(service: HttpService[F]): HttpService[F] =
-    prefix match {
-      case "" | "/" => service
-      case prefix if prefix.startsWith("/") =>
-        val newCaret = prefix.length
+    if (prefix.isEmpty || prefix == "/") service
+    else {
+      val (slashedPrefix, unslashedPrefix) =
+        if (prefix.startsWith("/")) (prefix, prefix.substring(1))
+        else (s"/$prefix", prefix)
 
-        Kleisli { req: Request[F] =>
-          if (req.pathInfo.startsWith(prefix)) service(setCaret(req, newCaret))
-          else OptionT.none
-        }
-      case prefix =>
-        val newCaret = prefix.length + 1
+      val newCaret = slashedPrefix.length
 
-        Kleisli { req: Request[F] =>
-          val pi = req.pathInfo
-          val shouldTranslate =
-            if (pi.startsWith("/")) pi.substring(1).startsWith(prefix)
-            else pi.startsWith(prefix)
-          if (shouldTranslate) service(setCaret(req, newCaret))
-          else OptionT.none
-        }
+      Kleisli { req: Request[F] =>
+        val shouldTranslate =
+          req.pathInfo.startsWith(unslashedPrefix) || req.pathInfo.startsWith(slashedPrefix)
+
+        if (shouldTranslate) service(setCaret(req, newCaret))
+        else OptionT.none
+      }
+
     }
 
   private def setCaret[F[_]: Functor](req: Request[F], newCaret: Int): Request[F] = {
