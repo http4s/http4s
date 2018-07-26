@@ -34,6 +34,13 @@ class UriTranslationSpec extends Http4sSpec {
       service.orNotFound(req) must returnStatus(Ok)
     }
 
+    "Not match a request with a different prefix" in {
+      val req = Request[IO](uri = Uri(path = "/http5s/foo"))
+      trans1.orNotFound(req) must returnStatus(NotFound)
+      trans2.orNotFound(req) must returnStatus(NotFound)
+      service.orNotFound(req) must returnStatus(NotFound)
+    }
+
     "Split the Uri into scriptName and pathInfo" in {
       val req = Request[IO](uri = Uri(path = "/http4s/checkattr"))
       val resp = trans1.orNotFound(req).unsafeRunSync()
