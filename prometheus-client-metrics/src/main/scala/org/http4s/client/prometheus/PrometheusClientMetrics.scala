@@ -67,14 +67,10 @@ object PrometheusClientMetrics {
       metrics: ClientMetrics[F]): F[Unit] =
     Sync[F].delay {
       metrics.responseDuration
-        .labels(
-          metrics.destination(request),
-          reportStatus(response.status))
+        .labels(metrics.destination(request), reportStatus(response.status))
         .observe(SimpleTimer.elapsedSecondsFromNanos(start, end))
       metrics.responseCounter
-        .labels(
-          metrics.destination(request),
-          reportStatus(response.status))
+        .labels(metrics.destination(request), reportStatus(response.status))
         .inc()
       metrics.activeRequests
         .labels(metrics.destination(request))
@@ -84,7 +80,9 @@ object PrometheusClientMetrics {
   def apply[F[_]: Sync](
       c: CollectorRegistry,
       prefix: String = "org_http4s_client",
-      destination: Request[F] => String = {_: Request[F] => ""}
+      destination: Request[F] => String = { _: Request[F] =>
+        ""
+      }
   ): Kleisli[F, Client[F], Client[F]] =
     Kleisli { client =>
       Sync[F].delay {
