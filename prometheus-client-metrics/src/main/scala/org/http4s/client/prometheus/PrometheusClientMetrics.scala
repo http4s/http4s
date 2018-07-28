@@ -57,7 +57,6 @@ object PrometheusClientMetrics {
         e =>
           onClientError(request, metrics) *>
             Sync[F].raiseError[DisposableResponse[F]](e),
-        //TODO can we just swap out DisposableResponse.response like this? what about dispose?
         dr =>
           onResponse(request, dr.response, startTime, responseReceivedTime, metrics).map(r =>
             dr.copy(response = r))
@@ -81,7 +80,6 @@ object PrometheusClientMetrics {
       startTime: Long,
       responseReceivedTime: Long,
       metrics: ClientMetrics[F]): F[Response[F]] =
-    //TODO is this correct? update most of the metrics early, in case response body is discarded
     Sync[F].delay {
       metrics.responseDuration
         .labels(
@@ -96,13 +94,13 @@ object PrometheusClientMetrics {
         .labels(metrics.destination(request))
         .dec()
       response.copy(body = response.body.onFinalize {
-        now.map { bodyFinishTime =>
+        now.map { bodyProcessedTime =>
           metrics.responseDuration
             .labels(
               metrics.destination(request),
               reportStatus(response.status),
               ResponsePhase.report(ResponsePhase.BodyProcessed))
-            .observe(SimpleTimer.elapsedSecondsFromNanos(startTime, bodyFinishTime))
+            .observe(SimpleTimer.elapsedSecondsFromNanos(startTime, bodyProcessedTime))
         }
       })
     }
