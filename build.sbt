@@ -251,6 +251,12 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
+lazy val awsSigner = libraryProject("aws-signer")
+  .settings(
+    description := "Support for signing AWS requests with Signature Version 4"
+  )
+  .dependsOn(client)
+
 lazy val mimedbGenerator = http4sProject("mimedb-generator")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
