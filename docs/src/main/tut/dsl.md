@@ -324,7 +324,7 @@ HttpRoutes.of[IO] {
 ### Handling path parameters
 Path params can be extracted and converted to a specific type but are
 `String`s by default. There are numeric extractors provided in the form
-of `IntVar` and `LongVar`.
+of `IntVar` and `LongVar`, as well as `UUIDVar` extractor for `java.util.UUID`.
 
 ```tut:book
 def getUserName(userId: Int): IO[String] = ???
