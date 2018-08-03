@@ -102,6 +102,16 @@ lazy val client = libraryProject("client")
     theDsl % "test->compile",
     scalaXml % "test->compile")
 
+lazy val clientMetrics = libraryProject("client-metrics")
+  .settings(
+    description := "Support for Dropwizard Metrics on the client",
+    libraryDependencies ++= Seq(
+      metricsCore,
+      metricsJson
+    )
+  )
+  .dependsOn(client % "compile;test->test")
+
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
     description := "Base library for binding blaze to http4s clients and servers",
