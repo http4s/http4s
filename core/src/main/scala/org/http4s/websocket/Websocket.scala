@@ -5,7 +5,8 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
 private[http4s] final case class Websocket[F[_]](
     @deprecatedName('read) send: Stream[F, WebSocketFrame],
-    @deprecatedName('write) receive: Sink[F, WebSocketFrame]
+    @deprecatedName('write) receive: Sink[F, WebSocketFrame],
+    onClose: F[Unit]
 ) {
 
   @deprecated("Parameter has been renamed to `send`", "0.18.0-M7")
