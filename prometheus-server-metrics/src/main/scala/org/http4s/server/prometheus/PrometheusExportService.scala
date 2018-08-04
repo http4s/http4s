@@ -53,6 +53,7 @@ object PrometheusExportService {
   def addDefaults[F[_]: Sync](cr: CollectorRegistry): F[Unit] = Sync[F].delay {
     cr.register(new StandardExports())
     cr.register(new MemoryPoolsExports())
+    cr.register(new BufferPoolsExports())
     cr.register(new GarbageCollectorExports())
     cr.register(new ThreadExports())
     cr.register(new ClassLoadingExports())
