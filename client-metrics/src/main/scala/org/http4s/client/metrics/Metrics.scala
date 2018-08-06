@@ -17,7 +17,8 @@ object Metrics {
         start <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
         _ <- Sync[F].delay(metrics.activeRequests.inc())
         resp <- client.open(req)
-        _ <- Sync[F].delay(metrics.activeRequests.dec())
+        now <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
+        _ <- Sync[F].delay(metrics.requestsHeaders.update(now - start, TimeUnit.NANOSECONDS))
         iResp <- Sync[F].delay(instrumentResponse(start, metrics, resp))
       } yield iResp
 
@@ -26,6 +27,7 @@ object Metrics {
         metrics: MetricsCollection,
         disposableResponse: DisposableResponse[F]): DisposableResponse[F] = {
       val newDisposable = for {
+        _ <- Sync[F].delay(metrics.activeRequests.dec())
         elapsed <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS).map(now => now - start)
         _ <- Sync[F].delay(updateMetrics(disposableResponse.response.status, elapsed, metrics))
         _ <- disposableResponse.dispose
@@ -35,7 +37,7 @@ object Metrics {
     }
 
     def updateMetrics(status: Status, elapsed: Long, metrics: MetricsCollection): Unit = {
-      metrics.requests.update(elapsed, TimeUnit.NANOSECONDS)
+      metrics.requestsTotal.update(elapsed, TimeUnit.NANOSECONDS)
       status.code match {
         case hundreds if hundreds < 200 => metrics.resp1xx.inc()
         case twohundreds if twohundreds < 300 => metrics.resp2xx.inc()
@@ -47,7 +49,8 @@ object Metrics {
 
     val metricsCollection = MetricsCollection(
       activeRequests = registry.counter(s"${prefix}.active-requests"),
-      requests = registry.timer(s"${prefix}.requests"),
+      requestsHeaders = registry.timer(s"${prefix}.requests.headers"),
+      requestsTotal = registry.timer(s"${prefix}.requests.total"),
       resp1xx = registry.counter(s"${prefix}.1xx-responses"),
       resp2xx = registry.counter(s"${prefix}.2xx-responses"),
       resp3xx = registry.counter(s"${prefix}.3xx-responses"),
@@ -62,7 +65,8 @@ object Metrics {
 
 private case class MetricsCollection(
     activeRequests: Counter,
-    requests: MetricTimer,
+    requestsHeaders: MetricTimer,
+    requestsTotal: MetricTimer,
     resp1xx: Counter,
     resp2xx: Counter,
     resp3xx: Counter,
