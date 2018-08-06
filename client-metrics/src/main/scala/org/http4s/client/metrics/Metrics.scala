@@ -9,56 +9,51 @@ import org.http4s.{Request, Status}
 import org.http4s.client.{Client, DisposableResponse}
 
 object Metrics {
-  def apply[F[_]: Sync: Timer](registry: MetricRegistry, prefix: String = "org.http4s.client")(
-      client: Client[F]): Client[F] = {
+  def apply[F[_]: Sync: Timer](
+    registry: MetricRegistry,
+    prefix: String = "org.http4s.client",
+    destination: Request[F] => Option[String] = { _: Request[F] => None})
+  (client: Client[F]): Client[F] = {
 
-    def withMetrics(metrics: MetricsCollection)(req: Request[F]): F[DisposableResponse[F]] =
+    def withMetrics()(req: Request[F]): F[DisposableResponse[F]] = {
+      val namespace = destination(req).map(d => s"${prefix}.${d}").getOrElse(s"${prefix}.default")
       for {
         start <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
-        _ <- Sync[F].delay(metrics.activeRequests.inc())
+        _ <- Sync[F].delay(registry.counter(s"${namespace}.active-requests").inc())
         resp <- client.open(req)
         now <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
-        _ <- Sync[F].delay(metrics.requestsHeaders.update(now - start, TimeUnit.NANOSECONDS))
-        iResp <- Sync[F].delay(instrumentResponse(start, metrics, resp))
+        _ <- Sync[F].delay(registry.timer(s"${namespace}.requests.headers").update(now - start, TimeUnit.NANOSECONDS))
+        _ <- Sync[F].delay(destination(req).map(d => registry.counter(s"${prefix}.${d}").inc()).getOrElse(Unit))
+        iResp <- Sync[F].delay(instrumentResponse(start, namespace, resp))
       } yield iResp
+    }
 
     def instrumentResponse(
         start: Long,
-        metrics: MetricsCollection,
+        namespace: String,
         disposableResponse: DisposableResponse[F]): DisposableResponse[F] = {
       val newDisposable = for {
-        _ <- Sync[F].delay(metrics.activeRequests.dec())
+        _ <- Sync[F].delay(registry.counter(s"${namespace}.active-requests").dec())
         elapsed <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS).map(now => now - start)
-        _ <- Sync[F].delay(updateMetrics(disposableResponse.response.status, elapsed, metrics))
+        _ <- Sync[F].delay(updateMetrics(disposableResponse.response.status, elapsed, namespace))
         _ <- disposableResponse.dispose
       } yield ()
 
       disposableResponse.copy(dispose = newDisposable)
     }
 
-    def updateMetrics(status: Status, elapsed: Long, metrics: MetricsCollection): Unit = {
-      metrics.requestsTotal.update(elapsed, TimeUnit.NANOSECONDS)
+    def updateMetrics(status: Status, elapsed: Long, namespace: String): Unit = {
+      registry.timer(s"${namespace}.requests.total").update(elapsed, TimeUnit.NANOSECONDS)
       status.code match {
-        case hundreds if hundreds < 200 => metrics.resp1xx.inc()
-        case twohundreds if twohundreds < 300 => metrics.resp2xx.inc()
-        case threehundreds if threehundreds < 400 => metrics.resp3xx.inc()
-        case fourhundreds if fourhundreds < 500 => metrics.resp4xx.inc()
-        case _ => metrics.resp5xx.inc()
+        case hundreds if hundreds < 200 => registry.counter(s"${namespace}.1xx-responses").inc()
+        case twohundreds if twohundreds < 300 => registry.counter(s"${namespace}.2xx-responses").inc()
+        case threehundreds if threehundreds < 400 => registry.counter(s"${namespace}.3xx-responses").inc()
+        case fourhundreds if fourhundreds < 500 => registry.counter(s"${namespace}.4xx-responses").inc()
+        case _ => registry.counter(s"${namespace}.5xx-responses").inc()
       }
     }
 
-    val metricsCollection = MetricsCollection(
-      activeRequests = registry.counter(s"${prefix}.active-requests"),
-      requestsHeaders = registry.timer(s"${prefix}.requests.headers"),
-      requestsTotal = registry.timer(s"${prefix}.requests.total"),
-      resp1xx = registry.counter(s"${prefix}.1xx-responses"),
-      resp2xx = registry.counter(s"${prefix}.2xx-responses"),
-      resp3xx = registry.counter(s"${prefix}.3xx-responses"),
-      resp4xx = registry.counter(s"${prefix}.4xx-responses"),
-      resp5xx = registry.counter(s"${prefix}.5xx-responses")
-    )
-
-    client.copy(open = Kleisli(withMetrics(metricsCollection)))
+    client.copy(open = Kleisli(withMetrics()))
   }
 
 }
