@@ -1,20 +1,20 @@
 package org.http4s.client.metrics
 
 import cats.data.Kleisli
-import cats.effect._
+import cats.effect.{Timer, _}
 import cats.implicits._
-import com.codahale.metrics.{Counter, MetricRegistry, Timer}
+import com.codahale.metrics.{Counter, MetricRegistry, Timer => MetricTimer}
 import java.util.concurrent.TimeUnit
 import org.http4s.{Request, Status}
 import org.http4s.client.{Client, DisposableResponse}
 
 object Metrics {
-  def apply[F[_]: Sync](registry: MetricRegistry, prefix: String = "org.http4s.client")(
+  def apply[F[_]: Sync: Timer](registry: MetricRegistry, prefix: String = "org.http4s.client")(
       client: Client[F]): Client[F] = {
 
     def withMetrics(metrics: MetricsCollection)(req: Request[F]): F[DisposableResponse[F]] =
       for {
-        start <- Sync[F].delay(System.nanoTime())
+        start <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
         _ <- Sync[F].delay(metrics.activeRequests.inc())
         resp <- client.open(req)
         _ <- Sync[F].delay(metrics.activeRequests.dec())
@@ -26,7 +26,7 @@ object Metrics {
         metrics: MetricsCollection,
         disposableResponse: DisposableResponse[F]): DisposableResponse[F] = {
       val newDisposable = for {
-        elapsed <- Sync[F].delay(System.nanoTime() - start)
+        elapsed <- Timer[F].clockMonotonic(TimeUnit.NANOSECONDS).map(now => now - start)
         _ <- Sync[F].delay(updateMetrics(disposableResponse.response.status, elapsed, metrics))
         _ <- disposableResponse.dispose
       } yield ()
@@ -62,7 +62,7 @@ object Metrics {
 
 private case class MetricsCollection(
     activeRequests: Counter,
-    requests: Timer,
+    requests: MetricTimer,
     resp1xx: Counter,
     resp2xx: Counter,
     resp3xx: Counter,
