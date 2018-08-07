@@ -27,8 +27,6 @@ object Metrics {
           registry
             .timer(s"${namespace}.requests.headers")
             .update(now - start, TimeUnit.NANOSECONDS))
-        _ <- Sync[F].delay(
-          destination(req).map(d => registry.counter(s"${prefix}.${d}").inc()).getOrElse(Unit))
         iResp <- Sync[F].delay(instrumentResponse(start, namespace, resp))
       } yield iResp
     }

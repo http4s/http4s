@@ -106,11 +106,14 @@ lazy val clientMetrics = libraryProject("client-metrics")
   .settings(
     description := "Support for Dropwizard Metrics on the client",
     libraryDependencies ++= Seq(
-      metricsCore,
-      metricsJson
+      metricsCore
     )
   )
-  .dependsOn(client % "compile;test->test")
+  .dependsOn(
+    client % "compile;test->test",
+    blazeClient % "test->compile",
+    blazeServer % "test->compile"
+  )
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
