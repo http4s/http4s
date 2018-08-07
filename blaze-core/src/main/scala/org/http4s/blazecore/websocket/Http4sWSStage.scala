@@ -70,34 +70,19 @@ private[http4s] class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(
   override protected def stageStartup(): Unit = {
     super.stageStartup()
 
-    // A latch for shutting down if both streams are closed.
-    val count = new java.util.concurrent.atomic.AtomicInteger(2)
-
-    // If both streams are closed set the signal
-    val onStreamFinalize: F[Unit] =
-      for {
-        dec <- F.delay(count.decrementAndGet())
-        _ <- if (dec == 0) deadSignal.set(true) else F.unit
-      } yield ()
-
     // Effect to send a close to the other endpoint
     val sendClose: F[Unit] = F.delay(sendOutboundCommand(Command.Disconnect))
 
     val wsStream = inputstream
       .to(ws.receive)
-      .onFinalize(onStreamFinalize)
-      .mergeHaltR(ws.send.onFinalize(onStreamFinalize).to(snk).drain)
+      .concurrently(ws.send.to(snk).drain) //We don't need to terminate if the send stream terminates.
       .interruptWhen(deadSignal)
+      .onFinalize(ws.onClose.attempt.void) //Doing it this way ensures `sendClose` is sent no matter what
       .onFinalize(sendClose)
       .compile
       .drain
 
-    unsafeRunAsync {
-      wsStream.attempt.flatMap {
-        case Left(_) => sendClose
-        case Right(_) => ().pure[F]
-      }
-    } {
+    unsafeRunAsync(wsStream) {
       case Left(t) =>
         IO(logger.error(t)("Error closing Web Socket"))
       case Right(_) =>
@@ -116,7 +101,8 @@ object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
 
-  private def unsafeRunSync[F[_], A](fa: F[A])(implicit F: Effect[F], ec: ExecutionContext): A =
+  private def unsafeRunSync[F[_], A](
+      fa: F[A])(implicit F: ConcurrentEffect[F], ec: ExecutionContext): A =
     Deferred[IO, Either[Throwable, A]].flatMap { p =>
       F.runAsync(Async.shift(ec) *> fa) { r =>
         p.complete(r)
