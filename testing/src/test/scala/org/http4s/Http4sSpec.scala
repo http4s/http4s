@@ -9,7 +9,7 @@
 
 package org.http4s
 
-import cats.effect.IO
+import cats.effect.{IO, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
@@ -47,6 +47,8 @@ trait Http4sSpec
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
 
   implicit val params = Parameters(maxSize = 20)
+
+  implicit val timer = Timer[IO]
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))

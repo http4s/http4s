@@ -12,6 +12,8 @@ import org.http4s.server.middleware.AutoSlash
 import org.specs2.specification.AfterAll
 import scala.util.{Failure, Success, Try}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 class MetricsSpec extends Http4sSpec with AfterAll {
 
   val clientRemoteStub = new RemoteEndpointStub()
