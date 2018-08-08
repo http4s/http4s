@@ -3,7 +3,9 @@ package org.http4s.dsl
 import org.http4s.{Http4s, Method}
 import org.http4s.dsl.impl._
 
-trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F] with Auth {
+trait Http4sDsl[F[_]] extends Http4sMinimalDsl with Responses[F] {}
+
+trait Http4sMinimalDsl extends Http4s with Methods with Statuses with Auth {
   import Http4sDsl._
 
   type Path = impl.Path
