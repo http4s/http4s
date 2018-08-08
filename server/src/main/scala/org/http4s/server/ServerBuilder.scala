@@ -47,7 +47,7 @@ trait ServerBuilder[F[_]] {
     */
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self
 
-  def mountService(service: HttpRoutes[F], prefix: String = ""): Self
+  def mountService(service: HttpApp[F]): Self
 
   /** Returns a task to start a server.  The task completes with a
     * reference to the server when it has started.

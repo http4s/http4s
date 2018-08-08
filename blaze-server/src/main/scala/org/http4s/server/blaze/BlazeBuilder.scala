@@ -2,6 +2,8 @@ package org.http4s
 package server
 package blaze
 
+import cats.data.Kleisli
+import cats.implicits._
 import cats.effect._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -63,7 +65,7 @@ class BlazeBuilder[F[_]](
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceMounts: Vector[ServiceMount[F]],
+    service: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
@@ -88,7 +90,7 @@ class BlazeBuilder[F[_]](
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
-      serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
+      service: HttpApp[F] = service,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner
   ): Self =
@@ -104,7 +106,7 @@ class BlazeBuilder[F[_]](
       http2Support,
       maxRequestLineLen,
       maxHeadersLen,
-      serviceMounts,
+      service,
       serviceErrorHandler,
       banner
     )
@@ -154,17 +156,8 @@ class BlazeBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  override def mountService(service: HttpRoutes[F], prefix: String): Self = {
-    val prefixedService =
-      if (prefix.isEmpty || prefix == "/") service
-      else {
-        val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
-
-        service.local { req: Request[F] =>
-          req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
-        }
-      }
-    copy(serviceMounts = serviceMounts :+ ServiceMount[F](prefixedService, prefix))
+  override def mountService(service: HttpApp[F]): Self = {
+    copy(service = service)
   }
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
@@ -174,7 +167,7 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
+    // val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
@@ -199,7 +192,7 @@ class BlazeBuilder[F[_]](
 
         def http1Stage(secure: Boolean) =
           Http1ServerStage(
-            aggregateService,
+            service,
             requestAttributes(secure = secure),
             executionContext,
             enableWebSockets,
@@ -211,7 +204,7 @@ class BlazeBuilder[F[_]](
         def http2Stage(engine: SSLEngine): ALPNServerSelector =
           ProtocolSelector(
             engine,
-            aggregateService,
+            service,
             maxRequestLineLen,
             maxHeadersLen,
             requestAttributes(secure = true),
@@ -334,10 +327,10 @@ object BlazeBuilder {
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
-      serviceMounts = Vector.empty,
+      service = Kleisli(_ => Response[F](Status.NotFound).pure[F]),
       serviceErrorHandler = DefaultServiceErrorHandler,
       banner = ServerBuilder.DefaultBanner
     )
 }
 
-private final case class ServiceMount[F[_]](service: HttpRoutes[F], prefix: String)
+private final case class ServiceMount[F[_]](service: HttpApp[F], prefix: String)
