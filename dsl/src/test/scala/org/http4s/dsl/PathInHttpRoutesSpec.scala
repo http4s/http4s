@@ -34,42 +34,42 @@ object PathInHttpRoutesSpec extends Http4sSpec {
 
   val app: HttpApp[IO] = HttpApp {
     case GET -> Root :? I(start) +& L(limit) =>
-      Ok(s"start: $start, limit: ${limit.l}")
+      Ok[IO](s"start: $start, limit: ${limit.l}")
     case GET -> Root / LongVar(id) =>
-      Ok(s"id: $id")
+      Ok[IO](s"id: $id")
     case GET -> Root :? I(start) =>
-      Ok(s"start: $start")
+      Ok[IO](s"start: $start")
     case GET -> Root =>
-      Ok("(empty)")
+      Ok[IO]("(empty)")
     case GET -> Root / "calc" :? P(d) =>
-      Ok(s"result: ${d / 2}")
+      Ok[IO](s"result: ${d / 2}")
     case GET -> Root / "items" :? List(list) =>
-      Ok(s"items: ${list.mkString(",")}")
+      Ok[IO](s"items: ${list.mkString(",")}")
     case GET -> Root / "search" :? T(search) =>
-      Ok(s"term: $search")
+      Ok[IO](s"term: $search")
     case GET -> Root / "mix" :? T(t) +& List(l) +& P(d) +& I(s) +& L(m) =>
-      Ok(s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
+      Ok[IO](s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
     case GET -> Root / "app" :? OptCounter(c) =>
-      Ok(s"counter: $c")
+      Ok[IO](s"counter: $c")
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
-        errors => BadRequest(errors.map(_.sanitized).mkString_("", ",", "")),
-        vc => Ok(s"counter: $vc")
+        errors => BadRequest[IO](errors.map(_.sanitized).mkString_("", ",", "")),
+        vc => Ok[IO](s"counter: $vc")
       )
     case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
-        case Some(Invalid(errors)) => BadRequest(errors.map(_.sanitized).mkString_("", ",", ""))
-        case Some(Valid(cv)) => Ok(s"counter: $cv")
-        case None => Ok("no counter")
+        case Some(Invalid(errors)) => BadRequest[IO](errors.map(_.sanitized).mkString_("", ",", ""))
+        case Some(Valid(cv)) => Ok[IO](s"counter: $cv")
+        case None => Ok[IO]("no counter")
       }
     case GET -> Root / "multiopt" :? MultiOptCounter(counters) =>
       counters match {
-        case Valid(cs @ (_ :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
-        case Valid(Nil) => Ok("absent")
-        case Invalid(_) => BadRequest()
+        case Valid(cs @ (_ :: _)) => Ok[IO](s"${cs.length}: ${cs.mkString(",")}")
+        case Valid(Nil) => Ok[IO]("absent")
+        case Invalid(_) => BadRequest[IO]()
       }
     case r =>
-      NotFound(s"404 Not Found: ${r.pathInfo}")
+      NotFound[IO](s"404 Not Found: ${r.pathInfo}")
   }
 
   def serve(req: Request[IO]): Response[IO] =

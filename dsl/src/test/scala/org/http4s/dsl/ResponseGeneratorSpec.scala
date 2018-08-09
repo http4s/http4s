@@ -3,7 +3,7 @@ package dsl
 
 import cats._
 import cats.effect.IO
-import org.http4s.dsl.io._
+import org.http4s.dsl.Http4sDsl._
 import org.http4s.MediaType
 import org.http4s.headers.{Accept, Location, `Content-Length`, `Content-Type`}
 
@@ -11,7 +11,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
 
   "Add the EntityEncoder headers along with a content-length header" in {
     val body = "foo"
-    val resultheaders = Ok(body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
+    val resultheaders = Ok[IO](body)(Monad[IO], EntityEncoder.stringEncoder[IO]).unsafeRunSync.headers
     EntityEncoder.stringEncoder[IO].headers.foldLeft(ok) { (old, h) =>
       old.and(resultheaders.exists(_ == h) must_=== true)
     }
@@ -29,7 +29,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
         EntityEncoder.stringEncoder[IO].toEntity(_)
       )
 
-    Ok("foo")(Monad[IO], w).map(_.headers.get(Accept)) must returnValue(
+    Ok[IO]("foo")(Monad[IO], w).map(_.headers.get(Accept)) must returnValue(
       beSome(Accept(MediaRange.`audio/*`)))
   }
 
@@ -40,7 +40,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
     )
 
     val resp: IO[Response[IO]] =
-      Ok("foo", `Content-Type`(MediaType.application json))(Monad[IO], w)
+      Ok[IO]("foo", `Content-Type`(MediaType.application json))(Monad[IO], w)
     resp must returnValue(haveMediaType(MediaType.application json))
   }
 
@@ -49,7 +49,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
      * with a status code of 1xx (Informational) or 204 (No Content).
      * -- https://tools.ietf.org/html/rfc7230#section-3.3.2
      */
-    val resp = NoContent()
+    val resp = NoContent[IO]()
     resp.map(_.contentLength) must returnValue(None)
   }
 
@@ -65,7 +65,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
      *
      * We choose option a.
      */
-    val resp = ResetContent()
+    val resp = ResetContent[IO]()
     resp.map(_.contentLength) must returnValue(Some(0))
   }
 
@@ -80,7 +80,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
      * We don't know what the proper value is in this signature, so we send
      * nothing.
      */
-    val resp = NotModified()
+    val resp = NotModified[IO]()
     resp.map(_.contentLength) must returnValue(None)
   }
 
@@ -95,13 +95,13 @@ class ResponseGeneratorSpec extends Http4sSpec {
       * Until someone sets a body, we have an empty body and we'll set the
       * Content-Length.
       */
-    val resp = Ok()
+    val resp = Ok[IO]()
     resp.map(_.contentLength) must returnValue(Some(0))
   }
 
   "MovedPermanently() generates expected headers without body" in {
     val location = Location(Uri.unsafeFromString("http://foo"))
-    val resp = MovedPermanently(location, Accept(MediaRange.`audio/*`))
+    val resp = MovedPermanently[IO](location, Accept(MediaRange.`audio/*`))
     resp must returnValue(
       haveHeaders(
         Headers(
@@ -114,7 +114,7 @@ class ResponseGeneratorSpec extends Http4sSpec {
   "MovedPermanently() generates expected headers with body" in {
     val location = Location(Uri.unsafeFromString("http://foo"))
     val body = "foo"
-    val resp = MovedPermanently(location, body, Accept(MediaRange.`audio/*`))
+    val resp = MovedPermanently[IO](location, body, Accept(MediaRange.`audio/*`))
     resp must returnValue(
       haveHeaders(
         Headers(
