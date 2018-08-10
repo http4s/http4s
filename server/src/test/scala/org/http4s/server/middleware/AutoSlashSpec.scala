@@ -1,12 +1,19 @@
 package org.http4s.server.middleware
 
 import cats.effect._
-import org.http4s.{Http4sSpec, HttpRoutes, Request, Response, Status}
+import org.http4s.{Http4sSpec, HttpRoutes, Request, Status}
 import org.http4s.server.{MockRoute, Router}
 
 class AutoSlashSpec extends Http4sSpec {
 
   val route = MockRoute.route()
+
+  val pingRoutes = {
+    import org.http4s.dsl.io._
+    HttpRoutes.of[IO] {
+      case GET -> Root / "ping" => Ok()
+    }
+  }
 
   "AutoSlash" should {
     "Auto remove a trailing slash" in {
@@ -32,18 +39,18 @@ class AutoSlashSpec extends Http4sSpec {
       AutoSlash(route).orNotFound(req) must returnStatus(Status.NotFound)
     }
 
-    "Work with prefixed routes" in {
+    "Work when nested in Router" in {
       // See https://github.com/http4s/http4s/issues/1378
-      val service = {
-        import org.http4s.dsl.io._
-        HttpRoutes.of[IO] {
-          case GET -> Root / "ping" =>
-            IO.pure(Response[IO](Status.Ok))
-        }
-      }
-      val router = Router("/public" -> AutoSlash(service))
-      val req = Request[IO](uri = uri("/public/ping/"))
-      router.orNotFound(req) must returnStatus(Status.Ok)
+      val router = Router("/public" -> AutoSlash(pingRoutes))
+      router.orNotFound(Request[IO](uri = uri("/public/ping"))) must returnStatus(Status.Ok)
+      router.orNotFound(Request[IO](uri = uri("/public/ping/"))) must returnStatus(Status.Ok)
+    }
+
+    "Work when Router is nested in AutoSlash" in {
+      // See https://github.com/http4s/http4s/issues/1947
+      val router = AutoSlash(Router("/public" -> pingRoutes))
+      router.orNotFound(Request[IO](uri = uri("/public/ping"))) must returnStatus(Status.Ok)
+      router.orNotFound(Request[IO](uri = uri("/public/ping/"))) must returnStatus(Status.Ok)
     }
   }
 }

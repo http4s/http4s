@@ -19,13 +19,20 @@ object AutoSlash {
       G: Functor[G]): Kleisli[F, Request[G], B] =
     Kleisli { req =>
       http(req) <+> {
-        val pi = req.pathInfo
-        if (pi.isEmpty || pi.charAt(pi.length - 1) != '/')
+        val pathInfo = req.pathInfo
+        val scriptName = req.scriptName
+
+        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/') {
           F.empty
-        else {
-          val translated = translateRoot(req.scriptName)(http)
-          translated.apply(req.withPathInfo(pi.substring(0, pi.length - 1)))
+        } else if (scriptName.isEmpty) {
+          // Request has not been translated already
+          http.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
+        } else {
+          // Request has been translated at least once, redo the translation
+          val translated = translateRoot(scriptName)(http)
+          translated.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
         }
       }
     }
 }
+
