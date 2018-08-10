@@ -1,6 +1,7 @@
 package org.http4s.headers
 
-import org.http4s.Uri
+import cats.effect.IO
+import org.http4s.{Headers, Request, Uri}
 
 class RefererSpec extends HeaderLaws {
   checkAll("Referer", headerLaws(`Retry-After`))
@@ -25,5 +26,12 @@ class RefererSpec extends HeaderLaws {
     "accept relative url" in {
       Referer.parse("../../index.html").right.map(_.uri) must beRight(getUri("../../index.html"))
     }
+  }
+
+  "should be extractable" in {
+    val referer = Referer(getUri("http://localhost:8080"))
+    val request = Request[IO](headers = Headers(referer))
+
+    request.headers.get(Referer) should beSome(referer)
   }
 }
