@@ -8,6 +8,18 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.16
+* Fix regression for `AutoSlash` when nested in a `Router` [#1948](https://github.com/http4s/http4s/pull/1948)
+* Respect `redactHeadersWhen` in `Logger` middleware [#1952](https://github.com/http4s/http4s/pull/1952)
+* Capture `BufferPoolsExports` in prometheus server middleware [#1977](https://github.com/http4s/http4s/pull/1977)
+* Make `Referer` header extractable [#1984](https://github.com/http4s/http4s/pull/1984)
+* Dependency upgrades:
+  * cats-1.2.0
+  * metrics-4.0.3
+  * okhttp-3.11.0
+  * prometheus-client-0.5.0
+  * scodec-bits-1.1.6
+
 # v0.18.15 (2018-07-05)
 * Bugfix for `AutoSlash` Middleware in Router [#1937](https://github.com/http4s/http4s/pull/1937)
 * Add `StaticHeaders` middleware that appends static headers to a service [#1939](https://github.com/http4s/http4s/pull/1939)
