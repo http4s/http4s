@@ -16,12 +16,18 @@ object AutoSlash {
   def apply[F[_]: Monad](service: HttpService[F]): HttpService[F] =
     Kleisli { req =>
       service(req).orElse {
-        val pi = req.pathInfo
-        if (pi.isEmpty || pi.charAt(pi.length - 1) != '/')
+        val pathInfo = req.pathInfo
+        val scriptName = req.scriptName
+
+        if (pathInfo.isEmpty || pathInfo.charAt(pathInfo.length - 1) != '/') {
           OptionT.none
-        else {
-          val translated = translateRoot(req.scriptName)(service)
-          translated.apply(req.withPathInfo(pi.substring(0, pi.length - 1)))
+        } else if (scriptName.isEmpty) {
+          // Request has not been translated already
+          service.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
+        } else {
+          // Request has been translated at least once, redo the translation
+          val translated = translateRoot(scriptName)(service)
+          translated.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
         }
       }
     }

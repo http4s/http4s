@@ -141,6 +141,7 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
     dependencyUpdatesFilter -= moduleFilter(organization = "org.asynchttpclient", name = "async-http-client"), // asynchttpclient-2.2 is incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.http4s", name = "blaze-http"), // blaze-0.13 dropped websocket support
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.json4s"), // json4s-3.6 is not binary compatible with json4s-3.5
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scala-lang.modules", name = "scala-xml"), // scala-xml-1.1 is (arguably) incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
@@ -276,7 +277,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.39"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.13"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.1.0"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.2.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10.1"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
@@ -286,7 +287,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
-  lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.1"
+  lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "0.10.5"
   lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.5.1"
@@ -304,15 +305,15 @@ object Http4sPlugin extends AutoPlugin {
   lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.4"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
-  lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.1" // YourKit hack
+  lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
   lazy val log4s                            = "org.log4s"              %% "log4s"                     % "1.6.1"
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
-  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.2"
+  lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.3"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.19.0"
-  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.10.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.21.0"
+  lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.7"
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.4.0"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
@@ -320,7 +321,7 @@ object Http4sPlugin extends AutoPlugin {
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
-  lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.5"
+  lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.6"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
