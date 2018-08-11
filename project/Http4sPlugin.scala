@@ -138,7 +138,6 @@ object Http4sPlugin extends AutoPlugin {
     },
 
     dependencyUpdatesFilter -= moduleFilter(organization = "javax.servlet"), // servlet-4.0 is not yet supported by jetty-9 or tomcat-9, so don't accidentally depend on its new features
-    dependencyUpdatesFilter -= moduleFilter(organization = "org.json4s"), // json4s-3.6 is not binary compatible with jawn-json4s-0.12
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline"), // discipline-0.10 is incompatible with scalacheck-1.13
@@ -219,14 +218,14 @@ object Http4sPlugin extends AutoPlugin {
     extractApiVersion(version).productIterator.mkString("/v", ".", "")
 
   /**
-   * @return the version we want to document, for example in tuts,
-   * given the version being built.
-   *
-   * For snapshots after a stable release, return the previous stable
-   * release.  For snapshots of 0.16.0 and 0.17.0, return the latest
-   * milestone.  Otherwise, just return the current version.  Favors
-   * scalaz-7.2 "a" versions for 0.15.x and 0.16.x.
-   */
+    * @return the version we want to document, for example in tuts,
+    * given the version being built.
+    *
+    * For snapshots after a stable release, return the previous stable
+    * release.  For snapshots of 0.16.0 and 0.17.0, return the latest
+    * milestone.  Otherwise, just return the current version.  Favors
+    * scalaz-7.2 "a" versions for 0.15.x and 0.16.x.
+    */
   def docExampleVersion(currentVersion: String) = {
     val MilestoneVersionExtractor = """(0).(16|17).(0)a?-SNAPSHOT""".r
     val latestMilestone = "M1"
@@ -306,7 +305,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.11.v20180605"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
-  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.5.4"
+  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.0"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
