@@ -278,7 +278,11 @@ class BlazeBuilder[F[_]](
         s"BlazeServer($address)"
     }
 
-    banner.foreach(logger.info(_))
+    Option(banner)
+      .filter(_.nonEmpty)
+      .map(_.mkString("\n", "\n", ""))
+      .foreach(logger.info(_))
+
     logger.info(
       s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
     server
