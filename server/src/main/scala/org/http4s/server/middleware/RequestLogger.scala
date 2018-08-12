@@ -2,13 +2,13 @@ package org.http4s
 package server
 package middleware
 
-import cats.data.{Kleisli, OptionT}
+import cats.data.Kleisli
 import cats.effect._
+import cats.effect.concurrent.Ref
 import cats.implicits._
 import fs2._
 import org.http4s.util.CaseInsensitiveString
 import org.log4s._
-import scala.concurrent.ExecutionContext
 
 /**
   * Simple Middleware for Logging Requests As They Are Processed
@@ -16,19 +16,21 @@ import scala.concurrent.ExecutionContext
 object RequestLogger {
   private[this] val logger = getLogger
 
-  def apply[F[_]: Effect](
+  def apply[F[_]](
       logHeaders: Boolean,
       logBody: Boolean,
-      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
-  )(@deprecatedName('service) routes: HttpRoutes[F])(
-      implicit ec: ExecutionContext = ExecutionContext.global): HttpRoutes[F] =
+      redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains,
+      logAction: String => Unit = logger.info(_)
+  )(@deprecatedName('service) httpApp: HttpApp[F])(
+      implicit F: Concurrent[F]
+  ): HttpApp[F] =
     Kleisli { req =>
-      if (!logBody)
-        OptionT(Logger
-          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logger.info(_)) *> routes(req).value)
-      else
-        OptionT
-          .liftF(async.refOf[F, Vector[Segment[Byte, Unit]]](Vector.empty[Segment[Byte, Unit]]))
+      if (!logBody) {
+        Logger
+          .logMessage[F, Request[F]](req)(logHeaders, logBody)(logAction) *> httpApp(req)
+      } else {
+        Ref[F]
+          .of(Vector.empty[Segment[Byte, Unit]])
           .flatMap { vec =>
             val newBody = Stream
               .eval(vec.get)
@@ -38,43 +40,31 @@ object RequestLogger {
             val changedRequest = req.withBodyStream(
               req.body
               // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                .observe(_.segments.flatMap(s => Stream.eval_(vec.modify(_ :+ s))))
+                .observe(_.segments.flatMap(s => Stream.eval_(vec.update(_ :+ s))))
             )
-
-            val response = routes(changedRequest)
+            val response: F[Response[F]] = httpApp(changedRequest)
             response.attempt
               .flatMap {
                 case Left(e) =>
-                  OptionT.liftF(
-                    Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen)(logger.info(_)) *>
-                      Sync[F].raiseError[Response[F]](e)
-                  )
+                  Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                    logHeaders,
+                    logBody,
+                    redactHeadersWhen)(logAction) *>
+                    F.raiseError[Response[F]](e)
                 case Right(resp) =>
-                  Sync[OptionT[F, ?]].pure(
+                  F.pure(
                     resp.withBodyStream(
                       resp.body.onFinalize(
                         Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
                           logHeaders,
                           logBody,
-                          redactHeadersWhen)(logger.info(_))
+                          redactHeadersWhen)(logAction)
                       )
                     )
                   )
               }
-              .orElse(
-                OptionT(
-                  Logger
-                    .logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen
-                    )(logger.info(_))
-                    .as(Option.empty[Response[F]])
-                )
-              )
           }
+      }
     }
+
 }

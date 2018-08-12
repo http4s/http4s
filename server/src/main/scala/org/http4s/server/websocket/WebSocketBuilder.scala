@@ -43,7 +43,7 @@ case class WebSocketBuilder[F[_]](
     onHandshakeFailure: F[Response[F]])
 object WebSocketBuilder {
 
-  class Builder[F[_]: Monad] {
+  class Builder[F[_]: Applicative] {
     def build(
         send: Stream[F, WebSocketFrame],
         receive: Sink[F, WebSocketFrame],
@@ -52,13 +52,14 @@ object WebSocketBuilder {
           Response[F](Status.NotImplemented).withEntity("This is a WebSocket route.").pure[F],
         onHandshakeFailure: F[Response[F]] = Response[F](Status.BadRequest)
           .withEntity("WebSocket handshake failed.")
-          .pure[F]): F[Response[F]] =
+          .pure[F],
+        onClose: F[Unit] = Applicative[F].unit): F[Response[F]] =
       WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
         .map(
           _.withAttribute(
             AttributeEntry(
               websocketKey[F],
-              WebSocketContext(Websocket(send, receive), headers, onHandshakeFailure))))
+              WebSocketContext(Websocket(send, receive, onClose), headers, onHandshakeFailure))))
   }
-  def apply[F[_]: Monad]: Builder[F] = new Builder[F]
+  def apply[F[_]: Applicative]: Builder[F] = new Builder[F]
 }

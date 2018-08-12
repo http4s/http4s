@@ -7,7 +7,6 @@ import fs2.text._
 import java.io.File
 import java.net.{InetAddress, InetSocketAddress}
 import org.http4s.headers._
-import org.http4s.server.ServerSoftware
 import org.log4s.getLogger
 
 /**
@@ -376,9 +375,9 @@ object Response {
 
   def notFound[F[_]]: Response[F] = pureNotFound.copy(body = pureNotFound.body.covary[F])
 
-  def notFoundFor[F[_]: Monad](request: Request[F])(
+  def notFoundFor[F[_]: Applicative](request: Request[F])(
       implicit encoder: EntityEncoder[F, String]): F[Response[F]] =
-    Monad[F].pure(Response(Status.NotFound).withEntity(s"${request.pathInfo} not found"))
+    Response(Status.NotFound).withEntity(s"${request.pathInfo} not found").pure[F]
 
   def timeout[F[_]]: Response[F] =
     Response[F](Status.InternalServerError).withEntity("Response timed out")

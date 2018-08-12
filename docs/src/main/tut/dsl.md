@@ -7,7 +7,7 @@ title: The http4s DSL
 Recall from earlier that an `HttpRoutes[F]` is just a type alias for
 `Kleisli[OptionT[F, ?], Request[F], Response[F]]`.  This provides a minimal
 foundation for declaring services and executing them on blaze or a
-servlet container.  While this foundation is composeable, it is not
+servlet container.  While this foundation is composable, it is not
 highly productive.  Most service authors will seek a higher level DSL.
 
 ## Add the http4s-dsl to your build
@@ -145,7 +145,7 @@ Ok("Ok response.", `Cache-Control`(NonEmptyList(`no-cache`(), Nil))).unsafeRunSy
 
 http4s defines all the well known headers directly, but sometimes you need to
 define custom headers, typically prefixed by an `X-`. In simple cases you can
-construct a `Header` instance by hand
+construct a `Header` instance by hand:
 
 ```tut
 Ok("Ok response.", Header("X-Auth-Token", "value")).unsafeRunSync.headers
@@ -167,7 +167,7 @@ Ok("Ok response.").map(_.addCookie(ResponseCookie("foo", "bar", expires = Some(H
 ```
 
 To request a cookie to be removed on the client, you need to set the cookie value
-to empty. http4s can do that with `removeCookie`
+to empty. http4s can do that with `removeCookie`:
 
 ```tut
 Ok("Ok response.").map(_.removeCookie("foo")).unsafeRunSync.headers
@@ -206,7 +206,7 @@ NoContent("does not compile")
 #### Asynchronous responses
 
 While http4s prefers `F[_]: Effect`, you may be working with libraries that
-use standard library [Future]s.  Some relevant imports:
+use standard library `Future`s.  Some relevant imports:
 
 ```tut:book
 import scala.concurrent.Future
@@ -214,10 +214,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 You can respond with a `Future` of any type that has an
-`EntityEncoder` by lifting it into IO or any `F[_]` that suspends future. 
-Note: unlike IO, wrapping a side effect in Future does not
+`EntityEncoder` by lifting it into `IO` or any `F[_]` that suspends future. 
+Note: unlike `IO`, wrapping a side effect in `Future` does not
 suspend it, and the resulting expression would still be side 
-effectful, unless we wrap it in IO.
+effectful, unless we wrap it in `IO`:
 
 ```tut
 val io = Ok(IO.fromFuture(IO(Future {
@@ -228,7 +228,7 @@ io.unsafeRunSync
 ```
 
 As good functional programmers who like to delay our side effects, we
-of course prefer to operate in [F]s:
+of course prefer to operate in `F`s:
 
 ```tut
 val io = Ok(IO {
@@ -254,11 +254,12 @@ power here.  This stream emits the elapsed time every 100 milliseconds
 for one second:
 
 ```tut:book
-val drip: fs2.Stream[IO, String] =
-  fs2.Scheduler[IO](2).flatMap { s =>
-    import scala.concurrent.duration._
-    s.awakeEvery[IO](100.millis).map(_.toString).take(10)
-  }
+import fs2.Stream
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+
+val drip: Stream[IO, String] =
+  Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
 
 We can see it for ourselves in the REPL:
@@ -323,7 +324,7 @@ HttpRoutes.of[IO] {
 ### Handling path parameters
 Path params can be extracted and converted to a specific type but are
 `String`s by default. There are numeric extractors provided in the form
-of `IntVar` and `LongVar`.
+of `IntVar` and `LongVar`, as well as `UUIDVar` extractor for `java.util.UUID`.
 
 ```tut:book
 def getUserName(userId: Int): IO[String] = ???
@@ -408,7 +409,7 @@ object OptionalYearQueryParamMatcher extends OptionalQueryParamDecoderMatcher[Ye
 def getAverageTemperatureForCurrentYear: IO[String] = ???
 def getAverageTemperatureForYear(y: Year): IO[String] = ???
 
-val service2 = HttpService[IO] {
+val routes2 = HttpRoutes.of[IO] {
   case GET -> Root / "temperature" :? OptionalYearQueryParamMatcher(maybeYear) =>
     maybeYear match {
       case None =>
@@ -433,7 +434,7 @@ implicit val yearQueryParamDecoder: QueryParamDecoder[Year] =
 
 object YearQueryParamMatcher extends ValidatingQueryParamDecoderMatcher[Year]("year")
 
-val service = HttpService[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "temperature" :? YearQueryParamMatcher(yearValidated) =>
     yearValidated.fold(
       parseFailures => BadRequest("unable to parse argument year"),

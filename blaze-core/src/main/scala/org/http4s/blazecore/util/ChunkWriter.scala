@@ -8,6 +8,7 @@ import fs2._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import org.http4s.blaze.pipeline.TailStage
+import org.http4s.internal.unsafeRunAsync
 import org.http4s.util.StringWriter
 import scala.concurrent._
 
@@ -40,7 +41,7 @@ private[util] object ChunkWriter {
         ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
       } else ChunkEndBuffer
     }
-    async.unsafeRunAsync(f) {
+    unsafeRunAsync(f) {
       case Right(buffer) =>
         IO { promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false))); () }
       case Left(t) =>

@@ -26,12 +26,15 @@ libraryDependencies ++= Seq(
 
 Then we create the [service] again so tut picks it up:
 
-```tut:book
+```tut:book:silent
 import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
+import scala.concurrent.ExecutionContext.Implicits.global
+```
 
+```tut:book
 val service = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
@@ -46,14 +49,17 @@ val server = builder.unsafeRunSync
 A good default choice is the `Http1Client`.  The `Http1Client` maintains a connection pool and
 speaks HTTP 1.x.
 
-Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]: Stream[F, Http1Client]`
-to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to 
+Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]: Stream[F, Client[F]]`
+to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to
 create the client.
 
-```tut:book
+```tut:book:silent
 import org.http4s.client.blaze._
+import org.http4s.client._
+```
 
-val httpClient = Http1Client[IO]().unsafeRunSync
+```tut:book
+val httpClient: Client[IO] = Http1Client[IO]().unsafeRunSync
 ```
 
 ### Describing a call
@@ -79,11 +85,13 @@ side effects to the end.
 Let's describe how we're going to greet a collection of people in
 parallel:
 
-```tut:book
+```tut:book:silent
 import cats._, cats.effect._, cats.implicits._
 import org.http4s.Uri
 import scala.concurrent.ExecutionContext.Implicits.global
+```
 
+```tut:book
 def hello(name: String): IO[String] = {
   val target = Uri.uri("http://localhost:8080/hello/") / name
   httpClient.expect[String](target)
@@ -91,7 +99,7 @@ def hello(name: String): IO[String] = {
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 
-val greetingList = fs2.async.parallelTraverse(people)(hello)
+val greetingList = people.parTraverse(hello)
 ```
 
 Observe how simply we could combine a single `F[String]` returned
@@ -161,11 +169,13 @@ httpClient.expect[String](Uri.uri("https://google.com/"))
 If you need to do something more complicated like setting request headers, you
 can build up a request object and pass that to `expect`:
 
-```tut:book
+```tut:book:silent
 import org.http4s.client.dsl.io._
 import org.http4s.headers._
 import org.http4s.MediaType
+```
 
+```tut:book
 val request = GET(
   Uri.uri("https://my-lovely-api.com/"),
   Authorization(Credentials.Token(AuthScheme.Bearer, "open sesame")),

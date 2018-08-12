@@ -1,7 +1,7 @@
 package com.example.http4s
 package ssl
 
-import cats.effect.Effect
+import cats.effect.{ConcurrentEffect, Timer}
 import cats.syntax.option._
 import fs2.StreamApp.ExitCode
 import fs2._
@@ -14,7 +14,9 @@ import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import scala.concurrent.ExecutionContext
 
-abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Http4sDsl[F] {
+abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect]
+    extends StreamApp[F]
+    with Http4sDsl[F] {
   val securePort = 8443
 
   implicit val executionContext: ExecutionContext = ExecutionContext.global
@@ -41,7 +43,7 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
       }
   }
 
-  def sslStream(implicit scheduler: Scheduler): Stream[F, ExitCode] =
+  def sslStream(implicit timer: Timer[F]): Stream[F, ExitCode] =
     builder
       .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
       .mountService(new ExampleService[F].service, "/http4s")
@@ -54,8 +56,8 @@ abstract class SslExampleWithRedirect[F[_]: Effect] extends StreamApp[F] with Ht
       .bindHttp(8080)
       .serve
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
-    Scheduler[F](corePoolSize = 2).flatMap { implicit scheduler =>
-      sslStream.mergeHaltBoth(redirectStream)
-    }
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+    implicit val timer = Timer.derive[F]
+    sslStream.mergeHaltBoth(redirectStream)
+  }
 }

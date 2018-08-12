@@ -83,6 +83,13 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
   )
   .dependsOn(server % "compile;test->test", theDsl)
 
+lazy val prometheusClientMetrics = libraryProject("prometheus-client-metrics")
+  .settings(
+    description := "Support for Prometheus Metrics on the client",
+    libraryDependencies += prometheusClient
+  )
+  .dependsOn(client % "compile;test->test")
+
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
@@ -94,6 +101,19 @@ lazy val client = libraryProject("client")
     server % "test->compile",
     theDsl % "test->compile",
     scalaXml % "test->compile")
+
+lazy val clientMetrics = libraryProject("client-metrics")
+  .settings(
+    description := "Support for Dropwizard Metrics on the client",
+    libraryDependencies ++= Seq(
+      metricsCore
+    )
+  )
+  .dependsOn(
+    client % "compile;test->test",
+    blazeClient % "test->compile",
+    blazeServer % "test->compile"
+  )
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(

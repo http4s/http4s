@@ -66,7 +66,7 @@ class BlazeBuilder[F[_]](
     serviceMounts: Vector[ServiceMount[F]],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
-)(implicit F: Effect[F])
+)(implicit protected val F: ConcurrentEffect[F])
     extends ServerBuilder[F]
     with IdleTimeoutSupport[F]
     with SSLKeyStoreSupport[F]
@@ -278,7 +278,11 @@ class BlazeBuilder[F[_]](
         s"BlazeServer($address)"
     }
 
-    banner.foreach(logger.info(_))
+    Option(banner)
+      .filter(_.nonEmpty)
+      .map(_.mkString("\n", "\n", ""))
+      .foreach(logger.info(_))
+
     logger.info(
       s"http4s v${BuildInfo.version} on blaze v${BlazeBuildInfo.version} started at ${server.baseUri}")
     server
@@ -321,7 +325,7 @@ class BlazeBuilder[F[_]](
 }
 
 object BlazeBuilder {
-  def apply[F[_]](implicit F: Effect[F]): BlazeBuilder[F] =
+  def apply[F[_]](implicit F: ConcurrentEffect[F]): BlazeBuilder[F] =
     new BlazeBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,

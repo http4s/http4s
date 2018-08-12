@@ -2,6 +2,7 @@ package org.http4s
 package server
 
 import cats.effect._
+import cats.implicits._
 import fs2.Stream
 import org.http4s.util.StreamApp
 
@@ -36,5 +37,5 @@ trait ServerApp[F[_]] extends StreamApp[F] {
     server.shutdown
 
   override final def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, Nothing] =
-    Stream.bracket(server(args))(_ => Stream.empty, _.shutdown)
+    Stream.bracket(server(args))(_.shutdown) *> Stream.empty
 }

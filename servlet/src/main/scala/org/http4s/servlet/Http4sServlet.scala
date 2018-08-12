@@ -8,7 +8,6 @@ import cats.effect.Effect
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s._
 import org.http4s.headers.`Transfer-Encoding`
-import org.http4s.server.ServerSoftware
 import org.log4s.getLogger
 
 import scala.collection.JavaConverters._

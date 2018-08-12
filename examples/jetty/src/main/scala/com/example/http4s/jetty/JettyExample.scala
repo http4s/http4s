@@ -17,13 +17,13 @@ class JettyExampleApp[F[_]: ConcurrentEffect] extends StreamApp[F] with Http4sDs
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
-    Scheduler(corePoolSize = 2).flatMap { implicit scheduler =>
-      JettyBuilder[F]
-        .bindHttp(8080)
-        .mountService(metrics(new ExampleService[F].service), "/http4s")
-        .mountService(metricsService(metricsRegistry), "/metrics")
-        .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
-        .serve
-    }
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+    implicit val timer = Timer.derive[F]
+    JettyBuilder[F]
+      .bindHttp(8080)
+      .mountService(metrics(new ExampleService[F].service), "/http4s")
+      .mountService(metricsService(metricsRegistry), "/metrics")
+      .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
+      .serve
+  }
 }

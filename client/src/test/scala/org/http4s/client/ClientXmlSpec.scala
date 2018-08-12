@@ -3,7 +3,6 @@ package client
 
 import cats.effect._
 import cats.implicits._
-import fs2.async.parallelTraverse
 import org.http4s.Method.GET
 import org.http4s.Status.Ok
 import scala.xml.Elem
@@ -21,7 +20,8 @@ class ClientXmlSpec extends Http4sSpec {
     }
     "read xml body in parallel" in {
       // https://github.com/http4s/http4s/issues/1209
-      val resp = parallelTraverse((0 to 5).toList)(_ => client.expect[Elem](Request[IO](GET)))
+      val resp = (0 to 5).toList
+        .parTraverse(_ => client.expect[Elem](Request[IO](GET)))
         .unsafeRunSync()
       resp.map(_ must_== body)
     }

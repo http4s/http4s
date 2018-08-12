@@ -14,15 +14,17 @@ import scala.concurrent.duration._
 
 object BlazeWebSocketExample extends BlazeWebSocketExampleApp[IO]
 
-class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F] with Http4sDsl[F] {
+class BlazeWebSocketExampleApp[F[_]](implicit F: ConcurrentEffect[F])
+    extends StreamApp[F]
+    with Http4sDsl[F] {
 
-  def route(scheduler: Scheduler): HttpRoutes[F] = HttpRoutes.of[F] {
+  def route(implicit timer: Timer[F]): HttpRoutes[F] = HttpRoutes.of[F] {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 
     case GET -> Root / "ws" =>
       val toClient: Stream[F, WebSocketFrame] =
-        scheduler.awakeEvery[F](1.seconds).map(d => Text(s"Ping! $d"))
+        Stream.awakeEvery[F](1.seconds).map(d => Text(s"Ping! $d"))
       val fromClient: Sink[F, WebSocketFrame] = _.evalMap { (ws: WebSocketFrame) =>
         ws match {
           case Text(t, _) => F.delay(println(t))
@@ -45,14 +47,12 @@ class BlazeWebSocketExampleApp[F[_]](implicit F: Effect[F]) extends StreamApp[F]
       }
   }
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
-    for {
-      scheduler <- Scheduler[F](corePoolSize = 2)
-      exitCode <- BlazeBuilder[F]
-        .bindHttp(8080)
-        .withWebSockets(true)
-        .mountService(route(scheduler), "/http4s")
-        .serve
-    } yield exitCode
-
+  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+    implicit val timer: Timer[F] = Timer.derive[F]
+    BlazeBuilder[F]
+      .bindHttp(8080)
+      .withWebSockets(true)
+      .mountService(route, "/http4s")
+      .serve
+  }
 }

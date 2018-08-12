@@ -4,9 +4,9 @@ package servlet
 import cats.data.OptionT
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2.async
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+import org.http4s.internal.{loggingAsyncCallback, unsafeRunAsync}
 import org.http4s.server._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -54,7 +54,7 @@ class AsyncHttp4sServlet[F[_]](
       ctx.setTimeout(asyncTimeoutMillis)
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
-      async.unsafeRunAsync(
+      unsafeRunAsync(
         toRequest(servletRequest).fold(
           onParseFailure(_, servletResponse, bodyWriter),
           handleRequest(ctx, _, bodyWriter)
@@ -81,9 +81,7 @@ class AsyncHttp4sServlet[F[_]](
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     F.race(timeout, response).flatMap {
       case Left(()) =>
-        // TODO replace with F.never in cats-effect-1.0
-        // The F.never is so we don't interrupt the rendering of the timeout response
-        renderResponse(Response.timeout[F], servletResponse, bodyWriter, F.async(cb => ()))
+        renderResponse(Response.timeout[F], servletResponse, bodyWriter, F.never)
       case Right(resp) =>
         renderResponse(resp, servletResponse, bodyWriter, timeout)
     }
@@ -100,14 +98,12 @@ class AsyncHttp4sServlet[F[_]](
       val response = Response[F](Status.InternalServerError)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      async
-        .unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter, F.pure(()))) {
-          _ =>
-            IO {
-              if (servletRequest.isAsyncStarted)
-                servletRequest.getAsyncContext.complete()
-            }
-        }
+      val f = renderResponse(response, servletResponse, NullBodyWriter, F.unit) *>
+        F.delay(
+          if (servletRequest.isAsyncStarted)
+            servletRequest.getAsyncContext.complete()
+        )
+      unsafeRunAsync(f)(loggingAsyncCallback(logger))
   }
 
   private class AsyncTimeoutHandler(cb: Callback[Unit]) extends AbstractAsyncListener {

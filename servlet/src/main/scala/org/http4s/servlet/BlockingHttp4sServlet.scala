@@ -43,8 +43,7 @@ class BlockingHttp4sServlet[F[_]](
       .suspend(serviceFn(request))
       .getOrElse(Response.notFound)
       .recoverWith(serviceErrorHandler(request))
-      // TODO replace with F.never in cats-effect-1.0
-      .flatMap(renderResponse(_, servletResponse, bodyWriter, F.async(cb => ())))
+      .flatMap(renderResponse(_, servletResponse, bodyWriter, F.never))
 
   private def errorHandler(servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
     case t: Throwable if servletResponse.isCommitted =>
@@ -53,10 +52,9 @@ class BlockingHttp4sServlet[F[_]](
     case t: Throwable =>
       logger.error(t)("Error processing request")
       val response = Response[F](Status.InternalServerError)
-      // TODO replace with F.never in cats-effect-1.0
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      val render = renderResponse(response, servletResponse, NullBodyWriter, F.async(cb => ()))
+      val render = renderResponse(response, servletResponse, NullBodyWriter, F.never)
       F.runAsync(render)(_ => IO.unit).unsafeRunSync()
   }
 }

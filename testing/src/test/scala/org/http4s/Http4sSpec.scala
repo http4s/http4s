@@ -9,12 +9,12 @@
 
 package org.http4s
 
-import cats.effect.IO
+import cats.effect.{IO, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
 import org.http4s.testing._
-import org.http4s.util.threads.newDaemonPool
+import org.http4s.util.threads.{newBlockingPool, newDaemonPool}
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
@@ -45,9 +45,10 @@ trait Http4sSpec
     with IOMatchers
     with Http4sMatchers {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-  implicit def testScheduler: Scheduler = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
+
+  implicit val timer = Timer[IO]
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -125,10 +126,6 @@ object Http4sSpec {
   val TestExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newDaemonPool("http4s-spec", timeout = true))
 
-  val TestScheduler: Scheduler = {
-    val (sched, _) = Scheduler
-      .allocate[IO](corePoolSize = 4, threadPrefix = "http4s-spec-scheduler")
-      .unsafeRunSync()
-    sched
-  }
+  val TestBlockingExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutor(newBlockingPool("http4s-spec-blocking"))
 }
