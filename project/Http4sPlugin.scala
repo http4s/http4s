@@ -272,6 +272,11 @@ object Http4sPlugin extends AutoPlugin {
       case (m, None) => m
     }
 
+  def playJsonVersion(scalaBinaryVersion: String) = scalaBinaryVersion match {
+    case "2.11" => "2.5.15"
+    case "2.12" => "2.6.9"
+  }
+
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.39"
@@ -298,6 +303,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.11.1"
   lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.12.2"
+  lazy val jawnPlay                         = "org.spire-math"         %% "jawn-play"                 % "0.11.1"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
   lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.11.v20180605"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
@@ -311,6 +317,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.21.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
+  def playJson(sbv: String)                 = "com.typesafe.play"      %% "play-json"                 % playJsonVersion(sbv)
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"

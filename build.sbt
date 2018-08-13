@@ -234,6 +234,17 @@ lazy val json4sJackson = libraryProject("json4s-jackson")
   )
   .dependsOn(json4s % "compile;test->test")
 
+lazy val playJson = libraryProject("play-json")
+  .settings(
+    description := "Provides Play json codecs for http4s",
+    libraryDependencies ++= Seq(
+      jawnPlay,
+      Http4sPlugin.playJson(scalaBinaryVersion.value)
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
+  )
+  .dependsOn(jawn % "compile;test->test")
+
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
