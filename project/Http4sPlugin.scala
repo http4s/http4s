@@ -317,7 +317,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.21.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
-  def playJson(sbv: String)                 = "com.typesafe.play"      %% "play-json"                 % playJsonVersion
+  def playJson(sbv: String)                 = "com.typesafe.play"      %% "play-json"                 % playJsonVersion(sbv)
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
