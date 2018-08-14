@@ -5,7 +5,7 @@ package middleware
 import cats.effect._
 import org.http4s.dsl.io._
 
-class UriTranslationSpec extends Http4sSpec {
+class TranslateUriSpec extends Http4sSpec {
 
   val service = HttpService[IO] {
     case _ -> Root / "foo" =>
@@ -16,8 +16,8 @@ class UriTranslationSpec extends Http4sSpec {
       Ok(s)
   }
 
-  val trans1 = URITranslation.translateRoot("/http4s")(service)
-  val trans2 = URITranslation.translateRoot("http4s")(service)
+  val trans1 = TranslateUri("/http4s")(service)
+  val trans2 = TranslateUri("http4s")(service)
 
   "UriTranslation" should {
     "match a matching request" in {
@@ -49,8 +49,8 @@ class UriTranslationSpec extends Http4sSpec {
     }
 
     "do nothing for an empty or / prefix" in {
-      val emptyPrefix = URITranslation.translateRoot("")(service)
-      val slashPrefix = URITranslation.translateRoot("/")(service)
+      val emptyPrefix = TranslateUri("")(service)
+      val slashPrefix = TranslateUri("/")(service)
 
       val req = Request[IO](uri = Uri(path = "/foo"))
       emptyPrefix.orNotFound(req) must returnStatus(Ok)

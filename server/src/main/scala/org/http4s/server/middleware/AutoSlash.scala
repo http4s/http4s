@@ -4,7 +4,6 @@ package middleware
 
 import cats._
 import cats.data.{Kleisli, OptionT}
-import org.http4s.server.middleware.URITranslation.translateRoot
 
 /** Removes a trailing slash from [[Request]] path
   *
@@ -26,7 +25,7 @@ object AutoSlash {
           service.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
         } else {
           // Request has been translated at least once, redo the translation
-          val translated = translateRoot(scriptName)(service)
+          val translated = TranslateUri(scriptName)(service)
           translated.apply(req.withPathInfo(pathInfo.substring(0, pathInfo.length - 1)))
         }
       }
