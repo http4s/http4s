@@ -190,7 +190,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
           F.delay(logger.debug(s"Requesting connection: $stats")) *>
             go()
         } else {
-          F.raiseError(new IllegalStateException("Connection pool is closed"))
+          F.delay(callback(Left(new IllegalStateException("Connection pool is closed"))))
         }
       }
     }
