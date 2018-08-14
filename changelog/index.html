@@ -86,6 +86,26 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-18-16">v0.18.16</h1>
+
+<ul>
+<li>Fix regression for <code>AutoSlash</code> when nested in a <code>Router</code> <a href="https://github.com/http4s/http4s/pull/1948">#1948</a></li>
+<li>Respect <code>redactHeadersWhen</code> in <code>Logger</code> middleware <a href="https://github.com/http4s/http4s/pull/1952">#1952</a></li>
+<li>Capture <code>BufferPoolsExports</code> in prometheus server middleware <a href="https://github.com/http4s/http4s/pull/1977">#1977</a></li>
+<li>Make <code>Referer</code> header extractable <a href="https://github.com/http4s/http4s/pull/1984">#1984</a></li>
+<li>Log server startup banner in a single call to prevent interspersion <a href="https://github.com/http4s/http4s/pull/1985">#1985</a></li>
+<li>Add support module for play-json <a href="https://github.com/http4s/http4s/pull/1946">#1946</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>cats-1.2.0</li>
+<li>metrics-4.0.3</li>
+<li>okhttp-3.11.0</li>
+<li>prometheus-client-0.5.0</li>
+<li>scodec-bits-1.1.6</li>
+</ul></li>
+</ul>
+
 <h1 id="v0-18-15-2018-07-05">v0.18.15 (2018-07-05)</h1>
 
 <ul>
