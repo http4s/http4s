@@ -13,6 +13,8 @@ it.
 * Respect `redactHeadersWhen` in `Logger` middleware [#1952](https://github.com/http4s/http4s/pull/1952)
 * Capture `BufferPoolsExports` in prometheus server middleware [#1977](https://github.com/http4s/http4s/pull/1977)
 * Make `Referer` header extractable [#1984](https://github.com/http4s/http4s/pull/1984)
+* Log server startup banner in a single call to prevent interspersion [#1985](https://github.com/http4s/http4s/pull/1985)
+* Add support module for play-json [#1946](https://github.com/http4s/http4s/pull/1946)
 * Dependency upgrades:
   * cats-1.2.0
   * metrics-4.0.3
