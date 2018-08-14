@@ -257,7 +257,7 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     libraryDependencies ++= Seq(
       jawnPlay,
-      Http4sPlugin.playJson
+      Http4sPlugin.playJson(scalaBinaryVersion.value)
     ),
     mimaPreviousArtifacts := Set.empty // remove me once merged
   )
