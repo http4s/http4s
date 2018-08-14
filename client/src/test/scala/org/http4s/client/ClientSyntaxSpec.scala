@@ -4,7 +4,6 @@ package client
 import cats.syntax.applicative._
 import cats.effect._
 import fs2._
-import fs2.Stream._
 import org.http4s.Method._
 import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}

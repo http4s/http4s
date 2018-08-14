@@ -20,7 +20,6 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.{Client, DisposableResponse}
-import fs2.Stream._
 import fs2._
 import fs2.io._
 import org.log4s.getLogger

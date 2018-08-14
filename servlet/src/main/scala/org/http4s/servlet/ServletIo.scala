@@ -159,7 +159,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
                 }
                 go()
               })
-        readStream.unNoneTerminate.flatMap(Stream.chunk[Byte])
+        readStream.unNoneTerminate.flatMap(Stream.chunk)
       }
     }
 

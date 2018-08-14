@@ -198,7 +198,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
           .eval(readToBytes(r))
           .repeat
           .unNoneTerminate
-          .flatMap(Stream.chunk[Byte])
+          .flatMap(Stream.chunk[F, Byte])
 
       // The reader is closed at the end like InputStream
       Stream.bracket(fr)(r => F.delay(r.close())).flatMap(useReader)

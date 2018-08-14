@@ -11,8 +11,8 @@ package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
     val decoder = charset.nioCharset.newDecoder
     val maxCharsPerByte = math.ceil(decoder.maxCharsPerByte().toDouble).toInt
-    val avgBytesPerChar = math.ceil(1.0 / decoder.averageCharsPerByte().toDouble).toLong
-    val charBufferSize = 128L
+    val avgBytesPerChar = math.ceil(1.0 / decoder.averageCharsPerByte().toDouble).toInt
+    val charBufferSize = 128
 
     _.repeatPull[String] {
       _.unconsN(charBufferSize * avgBytesPerChar, allowFewer = true).flatMap {
@@ -23,8 +23,8 @@ package object util {
           val outputString = charBuffer.flip().toString
           if (outputString.isEmpty) Pull.done.as(None)
           else Pull.output1(outputString).as(None)
-        case Some((segment, stream)) =>
-          val bytes = segment.force.toArray
+        case Some((chunk, stream)) =>
+          val bytes = chunk.toArray
           val byteBuffer = ByteBuffer.wrap(bytes)
           val charBuffer = CharBuffer.allocate(bytes.length * maxCharsPerByte)
           decoder.decode(byteBuffer, charBuffer, false)

@@ -22,9 +22,6 @@ class EntityCodecSpec extends Http4sSpec {
   checkAll("EntityCodec[IO, String]", EntityCodecTests[IO, String].entityCodec)
   checkAll("EntityCodec[IO, Array[Char]]", EntityCodecTests[IO, Array[Char]].entityCodec)
 
-  checkAll(
-    "EntityCodec[IO, Segment[Byte, Unit]]",
-    EntityCodecTests[IO, Segment[Byte, Unit]].entityCodec)
   checkAll("EntityCodec[IO, Chunk[Byte]]", EntityCodecTests[IO, Chunk[Byte]].entityCodec)
   checkAll("EntityCodec[IO, Array[Byte]]", EntityCodecTests[IO, Array[Byte]].entityCodec)
 

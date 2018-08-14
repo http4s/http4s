@@ -176,9 +176,9 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
-  /** Helper method which simply gathers the body into a single Segment */
-  def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Segment[Byte, Unit]] =
-    DecodeResult.success(msg.body.segments.compile.foldMonoid)
+  /** Helper method which simply gathers the body into a single Chunk */
+  def collectBinary[F[_]: Sync](msg: Message[F]): DecodeResult[F, Chunk[Byte]] =
+    DecodeResult.success(msg.body.chunks.compile.to[Vector].map(Chunk.concatBytes))
 
   /** Decodes a message to a String */
   def decodeString[F[_]: Sync](msg: Message[F])(
@@ -200,20 +200,21 @@ trait EntityDecoderInstances {
       override def consumes: Set[MediaRange] = Set.empty
     }
 
-  implicit def binary[F[_]: Sync]: EntityDecoder[F, Segment[Byte, Unit]] =
+  implicit def binary[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary[F])
 
-  implicit def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
-    binary[F].map(_.force.toChunk)
+  @deprecated("Use `binary` instead", "0.19.0-M2")
+  def binaryChunk[F[_]: Sync]: EntityDecoder[F, Chunk[Byte]] =
+    binary[F]
 
   implicit def byteArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Byte]] =
-    binary.map(_.force.toArray)
+    binary.map(_.toArray)
 
   implicit def text[F[_]: Sync](
       implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[F, String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
-      collectBinary(msg).map(bs =>
-        new String(bs.force.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
+      collectBinary(msg).map(chunk =>
+        new String(chunk.toArray, msg.charset.getOrElse(defaultCharset).nioCharset)))
 
   implicit def charArrayDecoder[F[_]: Sync]: EntityDecoder[F, Array[Char]] =
     text.map(_.toArray)
