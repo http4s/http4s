@@ -1,13 +1,12 @@
 package org.http4s
 package server
 
+import cats.Functor
 import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 
 object Router {
-
-  import middleware.URITranslation.{translateRoot => translate}
 
   /**
     * Defines an HttpService based on list of mappings.
@@ -37,5 +36,20 @@ object Router {
             )(req)
           }
     }
+
+  private def translate[F[_]: Functor](prefix: String)(service: HttpService[F]): HttpService[F] = {
+    val newCaret = prefix match {
+      case "/" => 0
+      case x if x.startsWith("/") => x.length
+      case x => x.length + 1
+    }
+
+    service.local { req: Request[F] =>
+      val oldCaret = req.attributes
+        .get(Request.Keys.PathInfoCaret)
+        .getOrElse(0)
+      req.withAttribute(Request.Keys.PathInfoCaret(oldCaret + newCaret))
+    }
+  }
 
 }

@@ -4,6 +4,7 @@ package middleware
 
 import cats.Functor
 
+@deprecated("Use org.http4s.server.middleware.TranslateUri instead", since = "0.18.16")
 object URITranslation {
   def translateRoot[F[_]: Functor](prefix: String)(service: HttpService[F]): HttpService[F] = {
     val newCaret = prefix match {
