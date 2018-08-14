@@ -139,56 +139,60 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @return An effect of NextConnection
     */
   def borrow(key: RequestKey): F[NextConnection] =
-    if (!isClosed) {
-      def go(): F[NextConnection] =
-        semaphore.acquire *>
-          getConnectionFromQueue(key).flatMap {
-            case Some(conn) if !conn.isClosed =>
-              semaphore.release *>
+    F.asyncF { callback =>
+      semaphore.withPermit {
+        if (!isClosed) {
+          def go(): F[Unit] =
+            getConnectionFromQueue(key).flatMap {
+              case Some(conn) if !conn.isClosed =>
                 F.delay(logger.debug(s"Recycling connection: $stats")) *>
-                F.delay(NextConnection(conn, fresh = false))
+                  F.delay(callback(Right(NextConnection(conn, fresh = false))))
 
-            case Some(closedConn @ _) =>
-              F.delay(logger.debug(s"Evicting closed connection: $stats")) *>
-                decrConnection(key) *>
-                semaphore.release *>
-                go()
+              case Some(closedConn @ _) =>
+                F.delay(logger.debug(s"Evicting closed connection: $stats")) *>
+                  decrConnection(key) *>
+                  go()
 
-            case None if numConnectionsCheckHolds(key) =>
-              F.delay(logger.debug(s"Active connection not found. Creating new one. $stats")) *>
-                F.asyncF(createConnection(key, _) *> semaphore.release)
+              case None if numConnectionsCheckHolds(key) =>
+                F.delay(logger.debug(s"Active connection not found. Creating new one. $stats")) *>
+                  createConnection(key, callback)
 
-            case None if maxConnectionsPerRequestKey(key) <= 0 =>
-              semaphore.release *>
-                F.raiseError(NoConnectionAllowedException(key))
+              case None if maxConnectionsPerRequestKey(key) <= 0 =>
+                F.delay(callback(Left(NoConnectionAllowedException(key))))
 
-            case None if curTotal == maxTotal =>
-              val keys = idleQueues.keys
-              if (keys.nonEmpty) {
-                F.delay(logger.debug(
-                  s"No connections available for the desired key. Evicting random and creating a new connection: $stats")) *>
-                  F.delay(keys.iterator.drop(Random.nextInt(keys.size)).next()).flatMap { randKey =>
-                    getConnectionFromQueue(randKey).map(_.fold(logger.warn(
-                      s"No connection to evict from the idleQueue for $randKey"))(_.shutdown())) *>
-                      decrConnection(randKey)
-                  } *>
-                  F.asyncF(createConnection(key, _) *> semaphore.release)
+              case None if curTotal == maxTotal =>
+                val keys = idleQueues.keys
+                if (keys.nonEmpty) {
+                  F.delay(logger.debug(
+                    s"No connections available for the desired key. Evicting random and creating a new connection: $stats")) *>
+                    F.delay(keys.iterator.drop(Random.nextInt(keys.size)).next()).flatMap {
+                      randKey =>
+                        getConnectionFromQueue(randKey).map(
+                          _.fold(
+                            logger.warn(s"No connection to evict from the idleQueue for $randKey"))(
+                            _.shutdown())) *>
+                          decrConnection(randKey)
+                    } *>
+                    createConnection(key, callback)
 
-              } else {
-                F.delay(logger.debug(
-                  s"No connections available for the desired key. Adding to waitQueue: $stats")) *>
-                  F.asyncF(addToWaitQueue(key, _) *> semaphore.release)
-              }
+                } else {
+                  F.delay(logger.debug(
+                    s"No connections available for the desired key. Adding to waitQueue: $stats")) *>
+                    addToWaitQueue(key, callback)
+                }
 
-            case None => // we're full up. Add to waiting queue.
-              F.delay(logger.debug(s"No connections available.  Waiting on new connection: $stats")) *>
-                F.asyncF(addToWaitQueue(key, _) *> semaphore.release)
-          }
+              case None => // we're full up. Add to waiting queue.
+                F.delay(
+                  logger.debug(s"No connections available.  Waiting on new connection: $stats")) *>
+                  addToWaitQueue(key, callback)
+            }
 
-      F.delay(logger.debug(s"Requesting connection: $stats")) *>
-        go()
-    } else {
-      F.raiseError(new IllegalStateException("Connection pool is closed"))
+          F.delay(logger.debug(s"Requesting connection: $stats")) *>
+            go()
+        } else {
+          F.raiseError(new IllegalStateException("Connection pool is closed"))
+        }
+      }
     }
 
   private def releaseRecyclable(key: RequestKey, connection: A): F[Unit] =
