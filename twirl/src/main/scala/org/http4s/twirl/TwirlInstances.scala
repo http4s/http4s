@@ -3,7 +3,7 @@ package twirl
 
 import org.http4s.headers.`Content-Type`
 import org.http4s.MediaType
-import play.twirl.api._
+import _root_.play.twirl.api._
 
 trait TwirlInstances {
   implicit def htmlContentEncoder[F[_]](
