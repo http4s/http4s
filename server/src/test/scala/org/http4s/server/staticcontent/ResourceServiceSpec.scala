@@ -4,7 +4,7 @@ package staticcontent
 
 import cats.effect._
 import org.http4s.headers.{`Accept-Encoding`, `If-Modified-Since`}
-import org.http4s.server.middleware.URITranslation
+import org.http4s.server.middleware.TranslateUri
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
@@ -14,7 +14,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
   "ResourceService" should {
 
     "Respect UriTranslation" in {
-      val app = URITranslation.translateRoot("/foo")(routes).orNotFound
+      val app = TranslateUri("/foo")(routes).orNotFound
 
       {
         val req = Request[IO](uri = uri("foo/testresource.txt"))

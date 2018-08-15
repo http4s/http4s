@@ -5,7 +5,7 @@ package staticcontent
 import cats.effect._
 import fs2._
 import java.io.File
-import org.http4s.server.middleware.URITranslation
+import org.http4s.server.middleware.TranslateUri
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
   val routes = fileService(
@@ -14,7 +14,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
   "FileService" should {
 
     "Respect UriTranslation" in {
-      val app = URITranslation.translateRoot("/foo")(routes).orNotFound
+      val app = TranslateUri("/foo")(routes).orNotFound
 
       {
         val req = Request[IO](uri = uri("foo/testresource.txt"))
