@@ -37,7 +37,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
   protected def onParseFailure(
       parseFailure: ParseFailure,
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F],
+      bodyWriter: BodyWriter[F]
   ): F[Unit] = {
     val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
     renderResponse(response, servletResponse, bodyWriter, F.async(_ => ()))
@@ -47,7 +47,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
       response: Response[F],
       servletResponse: HttpServletResponse,
       bodyWriter: BodyWriter[F],
-      timeout: F[Unit],
+      timeout: F[Unit]
   ): F[Unit] =
     // Note: the servlet API gives us no undeprecated method to both set
     // a body and a status reason.  We sacrifice the status reason.
