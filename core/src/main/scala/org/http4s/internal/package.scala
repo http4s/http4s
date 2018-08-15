@@ -17,7 +17,8 @@ package object internal {
       timer: Timer[F]): F[A] =
     F.bracket(Async.shift[F](blockingExecutionContext))(_ => fa)(_ => timer.shift)
 
-  private[http4s] def loggingAsyncCallback[A](logger: Logger)(attempt: Either[Throwable, A]): IO[Unit] =
+  private[http4s] def loggingAsyncCallback[A](logger: Logger)(
+      attempt: Either[Throwable, A]): IO[Unit] =
     attempt match {
       case Left(e) => IO(logger.error(e)("Error in asynchronous callback"))
       case Right(_) => IO.unit

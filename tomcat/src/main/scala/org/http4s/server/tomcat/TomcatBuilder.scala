@@ -20,15 +20,15 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 sealed class TomcatBuilder[F[_]] private (
-  socketAddress: InetSocketAddress,
-  private val executionContext: ExecutionContext,
-  private val idleTimeout: Duration,
-  private val asyncTimeout: Duration,
-  private val servletIo: ServletIo[F],
-  sslBits: Option[KeyStoreBits],
-  mounts: Vector[Mount[F]],
-  private val serviceErrorHandler: ServiceErrorHandler[F],
-  banner: immutable.Seq[String]
+    socketAddress: InetSocketAddress,
+    private val executionContext: ExecutionContext,
+    private val idleTimeout: Duration,
+    private val asyncTimeout: Duration,
+    private val servletIo: ServletIo[F],
+    sslBits: Option[KeyStoreBits],
+    mounts: Vector[Mount[F]],
+    private val serviceErrorHandler: ServiceErrorHandler[F],
+    banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
     extends ServletContainer[F]
     with ServerBuilder[F]
