@@ -6,7 +6,7 @@ import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.http4s.internal.unsafeRunAsync
+import org.http4s.internal.{loggingAsyncCallback, unsafeRunAsync}
 import org.http4s.server._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -16,7 +16,7 @@ class AsyncHttp4sServlet[F[_]](
     asyncTimeout: Duration = Duration.Inf,
     implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
     private[this] var servletIo: ServletIo[F],
-    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
+    serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
 
@@ -70,16 +70,21 @@ class AsyncHttp4sServlet[F[_]](
       ctx: AsyncContext,
       request: Request[F],
       bodyWriter: BodyWriter[F]): F[Unit] = {
-    ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    // Note: We're catching silly user errors in the lift => flatten.
+    val timeout = F.async[Unit] { cb =>
+      ctx.addListener(new AsyncTimeoutHandler(cb))
+    }
     val response = Async.shift(executionContext) *>
       optionTSync
         .suspend(serviceFn(request))
         .getOrElse(Response.notFound)
         .recoverWith(serviceErrorHandler(request))
-
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    renderResponse(response, servletResponse, bodyWriter)
+    F.race(timeout, response).flatMap {
+      case Left(()) =>
+        renderResponse(Response.timeout[F], servletResponse, bodyWriter, F.never)
+      case Right(resp) =>
+        renderResponse(resp, servletResponse, bodyWriter, timeout)
+    }
   }
 
   private def errorHandler(
@@ -90,44 +95,28 @@ class AsyncHttp4sServlet[F[_]](
 
     case t: Throwable =>
       logger.error(t)("Error processing request")
-      val response = F.pure(Response[F](Status.InternalServerError))
+      val response = Response[F](Status.InternalServerError)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      unsafeRunAsync(renderResponse(response, servletResponse, NullBodyWriter)) { _ =>
-        IO {
+      val f = renderResponse(response, servletResponse, NullBodyWriter, F.unit) *>
+        F.delay(
           if (servletRequest.isAsyncStarted)
             servletRequest.getAsyncContext.complete()
-        }
-      }
+        )
+      unsafeRunAsync(f)(loggingAsyncCallback(logger))
   }
 
-  private class AsyncTimeoutHandler(request: Request[F], bodyWriter: BodyWriter[F])
-      extends AbstractAsyncListener {
+  private class AsyncTimeoutHandler(cb: Callback[Unit]) extends AbstractAsyncListener {
     override def onTimeout(event: AsyncEvent): Unit = {
-      val ctx = event.getAsyncContext
-      val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-      unsafeRunAsync {
-        if (!servletResponse.isCommitted) {
-          val response =
-            F.pure(
-              Response[F](Status.InternalServerError)
-                .withEntity("Service timed out."))
-          renderResponse(response, servletResponse, bodyWriter)
-        } else {
-          logger.warn(
-            s"Async context timed out, but response was already committed: ${request.method} ${request.uri.path}")
-          F.unit
-        }
-      } {
-        case Right(()) => IO(ctx.complete())
-        case Left(t) => IO(logger.error(t)("Error timing out async context")) *> IO(ctx.complete())
-      }
+      val req = event.getAsyncContext.getRequest.asInstanceOf[HttpServletRequest]
+      logger.info(s"Request timed out: ${req.getMethod} ${req.getServletPath}${req.getPathInfo}")
+      cb(Right(()))
     }
   }
 }
 
 object AsyncHttp4sServlet {
-  def apply[F[_]: Effect](
+  def apply[F[_]: ConcurrentEffect](
       service: HttpRoutes[F],
       asyncTimeout: Duration = Duration.Inf,
       executionContext: ExecutionContext = ExecutionContext.global): AsyncHttp4sServlet[F] =

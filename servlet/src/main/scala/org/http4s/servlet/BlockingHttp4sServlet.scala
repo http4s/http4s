@@ -3,6 +3,7 @@ package servlet
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
+import cats.data.OptionT
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import org.http4s.server._
@@ -12,6 +13,9 @@ class BlockingHttp4sServlet[F[_]](
     servletIo: BlockingServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
     extends Http4sServlet[F](service, servletIo) {
+
+  private[this] val optionTSync = Sync[OptionT[F, ?]]
+
   override def service(
       servletRequest: HttpServletRequest,
       servletResponse: HttpServletResponse): Unit =
@@ -33,14 +37,13 @@ class BlockingHttp4sServlet[F[_]](
   private def handleRequest(
       request: Request[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] = {
+      bodyWriter: BodyWriter[F]): F[Unit] =
     // Note: We're catching silly user errors in the lift => flatten.
-    val response = serviceFn(request)
+    optionTSync
+      .suspend(serviceFn(request))
       .getOrElse(Response.notFound)
       .recoverWith(serviceErrorHandler(request))
-
-    renderResponse(response, servletResponse, bodyWriter)
-  }
+      .flatMap(renderResponse(_, servletResponse, bodyWriter, F.never))
 
   private def errorHandler(servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
     case t: Throwable if servletResponse.isCommitted =>
@@ -48,10 +51,10 @@ class BlockingHttp4sServlet[F[_]](
 
     case t: Throwable =>
       logger.error(t)("Error processing request")
-      val response = F.pure(Response[F](Status.InternalServerError))
+      val response = Response[F](Status.InternalServerError)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      val render = renderResponse(response, servletResponse, NullBodyWriter)
+      val render = renderResponse(response, servletResponse, NullBodyWriter, F.never)
       F.runAsync(render)(_ => IO.unit).unsafeRunSync()
   }
 }

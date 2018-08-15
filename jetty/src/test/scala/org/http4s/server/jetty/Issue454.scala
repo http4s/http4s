@@ -3,13 +3,15 @@ package org.http4s
 package server
 package jetty
 
-import cats.effect.IO
+import cats.effect.{IO, Timer}
 import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
 import org.http4s.servlet.AsyncHttp4sServlet
 
 object Issue454 {
+  implicit val timer: Timer[IO] = Timer[IO]
+
   // If the bug is not triggered right away, try increasing or
   // repeating the request. Also if you decrease the data size (to
   // say 32mb, the bug does not manifest so often, but the stack
