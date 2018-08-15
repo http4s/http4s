@@ -624,16 +624,16 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Use standard blocking reads and writes." href="BlockingServletIo.html"><span class="name">BlockingServletIo</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$2">evidence$2: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Use standard blocking reads and writes." href="BlockingServletIo.html"><span class="name">BlockingServletIo</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$2">evidence$2: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.BlockingServletIo.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Use standard blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use standard blocking reads and writes.</p><p>This is more CPU efficient per request than <a href="NonBlockingServletIo.html" class="extype" name="org.http4s.servlet.NonBlockingServletIo">NonBlockingServletIo</a>, but is likely to
 require a larger request thread pool for the same load.
 </p></div></div>
     </li><li name="org.http4s.servlet.BodyWriter" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="BodyWriter[F[_]]=org.http4s.Response[F]=&gt;F[Unit]"></a><a id="BodyWriter[F[_]]:BodyWriter[F]"></a>
+      <a id="BodyWriter[F[_]]=(org.http4s.Response[F],F[Unit])=&gt;F[Unit]"></a><a id="BodyWriter[F[_]]:BodyWriter[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/index.html#BodyWriter[F[_]]=org.http4s.Response[F]=&gt;F[Unit]" title="Permalink">
+      <a href="../../../org/http4s/servlet/index.html#BodyWriter[F[_]]=(org.http4s.Response[F],F[Unit])=&gt;F[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -642,7 +642,7 @@ require a larger request thread pool for the same load.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">BodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>]) ⇒ <span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">BodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>], <span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]) ⇒ <span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -690,7 +690,7 @@ require a larger request thread pool for the same load.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a title="Use non-blocking reads and writes." href="NonBlockingServletIo.html"><span class="name">NonBlockingServletIo</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$3">evidence$3: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <a title="Use non-blocking reads and writes." href="NonBlockingServletIo.html"><span class="name">NonBlockingServletIo</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="evidence$3">evidence$3: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>]</span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a>[<span class="extype" name="org.http4s.servlet.NonBlockingServletIo.F">F</span>] with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       
       <p class="shortcomment cmt">Use non-blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.</p><p>This can support more concurrent connections on a smaller request thread pool than <a href="BlockingServletIo.html" class="extype" name="org.http4s.servlet.BlockingServletIo">BlockingServletIo</a>,
@@ -771,9 +771,9 @@ operationally annoying.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.servlet#NullBodyWriter" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NullBodyWriter[F[_]](implicitevidence$1:cats.Applicative[F]):org.http4s.servlet.package.BodyWriter[F]"></a><a id="NullBodyWriter[F[_]](Applicative[F]):BodyWriter[F]"></a>
+      <a id="NullBodyWriter[F[_]]:org.http4s.servlet.package.BodyWriter[F]"></a><a id="NullBodyWriter[F[_]]:BodyWriter[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/index.html#NullBodyWriter[F[_]](implicitevidence$1:cats.Applicative[F]):org.http4s.servlet.package.BodyWriter[F]" title="Permalink">
+      <a href="../../../org/http4s/servlet/index.html#NullBodyWriter[F[_]]:org.http4s.servlet.package.BodyWriter[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -782,7 +782,7 @@ operationally annoying.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">NullBodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.servlet.NullBodyWriter.F">F</span>]</span>)</span><span class="result">: <a href="#BodyWriter[F[_]]=org.http4s.Response[F]=&gt;F[Unit]" class="extmbr" name="org.http4s.servlet.BodyWriter">BodyWriter</a>[<span class="extype" name="org.http4s.servlet.NullBodyWriter.F">F</span>]</span>
+        <span class="name">NullBodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <a href="#BodyWriter[F[_]]=(org.http4s.Response[F],F[Unit])=&gt;F[Unit]" class="extmbr" name="org.http4s.servlet.BodyWriter">BodyWriter</a>[<span class="extype" name="org.http4s.servlet.NullBodyWriter.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
