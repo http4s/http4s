@@ -6,135 +6,198 @@ import cats.Applicative
 import org.http4s.Status._
 import org.http4s.headers.`Content-Length`
 
-trait Responses[F[_]] {
+trait Responses {
   import Responses._
 
-  implicit def http4sContinueSyntax(status: Continue.type): ContinueOps[F] =
-    new ContinueOps[F](status)
-  implicit def http4sSwitchingProtocolsSyntax(
-      status: SwitchingProtocols.type): SwitchingProtocolsOps[F] =
-    new SwitchingProtocolsOps[F](status)
-  implicit def http4sOkSyntax(status: Ok.type): OkOps[F] = new OkOps[F](status)
+  implicit class http4sContinueSyntax(status: Continue.type) {
+    def apply[F[_]]: ContinueOps[F] = new ContinueOps[F](status)
+  }
+  implicit class http4sSwitchingProtocolsSyntax(status: SwitchingProtocols.type) {
+    def apply[F[_]]: SwitchingProtocolsOps[F] = new SwitchingProtocolsOps[F](status)
+  }
+  implicit class http4sOkSyntax(status: Ok.type) {
+    def apply[F[_]]: OkOps[F] = new OkOps[F](status)
+  }
+  implicit class http4sCreatedSyntax(status: Created.type) {
+    def apply[F[_]]: CreatedOps[F] = new CreatedOps[F](status)
+  }
+  implicit class http4sAcceptedSyntax(status: Accepted.type) {
+    def apply[F[_]]: AcceptedOps[F] = new AcceptedOps[F](status)
+  }
+  implicit class http4sNonAuthoritativeInformationSyntax(
+      status: NonAuthoritativeInformation.type) {
+    def apply[F[_]]: NonAuthoritativeInformationOps[F] = new NonAuthoritativeInformationOps[F](status)
+  }
+  implicit class http4sNoContentSyntax(status: NoContent.type) {
+    def apply[F[_]]: NoContentOps[F] = new NoContentOps[F](status)
+  }
+  implicit class http4sResetContentSyntax(status: ResetContent.type) {
+    def apply[F[_]]: ResetContentOps[F] = new ResetContentOps[F](status)
+  }
+  implicit class http4sPartialContentSyntax(status: PartialContent.type) {
+    def apply[F[_]]: PartialContentOps[F] = new PartialContentOps[F](status)
+  }
+  implicit class http4sMultiStatusSyntax(status: Status.MultiStatus.type) {
+    def apply[F[_]]: MultiStatusOps[F] = new MultiStatusOps[F](status)
+  }
+  implicit class http4sAlreadyReportedSyntax(status: AlreadyReported.type) {
+    def apply[F[_]]: AlreadyReportedOps[F] = new AlreadyReportedOps[F](status)
+  }
+  implicit class http4sIMUsedSyntax(status: IMUsed.type) {
+    def apply[F[_]]: IMUsedOps[F] = new IMUsedOps[F](status)
+  }
 
-  implicit def http4sCreatedSyntax(status: Created.type): CreatedOps[F] = new CreatedOps[F](status)
-  implicit def http4sAcceptedSyntax(status: Accepted.type): AcceptedOps[F] =
-    new AcceptedOps[F](status)
-  implicit def http4sNonAuthoritativeInformationSyntax(
-      status: NonAuthoritativeInformation.type): NonAuthoritativeInformationOps[F] =
-    new NonAuthoritativeInformationOps[F](status)
-  implicit def http4sNoContentSyntax(status: NoContent.type): NoContentOps[F] =
-    new NoContentOps[F](status)
-  implicit def http4sResetContentSyntax(status: ResetContent.type): ResetContentOps[F] =
-    new ResetContentOps[F](status)
-  implicit def http4sPartialContentSyntax(status: PartialContent.type): PartialContentOps[F] =
-    new PartialContentOps[F](status)
-  implicit def http4sMultiStatusSyntax(status: Status.MultiStatus.type): MultiStatusOps[F] =
-    new MultiStatusOps[F](status)
-  implicit def http4sAlreadyReportedSyntax(status: AlreadyReported.type): AlreadyReportedOps[F] =
-    new AlreadyReportedOps[F](status)
-  implicit def http4sIMUsedSyntax(status: IMUsed.type): IMUsedOps[F] = new IMUsedOps[F](status)
+  implicit class http4sMultipleChoicesSyntax(status: MultipleChoices.type) {
+    def apply[F[_]]: MultipleChoicesOps[F] = new MultipleChoicesOps[F](status)
+  }
+  implicit class http4sMovedPermanentlySyntax(status: MovedPermanently.type) {
+    def apply[F[_]]: MovedPermanentlyOps[F] = new MovedPermanentlyOps[F](status)
+  }
+  implicit class http4sFoundSyntax(status: Found.type) {
+    def apply[F[_]]: FoundOps[F] = new FoundOps[F](status)
+  }
+  implicit class http4sSeeOtherSyntax(status: SeeOther.type) {
+    def apply[F[_]]: SeeOtherOps[F] = new SeeOtherOps[F](status)
+  }
+  implicit class http4sNotModifiedSyntax(status: NotModified.type) {
+    def apply[F[_]]: NotModifiedOps[F] = new NotModifiedOps[F](status)
+  }
+  implicit class http4sTemporaryRedirectSyntax(
+      status: TemporaryRedirect.type) {
+    def apply[F[_]]: TemporaryRedirectOps[F] = new TemporaryRedirectOps[F](status)
+  }
+  implicit class http4sPermanentRedirectSyntax(
+      status: PermanentRedirect.type) {
+    def apply[F[_]]: PermanentRedirectOps[F] = new PermanentRedirectOps[F](status)
+  }
 
-  implicit def http4sMultipleChoicesSyntax(status: MultipleChoices.type): MultipleChoicesOps[F] =
-    new MultipleChoicesOps[F](status)
-  implicit def http4sMovedPermanentlySyntax(status: MovedPermanently.type): MovedPermanentlyOps[F] =
-    new MovedPermanentlyOps[F](status)
-  implicit def http4sFoundSyntax(status: Found.type): FoundOps[F] = new FoundOps[F](status)
-  implicit def http4sSeeOtherSyntax(status: SeeOther.type): SeeOtherOps[F] =
-    new SeeOtherOps[F](status)
-  implicit def http4sNotModifiedSyntax(status: NotModified.type): NotModifiedOps[F] =
-    new NotModifiedOps[F](status)
-  implicit def http4sTemporaryRedirectSyntax(
-      status: TemporaryRedirect.type): TemporaryRedirectOps[F] = new TemporaryRedirectOps[F](status)
-  implicit def http4sPermanentRedirectSyntax(
-      status: PermanentRedirect.type): PermanentRedirectOps[F] = new PermanentRedirectOps[F](status)
+  implicit class http4sBadRequestSyntax(status: BadRequest.type) {
+    def apply[F[_]]: BadRequestOps[F] = new BadRequestOps[F](status)
+  }
+  implicit class http4sUnauthorizedSyntax(status: Unauthorized.type) {
+    def apply[F[_]]: UnauthorizedOps[F] = new UnauthorizedOps[F](status)
+  }
+  implicit class http4sPaymentRequiredSyntax(status: PaymentRequired.type) {
+    def apply[F[_]]: PaymentRequiredOps[F] = new PaymentRequiredOps[F](status)
+  }
+  implicit class http4sForbiddenSyntax(status: Forbidden.type) {
+    def apply[F[_]]: ForbiddenOps[F] = new ForbiddenOps[F](status)
+  }
+  implicit class http4sNotFoundSyntax(status: NotFound.type) {
+    def apply[F[_]]: NotFoundOps[F] = new NotFoundOps[F](status)
+  }
+  implicit class http4sMethodNotAllowedSyntax(status: MethodNotAllowed.type) {
+    def apply[F[_]]: MethodNotAllowedOps[F] = new MethodNotAllowedOps[F](status)
+  }
+  implicit class http4sNotAcceptableSyntax(status: NotAcceptable.type) {
+    def apply[F[_]]: NotAcceptableOps[F] = new NotAcceptableOps[F](status)
+  }
+  implicit class http4sProxyAuthenticationRequiredSyntax(
+      status: ProxyAuthenticationRequired.type) {
+    def apply[F[_]]: ProxyAuthenticationRequiredOps[F] = new ProxyAuthenticationRequiredOps[F](status)
+  }
+  implicit class http4sRequestTimeoutSyntax(status: RequestTimeout.type) {
+    def apply[F[_]]: RequestTimeoutOps[F] = new RequestTimeoutOps[F](status)
+  }
+  implicit class http4sConflictSyntax(status: Conflict.type) {
+    def apply[F[_]]: ConflictOps[F] = new ConflictOps[F](status)
+  }
+  implicit class http4sGoneSyntax(status: Gone.type) {
+    def apply[F[_]]: GoneOps[F] = new GoneOps[F](status)
+  }
+  implicit class http4sLengthRequiredSyntax(status: LengthRequired.type) {
+    def apply[F[_]]: LengthRequiredOps[F] = new LengthRequiredOps[F](status)
+  }
+  implicit class http4sPreconditionFailedSyntax(
+      status: PreconditionFailed.type) {
+    def apply[F[_]]: PreconditionFailedOps[F] = new PreconditionFailedOps[F](status)
+  }
+  implicit class http4sPayloadTooLargeSyntax(status: PayloadTooLarge.type) {
+    def apply[F[_]]: PayloadTooLargeOps[F] = new PayloadTooLargeOps[F](status)
+  }
+  implicit class http4sUriTooLongSyntax(status: UriTooLong.type) {
+    def apply[F[_]]: UriTooLongOps[F] = new UriTooLongOps[F](status)
+  }
+  implicit class http4sUnsupportedMediaTypeSyntax(
+      status: UnsupportedMediaType.type) {
+    def apply[F[_]]: UnsupportedMediaTypeOps[F] = new UnsupportedMediaTypeOps[F](status)
+  }
+  implicit class http4sRangeNotSatisfiableSyntax(
+      status: RangeNotSatisfiable.type) {
+    def apply[F[_]]: RangeNotSatisfiableOps[F] = new RangeNotSatisfiableOps[F](status)
+  }
+  implicit class http4sExpectationFailedSyntax(
+      status: ExpectationFailed.type) {
+    def apply[F[_]]: ExpectationFailedOps[F] = new ExpectationFailedOps[F](status)
+  }
+  implicit class http4sUnprocessableEntitySyntax(
+      status: UnprocessableEntity.type) {
+    def apply[F[_]]: UnprocessableEntityOps[F] = new UnprocessableEntityOps[F](status)
+  }
+  implicit class http4sLockedSyntax(status: Locked.type) {
+    def apply[F[_]]: LockedOps[F] = new LockedOps[F](status)
+  }
+  implicit class http4sFailedDependencySyntax(status: FailedDependency.type) {
+    def apply[F[_]]: FailedDependencyOps[F] = new FailedDependencyOps[F](status)
+  }
+  implicit class http4sUpgradeRequiredSyntax(status: UpgradeRequired.type) {
+    def apply[F[_]]: UpgradeRequiredOps[F] = new UpgradeRequiredOps[F](status)
+  }
+  implicit class http4sPreconditionRequiredSyntax(
+      status: PreconditionRequired.type) {
+    def apply[F[_]]: PreconditionRequiredOps[F] = new PreconditionRequiredOps[F](status)
+  }
+  implicit class http4sTooManyRequestsSyntax(status: TooManyRequests.type) {
+    def apply[F[_]]: TooManyRequestsOps[F] = new TooManyRequestsOps[F](status)
+  }
+  implicit class http4sRequestHeaderFieldsTooLargeSyntax(
+      status: RequestHeaderFieldsTooLarge.type) {
+    def apply[F[_]]: RequestHeaderFieldsTooLargeOps[F] = new RequestHeaderFieldsTooLargeOps[F](status)
+  }
+  implicit class http4sUnavailableForLegalReasonsSyntax(
+      status: UnavailableForLegalReasons.type) {
+    def apply[F[_]]: UnavailableForLegalReasonsOps[F] = new UnavailableForLegalReasonsOps[F](status)
+  }
 
-  implicit def http4sBadRequestSyntax(status: BadRequest.type): BadRequestOps[F] =
-    new BadRequestOps[F](status)
-  implicit def http4sUnauthorizedSyntax(status: Unauthorized.type): UnauthorizedOps[F] =
-    new UnauthorizedOps[F](status)
-  implicit def http4sPaymentRequiredSyntax(status: PaymentRequired.type): PaymentRequiredOps[F] =
-    new PaymentRequiredOps[F](status)
-  implicit def http4sForbiddenSyntax(status: Forbidden.type): ForbiddenOps[F] =
-    new ForbiddenOps[F](status)
-  implicit def http4sNotFoundSyntax(status: NotFound.type): NotFoundOps[F] =
-    new NotFoundOps[F](status)
-  implicit def http4sMethodNotAllowedSyntax(status: MethodNotAllowed.type): MethodNotAllowedOps[F] =
-    new MethodNotAllowedOps[F](status)
-  implicit def http4sNotAcceptableSyntax(status: NotAcceptable.type): NotAcceptableOps[F] =
-    new NotAcceptableOps[F](status)
-  implicit def http4sProxyAuthenticationRequiredSyntax(
-      status: ProxyAuthenticationRequired.type): ProxyAuthenticationRequiredOps[F] =
-    new ProxyAuthenticationRequiredOps[F](status)
-  implicit def http4sRequestTimeoutSyntax(status: RequestTimeout.type): RequestTimeoutOps[F] =
-    new RequestTimeoutOps[F](status)
-  implicit def http4sConflictSyntax(status: Conflict.type): ConflictOps[F] =
-    new ConflictOps[F](status)
-  implicit def http4sGoneSyntax(status: Gone.type): GoneOps[F] = new GoneOps[F](status)
-  implicit def http4sLengthRequiredSyntax(status: LengthRequired.type): LengthRequiredOps[F] =
-    new LengthRequiredOps[F](status)
-  implicit def http4sPreconditionFailedSyntax(
-      status: PreconditionFailed.type): PreconditionFailedOps[F] =
-    new PreconditionFailedOps[F](status)
-  implicit def http4sPayloadTooLargeSyntax(status: PayloadTooLarge.type): PayloadTooLargeOps[F] =
-    new PayloadTooLargeOps[F](status)
-  implicit def http4sUriTooLongSyntax(status: UriTooLong.type): UriTooLongOps[F] =
-    new UriTooLongOps[F](status)
-  implicit def http4sUnsupportedMediaTypeSyntax(
-      status: UnsupportedMediaType.type): UnsupportedMediaTypeOps[F] =
-    new UnsupportedMediaTypeOps[F](status)
-  implicit def http4sRangeNotSatisfiableSyntax(
-      status: RangeNotSatisfiable.type): RangeNotSatisfiableOps[F] =
-    new RangeNotSatisfiableOps[F](status)
-  implicit def http4sExpectationFailedSyntax(
-      status: ExpectationFailed.type): ExpectationFailedOps[F] = new ExpectationFailedOps[F](status)
-  implicit def http4sUnprocessableEntitySyntax(
-      status: UnprocessableEntity.type): UnprocessableEntityOps[F] =
-    new UnprocessableEntityOps[F](status)
-  implicit def http4sLockedSyntax(status: Locked.type): LockedOps[F] = new LockedOps[F](status)
-  implicit def http4sFailedDependencySyntax(status: FailedDependency.type): FailedDependencyOps[F] =
-    new FailedDependencyOps[F](status)
-  implicit def http4sUpgradeRequiredSyntax(status: UpgradeRequired.type): UpgradeRequiredOps[F] =
-    new UpgradeRequiredOps[F](status)
-  implicit def http4sPreconditionRequiredSyntax(
-      status: PreconditionRequired.type): PreconditionRequiredOps[F] =
-    new PreconditionRequiredOps[F](status)
-  implicit def http4sTooManyRequestsSyntax(status: TooManyRequests.type): TooManyRequestsOps[F] =
-    new TooManyRequestsOps[F](status)
-  implicit def http4sRequestHeaderFieldsTooLargeSyntax(
-      status: RequestHeaderFieldsTooLarge.type): RequestHeaderFieldsTooLargeOps[F] =
-    new RequestHeaderFieldsTooLargeOps[F](status)
-  implicit def http4sUnavailableForLegalReasonsSyntax(
-      status: UnavailableForLegalReasons.type): UnavailableForLegalReasonsOps[F] =
-    new UnavailableForLegalReasonsOps[F](status)
-
-  implicit def http4sInternalServerErrorSyntax(
-      status: InternalServerError.type): InternalServerErrorOps[F] =
-    new InternalServerErrorOps[F](status)
-  implicit def http4sNotImplementedSyntax(status: NotImplemented.type): NotImplementedOps[F] =
-    new NotImplementedOps[F](status)
-  implicit def http4sBadGatewaySyntax(status: BadGateway.type): BadGatewayOps[F] =
-    new BadGatewayOps[F](status)
-  implicit def http4sServiceUnavailableSyntax(
-      status: ServiceUnavailable.type): ServiceUnavailableOps[F] =
-    new ServiceUnavailableOps[F](status)
-  implicit def http4sGatewayTimeoutSyntax(status: GatewayTimeout.type): GatewayTimeoutOps[F] =
-    new GatewayTimeoutOps[F](status)
-  implicit def http4sHttpVersionNotSupportedSyntax(
-      status: HttpVersionNotSupported.type): HttpVersionNotSupportedOps[F] =
-    new HttpVersionNotSupportedOps[F](status)
-  implicit def http4sVariantAlsoNegotiatesSyntax(
-      status: VariantAlsoNegotiates.type): VariantAlsoNegotiatesOps[F] =
-    new VariantAlsoNegotiatesOps[F](status)
-  implicit def http4sInsufficientStorageSyntax(
-      status: InsufficientStorage.type): InsufficientStorageOps[F] =
-    new InsufficientStorageOps[F](status)
-  implicit def http4sLoopDetectedSyntax(status: LoopDetected.type): LoopDetectedOps[F] =
-    new LoopDetectedOps[F](status)
-  implicit def http4sNotExtendedSyntax(status: NotExtended.type): NotExtendedOps[F] =
-    new NotExtendedOps[F](status)
-  implicit def http4sNetworkAuthenticationRequiredSyntax(
-      status: NetworkAuthenticationRequired.type): NetworkAuthenticationRequiredOps[F] =
-    new NetworkAuthenticationRequiredOps[F](status)
+  implicit class http4sInternalServerErrorSyntax(
+      status: InternalServerError.type) {
+    def apply[F[_]]: InternalServerErrorOps[F] = new InternalServerErrorOps[F](status)
+  }
+  implicit class http4sNotImplementedSyntax(status: NotImplemented.type) {
+    def apply[F[_]]: NotImplementedOps[F] = new NotImplementedOps[F](status)
+  }
+  implicit class http4sBadGatewaySyntax(status: BadGateway.type) {
+    def apply[F[_]]: BadGatewayOps[F] = new BadGatewayOps[F](status)
+  }
+  implicit class http4sServiceUnavailableSyntax(
+      status: ServiceUnavailable.type) {
+    def apply[F[_]]: ServiceUnavailableOps[F] = new ServiceUnavailableOps[F](status)
+  }
+  implicit class http4sGatewayTimeoutSyntax(status: GatewayTimeout.type) {
+    def apply[F[_]]: GatewayTimeoutOps[F] = new GatewayTimeoutOps[F](status)
+  }
+  implicit class http4sHttpVersionNotSupportedSyntax(
+      status: HttpVersionNotSupported.type) {
+    def apply[F[_]]: HttpVersionNotSupportedOps[F] = new HttpVersionNotSupportedOps[F](status)
+  }
+  implicit class http4sVariantAlsoNegotiatesSyntax(
+      status: VariantAlsoNegotiates.type) {
+    def apply[F[_]]: VariantAlsoNegotiatesOps[F] = new VariantAlsoNegotiatesOps[F](status)
+  }
+  implicit class http4sInsufficientStorageSyntax(
+      status: InsufficientStorage.type) {
+    def apply[F[_]]: InsufficientStorageOps[F] = new InsufficientStorageOps[F](status)
+  }
+  implicit class http4sLoopDetectedSyntax(status: LoopDetected.type) {
+    def apply[F[_]]: LoopDetectedOps[F] = new LoopDetectedOps[F](status)
+  }
+  implicit class http4sNotExtendedSyntax(status: NotExtended.type) {
+    def apply[F[_]]: NotExtendedOps[F] = new NotExtendedOps[F](status)
+  }
+  implicit class http4sNetworkAuthenticationRequiredSyntax(
+      status: NetworkAuthenticationRequired.type) {
+    def apply[F[_]]: NetworkAuthenticationRequiredOps[F] = new NetworkAuthenticationRequiredOps[F](status)
+  }
 }
 
 object Responses {
