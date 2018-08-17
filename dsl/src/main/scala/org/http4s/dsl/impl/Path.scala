@@ -286,14 +286,7 @@ abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name:
   def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, List[T]]] =
     params.get(name) match {
       case Some(values) =>
-        val parses: Seq[ValidatedNel[ParseFailure, T]] =
-          values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
-        val parsed: ValidatedNel[ParseFailure, Seq[T]] =
-          parses.foldLeft(Valid(Seq[T]()): ValidatedNel[ParseFailure, Seq[T]]) {
-            case (acc, Valid(a)) => acc.map(_ :+ a)
-            case (_, Invalid(f)) => Invalid(f)
-          }
-        Some(parsed.map(_.toList))
+        Some(values.toList.traverse(s => QueryParamDecoder[T].decode(QueryParameterValue(s))))
       case None => Some(Valid(Nil)) // absent
     }
 }

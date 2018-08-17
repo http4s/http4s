@@ -3,8 +3,7 @@ package dsl
 
 import cats.data.Validated._
 import cats.effect.IO
-import cats.instances.string._
-import cats.syntax.foldable._
+import cats.implicits._
 import org.http4s.dsl.io._
 
 object PathInHttpRoutesSpec extends Http4sSpec {
@@ -66,7 +65,7 @@ object PathInHttpRoutesSpec extends Http4sSpec {
       counters match {
         case Valid(cs @ (_ :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
         case Valid(Nil) => Ok("absent")
-        case Invalid(_) => BadRequest()
+        case Invalid(errors) => BadRequest(errors.toList.map(_.details).mkString("\n"))
       }
     case r =>
       NotFound(s"404 Not Found: ${r.pathInfo}")
@@ -225,7 +224,15 @@ object PathInHttpRoutesSpec extends Http4sSpec {
         Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=foo"))))
       response2.status must_== (BadRequest)
     }
-
+    "optional multi parameter with two incorrect parameters must return both" in {
+      val response = serve(
+        Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo&counter=bar"))))
+      response.status must_== (BadRequest)
+      response.as[String].map(_.split("\n").toList) must returnValue(
+        scala.List(
+          """For input string: "foo"""",
+          """For input string: "bar""""
+        ))
+    }
   }
-
 }
