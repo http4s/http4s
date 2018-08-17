@@ -1,7 +1,7 @@
 package org.http4s
 
 import cats._
-import cats.effect.Sync
+import cats.effect.{ContextShift, Effect, Sync}
 import cats.implicits._
 import fs2._
 import fs2.Stream._
@@ -12,6 +12,7 @@ import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
+import scala.concurrent.ExecutionContext
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
@@ -149,22 +150,22 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
       Entity(body, None)
     }
 
-//  // TODO parameterize chunk size
-//  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder[F[_]](implicit F: Sync[F]): EntityEncoder[F, File] =
+  // TODO parameterize chunk size
+  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  implicit def fileEncoder[F[_]](implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
     filePathEncoder[F].contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def filePathEncoder[F[_]: Sync]: EntityEncoder[F, Path] =
+  implicit def filePathEncoder[F[_]: Effect: ContextShift]: EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(file.readAll[F](p, 4096)) //2 KB :P
+      Entity(file.readAllAsync[F](p, 4096)) //2 KB :P
     }
 
   // TODO parameterize chunk size
-  implicit def inputStreamEncoder[F[_]: Sync, IS <: InputStream]: EntityEncoder[F, F[IS]] =
+  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](blockingExecutionContext: ExecutionContext): EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { in: F[IS] =>
-      readInputStream[F](in.widen[InputStream], DefaultChunkSize)
+      readInputStream[F](in.widen[InputStream], DefaultChunkSize, blockingExecutionContext)
     }
 
   // TODO parameterize chunk size
