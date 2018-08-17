@@ -86,6 +86,33 @@
 ordered chronologically, so each release contains all changes described below
 it.</p>
 
+<h1 id="v0-19-0-m2-snapshot">v0.19.0-M2-SNAPSHOT</h1>
+
+<ul>
+<li>Add <code>UUIDVar</code> path extractor <a href="https://github.com/http4s/pull/1953">#1953</a></li>
+<li>Don&rsquo;t build <code>SSLContext</code> where not required in blaze-client <a href="https://github.com/http4s/http4s/pull/1956">#1956</a></li>
+<li>Add new <code>prometheus-client-metrics</code> module <a href="https://github.com/http4s/http4s/pull/1961">#1961</a></li>
+<li>Add <code>onClose</code> action in <code>WebSocketBuilder</code> <a href="https://github.com/phttp4s/http4s/pull/1973">#1973</a></li>
+<li>Add new <code>client-metrics</code> module for Dropwizard client metrics <a href="https://github.com/http4s/http4s/pull/1974">#1974</a></li>
+<li>Cancel requests on servlet backend when <code>AsyncTimeoutHandler.onTimeout</code> fires. Jetty and Tomcat now require a <code>ConcurrentEffect</code>. <a href="https://github.com/http4s/http4s/pull/1802">#1802</a></li>
+<li>Internal refactoring of the client <code>ConnectionManager</code>.  No API changes, but worth mentioning. <a href="https://github.com/http4s/http4s/pull/1934">#1934</a></li>
+<li>Dependency upgrades:
+
+<ul>
+<li>async-http-client-2.5.2</li>
+<li>jawn-fs2-0.13.0-M1</li>
+<li>jawn-json4s-0.12.2</li>
+<li>jawn-play-0.12.2</li>
+<li>json4s-3.6.0</li>
+</ul></li>
+</ul>
+
+<h1 id="v0-18-17-snapshot">v0.18.17-SNAPSHOT</h1>
+
+<ul>
+<li>Accumulate errors in <code>OptionalMultiQueryParamDecoderMatcher</code> <a href="https://github.com/http4s/pull/2000">#2000</a></li>
+</ul>
+
 <h1 id="v0-18-16-2018-08-14">v0.18.16 (2018-08-14)</h1>
 
 <ul>
