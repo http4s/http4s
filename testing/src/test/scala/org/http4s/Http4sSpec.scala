@@ -48,7 +48,7 @@ trait Http4sSpec
 
   implicit val params = Parameters(maxSize = 20)
 
-  implicit val timer = Timer[IO]
+  implicit val timer: Timer[IO] = IO.timer(testExecutionContext)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -63,9 +63,6 @@ trait Http4sSpec
           Chunk.bytes(b)
         }
     }
-
-  implicit def arbitrarySegment: Arbitrary[Segment[Byte, Unit]] =
-    Arbitrary(arbitraryByteChunk.arbitrary.map(Segment.chunk))
 
   def writeToString[A](a: A)(implicit W: EntityEncoder[IO, A]): String =
     Stream

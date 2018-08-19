@@ -3,12 +3,13 @@ package testing
 
 import cats.implicits._
 import cats.effect._
+import cats.effect.implicits._
 import cats.effect.laws.util.TestContext
 import org.http4s.headers.{`Content-Length`, `Transfer-Encoding`}
 import org.scalacheck.{Arbitrary, Prop, Shrink}
 import org.typelevel.discipline.Laws
 
-trait EntityEncoderLaws[F[_], A] extends ToIOSyntax {
+trait EntityEncoderLaws[F[_], A] {
   implicit def effect: Effect[F]
   implicit def encoder: EntityEncoder[F, A]
 
