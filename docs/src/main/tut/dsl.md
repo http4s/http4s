@@ -284,7 +284,7 @@ values. By extension, you can also `match/case` it with different possible
 destructurings. To build these different extractors, you can make use of the
 DSL.
 
-### The `~>` object
+### The `->` object
 
 More often, you extract the `Request` into a HTTP `Method` and path
 info via the `->` object.  On the left side is the method, and on the
