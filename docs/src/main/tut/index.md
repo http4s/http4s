@@ -11,7 +11,7 @@ This is enabled by default in the giter8 template.
 
 Getting started with http4s is easy.
 
-To add http4s to an existing project add these dependencies to your `build.sbt`:
+To add http4s to an existing project, add these dependencies to your `build.sbt`:
 ```scala
 
 val http4sVersion = "{{< version "http4s.doc" >}}"
