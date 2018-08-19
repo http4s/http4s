@@ -8,7 +8,7 @@ import java.util
 import javax.net.ssl.SSLContext
 import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
-import org.eclipse.jetty.server.{ServerConnector, Server => JServer, _}
+import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
@@ -135,22 +135,11 @@ sealed class JettyBuilder[F[_]] private (
     copy(banner = banner)
 
   private def getConnector(jetty: JServer): ServerConnector = {
-    def serverConnector(sslContextFactory: SslContextFactory) = {
-      // SSL HTTP Configuration
-      val https_config = new HttpConfiguration()
-
-      https_config.setSecureScheme("https")
-      https_config.setSecurePort(socketAddress.getPort)
-      https_config.addCustomizer(new SecureRequestCustomizer())
-
-      val connectionFactory = new HttpConnectionFactory(https_config)
+    def httpsConnector(sslContextFactory: SslContextFactory) =
       new ServerConnector(
         jetty,
-        new SslConnectionFactory(
-          sslContextFactory,
-          org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
-        connectionFactory)
-    }
+        sslContextFactory
+      )
 
     sslBits match {
       case Some(KeyStoreBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)) =>
@@ -167,18 +156,17 @@ sealed class JettyBuilder[F[_]] private (
           sslContextFactory.setTrustStorePassword(trustManagerBits.password)
         }
 
-        serverConnector(sslContextFactory)
+        httpsConnector(sslContextFactory)
 
       case Some(SSLContextBits(sslContext, clientAuth)) =>
         val sslContextFactory = new SslContextFactory()
         sslContextFactory.setSslContext(sslContext)
         sslContextFactory.setNeedClientAuth(clientAuth)
 
-        serverConnector(sslContextFactory)
+        httpsConnector(sslContextFactory)
 
       case None =>
-        val connectionFactory = new HttpConnectionFactory
-        new ServerConnector(jetty, connectionFactory)
+        new ServerConnector(jetty)
     }
   }
 
