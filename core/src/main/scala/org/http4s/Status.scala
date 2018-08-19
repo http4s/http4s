@@ -100,7 +100,7 @@ object Status {
       status <- Option(registry.get(code)).map(_.right.get)
     } yield status
 
-  def register(status: Status): status.type = {
+  private def register(status: Status): status.type = {
     registry.set(status.code, Right(status))
     status
   }
