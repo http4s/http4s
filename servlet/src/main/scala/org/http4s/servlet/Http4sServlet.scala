@@ -37,35 +37,33 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
   protected def onParseFailure(
       parseFailure: ParseFailure,
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] = {
-    val response =
-      F.pure(
-        Response[F](Status.BadRequest)
-          .withEntity(parseFailure.sanitized))
-    renderResponse(response, servletResponse, bodyWriter)
+      bodyWriter: BodyWriter[F]
+  ): F[Unit] = {
+    val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
+    renderResponse(response, servletResponse, bodyWriter, F.async(_ => ()))
   }
 
   protected def renderResponse(
-      response: F[Response[F]],
+      response: Response[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F]): F[Unit] =
-    response.flatMap { resp =>
-      // Note: the servlet API gives us no undeprecated method to both set
-      // a body and a status reason.  We sacrifice the status reason.
-      F.delay {
-          servletResponse.setStatus(resp.status.code)
-          for (header <- resp.headers if header.isNot(`Transfer-Encoding`))
-            servletResponse.addHeader(header.name.toString, header.value)
-        }
-        .attempt
-        .flatMap {
-          case Right(()) => bodyWriter(resp)
-          case Left(t) =>
-            resp.body.drain.compile.drain.handleError {
-              case t2 => logger.error(t2)("Error draining body")
-            } *> F.raiseError(t)
-        }
-    }
+      bodyWriter: BodyWriter[F],
+      timeout: F[Unit]
+  ): F[Unit] =
+    // Note: the servlet API gives us no undeprecated method to both set
+    // a body and a status reason.  We sacrifice the status reason.
+    F.delay {
+        servletResponse.setStatus(response.status.code)
+        for (header <- response.headers if header.isNot(`Transfer-Encoding`))
+          servletResponse.addHeader(header.name.toString, header.value)
+      }
+      .attempt
+      .flatMap {
+        case Right(()) => bodyWriter(response, timeout)
+        case Left(t) =>
+          response.body.drain.compile.drain.handleError {
+            case t2 => logger.error(t2)("Error draining body")
+          } *> F.raiseError(t)
+      }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request[F]] =
     for {

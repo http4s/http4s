@@ -14,8 +14,11 @@ trait ServletContextSyntax {
 
 final class ServletContextOps private[syntax] (val self: ServletContext) extends AnyVal {
 
-  /** Wraps an [[HttpRoutes]] and mounts it as a servlet */
-  def mountService[F[_]: Effect](name: String, service: HttpRoutes[F], mapping: String = "/*")(
+  /** Wraps an [[HttpRoutes]] and mounts it as an [[AsyncHttp4sServlet]] */
+  def mountService[F[_]: ConcurrentEffect](
+      name: String,
+      service: HttpRoutes[F],
+      mapping: String = "/*")(
       implicit ec: ExecutionContext = ExecutionContext.global): ServletRegistration.Dynamic = {
     val servlet = new AsyncHttp4sServlet(
       service = service,

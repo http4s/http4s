@@ -20,7 +20,10 @@ object StaticFile {
 
   val DefaultBufferSize = 10240
 
-  def fromString[F[_]: Sync: ContextShift](url: String, blockingExecutionContext: ExecutionContext, req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+  def fromString[F[_]: Sync: ContextShift](
+      url: String,
+      blockingExecutionContext: ExecutionContext,
+      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(new File(url), blockingExecutionContext, req)
 
   def fromResource[F[_]: Sync: ContextShift](
@@ -44,13 +47,20 @@ object StaticFile {
         val contentType = nameToContentType(name)
         val headers = `Content-Encoding`(ContentCoding.gzip) :: contentType.toList
 
-        fromURL(url, blockingExecutionContext, req).map(_.removeHeader(`Content-Type`).putHeaders(headers: _*))
+        fromURL(url, blockingExecutionContext, req).map(
+          _.removeHeader(`Content-Type`).putHeaders(headers: _*))
       }
-      .orElse(OptionT.fromOption[F](Option(getClass.getResource(name))).flatMap(fromURL(_, blockingExecutionContext, req)))
+      .orElse(OptionT
+        .fromOption[F](Option(getClass.getResource(name)))
+        .flatMap(fromURL(_, blockingExecutionContext, req)))
   }
 
-  def fromURL[F[_]](url: URL, blockingExecutionContext: ExecutionContext, req: Option[Request[F]] = None)(
-      implicit F: Sync[F], cs: ContextShift[F]): OptionT[F, Response[F]] =
+  def fromURL[F[_]](
+      url: URL,
+      blockingExecutionContext: ExecutionContext,
+      req: Option[Request[F]] = None)(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT.liftF(F.delay {
       val urlConn = url.openConnection
       val lastmod = HttpDate.fromEpochSecond(urlConn.getLastModified / 1000).toOption
@@ -68,7 +78,8 @@ object StaticFile {
 
         Response(
           headers = headers,
-          body = readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blockingExecutionContext)
+          body =
+            readInputStream[F](F.delay(url.openStream), DefaultBufferSize, blockingExecutionContext)
         )
       } else {
         urlConn.getInputStream.close()
@@ -81,8 +92,10 @@ object StaticFile {
       Sync[F].delay(
         if (f.isFile) s"${f.lastModified().toHexString}-${f.length().toHexString}" else "")
 
-  def fromFile[F[_]: Sync: ContextShift](f: File, blockingExecutionContext: ExecutionContext,
-    req: Option[Request[F]] = None): OptionT[F, Response[F]] =
+  def fromFile[F[_]: Sync: ContextShift](
+      f: File,
+      blockingExecutionContext: ExecutionContext,
+      req: Option[Request[F]] = None): OptionT[F, Response[F]] =
     fromFile(f, DefaultBufferSize, blockingExecutionContext, req, calcETag[F])
 
   def fromFile[F[_]: Sync: ContextShift](
@@ -107,7 +120,9 @@ object StaticFile {
       buffsize: Int,
       blockingExecutionContext: ExecutionContext,
       req: Option[Request[F]],
-      etagCalculator: File => F[String])(implicit F: Sync[F], cs: ContextShift[F]): OptionT[F, Response[F]] =
+      etagCalculator: File => F[String])(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT(for {
       etagCalc <- etagCalculator(f).map(et => ETag(et))
       res <- F.delay {
@@ -172,8 +187,8 @@ object StaticFile {
   private def fileToBody[F[_]: Sync: ContextShift](
       f: File,
       start: Long,
-    end: Long,
-    blockingExecutionContext: ExecutionContext
+      end: Long,
+      blockingExecutionContext: ExecutionContext
   ): EntityBody[F] = {
     // Based on fs2 handling of files
     def readAllFromFileHandle(chunkSize: Int, start: Long, end: Long)(

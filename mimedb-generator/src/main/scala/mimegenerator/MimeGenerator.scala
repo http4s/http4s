@@ -1,6 +1,6 @@
 package mimegenerator
 
-import cats.effect.IO
+import cats.effect.{ExitCode, IO, IOApp, Timer}
 import io.circe._
 import io.circe.generic.semiauto._
 import java.io.File
@@ -9,7 +9,9 @@ import fs2.Stream
 import org.http4s.circe._
 import org.http4s.client.blaze._
 import org.http4s.Uri
-import treehugger.forest._, definitions._, treehuggerDSL._
+import treehugger.forest._
+import definitions._
+import treehuggerDSL._
 
 /**
   * MimeLoader is able to generate a scala file with a database of MediaTypes.
@@ -23,7 +25,7 @@ object MimeLoader {
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
-  val readMimeDB: Stream[IO, List[Mime]] =
+  def readMimeDB(implicit t: Timer[IO]): Stream[IO, List[Mime]] =
     for {
       client <- Http1Client.stream[IO]()
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
@@ -130,11 +132,8 @@ object MimeLoader {
   /**
     * This method will dowload the MimeDB and produce a file with generated code for http4s
     */
-  def toFile(
-      f: File,
-      topLevelPackge: String,
-      objectName: String,
-      mediaTypeClassName: String): IO[Unit] =
+  def toFile(f: File, topLevelPackge: String, objectName: String, mediaTypeClassName: String)(
+      implicit t: Timer[IO]): IO[Unit] =
     (for {
       m <- readMimeDB
       t <- Stream.emit(m.groupBy(_.mainType).toList.sortBy(_._1).map {
@@ -143,17 +142,6 @@ object MimeLoader {
       o <- Stream.emit(coalesce(t.toList, topLevelPackge, objectName, mediaTypeClassName))
       _ <- Stream.emit(treeToFile(f, o))
     } yield ()).compile.drain
-
-  /**
-    * Utility method to download the metadata and write the generated file
-    */
-  def unsafeSyncToFile(
-      f: File,
-      topLevelPackge: String,
-      objectName: String,
-      mediaTypeClassName: String): Unit =
-    toFile(f, topLevelPackge, objectName, mediaTypeClassName).unsafeRunSync
-
 }
 
 final case class MimeDescr(extensions: Option[List[String]], compressible: Option[Boolean])
@@ -279,9 +267,11 @@ object Mime {
 /**
   * Utility launcher
   */
-object MimeLoaderApp {
-  def main(args: Array[String]): Unit = {
+object MimeLoaderApp extends IOApp {
+  def run(args: List[String]): IO[ExitCode] = {
     val dir = args.lift(0).getOrElse(".")
-    MimeLoader.unsafeSyncToFile(new File(dir, "MimeDB.scala"), "org.http4s", s"MimeDB", "MediaType")
+    MimeLoader
+      .toFile(new File(dir, "MimeDB.scala"), "org.http4s", s"MimeDB", "MediaType")
+      .map(_ => ExitCode.Success)
   }
 }

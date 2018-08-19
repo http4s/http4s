@@ -37,8 +37,17 @@ object Part {
   def fileData[F[_]: Effect: ContextShift](name: String, file: File, headers: Header*): Part[F] =
     fileData(name, file.getName, readAllAsync[F](file.toPath, ChunkSize), headers: _*)
 
-  def fileData[F[_]: Sync: ContextShift](name: String, resource: URL, blockingExecutionContext: ExecutionContext, headers: Header*): Part[F] =
-    fileData(name, resource.getPath.split("/").last, resource.openStream(), blockingExecutionContext, headers: _*)
+  def fileData[F[_]: Sync: ContextShift](
+      name: String,
+      resource: URL,
+      blockingExecutionContext: ExecutionContext,
+      headers: Header*): Part[F] =
+    fileData(
+      name,
+      resource.getPath.split("/").last,
+      resource.openStream(),
+      blockingExecutionContext,
+      headers: _*)
 
   def fileData[F[_]: Sync](
       name: String,
@@ -55,7 +64,15 @@ object Part {
   // argument in callers, so we can avoid lifting into an effect.  Exposing
   // this API publicly would invite unsafe use, and the `EntityBody` version
   // should be safe.
-  private def fileData[F[_]](name: String, filename: String, in: => InputStream, blockingExecutionContext: ExecutionContext, headers: Header*)(
-      implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
-    fileData(name, filename, readInputStream(F.delay(in), ChunkSize, blockingExecutionContext), headers: _*)
+  private def fileData[F[_]](
+      name: String,
+      filename: String,
+      in: => InputStream,
+      blockingExecutionContext: ExecutionContext,
+      headers: Header*)(implicit F: Sync[F], cs: ContextShift[F]): Part[F] =
+    fileData(
+      name,
+      filename,
+      readInputStream(F.delay(in), ChunkSize, blockingExecutionContext),
+      headers: _*)
 }

@@ -185,4 +185,3 @@ class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
 object StringWriter {
   private val InitialCapacity = 64
 }
-

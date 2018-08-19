@@ -47,7 +47,7 @@ abstract class ServletContainer[F[_]: Async] extends ServerBuilder[F] with Async
 }
 
 object ServletContainer {
-  def DefaultServletIo[F[_]: Async]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
+  def DefaultServletIo[F[_]: Effect]: ServletIo[F] = NonBlockingServletIo[F](DefaultChunkSize)
 
   /**
     * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to

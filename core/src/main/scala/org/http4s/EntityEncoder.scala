@@ -149,7 +149,9 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder[F[_]](implicit F: Effect[F], cs: ContextShift[F]): EntityEncoder[F, File] =
+  implicit def fileEncoder[F[_]](
+      implicit F: Effect[F],
+      cs: ContextShift[F]): EntityEncoder[F, File] =
     filePathEncoder[F].contramap(_.toPath)
 
   // TODO parameterize chunk size
@@ -160,7 +162,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     }
 
   // TODO parameterize chunk size
-  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](blockingExecutionContext: ExecutionContext): EntityEncoder[F, F[IS]] =
+  def inputStreamEncoder[F[_]: Sync: ContextShift, IS <: InputStream](
+      blockingExecutionContext: ExecutionContext): EntityEncoder[F, F[IS]] =
     entityBodyEncoder[F].contramap { in: F[IS] =>
       readInputStream[F](in.widen[InputStream], DefaultChunkSize, blockingExecutionContext)
     }

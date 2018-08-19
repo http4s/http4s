@@ -1,6 +1,8 @@
 package com.example.http4s.blaze
 
-object ClientExample {
+import cats.effect.{ExitCode, IO, IOApp}
+
+object ClientExample extends IOApp {
 
   def getSite() = {
 
@@ -38,6 +40,5 @@ object ClientExample {
     client.shutdownNow()
   }
 
-  def main(args: Array[String]): Unit = getSite()
-
+  def run(args: List[String]): IO[ExitCode] = IO(getSite()).map(_ => ExitCode.Success)
 }

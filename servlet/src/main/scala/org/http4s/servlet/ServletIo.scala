@@ -30,24 +30,25 @@ sealed abstract class ServletIo[F[_]: Async] {
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
   */
-final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
+final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
     io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
 
   override protected[servlet] def initWriter(
-      servletResponse: HttpServletResponse): BodyWriter[F] = { response: Response[F] =>
-    val out = servletResponse.getOutputStream
-    val flush = response.isChunked
-    response.body.chunks
-      .map { chunk =>
-        // Avoids copying for specialized chunks
-        val byteChunk = chunk.toBytes
-        out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
-        if (flush)
-          servletResponse.flushBuffer()
-      }
-      .compile
-      .drain
+      servletResponse: HttpServletResponse): BodyWriter[F] = {
+    (response: Response[F], timeout: F[Unit]) =>
+      val out = servletResponse.getOutputStream
+      val flush = response.isChunked
+      response.body.chunks
+        .map { chunk =>
+          // Avoids copying for specialized chunks
+          val byteChunk = chunk.toBytes
+          out.write(byteChunk.values, byteChunk.offset, byteChunk.length)
+          if (flush)
+            servletResponse.flushBuffer()
+        }
+        .compile
+        .drain
   }
 }
 
@@ -59,7 +60,7 @@ final case class BlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletI
   * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
   * operationally annoying.
   */
-final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends ServletIo[F] {
+final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
   private[this] val logger = getLogger
 
   private[this] def rightSome[A](a: A) = Right(Some(a))
@@ -225,7 +226,7 @@ final case class NonBlockingServletIo[F[_]: Async](chunkSize: Int) extends Servl
         }
     }
 
-    { response: Response[F] =>
+    { (response: Response[F], timeout: F[Unit]) =>
       if (response.isChunked)
         autoFlush = true
       response.body.chunks

@@ -8,13 +8,32 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.16
+# v0.19.0-M2-SNAPSHOT
+* Add `UUIDVar` path extractor [#1953](https://github.com/http4s/pull/1953)
+* Don't build `SSLContext` where not required in blaze-client [#1956](https://github.com/http4s/http4s/pull/1956)
+* Add new `prometheus-client-metrics` module [#1961](https://github.com/http4s/http4s/pull/1961)
+* Add `onClose` action in `WebSocketBuilder` [#1973](https://github.com/phttp4s/http4s/pull/1973)
+* Add new `client-metrics` module for Dropwizard client metrics [#1974](https://github.com/http4s/http4s/pull/1974)
+* Cancel requests on servlet backend when `AsyncTimeoutHandler.onTimeout` fires. Jetty and Tomcat now require a `ConcurrentEffect`. [#1802](https://github.com/http4s/http4s/pull/1802)
+* Internal refactoring of the client `ConnectionManager`.  No API changes, but worth mentioning. [#1934](https://github.com/http4s/http4s/pull/1934)
+* Dependency upgrades:
+  * async-http-client-2.5.2
+  * jawn-fs2-0.13.0-M1
+  * jawn-json4s-0.12.2
+  * jawn-play-0.12.2
+  * json4s-3.6.0
+
+# v0.18.17-SNAPSHOT
+* Accumulate errors in `OptionalMultiQueryParamDecoderMatcher` [#2000](https://github.com/http4s/pull/2000)
+
+# v0.18.16 (2018-08-14)
 * Fix regression for `AutoSlash` when nested in a `Router` [#1948](https://github.com/http4s/http4s/pull/1948)
 * Respect `redactHeadersWhen` in `Logger` middleware [#1952](https://github.com/http4s/http4s/pull/1952)
 * Capture `BufferPoolsExports` in prometheus server middleware [#1977](https://github.com/http4s/http4s/pull/1977)
 * Make `Referer` header extractable [#1984](https://github.com/http4s/http4s/pull/1984)
 * Log server startup banner in a single call to prevent interspersion [#1985](https://github.com/http4s/http4s/pull/1985)
 * Add support module for play-json [#1946](https://github.com/http4s/http4s/pull/1946)
+* Introduce `TranslateUri` middleware, which checks the prefix of the service it's translating against the request. Deprecated `URITranslation`, which chopped the prefix length without checking for a match. [#1964](https://github.com/http4s/http4s/pull/1964)
 * Dependency upgrades:
   * cats-1.2.0
   * metrics-4.0.3

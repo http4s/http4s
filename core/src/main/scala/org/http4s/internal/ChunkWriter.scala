@@ -9,7 +9,7 @@ import scala.collection.mutable.Buffer
   * @param toChunk initial `Chunk`
   */
 private[http4s] class ChunkWriter(
-  charset: Charset = StandardCharsets.UTF_8
+    charset: Charset = StandardCharsets.UTF_8
 ) extends Writer {
   private[this] val chunks = Buffer[Chunk[Byte]]()
 

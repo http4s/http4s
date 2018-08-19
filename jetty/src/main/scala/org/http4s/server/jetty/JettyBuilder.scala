@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext
 import scala.collection.immutable
 import scala.concurrent.duration._
 
-sealed class JettyBuilder[F[_]: Effect] private (
+sealed class JettyBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
     private val executionContext: ExecutionContext,
     private val idleTimeout: Duration,

@@ -220,13 +220,15 @@ trait EntityDecoderInstances {
     text.map(_.toArray)
 
   // File operations
-  def binFile[F[_]](file: File)(implicit F: Effect[F], cs: ContextShift[F]): EntityDecoder[F, File] =
+  def binFile[F[_]](
+      file: File)(implicit F: Effect[F], cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
       val sink = writeAllAsync[F](file.toPath)
       DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](file: File)(implicit F: Effect[F], cs: ContextShift[F]): EntityDecoder[F, File] =
+  def textFile[F[_]](
+      file: File)(implicit F: Effect[F], cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
       val sink = writeAllAsync[F](file.toPath)
       DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
