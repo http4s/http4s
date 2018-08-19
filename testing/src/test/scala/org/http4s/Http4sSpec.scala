@@ -9,7 +9,7 @@
 
 package org.http4s
 
-import cats.effect.{IO, Timer}
+import cats.effect.{ContextShift, IO, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
@@ -46,7 +46,11 @@ trait Http4sSpec
     with Http4sMatchers {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
 
+  val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
+
   implicit val params = Parameters(maxSize = 20)
+
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(testExecutionContext)
 
   implicit val timer: Timer[IO] = IO.timer(testExecutionContext)
 

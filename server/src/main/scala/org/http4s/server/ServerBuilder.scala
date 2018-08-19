@@ -4,7 +4,6 @@ package server
 import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Ref
-import fs2.StreamApp.ExitCode
 import fs2._
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService

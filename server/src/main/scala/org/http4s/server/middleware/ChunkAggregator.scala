@@ -8,6 +8,7 @@ import cats.effect.Sync
 import cats.implicits._
 import fs2._
 import org.http4s.headers._
+import org.http4s.headers._
 
 object ChunkAggregator {
   def apply[F[_]: FlatMap, G[_]: Sync, A](f: G ~> F)(
@@ -15,12 +16,12 @@ object ChunkAggregator {
     http.flatMapF { response =>
       f(
         response.body.chunks.compile
-          .fold((Segment.empty[Byte], 0L)) {
-            case ((seg, len), c) => (seg ++ c.toSegment, len + c.size)
-          }
-          .map {
-            case (body, len) =>
-              removeChunkedTransferEncoding[G](response.withBodyStream(Stream.segment(body)), len)
+          .to[Vector]
+          .map { vec =>
+            val body = Chunk.concatBytes(vec)
+            removeChunkedTransferEncoding[G](
+              response.withBodyStream(Stream.chunk(body)),
+              body.size.toLong)
           })
     }
 

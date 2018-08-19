@@ -8,7 +8,8 @@ import org.http4s.server.staticcontent.WebjarService.Config
 
 object WebjarServiceSpec extends Http4sSpec with StaticContentShared {
 
-  def routes: HttpRoutes[IO] = webjarService(Config[IO]())
+  def routes: HttpRoutes[IO] =
+    webjarService(Config[IO](blockingExecutionContext = testBlockingExecutionContext))
 
   "The WebjarService" should {
 
