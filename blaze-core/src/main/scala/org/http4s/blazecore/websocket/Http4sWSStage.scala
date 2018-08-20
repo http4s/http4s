@@ -3,7 +3,7 @@ package blazecore
 package websocket
 
 import cats.effect._
-import cats.effect.concurrent.Deferred
+import cats.effect.implicits._
 import cats.implicits._
 import fs2._
 import fs2.async.mutable.Signal
@@ -101,11 +101,6 @@ object Http4sWSStage {
   def bufferingSegment[F[_]](stage: Http4sWSStage[F]): LeafBuilder[WebSocketFrame] =
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
 
-  private def unsafeRunSync[F[_], A](
-      fa: F[A])(implicit F: ConcurrentEffect[F], ec: ExecutionContext): A =
-    Deferred[IO, Either[Throwable, A]].flatMap { p =>
-      F.runAsync(Async.shift(ec) *> fa) { r =>
-        p.complete(r)
-      } *> p.get.rethrow
-    }.unsafeRunSync
+  private def unsafeRunSync[F[_], A](fa: F[A])(implicit F: ConcurrentEffect[F]): A =
+    fa.toIO.unsafeRunSync
 }
