@@ -285,26 +285,52 @@ object MultipartParser {
     //Check if a particular chunk a final chunk, that is,
     //whether it's the boundary plus an extra "--", indicating it's
     //the last boundary
-    def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] =
+    def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] = {
+      //Elide empty chunks until nonemptychunk is found
+      def elideEmptyChunks(str: Stream[F, Byte]): Pull[F, Nothing, (Chunk[Byte], Stream[F, Byte])] =
+        str.pull.unconsChunk.flatMap {
+          case Some((chnk, r)) =>
+            if (chnk.size <= 0)
+              elideEmptyChunks(r)
+            else
+              Pull.pure((chnk, r))
+          case None =>
+            Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
+        }
+
+      //precond: both c1 and c2 are nonempty chunks
+      def checkTwoNonEmpty(
+          c1: Chunk[Byte],
+          c2: Chunk[Byte],
+          remaining: Stream[F, Byte]): SplitStream[F] =
+        if (c1(0) == dashByte && c2(0) == dashByte) {
+          Pull.pure((streamEmpty, streamEmpty))
+        } else {
+          val (ix, l, r, add) =
+            splitOnChunkLimited[F](
+              values,
+              0,
+              Chunk.bytes(c1.toArray[Byte] ++ c2.toArray[Byte]),
+              Stream.empty,
+              Stream.empty)
+          go(remaining, ix, l, r, add)
+        }
+
       if (c.size <= 0) {
-        Pull.raiseError[F](MalformedMessageBodyFailure("Invalid Chunk: Chunk is empty"))
+        rest.pull.unconsChunk.flatMap {
+          case Some((chnk, r)) =>
+            checkIfLast(chnk, r)
+          case None =>
+            Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
+        }
       } else if (c.size == 1) {
         rest.pull.unconsChunk.flatMap {
           case Some((chnk, remaining)) =>
             if (chnk.size <= 0)
-              Pull.raiseError[F](MalformedMessageBodyFailure("Invalid Chunk: Chunk is empty"))
-            else if (c(0) == dashByte && chnk(0) == dashByte) {
-              Pull.pure((streamEmpty, streamEmpty))
-            } else {
-              val (ix, l, r, add) =
-                splitOnChunkLimited[F](
-                  values,
-                  0,
-                  Chunk.bytes(c.toArray[Byte] ++ chnk.toArray[Byte]),
-                  Stream.empty,
-                  Stream.empty)
-              go(remaining, ix, l, r, add)
-            }
+              elideEmptyChunks(remaining).flatMap {
+                case (chnk, remaining) =>
+                  checkTwoNonEmpty(c, chnk, remaining)
+              } else checkTwoNonEmpty(c, chnk, remaining)
           case None =>
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
         }
@@ -315,6 +341,7 @@ object MultipartParser {
           splitOnChunkLimited[F](values, 0, c, Stream.empty, Stream.empty)
         go(rest, ix, l, r, add)
       }
+    }
 
     def go(
         s: Stream[F, Byte],
