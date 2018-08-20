@@ -13,6 +13,8 @@ import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
 
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
+
   val url = Uri(
     scheme = Some(Scheme.https),
     authority = Some(Authority(host = RegName("example.com"))),
@@ -124,7 +126,7 @@ Content-Type: application/pdf
         val request = Request[IO](
           method = Method.POST,
           uri = url,
-          body = Stream.emit(body).through(text.utf8Encode),
+          body = Stream.emit(body).covary[IO].through(text.utf8Encode),
           headers = header)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)

@@ -13,6 +13,8 @@ import org.specs2.specification.core.{Fragment, Fragments}
 
 object MultipartParserSpec extends Specification {
 
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
+
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
 
   def ruinDelims(str: String) = augmentString(str).flatMap {
@@ -396,11 +398,10 @@ object MultipartParserSpec extends Specification {
       "parse uneven input properly" in {
         val unprocessed =
           Stream
-            .segment(
-              List(
-                "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI\n",
-                "Content-Disposition: form-data; name=\"upload\"; filename=\"integration.txt\"\n",
-                """Content-Type: application/octet-stream
+            .emits(List(
+              "--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI\n",
+              "Content-Disposition: form-data; name=\"upload\"; filename=\"integration.txt\"\n",
+              """Content-Type: application/octet-stream
                   |Content-Transfer-Encoding: binary
                   |
                   |this is a test
@@ -411,12 +412,11 @@ object MultipartParserSpec extends Specification {
                   |Content-Disposition: form-data; name="foo"
                   |
                   |""".stripMargin,
-                """bar
+              """bar
                   |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
-              ).map(_.replaceAllLiterally("\n", "\r\n"))
-                .map(str => Segment.chunk(Chunk.bytes(str.getBytes)))
-                .foldLeft(Segment.empty[Byte])(_ ++ _)
-            )
+            ).map(_.replaceAllLiterally("\n", "\r\n"))
+              .map(str => Chunk.bytes(str.getBytes(StandardCharsets.UTF_8))))
+            .flatMap(Stream.chunk)
             .covary[IO]
 
         val results = unprocessed.through(multipartPipe(boundary))

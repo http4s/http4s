@@ -12,7 +12,7 @@ import java.nio.file.Path
 import org.http4s.headers._
 import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scala.annotation.implicitNotFound
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, blocking}
 
 @implicitNotFound(
   "Cannot convert from ${A} to an Entity, because no EntityEncoder[${F}, ${A}] instance could be found.")
@@ -169,16 +169,17 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[F[_], R <: Reader](
-      implicit F: Sync[F],
+  implicit def readerEncoder[F[_], R <: Reader](blockingExecutionContext: ExecutionContext)(
+    implicit F: Sync[F],
+    cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { fr: F[R] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
-      def readToBytes(r: Reader): F[Option[Chunk[Byte]]] = F.delay {
+      def readToBytes(r: Reader): F[Option[Chunk[Byte]]] = for {
         // Read into the buffer
-        val readChars = r.read(charBuffer)
-
+        readChars <- cs.evalOn(blockingExecutionContext)(F.delay(blocking(r.read(charBuffer))))
+      } yield {
         // Flip to read
         charBuffer.flip()
 
