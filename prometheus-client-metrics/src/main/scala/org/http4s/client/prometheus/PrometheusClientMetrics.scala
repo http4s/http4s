@@ -3,7 +3,7 @@ package org.http4s.client.prometheus
 import io.prometheus.client._
 import cats.implicits._
 import cats.data.Kleisli
-import cats.effect.{Sync, Timer}
+import cats.effect.{Clock, Sync}
 import java.util.concurrent.TimeUnit
 import org.http4s._
 import org.http4s.client.{Client, DisposableResponse}
@@ -37,9 +37,10 @@ object PrometheusClientMetrics {
       clientErrorsCounter: Counter
   )
 
-  private def now[F[_]: Timer]: F[Long] = Timer[F].clockMonotonic(TimeUnit.NANOSECONDS)
+  private def now[F[_]](implicit clock: Clock[F]): F[Long] =
+    clock.monotonic(TimeUnit.NANOSECONDS)
 
-  private def metricsClient[F[_]: Sync: Timer](
+  private def metricsClient[F[_]: Sync: Clock](
       metrics: ClientMetrics[F],
       client: Client[F]
   )(
@@ -74,7 +75,7 @@ object PrometheusClientMetrics {
         .inc()
     }
 
-  private def onResponse[F[_]: Sync: Timer](
+  private def onResponse[F[_]: Sync: Clock](
       request: Request[F],
       response: Response[F],
       startTime: Long,
@@ -105,7 +106,7 @@ object PrometheusClientMetrics {
       })
     }
 
-  def apply[F[_]: Sync: Timer](
+  def apply[F[_]: Sync: Clock](
       c: CollectorRegistry,
       prefix: String = "org_http4s_client",
       destination: Request[F] => String = { _: Request[F] =>

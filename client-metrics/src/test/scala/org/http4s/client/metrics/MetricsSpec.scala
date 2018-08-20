@@ -1,6 +1,6 @@
 package org.http4s.client.metrics
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
 import java.net.ServerSocket
 import org.http4s.{Http4sSpec, HttpRoutes, Status, Uri}
@@ -11,8 +11,6 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.middleware.AutoSlash
 import org.specs2.specification.AfterAll
 import scala.util.{Failure, Success, Try}
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class MetricsSpec extends Http4sSpec with AfterAll {
 
@@ -66,7 +64,7 @@ class MetricsSpec extends Http4sSpec with AfterAll {
   }
 }
 
-class RemoteEndpointStub {
+class RemoteEndpointStub(implicit cs: ContextShift[IO]) {
   private val port = FreePort.find
   private val host = "localhost"
   val url = Uri.unsafeFromString(s"http://$host:$port")
