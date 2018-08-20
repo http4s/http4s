@@ -2,14 +2,13 @@ package org.http4s
 package client
 
 import cats.data.Kleisli
-import cats.effect.{Async, Sync, Timer}
+import cats.effect.{Async, ContextShift, Sync}
 import cats.implicits._
-import fs2.io.{readInputStreamAsync, writeOutputStreamAsync}
+import fs2.io.{readInputStream, writeOutputStream}
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
-import org.http4s.internal.blocking
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, blocking}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 /** A [[Client]] based on `java.net.HttpUrlConnection`.
@@ -86,9 +85,9 @@ sealed abstract class JavaNetClient private (
     * allocates no resources, and any resources allocated while using
     * this client are reclaimed by the JVM at its own leisure.
     */
-  def create[F[_]](implicit F: Async[F], timer: Timer[F]): Client[F] = Client(open, F.unit)
+  def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
 
-  private def open[F[_]](implicit F: Async[F], timer: Timer[F]) = Kleisli { req: Request[F] =>
+  private def open[F[_]](implicit F: Async[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
     for {
       url <- F.delay(new URL(req.uri.toString))
       conn <- openConnection(url)
@@ -101,13 +100,13 @@ sealed abstract class JavaNetClient private (
       })
       _ <- F.delay(conn.setInstanceFollowRedirects(false))
       _ <- F.delay(conn.setDoInput(true))
-      resp <- blocking(fetchResponse(req, conn), blockingExecutionContext)
+      resp <- cs.evalOn(blockingExecutionContext)(blocking(fetchResponse(req, conn)))
     } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
   }
 
   private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
-      timer: Timer[F]) =
+      cs: ContextShift[F]) =
     for {
       _ <- writeBody(req, conn)
       code <- F.delay(conn.getResponseCode)
@@ -119,7 +118,7 @@ sealed abstract class JavaNetClient private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-      body = readInputStreamAsync(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
+      body = readInputStream(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
     } yield Response(status = status, headers = headers, body = body)
 
   private def timeoutMillis(d: Duration): Int = d match {
@@ -136,13 +135,12 @@ sealed abstract class JavaNetClient private (
 
   private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
-      timer: Timer[F]) =
+      cs: ContextShift[F]) =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
         req.body
-          .to(
-            writeOutputStreamAsync(F.delay(conn.getOutputStream), blockingExecutionContext, false))
+          .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
           .compile
           .drain
     } else
@@ -151,11 +149,7 @@ sealed abstract class JavaNetClient private (
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
             req.body
-              .to(
-                writeOutputStreamAsync(
-                  F.delay(conn.getOutputStream),
-                  blockingExecutionContext,
-                  false))
+              .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
               .compile
               .drain
         case _ =>

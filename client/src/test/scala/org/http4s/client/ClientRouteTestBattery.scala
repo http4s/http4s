@@ -121,7 +121,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client[IO])
       srv.addHeader(h.name.toString, h.value)
     }
     resp.body
-      .through(writeOutputStream[IO](IO.pure(srv.getOutputStream), closeAfterUse = false))
+      .through(
+        writeOutputStream[IO](
+          IO.pure(srv.getOutputStream),
+          testBlockingExecutionContext,
+          closeAfterUse = false))
       .compile
       .drain
       .unsafeRunSync()
