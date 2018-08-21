@@ -30,6 +30,8 @@ final case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
+  val defaultVaryHeader = Header("Vary", "Origin,Access-Control-Request-Method")
+
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
 
@@ -55,19 +57,18 @@ object CORS {
         else
           config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
 
-      def checkVaryHeader(response: Response[G]): Option[Header] = {
-        val maybeHeader = response.headers.get(CaseInsensitiveString("Vary"))
-        if (maybeHeader.isEmpty) Option(Header("Vary", "Origin,Access-Control-Request-Method"))
-        else maybeHeader
-      }
+      def varyHeader(response: Response[G]): Response[G] =
+        response.headers.get(CaseInsensitiveString("Vary")) match {
+          case None => response.putHeaders(defaultVaryHeader)
+          case _ => response
+        }
 
       def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(
           resp: Response[G]): Response[G] = {
         val withMethodBasedHeader = methodBasedHeader(isPreflight)
           .fold(resp)(h => resp.putHeaders(h))
 
-        checkVaryHeader(withMethodBasedHeader)
-          .fold(withMethodBasedHeader)(h => withMethodBasedHeader.putHeaders(h))
+        varyHeader(withMethodBasedHeader)
           .putHeaders(
             Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
             Header(
