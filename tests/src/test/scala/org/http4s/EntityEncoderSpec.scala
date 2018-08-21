@@ -58,7 +58,7 @@ class EntityEncoderSpec extends Http4sSpec {
         val w = new FileWriter(tmpFile)
         try w.write("render files test")
         finally w.close()
-        writeToString(tmpFile) must_== "render files test"
+        writeToString(tmpFile)(EntityEncoder.fileEncoder(testBlockingExecutionContext)) must_== "render files test"
       } finally {
         tmpFile.delete()
         ()

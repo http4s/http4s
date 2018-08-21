@@ -370,7 +370,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(textFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(textFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
@@ -389,7 +389,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) {
           case req =>
-            req.decodeWith(binFile(tmpFile), strict = false) { _ =>
+            req.decodeWith(binFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
