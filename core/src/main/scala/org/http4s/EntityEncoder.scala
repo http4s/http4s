@@ -5,7 +5,8 @@ import cats.effect.{ContextShift, Effect, Sync}
 import cats.implicits._
 import fs2._
 import fs2.Stream._
-import fs2.io._
+import fs2.io.file.readAll
+import fs2.io.readInputStream
 import java.io._
 import java.nio.CharBuffer
 import java.nio.file.Path
@@ -149,16 +150,17 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder[F[_]](
+  def fileEncoder[F[_]](blockingExecutionContext: ExecutionContext)(
       implicit F: Effect[F],
       cs: ContextShift[F]): EntityEncoder[F, File] =
-    filePathEncoder[F].contramap(_.toPath)
+    filePathEncoder[F](blockingExecutionContext).contramap(_.toPath)
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def filePathEncoder[F[_]: Effect: ContextShift]: EntityEncoder[F, Path] =
+  def filePathEncoder[F[_]: Sync: ContextShift](
+      blockingExecutionContext: ExecutionContext): EntityEncoder[F, Path] =
     encodeBy[F, Path](`Transfer-Encoding`(TransferCoding.chunked)) { p =>
-      Entity(file.readAllAsync[F](p, 4096)) //2 KB :P
+      Entity(readAll[F](p, blockingExecutionContext, 4096)) //2 KB :P
     }
 
   // TODO parameterize chunk size
@@ -170,30 +172,31 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   implicit def readerEncoder[F[_], R <: Reader](blockingExecutionContext: ExecutionContext)(
-    implicit F: Sync[F],
-    cs: ContextShift[F],
+      implicit F: Sync[F],
+      cs: ContextShift[F],
       charset: Charset = DefaultCharset): EntityEncoder[F, F[R]] =
     entityBodyEncoder[F].contramap { fr: F[R] =>
       // Shared buffer
       val charBuffer = CharBuffer.allocate(DefaultChunkSize)
-      def readToBytes(r: Reader): F[Option[Chunk[Byte]]] = for {
-        // Read into the buffer
-        readChars <- cs.evalOn(blockingExecutionContext)(F.delay(blocking(r.read(charBuffer))))
-      } yield {
-        // Flip to read
-        charBuffer.flip()
+      def readToBytes(r: Reader): F[Option[Chunk[Byte]]] =
+        for {
+          // Read into the buffer
+          readChars <- cs.evalOn(blockingExecutionContext)(F.delay(blocking(r.read(charBuffer))))
+        } yield {
+          // Flip to read
+          charBuffer.flip()
 
-        if (readChars < 0) None
-        else if (readChars == 0) Some(Chunk.empty)
-        else {
-          // Encode to bytes according to the charset
-          val bb = charset.nioCharset.encode(charBuffer)
-          // Read into a Chunk
-          val b = new Array[Byte](bb.remaining())
-          bb.get(b)
-          Some(Chunk.bytes(b))
+          if (readChars < 0) None
+          else if (readChars == 0) Some(Chunk.empty)
+          else {
+            // Encode to bytes according to the charset
+            val bb = charset.nioCharset.encode(charBuffer)
+            // Read into a Chunk
+            val b = new Array[Byte](bb.remaining())
+            bb.get(b)
+            Some(Chunk.bytes(b))
+          }
         }
-      }
 
       def useReader(r: Reader) =
         Stream

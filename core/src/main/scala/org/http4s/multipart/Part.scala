@@ -1,10 +1,10 @@
 package org.http4s
 package multipart
 
-import cats.effect.{ContextShift, Effect, Sync}
+import cats.effect.{ContextShift, Sync}
 import fs2.Stream
 import fs2.io.readInputStream
-import fs2.io.file.readAllAsync
+import fs2.io.file.readAll
 import fs2.text.utf8Encode
 import java.io.{File, InputStream}
 import java.net.URL
@@ -34,8 +34,16 @@ object Part {
       `Content-Disposition`("form-data", Map("name" -> name)) +: headers,
       Stream.emit(value).through(utf8Encode))
 
-  def fileData[F[_]: Effect: ContextShift](name: String, file: File, headers: Header*): Part[F] =
-    fileData(name, file.getName, readAllAsync[F](file.toPath, ChunkSize), headers: _*)
+  def fileData[F[_]: Sync: ContextShift](
+      name: String,
+      file: File,
+      blockingExecutionContext: ExecutionContext,
+      headers: Header*): Part[F] =
+    fileData(
+      name,
+      file.getName,
+      readAll[F](file.toPath, blockingExecutionContext, ChunkSize),
+      headers: _*)
 
   def fileData[F[_]: Sync: ContextShift](
       name: String,

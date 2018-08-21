@@ -1,14 +1,15 @@
 package org.http4s
 
 import cats._
-import cats.effect.{ContextShift, Effect, Sync}
+import cats.effect.{ContextShift, Sync}
 import cats.implicits._
 import fs2._
-import fs2.io.file.writeAllAsync
+import fs2.io.file.writeAll
 import java.io.File
 import org.http4s.headers.`Content-Type`
 import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scala.annotation.implicitNotFound
+import scala.concurrent.ExecutionContext
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -220,17 +221,19 @@ trait EntityDecoderInstances {
     text.map(_.toArray)
 
   // File operations
-  def binFile[F[_]](
-      file: File)(implicit F: Effect[F], cs: ContextShift[F]): EntityDecoder[F, File] =
+  def binFile[F[_]](file: File, blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
-      val sink = writeAllAsync[F](file.toPath)
+      val sink = writeAll[F](file.toPath, blockingExecutionContext)
       DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
-  def textFile[F[_]](
-      file: File)(implicit F: Effect[F], cs: ContextShift[F]): EntityDecoder[F, File] =
+  def textFile[F[_]](file: File, blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F],
+      cs: ContextShift[F]): EntityDecoder[F, File] =
     EntityDecoder.decodeBy(MediaRange.`text/*`) { msg =>
-      val sink = writeAllAsync[F](file.toPath)
+      val sink = writeAll[F](file.toPath, blockingExecutionContext)
       DecodeResult.success(msg.body.to(sink).compile.drain).map(_ => file)
     }
 
