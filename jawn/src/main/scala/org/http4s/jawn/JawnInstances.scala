@@ -22,7 +22,7 @@ trait JawnInstances {
           case pe: ParseException =>
             Stream.emit(Left(MalformedMessageBodyFailure("Invalid JSON", Some(pe))))
           case e =>
-            Stream.raiseError(e)
+            Stream.raiseError[F](e)
         }
         .compile
         .last
