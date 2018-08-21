@@ -140,5 +140,23 @@ class CORSSpec extends Http4sSpec {
       val routes2 = CORS(HttpRoutes.of[IO] { case GET -> Root / "2" => Ok() })
       (routes1 <+> routes2).orNotFound(req) must returnStatus(Ok)
     }
+
+    "Not replace vary header if already set" in {
+      val req = buildRequest("/")
+      val service = CORS(HttpRoutes.of[IO] {
+        case GET -> Root =>
+          Response[IO](Ok)
+            .putHeaders(Header("Vary", "Origin,Accept"))
+            .withEntity("foo")
+            .pure[IO]
+      })
+
+      service
+        .orNotFound(req)
+        .map { resp =>
+          matchHeader(resp.headers, `Vary`, "Origin,Accept")
+        }
+        .unsafeRunSync()
+    }
   }
 }
