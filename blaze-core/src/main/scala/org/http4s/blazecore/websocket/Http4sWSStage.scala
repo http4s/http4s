@@ -15,23 +15,19 @@ import org.http4s.websocket.WebsocketBits._
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-private[http4s] class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(
-    implicit F: ConcurrentEffect[F],
-    val ec: ExecutionContext)
+private[http4s] class Http4sWSStage[F[_]](
+    ws: ws4s.Websocket[F],
+    sentClose: AtomicBoolean,
+    deadSignal: Signal[F, Boolean]
+)(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
-
-  private[this] val sentClose = new AtomicBoolean(false)
 
   def name: String = "Http4s WebSocket Stage"
 
-  private val deadSignal: Signal[F, Boolean] =
-    F.toIO(async.signalOf[F, Boolean](false)).unsafeRunSync()
-
   //////////////////////// Source and Sink generators ////////////////////////
-
   def snk: Sink[F, WebSocketFrame] = _.evalMap { frame =>
-    F.delay(sentClose.get()).flatMap { closeSent =>
-      if (!closeSent) {
+    F.delay(sentClose.get()).flatMap { wasCloseSent =>
+      if (!wasCloseSent) {
         frame match {
           case c: Close =>
             F.delay(sentClose.compareAndSet(false, true))
@@ -101,7 +97,7 @@ private[http4s] class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(
         //Reply to ping frame immediately
         writeFrameTrampoline(Pong(d)) >> handleRead()
       case _: Pong =>
-        //Dont' forward pong frame
+        //Don't forward pong frame
         handleRead()
       case rest =>
         F.pure(rest)
