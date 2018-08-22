@@ -34,14 +34,8 @@ private[http4s] class Http4sWSStage[F[_]](ws: ws4s.Websocket[F])(
       if (!closeSent) {
         frame match {
           case c: Close =>
-            F.delay(sentClose.compareAndSet(false, true)).flatMap {
-              //write the close frame, as it was set atomically
-              case true =>
-                writeFrameDirect(c)
-              case false =>
-                //Close was set concurrently, so do nothing
-                F.unit
-            }
+            F.delay(sentClose.compareAndSet(false, true))
+              .flatMap(cond => if (cond) writeFrameDirect(c) else F.unit)
           case _ =>
             writeFrameDirect(frame)
         }
