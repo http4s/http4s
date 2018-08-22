@@ -223,8 +223,7 @@ class CSRFSpec extends Http4sSpec {
               .putHeaders(Header(csrf.headerName, token))
               .addCookie(csrf.cookieName, token)
           ))
-        r <- OptionT.fromOption[IO](
-          res.cookies.find(_.name == csrf.cookieName).map(_.content))
+        r <- OptionT.fromOption[IO](res.cookies.find(_.name == csrf.cookieName).map(_.content))
         raw2 <- csrf.extractRaw(r)
       } yield r != token && raw1 == raw2).value.unsafeRunSync() must beSome(true)
     }
