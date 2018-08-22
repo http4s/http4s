@@ -67,10 +67,10 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
 
                   val deadSignal = F.toIO(Signal[F, Boolean](false)).unsafeRunSync()
                   val sentClose = new AtomicBoolean(false)
-                  val segment = LeafBuilder(
-                    new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))
-                    .prepend(new WSFrameAggregator)
-                    .prepend(new WebSocketDecoder)
+                  val segment =
+                    LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))
+                      .prepend(new WSFrameAggregator)
+                      .prepend(new WebSocketDecoder)
 
                   this.replaceTail(segment, true)
 
