@@ -44,7 +44,7 @@ sealed abstract class WSTestHead(
     */
   override def writeRequest(data: WebSocketFrame): Future[Unit] = {
     val _ = outQueue.add(data)
-    Future.unit
+    Future.successful(())
   }
 
   /** Insert data into the read queue,
