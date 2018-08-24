@@ -396,7 +396,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">MethodNotAllowedOps</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a> with <a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>
+        <span class="name">MethodNotAllowedOps</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a> with <a href="AllowResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator">AllowResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>
       </span>
       </h4>
 
@@ -405,7 +405,7 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>], <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="AllowResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator">AllowResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>], <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyVal.html#scala.AnyVal" class="extype" name="scala.AnyVal">AnyVal</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -431,7 +431,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps"><span>MethodNotAllowedOps</span></li><li class="in" name="org.http4s.dsl.impl.EntityResponseGenerator"><span>EntityResponseGenerator</span></li><li class="in" name="org.http4s.dsl.impl.ResponseGenerator"><span>ResponseGenerator</span></li><li class="in" name="scala.AnyVal"><span>AnyVal</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps"><span>MethodNotAllowedOps</span></li><li class="in" name="org.http4s.dsl.impl.AllowResponseGenerator"><span>AllowResponseGenerator</span></li><li class="in" name="org.http4s.dsl.impl.ResponseGenerator"><span>ResponseGenerator</span></li><li class="in" name="scala.AnyVal"><span>AnyVal</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -573,10 +573,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[A](body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](A,Header*)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
+    </li><li name="org.http4s.dsl.impl.AllowResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[A](allow:org.http4s.headers.Allow,body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](Allow,A,Header*)(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$MethodNotAllowedOps.html#apply[A](body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/Responses$$MethodNotAllowedOps.html#apply[A](allow:org.http4s.headers.Allow,body:A,headers:org.http4s.Header*)(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -585,14 +585,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span></span>, <span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="allow">allow: <a href="../../headers/Allow.html" class="extype" name="org.http4s.headers.Allow">Allow</a></span>, <span name="body">body: <span class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator.apply.A">A</span></span>, <span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a></dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[A](body:F[A])(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]"></a><a id="apply[A](F[A])(Monad[F],EntityEncoder[F,A]):F[Response[F]]"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AllowResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator">AllowResponseGenerator</a></dd></dl></div>
+    </li><li name="org.http4s.dsl.impl.AllowResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(allow:org.http4s.headers.Allow,headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply(Allow,Header*)(Applicative[F]):F[Response[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$MethodNotAllowedOps.html#apply[A](body:F[A])(implicitF:cats.Monad[F],implicitw:org.http4s.EntityEncoder[F,A]):F[org.http4s.Response[F]]" title="Permalink">
+      <a href="../../../../org/http4s/dsl/impl/Responses$$MethodNotAllowedOps.html#apply(allow:org.http4s.headers.Allow,headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -601,26 +601,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>[<span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Monad.html#cats.Monad" class="extype" name="cats.Monad">Monad</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>, <span name="w">w: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>, <span class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]]</span>
+        <span class="name">apply</span><span class="params">(<span name="allow">allow: <a href="../../headers/Allow.html" class="extype" name="org.http4s.headers.Allow">Allow</a></span>, <span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a></dd></dl></div>
-    </li><li name="org.http4s.dsl.impl.EntityResponseGenerator#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]"></a><a id="apply(Header*)(Applicative[F]):F[Response[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/dsl/impl/Responses$$MethodNotAllowedOps.html#apply(headers:org.http4s.Header*)(implicitF:cats.Applicative[F]):F[org.http4s.Response[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="headers">headers: <a href="../../Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="AllowResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator">AllowResponseGenerator</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -834,8 +818,8 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.dsl.impl.EntityResponseGenerator">
-              <h3>Inherited from <a href="EntityResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EntityResponseGenerator">EntityResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</h3>
+        <div class="parent" name="org.http4s.dsl.impl.AllowResponseGenerator">
+              <h3>Inherited from <a href="AllowResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.AllowResponseGenerator">AllowResponseGenerator</a>[<span class="extype" name="org.http4s.dsl.impl.Responses.MethodNotAllowedOps.F">F</span>]</h3>
             </div><div class="parent" name="org.http4s.dsl.impl.ResponseGenerator">
               <h3>Inherited from <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></h3>
             </div><div class="parent" name="scala.AnyVal">
