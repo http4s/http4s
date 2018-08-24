@@ -8,19 +8,6 @@ import org.scalacheck.Prop.forAll
 
 class StatusSpec extends Http4sSpec {
 
-  "codes from 100 to 199 are informational" in responseClassTest(100 to 199, Informational)
-  "codes from 200 to 299 are successful" in responseClassTest(200 to 299, Successful)
-  "codes from 300 to 399 are redirectional" in responseClassTest(300 to 399, Redirection)
-  "codes from 400 to 499 are client errors" in responseClassTest(400 to 499, ClientError)
-  "codes from 500 to 599 are server errors" in responseClassTest(500 to 599, ServerError)
-
-  private def responseClassTest(range: Range, responseClass: ResponseClass) =
-    foreach(range) { i =>
-      fromInt(i) must beRight.like {
-        case s => s.responseClass must_== responseClass
-      }
-    }
-
   checkAll("Status", OrderTests[Status].order)
 
   "Statuses" should {
@@ -31,7 +18,7 @@ class StatusSpec extends Http4sSpec {
     }
 
     "be equal if their codes are" in {
-      forAll(Gen.choose(MinCode, MaxCode)) { i =>
+      forAll(genValidStatusCode) { i =>
         val s1: Status = getStatus(i, "a reason")
         val s2: Status = getStatus(i, "another reason")
         s1 must_== s2
@@ -43,22 +30,39 @@ class StatusSpec extends Http4sSpec {
         (s1.code < s2.code) ==> (s1 < s2)
       }
     }
+
+    "have the appropriate response classes" in {
+      forAll(genValidStatusCode) { code =>
+        val expected = code / 100 match {
+          case 1 => Informational
+          case 2 => Successful
+          case 3 => Redirection
+          case 4 => ClientError
+          case 5 => ServerError
+        }
+        fromInt(code) must beRight.like { case s => s.responseClass must_== expected }
+      }
+    }
+
   }
 
   "Finding a status by code" should {
+
     "fail if the code is not in the range of valid codes" in {
       forAll(Gen.choose(Int.MinValue, 99)) { i =>
         fromInt(i).isLeft
       }
+    }
 
-      forAll(Gen.choose(600, Int.MaxValue)) { i =>
+    "fail if the code is not in the range of valid codes" in {
+      forAll(Gen.choose(599, Int.MaxValue)) { i =>
         fromInt(i).isLeft
       }
     }
-    "succeed if the code is in the valid range" in {
-      foreach(100 to 599) { i =>
-        fromInt(i).isRight
-      }
+
+    "fail if the code is in the valid range, but not a standard code" in {
+      fromInt(371) must beLeft
+      fromInt(482) must beLeft
     }
 
     "yield a status with the standard reason for a standard code" in {
@@ -71,6 +75,11 @@ class StatusSpec extends Http4sSpec {
       fromIntAndReason(17, "a reason") must beLeft
     }
 
+    "fail if the code is in the valid range, but not a standard code" in {
+      fromIntAndReason(371, "some reason") must beLeft
+      fromIntAndReason(152, "another reason") must beLeft
+    }
+
     "succeed for a standard code and nonstandard reason, without replacing the default reason" in {
       getStatus(NotFound.code, "My dog ate my homework").reason must_== "My dog ate my homework"
 
@@ -80,7 +89,6 @@ class StatusSpec extends Http4sSpec {
     "succeed for a standard code and reason" in {
       getStatus(NotFound.code, "Not Found").reason must_== "Not Found"
     }
-
   }
 
   private def getStatus(code: Int) =

@@ -91,33 +91,37 @@ object Status {
       case Some(status) => Right(status)
     }
 
-  def registered: Iterable[Status] =
-    for {
-      code <- MinCode to MaxCode
-      status <- lookup(code)
-    } yield status
+  def registered: Iterable[Status] = all
 
   private def parseAsStatus(code: Int, reason: String = ""): ParseResult[Status] =
-    if (isInRange(code)) ParseResult.success(Status(code, reason))
+    if (isStandard(code)) ParseResult.success(Status(code, reason))
     else
-      ParseResult.fail(
-        "Invalid status",
-        s"Code $code is not between $MinCode and $MaxCode, inclusive")
-
-  private def isInRange(code: Int) = code >= MinCode && code <= MaxCode
+      ParseResult.fail("Invalid status", s"$code is not a valid response code.")
 
   private object Registry {
     private val registry = Array.fill[Option[Status]](MaxCode + 1)(None)
 
-    def lookup(code: Int): Option[Status] = if (code < registry.size) registry(code) else None
+    def lookup(code: Int): Option[Status] = if (isInRange(code)) registry(code) else None
 
     def lookup(code: Int, reason: String): Option[Status] =
       for { status <- lookup(code) if status.reason == reason } yield status
+
+    def isStandard(code: Int): Boolean = isInRange(code) && registry(code).isDefined
 
     def register(status: Status): Status = {
       registry(status.code) = Some(status)
       status
     }
+
+    def all: Iterable[Status] =
+      for {
+        code <- MinCode to MaxCode
+        status <- lookup(code)
+      } yield status
+
+    private def isInRange(code: Int) =
+      code >= MinCode && code <= MaxCode
+
   }
 
   /**
