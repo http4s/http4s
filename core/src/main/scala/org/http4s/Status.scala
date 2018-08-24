@@ -42,6 +42,7 @@ sealed abstract case class Status private (code: Int)(
 }
 
 object Status {
+  import Registry._
 
   def apply(code: Int, reason: String = "", isEntityAllowed: Boolean = true): Status =
     new Status(code)(reason, isEntityAllowed) {}
@@ -79,38 +80,45 @@ object Status {
   val MinCode = 100
   val MaxCode = 599
 
-  def fromInt(code: Int): ParseResult[Status] = lookupInRegistry(code) match {
+  def fromInt(code: Int): ParseResult[Status] = lookup(code) match {
     case None => parseAsStatus(code)
     case Some(status) => Right(status)
   }
 
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
-    lookupInRegistry(code) match {
+    lookup(code, reason) match {
       case None => parseAsStatus(code, reason)
-      case Some(status) =>
-        if (status.reason == reason) Right(status) else parseAsStatus(code, reason)
+      case Some(status) => Right(status)
     }
 
   def registered: Iterable[Status] =
     for {
       code <- MinCode to MaxCode
-      status <- lookupInRegistry(code)
+      status <- lookup(code)
     } yield status
-
-  private def register(status: Status): Status = {
-    registry(status.code) = Some(status)
-    status
-  }
 
   private def parseAsStatus(code: Int, reason: String = ""): ParseResult[Status] =
     if (isInRange(code)) ParseResult.success(Status(code, reason))
-    else ParseResult.fail("Invalid status", s"Code $code must be between 100 and 599, inclusive")
+    else
+      ParseResult.fail(
+        "Invalid status",
+        s"Code $code is not between $MinCode and $MaxCode, inclusive")
 
   private def isInRange(code: Int) = code >= MinCode && code <= MaxCode
 
-  private def lookupInRegistry(code: Int) = if (isInRange(code)) registry(code) else None
+  private object Registry {
+    private val registry = Array.fill[Option[Status]](MaxCode + 1)(None)
 
-  private val registry = Array.fill[Option[Status]](MaxCode + 1)(None)
+    def lookup(code: Int): Option[Status] = if (code < registry.size) registry(code) else None
+
+    def lookup(code: Int, reason: String): Option[Status] =
+      for { status <- lookup(code) if status.reason == reason } yield status
+
+    def register(status: Status): Status = {
+      registry(status.code) = Some(status)
+      status
+    }
+  }
 
   /**
     * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml

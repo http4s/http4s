@@ -59,6 +59,10 @@ class StatusSpec extends Http4sSpec {
     s1 must_== s2
   }
 
+  "finding a status by code and reason, with an invalid code" in {
+    fromIntAndReason(17, "a reason") must beLeft
+  }
+
   "finding existing statuses by code, and by code and reason" in {
     getStatus(NotFound.code).reason must_== "Not Found"
 
