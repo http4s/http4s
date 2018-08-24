@@ -120,6 +120,32 @@ trait WwwAuthenticateResponseGenerator[F[_]] extends Any with ResponseGenerator 
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which must contain
+  * an Allow header and may contain a body.
+  *
+  * A 405 status MUST contain an `Allow` header, which
+  * distinguishes this from other `ResponseGenerator`s.
+  */
+trait AllowResponseGenerator[F[_]] extends Any with ResponseGenerator {
+
+  def apply(allow: Allow, headers: Header*)(implicit F: Applicative[F]): F[Response[F]] =
+    F.pure(Response(status, headers = Headers(`Content-Length`.zero +: allow +: headers.toList)))
+
+  def apply[A](allow: Allow, body: A, headers: Header*)(
+      implicit F: Monad[F],
+      w: EntityEncoder[F, A]): F[Response[F]] = {
+    val h = w.headers ++ Headers(allow +: headers.toList)
+    val entity = w.toEntity(body)
+    val newHeaders = entity.length
+      .map { l =>
+        `Content-Length`.fromLong(l).fold(_ => h, c => h.put(c))
+      }
+      .getOrElse(h)
+    F.pure(Response(status = status, headers = newHeaders, body = entity.body))
+  }
+
+}
+
+/** Helper for the generation of a [[org.http4s.Response]] which must contain
   * a Proxy-Authenticate header and may contain a body.
   *
   * A 407 status MUST contain a `Proxy-Authenticate` header, which

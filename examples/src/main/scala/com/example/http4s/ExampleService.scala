@@ -34,7 +34,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case _ -> Root =>
         // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
-        MethodNotAllowed()
+        MethodNotAllowed(Allow(GET))
 
       case GET -> Root / "ping" =>
         // EntityEncoder allows for easy conversion of types to a response body
