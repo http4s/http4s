@@ -7,7 +7,7 @@
         </array>
       </option>
       <option name="sortAsScalastyle" value="true" />
-      <option name="FORMATTER" value="1" />
+      <option name="USE_SCALAFMT_FORMATTER" value="true" />
     </ScalaCodeStyleSettings>
     <XML>
       <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
