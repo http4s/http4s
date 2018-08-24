@@ -7,6 +7,7 @@ import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 
 class StatusSpec extends Http4sSpec {
+
   "code is valid iff between 100 and 599" in {
     forAll(Gen.choose(Int.MinValue, 99)) { i =>
       fromInt(i).isLeft
@@ -19,7 +20,13 @@ class StatusSpec extends Http4sSpec {
     }
   }
 
-  def responseClassTest(range: Range, responseClass: ResponseClass) =
+  private def getStatus(code: Int) =
+    fromInt(code).right.get
+
+  private def getStatus(code: Int, reason: String) =
+    fromIntAndReason(code, reason).right.get
+
+  private def responseClassTest(range: Range, responseClass: ResponseClass) =
     foreach(range) { i =>
       fromInt(i) must beRight.like {
         case s => s.responseClass must_== responseClass
@@ -45,4 +52,23 @@ class StatusSpec extends Http4sSpec {
       (s1.reason != reason) ==> (s1 == s1.withReason(reason))
     }
   }
+
+  "statuses are equal if their codes are" in {
+    val s1: Status = getStatus(200, "a reason")
+    val s2: Status = getStatus(200, "another reason")
+    s1 must_== s2
+  }
+
+  "finding existing statuses by code, and by code and reason" in {
+    getStatus(NotFound.code).reason must_== "Not Found"
+
+    getStatus(NotFound.code, "Not Found").reason must_== "Not Found"
+  }
+
+  "finding a status by a standard code, but nonstandard reason" in {
+    getStatus(NotFound.code, "My dog ate my homework").reason must_== "My dog ate my homework"
+
+    getStatus(NotFound.code).reason must_== "Not Found"
+  }
+
 }
