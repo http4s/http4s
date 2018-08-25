@@ -19,10 +19,10 @@ If you have any questions or concerns, please contact a member of the
 community staff, such as:
 
 - [Bryce Anderson](mailto:bryce.anderson22@gmail.com)
+- [Christopher Davenport](mailto:chris@christopherdavenport.tech)
 - [Ross A. Baker](mailto:ross@rossabaker.com)
 
 [Typelevel]: https://typelevel.org/
 [Typelevel code of conduct]: https://typelevel.org/conduct.html
 [GitHub]: https://github.com/http4s
 [Gitter]: https://gitter.im/http4s/http4s
-
