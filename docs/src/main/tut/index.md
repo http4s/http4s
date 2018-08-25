@@ -13,7 +13,7 @@ Getting started with http4s is easy.  Let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
-$ sbt -sbt-version 1.1.1 new http4s/http4s.g8
+$ sbt -sbt-version 1.2.1 new http4s/http4s.g8 -b 0.19
 ```
 
 Follow the prompts.  For every step along the way, a default value is
