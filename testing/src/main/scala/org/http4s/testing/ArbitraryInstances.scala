@@ -117,10 +117,10 @@ trait ArbitraryInstances {
     Cogen[Int].contramap(_.##)
 
   val genValidStatusCode =
-    oneOf(Status.registered.map(_.code).toSeq)
+    choose(Status.MinCode, Status.MaxCode)
 
   val genStandardStatus =
-    oneOf(Status.registered.toSeq)
+    oneOf(Status.registered)
 
   val genCustomStatus = for {
     code <- genValidStatusCode

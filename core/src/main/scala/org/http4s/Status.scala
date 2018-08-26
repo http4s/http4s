@@ -77,51 +77,40 @@ object Status {
     val ServerError = Status.Informational
   }
 
-  val MinCode = 100
-  val MaxCode = 599
+  private[http4s] val MinCode = 100
+  private[http4s] val MaxCode = 599
 
-  def fromInt(code: Int): ParseResult[Status] = lookup(code) match {
-    case None => parseAsStatus(code)
-    case Some(status) => Right(status)
-  }
+  //TODO eliminate duplication
+  def fromInt(code: Int): ParseResult[Status] = if (isInRange(code)) {
+      ParseResult.success(lookup(code).getOrElse(Status(code, "No reason provided")))
+    } else ParseResult.fail("Invalid code", s"$code is not between $MinCode and $MaxCode.")
 
-  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
-    lookup(code, reason) match {
-      case None => parseAsStatus(code, reason)
-      case Some(status) => Right(status)
-    }
+  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =  if (isInRange(code)) {
+      ParseResult.success(lookup(code, reason).getOrElse((Status(code, reason))))
+  } else ParseResult.fail("Invalid code", s"$code is not between $MinCode and $MaxCode.")
 
-  def registered: Iterable[Status] = all
 
-  private def parseAsStatus(code: Int, reason: String = ""): ParseResult[Status] =
-    if (isStandard(code)) ParseResult.success(Status(code, reason))
-    else
-      ParseResult.fail("Invalid status", s"$code is not a valid response code.")
+  private[http4s] def registered: List[Status] = all
+
+  private def isInRange(code: Int) =
+    code >= MinCode && code <= MaxCode
+
 
   private object Registry {
-    private val registry = Array.fill[Option[Status]](MaxCode + 1)(None)
+    private val registry: Array[Either[String, Status]] = Array.fill[Either[String, Status]](MaxCode + 1){Left("unregistered")}
 
-    def lookup(code: Int): Option[Status] = if (isInRange(code)) registry(code) else None
+    def lookup(code: Int): Either[String, Status] = registry(code)
 
-    def lookup(code: Int, reason: String): Option[Status] =
-      for { status <- lookup(code) if status.reason == reason } yield status
-
-    def isStandard(code: Int): Boolean = isInRange(code) && registry(code).isDefined
+    def lookup(code: Int, reason: String): Either[String, Status] = {
+      lookup(code).filterOrElse[String]( { _.reason == reason}, "Reason did not match")
+    }
 
     def register(status: Status): Status = {
-      registry(status.code) = Some(status)
+      registry(status.code) = Right(status)
       status
     }
 
-    def all: Iterable[Status] =
-      for {
-        code <- MinCode to MaxCode
-        status <- lookup(code)
-      } yield status
-
-    private def isInRange(code: Int) =
-      code >= MinCode && code <= MaxCode
-
+    def all: List[Status] = registry.filter(_.isRight).map(_.right.get).toList
   }
 
   /**

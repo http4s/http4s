@@ -46,6 +46,18 @@ class StatusSpec extends Http4sSpec {
 
   }
 
+  "The collection of registered statuses" should {
+    "contain 58 standard ones" in {
+      Status.registered.toSeq.size must_== 58
+
+    }
+
+    "not contain any custom statuses" in {
+      getStatus(371)
+      Status.registered.toSeq.size must_== 58
+    }
+  }
+
   "Finding a status by code" should {
 
     "fail if the code is not in the range of valid codes" in {
@@ -60,9 +72,9 @@ class StatusSpec extends Http4sSpec {
       }
     }
 
-    "fail if the code is in the valid range, but not a standard code" in {
-      fromInt(371) must beLeft
-      fromInt(482) must beLeft
+    "succeed if the code is in the valid range, but not a standard code" in {
+      fromInt(371) must beRight
+      fromInt(482) must beRight
     }
 
     "yield a status with the standard reason for a standard code" in {
@@ -75,9 +87,10 @@ class StatusSpec extends Http4sSpec {
       fromIntAndReason(17, "a reason") must beLeft
     }
 
-    "fail if the code is in the valid range, but not a standard code" in {
-      fromIntAndReason(371, "some reason") must beLeft
-      fromIntAndReason(152, "another reason") must beLeft
+    "succeed if the code is in the valid range, but not a standard code" in {
+      val s1 = getStatus(371, "some reason")
+      s1.code must_== 371
+      s1.reason must_== "some reason"
     }
 
     "succeed for a standard code and nonstandard reason, without replacing the default reason" in {
