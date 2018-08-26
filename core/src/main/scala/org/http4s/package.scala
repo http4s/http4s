@@ -90,10 +90,10 @@ package object http4s { // scalastyle:ignore
       case Left(_) => None
     }
 
-//    def getOrElse[R2 >: R](default: => R2): R2 = self match {
-//      case Right(r) => r
-//      case Left(_) => default
-//    }
+    def getOrElse[R2 >: R](default: => R2): R2 = self match {
+      case Right(r) => r
+      case Left(_) => default
+    }
 
     def valueOr[R2 >: R](f: L => R2): R2 = self match {
       case Right(r) => r
