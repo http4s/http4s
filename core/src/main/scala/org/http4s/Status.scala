@@ -80,30 +80,28 @@ object Status {
   private[http4s] val MinCode = 100
   private[http4s] val MaxCode = 599
 
-  //TODO eliminate duplication
-  def fromInt(code: Int): ParseResult[Status] = if (isInRange(code)) {
-      ParseResult.success(lookup(code).getOrElse(Status(code, "No reason provided")))
-    } else ParseResult.fail("Invalid code", s"$code is not between $MinCode and $MaxCode.")
+  def fromInt(code: Int): ParseResult[Status] = withRangeCheck(code) {
+    ParseResult.success(lookup(code).getOrElse(Status(code, "No reason provided")))
+  }
 
-  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =  if (isInRange(code)) {
-      ParseResult.success(lookup(code, reason).getOrElse((Status(code, reason))))
-  } else ParseResult.fail("Invalid code", s"$code is not between $MinCode and $MaxCode.")
+  def fromIntAndReason(code: Int, reason: String): ParseResult[Status] = withRangeCheck(code) {
+    ParseResult.success(lookup(code, reason).getOrElse(Status(code, reason)))
+  }
 
+  private def withRangeCheck(code: Int)(onSuccess: => ParseResult[Status]): ParseResult[Status] =
+    if (code >= MinCode && code <= MaxCode) onSuccess
+    else ParseResult.fail("Invalid code", s"$code is not between $MinCode and $MaxCode.")
 
   private[http4s] def registered: List[Status] = all
 
-  private def isInRange(code: Int) =
-    code >= MinCode && code <= MaxCode
-
-
   private object Registry {
-    private val registry: Array[Either[String, Status]] = Array.fill[Either[String, Status]](MaxCode + 1){Left("unregistered")}
+    private val registry: Array[Either[String, Status]] =
+      Array.fill[Either[String, Status]](MaxCode + 1) { Left("unregistered") }
 
     def lookup(code: Int): Either[String, Status] = registry(code)
 
-    def lookup(code: Int, reason: String): Either[String, Status] = {
-      lookup(code).filterOrElse[String]( { _.reason == reason}, "Reason did not match")
-    }
+    def lookup(code: Int, reason: String): Either[String, Status] =
+      lookup(code).filterOrElse[String]({ _.reason == reason }, "Reason did not match")
 
     def register(status: Status): Status = {
       registry(status.code) = Right(status)
