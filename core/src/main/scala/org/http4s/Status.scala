@@ -81,11 +81,14 @@ object Status {
   private[http4s] val MaxCode = 599
 
   def fromInt(code: Int): ParseResult[Status] = withRangeCheck(code) {
-    ParseResult.success(lookup(code).getOrElse(Status(code, "No reason provided")))
+    val lookupResult = lookup(code)
+    if (lookupResult.isRight) lookupResult
+    else ParseResult.success(Status(code, "No reason provided"))
   }
 
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] = withRangeCheck(code) {
-    ParseResult.success(lookup(code, reason).getOrElse(Status(code, reason)))
+    val lookupResult = lookup(code, reason)
+    if (lookupResult.isRight) lookupResult else ParseResult.success(Status(code, reason))
   }
 
   private def withRangeCheck(code: Int)(onSuccess: => ParseResult[Status]): ParseResult[Status] =
@@ -95,13 +98,18 @@ object Status {
   private[http4s] def registered: List[Status] = all
 
   private object Registry {
-    private val registry: Array[Either[String, Status]] =
-      Array.fill[Either[String, Status]](MaxCode + 1) { Left("unregistered") }
+    private val registry: Array[ParseResult[Status]] =
+      Array.fill[ParseResult[Status]](MaxCode + 1) {
+        ParseResult.fail("Unregistered", "Unregistered")
+      }
 
-    def lookup(code: Int): Either[String, Status] = registry(code)
+    def lookup(code: Int): ParseResult[Status] = registry(code)
 
-    def lookup(code: Int, reason: String): Either[String, Status] =
-      lookup(code).filterOrElse[String]({ _.reason == reason }, "Reason did not match")
+    def lookup(code: Int, reason: String): ParseResult[Status] = {
+      val lookupResult = lookup(code)
+      if (lookupResult.isRight && lookupResult.right.get.reason == reason) lookupResult
+      else ParseResult.fail("Reason did not match", s"Nonstandard reason: $reason")
+    }
 
     def register(status: Status): Status = {
       registry(status.code) = Right(status)
