@@ -50,9 +50,9 @@ trait Http4sSpec
 
   implicit val params = Parameters(maxSize = 20)
 
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(testExecutionContext)
+  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
 
-  implicit val timer: Timer[IO] = IO.timer(testExecutionContext)
+  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -129,4 +129,10 @@ object Http4sSpec {
 
   val TestBlockingExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newBlockingPool("http4s-spec-blocking"))
+
+  val TestContextShift: ContextShift[IO] =
+    IO.contextShift(TestExecutionContext)
+
+  val TestTimer: Timer[IO] =
+    IO.timer(TestExecutionContext)
 }

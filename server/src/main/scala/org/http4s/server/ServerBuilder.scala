@@ -5,13 +5,11 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Ref
 import fs2._
-import java.net.{InetAddress, InetSocketAddress}
-import java.util.concurrent.ExecutorService
-import javax.net.ssl.SSLContext
 import fs2.async.immutable.Signal
+import java.net.{InetAddress, InetSocketAddress}
+import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 trait ServerBuilder[F[_]] {
@@ -29,16 +27,6 @@ trait ServerBuilder[F[_]] {
   final def bindLocal(port: Int): Self = bindHttp(port, DefaultHost)
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
-
-  @deprecated("Use withExecutionContext", "0.17")
-  def withExecutorService(executorService: ExecutorService): Self =
-    withExecutionContext(ExecutionContext.fromExecutorService(executorService))
-
-  @deprecated("Use withExecutionContext", "0.17.0")
-  def withServiceExecutor(executorService: ExecutorService): Self =
-    withExecutorService(executorService)
-
-  def withExecutionContext(executionContext: ExecutionContext): Self
 
   /** Sets the handler for errors thrown invoking the service.  Is not
     * guaranteed to be invoked on errors on the server backend, such as
