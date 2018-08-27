@@ -4,10 +4,10 @@ package blaze
 
 import cats.effect.IO
 import org.http4s.util.threads.newDaemonPoolExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
 
-class BlazeHttp1ClientSpec
-    extends ClientRouteTestBattery(
+class BlazeHttp1ClientSpec extends {
+  implicit val testContextShift = Http4sSpec.TestContextShift
+} with ClientRouteTestBattery(
       "Blaze Http1Client",
       Http1Client[IO](
         BlazeClientConfig.defaultConfig.copy(
