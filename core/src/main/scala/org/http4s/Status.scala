@@ -81,14 +81,17 @@ object Status {
   private[http4s] val MaxCode = 599
 
   def fromInt(code: Int): ParseResult[Status] = withRangeCheck(code) {
-    val lookupResult = lookup(code)
-    if (lookupResult.isRight) lookupResult
-    else ParseResult.success(Status(code, "No reason provided"))
+    lookup(code) match {
+      case right: Right[_, _] => right
+      case _ => ParseResult.success(Status(code, ""))
+    }
   }
 
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] = withRangeCheck(code) {
-    val lookupResult = lookup(code, reason)
-    if (lookupResult.isRight) lookupResult else ParseResult.success(Status(code, reason))
+    lookup(code, reason) match {
+      case right: Right[_, _] => right
+      case _ => ParseResult.success(Status(code, reason))
+    }
   }
 
   private def withRangeCheck(code: Int)(onSuccess: => ParseResult[Status]): ParseResult[Status] =

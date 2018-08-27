@@ -48,13 +48,12 @@ class StatusSpec extends Http4sSpec {
 
   "The collection of registered statuses" should {
     "contain 58 standard ones" in {
-      Status.registered.toSeq.size must_== 58
-
+      Status.registered.size must_== 58
     }
 
     "not contain any custom statuses" in {
       getStatus(371)
-      Status.registered.toSeq.size must_== 58
+      Status.registered.size must_== 58
     }
   }
 
@@ -67,13 +66,13 @@ class StatusSpec extends Http4sSpec {
     }
 
     "fail if the code is not in the range of valid codes" in {
-      forAll(Gen.choose(599, Int.MaxValue)) { i =>
+      forAll(Gen.choose(600, Int.MaxValue)) { i =>
         fromInt(i).isLeft
       }
     }
 
     "succeed if the code is in the valid range, but not a standard code" in {
-      fromInt(371) must beRight
+      fromInt(371) must beRight.like { case s => s.reason must_== "" }
       fromInt(482) must beRight
     }
 
