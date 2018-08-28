@@ -95,20 +95,36 @@ final class CSRF[F[_], G[_]] private[middleware] (
     RequestCookie(name = cookieName, content = unlift(token))
 
   /** Extract a `CsrfToken`, if present, from the request,
-    * then generate a new token signature
+    * then try to generate a new token signature, or fail with a validation error
     * @return newly refreshed token
     */
   def refreshedToken[M[_]](r: Request[G])(
       implicit F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
-    EitherT(
-      F.pure(
-        CSRF
-          .cookieFromHeaders(r, cookieName)
-          .toRight(CSRFCheckFailed)
-          .flatMap(c => extractRaw(c.content))))
-      .semiflatMap(signToken[M])
+    CSRF.cookieFromHeaders(r, cookieName) match {
+      case Some(c) =>
+        EitherT(F.pure(extractRaw(c.content)))
+          .semiflatMap(signToken[M])
+      case None =>
+        EitherT(F.pure(Left(CSRFCheckFailed)))
+    }
 
-  /** Decode our CSRF token and extract the original token string to sign
+  /** Extract a `CsrfToken`, if present, from the request,
+    * then try generate a new token signature, or fail with a validation error.
+    * If not present, generate a new token
+    * @return newly refreshed token
+    */
+  def refreshOrCreate[M[_]](r: Request[G])(
+      implicit F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
+    CSRF.cookieFromHeaders(r, cookieName) match {
+      case Some(c) =>
+        EitherT(F.pure(extractRaw(c.content)))
+          .semiflatMap(signToken[M])
+      case None =>
+        EitherT.liftF(generateToken[M])
+    }
+
+  /** Decode our CSRF token, check the signature
+    * and extract the original token string to sign
     */
   def extractRaw(rawToken: String): Either[CSRFCheckFailed, String] =
     rawToken.split("-") match {
