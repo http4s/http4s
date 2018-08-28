@@ -2,8 +2,8 @@ package org.http4s
 package server
 package middleware
 
-import cats.Applicative
-import cats.data.{Kleisli, OptionT}
+import cats.{Applicative}
+import cats.data.{EitherT, Kleisli}
 import cats.effect.Sync
 import cats.syntax.all._
 import java.nio.charset.StandardCharsets
@@ -15,6 +15,7 @@ import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
 import org.http4s.util.{CaseInsensitiveString, decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
+import scala.util.control.NoStackTrace
 
 /** Middleware to avoid Cross-site request forgery attacks.
   * More info on CSRF at: https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)
@@ -50,10 +51,10 @@ import org.http4s.Uri.Scheme
   * @param clock clock used as a nonce
   */
 final class CSRF[F[_], G[_]] private[middleware] (
-    val headerName: String = "X-Csrf-Token",
-    val cookieName: String = "csrf-token",
+    val headerName: String,
+    val cookieName: String,
     key: SecretKey,
-    clock: Clock = Clock.systemUTC(),
+    clock: Clock,
     headerCheck: Request[G] => Boolean,
     onFailure: Response[G],
     secure: Boolean,
@@ -64,7 +65,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * Signing and generating a token is potentially a unsafe operation
     * if constructed with a bad key.
     */
-  private[middleware] def signToken(rawToken: String): F[CSRFToken] =
+  def signToken[M[_]](rawToken: String)(implicit F: Sync[M]): M[CSRFToken] =
     F.delay {
       val joined = rawToken + "-" + clock.millis()
       val mac = Mac.getInstance(CSRF.SigningAlgo)
@@ -74,8 +75,8 @@ final class CSRF[F[_], G[_]] private[middleware] (
     }
 
   /** Generate a new token **/
-  def generateToken: F[CSRFToken] =
-    signToken(CSRF.genTokenString)
+  def generateToken[M[_]](implicit F: Sync[M]): M[CSRFToken] =
+    signToken[M](CSRF.genTokenString)
 
   /** Create a Response cookie from a signed CSRF token
     *
@@ -83,21 +84,32 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * @return
     */
   def createResponseCookie(token: CSRFToken): ResponseCookie =
-    ResponseCookie(name = cookieName, content = token, httpOnly = true, secure = self.secure)
+    ResponseCookie(
+      name = cookieName,
+      content = unlift(token),
+      httpOnly = true,
+      secure = self.secure)
+
+  def createRequestCookie(token: CSRFToken): RequestCookie =
+    RequestCookie(name = cookieName, content = unlift(token))
 
   /** Extract a csrftoken, if present, from the request,
     * then generate a new token signature
     * @return newly refreshed toen
     */
-  def refreshedToken(r: Request[G]): OptionT[F, CSRFToken] =
-    OptionT
-      .fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
-      .flatMap(c => extractRaw(c.content))
-      .semiflatMap(signToken)
+  def refreshedToken[M[_]](r: Request[G])(
+      implicit F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
+    EitherT(
+      F.pure(
+        CSRF
+          .cookieFromHeaders(r, cookieName)
+          .toRight(CSRFCheckFailed)
+          .flatMap(c => extractRaw(c.content))))
+      .semiflatMap(signToken[M])
 
   /** Decode our CSRF token and extract the original token string to sign
     */
-  def extractRaw(rawToken: String): OptionT[F, String] =
+  def extractRaw(rawToken: String): Either[CSRFCheckFailed, String] =
     rawToken.split("-") match {
       case Array(raw, nonce, signed) =>
         val mac = Mac.getInstance(CSRF.SigningAlgo)
@@ -106,33 +118,36 @@ final class CSRF[F[_], G[_]] private[middleware] (
         decodeHexString(signed) match {
           case Some(decoded) =>
             if (MessageDigest.isEqual(out, decoded)) {
-              OptionT(F.pure(Some(raw)))
+              Right(raw)
             } else {
-              OptionT(F.pure(None))
+              Left(CSRFCheckFailed)
             }
           case None =>
-            OptionT(F.pure(None))
+            Left(CSRFCheckFailed)
         }
       case _ =>
-        OptionT(F.pure(None))
+        Left(CSRFCheckFailed)
     }
 
   /** To be only used on safe methods: if the method is safe (i.e doesn't modify data)
     * and a token is present, validate and regenerate it for BREACH to be impractical
     */
-  private[middleware] def validate(r: Request[G], response: F[Response[G]]): F[Response[G]] =
+  private[middleware] def validate(r: Request[G], response: F[Response[G]])(
+      implicit F: Sync[F]): F[Response[G]] =
     CSRF.cookieFromHeaders(r, cookieName) match {
       case Some(c) =>
         (for {
-          raw <- extractRaw(c.content)
-          res <- OptionT.liftF(response)
-          newToken <- OptionT.liftF(signToken(raw))
+          raw <- F.fromEither(extractRaw(c.content))
+          res <- response
+          newToken <- signToken[F](raw)
         } yield res.addCookie(createResponseCookie(newToken)))
-          .getOrElse(Response[G](Status.Forbidden))
+          .recover {
+            case CSRFCheckFailed => Response[G](Status.Forbidden)
+          }
       case None =>
-        if (createIfNotFound)
-          response.flatMap(embedNew)
-        else response
+        if (createIfNotFound) {
+          response.flatMap(r => embedNewInCookie(r))
+        } else response
     }
 
   /** Check for CSRF validity for an unsafe action.
@@ -140,19 +155,23 @@ final class CSRF[F[_], G[_]] private[middleware] (
     * Exposed to users in case of manual plumbing of csrf token
     * (i.e websocket or query param)
     */
-  def checkCSRFToken(r: Request[G], respAction: F[Response[G]], rawToken: String): F[Response[G]] =
-    if (!headerCheck(r))
+  def checkCSRFToken(r: Request[G], respAction: F[Response[G]], rawToken: String)(
+      implicit F: Sync[F]): F[Response[G]] =
+    if (!headerCheck(r)) {
       F.pure(onFailure)
-    else
+    } else {
       (for {
-        c1 <- OptionT.fromOption[F](CSRF.cookieFromHeaders(r, cookieName))
-        raw1 <- extractRaw(c1.content)
-        raw2 <- extractRaw(rawToken)
-        response <- if (CSRF.isEqual(raw1, raw2)) OptionT.liftF(respAction)
-        else OptionT.none[F, Response[G]]
-        newToken <- OptionT.liftF(signToken(raw1)) //Generate a new token to guard against BREACH.
-      } yield response.addCookie(ResponseCookie(name = cookieName, content = newToken)))
-        .getOrElse(onFailure)
+        c1 <- fromOptionF[F, RequestCookie](CSRF.cookieFromHeaders(r, cookieName))
+        raw1 <- F.fromEither(extractRaw(c1.content))
+        raw2 <- F.fromEither(extractRaw(rawToken))
+        response <- if (CSRF.isEqual(raw1, raw2)) respAction
+        else F.raiseError[Response[G]](CSRFCheckFailed)
+        newToken <- signToken[F](raw1) //Generate a new token to guard against BREACH.
+      } yield response.addCookie(ResponseCookie(name = cookieName, content = unlift(newToken))))
+        .recover {
+          case CSRFCheckFailed => Response[G](Status.Forbidden)
+        }
+    }
 
   /** Check for CSRF validity for an unsafe action.
     *
@@ -195,21 +214,31 @@ final class CSRF[F[_], G[_]] private[middleware] (
     }
   }
 
+  def embedInResponseCookie(r: Response[G], token: CSRFToken): Response[G] =
+    r.addCookie(createResponseCookie(token))
+
+  def embedInRequestCookie(r: Request[G], token: CSRFToken): Request[G] =
+    r.addCookie(createRequestCookie(token))
+
   /** Embed a token into a response **/
-  def embedNew(res: Response[G]): F[Response[G]] =
-    generateToken.map(content => res.addCookie(ResponseCookie(cookieName, content)))
-
-  /** Middleware to embed a csrf token into routes that do not have one. **/
-  def withNewToken: Middleware[F, Request[G], Response[G], Request[G], Response[G]] =
-    _.andThen(embedNew _)
-
+  def embedNewInCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
+    generateToken[M].map(embedInResponseCookie(res, _))
 }
 
 object CSRF {
 
-  //Newtype hax
-  type CSRFToken <: String
+  //Newtype hax. Remove when we have a better story for newtypes
+  type CSRFToken
   private[CSRF] def lift(s: String): CSRFToken = s.asInstanceOf[CSRFToken]
+  def unlift(s: CSRFToken): String = s.asInstanceOf[String]
+  final case object CSRFCheckFailed extends Exception("CSRF Check failed") with NoStackTrace
+  type CSRFCheckFailed = CSRFCheckFailed.type
+
+  private[CSRF] def fromOptionF[F[_], A](o: Option[A])(implicit F: Sync[F]): F[A] =
+    o match {
+      case Some(e) => F.pure(e)
+      case None => F.raiseError(CSRFCheckFailed)
+    }
 
   /** Default method for constructing CSRF middleware **/
   def apply[F[_]: Sync, G[_]: Applicative](
@@ -310,21 +339,27 @@ object CSRF {
   /** An instance of SecureRandom to generate
     * tokens, properly seeded:
     * https://tersesystems.com/blog/2015/12/17/the-right-way-to-use-securerandom/
+    *
+    * Note: The user is responsible for setting the proper
+    * SecureRandom use via jvm flags.
     */
   private val InitialSeedArraySize: Int = 20
   private val CachedRandom: SecureRandom = {
-    //Todo: OS dependent check to use /urandom instead
     val r = new SecureRandom()
     r.nextBytes(new Array[Byte](InitialSeedArraySize))
     r
   }
 
-  private[middleware] def cookieFromHeaders[F[_]: Applicative](
+  private[middleware] def cookieFromHeaders[F[_]](
       request: Request[F],
       cookieName: String): Option[RequestCookie] =
     HCookie
       .from(request.headers)
       .flatMap(_.values.find(_.name == cookieName))
+
+  /** A Constant-time string equality **/
+  def tokensEqual(s1: CSRFToken, s2: CSRFToken): Boolean =
+    isEqual(unlift(s1), unlift(s2))
 
   /** A Constant-time string equality **/
   def isEqual(s1: String, s2: String): Boolean =
