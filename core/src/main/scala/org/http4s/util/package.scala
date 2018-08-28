@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets
 import fs2._
 import java.nio.{ByteBuffer, CharBuffer}
 import scala.concurrent.ExecutionContextExecutor
-import scala.util.control.NoStackTrace
 
 package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = {
@@ -54,80 +53,6 @@ package object util {
       }
 
     in.flatMap(c => tailRecAsciiCheck(0, c.toArray))
-  }
-
-  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
-  private val Digits: Array[Char] =
-    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
-
-  /** Encode a byte Array into a hexadecimal string
-    *
-    * @param data the array
-    * @return a hexadecimal encoded string
-    */
-  def encodeHexString(data: Array[Byte]): String =
-    new String(encodeHex(data))
-
-  /** Encode a string to a Hexadecimal string representation
-    * Adapted from apache commons Hex.encodeHex
-    */
-  def encodeHex(data: Array[Byte]): Array[Char] = {
-    val l = data.length
-    val out = new Array[Char](l << 1)
-    // two characters form the hex value.
-    var i = 0
-    var j = 0
-    while (i < l) {
-      out(j) = Digits((0xF0 & data(i)) >>> 4)
-      j += 1
-      out(j) = Digits(0x0F & data(i))
-      j += 1
-      i += 1
-    }
-    out
-  }
-
-  def decodeHexString(data: String): Option[Array[Byte]] =
-    decodeHex(data.toCharArray)
-
-  private object HexDecodeException extends Exception with NoStackTrace
-
-  /** Dirty, optimized hex decoding based off of apache
-    * common hex decoding, ported over to scala
-    *
-    * @param data
-    * @return
-    */
-  def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
-    def toDigit(ch: Char): Int = {
-      val digit = Character.digit(ch, 16)
-      if (digit == -1)
-        throw HexDecodeException
-      else
-        digit
-    }
-
-    val len = data.length
-    if ((len & 0x01) != 0) None
-    val out = new Array[Byte](len >> 1)
-    var f: Int = -1
-    // two characters form the hex value.
-    try {
-      var i = 0
-      var j = 0
-      while (j < len) {
-        f = toDigit(data(j)) << 4
-        j += 1
-        f = f | toDigit(data(j))
-        j += 1
-        out(i) = (f & 0xFF).toByte
-
-        i += 1
-      }
-      Some(out)
-    } catch {
-      case HexDecodeException => None
-    }
   }
 
   /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */

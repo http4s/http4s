@@ -13,7 +13,8 @@ import javax.crypto.spec.SecretKeySpec
 import javax.crypto.{KeyGenerator, Mac, SecretKey}
 import org.http4s.headers.{Cookie => HCookie}
 import org.http4s.headers.{Host, Origin, Referer, `X-Forwarded-For`}
-import org.http4s.util.{CaseInsensitiveString, decodeHexString, encodeHexString}
+import org.http4s.util.{CaseInsensitiveString}
+import org.http4s.internal.{decodeHexString, encodeHexString}
 import org.http4s.Uri.Scheme
 import scala.util.control.NoStackTrace
 
@@ -93,9 +94,9 @@ final class CSRF[F[_], G[_]] private[middleware] (
   def createRequestCookie(token: CSRFToken): RequestCookie =
     RequestCookie(name = cookieName, content = unlift(token))
 
-  /** Extract a csrftoken, if present, from the request,
+  /** Extract a `CsrfToken`, if present, from the request,
     * then generate a new token signature
-    * @return newly refreshed toen
+    * @return newly refreshed token
     */
   def refreshedToken[M[_]](r: Request[G])(
       implicit F: Sync[M]): EitherT[M, CSRFCheckFailed, CSRFToken] =
