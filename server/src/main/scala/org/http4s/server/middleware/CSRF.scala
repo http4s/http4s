@@ -309,7 +309,12 @@ object CSRF {
       port: Option[Int]): Boolean =
     r.headers
       .get(Origin)
-      .flatMap(o => Uri.fromString(o.value).toOption)
+      .flatMap(o =>
+        //Hack to get around 2.11 compat
+        Uri.fromString(o.value) match {
+          case Right(uri) => Some(uri)
+          case Left(_) => None
+      })
       .exists(u => u.host.exists(_.value == host) && u.scheme.contains(sc) && u.port == port) || r.headers
       .get(Referer)
       .exists(u =>
