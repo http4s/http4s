@@ -31,9 +31,9 @@ private[http4s] class Http4sWSStage[F[_]](
         frame match {
           case c: Close =>
             F.delay(sentClose.compareAndSet(false, true))
-              .flatMap(cond => if (cond) writeFrameDirect(c) else F.unit)
+              .flatMap(cond => if (cond) writeFrame(c, directec) else F.unit)
           case _ =>
-            writeFrameDirect(frame)
+            writeFrame(frame, directec)
         }
       } else {
         //Close frame has been sent. Send no further data
@@ -42,20 +42,12 @@ private[http4s] class Http4sWSStage[F[_]](
     }
   }
 
-  private[this] def writeFrameDirect(frame: WebSocketFrame): F[Unit] =
+  private[this] def writeFrame(frame: WebSocketFrame, ec: ExecutionContext): F[Unit] =
     F.async[Unit] { cb =>
       channelWrite(frame).onComplete {
         case Success(res) => cb(Right(res))
         case Failure(t) => cb(Left(t))
-      }(directec)
-    }
-
-  private[this] def writeFrameTrampoline(frame: WebSocketFrame): F[Unit] =
-    F.async[Unit] { cb =>
-      channelWrite(frame).onComplete {
-        case Success(res) => cb(Right(res))
-        case Failure(t) => cb(Left(t))
-      }(trampoline)
+      }(ec)
     }
 
   private[this] def readFrameTrampoline: F[WebSocketFrame] = F.async[WebSocketFrame] { cb =>
@@ -82,7 +74,7 @@ private[http4s] class Http4sWSStage[F[_]](
   private[this] def handleRead(): F[WebSocketFrame] = {
     def maybeSendClose(c: Close): F[Unit] =
       F.delay(sentClose.compareAndSet(false, true)).flatMap { cond =>
-        if (cond) writeFrameTrampoline(c)
+        if (cond) writeFrame(c, trampoline)
         else F.unit
       } >> deadSignal.set(true)
 
@@ -90,12 +82,12 @@ private[http4s] class Http4sWSStage[F[_]](
       case c: Close =>
         for {
           s <- F.delay(sentClose.get())
-          //If we sent a close signal, we don't need to reply with oen
+          //If we sent a close signal, we don't need to reply with one
           _ <- if (s) deadSignal.set(true) else maybeSendClose(c)
         } yield c
       case Ping(d) =>
         //Reply to ping frame immediately
-        writeFrameTrampoline(Pong(d)) >> handleRead()
+        writeFrame(Pong(d), trampoline) >> handleRead()
       case _: Pong =>
         //Don't forward pong frame
         handleRead()
