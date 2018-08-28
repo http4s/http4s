@@ -134,7 +134,7 @@ class CSRFSpec extends Http4sSpec {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .putHeaders(Header(csrf.headerName, unlift(token)))
+            .putHeaders(Header(csrf.headerName.value, unlift(token)))
             .addCookie(csrf.cookieName, unlift(token))
         )
       } yield res
@@ -150,7 +150,7 @@ class CSRFSpec extends Http4sSpec {
             csrf.embedInRequestCookie(
               Request[IO](POST)
                 .putHeaders(
-                  Header(csrf.headerName, unlift(token)),
+                  Header(csrf.headerName.value, unlift(token)),
                   Referer(Uri.unsafeFromString("http://localhost/lol"))),
               token)
           )
@@ -175,7 +175,7 @@ class CSRFSpec extends Http4sSpec {
         res <- csrf.validate()(dummyRoutes)(
           Request[IO](POST)
             .putHeaders(
-              Header(csrf.headerName, unlift(token)),
+              Header(csrf.headerName.value, unlift(token)),
               Header("Origin", "http://example.com"),
               Referer(Uri.unsafeFromString("http://example.com/lol")))
             .addCookie(csrf.cookieName, unlift(token))
@@ -203,7 +203,7 @@ class CSRFSpec extends Http4sSpec {
       (for {
         token <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
-          dummyRequest.putHeaders(Header(csrf.headerName, unlift(token)))
+          dummyRequest.putHeaders(Header(csrf.headerName.value, unlift(token)))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
     }
@@ -214,7 +214,7 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .withHeaders(Headers(Header(csrf.headerName, unlift(token1))))
+            .withHeaders(Headers(Header(csrf.headerName.value, unlift(token1))))
             .addCookie(csrf.cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync().status must_== Status.Forbidden
@@ -227,7 +227,7 @@ class CSRFSpec extends Http4sSpec {
           raw1 <- IO.fromEither(csrf.extractRaw(unlift(token)))
           res <- csrf.validate()(dummyRoutes)(
             dummyRequest
-              .putHeaders(Header(csrf.headerName, unlift(token)))
+              .putHeaders(Header(csrf.headerName.value, unlift(token)))
               .addCookie(csrf.cookieName, unlift(token))
           )
           rawContent = res.cookies.find(_.name == csrf.cookieName).map(_.content).getOrElse("")
@@ -243,7 +243,7 @@ class CSRFSpec extends Http4sSpec {
         token2 <- csrf.generateToken[IO]
         res <- csrf.validate()(dummyRoutes)(
           dummyRequest
-            .putHeaders(Header(csrf.headerName, unlift(token1)))
+            .putHeaders(Header(csrf.headerName.value, unlift(token1)))
             .addCookie(csrf.cookieName, unlift(token2))
         )
       } yield res).unsafeRunSync()
