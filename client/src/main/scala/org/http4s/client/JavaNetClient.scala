@@ -2,7 +2,7 @@ package org.http4s
 package client
 
 import cats.data.Kleisli
-import cats.effect.{Async, ContextShift, Sync}
+import cats.effect.{Async, ContextShift, Resource, Sync}
 import cats.implicits._
 import fs2.io.{readInputStream, writeOutputStream}
 import java.net.{HttpURLConnection, Proxy, URL}
@@ -86,6 +86,9 @@ sealed abstract class JavaNetClient private (
     * this client are reclaimed by the JVM at its own leisure.
     */
   def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
+
+  def resource[F[_]](implicit F: Async[F], cs: ContextShift[F]): Resource[F, Client[F]] =
+    Resource.pure(create)
 
   private def open[F[_]](implicit F: Async[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
     for {

@@ -28,76 +28,37 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
-object OkHttp {
+sealed abstract class OkHttp[F[_]] private (
+  okHttpClient: OkHttpClient,
+  blockingExecutionContext: ExecutionContext
+) {
+  private[this] val logger = getLogger
 
-  private val logger = getLogger
+  private def copy(
+    okHttpClient: OkHttpClient = okHttpClient,
+    blockingExecutionContext: ExecutionContext = blockingExecutionContext
+  ) = new OkHttp[F](okHttpClient, blockingExecutionContext) {}
 
-  def defaultConfig[F[_]]()(implicit F: Effect[F]): F[OkHttpClient.Builder] = F.delay {
-    new OkHttpClient.Builder()
-      .protocols(
-        List(
-          Protocol.HTTP_2,
-          Protocol.HTTP_1_1
-        ).asJava)
+  def withOkHttpClient(okHttpClient: OkHttpClient): OkHttp[F] =
+    copy(okHttpClient = okHttpClient)
+
+  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): OkHttp[F] =
+    copy(blockingExecutionContext = blockingExecutionContext)
+
+  def create(implicit F: Effect[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
+
+  private def open(implicit F: Effect[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
+    F.async[DisposableResponse[F]] { cb =>
+      okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+      ()
+    }.guarantee(cs.shift)
   }
 
-  /** Create an okhttp client with the default config */
-  def apply[F[_]]()(implicit F: Effect[F], ec: ExecutionContext): F[Client[F]] =
-    apply(defaultConfig[F]())
-
-  /** Create an okhttp client with a supplied config */
-  def apply[F[_]](
-      config: F[OkHttpClient.Builder])(implicit F: Effect[F], ec: ExecutionContext): F[Client[F]] =
-    F.map(config) { c =>
-      val client = c.build()
-      Client(
-        Kleisli { req =>
-          F.async[DisposableResponse[F]] { cb =>
-            client.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-            ()
-          }
-        },
-        F.delay({
-          try {
-            client.dispatcher.executorService().shutdown()
-          } catch {
-            case NonFatal(t) =>
-              logger.warn(t)("Unable to shut down dispatcher when disposing of OkHttp client")
-          }
-          try {
-            client.connectionPool().evictAll()
-          } catch {
-            case NonFatal(t) =>
-              logger.warn(t)("Unable to evict connection pool when disposing of OkHttp client")
-          }
-          if (client.cache() != null) {
-            try {
-              client.cache().close()
-            } catch {
-              case NonFatal(t) =>
-                logger.warn(t)("Unable to close cache when disposing of OkHttp client")
-            }
-          }
-        })
-      )
-    }
-
-  /* Create a bracketed stream of a Client with the default config  */
-  def stream[F[_]]()(implicit F: Effect[F], ec: ExecutionContext): Stream[F, Client[F]] =
-    stream(defaultConfig[F]())
-
-  /* Create a bracketed stream of a Client with a supplied config */
-  def stream[F[_]](config: F[OkHttpClient.Builder])(
-      implicit F: Effect[F],
-      ec: ExecutionContext): Stream[F, Client[F]] =
-    Stream.bracket(apply(config))(_.shutdown)
-
-  private def handler[F[_]](cb: Either[Throwable, DisposableResponse[F]] => Unit)(
-      implicit F: Effect[F],
-      ec: ExecutionContext): Callback =
+  private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(
+      implicit F: Effect[F], cs: ContextShift[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
-        ec.execute(new Runnable { override def run(): Unit = cb(Left(e)) })
+        cb(Left(e))
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
@@ -114,7 +75,7 @@ object OkHttp {
               Response[F](headers = getHeaders(response), httpVersion = protocol)
                 .withStatus(s)
                 .withBodyStream(
-                  readInputStream(F.pure(bodyStream), chunkSize = 1024, closeAfterUse = true)),
+                  readInputStream(F.pure(bodyStream), 1024, blockingExecutionContext, true)),
               F.delay({
                 bodyStream.close(); ()
               })
@@ -125,9 +86,7 @@ object OkHttp {
             bodyStream.close()
             t
           }
-        ec.execute(new Runnable {
-          override def run(): Unit = cb(dr)
-        })
+        cb(dr)
       }
     }
 
@@ -136,7 +95,7 @@ object OkHttp {
       response.headers().values(v).asScala.map(Header(v, _))
     })
 
-  private def toOkHttpRequest[F[_]](req: Request[F])(implicit F: Effect[F]): OKRequest = {
+  private def toOkHttpRequest(req: Request[F])(implicit F: Effect[F]): OKRequest = {
     val body = req match {
       case _ if req.isChunked || req.contentLength.isDefined =>
         new RequestBody {
@@ -177,5 +136,41 @@ object OkHttp {
       .url(req.uri.toString())
       .build()
   }
+}
 
+object OkHttp {
+  private[this] val logger = getLogger
+
+  def apply[F[_]](okHttpClient: OkHttpClient, blockingExecutionContext: ExecutionContext): OkHttp[F] =
+    new OkHttp[F](okHttpClient, blockingExecutionContext) {}
+
+  def default[F[_]](blockingExecutionContext: ExecutionContext)(implicit F: Sync[F]): Resource[F, OkHttp[F]] =
+    defaultOkHttpClient.map(apply(_, blockingExecutionContext))
+
+  private def defaultOkHttpClient[F[_]](implicit F: Sync[F]): Resource[F, OkHttpClient] =
+    Resource.make(F.delay(new OkHttpClient()))(shutdown(_))
+
+  private def shutdown[F[_]](client: OkHttpClient)(implicit F: Sync[F]) =
+    F.delay({
+      try {
+        client.dispatcher.executorService().shutdown()
+      } catch {
+        case NonFatal(t) =>
+          logger.warn(t)("Unable to shut down dispatcher when disposing of OkHttp client")
+      }
+      try {
+        client.connectionPool().evictAll()
+      } catch {
+        case NonFatal(t) =>
+          logger.warn(t)("Unable to evict connection pool when disposing of OkHttp client")
+      }
+      if (client.cache() != null) {
+        try {
+          client.cache().close()
+        } catch {
+          case NonFatal(t) =>
+            logger.warn(t)("Unable to close cache when disposing of OkHttp client")
+        }
+      }
+    })
 }
