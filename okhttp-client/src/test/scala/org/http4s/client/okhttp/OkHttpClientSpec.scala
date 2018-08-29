@@ -9,4 +9,4 @@ import org.http4s.Http4sSpec._
 class OkHttpClientSpec
   extends ClientRouteTestBattery(
     "OkHttp",
-    OkHttp.default[IO](TestBlockingExecutionContext).map(_.create(implicitly, TestContextShift)))
+    OkHttpBuilder.withDefaultClient[IO](TestBlockingExecutionContext).map(_.create(implicitly, TestContextShift)))
