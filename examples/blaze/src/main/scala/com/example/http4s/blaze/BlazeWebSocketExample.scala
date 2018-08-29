@@ -11,8 +11,7 @@ import scala.concurrent.duration._
 
 object BlazeWebSocketExample extends BlazeWebSocketExampleApp
 
-class BlazeWebSocketExampleApp extends IOApp
-    with Http4sDsl[IO] {
+class BlazeWebSocketExampleApp extends IOApp with Http4sDsl[IO] {
 
   def route(implicit timer: Timer[IO]): HttpRoutes[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "hello" =>
@@ -43,11 +42,13 @@ class BlazeWebSocketExampleApp extends IOApp
       }
   }
 
-  def run(args: List[String]): IO[ExitCode] = {
+  def run(args: List[String]): IO[ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080)
       .withWebSockets(true)
       .mountService(route, "/http4s")
-      .serve.compile.toList.map(_.head)
-  }
+      .serve
+      .compile
+      .toList
+      .map(_.head)
 }

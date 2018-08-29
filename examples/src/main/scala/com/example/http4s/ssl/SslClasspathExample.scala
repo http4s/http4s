@@ -6,9 +6,9 @@ import fs2.{Stream}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.server.middleware.HSTS
-import org.http4s.server.{ServerBuilder, SSLContextSupport}
+import org.http4s.server.{SSLContextSupport, ServerBuilder}
 
-abstract class SslClasspathExample[F[_] : Effect](implicit timer: Timer[F], ctx: ContextShift[F]) {
+abstract class SslClasspathExample[F[_]: Effect](implicit timer: Timer[F], ctx: ContextShift[F]) {
 
   def loadContextFromClasspath(keystorePassword: String, keyManagerPass: String): F[SSLContext] =
     Sync[F].delay {

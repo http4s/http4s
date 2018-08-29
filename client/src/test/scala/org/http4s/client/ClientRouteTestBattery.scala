@@ -13,11 +13,11 @@ import org.http4s.dsl.io._
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String, clientResource: Resource[IO, Client[IO]])
-    extends Http4sSpec
-    with Http4sClientDsl[IO] {
+abstract class ClientRouteTestBattery(name: String) extends Http4sSpec with Http4sClientDsl[IO] {
   val timeout = 20.seconds
   var address: InetSocketAddress = null
+
+  def clientResource: Resource[IO, Client[IO]]
 
   def testServlet = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit =

@@ -5,8 +5,9 @@ import com.example.http4s.blaze.demo.StreamUtils
 import cats.implicits._
 import io.circe.Json
 import jawn.{RawFacade}
-import org.http4s.client.blaze.Http1Client
+import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{Request, Uri}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object StreamClient extends HttpClient
 
@@ -14,8 +15,7 @@ class HttpClient(implicit S: StreamUtils[IO]) extends IOApp {
   implicit val jsonFacade: RawFacade[Json] = io.circe.jawn.CirceSupportParser.facade
 
   override def run(args: List[String]): IO[ExitCode] =
-    Http1Client
-      .stream[IO]()
+    BlazeClientBuilder[IO](global).stream
       .flatMap { client =>
         val request = Request[IO](uri = Uri.uri("http://localhost:8080/v1/dirs?depth=3"))
         for {
@@ -23,6 +23,8 @@ class HttpClient(implicit S: StreamUtils[IO]) extends IOApp {
           _ <- S.putStr(response)
         } yield ()
       }
-      .compile.drain.as(ExitCode.Success)
+      .compile
+      .drain
+      .as(ExitCode.Success)
 
 }

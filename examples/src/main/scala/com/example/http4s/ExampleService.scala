@@ -16,7 +16,7 @@ import org.http4s.twirl._
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.global
 
-class ExampleService[F[_] : ContextShift](implicit F: Effect[F]) extends Http4sDsl[F] {
+class ExampleService[F[_]: ContextShift](implicit F: Effect[F]) extends Http4sDsl[F] {
 
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.

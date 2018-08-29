@@ -8,7 +8,7 @@ import fs2.Stream
 import org.http4s.multipart.Part
 import scala.concurrent.ExecutionContext.global
 
-class FileService[F[_] : ContextShift](implicit F: Effect[F], S: StreamUtils[F]) {
+class FileService[F[_]: ContextShift](implicit F: Effect[F], S: StreamUtils[F]) {
 
   def homeDirectories(depth: Option[Int]): Stream[F, String] =
     S.env("HOME").flatMap { maybePath =>

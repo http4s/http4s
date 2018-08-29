@@ -6,7 +6,7 @@ import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import java.net.URL
 import org.http4s.{MediaType, Uri}
-import org.http4s.client.blaze.Http1Client
+import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
 import org.http4s.Method._
@@ -15,8 +15,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object MultipartClient extends MultipartHttpClient
 
-class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp
-    with Http4sClientDsl[IO] {
+class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp with Http4sClientDsl[IO] {
 
   private val image: IO[URL] = IO(getClass.getResource("/beerbottle.png"))
 
@@ -35,7 +34,7 @@ class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp
 
   override def run(args: List[String]): IO[ExitCode] =
     (for {
-      client <- Http1Client.stream[IO]()
+      client <- BlazeClientBuilder[IO](global).stream
       req <- Stream.eval(request)
       value <- Stream.eval(client.expect[String](req))
       _ <- S.evalF(println(value))

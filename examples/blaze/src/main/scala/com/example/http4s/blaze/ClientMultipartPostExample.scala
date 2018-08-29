@@ -1,9 +1,11 @@
 package com.example.http4s.blaze
 
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits._
 import org.http4s._
 import org.http4s.Uri._
-import org.http4s.client.blaze.Http1Client
+import org.http4s.client.Client
+import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers._
 import org.http4s.multipart._
@@ -13,7 +15,7 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
 
   val bottle = getClass.getResource("/beerbottle.png")
 
-  def go: String = {
+  def go(client: Client[IO]): IO[String] = {
     // n.b. This service does not appear to gracefully handle chunked requests.
     val url = Uri(
       scheme = Some(Scheme.http),
@@ -29,8 +31,12 @@ object ClientMultipartPostExample extends IOApp with Http4sClientDsl[IO] {
     val request: IO[Request[IO]] =
       Method.POST(url, multipart).map(_.replaceAllHeaders(multipart.headers))
 
-    Http1Client[IO]().flatMap(_.expect[String](request)).unsafeRunSync()
+    client.expect[String](request)
   }
 
-  def run(args: List[String]): IO[ExitCode] = IO(println(go)).map(_ => ExitCode.Success)
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeClientBuilder[IO](global).resource
+      .use(go)
+      .flatMap(s => IO(println))
+      .as(ExitCode.Success)
 }

@@ -10,10 +10,12 @@ import org.http4s.Uri.{Authority, RegName, Scheme}
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers.{Host, Location}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
-import org.http4s.server.{ServerBuilder, SSLKeyStoreSupport}
+import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import scala.concurrent.ExecutionContext
 
-abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect](implicit timer: Timer[F], ctx: ContextShift[F])
+abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect](
+    implicit timer: Timer[F],
+    ctx: ContextShift[F])
     extends Http4sDsl[F] {
   val securePort = 8443
 
@@ -27,7 +29,7 @@ abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect](implicit timer: Ti
   val redirectService: HttpRoutes[F] = HttpRoutes.of[F] {
     case request =>
       request.headers.get(Host) match {
-        case Some(Host(host@_, _)) =>
+        case Some(Host(host @ _, _)) =>
           val baseUri = request.uri.copy(
             scheme = Scheme.https.some,
             authority = Some(

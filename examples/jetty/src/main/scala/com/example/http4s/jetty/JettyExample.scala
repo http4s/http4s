@@ -9,22 +9,22 @@ import org.http4s.server.HttpMiddleware
 import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.metrics._
 
-class JettyExample(implicit timer: Timer[IO], ctx: ContextShift[IO]) extends JettyExampleApp[IO] with IOApp {
+class JettyExample(implicit timer: Timer[IO], ctx: ContextShift[IO])
+    extends JettyExampleApp[IO]
+    with IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     stream.compile.toList.map(_.head)
 }
 
-
-class JettyExampleApp[F[_]: ConcurrentEffect : Timer : ContextShift] extends Http4sDsl[F] {
+class JettyExampleApp[F[_]: ConcurrentEffect: Timer: ContextShift] extends Http4sDsl[F] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream: Stream[F, ExitCode] = {
+  def stream: Stream[F, ExitCode] =
     JettyBuilder[F]
       .bindHttp(8080)
       .mountService(metrics(new ExampleService[F].service), "/http4s")
       .mountService(metricsService(metricsRegistry), "/metrics")
       .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
       .serve
-  }
 }

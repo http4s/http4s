@@ -14,11 +14,10 @@ abstract class SslExample[F[_]](implicit T: Timer[F], F: ConcurrentEffect[F], cs
 
   def builder: ServerBuilder[F] with SSLKeyStoreSupport[F]
 
-  def stream: Stream[F, ExitCode] = {
+  def stream: Stream[F, ExitCode] =
     builder
       .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
       .mountService(HSTS(new ExampleService[F].service), "/http4s")
       .bindHttp(8443)
       .serve
-  }
 }

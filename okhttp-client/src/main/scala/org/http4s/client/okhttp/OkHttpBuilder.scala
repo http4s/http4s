@@ -80,10 +80,10 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
   private def open(implicit F: Effect[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
     F.async[DisposableResponse[F]] { cb =>
-        logger.info("Calling " + req)
-        okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-        ()
-      }
+      logger.info("Calling " + req)
+      okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+      ()
+    }
   }
 
   private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(

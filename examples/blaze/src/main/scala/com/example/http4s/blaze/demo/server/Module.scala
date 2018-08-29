@@ -16,7 +16,7 @@ import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
 import scala.concurrent.duration._
 
-class Module[F[_] : ContextShift](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[F]) {
+class Module[F[_]: ContextShift](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[F]) {
 
   private val fileService = new FileService[F]
 
