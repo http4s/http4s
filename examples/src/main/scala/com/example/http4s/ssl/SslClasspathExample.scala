@@ -1,16 +1,14 @@
 package com.example.http4s.ssl
 
-import cats.effect.{ConcurrentEffect, Sync, Timer}
+import cats.effect._
 import com.example.http4s.ExampleService
-import fs2.StreamApp.ExitCode
-import fs2.{Stream, StreamApp}
+import fs2.{Stream}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.server.middleware.HSTS
-import org.http4s.server.{SSLContextSupport, ServerBuilder}
-import scala.concurrent.ExecutionContext.Implicits.global
+import org.http4s.server.{ServerBuilder, SSLContextSupport}
 
-abstract class SslClasspathExample[F[_]: ConcurrentEffect] extends StreamApp[F] {
+abstract class SslClasspathExample[F[_] : Effect](implicit timer: Timer[F], ctx: ContextShift[F]) {
 
   def loadContextFromClasspath(keystorePassword: String, keyManagerPass: String): F[SSLContext] =
     Sync[F].delay {
@@ -34,10 +32,9 @@ abstract class SslClasspathExample[F[_]: ConcurrentEffect] extends StreamApp[F] 
 
   def builder: ServerBuilder[F] with SSLContextSupport[F]
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
+  def sslStream =
     for {
       context <- Stream.eval(loadContextFromClasspath("password", "secure"))
-      timer = Timer.derive[F]
       exitCode <- builder
         .withSSLContext(context)
         .bindHttp(8443, "0.0.0.0")

@@ -1,23 +1,19 @@
 package com.example.http4s.blaze.demo.server
 
 import cats.effect._
-import fs2.StreamApp.ExitCode
-import fs2.{Stream, StreamApp}
+import fs2.{Stream}
 import org.http4s.client.blaze.Http1Client
 import org.http4s.server.blaze.BlazeBuilder
 
-import scala.concurrent.ExecutionContext.Implicits.global
+object Server extends HttpServer
 
-object Server extends HttpServer[IO]
+class HttpServer extends IOApp {
 
-class HttpServer[F[_]](implicit F: ConcurrentEffect[F]) extends StreamApp[F] {
-
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
-    implicit val T = Timer.derive[F]
-    for {
-      client <- Http1Client.stream[F]()
-      ctx <- Stream(new Module[F](client))
-      exitCode <- BlazeBuilder[F]
+  override def run(args: List[String]): IO[ExitCode] = {
+    val s = for {
+      client <- Http1Client.stream[IO]()
+      ctx <- Stream(new Module[IO](client))
+      exitCode <- BlazeBuilder[IO]
         .bindHttp(8080, "0.0.0.0")
         .mountService(ctx.fileHttpEndpoint, s"/${endpoints.ApiVersion}")
         .mountService(ctx.nonStreamFileHttpEndpoint, s"/${endpoints.ApiVersion}/nonstream")
@@ -25,6 +21,7 @@ class HttpServer[F[_]](implicit F: ConcurrentEffect[F]) extends StreamApp[F] {
         .mountService(ctx.basicAuthHttpEndpoint, s"/${endpoints.ApiVersion}/protected")
         .serve
     } yield exitCode
+    s.compile.toList.map(_.head)
   }
 
 }

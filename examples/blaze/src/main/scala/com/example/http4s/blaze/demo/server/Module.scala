@@ -15,9 +15,8 @@ import org.http4s.server.HttpMiddleware
 import org.http4s.server.middleware.{AutoSlash, ChunkAggregator, GZip, Timeout}
 
 import scala.concurrent.duration._
-import scala.concurrent.ExecutionContext.Implicits.global
 
-class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[F]) {
+class Module[F[_] : ContextShift](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[F]) {
 
   private val fileService = new FileService[F]
 
@@ -45,7 +44,7 @@ class Module[F[_]](client: Client[F])(implicit F: ConcurrentEffect[F], T: Timer[
     new TimeoutHttpEndpoint[F].service
 
   private val timeoutEndpoints: HttpRoutes[F] = {
-    implicit val timerOptionT = Timer.derive[OptionT[F, ?]]
+    implicit val timerOptionT = Timer.deriveOptionT[F]
     Timeout(1.second)(timeoutHttpEndpoint)
   }
 

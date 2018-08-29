@@ -4,20 +4,21 @@ import cats.effect._
 import com.codahale.metrics.MetricRegistry
 import com.example.http4s.ExampleService
 import fs2._
-import fs2.StreamApp.ExitCode
 import org.http4s.server.HttpMiddleware
 import org.http4s.server.metrics._
 import org.http4s.server.tomcat.TomcatBuilder
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object TomcatExample extends TomcatExampleApp[IO]
+class TomcatExample(implicit timer: Timer[IO], ctx: ContextShift[IO]) extends TomcatExampleApp[IO] with IOApp {
+  override def run(args: List[String]): IO[ExitCode] =
+    stream.compile.toList.map(_.head)
+}
 
-class TomcatExampleApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
+
+class TomcatExampleApp[F[_]: ConcurrentEffect : ContextShift : Timer] {
   val metricsRegistry: MetricRegistry = new MetricRegistry
   val metrics: HttpMiddleware[F] = Metrics[F](metricsRegistry)
 
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
-    implicit val timer = Timer.derive[F]
+  def stream: Stream[F, ExitCode] = {
     TomcatBuilder[F]
       .bindHttp(8080)
       .mountService(metrics(new ExampleService[F].service), "/http4s")

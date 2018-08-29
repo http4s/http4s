@@ -2,13 +2,13 @@ package com.example.http4s.blaze.demo.server.service
 
 import java.io.File
 import java.nio.file.Paths
-
-import cats.effect.Effect
+import cats.effect.{ContextShift, Effect}
 import com.example.http4s.blaze.demo.StreamUtils
 import fs2.Stream
 import org.http4s.multipart.Part
+import scala.concurrent.ExecutionContext.global
 
-class FileService[F[_]](implicit F: Effect[F], S: StreamUtils[F]) {
+class FileService[F[_] : ContextShift](implicit F: Effect[F], S: StreamUtils[F]) {
 
   def homeDirectories(depth: Option[Int]): Stream[F, String] =
     S.env("HOME").flatMap { maybePath =>
@@ -39,7 +39,7 @@ class FileService[F[_]](implicit F: Effect[F], S: StreamUtils[F]) {
       home <- S.evalF(sys.env.getOrElse("HOME", "/tmp"))
       filename <- S.evalF(part.filename.getOrElse("sample"))
       path <- S.evalF(Paths.get(s"$home/$filename"))
-      _ <- part.body to fs2.io.file.writeAll(path)
+      _ <- part.body to fs2.io.file.writeAll(path, global)
     } yield ()
 
 }

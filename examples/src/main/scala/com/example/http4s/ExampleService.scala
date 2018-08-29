@@ -14,8 +14,9 @@ import org.http4s.server.middleware.authentication.BasicAuth
 import org.http4s.server.middleware.authentication.BasicAuth.BasicAuthenticator
 import org.http4s.twirl._
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.global
 
-class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
+class ExampleService[F[_] : ContextShift](implicit F: Effect[F]) extends Http4sDsl[F] {
 
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
@@ -61,7 +62,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
         // captures everything after "/static" into `path`
         // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
         // See also org.http4s.server.staticcontent to create a mountable service for static content
-        StaticFile.fromResource(path.toString, Some(req)).getOrElseF(NotFound())
+        StaticFile.fromResource(path.toString, global, Some(req)).getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////
       //////////////// Dealing with the message body ////////////////
@@ -147,7 +148,7 @@ class ExampleService[F[_]](implicit F: Effect[F]) extends Http4sDsl[F] {
 
       case req @ GET -> Root / "image.jpg" =>
         StaticFile
-          .fromResource("/nasa_blackhole_image.jpg", Some(req))
+          .fromResource("/nasa_blackhole_image.jpg", global, Some(req))
           .getOrElseF(NotFound())
 
       ///////////////////////////////////////////////////////////////

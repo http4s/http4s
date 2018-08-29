@@ -1,33 +1,29 @@
 package com.example.http4s.blaze.demo.client
 
-import java.net.URL
-
-import cats.effect.{ConcurrentEffect, IO}
-import cats.syntax.flatMap._
+import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.functor._
 import com.example.http4s.blaze.demo.StreamUtils
-import fs2.StreamApp.ExitCode
-import fs2.{Stream, StreamApp}
+import fs2.Stream
+import java.net.URL
+import org.http4s.{MediaType, Uri}
 import org.http4s.client.blaze.Http1Client
 import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.headers.`Content-Type`
 import org.http4s.Method._
 import org.http4s.multipart.{Multipart, Part}
-import org.http4s.{MediaType, Uri}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object MultipartClient extends MultipartHttpClient[IO]
+object MultipartClient extends MultipartHttpClient
 
-class MultipartHttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F])
-    extends StreamApp
-    with Http4sClientDsl[F] {
+class MultipartHttpClient(implicit S: StreamUtils[IO]) extends IOApp
+    with Http4sClientDsl[IO] {
 
-  private val image: F[URL] = F.delay(getClass.getResource("/beerbottle.png"))
+  private val image: IO[URL] = IO(getClass.getResource("/beerbottle.png"))
 
-  private def multipart(url: URL) = Multipart[F](
+  private def multipart(url: URL) = Multipart[IO](
     Vector(
       Part.formData("name", "gvolpe"),
-      Part.fileData("rick", url, `Content-Type`(MediaType.image.png))
+      Part.fileData("rick", url, global, `Content-Type`(MediaType.image.png))
     )
   )
 
@@ -37,11 +33,11 @@ class MultipartHttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[
       req <- POST(Uri.uri("http://localhost:8080/v1/multipart"), body)
     } yield req.replaceAllHeaders(body.headers)
 
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
+  override def run(args: List[String]): IO[ExitCode] =
     (for {
-      client <- Http1Client.stream[F]()
+      client <- Http1Client.stream[IO]()
       req <- Stream.eval(request)
       value <- Stream.eval(client.expect[String](req))
       _ <- S.evalF(println(value))
-    } yield ()).drain
+    } yield ()).compile.drain.as(ExitCode.Success)
 }
