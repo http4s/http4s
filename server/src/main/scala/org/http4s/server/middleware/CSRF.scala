@@ -163,7 +163,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
           }
       case None =>
         if (createIfNotFound) {
-          response.flatMap(r => embedNewInCookie(r))
+          response.flatMap(r => embedNewInResponseCookie(r))
         } else response
     }
 
@@ -238,7 +238,7 @@ final class CSRF[F[_], G[_]] private[middleware] (
     r.addCookie(createRequestCookie(token))
 
   /** Embed a token into a response **/
-  def embedNewInCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
+  def embedNewInResponseCookie[M[_]: Sync](res: Response[G]): M[Response[G]] =
     generateToken[M].map(embedInResponseCookie(res, _))
 }
 
