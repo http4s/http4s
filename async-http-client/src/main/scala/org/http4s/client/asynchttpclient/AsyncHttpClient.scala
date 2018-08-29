@@ -4,8 +4,8 @@ package asynchttpclient
 
 import cats.data.Kleisli
 import cats.effect._
+import cats.implicits._
 import cats.effect.implicits._
-import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream._
 import fs2._
 import fs2.interop.reactivestreams.{StreamSubscriber, StreamUnicastPublisher}
@@ -37,9 +37,8 @@ object AsyncHttpClient {
     * @param config configuration for the client
     * @param ec The ExecutionContext to run responses on
     */
-  def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): Client[F] = {
+  def apply[F[_] : Timer](config: AsyncHttpClientConfig = defaultConfig)(
+      implicit F: ConcurrentEffect[F], ec: ExecutionContext): Client[F] = {
     val client = new DefaultAsyncHttpClient(config)
     Client(
       Kleisli { req =>
@@ -61,27 +60,24 @@ object AsyncHttpClient {
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): Stream[F, Client[F]] =
+      implicit F: ConcurrentEffect[F], ec: ExecutionContext, timer: Timer[F]): Stream[F, Client[F]] =
     Stream.bracket(F.delay(apply(config)))(_.shutdown)
 
-  private def asyncHandler[F[_]](
+  private def asyncHandler[F[_] : Timer](
       cb: Callback[DisposableResponse[F]])(implicit F: ConcurrentEffect[F], ec: ExecutionContext) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var dr: DisposableResponse[F] =
-        DisposableResponse[F](Response(), F.delay(state = State.ABORT))
+        DisposableResponse[F](Response(), F.delay { state = State.ABORT })
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
-        implicit val timer: Timer[F] = Timer.derive[F](F, IO.timer(ec))
-
         // backpressure is handled by requests to the reactive streams subscription
         StreamSubscriber[F, HttpResponseBodyPart]
           .map { subscriber =>
             val body = subscriber.stream.flatMap(part => chunk(Chunk.bytes(part.getBodyPartBytes)))
             dr = dr.copy(
               response = dr.response.copy(body = body),
-              dispose = F.delay(state = State.ABORT)
+              dispose = F.delay { state = State.ABORT }
             )
             // Run this before we return the response, lest we violate
             // Rule 3.16 of the reactive streams spec.
@@ -91,9 +87,7 @@ object AsyncHttpClient {
             // buffer the entire response before we return it for
             // streaming consumption.
             ec.execute(new Runnable { def run(): Unit = cb(Right(dr)) })
-          }
-          .runAsync(_ => IO.unit)
-          .unsafeRunSync
+          }.runAsync(_ => IO.unit).unsafeRunSync()
         state
       }
 
@@ -118,9 +112,7 @@ object AsyncHttpClient {
       }
     }
 
-  private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F])(
-      implicit
-      ec: ExecutionContext): AsyncRequest = {
+  private def toAsyncRequest[F[_]: ConcurrentEffect : Timer](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers)
       headers.add(h.name.toString, h.value)
@@ -131,11 +123,7 @@ object AsyncHttpClient {
       .build()
   }
 
-  private def getBodyGenerator[F[_]](req: Request[F])(
-      implicit
-      F: ConcurrentEffect[F],
-      ec: ExecutionContext): BodyGenerator = {
-    implicit val timer: Timer[F] = Timer.derive[F](F, IO.timer(ec))
+  private def getBodyGenerator[F[_] : ConcurrentEffect : Timer](req: Request[F]): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
       req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)
@@ -146,6 +134,7 @@ object AsyncHttpClient {
       }
   }
 
+  import cats.syntax._
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
