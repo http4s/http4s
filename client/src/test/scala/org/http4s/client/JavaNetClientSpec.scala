@@ -7,4 +7,3 @@ class JavaNetClientSpec
     extends ClientRouteTestBattery(
       "JavaNetClient",
       JavaNetClientBuilder(TestBlockingExecutionContext).resource(implicitly, TestContextShift))
-

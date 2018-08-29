@@ -9,7 +9,7 @@
 
 package org.http4s
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{ContextShift, ExitCase, IO, Resource, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
@@ -121,6 +121,21 @@ trait Http4sSpec
   def beStatus(status: Status): Matcher[Response[IO]] = { resp: Response[IO] =>
     (resp.status == status) -> s" doesn't have status $status"
   }
+
+  def withResource[A](r: Resource[IO, A])(fs: A => Fragments): Fragments =
+    r match {
+      case Resource.Allocate(alloc) =>
+        alloc
+          .map {
+            case (a, release) =>
+              fs(a).append(step(release(ExitCase.Completed).unsafeRunSync()))
+          }
+          .unsafeRunSync()
+      case Resource.Bind(r, f) =>
+        withResource(r)(a => withResource(f(a))(fs))
+      case Resource.Suspend(r) =>
+        withResource(r.unsafeRunSync() /* ouch */ )(fs)
+    }
 }
 
 object Http4sSpec {

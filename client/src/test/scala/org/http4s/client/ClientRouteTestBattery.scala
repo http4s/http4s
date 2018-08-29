@@ -13,11 +13,10 @@ import org.http4s.dsl.io._
 import org.specs2.specification.core.Fragments
 import scala.concurrent.duration._
 
-abstract class ClientRouteTestBattery(name: String, clientR: Resource[IO, Client[IO]])
+abstract class ClientRouteTestBattery(name: String, clientResource: Resource[IO, Client[IO]])
     extends Http4sSpec
     with Http4sClientDsl[IO] {
   val timeout = 20.seconds
-  val jettyServ = new JettyScaffold(1, false)
   var address: InetSocketAddress = null
 
   def testServlet = new HttpServlet {
@@ -35,74 +34,68 @@ abstract class ClientRouteTestBattery(name: String, clientR: Resource[IO, Client
     }
   }
 
-  clientR.use { client => IO {
-    Fragments.foreach(GetRoutes.getPaths.toSeq) {
-      case (path, expected) =>
-        s"Execute GET: $path" in {
-          val name = address.getHostName
-          val port = address.getPort
-          val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
-          client
-            .fetch(req)(resp => IO(checkResponse(resp, expected)))
-            .unsafeRunTimed(timeout)
-            .get
-        }
-    }
+  withResource(JettyScaffold[IO](1, false, testServlet)) { jetty =>
+    withResource(clientResource) { client =>
+      val address = jetty.addresses.head
 
-    name should {
-      "Strip fragments from URI" in {
-        skipped("Can only reproduce against external resource.  Help wanted.")
-        val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
-        val body = client.fetch(Request[IO](uri = uri))(e => IO.pure(e.status))
-        body must returnValue(Ok)
+      Fragments.foreach(GetRoutes.getPaths.toSeq) {
+        case (path, expected) =>
+          s"Execute GET: $path" in {
+            val name = address.getHostName
+            val port = address.getPort
+            val req = Request[IO](uri = Uri.fromString(s"http://$name:$port$path").yolo)
+            client
+              .fetch(req)(resp => IO(checkResponse(resp, expected)))
+              .unsafeRunTimed(timeout)
+              .get
+          }
       }
 
-      "Repeat a simple request" in {
-        val path = GetRoutes.SimplePath
-
-        def fetchBody = client.toKleisli(_.as[String]).local { uri: Uri =>
-          Request(uri = uri)
+      name should {
+        "Strip fragments from URI" in {
+          skipped("Can only reproduce against external resource.  Help wanted.")
+          val uri = Uri.uri("https://en.wikipedia.org/wiki/Buckethead_discography#Studio_albums")
+          val body = client.fetch(Request[IO](uri = uri))(e => IO.pure(e.status))
+          body must returnValue(Ok)
         }
 
-        val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
+        "Repeat a simple request" in {
+          val path = GetRoutes.SimplePath
+
+          def fetchBody = client.toKleisli(_.as[String]).local { uri: Uri =>
+            Request(uri = uri)
+          }
+
+          val url = Uri.fromString(s"http://${address.getHostName}:${address.getPort}$path").yolo
           (0 until 10).toVector
-          .parTraverse(_ => fetchBody.run(url).map(_.length))
-          .unsafeRunTimed(timeout)
-          .forall(_ mustNotEqual 0)
-      }
+            .parTraverse(_ => fetchBody.run(url).map(_.length))
+            .unsafeRunTimed(timeout)
+            .forall(_ mustNotEqual 0)
+        }
 
-      "POST an empty body" in {
-        val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
-        val req = POST(uri)
-        val body = client.expect[String](req)
-        body must returnValue("")
-      }
+        "POST an empty body" in {
+          val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+          val req = POST(uri)
+          val body = client.expect[String](req)
+          body must returnValue("")
+        }
 
-      "POST a normal body" in {
-        val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
-        val req = POST(uri, "This is normal.")
-        val body = client.expect[String](req)
-        body must returnValue("This is normal.")
-      }
+        "POST a normal body" in {
+          val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+          val req = POST(uri, "This is normal.")
+          val body = client.expect[String](req)
+          body must returnValue("This is normal.")
+        }
 
-      "POST a chunked body" in {
-        val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
-        val req = POST(uri, Stream("This is chunked.").covary[IO])
-        val body = client.expect[String](req)
-        body must returnValue("This is chunked.")
+        "POST a chunked body" in {
+          val uri = Uri.fromString(s"http://${address.getHostName}:${address.getPort}/echo").yolo
+          val req = POST(uri, Stream("This is chunked.").covary[IO])
+          val body = client.expect[String](req)
+          body must returnValue("This is chunked.")
+        }
       }
     }
-  }}.unsafeRunSync()
-
-  override def map(fs: => Fragments): Fragments =
-    super.map(
-      step {
-        jettyServ.startServers(testServlet)
-        address = jettyServ.addresses.head
-      } ^ fs ^ step {
-        jettyServ.stopServers()
-      }
-    )
+  }
 
   private def checkResponse(rec: Response[IO], expected: Response[IO]) = {
     val hs = rec.headers.toSeq

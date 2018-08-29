@@ -586,7 +586,11 @@ object MultipartParserSpec extends Specification {
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results =
-        unspool(input).through(MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSpec.TestBlockingExecutionContext, maxParts = 1))
+        unspool(input).through(
+          MultipartParser.parseStreamedFile[IO](
+            boundaryTest,
+            Http4sSpec.TestBlockingExecutionContext,
+            maxParts = 1))
 
       val multipartMaterialized = results.compile.last.map(_.get).unsafeRunSync()
       val headers =
@@ -617,7 +621,11 @@ object MultipartParserSpec extends Specification {
 
       val boundaryTest = Boundary("RU(_9F(PcJK5+JMOPCAF6Aj4iSXvpJkWy):6s)YU0")
       val results = unspool(input).through(
-        MultipartParser.parseStreamedFile[IO](boundaryTest, Http4sSpec.TestBlockingExecutionContext, maxParts = 1, failOnLimit = true))
+        MultipartParser.parseStreamedFile[IO](
+          boundaryTest,
+          Http4sSpec.TestBlockingExecutionContext,
+          maxParts = 1,
+          failOnLimit = true))
 
       results.compile.last.map(_.get).unsafeRunSync() must throwA[MalformedMessageBodyFailure]
     }

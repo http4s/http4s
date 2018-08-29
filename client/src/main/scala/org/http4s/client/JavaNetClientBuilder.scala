@@ -79,7 +79,8 @@ sealed abstract class JavaNetClientBuilder private (
   def withoutSslSocketFactory: JavaNetClientBuilder =
     withSslSocketFactoryOption(None)
 
-  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
+  def withBlockingExecutionContext(
+      blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
     copy(blockingExecutionContext = blockingExecutionContext)
 
   /** Creates a [[Client]].
@@ -184,6 +185,7 @@ sealed abstract class JavaNetClientBuilder private (
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
 object JavaNetClientBuilder {
+
   /**
     * @param blockingExecutionContext An `ExecutionContext` on which
     * blocking operations will be performed.

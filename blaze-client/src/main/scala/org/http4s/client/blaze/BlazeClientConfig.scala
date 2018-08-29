@@ -36,6 +36,7 @@ import scala.concurrent.duration.Duration
   * @param executionContext custom executionContext to run async computations.
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
+@deprecated("Use BlazeClientBuilder", "0.19.0-M2")
 final case class BlazeClientConfig( // HTTP properties
     responseHeaderTimeout: Duration,
     idleTimeout: Duration,
@@ -61,6 +62,7 @@ final case class BlazeClientConfig( // HTTP properties
   def endpointAuthentication: Boolean = checkEndpointIdentification
 }
 
+@deprecated("Use BlazeClientBuilder", "0.19.0-M2")
 object BlazeClientConfig {
 
   /** Default configuration of a blaze client. */
