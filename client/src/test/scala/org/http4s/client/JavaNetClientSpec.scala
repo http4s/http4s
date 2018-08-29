@@ -6,5 +6,5 @@ import org.http4s.Http4sSpec._
 class JavaNetClientSpec
     extends ClientRouteTestBattery(
       "JavaNetClient",
-      JavaNetClient(TestBlockingExecutionContext).resource(implicitly, TestContextShift))
+      JavaNetClientBuilder(TestBlockingExecutionContext).resource(implicitly, TestContextShift))
 
