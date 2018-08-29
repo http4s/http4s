@@ -6,6 +6,8 @@ import cats.data._
 import cats.effect._
 import cats.implicits._
 import cats.effect.implicits._
+import fs2._
+import fs2.io._
 import okhttp3.{
   Call,
   Callback,
@@ -20,10 +22,8 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.{Client, DisposableResponse}
-import fs2._
-import fs2.io._
+import org.http4s.internal.loggingAsyncCallback
 import org.log4s.getLogger
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
@@ -84,7 +84,6 @@ sealed abstract class OkHttpBuilder[F[_]] private (
         okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
         ()
       }
-      .guarantee(cs.shift)
   }
 
   private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(
@@ -93,7 +92,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit = {
         logger.info("onFailure")
-        cb(Left(e))
+        (cs.shift *> F.delay(cb(Left(e)))).runAsync(loggingAsyncCallback(logger)).unsafeRunSync()
       }
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
@@ -123,7 +122,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
             t
           }
         logger.info("onResponse")
-        cb(dr)
+        (cs.shift *> F.delay(cb(dr))).runAsync(loggingAsyncCallback(logger)).unsafeRunSync()
       }
     }
 
