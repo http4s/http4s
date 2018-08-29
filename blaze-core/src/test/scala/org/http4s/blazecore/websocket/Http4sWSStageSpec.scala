@@ -57,38 +57,47 @@ class Http4sWSStageSpec extends Http4sSpec {
     "reply with pong immediately after ping" in {
       val socket = TestWebsocketStage()
       socket.sendInbound(Ping())
-      socket.pollOutbound(2) must beSome(Pong())
+      val assertion = socket.pollOutbound(2) must beSome[WebSocketFrame](Pong())
+      //actually close the socket
+      socket.sendInbound(Close())
+      assertion
     }
 
     "not write any more frames after close frame sent" in {
       val socket = TestWebsocketStage()
       socket.sendWSOutbound(Text("hi"), Close(), Text("lol"))
-      socket.pollOutbound() must beSome(Text("hi"))
-      socket.pollOutbound() must beSome(Close())
-      socket.pollOutbound(1) must beNone
+      socket.pollOutbound() must beSome[WebSocketFrame](Text("hi"))
+      socket.pollOutbound() must beSome[WebSocketFrame](Close())
+      val assertion = socket.pollOutbound(1) must beNone
+      //actually close the socket
+      socket.sendInbound(Close())
+      assertion
     }
 
     "send a close frame back and call the on close handler upon receiving a close frame" in {
       val socket = TestWebsocketStage()
       socket.sendInbound(Close())
-      socket.pollOutbound() must beSome(Close())
+      socket.pollOutbound() must beSome[WebSocketFrame](Close())
       socket.pollOutbound(1) must beNone
-      socket.wasCloseHookCalled() must_== true
+      socket.wasCloseHookCalled() must_=== true
     }
 
     "not send two close frames " in {
       val socket = TestWebsocketStage()
       socket.sendWSOutbound(Close())
       socket.sendInbound(Close())
-      socket.pollOutbound() must beSome(Close())
+      socket.pollOutbound() must beSome[WebSocketFrame](Close())
       socket.pollOutbound() must beNone
-      socket.wasCloseHookCalled() must_== true
+      socket.wasCloseHookCalled() must_=== true
     }
 
     "ignore pong frames" in {
       val socket = TestWebsocketStage()
       socket.sendInbound(Pong())
-      socket.pollOutbound() must beNone
+      val assertion = socket.pollOutbound() must beNone
+      //actually close the socket
+      socket.sendInbound(Close())
+      assertion
     }
   }
 }
