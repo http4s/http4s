@@ -7,6 +7,8 @@ import cats.implicits._
 import org.http4s.Http4sSpec._
 
 class OkHttpClientSpec
-  extends ClientRouteTestBattery(
-    "OkHttp",
-    OkHttpBuilder.withDefaultClient[IO](TestBlockingExecutionContext).map(_.create(implicitly, TestContextShift)))
+    extends ClientRouteTestBattery(
+      "OkHttp",
+      OkHttpBuilder
+        .withDefaultClient[IO](TestBlockingExecutionContext)
+        .map(_.create(implicitly, TestContextShift)))

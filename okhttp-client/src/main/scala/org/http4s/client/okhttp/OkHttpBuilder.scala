@@ -42,14 +42,14 @@ import scala.util.control.NonFatal
   * @param blockingExecutionContext $BLOCKINGEC
   */
 sealed abstract class OkHttpBuilder[F[_]] private (
-  val okHttpClient: OkHttpClient,
-  val blockingExecutionContext: ExecutionContext
+    val okHttpClient: OkHttpClient,
+    val blockingExecutionContext: ExecutionContext
 ) {
   private[this] val logger = getLogger
 
   private def copy(
-    okHttpClient: OkHttpClient = okHttpClient,
-    blockingExecutionContext: ExecutionContext = blockingExecutionContext
+      okHttpClient: OkHttpClient = okHttpClient,
+      blockingExecutionContext: ExecutionContext = blockingExecutionContext
   ) = new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
@@ -80,14 +80,16 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 
   private def open(implicit F: Effect[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
     F.async[DisposableResponse[F]] { cb =>
-      logger.info("Calling "+req)
-      okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-      ()
-    }.guarantee(cs.shift)
+        logger.info("Calling " + req)
+        okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+        ()
+      }
+      .guarantee(cs.shift)
   }
 
   private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(
-      implicit F: Effect[F], cs: ContextShift[F]): Callback =
+      implicit F: Effect[F],
+      cs: ContextShift[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit = {
         logger.info("onFailure")
@@ -176,12 +178,15 @@ sealed abstract class OkHttpBuilder[F[_]] private (
 /** Builder for a [[org.http4s.client.Client]] with an OkHttp backend */
 object OkHttpBuilder {
   private[this] val logger = getLogger
+
   /** Creates a builder.
     *
     * @param okHttpClient the underlying client.
     * @param blockingExecutionContext $BLOCKINGEC
     */
-  def apply[F[_]](okHttpClient: OkHttpClient, blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
+  def apply[F[_]](
+      okHttpClient: OkHttpClient,
+      blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
     new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
 
   /** Create a builder with a default OkHttp client.  The builder is
@@ -190,7 +195,8 @@ object OkHttpBuilder {
     *
     * @param blockingExecutionContext $BLOCKINGEC
     */
-  def withDefaultClient[F[_]](blockingExecutionContext: ExecutionContext)(implicit F: Sync[F]): Resource[F, OkHttpBuilder[F]] =
+  def withDefaultClient[F[_]](blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F]): Resource[F, OkHttpBuilder[F]] =
     defaultOkHttpClient.map(apply(_, blockingExecutionContext))
 
   private def defaultOkHttpClient[F[_]](implicit F: Sync[F]): Resource[F, OkHttpClient] =

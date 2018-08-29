@@ -29,14 +29,14 @@ import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
 sealed abstract class OkHttp[F[_]] private (
-  okHttpClient: OkHttpClient,
-  blockingExecutionContext: ExecutionContext
+    okHttpClient: OkHttpClient,
+    blockingExecutionContext: ExecutionContext
 ) {
   private[this] val logger = getLogger
 
   private def copy(
-    okHttpClient: OkHttpClient = okHttpClient,
-    blockingExecutionContext: ExecutionContext = blockingExecutionContext
+      okHttpClient: OkHttpClient = okHttpClient,
+      blockingExecutionContext: ExecutionContext = blockingExecutionContext
   ) = new OkHttp[F](okHttpClient, blockingExecutionContext) {}
 
   def withOkHttpClient(okHttpClient: OkHttpClient): OkHttp[F] =
@@ -49,13 +49,15 @@ sealed abstract class OkHttp[F[_]] private (
 
   private def open(implicit F: Effect[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
     F.async[DisposableResponse[F]] { cb =>
-      okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-      ()
-    }.guarantee(cs.shift)
+        okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+        ()
+      }
+      .guarantee(cs.shift)
   }
 
   private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(
-      implicit F: Effect[F], cs: ContextShift[F]): Callback =
+      implicit F: Effect[F],
+      cs: ContextShift[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
         cb(Left(e))
@@ -141,10 +143,13 @@ sealed abstract class OkHttp[F[_]] private (
 object OkHttp {
   private[this] val logger = getLogger
 
-  def apply[F[_]](okHttpClient: OkHttpClient, blockingExecutionContext: ExecutionContext): OkHttp[F] =
+  def apply[F[_]](
+      okHttpClient: OkHttpClient,
+      blockingExecutionContext: ExecutionContext): OkHttp[F] =
     new OkHttp[F](okHttpClient, blockingExecutionContext) {}
 
-  def default[F[_]](blockingExecutionContext: ExecutionContext)(implicit F: Sync[F]): Resource[F, OkHttp[F]] =
+  def default[F[_]](blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F]): Resource[F, OkHttp[F]] =
     defaultOkHttpClient.map(apply(_, blockingExecutionContext))
 
   private def defaultOkHttpClient[F[_]](implicit F: Sync[F]): Resource[F, OkHttpClient] =
