@@ -25,6 +25,10 @@ it.
 
 # v0.18.17-SNAPSHOT
 * Accumulate errors in `OptionalMultiQueryParamDecoderMatcher` [#2000](https://github.com/http4s/pull/2000)
+* New http4s-scalatags module [#2002](https://github.com/http4s/pull/2002)
+* Dependency upgrades:
+  * play-json-3.6.10 (for Scala 2.12)
+  * tomcat-9.0.11
 
 # v0.18.16 (2018-08-14)
 * Fix regression for `AutoSlash` when nested in a `Router` [#1948](https://github.com/http4s/http4s/pull/1948)
