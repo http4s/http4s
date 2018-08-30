@@ -4,6 +4,7 @@ import cats.effect.{Async, Effect, IO, Timer}
 import cats.implicits._
 import scala.concurrent.ExecutionContext
 import org.log4s.Logger
+import scala.util.control.NoStackTrace
 
 package object internal {
   // Like fs2.async.unsafeRunAsync before 1.0.  Convenient for when we
@@ -23,4 +24,78 @@ package object internal {
       case Left(e) => IO(logger.error(e)("Error in asynchronous callback"))
       case Right(_) => IO.unit
     }
+
+  /** Hex encoding digits. Adapted from apache commons Hex.encodeHex **/
+  private val Digits: Array[Char] =
+    Array('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F')
+
+  /** Encode a byte Array into a hexadecimal string
+    *
+    * @param data the array
+    * @return a hexadecimal encoded string
+    */
+  private[http4s] final def encodeHexString(data: Array[Byte]): String =
+    new String(encodeHex(data))
+
+  /** Encode a string to a Hexadecimal string representation
+    * Adapted from apache commons Hex.encodeHex
+    */
+  private[http4s] final def encodeHex(data: Array[Byte]): Array[Char] = {
+    val l = data.length
+    val out = new Array[Char](l << 1)
+    // two characters form the hex value.
+    var i = 0
+    var j = 0
+    while (i < l) {
+      out(j) = Digits((0xF0 & data(i)) >>> 4)
+      j += 1
+      out(j) = Digits(0x0F & data(i))
+      j += 1
+      i += 1
+    }
+    out
+  }
+
+  private[http4s] final def decodeHexString(data: String): Option[Array[Byte]] =
+    decodeHex(data.toCharArray)
+
+  private object HexDecodeException extends Exception with NoStackTrace
+
+  /** Dirty, optimized hex decoding based off of apache
+    * common hex decoding, ported over to scala
+    *
+    * @param data
+    * @return
+    */
+  private[http4s] final def decodeHex(data: Array[Char]): Option[Array[Byte]] = {
+    def toDigit(ch: Char): Int = {
+      val digit = Character.digit(ch, 16)
+      if (digit == -1)
+        throw HexDecodeException
+      else
+        digit
+    }
+
+    val len = data.length
+    if ((len & 0x01) != 0) None
+    val out = new Array[Byte](len >> 1)
+    var f: Int = -1
+    // two characters form the hex value.
+    try {
+      var i = 0
+      var j = 0
+      while (j < len) {
+        f = toDigit(data(j)) << 4
+        j += 1
+        f = f | toDigit(data(j))
+        j += 1
+        out(i) = (f & 0xFF).toByte
+
+        i += 1
+      }
+      Some(out)
+    } catch {
+      case HexDecodeException => None
+    }
+  }
 }
