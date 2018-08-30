@@ -29,13 +29,13 @@ class ScalatagsSpec extends Http4sSpec {
     "return Content-Type text/html with proper charset" in {
       testCharsets.forall { implicit cs =>
         val headers = EntityEncoder[IO, Text.TypedTag[String]].headers
-        headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`text/html`, Some(cs)))
+        headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.text.html, Some(cs)))
       }
     }
 
     "render the body" in {
-      val resp = Response[IO](Ok).withBody(testBody())
-      text[IO].decode(resp.unsafeRunSync, strict = false).value.unsafeRunSync must beRight(
+      val resp = Response[IO](Ok).withEntity(testBody())
+      text[IO].decode(resp, strict = false).value.unsafeRunSync must beRight(
         "<div><p>this is my testBody</p></div>")
     }
   }
