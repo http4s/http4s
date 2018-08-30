@@ -264,6 +264,14 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
+lazy val scalatags = http4sProject("scalatags")
+  .settings(
+    description := "Scalatags template support for http4s",
+    libraryDependencies += scalatagsApi,
+    mimaPreviousArtifacts := Set.empty
+  )
+  .dependsOn(core, testing % "test->test")
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .enablePlugins(PrivateProjectPlugin)

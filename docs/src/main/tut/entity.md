@@ -92,10 +92,11 @@ cause conflicts with the builtin Decoders.
 
 - scala-xml: `"org.http4s" %% "http4s-scala-xml" % Http4sVersion`
 
-### Twirl
-If you're working with [twirl] templates, there's a bridge for that too:
+### Support for Twirl and Scalatags
+If you're working with either [twirl] or [scalatags] you can use our bridges:
 
 - scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
+- scala-scalatags: `"org.http4s" %% "http4s-scalatags" % Http4sVersion`
 
 [introduction-to-functional-streams]: https://youtu.be/cahvyadYfX8
 [EntityEncoder]: ../api/org/http4s/EntityEncoder$
@@ -103,3 +104,4 @@ If you're working with [twirl] templates, there's a bridge for that too:
 [MediaType]: ../api/org/http4s/MediaType$
 [MediaRange]: ../api/org/http4s/MediaRange$
 [twirl]: https://github.com/playframework/twirl
+[scalatags]: http://www.lihaoyi.com/scalatags/

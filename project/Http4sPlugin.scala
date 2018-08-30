@@ -320,6 +320,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalacheck                       = "org.scalacheck"         %% "scalacheck"                % "1.13.5"
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
+  lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.0.6"
   lazy val scodecBits                       = "org.scodec"             %% "scodec-bits"               % "1.1.6"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
