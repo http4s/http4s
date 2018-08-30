@@ -466,10 +466,10 @@ https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Che
 an authenticating service can be wrapped in <code>withNewToken</code>).</p><p>By default, for requests that are unsafe (PUT, POST, DELETE, PATCH), services protected by the <code>validated</code> method in the
 middleware will check that the csrf token is present in both the header <code>headerName</code> and the cookie <code>cookieName</code>.
 Due to the Same-Origin policy, an attacker will be unable to reproduce this value in a
-custom header, resulting in a <code>401 Unauthorized</code> response.</p><p>By default, requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
+custom header, resulting in a <code>403 Forbidden</code> response.</p><p>By default, requests with safe methods (such as GET, OPTIONS, HEAD) will have a new token embedded in them if there isn't one,
 or will receive a refreshed token based off of the previous token to mitigate the BREACH vulnerability. If a request
 contains an invalid token, regardless of whether it is a safe method, this middleware will fail it with
-<code>401 Unauthorized</code>. In this situation, your user(s) should clear their cookies for your page, to receive a new
+<code>403 Forbidden</code>. In this situation, your user(s) should clear their cookies for your page, to receive a new
 token.</p><p>The default can be overridden by modifying the <code>predicate</code> in <code>validate</code>. It will, by default, check if the method is safe.
 Thus, you can provide some whitelisting capability for certain kinds of requests.</p><p>We'd like to emphasize that you please follow proper design principles in creating endpoints, as to
 not mutate in what should otherwise be idempotent methods (i.e no dropping your DB in a GET method, or altering

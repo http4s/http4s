@@ -313,7 +313,42 @@
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.server.middleware.CSRF.CSRFCheckFailed" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CSRFCheckFailed=org.http4s.server.middleware.CSRF.CSRFCheckFailed.type"></a><a id="CSRFCheckFailed:CSRFCheckFailed"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#CSRFCheckFailed=org.http4s.server.middleware.CSRF.CSRFCheckFailed.type" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">CSRFCheckFailed</span><span class="result alias"> = <a href="CSRF$$CSRFCheckFailed$.html" class="extype" name="org.http4s.server.middleware.CSRF.CSRFCheckFailed">CSRFCheckFailed</a>.type</span>
+      </span>
+      
+      
+    </li><li name="org.http4s.server.middleware.CSRF.CSRFToken" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CSRFToken"></a><a id="CSRFToken:CSRFToken"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#CSRFToken" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">CSRFToken</span>
+      </span>
+      
+      
+    </li></ol>
+            </div>
 
         
 
@@ -417,9 +452,9 @@
       
       
     </li><li name="org.http4s.server.middleware.CSRF#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_],G[_]](headerName:String,cookieName:String,key:javax.crypto.SecretKey,clock:java.time.Clock)(implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:cats.Applicative[G]):org.http4s.server.middleware.CSRF[F,G]"></a><a id="apply[F[_],G[_]](String,String,SecretKey,Clock)(Sync[F],Applicative[G]):CSRF[F,G]"></a>
+      <a id="apply[F[_],G[_]](headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,secure:Boolean,onFailure:org.http4s.Response[G],createIfNotFound:Boolean,key:javax.crypto.SecretKey,headerCheck:org.http4s.Request[G]=&gt;Boolean)(implicitevidence$2:cats.effect.Sync[F],implicitevidence$3:cats.Applicative[G]):org.http4s.server.middleware.CSRF[F,G]"></a><a id="apply[F[_],G[_]](CaseInsensitiveString,String,Clock,Boolean,Response[G],Boolean,SecretKey,(Request[G])⇒Boolean)(Sync[F],Applicative[G]):CSRF[F,G]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF$.html#apply[F[_],G[_]](headerName:String,cookieName:String,key:javax.crypto.SecretKey,clock:java.time.Clock)(implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:cats.Applicative[G]):org.http4s.server.middleware.CSRF[F,G]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#apply[F[_],G[_]](headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,secure:Boolean,onFailure:org.http4s.Response[G],createIfNotFound:Boolean,key:javax.crypto.SecretKey,headerCheck:org.http4s.Request[G]=&gt;Boolean)(implicitevidence$2:cats.effect.Sync[F],implicitevidence$3:cats.Applicative[G]):org.http4s.server.middleware.CSRF[F,G]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -428,7 +463,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;X-Csrf-Token&quot;</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="key">key: <span class="extype" name="javax.crypto.SecretKey">SecretKey</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.G">G</span>]</span>)</span><span class="result">: <a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.apply.G">G</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> = <span class="defval" name='<span class="name"><a href="../../../index.html">CaseInsensitiveString(&quot;X-Csrf-Token&quot;)</a></span>'>...</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="onFailure">onFailure: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.G">G</span>] = <span class="symbol"><span class="name"><a href="../../Response$.html">Response[G](Status.Forbidden)</a></span></span></span>, <span name="createIfNotFound">createIfNotFound: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="key">key: <span class="extype" name="javax.crypto.SecretKey">SecretKey</span></span>, <span name="headerCheck">headerCheck: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.G">G</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.G">G</span>]</span>)</span><span class="result">: <a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.apply.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.apply.G">G</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Default method for constructing CSRF middleware *</p>
@@ -493,6 +528,38 @@ one safely</p></div></div>
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#default" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="default[F[_],G[_]](headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,secure:Boolean,onFailure:org.http4s.Response[G],createIfNotFound:Boolean,key:javax.crypto.SecretKey,host:String,sc:org.http4s.Uri.Scheme,port:Option[Int])(implicitevidence$4:cats.effect.Sync[F],implicitevidence$5:cats.Applicative[G]):org.http4s.server.middleware.CSRF[F,G]"></a><a id="default[F[_],G[_]](CaseInsensitiveString,String,Clock,Boolean,Response[G],Boolean,SecretKey,String,Scheme,Option[Int])(Sync[F],Applicative[G]):CSRF[F,G]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#default[F[_],G[_]](headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,secure:Boolean,onFailure:org.http4s.Response[G],createIfNotFound:Boolean,key:javax.crypto.SecretKey,host:String,sc:org.http4s.Uri.Scheme,port:Option[Int])(implicitevidence$4:cats.effect.Sync[F],implicitevidence$5:cats.Applicative[G]):org.http4s.server.middleware.CSRF[F,G]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">default</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> = <span class="defval" name='<span class="name"><a href="../../../index.html">CaseInsensitiveString(&quot;X-Csrf-Token&quot;)</a></span>'>...</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="onFailure">onFailure: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.default.G">G</span>] = <span class="symbol"><span class="name"><a href="../../Response$.html">Response[G](Status.Forbidden)</a></span></span></span>, <span name="createIfNotFound">createIfNotFound: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="key">key: <span class="extype" name="javax.crypto.SecretKey">SecretKey</span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="sc">sc: <a href="../../Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.default.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.default.G">G</span>]</span>)</span><span class="result">: <a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.default.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.default.G">G</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Default method for constructing CSRF middleware *</p>
+    </li><li name="org.http4s.server.middleware.CSRF#defaultOriginCheck" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="defaultOriginCheck[F[_]](r:org.http4s.Request[F],host:String,sc:org.http4s.Uri.Scheme,port:Option[Int]):Boolean"></a><a id="defaultOriginCheck[F[_]](Request[F],String,Scheme,Option[Int]):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#defaultOriginCheck[F[_]](r:org.http4s.Request[F],host:String,sc:org.http4s.Uri.Scheme,port:Option[Int]):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultOriginCheck</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.defaultOriginCheck.F">F</span>]</span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="sc">sc: <a href="../../Uri$$Scheme.html" class="extype" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="port">port: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Int.html#scala.Int" class="extype" name="scala.Int">Int</a>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Check origin matches our proposed origin.</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
@@ -687,6 +754,22 @@ one safely</p></div></div>
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#proxyOriginCheck" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="proxyOriginCheck[F[_]](r:org.http4s.Request[F],host:org.http4s.headers.Host,xff:org.http4s.headers.X-Forwarded-For):Boolean"></a><a id="proxyOriginCheck[F[_]](Request[F],Host,X-Forwarded-For):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#proxyOriginCheck[F[_]](r:org.http4s.Request[F],host:org.http4s.headers.Host,xff:org.http4s.headers.X-Forwarded-For):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">proxyOriginCheck</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="r">r: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.proxyOriginCheck.F">F</span>]</span>, <span name="host">host: <a href="../../headers/Host.html" class="extype" name="org.http4s.headers.Host">Host</a></span>, <span name="xff">xff: <a href="../../headers/X$minusForwarded$minusFor.html" class="extype" name="org.http4s.headers.X-Forwarded-For">X-Forwarded-For</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -719,6 +802,38 @@ one safely</p></div></div>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.server.middleware.CSRF#tokensEqual" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="tokensEqual(s1:org.http4s.server.middleware.CSRF.CSRFToken,s2:org.http4s.server.middleware.CSRF.CSRFToken):Boolean"></a><a id="tokensEqual(CSRFToken,CSRFToken):Boolean"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#tokensEqual(s1:org.http4s.server.middleware.CSRF.CSRFToken,s2:org.http4s.server.middleware.CSRF.CSRFToken):Boolean" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">tokensEqual</span><span class="params">(<span name="s1">s1: <a href="#CSRFToken" class="extmbr" name="org.http4s.server.middleware.CSRF.CSRFToken">CSRFToken</a></span>, <span name="s2">s2: <a href="#CSRFToken" class="extmbr" name="org.http4s.server.middleware.CSRF.CSRFToken">CSRFToken</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">A Constant-time string equality *</p>
+    </li><li name="org.http4s.server.middleware.CSRF#unlift" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="unlift(s:org.http4s.server.middleware.CSRF.CSRFToken):String"></a><a id="unlift(CSRFToken):String"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#unlift(s:org.http4s.server.middleware.CSRF.CSRFToken):String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unlift</span><span class="params">(<span name="s">s: <a href="#CSRFToken" class="extmbr" name="org.http4s.server.middleware.CSRF.CSRFToken">CSRFToken</a></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
@@ -788,9 +903,9 @@ one safely</p></div></div>
               
         </dd></dl></div>
     </li><li name="org.http4s.server.middleware.CSRF#withGeneratedKey" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withGeneratedKey[F[_],G[_]](headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$3:cats.effect.Sync[F],implicitevidence$4:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]"></a><a id="withGeneratedKey[F[_],G[_]](String,String,Clock)(Sync[F],Applicative[G]):F[CSRF[F,G]]"></a>
+      <a id="withGeneratedKey[F[_],G[_]](headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,secure:Boolean,onFailure:org.http4s.Response[G],createIfNotFound:Boolean,headerCheck:org.http4s.Request[G]=&gt;Boolean)(implicitevidence$6:cats.effect.Sync[F],implicitevidence$7:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]"></a><a id="withGeneratedKey[F[_],G[_]](CaseInsensitiveString,String,Clock,Boolean,Response[G],Boolean,(Request[G])⇒Boolean)(Sync[F],Applicative[G]):F[CSRF[F,G]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF$.html#withGeneratedKey[F[_],G[_]](headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$3:cats.effect.Sync[F],implicitevidence$4:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#withGeneratedKey[F[_],G[_]](headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,secure:Boolean,onFailure:org.http4s.Response[G],createIfNotFound:Boolean,headerCheck:org.http4s.Request[G]=&gt;Boolean)(implicitevidence$6:cats.effect.Sync[F],implicitevidence$7:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -799,14 +914,14 @@ one safely</p></div></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withGeneratedKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;X-Csrf-Token&quot;</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.G">G</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>[<a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.G">G</span>]]</span>
+        <span class="name">withGeneratedKey</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> = <span class="defval" name='<span class="name"><a href="../../../index.html">CaseInsensitiveString(&quot;X-Csrf-Token&quot;)</a></span>'>...</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="onFailure">onFailure: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.G">G</span>] = <span class="symbol"><span class="name"><a href="../../Response$.html">Response[G](Status.Forbidden)</a></span></span></span>, <span name="createIfNotFound">createIfNotFound: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="headerCheck">headerCheck: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.G">G</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.G">G</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>[<a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.withGeneratedKey.G">G</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Sugar for instantiating a middleware by generating a key *</p>
     </li><li name="org.http4s.server.middleware.CSRF#withKeyBytes" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withKeyBytes[F[_],G[_]](keyBytes:Array[Byte],headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$5:cats.effect.Sync[F],implicitevidence$6:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]"></a><a id="withKeyBytes[F[_],G[_]](Array[Byte],String,String,Clock)(Sync[F],Applicative[G]):F[CSRF[F,G]]"></a>
+      <a id="withKeyBytes[F[_],G[_]](keyBytes:Array[Byte],headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,onFailure:org.http4s.Response[G],secure:Boolean,createIfNotFound:Boolean,headerCheck:org.http4s.Request[G]=&gt;Boolean)(implicitevidence$8:cats.effect.Sync[F],implicitevidence$9:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]"></a><a id="withKeyBytes[F[_],G[_]](Array[Byte],CaseInsensitiveString,String,Clock,Response[G],Boolean,Boolean,(Request[G])⇒Boolean)(Sync[F],Applicative[G]):F[CSRF[F,G]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/middleware/CSRF$.html#withKeyBytes[F[_],G[_]](keyBytes:Array[Byte],headerName:String,cookieName:String,clock:java.time.Clock)(implicitevidence$5:cats.effect.Sync[F],implicitevidence$6:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]" title="Permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#withKeyBytes[F[_],G[_]](keyBytes:Array[Byte],headerName:org.http4s.util.CaseInsensitiveString,cookieName:String,clock:java.time.Clock,onFailure:org.http4s.Response[G],secure:Boolean,createIfNotFound:Boolean,headerCheck:org.http4s.Request[G]=&gt;Boolean)(implicitevidence$8:cats.effect.Sync[F],implicitevidence$9:cats.Applicative[G]):F[org.http4s.server.middleware.CSRF[F,G]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -815,10 +930,26 @@ one safely</p></div></div>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withKeyBytes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="keyBytes">keyBytes: <a href="http://www.scala-lang.org/api/2.12.6/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>, <span name="headerName">headerName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;X-Csrf-Token&quot;</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.G">G</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>[<a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.G">G</span>]]</span>
+        <span class="name">withKeyBytes</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="G">G<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="keyBytes">keyBytes: <a href="http://www.scala-lang.org/api/2.12.6/scala/Array.html#scala.Array" class="extype" name="scala.Array">Array</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]</span>, <span name="headerName">headerName: <a href="../../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> = <span class="defval" name='<span class="name"><a href="../../../index.html">CaseInsensitiveString(&quot;X-Csrf-Token&quot;)</a></span>'>...</span></span>, <span name="cookieName">cookieName: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;csrf-token&quot;</span></span>, <span name="clock">clock: <span class="extype" name="java.time.Clock">Clock</span> = <span class="symbol">Clock.systemUTC()</span></span>, <span name="onFailure">onFailure: <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.G">G</span>] = <span class="symbol"><span class="name"><a href="../../Response$.html">Response[G](Status.Forbidden)</a></span></span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">false</span></span>, <span name="createIfNotFound">createIfNotFound: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a> = <span class="symbol">true</span></span>, <span name="headerCheck">headerCheck: (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.G">G</span>]) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>]</span>, <span name="arg1">arg1: <a href="http://typelevel.org/cats/api/cats/Applicative.html#cats.Applicative" class="extype" name="cats.Applicative">Applicative</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.G">G</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>[<a href="CSRF.html" class="extype" name="org.http4s.server.middleware.CSRF">CSRF</a>[<span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.F">F</span>, <span class="extype" name="org.http4s.server.middleware.CSRF.withKeyBytes.G">G</span>]]</span>
       </span>
       
       <p class="shortcomment cmt">Sugar for pre-loading a key *</p>
+    </li><li name="org.http4s.server.middleware.CSRF.CSRFCheckFailed" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CSRFCheckFailed"></a><a id="CSRFCheckFailed:CSRFCheckFailed"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/middleware/CSRF$.html#CSRFCheckFailed" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="CSRF$$CSRFCheckFailed$.html"><span class="name">CSRFCheckFailed</span></a><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <a href="http://www.scala-lang.org/api/2.12.6/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
+      
+      
     </li>
               </ol>
             </div>
