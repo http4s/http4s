@@ -293,7 +293,7 @@ right side, the path info.  The following matches a request to `GET
 /hello`:
 
 ```tut
-HttpService[IO] {
+HttpRoutes.of[IO] {
   case GET -> Root / "hello" => Ok("hello")
 }
 ```
