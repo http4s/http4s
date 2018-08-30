@@ -22,7 +22,7 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.{Client, DisposableResponse}
-import org.http4s.internal.loggingAsyncCallback
+import org.http4s.internal.invokeCallback
 import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
@@ -62,38 +62,36 @@ sealed abstract class OkHttpBuilder[F[_]] private (
     *
     * The shutdown method on this client is a no-op.  $WHYNOSHUTDOWN
     */
-  def create(implicit F: Effect[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
+  def create(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
 
   /** Creates the [[org,http4s.client.Client]] as a resource.
     *
     * The release on this resource is a no-op.  $WHYNOSHUTDOWN
     */
-  def resource(implicit F: Effect[F], cs: ContextShift[F]): Resource[F, Client[F]] =
+  def resource(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Resource[F, Client[F]] =
     Resource.make(F.delay(create))(_.shutdown)
 
   /** Creates the [[org,http4s.client.Client]] as a singleton stream.
     *
     * The bracketed release on this stream is a no-op.  $WHYNOSHUTDOWN
     */
-  def stream(implicit F: Effect[F], cs: ContextShift[F]): Stream[F, Client[F]] =
+  def stream(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
-  private def open(implicit F: Effect[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
-    F.async[DisposableResponse[F]] { cb =>
-      logger.info("Calling " + req)
-      okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
-      ()
+  private def open(implicit F: ConcurrentEffect[F], cs: ContextShift[F]) =
+    Kleisli { req: Request[F] =>
+      F.async[DisposableResponse[F]] { cb =>
+        okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
+        ()
+      }
     }
-  }
 
   private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(
-      implicit F: Effect[F],
+      implicit F: ConcurrentEffect[F],
       cs: ContextShift[F]): Callback =
     new Callback {
-      override def onFailure(call: Call, e: IOException): Unit = {
-        logger.info("onFailure")
-        (cs.shift *> F.delay(cb(Left(e)))).runAsync(loggingAsyncCallback(logger)).unsafeRunSync()
-      }
+      override def onFailure(call: Call, e: IOException): Unit =
+        invokeCallback(logger)(cb(Left(e)))
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
@@ -121,8 +119,7 @@ sealed abstract class OkHttpBuilder[F[_]] private (
             bodyStream.close()
             t
           }
-        logger.info("onResponse")
-        (cs.shift *> F.delay(cb(dr))).runAsync(loggingAsyncCallback(logger)).unsafeRunSync()
+        invokeCallback(logger)(cb(dr))
       }
     }
 
