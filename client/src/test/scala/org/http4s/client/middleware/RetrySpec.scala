@@ -70,21 +70,23 @@ class RetrySpec extends Http4sSpec with Tables {
       countRetries(defaultClient, POST, s, EmptyBody) must_== 1
     }
 
-    def resubmit(method: Method)(retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) = {
-      Ref[IO, Boolean](false).flatMap { ref =>
-        val body = Stream.eval(ref.get.flatMap {
-          case false => ref.modify(_ => true) *> IO.pure("")
-          case true => IO.pure("OK")
-        })
-        val req = Request[IO](method, uri("http://localhost/status-from-body")).withBody(body)
-        val policy = RetryPolicy[IO]({ attempts: Int =>
-          if (attempts >= 2) None
-          else Some(Duration.Zero)
-        }, retriable)
-        val retryClient = Retry[IO](policy)(defaultClient)
-        retryClient.status(req)
-      }.unsafeRunSync()
-    }
+    def resubmit(method: Method)(
+        retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
+      Ref[IO, Boolean](false)
+        .flatMap { ref =>
+          val body = Stream.eval(ref.get.flatMap {
+            case false => ref.modify(_ => true) *> IO.pure("")
+            case true => IO.pure("OK")
+          })
+          val req = Request[IO](method, uri("http://localhost/status-from-body")).withBody(body)
+          val policy = RetryPolicy[IO]({ attempts: Int =>
+            if (attempts >= 2) None
+            else Some(Duration.Zero)
+          }, retriable)
+          val retryClient = Retry[IO](policy)(defaultClient)
+          retryClient.status(req)
+        }
+        .unsafeRunSync()
 
     "defaultRetriable does not resubmit bodies on idempotent methods" in {
       resubmit(POST)(RetryPolicy.defaultRetriable) must_== Status.InternalServerError
