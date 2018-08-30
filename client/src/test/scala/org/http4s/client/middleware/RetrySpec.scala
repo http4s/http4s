@@ -4,7 +4,9 @@ package middleware
 
 import cats.data.Kleisli
 import cats.effect.IO
-import fs2._
+import cats.implicits.{catsSyntaxEither => _, _}
+import fs2.Stream
+import fs2.async.Ref
 import org.http4s.dsl.io._
 import org.specs2.specification.Tables
 import scala.concurrent.duration._
@@ -12,8 +14,13 @@ import scala.concurrent.duration._
 class RetrySpec extends Http4sSpec with Tables {
 
   val route = HttpService[IO] {
+    case req @ _ -> Root / "status-from-body" =>
+      req.as[String].flatMap {
+        case "OK" => Ok()
+        case "" => InternalServerError()
+      }
     case _ -> Root / status =>
-      IO.pure(Response(Status.fromInt(status.toInt).valueOr(throw _)))
+      Response(Status.fromInt(status.toInt).valueOr(throw _)).pure[IO]
   }
 
   val defaultClient: Client[IO] = Client.fromHttpService(route)
@@ -63,8 +70,35 @@ class RetrySpec extends Http4sSpec with Tables {
       countRetries(defaultClient, POST, s, EmptyBody) must_== 1
     }
 
-    "not retry effectful bodies" in prop { s: Status =>
-      countRetries(defaultClient, PUT, s, Stream.eval_(IO.unit)) must_== 1
+    def resubmit(method: Method)(
+        retriable: (Request[IO], Either[Throwable, Response[IO]]) => Boolean) =
+      Ref[IO, Boolean](false)
+        .flatMap { ref =>
+          val body = Stream.eval(ref.get.flatMap {
+            case false => ref.modify(_ => true) *> IO.pure("")
+            case true => IO.pure("OK")
+          })
+          val req = Request[IO](method, uri("http://localhost/status-from-body")).withBody(body)
+          val policy = RetryPolicy[IO]({ attempts: Int =>
+            if (attempts >= 2) None
+            else Some(Duration.Zero)
+          }, retriable)
+          val retryClient = Retry[IO](policy)(defaultClient)
+          retryClient.status(req)
+        }
+        .unsafeRunSync()
+
+    "defaultRetriable does not resubmit bodies on idempotent methods" in {
+      resubmit(POST)(RetryPolicy.defaultRetriable) must_== Status.InternalServerError
+    }
+    "unsafeRetriable does not resubmit bodies on non-idempotent methods" in {
+      resubmit(POST)(RetryPolicy.unsafeRetriable) must_== Status.InternalServerError
+    }
+    "unsafeRetriable resubmits bodies on idempotent methods" in {
+      resubmit(PUT)(RetryPolicy.unsafeRetriable) must_== Status.Ok
+    }
+    "recklesslyRetriable resubmits bodies on non-idempotent methods" in {
+      resubmit(POST)((req, result) => RetryPolicy.recklesslyRetriable(result)) must_== Status.Ok
     }
 
     "retry exceptions" in {
