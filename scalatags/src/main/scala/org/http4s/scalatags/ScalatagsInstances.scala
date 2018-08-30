@@ -11,8 +11,8 @@ trait ScalatagsInstances {
       implicit charset: Charset = DefaultCharset): EntityEncoder[F, TypedTag[String]] =
     contentEncoder(MediaType.text.html)
 
-  private def contentEncoder[F[_], C <: TypedTag[String]](
-      mediaType: MediaType)(implicit charset: Charset): EntityEncoder[F, C] =
+  private def contentEncoder[F[_], C <: TypedTag[String]](mediaType: MediaType)(
+      implicit charset: Charset): EntityEncoder[F, C] =
     EntityEncoder
       .stringEncoder[F]
       .contramap[C](content => content.render)
