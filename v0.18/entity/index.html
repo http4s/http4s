@@ -154,17 +154,17 @@ scala&gt; val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg: Me
      |     msg.as[String].map(s =&gt; Audio(s).asRight[DecodeFailure])
      |   }
      | }
-audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$5@18ca3d71
+audioDec: org.http4s.EntityDecoder[cats.effect.IO,Audio] = org.http4s.EntityDecoder$$anon$5@410a2038
 
 scala&gt; val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg: Message[IO] =&gt;
      |   EitherT {
      |     msg.as[String].map(s =&gt; Video(s).asRight[DecodeFailure])
      |   }
      | }
-videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$5@68b867fd
+videoDec: org.http4s.EntityDecoder[cats.effect.IO,Video] = org.http4s.EntityDecoder$$anon$5@25641395
 
 scala&gt; implicit val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
-bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@4fed5047
+bothDec: org.http4s.EntityDecoder[cats.effect.IO,Resp] = org.http4s.EntityDecoder$OrDec@4889fd02
 
 scala&gt; println(response.flatMap(_.as[Resp]).unsafeRunSync)
 Audio()
@@ -201,12 +201,13 @@ cause conflicts with the builtin Decoders.</p>
 <li>scala-xml: <code>&quot;org.http4s&quot; %% &quot;http4s-scala-xml&quot; % Http4sVersion</code></li>
 </ul>
 
-<h3 id="twirl">Twirl</h3>
+<h3 id="support-for-twirl-and-scalatags">Support for Twirl and Scalatags</h3>
 
-<p>If you&rsquo;re working with <a href="https://github.com/playframework/twirl">twirl</a> templates, there&rsquo;s a bridge for that too:</p>
+<p>If you&rsquo;re working with either <a href="https://github.com/playframework/twirl">twirl</a> or <a href="http://www.lihaoyi.com/scalatags/">scalatags</a> you can use our bridges:</p>
 
 <ul>
 <li>scala-twirl: <code>&quot;org.http4s&quot; %% &quot;http4s-twirl&quot; % Http4sVersion</code></li>
+<li>scala-scalatags: <code>&quot;org.http4s&quot; %% &quot;http4s-scalatags&quot; % Http4sVersion</code></li>
 </ul>
 
         </div>
