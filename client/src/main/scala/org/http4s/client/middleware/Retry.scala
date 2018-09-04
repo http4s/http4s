@@ -45,7 +45,7 @@ object Retry {
               nextAttempt(req, attempts, duration, None)
             case None =>
               logger.info(
-                s"Request $req threw an exception with message: ${e.getMessage} on attempt #${attempts} attempts. Giving up."
+                s"Request $req threw an exception on attempt #${attempts} with message: ${e.getMessage}. Giving up."
               )
               F.raiseError[DisposableResponse[F]](e)
           }
