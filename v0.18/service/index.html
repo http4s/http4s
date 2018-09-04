@@ -88,7 +88,7 @@ and calling it with http4s&rsquo; client.</p>
 
 <pre><code class="language-scala">scalaVersion := &quot;2.12.6&quot; // Also supports 2.11.x
 
-val http4sVersion = &quot;0.18.16&quot;
+val http4sVersion = &quot;0.18.17&quot;
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo(&quot;snapshots&quot;)
@@ -144,7 +144,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$53060/196680065@626f62fb)
+// helloWorldService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$52752/1872618303@1dd92bbb)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -182,7 +182,7 @@ val tweetService = HttpService[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$53060/196680065@71b9d37e)
+// tweetService: org.http4s.HttpService[cats.effect.IO] = Kleisli(org.http4s.HttpService$$$Lambda$52752/1872618303@2c52542b)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -211,10 +211,10 @@ import org.http4s.implicits._
 // import org.http4s.implicits._
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$53265/1153356927@7d2b86bb)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$52957/1101330663@1ef74d3d)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$992653132
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$2078286929
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
