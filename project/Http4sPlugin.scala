@@ -294,7 +294,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val cryptobits                       = "org.reactormonk"        %% "cryptobits"                % "1.2"
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
   lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.0-M4"
-  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.6.0"
+  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.6.1-SNAPSHOT"
   lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.1"
