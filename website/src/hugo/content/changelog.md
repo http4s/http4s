@@ -8,9 +8,10 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.18.17-SNAPSHOT
+# v0.18.17 (2018-09-03)
 * Accumulate errors in `OptionalMultiQueryParamDecoderMatcher` [#2000](https://github.com/http4s/pull/2000)
 * New http4s-scalatags module [#2002](https://github.com/http4s/pull/2002)
+* Resubmit bodies in `Retry` middleware where allowed by policy [#2001](https://github.com/http4s/pull/2001)
 * Dependency upgrades:
   * play-json-3.6.10 (for Scala 2.12)
   * tomcat-9.0.11
