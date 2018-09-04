@@ -40,8 +40,7 @@ object Retry {
           policy(req, Left(e), attempts) match {
             case Some(duration) =>
               // info instead of error(e), because e is not discarded
-              logger.info(
-                s"Request $req threw an exception on attempt #$attempts with message: ${e.getMessage}. Retrying after $duration.")
+              logger.info(e)(s"Request threw an exception on attempt #$attempts. Retrying after $duration")
               nextAttempt(req, attempts, duration, None)
             case None =>
               logger.info(
