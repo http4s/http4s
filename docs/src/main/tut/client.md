@@ -31,16 +31,26 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
-import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
+Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
+[[`ContextShift`]].  The following lines are not necessary if you are
+in an [[`IOApp`]]:
+
+```tut:book:silent
+import scala.concurrent.ExecutionContext.global
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+```
+
+Finish setting up our server:
+
 ```tut:book
-val service = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
 
-val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(service, "/").start
+val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(routes, "/").start
 val server = builder.unsafeRunSync
 ```
 
@@ -259,3 +269,6 @@ client.get[T]("some-url")(response => jsonOf(response.body))
 [service]: ../service
 [entity]: ../entity
 [json]: ../json
+[`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
+[`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
+[`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html
