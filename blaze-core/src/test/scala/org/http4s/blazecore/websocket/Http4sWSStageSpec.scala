@@ -32,6 +32,9 @@ class Http4sWSStageSpec extends Http4sSpec {
     def pollOutbound(timeoutSeconds: Long = 4L): Option[WebSocketFrame] =
       head.poll(timeoutSeconds)
 
+    def pollBatchOutputbound(batchSize: Int, timeoutSeconds: Long = 4L): List[WebSocketFrame] =
+      head.pollBatch(batchSize, timeoutSeconds)
+
     def wasCloseHookCalled(): Boolean =
       closeHook.get()
   }
@@ -66,9 +69,9 @@ class Http4sWSStageSpec extends Http4sSpec {
     "not write any more frames after close frame sent" in {
       val socket = TestWebsocketStage()
       socket.sendWSOutbound(Text("hi"), Close(), Text("lol"))
-      socket.pollOutbound() must beSome[WebSocketFrame](Text("hi"))
-      socket.pollOutbound() must beSome[WebSocketFrame](Close())
-      val assertion = socket.pollOutbound(1) must beNone
+      socket.pollOutbound() must_=== Some(Text("hi"))
+      socket.pollOutbound() must_=== Some(Close())
+      val assertion = socket.pollOutbound() must_=== None
       //actually close the socket
       socket.sendInbound(Close())
       assertion
@@ -77,8 +80,7 @@ class Http4sWSStageSpec extends Http4sSpec {
     "send a close frame back and call the on close handler upon receiving a close frame" in {
       val socket = TestWebsocketStage()
       socket.sendInbound(Close())
-      socket.pollOutbound() must beSome[WebSocketFrame](Close())
-      socket.pollOutbound(1) must beNone
+      socket.pollBatchOutputbound(2, 2) must_=== List(Close())
       socket.wasCloseHookCalled() must_=== true
     }
 
@@ -86,15 +88,14 @@ class Http4sWSStageSpec extends Http4sSpec {
       val socket = TestWebsocketStage()
       socket.sendWSOutbound(Close())
       socket.sendInbound(Close())
-      socket.pollOutbound() must beSome[WebSocketFrame](Close())
-      socket.pollOutbound() must beNone
+      socket.pollBatchOutputbound(2) must_=== List(Close())
       socket.wasCloseHookCalled() must_=== true
     }
 
     "ignore pong frames" in {
       val socket = TestWebsocketStage()
       socket.sendInbound(Pong())
-      val assertion = socket.pollOutbound() must beNone
+      val assertion = socket.pollOutbound() must_=== None
       //actually close the socket
       socket.sendInbound(Close())
       assertion

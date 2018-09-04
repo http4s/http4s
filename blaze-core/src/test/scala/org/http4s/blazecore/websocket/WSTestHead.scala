@@ -1,10 +1,11 @@
 package org.http4s.blazecore.websocket
 
-import java.time.Instant
-import java.util.concurrent.ConcurrentLinkedQueue
+import cats.effect.{IO, Timer}
+//import java.util.concurrent.ConcurrentLinkedQueue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 /** A simple stage to help test websocket requests
   *
@@ -21,8 +22,8 @@ import scala.concurrent.Future
   *
   */
 sealed abstract class WSTestHead(
-    inQueue: ConcurrentLinkedQueue[WebSocketFrame],
-    outQueue: ConcurrentLinkedQueue[WebSocketFrame])
+    inQueue: fs2.async.mutable.Queue[IO, WebSocketFrame],
+    outQueue: fs2.async.mutable.Queue[IO, WebSocketFrame])(implicit T: Timer[IO])
     extends HeadStage[WebSocketFrame] {
 
   /** Block while we put elements into our queue
@@ -30,55 +31,53 @@ sealed abstract class WSTestHead(
     * @return
     */
   override def readRequest(size: Int): Future[WebSocketFrame] =
-    Future.successful {
-      var r: WebSocketFrame = null
-      while (r eq null) {
-        r = inQueue.poll()
-      }
-      r
-    }
+    inQueue.dequeue1.unsafeToFuture()
 
   /** Sent downstream from the websocket stage,
     * put the result in our outqueue, so we may
     * pull from it later to inspect it
     */
-  override def writeRequest(data: WebSocketFrame): Future[Unit] = {
-    val _ = outQueue.add(data)
-    Future.successful(())
-  }
+  override def writeRequest(data: WebSocketFrame): Future[Unit] =
+    outQueue.enqueue1(data).unsafeToFuture()
 
   /** Insert data into the read queue,
     * so it's read by the websocket stage
     * @param ws
     */
   def put(ws: WebSocketFrame): Unit = {
-    inQueue.add(ws); ()
+    inQueue.enqueue1(ws).unsafeRunSync(); ()
   }
 
   /** poll our queue for a value,
     * timing out after `timeoutSeconds` seconds
-    *
+    * runWorker(this);
     */
   def poll(timeoutSeconds: Long): Option[WebSocketFrame] =
-    Option {
-      var r: WebSocketFrame = null
-      val expires = Instant.now.plusSeconds(timeoutSeconds)
-      while ((r eq null) && expires.isAfter(Instant.now())) {
-        r = outQueue.poll()
+    IO.race(Timer[IO].sleep(timeoutSeconds.seconds), outQueue.dequeue1)
+      .map {
+        case Left(_) => None
+        case Right(wsFrame) =>
+          Some(wsFrame)
       }
-      r
-    }
+      .unsafeRunSync()
+
+  def pollBatch(batchSize: Int, timeoutSeconds: Long): List[WebSocketFrame] =
+    IO.race(Timer[IO].sleep(timeoutSeconds.seconds), outQueue.dequeueBatch1(batchSize))
+      .map {
+        case Left(_) => Nil
+        case Right(wsFrame) => wsFrame.toList
+      }
+      .unsafeRunSync()
 
   override def name: String = "WS test stage"
 }
 
 object WSTestHead {
-  def apply(): WSTestHead = {
-    val inQueue: ConcurrentLinkedQueue[WebSocketFrame] =
-      new ConcurrentLinkedQueue[WebSocketFrame]()
-
-    val outQueue: ConcurrentLinkedQueue[WebSocketFrame] =
-      new ConcurrentLinkedQueue[WebSocketFrame]()
+  def apply()(implicit t: Timer[IO]): WSTestHead = {
+    val inQueue =
+      fs2.async.mutable.Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
+    val outQueue =
+      fs2.async.mutable.Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
     new WSTestHead(inQueue, outQueue) {}
   }
 }

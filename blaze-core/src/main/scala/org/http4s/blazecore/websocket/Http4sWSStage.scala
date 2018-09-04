@@ -69,7 +69,7 @@ private[http4s] class Http4sWSStage[F[_]](
     *     to prevent sending two close frames. Regardless, we set the signal for termination of
     *     the stream afterwards
     *
-    * @return A websocket frame. Or an error. Only god knows
+    * @return A websocket frame, or a possible IO error.
     */
   private[this] def handleRead(): F[WebSocketFrame] = {
     def maybeSendClose(c: Close): F[Unit] =
