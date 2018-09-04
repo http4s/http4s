@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0-M2-SNAPSHOT
+# v0.19.0-SNAPSHOT
 * Add `UUIDVar` path extractor [#1953](https://github.com/http4s/pull/1953)
 * Don't build `SSLContext` where not required in blaze-client [#1956](https://github.com/http4s/http4s/pull/1956)
 * Add new `prometheus-client-metrics` module [#1961](https://github.com/http4s/http4s/pull/1961)
@@ -23,9 +23,10 @@ it.
   * jawn-play-0.12.2
   * json4s-3.6.0
 
-# v0.18.17-SNAPSHOT
+# v0.18.17 (2018-09-04)
 * Accumulate errors in `OptionalMultiQueryParamDecoderMatcher` [#2000](https://github.com/http4s/pull/2000)
 * New http4s-scalatags module [#2002](https://github.com/http4s/pull/2002)
+* Resubmit bodies in `Retry` middleware where allowed by policy [#2001](https://github.com/http4s/pull/2001)
 * Dependency upgrades:
   * play-json-3.6.10 (for Scala 2.12)
   * tomcat-9.0.11

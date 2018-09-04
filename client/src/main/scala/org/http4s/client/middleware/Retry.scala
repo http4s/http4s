@@ -59,7 +59,7 @@ object Retry {
           }
           .getOrElse(0L)
       val sleepDuration = headerDuration.seconds.max(duration)
-      T.sleep(sleepDuration) *> prepareLoop(req.withEmptyBody, attempts + 1)
+      T.sleep(sleepDuration) *> prepareLoop(req, attempts + 1)
     }
 
     client.copy(open = Kleisli(prepareLoop(_, 1)))
