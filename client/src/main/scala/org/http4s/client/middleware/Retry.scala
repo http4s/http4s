@@ -41,11 +41,11 @@ object Retry {
             case Some(duration) =>
               // info instead of error(e), because e is not discarded
               logger.info(
-                s"Request $req threw an exception on attempt #${attempts} with message: ${e.getMessage}. Retrying after $duration.")
+                s"Request $req threw an exception on attempt #$attempts with message: ${e.getMessage}. Retrying after $duration.")
               nextAttempt(req, attempts, duration, None)
             case None =>
               logger.info(
-                s"Request $req threw an exception on attempt #${attempts} with message: ${e.getMessage}. Giving up."
+                s"Request $req threw an exception on attempt #$attempts with message: ${e.getMessage}. Giving up."
               )
               F.raiseError[DisposableResponse[F]](e)
           }
