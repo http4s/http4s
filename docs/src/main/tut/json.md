@@ -260,6 +260,9 @@ val jsonService = HttpRoutes.of[IO] {
     } yield (resp)
 }
 
+// Provided automatically by `IOApp`
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+
 import org.http4s.server.blaze._
 val builder = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").start
 val blazeServer = builder.unsafeRunSync
@@ -281,7 +284,7 @@ def helloClient(name: String): IO[Hello] = {
   // Encode a User request
   val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
   // Create a client
-  Http1Client[IO]().flatMap { httpClient =>
+  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
     // Decode a Hello response
     httpClient.expect(req)(jsonOf[IO, Hello])
   }
