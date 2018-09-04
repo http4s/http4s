@@ -110,8 +110,7 @@ object RetryPolicy {
     * codes, see [[recklesslyRetriable]].
     */
   def defaultRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    if (req.method.isInstanceOf[Method.NoBody]) isErrorOrRetriableStatus(result)
-    else false
+    req.method.isInstanceOf[Method.NoBody] && isErrorOrRetriableStatus(result)
 
   /** Returns true if the request method is idempotent and the result is
     * either a throwable or has one of the `RetriableStatuses`.  This is
@@ -122,8 +121,7 @@ object RetryPolicy {
     * an empty request body.
     */
   def unsafeRetriable[F[_]](req: Request[F], result: Either[Throwable, Response[F]]): Boolean =
-    if (req.method.isIdempotent) isErrorOrRetriableStatus(result)
-    else false
+    req.method.isIdempotent && isErrorOrRetriableStatus(result)
 
   /** Like [[unsafeRetriable]], but returns true even if the request method
     * is not idempotent.  This is useful if failed requests are assumed to
@@ -139,8 +137,8 @@ object RetryPolicy {
 
   private def isErrorOrRetriableStatus[F[_]](result: Either[Throwable, Response[F]]): Boolean =
     result match {
-      case Left(_) => true
       case Right(resp) => RetriableStatuses(resp.status)
+      case _ => true
     }
 
   def exponentialBackoff(maxWait: Duration, maxRetry: Int): Int => Option[FiniteDuration] = {

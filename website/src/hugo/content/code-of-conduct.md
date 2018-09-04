@@ -20,9 +20,9 @@ community staff, such as:
 
 - [Bryce Anderson](mailto:bryce.anderson22@gmail.com)
 - [Ross A. Baker](mailto:ross@rossabaker.com)
+- [Christopher Davenport](mailto:chris@christopherdavenport.tech)
 
 [Typelevel]: https://typelevel.org/
 [Typelevel code of conduct]: https://typelevel.org/conduct.html
 [GitHub]: https://github.com/http4s
 [Gitter]: https://gitter.im/http4s/http4s
-

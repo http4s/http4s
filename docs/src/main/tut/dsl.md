@@ -285,35 +285,70 @@ values. By extension, you can also `match/case` it with different possible
 destructurings. To build these different extractors, you can make use of the
 DSL.
 
-Most often, you extract the `Request` into a HTTP `Method` (verb) and the path,
-via the `->` object. On the left side, you'll have the HTTP `Method`, on the
-other side the path. Naturally, `_` is a valid matcher too, so any call to
-`/api` can be blocked, regardless of `Method`:
+### The `->` object
+
+More often, you extract the `Request` into a HTTP `Method` and path
+info via the `->` object.  On the left side is the method, and on the
+right side, the path info.  The following matches a request to `GET
+/hello`:
 
 ```tut
 HttpRoutes.of[IO] {
-  case _ -> Root / "api" => Forbidden()
+  case GET -> Root / "hello" => Ok("hello")
 }
 ```
 
-To also block all subcalls `/api/...`, you'll need `/:`, which is right
-associative, and matches everything after, and not just the next element:
+### Path info
+
+Path matching is done on the request's `pathInfo`.  Path info is the
+request's URI's path after the following:
+
+* the mount point of the service
+* the prefix, if the service is composed with a `Router`
+* the prefix, if the service is rewritten with `TranslateUri`
+
+Matching on `request.pathInfo` instead of `request.uri.path` allows
+multiple services to be composed without rewriting all the path
+matchers.
+
+### Matching paths
+
+A request to the root of the service is matched with the `Root`
+extractor.  `Root` consumes the leading slash of the path info.  The
+following matches requests to `GET /`:
 
 ```tut
 HttpRoutes.of[IO] {
-  case _ -> "api" /: _ => Forbidden()
+  case GET -> Root => Ok("root")
 }
 ```
 
-For matching more than one `Method`, there's `|`:
+We usually match paths in a left-associative manner with `Root` and
+`/`.  Each `"/"` after the initial slash delimits a path segment, and
+is represented in the DSL with the '/' extractor.  Segments can be
+matched as literals or made available through standard Scala pattern
+matching.  For example, the following service responds with "Hello,
+Alice!" to `GET /hello/Alice`:
 
 ```tut
 HttpRoutes.of[IO] {
-  case (GET | POST) -> Root / "api"  => ???
+  case GET -> Root / "hello" / name => Ok(s"Hello, $name!")
 }
 ```
 
-Honorable mention: `~`, for matching file extensions.
+The above assumes only one path segment after `"hello"`, and would not
+match `GET /hello/Alice/Bob`.  To match to an arbitrary depth, we need
+a right-associative `/:` extractor.  In this case, there is no `Root`,
+and the final pattern is a `Path` of the remaining segments.  This would
+say `"Hello, Alice and Bob!"`
+
+```tut
+HttpRoutes.of[IO] {
+  case GET -> "hello" /: rest => Ok(s"""Hello, ${rest.toList.mkString(" and ")}!""")
+}
+```
+
+To match a file extension on a segment, use the `~` extractor:
 
 ```tut
 HttpRoutes.of[IO] {
