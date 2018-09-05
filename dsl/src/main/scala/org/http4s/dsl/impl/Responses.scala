@@ -219,7 +219,7 @@ object Responses {
       with EntityResponseGenerator[F]
   final class MethodNotAllowedOps[F[_]](val status: MethodNotAllowed.type)
       extends AnyVal
-      with EntityResponseGenerator[F]
+      with AllowResponseGenerator[F]
   final class NotAcceptableOps[F[_]](val status: NotAcceptable.type)
       extends AnyVal
       with EntityResponseGenerator[F]

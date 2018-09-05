@@ -7,6 +7,7 @@ import cats.data.Kleisli
 import cats.implicits._
 import org.http4s.Method.OPTIONS
 import org.http4s.headers._
+import org.http4s.util.CaseInsensitiveString
 import org.log4s.getLogger
 import scala.concurrent.duration._
 
@@ -28,6 +29,8 @@ final case class CORSConfig(
 
 object CORS {
   private[CORS] val logger = getLogger
+
+  val defaultVaryHeader = Header("Vary", "Origin,Access-Control-Request-Method")
 
   def DefaultCORSConfig =
     CORSConfig(anyOrigin = true, allowCredentials = true, maxAge = 1.day.toSeconds)
@@ -54,12 +57,19 @@ object CORS {
         else
           config.exposedHeaders.map(headerFromStrings("Access-Control-Expose-Headers", _))
 
+      def varyHeader(response: Response[G]): Response[G] =
+        response.headers.get(CaseInsensitiveString("Vary")) match {
+          case None => response.putHeaders(defaultVaryHeader)
+          case _ => response
+        }
+
       def corsHeaders(origin: String, acrm: String, isPreflight: Boolean)(
-          resp: Response[G]): Response[G] =
-        methodBasedHeader(isPreflight)
+          resp: Response[G]): Response[G] = {
+        val withMethodBasedHeader = methodBasedHeader(isPreflight)
           .fold(resp)(h => resp.putHeaders(h))
+
+        varyHeader(withMethodBasedHeader)
           .putHeaders(
-            Header("Vary", "Origin,Access-Control-Request-Methods"),
             Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
             Header(
               "Access-Control-Allow-Methods",
@@ -67,6 +77,7 @@ object CORS {
             Header("Access-Control-Allow-Origin", origin),
             Header("Access-Control-Max-Age", config.maxAge.toString)
           )
+      }
 
       def allowCORS(origin: Header, acrm: Header): Boolean =
         (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {

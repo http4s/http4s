@@ -9,6 +9,7 @@ import fs2.Stream
 import org.http4s.circe._
 import org.http4s.client.blaze._
 import org.http4s.Uri
+import scala.concurrent.ExecutionContext.global
 import treehugger.forest._
 import definitions._
 import treehuggerDSL._
@@ -27,7 +28,7 @@ object MimeLoader {
   val maxSizePerSection = 500
   def readMimeDB(implicit cs: ContextShift[IO]): Stream[IO, List[Mime]] =
     for {
-      client <- Http1Client.stream[IO]()
+      client <- BlazeClientBuilder[IO](global).stream
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
       value <- Stream.eval(client.expect[Json](url))
       obj <- Stream.eval(IO(value.arrayOrObject(JsonObject.empty, _ => JsonObject.empty, identity)))
