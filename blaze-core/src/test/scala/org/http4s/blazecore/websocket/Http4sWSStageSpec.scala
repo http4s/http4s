@@ -10,8 +10,12 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.websocket.Websocket
 import org.http4s.websocket.WebsocketBits._
 import org.http4s.blaze.pipeline.Command
+import scala.concurrent.ExecutionContext
 
 class Http4sWSStageSpec extends Http4sSpec {
+  override implicit def testExecutionContext: ExecutionContext =
+    ExecutionContext.global
+
   class TestWebsocketStage(
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
@@ -47,8 +51,7 @@ class Http4sWSStageSpec extends Http4sSpec {
       val ws: Websocket[IO] =
         Websocket(outQ.dequeue, _.drain, IO(closeHook.set(true)))
       val deadSignal = Signal[IO, Boolean](false).unsafeRunSync()
-      val head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal))
-        .base(WSTestHead()(IO.timer(scala.concurrent.ExecutionContext.global)))
+      val head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(WSTestHead())
       //Start the websocketStage
       head.sendInboundCommand(Command.Connected)
       new TestWebsocketStage(outQ, head, closeHook)
