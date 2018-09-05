@@ -13,8 +13,9 @@ import cats.effect.{IO, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.testing._
-import org.http4s.util.threads.{newBlockingPool, newDaemonPool}
+import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
@@ -46,9 +47,11 @@ trait Http4sSpec
     with Http4sMatchers {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
 
+  def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
+
   implicit val params = Parameters(maxSize = 20)
 
-  implicit val timer = Timer[IO]
+  implicit val timer: Timer[IO] = IO.timer(testExecutionContext, scheduler)
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -128,4 +131,11 @@ object Http4sSpec {
 
   val TestBlockingExecutionContext: ExecutionContext =
     ExecutionContext.fromExecutor(newBlockingPool("http4s-spec-blocking"))
+
+  val TestScheduler: ScheduledExecutorService = {
+    val s = new ScheduledThreadPoolExecutor(2, threadFactory(i => "http4s-test-scheduler", true))
+    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+    s.allowCoreThreadTimeOut(true)
+    s
+  }
 }

@@ -8,4 +8,4 @@ class JavaNetClientSpec
     extends ClientRouteTestBattery(
       "JavaNetClient",
       JavaNetClient(TestBlockingExecutionContext)
-        .create[IO](implicitly, IO.timer(TestExecutionContext)))
+        .create[IO](implicitly, IO.timer(TestExecutionContext, TestScheduler)))
