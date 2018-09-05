@@ -10,8 +10,12 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.websocket.Websocket
 import org.http4s.websocket.WebsocketBits._
 import org.http4s.blaze.pipeline.Command
+import scala.concurrent.ExecutionContext
 
 class Http4sWSStageSpec extends Http4sSpec {
+  override implicit def testExecutionContext: ExecutionContext =
+    ExecutionContext.global
+
   class TestWebsocketStage(
       outQ: Queue[IO, WebSocketFrame],
       head: WSTestHead,
