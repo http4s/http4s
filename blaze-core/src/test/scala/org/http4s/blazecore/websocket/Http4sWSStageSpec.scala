@@ -47,7 +47,8 @@ class Http4sWSStageSpec extends Http4sSpec {
       val ws: Websocket[IO] =
         Websocket(outQ.dequeue, _.drain, IO(closeHook.set(true)))
       val deadSignal = Signal[IO, Boolean](false).unsafeRunSync()
-      val head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal)).base(WSTestHead())
+      val head = LeafBuilder(new Http4sWSStage[IO](ws, closeHook, deadSignal))
+        .base(WSTestHead()(IO.timer(scala.concurrent.ExecutionContext.global)))
       //Start the websocketStage
       head.sendInboundCommand(Command.Connected)
       new TestWebsocketStage(outQ, head, closeHook)
