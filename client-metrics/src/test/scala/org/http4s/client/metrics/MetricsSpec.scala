@@ -77,7 +77,10 @@ class RemoteEndpointStub(implicit cs: ContextShift[IO]) {
       Ok("200 OK")
   }
   private val serviceStubBuilder =
-    BlazeServerBuilder[IO].bindHttp(port, host).withHttpApp(AutoSlash(mockEndpoints).orNotFound).start
+    BlazeServerBuilder[IO]
+      .bindHttp(port, host)
+      .withHttpApp(AutoSlash(mockEndpoints).orNotFound)
+      .start
   private val serviceStub = serviceStubBuilder.unsafeRunSync()
 
   def shutdown(): Unit =

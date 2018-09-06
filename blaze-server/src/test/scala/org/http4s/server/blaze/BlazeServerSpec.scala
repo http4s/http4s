@@ -2,7 +2,6 @@ package org.http4s
 package server
 package blaze
 
-
 import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
@@ -12,22 +11,22 @@ import scala.io.Source
 
 class BlazeServerSpec extends Http4sSpec with AfterAll {
 
-    def builder = BlazeServerBuilder[IO].withExecutionContext(testExecutionContext)
+  def builder = BlazeServerBuilder[IO].withExecutionContext(testExecutionContext)
 
-    val service : HttpApp[IO] = HttpApp {
-        case GET -> Root / "thread" / "routing" =>
-          val thread = Thread.currentThread.getName
-          Ok(thread)
+  val service: HttpApp[IO] = HttpApp {
+    case GET -> Root / "thread" / "routing" =>
+      val thread = Thread.currentThread.getName
+      Ok(thread)
 
-        case GET -> Root / "thread" / "effect" =>
-          IO(Thread.currentThread.getName).flatMap(Ok(_))
+    case GET -> Root / "thread" / "effect" =>
+      IO(Thread.currentThread.getName).flatMap(Ok(_))
 
-        case req @ POST -> Root / "echo" =>
-          Ok(req.body)
-        case _ => NotFound()
-      }
+    case req @ POST -> Root / "echo" =>
+      Ok(req.body)
+    case _ => NotFound()
+  }
 
-    val server =
+  val server =
     builder
       .bindAny()
       .withHttpApp(service)
@@ -70,4 +69,3 @@ class BlazeServerSpec extends Http4sSpec with AfterAll {
     }
   }
 }
-

@@ -20,20 +20,23 @@ class TomcatServerSpec extends {
 } with Http4sSpec with AfterAll {
   def builder = TomcatBuilder[IO]
 
-    val server =
+  val server =
     builder
       .bindAny()
-      .mountService(HttpRoutes.of {
-        case GET -> Root / "thread" / "routing" =>
-          val thread = Thread.currentThread.getName
-          Ok(thread)
+      .mountService(
+        HttpRoutes.of {
+          case GET -> Root / "thread" / "routing" =>
+            val thread = Thread.currentThread.getName
+            Ok(thread)
 
-        case GET -> Root / "thread" / "effect" =>
-          IO(Thread.currentThread.getName).flatMap(Ok(_))
+          case GET -> Root / "thread" / "effect" =>
+            IO(Thread.currentThread.getName).flatMap(Ok(_))
 
-        case req @ POST -> Root / "echo" =>
-          Ok(req.body)
-      }, "/")
+          case req @ POST -> Root / "echo" =>
+            Ok(req.body)
+        },
+        "/"
+      )
       .start
       .unsafeRunSync()
 
