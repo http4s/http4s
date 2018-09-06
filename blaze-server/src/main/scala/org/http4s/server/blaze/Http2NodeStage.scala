@@ -2,7 +2,6 @@ package org.http4s
 package server
 package blaze
 
-import cats.data.OptionT
 import cats.effect.{Effect, IO, Sync}
 import cats.implicits._
 import fs2._
@@ -25,13 +24,12 @@ private class Http2NodeStage[F[_]](
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
     attributes: AttributeMap,
-    service: HttpRoutes[F],
+    httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
     extends TailStage[StreamFrame] {
 
   // micro-optimization: unwrap the service and call its .run directly
-  private[this] val serviceFn = service.run
-  private[this] val optionTSync = Sync[OptionT[F, ?]]
+  private[this] val serviceFn = httpApp.run
 
   override def name = "Http2NodeStage"
 
@@ -188,9 +186,8 @@ private class Http2NodeStage[F[_]](
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
       executionContext.execute(new Runnable {
         def run(): Unit = {
-          val action = optionTSync
+          val action = Sync[F]
             .suspend(serviceFn(req))
-            .getOrElse(Response.notFound)
             .recoverWith(serviceErrorHandler(req))
             .flatMap(renderResponse)
 

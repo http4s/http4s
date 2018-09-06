@@ -341,12 +341,12 @@ lazy val docs = http4sProject("docs")
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
-        examples,
-        examplesBlaze,
-        examplesDocker,
-        examplesJetty,
-        examplesTomcat,
-        examplesWar,
+        // examples,
+        // examplesBlaze,
+        // examplesDocker,
+        // examplesJetty,
+        // examplesTomcat,
+        // examplesWar,
         mimedbGenerator,
         loadTest
       ),
@@ -428,6 +428,7 @@ lazy val website = http4sProject("website")
       }
   )
 
+/**
 lazy val examples = http4sProject("examples")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
@@ -498,7 +499,7 @@ lazy val examplesWar = exampleProject("examples-war")
     containerLibs in Jetty := List(jettyRunner),
   )
   .dependsOn(servlet)
-
+**/
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
@@ -510,11 +511,13 @@ def http4sProject(name: String) =
 
 def libraryProject(name: String) = http4sProject(name)
 
+/**
 def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(PrivateProjectPlugin)
     .dependsOn(examples)
+**/
 
 lazy val commonSettings = Seq(
   http4sJvmTarget := scalaVersion.map {
