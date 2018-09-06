@@ -299,7 +299,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.1"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0-M3"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0-M4"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.13.0"
   lazy val jawnPlay                         = "org.spire-math"         %% "jawn-play"                 % "0.13.0"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
