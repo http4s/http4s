@@ -63,7 +63,7 @@ final private class Http1Support[F[_]](
       maxHeaderLength = maxHeaderLength,
       maxChunkSize = maxChunkSize,
       parserMode = parserMode,
-      userAgent = userAgent,
+      userAgent = userAgent
     )
     val builder = LeafBuilder(t).prepend(new ReadBufferStage[ByteBuffer])
     requestKey match {

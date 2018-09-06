@@ -171,7 +171,11 @@ sealed abstract class OkHttpBuilder[F[_]] private (
   }
 }
 
-/** Builder for a [[org.http4s.client.Client]] with an OkHttp backend */
+/** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
+  *
+  * @define BLOCKINGEC an execution context onto which all blocking
+  * I/O operations will be shifted.
+  */
 object OkHttpBuilder {
   private[this] val logger = getLogger
 
