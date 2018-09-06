@@ -7,7 +7,7 @@ import org.http4s.{Http4sSpec, HttpRoutes, Status, Uri}
 import org.http4s.client.UnexpectedStatus
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.dsl.io._
-import org.http4s.server.blaze.BlazeBuilder
+import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.AutoSlash
 import org.specs2.specification.AfterAll
 import scala.util.{Failure, Success, Try}
@@ -77,7 +77,7 @@ class RemoteEndpointStub(implicit cs: ContextShift[IO]) {
       Ok("200 OK")
   }
   private val serviceStubBuilder =
-    BlazeBuilder[IO].bindHttp(port, host).withHttpApp(AutoSlash(mockEndpoints).orNotFound).start
+    BlazeServerBuilder[IO].bindHttp(port, host).withHttpApp(AutoSlash(mockEndpoints).orNotFound).start
   private val serviceStub = serviceStubBuilder.unsafeRunSync()
 
   def shutdown(): Unit =

@@ -12,7 +12,7 @@ import scala.io.Source
 
 class BlazeServerSpec extends Http4sSpec with AfterAll {
 
-    def builder = BlazeBuilder[IO].withExecutionContext(testExecutionContext)
+    def builder = BlazeServerBuilder[IO].withExecutionContext(testExecutionContext)
 
     val service : HttpApp[IO] = HttpApp {
         case GET -> Root / "thread" / "routing" =>

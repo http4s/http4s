@@ -2,6 +2,9 @@ package org.http4s
 package server
 package blaze
 
+import cats._
+import cats.data.Kleisli
+import cats.implicits._
 import cats.effect._
 import java.io.FileInputStream
 import java.net.InetSocketAddress
@@ -14,7 +17,6 @@ import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
-import org.http4s.syntax.all._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -52,8 +54,7 @@ import scala.concurrent.duration._
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   */
-@deprecated("Use BlazeServerBuilder instead", "0.19.0-M2")
-class BlazeBuilder[F[_]](
+class BlazeServerBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
     idleTimeout: Duration,
@@ -65,7 +66,7 @@ class BlazeBuilder[F[_]](
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceMounts: Vector[ServiceMount[F]],
+    httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
@@ -74,7 +75,7 @@ class BlazeBuilder[F[_]](
     with SSLKeyStoreSupport[F]
     with SSLContextSupport[F]
     with server.WebSocketSupport[F] {
-  type Self = BlazeBuilder[F]
+  type Self = BlazeServerBuilder[F]
 
   private[this] val logger = getLogger
 
@@ -90,11 +91,11 @@ class BlazeBuilder[F[_]](
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
-      serviceMounts: Vector[ServiceMount[F]] = serviceMounts,
+      httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner
   ): Self =
-    new BlazeBuilder(
+    new BlazeServerBuilder(
       socketAddress,
       executionContext,
       idleTimeout,
@@ -106,7 +107,7 @@ class BlazeBuilder[F[_]](
       http2Support,
       maxRequestLineLen,
       maxHeadersLen,
-      serviceMounts,
+      httpApp,
       serviceErrorHandler,
       banner
     )
@@ -140,7 +141,7 @@ class BlazeBuilder[F[_]](
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
+  def withExecutionContext(executionContext: ExecutionContext): BlazeServerBuilder[F] =
     copy(executionContext = executionContext)
 
   override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
@@ -156,17 +157,8 @@ class BlazeBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  def mountService(service: HttpRoutes[F], prefix: String): Self = {
-    val prefixedService =
-      if (prefix.isEmpty || prefix == "/") service
-      else {
-        val newCaret = (if (prefix.startsWith("/")) 0 else 1) + prefix.length
-
-        service.local { req: Request[F] =>
-          req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
-        }
-      }
-    copy(serviceMounts = serviceMounts :+ ServiceMount[F](prefixedService, prefix))
+  def withHttpApp(httpApp: HttpApp[F]): Self = {
+    copy(httpApp = httpApp)
   }
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
@@ -176,8 +168,6 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService : HttpApp[F] = 
-      Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
@@ -202,7 +192,7 @@ class BlazeBuilder[F[_]](
 
         def http1Stage(secure: Boolean) =
           Http1ServerStage(
-            aggregateService,
+            httpApp,
             requestAttributes(secure = secure),
             executionContext,
             enableWebSockets,
@@ -214,7 +204,7 @@ class BlazeBuilder[F[_]](
         def http2Stage(engine: SSLEngine): ALPNServerSelector =
           ProtocolSelector(
             engine,
-            aggregateService,
+            httpApp,
             maxRequestLineLen,
             maxHeadersLen,
             requestAttributes(secure = true),
@@ -327,9 +317,9 @@ class BlazeBuilder[F[_]](
   }
 }
 
-object BlazeBuilder {
-  def apply[F[_]](implicit F: ConcurrentEffect[F]): BlazeBuilder[F] =
-    new BlazeBuilder(
+object BlazeServerBuilder {
+  def apply[F[_]](implicit F: ConcurrentEffect[F]): BlazeServerBuilder[F] =
+    new BlazeServerBuilder(
       socketAddress = ServerBuilder.DefaultSocketAddress,
       executionContext = ExecutionContext.global,
       idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
@@ -341,10 +331,11 @@ object BlazeBuilder {
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
-      serviceMounts = Vector.empty,
+      httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler,
       banner = ServerBuilder.DefaultBanner
     )
-}
 
-private final case class ServiceMount[F[_]](service: HttpRoutes[F], prefix: String)
+    private def defaultApp[F[_]: Applicative]: HttpApp[F] = 
+      Kleisli(_ => Response[F](Status.NotFound).pure[F])
+}
