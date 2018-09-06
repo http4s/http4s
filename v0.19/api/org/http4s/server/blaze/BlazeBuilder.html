@@ -137,6 +137,10 @@
                         <a class="object" href="BlazeBuilder$.html" title=""></a>
                         <a class="class" href="" title="BlazeBuilder is the component for the builder pattern aggregating different components to finally serve requests."></a>
                         <a href="" title="BlazeBuilder is the component for the builder pattern aggregating different components to finally serve requests.">BlazeBuilder</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="BlazeServerBuilder$.html" title=""></a>
+                        <a class="class" href="BlazeServerBuilder.html" title="BlazeBuilder is the component for the builder pattern aggregating different components to finally serve requests."></a>
+                        <a href="BlazeServerBuilder.html" title="BlazeBuilder is the component for the builder pattern aggregating different components to finally serve requests.">BlazeServerBuilder</a>
                       </li>
               </ul>
             </div>
@@ -162,13 +166,16 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../SSLKeyStoreSupport.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport">SSLKeyStoreSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../SSLContextSupport.html" class="extype" name="org.http4s.server.SSLContextSupport">SSLContextSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../WebSocketSupport.html" class="extype" name="org.http4s.server.WebSocketSupport">server.WebSocketSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use BlazeServerBuilder instead">BlazeBuilder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../SSLKeyStoreSupport.html" class="extype" name="org.http4s.server.SSLKeyStoreSupport">SSLKeyStoreSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../SSLContextSupport.html" class="extype" name="org.http4s.server.SSLContextSupport">SSLContextSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>] with <a href="../WebSocketSupport.html" class="extype" name="org.http4s.server.WebSocketSupport">server.WebSocketSupport</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>
       </span>
       </h4>
 
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>BlazeBuilder is the component for the builder pattern aggregating
-different components to finally serve requests.</p><p>Variables:</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-server/src/main/scala/org/http4s/server/blaze/BlazeBuilder.scala" target="_blank">BlazeBuilder.scala</a></dd></dl><div class="toggleContainer block">
+different components to finally serve requests.</p><p>Variables:</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use BlazeServerBuilder instead</p></dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-server/src/main/scala/org/http4s/server/blaze/BlazeBuilder.scala" target="_blank">BlazeBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
@@ -706,7 +713,7 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.blaze.BlazeBuilder#mountService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.server.blaze.BlazeBuilder#mountService" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="mountService(service:org.http4s.HttpRoutes[F],prefix:String):BlazeBuilder.this.Self"></a><a id="mountService(HttpRoutes[F],String):Self"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#mountService(service:org.http4s.HttpRoutes[F],prefix:String):BlazeBuilder.this.Self" title="Permalink">
@@ -721,7 +728,7 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
         <span class="name">mountService</span><span class="params">(<span name="service">service: <a href="../../index.html#HttpRoutes[F[_]]=org.http4s.package.Http[[β$0$]cats.data.OptionT[F,β$0$],F]" class="extmbr" name="org.http4s.HttpRoutes">HttpRoutes</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>, <span name="prefix">prefix: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
