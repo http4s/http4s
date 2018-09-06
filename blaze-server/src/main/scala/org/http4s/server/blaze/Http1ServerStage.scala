@@ -2,7 +2,6 @@ package org.http4s
 package server
 package blaze
 
-import cats.data.OptionT
 import cats.effect.{ConcurrentEffect, IO, Sync}
 import cats.implicits._
 import java.nio.ByteBuffer
@@ -24,7 +23,7 @@ import scala.util.{Either, Failure, Left, Right, Success, Try}
 private[blaze] object Http1ServerStage {
 
   def apply[F[_]: ConcurrentEffect](
-      routes: HttpRoutes[F],
+      routes: HttpApp[F],
       attributes: AttributeMap,
       executionContext: ExecutionContext,
       enableWebSockets: Boolean,
@@ -50,7 +49,7 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    routes: HttpRoutes[F],
+    routes: HttpApp[F],
     requestAttrs: AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
@@ -61,7 +60,6 @@ private[blaze] class Http1ServerStage[F[_]](
 
   // micro-optimization: unwrap the routes and call its .run directly
   private[this] val routesFn = routes.run
-  private[this] val optionTSync = Sync[OptionT[F, ?]]
 
   // both `parser` and `isClosed` are protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)
@@ -141,9 +139,8 @@ private[blaze] class Http1ServerStage[F[_]](
       case Right(req) =>
         executionContext.execute(new Runnable {
           def run(): Unit = {
-            val action = optionTSync
-              .suspend(routesFn(req))
-              .getOrElse(Response.notFound)
+            val action = 
+              Sync[F].suspend(routesFn(req))
               .recoverWith(serviceErrorHandler(req))
               .flatMap(resp => F.delay(renderResponse(req, resp, cleanup)))
 

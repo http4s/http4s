@@ -15,7 +15,7 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
     builder
       .bindAny()
       .withExecutionContext(Http4sSpec.TestExecutionContext)
-      .mountService(HttpRoutes.of {
+      .mountService(HttpRoutes.of[IO]{
         case GET -> Root / "thread" / "routing" =>
           val thread = Thread.currentThread.getName
           Ok(thread)
@@ -25,7 +25,7 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
 
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
-      })
+      }.orNotFound)
       .start
       .unsafeRunSync()
 
