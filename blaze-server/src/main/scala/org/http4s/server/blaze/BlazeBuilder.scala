@@ -176,7 +176,7 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService : HttpApp[F] = 
+    val aggregateService: HttpApp[F] =
       Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
 
     def resolveAddress(address: InetSocketAddress) =

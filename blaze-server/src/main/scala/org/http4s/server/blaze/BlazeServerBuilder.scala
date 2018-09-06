@@ -157,9 +157,8 @@ class BlazeServerBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  def withHttpApp(httpApp: HttpApp[F]): Self = {
+  def withHttpApp(httpApp: HttpApp[F]): Self =
     copy(httpApp = httpApp)
-  }
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
     copy(serviceErrorHandler = serviceErrorHandler)
@@ -336,6 +335,6 @@ object BlazeServerBuilder {
       banner = ServerBuilder.DefaultBanner
     )
 
-    private def defaultApp[F[_]: Applicative]: HttpApp[F] = 
-      Kleisli(_ => Response[F](Status.NotFound).pure[F])
+  private def defaultApp[F[_]: Applicative]: HttpApp[F] =
+    Kleisli(_ => Response[F](Status.NotFound).pure[F])
 }
