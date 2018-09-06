@@ -123,9 +123,11 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
+import org.http4s.server.Router
 
 val services = tweetService <+> helloWorldService
-val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api").start
+val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
+val builder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp).start
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -171,6 +173,7 @@ SIGTERM is received.
 import cats.effect._
 import cats.implicits._
 import org.http4s.HttpRoutes
+import org.http4s.syntax._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
 
@@ -179,12 +182,12 @@ object Main extends IOApp {
   val helloWorldService = HttpRoutes.of[IO] {
     case GET -> Root / "hello" / name =>
       Ok(s"Hello, $name.")
-  }
+  }.orNotFound
 
   def run(args: List[String]): IO[ExitCode] =
-    BlazeBuilder[IO]
+    BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
-      .mountService(helloWorldService, "/")
+      .withHttpApp(helloWorldService)
       .serve
       .compile
       .drain
