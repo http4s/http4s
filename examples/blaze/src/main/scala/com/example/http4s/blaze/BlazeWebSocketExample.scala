@@ -2,6 +2,7 @@ package com.example.http4s.blaze
 
 import cats.effect._
 import fs2._
+import fs2.concurrent.Queue
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.blaze.BlazeBuilder
@@ -29,7 +30,7 @@ class BlazeWebSocketExampleApp extends IOApp with Http4sDsl[IO] {
       WebSocketBuilder[IO].build(toClient, fromClient)
 
     case GET -> Root / "wsecho" =>
-      val queue = async.unboundedQueue[IO, WebSocketFrame]
+      val queue = Queue.unbounded[IO, WebSocketFrame]
       val echoReply: Pipe[IO, WebSocketFrame, WebSocketFrame] = _.collect {
         case Text(msg, _) => Text("You sent the server: " + msg)
         case _ => Text("Something new")

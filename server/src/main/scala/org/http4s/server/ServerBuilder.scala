@@ -5,7 +5,7 @@ import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Ref
 import fs2._
-import fs2.async.immutable.Signal
+import fs2.concurrent.SignallingRef
 import java.net.{InetAddress, InetSocketAddress}
 import javax.net.ssl.SSLContext
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -47,7 +47,7 @@ trait ServerBuilder[F[_]] {
     */
   final def serve: Stream[F, ExitCode] =
     for {
-      signal <- Stream.eval(async.signalOf[F, Boolean](false))
+      signal <- Stream.eval(SignallingRef[F, Boolean](false))
       exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
@@ -57,7 +57,7 @@ trait ServerBuilder[F[_]] {
     * Useful for servers with associated lifetime behaviors.
     */
   final def serveWhile(
-      terminateWhenTrue: Signal[F, Boolean],
+      terminateWhenTrue: SignallingRef[F, Boolean],
       exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
     Stream.bracket(start)(_.shutdown) *> (terminateWhenTrue.discrete
       .takeWhile(_ === false)

@@ -5,7 +5,7 @@ package websocket
 import cats.effect._
 import cats.implicits._
 import fs2._
-import fs2.async.mutable.Signal
+import fs2.concurrent.SignallingRef
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.{websocket => ws4s}
 import org.http4s.blaze.pipeline.{Command, LeafBuilder, TailStage, TrunkBuilder}
@@ -18,7 +18,7 @@ import scala.util.{Failure, Success}
 private[http4s] class Http4sWSStage[F[_]](
     ws: ws4s.Websocket[F],
     sentClose: AtomicBoolean,
-    deadSignal: Signal[F, Boolean]
+    deadSignal: SignallingRef[F, Boolean]
 )(implicit F: ConcurrentEffect[F], val ec: ExecutionContext)
     extends TailStage[WebSocketFrame] {
 
