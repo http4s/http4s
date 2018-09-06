@@ -134,9 +134,13 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../index.html" class="extype" name="org.http4s.client">client</a></dd></dl></div>
     </li><li class="current-entities indented4">
-                        <span class="separator"></span>
                         <a class="object" href="" title=""></a>
-                        <a href="" title="">OkHttp</a>
+                        <a class="class" href="OkHttp.html" title=""></a>
+                        <a href="OkHttp.html" title="">OkHttp</a>
+                      </li><li class="current-entities indented4">
+                        <a class="object" href="OkHttpBuilder$.html" title="Builder for a org.http4s.client.Client with an OkHttp backend"></a>
+                        <a class="class" href="OkHttpBuilder.html" title="A builder for org.http4s.client.Client with an OkHttp backend."></a>
+                        <a href="OkHttpBuilder.html" title="A builder for org.http4s.client.Client with an OkHttp backend.">OkHttpBuilder</a>
                       </li>
               </ul>
             </div>
@@ -144,14 +148,16 @@
           <div id="content">
             <body class="object value">
       <div id="definition">
-        <div class="big-circle object">o</div>
+        <a href="OkHttp.html" title="See companion class"><div class="big-circle object-companion-class">o</div></a>
         <p id="owner"><a href="../../../index.html" class="extype" name="org">org</a>.<a href="../../index.html" class="extype" name="org.http4s">http4s</a>.<a href="../index.html" class="extype" name="org.http4s.client">client</a>.<a href="index.html" class="extype" name="org.http4s.client.okhttp">okhttp</a></p>
-        <h1>OkHttp<span class="permalink">
+        <h1><a href="OkHttp.html" title="See companion class">OkHttp</a><span class="permalink">
       <a href="../../../../org/http4s/client/okhttp/OkHttp$.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
-        <h3><span class="morelinks"></span></h3>
+        <h3><span class="morelinks"><div>
+            Companion <a href="OkHttp.html" title="See companion class">class OkHttp</a>
+          </div></span></h3>
       </div>
 
       <h4 id="signature" class="signature">
@@ -271,9 +277,9 @@
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.okhttp.OkHttp#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]](config:F[okhttp3.OkHttpClient.Builder])(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):F[org.http4s.client.Client[F]]"></a><a id="apply[F[_]](F[Builder])(Effect[F],ExecutionContext):F[Client[F]]"></a>
+      <a id="apply[F[_]](okHttpClient:okhttp3.OkHttpClient,blockingExecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.okhttp.OkHttp[F]"></a><a id="apply[F[_]](OkHttpClient,ExecutionContext):OkHttp[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#apply[F[_]](config:F[okhttp3.OkHttpClient.Builder])(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):F[org.http4s.client.Client[F]]" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#apply[F[_]](okHttpClient:okhttp3.OkHttpClient,blockingExecutionContext:scala.concurrent.ExecutionContext):org.http4s.client.okhttp.OkHttp[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -282,26 +288,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>[<span class="extype" name="okhttp3.OkHttpClient.Builder">Builder</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>[<a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>]]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="okHttpClient">okHttpClient: <span class="extype" name="okhttp3.OkHttpClient">OkHttpClient</span></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <a href="OkHttp.html" class="extype" name="org.http4s.client.okhttp.OkHttp">OkHttp</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>]</span>
       </span>
       
-      <p class="shortcomment cmt">Create an okhttp client with a supplied config</p>
-    </li><li name="org.http4s.client.okhttp.OkHttp#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[F[_]]()(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):F[org.http4s.client.Client[F]]"></a><a id="apply[F[_]]()(Effect[F],ExecutionContext):F[Client[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#apply[F[_]]()(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):F[org.http4s.client.Client[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>[<a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.apply.F">F</span>]]</span>
-      </span>
       
-      <p class="shortcomment cmt">Create an okhttp client with the default config</p>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -342,10 +332,10 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.okhttp.OkHttp#defaultConfig" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="defaultConfig[F[_]]()(implicitF:cats.effect.Effect[F]):F[okhttp3.OkHttpClient.Builder]"></a><a id="defaultConfig[F[_]]()(Effect[F]):F[Builder]"></a>
+    </li><li name="org.http4s.client.okhttp.OkHttp#default" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="default[F[_]](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F]):cats.effect.Resource[F,org.http4s.client.okhttp.OkHttp[F]]"></a><a id="default[F[_]](ExecutionContext)(Sync[F]):Resource[F,OkHttp[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#defaultConfig[F[_]]()(implicitF:cats.effect.Effect[F]):F[okhttp3.OkHttpClient.Builder]" title="Permalink">
+      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#default[F[_]](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F]):cats.effect.Resource[F,org.http4s.client.okhttp.OkHttp[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -354,7 +344,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">defaultConfig</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.defaultConfig.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.client.okhttp.OkHttp.defaultConfig.F">F</span>[<span class="extype" name="okhttp3.OkHttpClient.Builder">Builder</span>]</span>
+        <span class="name">default</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.default.F">F</span>]</span>)</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.default.F">F</span>, <a href="OkHttp.html" class="extype" name="org.http4s.client.okhttp.OkHttp">OkHttp</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.default.F">F</span>]]</span>
       </span>
       
       
@@ -520,38 +510,6 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.okhttp.OkHttp#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="stream[F[_]](config:F[okhttp3.OkHttpClient.Builder])(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream[F[_]](F[Builder])(Effect[F],ExecutionContext):Stream[F,Client[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#stream[F[_]](config:F[okhttp3.OkHttpClient.Builder])(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,org.http4s.client.Client[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">stream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="config">config: <span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>[<span class="extype" name="okhttp3.OkHttpClient.Builder">Builder</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>]]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.client.okhttp.OkHttp#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="stream[F[_]]()(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,org.http4s.client.Client[F]]"></a><a id="stream[F[_]]()(Effect[F],ExecutionContext):Stream[F,Client[F]]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/okhttp/OkHttp$.html#stream[F[_]]()(implicitF:cats.effect.Effect[F],implicitec:scala.concurrent.ExecutionContext):fs2.Stream[F,org.http4s.client.Client[F]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">stream</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>]</span>, <span name="ec">ec: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>, <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.okhttp.OkHttp.stream.F">F</span>]]</span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">

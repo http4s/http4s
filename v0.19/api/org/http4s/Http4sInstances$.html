@@ -1016,9 +1016,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#binFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binFile[F[_]](file:java.io.File)(implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="binFile[F[_]](File)(Sync[F]):EntityDecoder[F,File]"></a>
+      <a id="binFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="binFile[F[_]](File,ExecutionContext)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#binFile[F[_]](file:java.io.File)(implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#binFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1027,14 +1027,14 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">binFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binFile.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#binary" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binary[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Segment[Byte,Unit]]"></a><a id="binary[F[_]](Sync[F]):EntityDecoder[F,Segment[Byte,Unit]]"></a>
+      <a id="binary[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binary[F[_]](Sync[F]):EntityDecoder[F,Chunk[Byte]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#binary[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Segment[Byte,Unit]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#binary[F[_]](implicitevidence$5:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1043,23 +1043,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">binary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>, <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
-    </li><li name="org.http4s.EntityDecoderInstances#binaryChunk" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="binaryChunk[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binaryChunk[F[_]](Sync[F]):EntityDecoder[F,Chunk[Byte]]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#binaryChunk[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">binaryChunk</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binaryChunk.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binaryChunk.F">F</span>, <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+        <span class="name">binary</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binary.F">F</span>, <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
@@ -1267,34 +1251,34 @@ the content length without running the stream.
       
       <p class="shortcomment cmt">Provides a mechanism to fail decoding</p><div class="fullcomment"><div class="comment cmt"><p>Provides a mechanism to fail decoding</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#fileEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fileEncoder[F[_]](implicitF:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.io.File]"></a><a id="fileEncoder[F[_]](Sync[F]):EntityEncoder[F,File]"></a>
+      <a id="fileEncoder[F[_]](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Effect[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityEncoder[F,java.io.File]"></a><a id="fileEncoder[F[_]](ExecutionContext)(Effect[F],ContextShift[F]):EntityEncoder[F,File]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#fileEncoder[F[_]](implicitF:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#fileEncoder[F[_]](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Effect[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityEncoder[F,java.io.File]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fileEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.fileEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.fileEncoder.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">fileEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.fileEncoder.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.fileEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.fileEncoder.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#filePathEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="filePathEncoder[F[_]](implicitevidence$1:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]"></a><a id="filePathEncoder[F[_]](Sync[F]):EntityEncoder[F,Path]"></a>
+      <a id="filePathEncoder[F[_]](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:cats.effect.ContextShift[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]"></a><a id="filePathEncoder[F[_]](ExecutionContext)(Sync[F],ContextShift[F]):EntityEncoder[F,Path]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#filePathEncoder[F[_]](implicitevidence$1:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#filePathEncoder[F[_]](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitevidence$1:cats.effect.Sync[F],implicitevidence$2:cats.effect.ContextShift[F]):org.http4s.EntityEncoder[F,java.nio.file.Path]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filePathEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.filePathEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.filePathEncoder.F">F</span>, <span class="extype" name="java.nio.file.Path">Path</span>]</span>
+        <span class="name">filePathEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.filePathEncoder.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.filePathEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.filePathEncoder.F">F</span>, <span class="extype" name="java.nio.file.Path">Path</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
@@ -1423,18 +1407,18 @@ the content length without running the stream.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MethodInstances.html" class="extype" name="org.http4s.MethodInstances">MethodInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#inputStreamEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](implicitevidence$2:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,F[IS]]"></a><a id="inputStreamEncoder[F[_],IS&lt;:InputStream](Sync[F]):EntityEncoder[F,F[IS]]"></a>
+      <a id="inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitevidence$3:cats.effect.Sync[F],implicitevidence$4:cats.effect.ContextShift[F]):org.http4s.EntityEncoder[F,F[IS]]"></a><a id="inputStreamEncoder[F[_],IS&lt;:InputStream](ExecutionContext)(Sync[F],ContextShift[F]):EntityEncoder[F,F[IS]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](implicitevidence$2:cats.effect.Sync[F]):org.http4s.EntityEncoder[F,F[IS]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#inputStreamEncoder[F[_],IS&lt;:java.io.InputStream](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitevidence$3:cats.effect.Sync[F],implicitevidence$4:cats.effect.ContextShift[F]):org.http4s.EntityEncoder[F,F[IS]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
+        <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">inputStreamEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="IS">IS &lt;: <span class="extype" name="java.io.InputStream">InputStream</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.IS">IS</span>]]</span>
+        <span class="name">inputStreamEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="IS">IS &lt;: <span class="extype" name="java.io.InputStream">InputStream</span></span>]</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>]</span>, <span name="arg1">arg1: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.F">F</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.inputStreamEncoder.IS">IS</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
@@ -1589,9 +1573,9 @@ the content length without running the stream.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="QValueInstances.html" class="extype" name="org.http4s.QValueInstances">QValueInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityEncoderInstances#readerEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="readerEncoder[F[_],R&lt;:java.io.Reader](implicitF:cats.effect.Sync[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,F[R]]"></a><a id="readerEncoder[F[_],R&lt;:Reader](Sync[F],Charset):EntityEncoder[F,F[R]]"></a>
+      <a id="readerEncoder[F[_],R&lt;:java.io.Reader](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,F[R]]"></a><a id="readerEncoder[F[_],R&lt;:Reader](ExecutionContext)(Sync[F],ContextShift[F],Charset):EntityEncoder[F,F[R]]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#readerEncoder[F[_],R&lt;:java.io.Reader](implicitF:cats.effect.Sync[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,F[R]]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#readerEncoder[F[_],R&lt;:java.io.Reader](blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F],implicitcharset:org.http4s.Charset):org.http4s.EntityEncoder[F,F[R]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1600,23 +1584,7 @@ the content length without running the stream.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">readerEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="R">R &lt;: <span class="extype" name="java.io.Reader">Reader</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>]</span>, <span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.R">R</span>]]</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
-    </li><li name="org.http4s.EntityEncoderInstances#segmentEncoder" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="segmentEncoder[F[_]]:org.http4s.EntityEncoder[F,fs2.Segment[Byte,Unit]]"></a><a id="segmentEncoder[F[_]]:EntityEncoder[F,Segment[Byte,Unit]]"></a>
-      <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#segmentEncoder[F[_]]:org.http4s.EntityEncoder[F,fs2.Segment[Byte,Unit]]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">segmentEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.segmentEncoder.F">F</span>, <span class="extype" name="fs2.Segment">Segment</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]]</span>
+        <span class="name">readerEncoder</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="R">R &lt;: <span class="extype" name="java.io.Reader">Reader</span></span>]</span><span class="params">(<span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>]</span>, <span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="index.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>, <span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.F">F</span>[<span class="extype" name="org.http4s.EntityEncoderInstances.readerEncoder.R">R</span>]]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityEncoderInstances.html" class="extype" name="org.http4s.EntityEncoderInstances">EntityEncoderInstances</a></dd></dl></div>
@@ -1721,9 +1689,9 @@ advance.  This is for use with chunked transfer encoding.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances#textFile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="textFile[F[_]](file:java.io.File)(implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="textFile[F[_]](File)(Sync[F]):EntityDecoder[F,File]"></a>
+      <a id="textFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]"></a><a id="textFile[F[_]](File,ExecutionContext)(Sync[F],ContextShift[F]):EntityDecoder[F,File]"></a>
       <span class="permalink">
-      <a href="../../org/http4s/Http4sInstances$.html#textFile[F[_]](file:java.io.File)(implicitF:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#textFile[F[_]](file:java.io.File,blockingExecutionContext:scala.concurrent.ExecutionContext)(implicitF:cats.effect.Sync[F],implicitcs:cats.effect.ContextShift[F]):org.http4s.EntityDecoder[F,java.io.File]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1732,7 +1700,7 @@ advance.  This is for use with chunked transfer encoding.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.textFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">textFile</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span name="file">file: <span class="extype" name="java.io.File">File</span></span>, <span name="blockingExecutionContext">blockingExecutionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.textFile.F">F</span>]</span>, <span name="cs">cs: <span class="extype" name="cats.effect.ContextShift">ContextShift</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.textFile.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.textFile.F">F</span>, <span class="extype" name="java.io.File">File</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd></dl></div>
@@ -1858,7 +1826,29 @@ advance.  This is for use with chunked transfer encoding.
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.EntityDecoderInstances#binaryChunk" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="binaryChunk[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]"></a><a id="binaryChunk[F[_]](Sync[F]):EntityDecoder[F,Chunk[Byte]]"></a>
+      <span class="permalink">
+      <a href="../../org/http4s/Http4sInstances$.html#binaryChunk[F[_]](implicitevidence$6:cats.effect.Sync[F]):org.http4s.EntityDecoder[F,fs2.Chunk[Byte]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use binary instead">binaryChunk</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.EntityDecoderInstances.binaryChunk.F">F</span>]</span>)</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoderInstances.binaryChunk.F">F</span>, <span class="extype" name="fs2.Chunk">Chunk</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Byte.html#scala.Byte" class="extype" name="scala.Byte">Byte</a>]]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="EntityDecoderInstances.html" class="extype" name="org.http4s.EntityDecoderInstances">EntityDecoderInstances</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use <code>binary</code> instead</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

@@ -224,7 +224,7 @@ Let&rsquo;s provide an encoder:</p>
   Encoder.instance { hello: Hello =&gt;
     json&quot;&quot;&quot;{&quot;hello&quot;: ${hello.name}}&quot;&quot;&quot;
   }
-// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@7629208c
+// HelloEncoder: io.circe.Encoder[Hello] = io.circe.Encoder$$anon$18@b2b1a8b
 
 Hello(&quot;Alice&quot;).asJson
 // res4: io.circe.Json =
@@ -302,7 +302,7 @@ the way from HTTP to your type <code>A</code>.  Specifically, <code>jsonOf[A]</c
 an implicit <code>Decoder[A]</code> and makes a <code>EntityDecoder[A]</code>:</p>
 
 <pre><code class="language-scala">implicit val userDecoder = jsonOf[IO, User]
-// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@39102ba2
+// userDecoder: org.http4s.EntityDecoder[cats.effect.IO,User] = org.http4s.EntityDecoder$$anon$3@24555673
 
 Ok(&quot;&quot;&quot;{&quot;name&quot;:&quot;Alice&quot;}&quot;&quot;&quot;).flatMap(_.as[User]).unsafeRunSync
 // res11: User = User(Alice)
@@ -365,6 +365,9 @@ val jsonService = HttpRoutes.of[IO] {
     } yield (resp)
 }
 
+// Provided automatically by `IOApp`
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+
 import org.http4s.server.blaze._
 val builder = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, &quot;/&quot;).start
 val blazeServer = builder.unsafeRunSync
@@ -379,15 +382,16 @@ import org.http4s.client.dsl.io._
 import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._
+import fs2.Stream
 
 // Decode the Hello response
-def helloClient(name: String): IO[Hello] = {
+def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
   val req = POST(uri(&quot;http://localhost:8080/hello&quot;), User(name).asJson)
   // Create a client
-  Http1Client[IO]().flatMap { httpClient =&gt;
+  BlazeClientBuilder[IO](global).stream.flatMap { httpClient =&gt;
     // Decode a Hello response
-    httpClient.expect(req)(jsonOf[IO, Hello])
+    Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }
 }
 </code></pre>
@@ -396,10 +400,10 @@ def helloClient(name: String): IO[Hello] = {
 <code>Hello(&quot;Alice&quot;)</code> back:</p>
 
 <pre><code class="language-scala">val helloAlice = helloClient(&quot;Alice&quot;)
-// helloAlice: cats.effect.IO[Hello] = IO$1241798189
+// helloAlice: fs2.Stream[cats.effect.IO,Hello] = Stream(..)
 
-helloAlice.unsafeRunSync
-// res1: Hello = Hello(Alice)
+helloAlice.compile.last.unsafeRunSync
+// res2: Option[Hello] = Some(Hello(Alice))
 </code></pre>
 
         </div>

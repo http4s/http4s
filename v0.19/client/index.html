@@ -108,17 +108,26 @@ libraryDependencies ++= Seq(
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
-import scala.concurrent.ExecutionContext.Implicits.global
 </code></pre>
 
-<pre><code class="language-scala">val service = HttpRoutes.of[IO] {
+<p>Blaze needs a [<a href="https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html"><code>ConcurrentEffect</code></a>] instance, which is derived from
+[<a href="https://typelevel.org/cats-effect/datatypes/contextshift.html"><code>ContextShift</code></a>].  The following lines are not necessary if you are
+in an [<a href="https://typelevel.org/cats-effect/datatypes/ioapp.html"><code>IOApp</code></a>]:</p>
+
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext.global
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+</code></pre>
+
+<p>Finish setting up our server:</p>
+
+<pre><code class="language-scala">val routes = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$46766/2145843361@6a2a1cd2)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$44119/552357758@20c5b162)
 
-val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(service, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$218538227
+val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(routes, &quot;/&quot;).start
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$530466785
 
 val server = builder.unsafeRunSync
 // server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
@@ -126,19 +135,37 @@ val server = builder.unsafeRunSync
 
 <h3 id="creating-the-client">Creating the client</h3>
 
-<p>A good default choice is the <code>Http1Client</code>.  The <code>Http1Client</code> maintains a connection pool and
-speaks HTTP 1.x.</p>
-
-<p>Note: In production code you would want to use <code>Http1Client.stream[F[_]: Effect]: Stream[F, Client[F]]</code>
-to safely acquire and release resources. In the documentation we are forced to use <code>.unsafeRunSync</code> to
-create the client.</p>
+<p>A good default choice is the <code>BlazeClientBuilder</code>.  The
+<code>BlazeClientBuilder</code> maintains a connection pool and speaks HTTP 1.x.</p>
 
 <pre><code class="language-scala">import org.http4s.client.blaze._
 import org.http4s.client._
+import scala.concurrent.ExecutionContext.Implicits.global
 </code></pre>
 
-<pre><code class="language-scala">val httpClient: Client[IO] = Http1Client[IO]().unsafeRunSync
-// httpClient: org.http4s.client.Client[cats.effect.IO] = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$46815/635482538@4c90aa),IO$236593002)
+<pre><code class="language-scala">BlazeClientBuilder[IO](global).resource.use { client =&gt;
+  // use `client` here and return an `IO`.
+  // the client will be acquired and shut down
+  // automatically each time the `IO` is run.
+  IO.unit
+}
+// res0: cats.effect.IO[Unit] = IO$175206822
+</code></pre>
+
+<p>For the remainder of this tut, we&rsquo;ll use an alternate client backend
+built on the standard <code>java.net</code> library client.  Unlike the blaze
+client, it does not need to be shut down.  Like the blaze-client, and
+any other http4s backend, it presents the exact same <code>Client</code>
+interface!</p>
+
+<p>It uses blocking IO and is less suited for production, but it is
+highly useful in a REPL:</p>
+
+<pre><code class="language-scala">import scala.concurrent.ExecutionContext
+import java.util.concurrent._
+
+val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
+val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
 </code></pre>
 
 <h3 id="describing-a-call">Describing a call</h3>
@@ -147,7 +174,7 @@ import org.http4s.client._
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$1733610374
+// helloJames: cats.effect.IO[String] = IO$2146431107
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -179,7 +206,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = people.parTraverse(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1070765022
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1389971401
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -201,7 +228,7 @@ server.</li>
 // greetingsStringEffect: cats.effect.IO[String] = &lt;function1&gt;
 
 greetingsStringEffect.unsafeRunSync
-// res0: String =
+// res1: String =
 // Hello, Michael.
 // Hello, Jessica.
 // Hello, Ashley.
@@ -218,7 +245,7 @@ want to access.</p>
 <p>If you have a literal string, you can use <code>Uri.uri(...)</code>:</p>
 
 <pre><code class="language-scala">Uri.uri(&quot;https://my-awesome-service.com/foo/bar?wow=yeah&quot;)
-// res1: org.http4s.Uri = https://my-awesome-service.com/foo/bar?wow=yeah
+// res2: org.http4s.Uri = https://my-awesome-service.com/foo/bar?wow=yeah
 </code></pre>
 
 <p>This only works with literal strings because it uses a macro to validate the URI
@@ -262,7 +289,7 @@ val withQuery = withPath.withQueryParam(&quot;hello&quot;, &quot;world&quot;)
 <p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
 
 <pre><code class="language-scala">httpClient.expect[String](Uri.uri(&quot;https://google.com/&quot;))
-// res2: cats.effect.IO[String] = IO$572005841
+// res3: cats.effect.IO[String] = IO$1025003423
 </code></pre>
 
 <p>If you need to do something more complicated like setting request headers, you
@@ -281,7 +308,7 @@ import org.http4s.MediaType
 // request: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=GET, uri=https://my-lovely-api.com/, headers=Headers(Authorization: &lt;REDACTED&gt;, Accept: application/json)))
 
 httpClient.expect[String](request)
-// res3: cats.effect.IO[String] = IO$1615957392
+// res4: cats.effect.IO[String] = IO$1226321575
 </code></pre>
 
 <h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
@@ -304,7 +331,7 @@ val postRequest = POST(
 // postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=POST, uri=https://my-lovely-api.com/oauth2/token, headers=Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78)))
 
 httpClient.expect[AuthResponse](postRequest)
-// res5: cats.effect.IO[AuthResponse] = IO$1155503491
+// res6: cats.effect.IO[AuthResponse] = IO$1829535867
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>
@@ -348,6 +375,9 @@ client.get[EntityBody](&quot;some-url&quot;)(response =&gt; response.body)
 <p>Passing it to a <code>EntityDecoder</code> is safe.</p>
 
 <pre><code>client.get[T](&quot;some-url&quot;)(response =&gt; jsonOf(response.body))
+</code></pre>
+
+<pre><code class="language-scala">blockingEC.shutdown()
 </code></pre>
 
         </div>

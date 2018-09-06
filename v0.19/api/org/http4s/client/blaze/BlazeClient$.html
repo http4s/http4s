@@ -138,6 +138,10 @@
                         <a class="object" href="" title="Blaze client implementation"></a>
                         <a href="" title="Blaze client implementation">BlazeClient</a>
                       </li><li class="current-entities indented4">
+                        <a class="object" href="BlazeClientBuilder$.html" title=""></a>
+                        <a class="class" href="BlazeClientBuilder.html" title=""></a>
+                        <a href="BlazeClientBuilder.html" title="">BlazeClientBuilder</a>
+                      </li><li class="current-entities indented4">
                         <a class="object" href="BlazeClientConfig$.html" title=""></a>
                         <a class="class" href="BlazeClientConfig.html" title="Config object for the blaze clients"></a>
                         <a href="BlazeClientConfig.html" title="Config object for the blaze clients">BlazeClientConfig</a>
@@ -146,9 +150,9 @@
                         <a class="object" href="Http1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections"></a>
                         <a href="Http1Client$.html" title="Create a HTTP1 client which will attempt to recycle connections">Http1Client</a>
                       </li><li class="current-entities indented4">
-                        <span class="separator"></span>
-                        <a class="object" href="SimpleHttp1Client$.html" title="Create HTTP1 clients which will disconnect on completion of one request"></a>
-                        <a href="SimpleHttp1Client$.html" title="Create HTTP1 clients which will disconnect on completion of one request">SimpleHttp1Client</a>
+                        <a class="object" href="ParserMode$.html" title=""></a>
+                        <a class="class" href="ParserMode.html" title=""></a>
+                        <a href="ParserMode.html" title="">ParserMode</a>
                       </li>
               </ul>
             </div>
@@ -282,24 +286,6 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.BlazeClient#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply[F[_],A&lt;:org.http4s.client.blaze.BlazeConnection[F]](manager:org.http4s.client.ConnectionManager[F,A],config:org.http4s.client.blaze.BlazeClientConfig,onShutdown:F[Unit])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_],A&lt;:BlazeConnection[F]](ConnectionManager[F,A],BlazeClientConfig,F[Unit])(Sync[F]):Client[F]"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/client/blaze/BlazeClient$.html#apply[F[_],A&lt;:org.http4s.client.blaze.BlazeConnection[F]](manager:org.http4s.client.ConnectionManager[F,A],config:org.http4s.client.blaze.BlazeClientConfig,onShutdown:F[Unit])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A &lt;: <span class="extype" name="org.http4s.client.blaze.BlazeConnection">BlazeConnection</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>]</span>]</span><span class="params">(<span name="manager">manager: <a href="../ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>, <span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.A">A</span>]</span>, <span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>, <span name="onShutdown">onShutdown: <span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Construct a new <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a> using blaze components
-</p><div class="fullcomment"><div class="comment cmt"><p>Construct a new <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a> using blaze components
-</p></div><dl class="paramcmts block"><dt class="param">manager</dt><dd class="cmt"><p>source for acquiring and releasing connections. Not owned by the returned client.</p></dd><dt class="param">config</dt><dd class="cmt"><p>blaze client configuration.</p></dd><dt class="param">onShutdown</dt><dd class="cmt"><p>arbitrary tasks that will be executed when this client is shutdown</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -608,7 +594,31 @@
 
         
 
-        
+        <div class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.client.blaze.BlazeClient#apply" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[F[_],A&lt;:org.http4s.client.blaze.BlazeConnection[F]](manager:org.http4s.client.ConnectionManager[F,A],config:org.http4s.client.blaze.BlazeClientConfig,onShutdown:F[Unit])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]"></a><a id="apply[F[_],A&lt;:BlazeConnection[F]](ConnectionManager[F,A],BlazeClientConfig,F[Unit])(Sync[F]):Client[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/client/blaze/BlazeClient$.html#apply[F[_],A&lt;:org.http4s.client.blaze.BlazeConnection[F]](manager:org.http4s.client.ConnectionManager[F,A],config:org.http4s.client.blaze.BlazeClientConfig,onShutdown:F[Unit])(implicitF:cats.effect.Sync[F]):org.http4s.client.Client[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.19.0-M2) Use BlazeClientBuilder">apply</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A &lt;: <span class="extype" name="org.http4s.client.blaze.BlazeConnection">BlazeConnection</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>]</span>]</span><span class="params">(<span name="manager">manager: <a href="../ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>, <span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.A">A</span>]</span>, <span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>, <span name="onShutdown">onShutdown: <span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Construct a new <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a> using blaze components
+</p><div class="fullcomment"><div class="comment cmt"><p>Construct a new <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a> using blaze components
+</p></div><dl class="paramcmts block"><dt class="param">manager</dt><dd class="cmt"><p>source for acquiring and releasing connections. Not owned by the returned client.</p></dd><dt class="param">config</dt><dd class="cmt"><p>blaze client configuration.</p></dd><dt class="param">onShutdown</dt><dd class="cmt"><p>arbitrary tasks that will be executed when this client is shutdown</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.19.0-M2)</i> Use BlazeClientBuilder</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">

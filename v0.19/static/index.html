@@ -108,13 +108,30 @@ import org.http4s.dsl.io._
 
 import java.io.File
 // import java.io.File
+</code></pre>
 
-val service = HttpRoutes.of[IO] {
+<h3 id="prerequisites">Prerequisites</h3>
+
+<p>Static file support uses a blocking API, so we&rsquo;ll need a blocking execution
+context:</p>
+
+<pre><code class="language-scala">import java.util.concurrent._
+import scala.concurrent.ExecutionContext
+
+val blockingEc = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+</code></pre>
+
+<p>It also needs a main thread pool to shift back to.  This is provided when
+we&rsquo;re in IOApp, but you&rsquo;ll need one if you&rsquo;re following along in a REPL:</p>
+
+<pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+</code></pre>
+
+<pre><code class="language-scala">val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / &quot;index.html&quot; =&gt;
-    StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), Some(request))
+    StaticFile.fromFile(new File(&quot;relative/path/to/index.html&quot;), blockingEc, Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$70997/1021477801@3f73e325)
 </code></pre>
 
 <h2 id="serving-from-jars">Serving from jars</h2>
@@ -122,15 +139,15 @@ val service = HttpRoutes.of[IO] {
 <p>For simple file serving, it&rsquo;s possible to package resources with the jar and
 deliver them from there. Append to the <code>List</code> as needed.</p>
 
-<pre><code class="language-scala">def static(file: String, request: Request[IO]) =
-  StaticFile.fromResource(&quot;/&quot; + file, Some(request)).getOrElseF(NotFound())
-// static: (file: String, request: org.http4s.Request[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]]
+<pre><code class="language-scala">def static(file: String, blockingEc: ExecutionContext, request: Request[IO]) =
+  StaticFile.fromResource(&quot;/&quot; + file, blockingEc, Some(request)).getOrElseF(NotFound())
+// static: (file: String, blockingEc: scala.concurrent.ExecutionContext, request: org.http4s.Request[cats.effect.IO])cats.effect.IO[org.http4s.Response[cats.effect.IO]]
 
-val service = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
-    static(path, request)
+    static(path, blockingEc, request)
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$70997/1021477801@5b36a223)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$68130/1441206897@f24af5e)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -141,10 +158,10 @@ class path, as you usually would:</p>
 <pre><code class="language-scala">libraryDependencies ++= Seq(
   &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 )
-// &lt;console&gt;:23: error: not found: value libraryDependencies
+// &lt;console&gt;:28: error: not found: value libraryDependencies
 //        libraryDependencies ++= Seq(
 //        ^
-// &lt;console&gt;:24: error: value % is not a member of String
+// &lt;console&gt;:29: error: value % is not a member of String
 //          &quot;org.webjars&quot; % &quot;jquery&quot; % &quot;3.1.1-1&quot;
 //                        ^
 </code></pre>
@@ -164,10 +181,14 @@ def isJsAsset(asset: WebjarAsset): Boolean =
 
 val webjars: HttpRoutes[IO] = webjarService(
   Config(
-    filter = isJsAsset
+    filter = isJsAsset,
+    blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$71054/866854294@71be812e)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$68195/1642094597@2b656f51)
+</code></pre>
+
+<pre><code class="language-scala">blockingEc.shutdown()
 </code></pre>
 
         </div>

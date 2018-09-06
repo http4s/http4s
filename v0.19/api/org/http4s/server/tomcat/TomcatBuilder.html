@@ -780,9 +780,9 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
               
         </dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serve:fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
+      <a id="serve:fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serve:fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serve:fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -791,16 +791,16 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
 that runs for the rest of the JVM's life.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
+      <a id="serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serveWhile(SignallingRef[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -809,7 +809,7 @@ that runs for the rest of the JVM's life.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.async.immutable.Signal">Signal</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.concurrent.SignallingRef">SignallingRef</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
@@ -965,10 +965,10 @@ reference to the server when it has started.
       </span>
       
       <p class="shortcomment cmt">Set the banner to display when the server starts up</p><div class="fullcomment"><div class="comment cmt"><p>Set the banner to display when the server starts up</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
-    </li><li name="org.http4s.server.tomcat.TomcatBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):TomcatBuilder.this.Self"></a><a id="withExecutionContext(ExecutionContext):Self"></a>
+    </li><li name="org.http4s.server.tomcat.TomcatBuilder#withExternalExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withExternalExecutor(executor:java.util.concurrent.Executor):org.http4s.server.tomcat.TomcatBuilder[F]"></a><a id="withExternalExecutor(Executor):TomcatBuilder[F]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#withExecutionContext(executionContext:scala.concurrent.ExecutionContext):TomcatBuilder.this.Self" title="Permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#withExternalExecutor(executor:java.util.concurrent.Executor):org.http4s.server.tomcat.TomcatBuilder[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -977,10 +977,10 @@ reference to the server when it has started.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withExecutionContext</span><span class="params">(<span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
+        <span class="name">withExternalExecutor</span><span class="params">(<span name="executor">executor: <span class="extype" name="java.util.concurrent.Executor">Executor</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <p class="shortcomment cmt">Replace the protocol handler's internal executor with a custom, external executor</p>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#withIdleTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withIdleTimeout(idleTimeout:scala.concurrent.duration.Duration):TomcatBuilder.this.Self"></a><a id="withIdleTimeout(Duration):Self"></a>
       <span class="permalink">
@@ -997,6 +997,22 @@ reference to the server when it has started.
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.tomcat.TomcatBuilder#withInternalExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withInternalExecutor:org.http4s.server.tomcat.TomcatBuilder[F]"></a><a id="withInternalExecutor:TomcatBuilder[F]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#withInternalExecutor:org.http4s.server.tomcat.TomcatBuilder[F]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withInternalExecutor</span><span class="result">: <a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>[<span class="extype" name="org.http4s.server.tomcat.TomcatBuilder.F">F</span>]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Use Tomcat's internal executor</p>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#withSSL" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withSSL(keyStore:org.http4s.server.SSLKeyStoreSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLKeyStoreSupport.StoreInfo],clientAuth:Boolean):TomcatBuilder.this.Self"></a><a id="withSSL(StoreInfo,String,String,Option[StoreInfo],Boolean):Self"></a>
       <span class="permalink">
@@ -1092,48 +1108,7 @@ Not to be confused with the server connectors.
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder#withExecutorService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withExecutorService(ExecutorService):Self"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.17) Use withExecutionContext">withExecutorService</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17)</i> Use withExecutionContext</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#withServiceExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withServiceExecutor(ExecutorService):Self"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/tomcat/TomcatBuilder.html#withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.17.0) Use withExecutionContext">withServiceExecutor</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.tomcat.TomcatBuilder[F]" class="extmbr" name="org.http4s.server.tomcat.TomcatBuilder.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17.0)</i> Use withExecutionContext</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">

@@ -308,10 +308,6 @@ for serious static content serving.
                         <a class="class" href="Server.html" title=""></a>
                         <a href="Server.html" title="">Server</a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="trait" href="ServerApp.html" title="Starts a server and gracefully terminates at shutdown."></a>
-                        <a href="ServerApp.html" title="Starts a server and gracefully terminates at shutdown.">ServerApp</a>
-                      </li><li class="current-entities indented3">
                         <a class="object" href="ServerBuilder$.html" title=""></a>
                         <a class="trait" href="" title=""></a>
                         <a href="" title="">ServerBuilder</a>
@@ -514,22 +510,6 @@ reference to the server when it has started.
       </span>
       
       <p class="shortcomment cmt">Set the banner to display when the server starts up</p>
-    </li><li name="org.http4s.server.ServerBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):ServerBuilder.this.Self"></a><a id="withExecutionContext(ExecutionContext):Self"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#withExecutionContext(executionContext:scala.concurrent.ExecutionContext):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withExecutionContext</span><span class="params">(<span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder[F]" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      
-      
     </li><li name="org.http4s.server.ServerBuilder#withServiceErrorHandler" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="withServiceErrorHandler(serviceErrorHandler:org.http4s.server.ServiceErrorHandler[F]):ServerBuilder.this.Self"></a><a id="withServiceErrorHandler(ServiceErrorHandler[F]):Self"></a>
       <span class="permalink">
@@ -1000,9 +980,9 @@ parsing a request or handling a context timeout.
               
         </dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serve:fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
+      <a id="serve:fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#serve:fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#serve:fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1011,16 +991,16 @@ parsing a request or handling a context timeout.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
 that runs for the rest of the JVM's life.
 </p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
+      <a id="serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serveWhile(SignallingRef[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../org/http4s/server/ServerBuilder.html#serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1029,7 +1009,7 @@ that runs for the rest of the JVM's life.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.async.immutable.Signal">Signal</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.concurrent.SignallingRef">SignallingRef</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.ServerBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
@@ -1177,48 +1157,7 @@ Useful for servers with associated lifetime behaviors.
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder#withExecutorService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withExecutorService(ExecutorService):Self"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.17) Use withExecutionContext">withExecutorService</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder[F]" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17)</i> Use withExecutionContext</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#withServiceExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withServiceExecutor(ExecutorService):Self"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/ServerBuilder.html#withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.17.0) Use withExecutionContext">withServiceExecutor</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder[F]" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17.0)</i> Use withExecutionContext</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">

@@ -539,10 +539,6 @@ for serious static content serving.
                         <a class="class" href="Server.html" title=""></a>
                         <a href="Server.html" title="">Server</a>
                       </li><li class="current-entities indented3">
-                        <span class="separator"></span>
-                        <a class="trait" href="ServerApp.html" title="Starts a server and gracefully terminates at shutdown."></a>
-                        <a href="ServerApp.html" title="Starts a server and gracefully terminates at shutdown.">ServerApp</a>
-                      </li><li class="current-entities indented3">
                         <a class="object" href="ServerBuilder$.html" title=""></a>
                         <a class="trait" href="ServerBuilder.html" title=""></a>
                         <a href="ServerBuilder.html" title="">ServerBuilder</a>
@@ -975,30 +971,6 @@ middlewares for composing common functionality into services.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 2016-12-31)</i> Use SSLConfig</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerApp" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ServerApp[F[_]]extendsorg.http4s.util.StreamApp[F]"></a><a id="ServerApp[F[_]]:ServerApp[F]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/index.html#ServerApp[F[_]]extendsorg.http4s.util.StreamApp[F]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a title="Starts a server and gracefully terminates at shutdown." href="ServerApp.html"><span class="name deprecated" title="Deprecated: (Since version 0.16) Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with .serve. Use Stream.bracket to compose resources in a simpler way than overriding shutdown.">ServerApp</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="../util/index.html#StreamApp[F[_]]=fs2.StreamApp[F]" class="extmbr" name="org.http4s.util.StreamApp">StreamApp</a>[<span class="extype" name="org.http4s.server.ServerApp.F">F</span>]</span>
-      </span>
-      
-      <p class="shortcomment cmt">Starts a server and gracefully terminates at shutdown.</p><div class="fullcomment"><div class="comment cmt"><p>Starts a server and gracefully terminates at shutdown.  The server
-is terminated and the shutdown task is run either by a JVM shutdown
-hook.</p><p>More robust resource management is possible through <code>ProcessApp</code> or
-<code>StreamApp</code>, which are introduced in http4s-0.16 and http4s-0.17,
-respectively.
-</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.16)</i> Prefer org.http4s.util.StreamApp, where main returns a Stream. You can return a Stream that runs forever from a ServerBuilder with <code>.serve</code>. Use <code>Stream.bracket</code> to compose resources in a simpler way than overriding <code>shutdown</code>.</p></dd></dl></div>
     </li></ol>
             </div>
 

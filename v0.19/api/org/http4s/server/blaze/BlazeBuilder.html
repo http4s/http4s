@@ -777,9 +777,9 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
               
         </dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serve:fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
+      <a id="serve:fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#serve:fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#serve:fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -788,16 +788,16 @@ different components to finally serve requests.</p><p>Variables:</p></div><dl cl
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serve</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a process that never emits.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a process that never emits.  Useful for a server
 that runs for the rest of the JVM's life.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serveWhile" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]"></a><a id="serveWhile(Signal[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
+      <a id="serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serveWhile(SignallingRef[F,Boolean],Ref[F,ExitCode]):Stream[F,ExitCode]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#serveWhile(terminateWhenTrue:fs2.async.immutable.Signal[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,fs2.StreamApp.ExitCode]):fs2.Stream[F,fs2.StreamApp.ExitCode]" title="Permalink">
+      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#serveWhile(terminateWhenTrue:fs2.concurrent.SignallingRef[F,Boolean],exitWith:cats.effect.concurrent.Ref[F,cats.effect.ExitCode]):fs2.Stream[F,cats.effect.ExitCode]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -806,7 +806,7 @@ that runs for the rest of the JVM's life.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.async.immutable.Signal">Signal</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <span class="extype" name="fs2.StreamApp.ExitCode">ExitCode</span>]</span>
+        <span class="name">serveWhile</span><span class="params">(<span name="terminateWhenTrue">terminateWhenTrue: <span class="extype" name="fs2.concurrent.SignallingRef">SignallingRef</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a>]</span>, <span name="exitWith">exitWith: <span class="extype" name="cats.effect.concurrent.Ref">Ref</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>)</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>, <span class="extype" name="cats.effect.ExitCode">ExitCode</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
@@ -978,7 +978,7 @@ reference to the server when it has started.
       </span>
       
       
-    </li><li name="org.http4s.server.blaze.BlazeBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.server.blaze.BlazeBuilder#withExecutionContext" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withExecutionContext(executionContext:scala.concurrent.ExecutionContext):org.http4s.server.blaze.BlazeBuilder[F]"></a><a id="withExecutionContext(ExecutionContext):BlazeBuilder[F]"></a>
       <span class="permalink">
       <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withExecutionContext(executionContext:scala.concurrent.ExecutionContext):org.http4s.server.blaze.BlazeBuilder[F]" title="Permalink">
@@ -993,7 +993,7 @@ reference to the server when it has started.
         <span class="name">withExecutionContext</span><span class="params">(<span name="executionContext">executionContext: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/ExecutionContext.html#scala.concurrent.ExecutionContext" class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a>[<span class="extype" name="org.http4s.server.blaze.BlazeBuilder.F">F</span>]</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      
     </li><li name="org.http4s.server.blaze.BlazeBuilder#withIdleTimeout" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withIdleTimeout(idleTimeout:scala.concurrent.duration.Duration):BlazeBuilder.this.Self"></a><a id="withIdleTimeout(Duration):Self"></a>
       <span class="permalink">
@@ -1153,48 +1153,7 @@ parsing a request or handling a context timeout.
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder#withExecutorService" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withExecutorService(ExecutorService):Self"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withExecutorService(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.17) Use withExecutionContext">withExecutorService</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17)</i> Use withExecutionContext</p></dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#withServiceExecutor" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a><a id="withServiceExecutor(ExecutorService):Self"></a>
-      <span class="permalink">
-      <a href="../../../../org/http4s/server/blaze/BlazeBuilder.html#withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.17.0) Use withExecutionContext">withServiceExecutor</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder[F]" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd><dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.17.0)</i> Use withExecutionContext</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">

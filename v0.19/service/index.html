@@ -131,10 +131,11 @@ prefer you can read these introductions first:</p>
 <code>HttpRoutes</code>.  Start by pasting these imports into your SBT console:</p>
 
 <pre><code class="language-scala">import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
-// import cats.effect._
-// import org.http4s._
-// import org.http4s.dsl.io._
-// import scala.concurrent.ExecutionContext.Implicits.global
+</code></pre>
+
+<p>You also will need a <code>ContextShift</code>.</p>
+
+<pre><code class="language-scala">implicit val cs: ContextShift[IO] = IO.contextShift(global)
 </code></pre>
 
 <p>Using the <a href="../dsl">http4s-dsl</a>, we can construct an <code>HttpRoutes</code> by pattern
@@ -146,7 +147,7 @@ greet.</p>
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$55570/524279061@440bd767)
+// helloWorldService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$52824/875628768@37c17678)
 </code></pre>
 
 <h3 id="returning-content-in-the-response">Returning content in the response</h3>
@@ -184,7 +185,7 @@ val tweetService = HttpRoutes.of[IO] {
   case GET -&gt; Root / &quot;tweets&quot; / IntVar(tweetId) =&gt;
     getTweet(tweetId).flatMap(Ok(_))
 }
-// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$55570/524279061@6972a6a0)
+// tweetService: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$52824/875628768@4ffe37ac)
 </code></pre>
 
 <h3 id="running-your-service">Running your service</h3>
@@ -213,10 +214,10 @@ import org.http4s.implicits._
 // import org.http4s.implicits._
 
 val services = tweetService &lt;+&gt; helloWorldService
-// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$55774/1654154639@fb7c046)
+// services: cats.data.Kleisli[[β$0$]cats.data.OptionT[cats.effect.IO,β$0$],org.http4s.Request[cats.effect.IO],org.http4s.Response[cats.effect.IO]] = Kleisli(cats.data.KleisliSemigroupK$$Lambda$53030/1445945747@67f8a1bb)
 
 val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(helloWorldService, &quot;/&quot;).mountService(services, &quot;/api&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$1009331703
+// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$517916353
 </code></pre>
 
 <p>The <code>bindHttp</code> call isn&rsquo;t strictly necessary as the server will be set to run
@@ -250,27 +251,42 @@ any output.  When this process is run with <code>.unsafeRunSync</code> on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.</p>
 
-<p>As a convenience, fs2 provides an <code>fs2.StreamApp[F[_]]</code> trait
-with an abstract <code>main</code> method that returns a <code>Stream</code>.  A <code>StreamApp</code>
-runs the process and adds a JVM shutdown hook to interrupt the infinite
-process and gracefully shut down your server when a SIGTERM is received.</p>
+<p>As a convenience, cats-effect provides an <code>cats.effect.IOApp</code> trait
+with an abstract <code>run</code> method that returns a <code>IO[ExitCode]</code>.  An
+<code>IOApp</code> runs the process and adds a JVM shutdown hook to interrupt
+the infinite process and gracefully shut down your server when a
+SIGTERM is received.</p>
 
-<pre><code class="language-scala">import fs2.{Stream, StreamApp}
-// import fs2.{Stream, StreamApp}
+<pre><code class="language-scala">import cats.effect._
+// import cats.effect._
 
-import fs2.StreamApp.ExitCode
-// import fs2.StreamApp.ExitCode
+import cats.implicits._
+// import cats.implicits._
+
+import org.http4s.HttpRoutes
+// import org.http4s.HttpRoutes
+
+import org.http4s.dsl.io._
+// import org.http4s.dsl.io._
 
 import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
-object Main extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
+object Main extends IOApp {
+
+  val helloWorldService = HttpRoutes.of[IO] {
+    case GET -&gt; Root / &quot;hello&quot; / name =&gt;
+      Ok(s&quot;Hello, $name.&quot;)
+  }
+
+  def run(args: List[String]): IO[ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080, &quot;localhost&quot;)
       .mountService(helloWorldService, &quot;/&quot;)
-      .mountService(services, &quot;/api&quot;)
       .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
 }
 // defined object Main
 </code></pre>
