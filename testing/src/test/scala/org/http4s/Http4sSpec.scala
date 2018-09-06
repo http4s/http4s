@@ -13,8 +13,9 @@ import cats.effect.{ContextShift, ExitCase, IO, Resource, Timer}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.text._
+import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
 import org.http4s.testing._
-import org.http4s.util.threads.{newBlockingPool, newDaemonPool}
+import org.http4s.util.threads.{newBlockingPool, newDaemonPool, threadFactory}
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.util.{FreqMap, Pretty}
@@ -45,14 +46,12 @@ trait Http4sSpec
     with IOMatchers
     with Http4sMatchers {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
-
   val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
+  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
+  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
+  def scheduler: ScheduledExecutorService = Http4sSpec.TestScheduler
 
   implicit val params = Parameters(maxSize = 20)
-
-  implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift
-
-  implicit val timer: Timer[IO] = Http4sSpec.TestTimer
 
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
@@ -148,6 +147,13 @@ object Http4sSpec {
   val TestContextShift: ContextShift[IO] =
     IO.contextShift(TestExecutionContext)
 
+  val TestScheduler: ScheduledExecutorService = {
+    val s = new ScheduledThreadPoolExecutor(2, threadFactory(i => "http4s-test-scheduler", true))
+    s.setKeepAliveTime(10L, TimeUnit.SECONDS)
+    s.allowCoreThreadTimeOut(true)
+    s
+  }
+
   val TestTimer: Timer[IO] =
-    IO.timer(TestExecutionContext)
+    IO.timer(TestExecutionContext, TestScheduler)
 }

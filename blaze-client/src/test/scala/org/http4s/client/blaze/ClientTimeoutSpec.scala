@@ -15,10 +15,10 @@ import scala.concurrent.duration._
 
 class ClientTimeoutSpec extends Http4sSpec {
 
-  val scheduler = new TickWheelExecutor
+  val tickWheel = new TickWheelExecutor
 
   /** the map method allows to "post-process" the fragments after their creation */
-  override def map(fs: => Fragments) = super.map(fs) ^ step(scheduler.shutdown())
+  override def map(fs: => Fragments) = super.map(fs) ^ step(tickWheel.shutdown())
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request[IO](uri = www_foo_com)
@@ -55,7 +55,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   "Http1ClientStage responses" should {
     "Timeout immediately with an idle timeout of 0 seconds" in {
       val c = mkClient(
-        new SlowTestHead(List(mkBuffer(resp)), 0.seconds, scheduler),
+        new SlowTestHead(List(mkBuffer(resp)), 0.seconds, tickWheel),
         mkConnection(FooRequestKey))(idleTimeout = Duration.Zero)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
@@ -63,7 +63,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Timeout immediately with a request timeout of 0 seconds" in {
       val tail = mkConnection(FooRequestKey)
-      val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds, scheduler)
+      val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds, tickWheel)
       val c = mkClient(h, tail)(requestTimeout = 0.milli)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
@@ -71,7 +71,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Idle timeout on slow response" in {
       val tail = mkConnection(FooRequestKey)
-      val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, scheduler)
+      val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
       val c = mkClient(h, tail)(idleTimeout = 1.second)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
@@ -79,7 +79,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Request timeout on slow response" in {
       val tail = mkConnection(FooRequestKey)
-      val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, scheduler)
+      val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds, tickWheel)
       val c = mkClient(h, tail)(requestTimeout = 1.second)
 
       c.fetchAs[String](FooRequest).unsafeRunSync() must throwA[TimeoutException]
@@ -148,7 +148,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Request timeout on slow response body" in {
       val tail = mkConnection(FooRequestKey)
       val (f, b) = resp.splitAt(resp.length - 1)
-      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, scheduler)
+      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
       val c = mkClient(h, tail)(requestTimeout = 1.second)
 
       tail.runRequest(FooRequest).flatMap(_.as[String])
@@ -158,7 +158,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Idle timeout on slow response body" in {
       val tail = mkConnection(FooRequestKey)
       val (f, b) = resp.splitAt(resp.length - 1)
-      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, scheduler)
+      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 1500.millis, tickWheel)
       val c = mkClient(h, tail)(idleTimeout = 1.second)
 
       tail.runRequest(FooRequest).flatMap(_.as[String])
@@ -168,7 +168,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "Response head timeout on slow header" in {
       val tail = mkConnection(FooRequestKey)
       val (f, b) = resp.splitAt(resp.indexOf("\r\n\r\n"))
-      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 500.millis, scheduler)
+      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 500.millis, tickWheel)
       // header is split into two chunks, we wait for 1.5x
       val c = mkClient(h, tail)(responseHeaderTimeout = 750.millis)
 
@@ -178,7 +178,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     "No Response head timeout on fast header" in {
       val tail = mkConnection(FooRequestKey)
       val (f, b) = resp.splitAt(resp.indexOf("\r\n\r\n" + 4))
-      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 125.millis, scheduler)
+      val h = new SlowTestHead(Seq(f, b).map(mkBuffer), 125.millis, tickWheel)
       // header is split into two chunks, we wait for 10x
       val c = mkClient(h, tail)(responseHeaderTimeout = 1250.millis)
 
