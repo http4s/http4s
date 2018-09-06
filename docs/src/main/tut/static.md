@@ -21,10 +21,31 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import java.io.File
+```
 
-val service = HttpRoutes.of[IO] {
+### Prerequisites
+
+Static file support uses a blocking API, so we'll need a blocking execution
+context:
+
+```tut:book:silent
+import java.util.concurrent._
+import scala.concurrent.ExecutionContext
+
+val blockingEc = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(4))
+```
+
+It also needs a main thread pool to shift back to.  This is provided when
+we're in IOApp, but you'll need one if you're following along in a REPL:
+
+```tut:book:silent
+implicit val cs: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+```
+
+```tut:book:silent
+val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / "index.html" =>
-    StaticFile.fromFile(new File("relative/path/to/index.html"), Some(request))
+    StaticFile.fromFile(new File("relative/path/to/index.html"), blockingEc, Some(request))
       .getOrElseF(NotFound()) // In case the file doesn't exist
 }
 ```
@@ -34,12 +55,12 @@ For simple file serving, it's possible to package resources with the jar and
 deliver them from there. Append to the `List` as needed.
 
 ```tut:book
-def static(file: String, request: Request[IO]) =
-  StaticFile.fromResource("/" + file, Some(request)).getOrElseF(NotFound())
+def static(file: String, blockingEc: ExecutionContext, request: Request[IO]) =
+  StaticFile.fromResource("/" + file, blockingEc, Some(request)).getOrElseF(NotFound())
 
-val service = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case request @ GET -> Root / path if List(".js", ".css", ".map", ".html", ".webm").exists(path.endsWith) =>
-    static(path, request)
+    static(path, blockingEc, request)
 }
 ```
 
@@ -66,9 +87,14 @@ def isJsAsset(asset: WebjarAsset): Boolean =
 
 val webjars: HttpRoutes[IO] = webjarService(
   Config(
-    filter = isJsAsset
+    filter = isJsAsset,
+    blockingExecutionContext = blockingEc
   )
 )
+```
+
+```tut:silent
+blockingEc.shutdown()
 ```
 
 [StaticFile]: ../api/org/http4s/StaticFile$

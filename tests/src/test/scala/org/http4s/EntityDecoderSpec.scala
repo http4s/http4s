@@ -370,7 +370,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mockServe(Request()) { req =>
-          req.decodeWith(textFile(tmpFile), strict = false) { _ =>
+          req.decodeWith(textFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
             Response[IO](Ok).withEntity("Hello").pure[IO]
           }
         }.unsafeRunSync
@@ -389,7 +389,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mockServe(Request()) {
           case req =>
-            req.decodeWith(binFile(tmpFile), strict = false) { _ =>
+            req.decodeWith(binFile(tmpFile, testBlockingExecutionContext), strict = false) { _ =>
               Response[IO](Ok).withEntity("Hello").pure[IO]
             }
         }.unsafeRunSync
@@ -407,17 +407,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request[IO]()
-      binary[IO].decode(msg, strict = false) must returnRight(Segment.empty[Byte])
+      binary[IO].decode(msg, strict = false) must returnRight(Chunk.empty[Byte])
     }
 
     "concat Chunks" in {
       val d1 = Array[Byte](1, 2, 3); val d2 = Array[Byte](4, 5, 6)
       val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
       val msg = Request[IO](body = body)
-
-      //Note: segment holds `Catenated` chunks, thus equality is not the same as a
-      //flattened array
-      val expected = Segment.array(Array[Byte](1, 2, 3)) ++ Segment.array(Array[Byte](4, 5, 6))
+      val expected = Chunk.bytes(Array[Byte](1, 2, 3, 4, 5, 6))
       binary[IO].decode(msg, strict = false) must returnRight(expected)
     }
 

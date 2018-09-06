@@ -1,12 +1,12 @@
 package org.http4s
 package servlet
 
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import cats.data.OptionT
 import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.http4s.server._
+import scala.concurrent.ExecutionContext
 
 class BlockingHttp4sServlet[F[_]](
     service: HttpRoutes[F],
@@ -60,10 +60,12 @@ class BlockingHttp4sServlet[F[_]](
 }
 
 object BlockingHttp4sServlet {
-  def apply[F[_]: Effect](service: HttpRoutes[F]): BlockingHttp4sServlet[F] =
+  def apply[F[_]: Effect: ContextShift](
+      service: HttpRoutes[F],
+      blockingExecutionContext: ExecutionContext): BlockingHttp4sServlet[F] =
     new BlockingHttp4sServlet[F](
       service,
-      BlockingServletIo(DefaultChunkSize),
+      BlockingServletIo(DefaultChunkSize, blockingExecutionContext),
       DefaultServiceErrorHandler
     )
 }

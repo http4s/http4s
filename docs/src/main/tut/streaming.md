@@ -24,10 +24,13 @@ import fs2.Stream
 import org.http4s._
 import org.http4s.dsl.io._
 
+// Provided by `cats.effect.IOApp`, needed elsewhere:
+implicit val timer: Timer[IO] = IO.timer(global)
+
 // An infinite stream of the periodic elapsed time
 val seconds = Stream.awakeEvery[IO](1.second)
 
-val service = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "seconds" =>
     Ok(seconds.map(_.toString)) // `map` `toString` because there's no `EntityEncoder` for `Duration`
 }
@@ -81,18 +84,17 @@ import org.http4s._
 import org.http4s.client.blaze._
 import org.http4s.client.oauth1
 import cats.effect._
-import fs2.{Stream, StreamApp}
-import fs2.StreamApp.ExitCode
+import cats.implicits._
+import fs2.Stream
 import fs2.io.stdout
 import fs2.text.{lines, utf8Encode}
 import jawnfs2._
+import java.util.concurrent.{Executors, ExecutorService}
 import io.circe.Json
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.global
 
-// Uncomment this line to create an application with a main method that can be run
-// object TWStream extends TWStreamApp[IO]
-
-abstract class TWStreamApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
-
+class TWStream[F[_]](implicit F: ConcurrentEffect[F], cs: ContextShift[F]) {
   // jawn-fs2 needs to know what JSON AST you want
   implicit val f = io.circe.jawn.CirceSupportParser.facade
 
@@ -106,14 +108,14 @@ abstract class TWStreamApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
     oauth1.signRequest(req, consumer, callback = None, verifier = None, token = Some(token))
   }
 
-  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and 
+  /* Create a http client, sign the incoming `Request[F]`, stream the `Response[IO]`, and
    * `parseJsonStream` the `Response[F]`.
    * `sign` returns a `F`, so we need to `Stream.eval` it to use a for-comprehension.
    */
   def jsonStream(consumerKey: String, consumerSecret: String, accessToken: String, accessSecret: String)
             (req: Request[F]): Stream[F, Json] =
     for {
-      client <- Http1Client.stream[F]()
+      client <- BlazeClientBuilder(global).stream
       sr  <- Stream.eval(sign(consumerKey, consumerSecret, accessToken, accessSecret)(req))
       res <- client.streaming(sr)(resp => resp.body.chunks.parseJsonStream)
     } yield res
@@ -123,12 +125,39 @@ abstract class TWStreamApp[F[_]: ConcurrentEffect] extends StreamApp[F] {
    * We map over the Circe `Json` objects to pretty-print them with `spaces2`.
    * Then we `to` them to fs2's `lines` and then to `stdout` `Sink` to print them.
    */
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
+  def stream(blockingEC: ExecutionContext): Stream[F, Unit] = {
     val req = Request[F](Method.GET, Uri.uri("https://stream.twitter.com/1.1/statuses/sample.json"))
     val s   = jsonStream("<consumerKey>", "<consumerSecret>", "<accessToken>", "<accessSecret>")(req)
-    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout) >> Stream.emit(ExitCode.Success)
+    s.map(_.spaces2).through(lines).through(utf8Encode).to(stdout(blockingEC))
   }
 
+  /**
+   * We're going to be writing to stdout, which is a blocking API.  We don't
+   * want to block our main threads, so we create a separate pool.  We'll use
+   * `fs2.Stream` to manage the shutdown for us.
+   */
+  def blockingEcStream: Stream[F, ExecutionContext] =
+    Stream.bracket(F.delay(Executors.newFixedThreadPool(4)))(pool =>
+        F.delay(pool.shutdown()))
+      .map(ExecutionContext.fromExecutorService)
+
+  /** Compile our stream down to an effect to make it runnable */
+  def run: F[Unit] =
+    blockingEcStream.flatMap { blockingEc =>
+      stream(blockingEc)
+    }.compile.drain
+}
+```
+
+`TWStream` runs any effect type supported by cats-effect.  We need to
+pick a concrete effect, such as `cats.effect.IO`, to actually run it.
+We'll make use of `cats.effect.IOApp`, which defines a program in terms
+in the form `run(args: List[String]): IO[ExitCode]`:
+
+```tut:silent
+object TWStreamApp extends IOApp {
+  def run(args: List[String]) =
+    (new TWStream[IO]).run.as(ExitCode.Success)
 }
 ```
 

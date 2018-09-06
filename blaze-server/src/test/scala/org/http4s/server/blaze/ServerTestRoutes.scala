@@ -8,7 +8,6 @@ import fs2.Stream._
 import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object ServerTestRoutes extends Http4sDsl[IO] {
 
@@ -98,7 +97,7 @@ object ServerTestRoutes extends Http4sDsl[IO] {
       (Status.NotModified, Set[Header](connKeep), ""))
   )
 
-  def apply() = HttpRoutes.of[IO] {
+  def apply()(implicit cs: ContextShift[IO]) = HttpRoutes.of[IO] {
     case req if req.method == Method.GET && req.pathInfo == "/get" =>
       Ok("get")
 

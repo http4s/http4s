@@ -33,10 +33,10 @@ trait ElemInstances {
   implicit def xml[F[_]](implicit F: Sync[F]): EntityDecoder[F, Elem] = {
     import EntityDecoder._
     decodeBy(MediaType.text.xml, MediaType.text.html, MediaType.application.xml) { msg =>
-      collectBinary(msg).flatMap[DecodeFailure, Elem] { arr =>
+      collectBinary(msg).flatMap[DecodeFailure, Elem] { chunk =>
         val source = new InputSource(
           new StringReader(
-            new String(arr.force.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
+            new String(chunk.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         val saxParser = saxFactory.newSAXParser()
         EitherT(
           F.delay(XML.loadXML(source, saxParser)).attempt

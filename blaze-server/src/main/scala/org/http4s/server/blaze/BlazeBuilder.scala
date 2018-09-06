@@ -138,7 +138,7 @@ class BlazeBuilder[F[_]](
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  override def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
+  def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
     copy(executionContext = executionContext)
 
   override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)

@@ -2,7 +2,7 @@ package org.http4s.server.blaze
 
 import cats.effect._
 import cats.implicits._
-import fs2.async.mutable.Signal
+import fs2.concurrent.SignallingRef
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 import java.util.concurrent.atomic.AtomicBoolean
@@ -65,7 +65,7 @@ private[blaze] trait WebSocketSupport[F[_]] extends Http1ServerStage[F] {
                 case Success(_) =>
                   logger.debug("Switching pipeline segments for websocket")
 
-                  val deadSignal = F.toIO(Signal[F, Boolean](false)).unsafeRunSync()
+                  val deadSignal = F.toIO(SignallingRef[F, Boolean](false)).unsafeRunSync()
                   val sentClose = new AtomicBoolean(false)
                   val segment =
                     LeafBuilder(new Http4sWSStage[F](wsContext.webSocket, sentClose, deadSignal))

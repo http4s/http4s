@@ -258,6 +258,9 @@ import fs2.Stream
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
+// Provided by `cats.effect.IOApp`
+implicit val timer: Timer[IO] = IO.timer(global)
+
 val drip: Stream[IO, String] =
   Stream.awakeEvery[IO](100.millis).map(_.toString).take(10)
 ```
@@ -275,7 +278,7 @@ generally be anticipated before it runs, so this triggers chunked
 transfer encoding:
 
 ```tut
-Ok(drip).unsafeRunSync
+Ok(drip)
 ```
 
 ## Matching and extracting requests

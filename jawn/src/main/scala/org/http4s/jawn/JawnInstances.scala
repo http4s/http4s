@@ -3,8 +3,7 @@ package jawn
 
 import _root_.jawn.{AsyncParser, ParseException, RawFacade}
 import cats.effect._
-import cats.syntax.either._
-import cats.syntax.functor._
+import cats.implicits._
 import fs2.Stream
 import jawnfs2._
 
@@ -19,11 +18,11 @@ trait JawnInstances {
       msg.body.chunks
         .parseJson(AsyncParser.SingleValue)
         .map(Either.right)
-        .handleErrorWith[Either[DecodeFailure, J]] {
+        .handleErrorWith {
           case pe: ParseException =>
             Stream.emit(Left(MalformedMessageBodyFailure("Invalid JSON", Some(pe))))
           case e =>
-            Stream.raiseError(e)
+            Stream.raiseError[F](e)
         }
         .compile
         .last

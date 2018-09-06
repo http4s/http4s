@@ -62,7 +62,7 @@ private[http4s] trait EntityBodyWriter[F[_]] {
     val writeStream: Stream[F, Unit] =
       s.chunks.evalMap(chunk => F.fromFuture(writeBodyChunk(chunk, flush = false)))
     val errorStream: Throwable => Stream[F, Unit] = e =>
-      Stream.eval(F.fromFuture(exceptionFlush())).flatMap(_ => Stream.raiseError(e))
+      Stream.eval(F.fromFuture(exceptionFlush())).flatMap(_ => Stream.raiseError[F](e))
     writeStream.handleErrorWith(errorStream)
   }
 }

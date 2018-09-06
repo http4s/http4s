@@ -18,7 +18,7 @@ object FileService {
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param executionContext `ExecutionContext` to use when collecting content
+    * @param blockingExecutionContext `ExecutionContext` to use for blocking I/O
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
@@ -26,11 +26,11 @@ object FileService {
       pathCollector: PathCollector[F],
       pathPrefix: String,
       bufferSize: Int,
-      executionContext: ExecutionContext,
+      blockingExecutionContext: ExecutionContext,
       cacheStrategy: CacheStrategy[F])
 
   object Config {
-    def apply[F[_]: Sync](
+    def apply[F[_]: Sync: ContextShift](
         systemPath: String,
         pathPrefix: String = "",
         bufferSize: Int = 50 * 1024,
@@ -52,15 +52,24 @@ object FileService {
     }
 
   private def filesOnly[F[_]](file: File, config: Config[F], req: Request[F])(
-      implicit F: Sync[F]): OptionT[F, Response[F]] =
+      implicit F: Sync[F],
+      cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT(F.suspend {
-      if (file.isDirectory) StaticFile.fromFile(new File(file, "index.html"), Some(req)).value
+      if (file.isDirectory)
+        StaticFile
+          .fromFile(new File(file, "index.html"), config.blockingExecutionContext, Some(req))
+          .value
       else if (!file.isFile) F.pure(None)
       else
         getPartialContentFile(file, config, req)
           .orElse(
             StaticFile
-              .fromFile(file, config.bufferSize, Some(req), StaticFile.calcETag)
+              .fromFile(
+                file,
+                config.bufferSize,
+                config.blockingExecutionContext,
+                Some(req),
+                StaticFile.calcETag)
               .map(_.putHeaders(AcceptRangeHeader))
           )
           .value
@@ -74,7 +83,8 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile[F[_]](file: File, config: Config[F], req: Request[F])(
-      implicit F: Sync[F]): OptionT[F, Response[F]] =
+      implicit F: Sync[F],
+      cs: ContextShift[F]): OptionT[F, Response[F]] =
     OptionT.fromOption[F](req.headers.get(Range)).flatMap {
       case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil))
           if validRange(s, e, file.length) =>
@@ -84,7 +94,14 @@ object FileService {
           val end = math.min(size - 1, e.getOrElse(size - 1)) // end is inclusive
 
           StaticFile
-            .fromFile(file, start, end + 1, config.bufferSize, Some(req), StaticFile.calcETag)
+            .fromFile(
+              file,
+              start,
+              end + 1,
+              config.bufferSize,
+              config.blockingExecutionContext,
+              Some(req),
+              StaticFile.calcETag)
             .map { resp =>
               val hs: Headers = resp.headers
                 .put(AcceptRangeHeader, `Content-Range`(SubRange(start, end), Some(size)))

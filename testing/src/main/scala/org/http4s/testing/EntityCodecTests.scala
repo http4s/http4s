@@ -4,13 +4,14 @@ package testing
 import cats.Eq
 import cats.implicits._
 import cats.effect._
+import cats.effect.implicits._
 import cats.effect.laws.util.TestContext
 import cats.effect.laws.util.TestInstances._
 import cats.laws._
 import cats.laws.discipline._
 import org.scalacheck.{Arbitrary, Prop, Shrink}
 
-trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] with ToIOSyntax {
+trait EntityCodecLaws[F[_], A] extends EntityEncoderLaws[F, A] {
   implicit def effect: Effect[F]
   implicit def encoder: EntityEncoder[F, A]
   implicit def decoder: EntityDecoder[F, A]

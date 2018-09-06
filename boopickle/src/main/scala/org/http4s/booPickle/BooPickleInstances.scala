@@ -20,8 +20,8 @@ trait BooPickleInstances {
 
   private def booDecoderByteBuffer[F[_]: Sync, A](msg: Message[F])(
       implicit pickler: Pickler[A]): DecodeResult[F, A] =
-    EntityDecoder.collectBinary(msg).flatMap { segment =>
-      val bb = ByteBuffer.wrap(segment.force.toArray)
+    EntityDecoder.collectBinary(msg).flatMap { chunk =>
+      val bb = ByteBuffer.wrap(chunk.toArray)
       if (bb.hasRemaining) {
         Unpickle[A](pickler).tryFromBytes(bb) match {
           case Success(bb) =>

@@ -95,7 +95,7 @@ object Metrics {
         e =>
           Stream.eval(
             incrementCounts(serviceMetrics.generalMetrics.abnormalTerminations, elapsedInit)) *>
-            Stream.raiseError[Byte](e))
+            Stream.raiseError[F](e))
     response.copy(body = newBody)
   }
 

@@ -6,6 +6,8 @@ import cats.data._
 import cats.effect._
 import cats.implicits._
 import cats.effect.implicits._
+import fs2._
+import fs2.io._
 import okhttp3.{
   Call,
   Callback,
@@ -20,47 +22,76 @@ import okhttp3.{
 import okio.BufferedSink
 import org.http4s.{Header, Headers, HttpVersion, Method, Request, Response, Status}
 import org.http4s.client.{Client, DisposableResponse}
-import fs2._
-import fs2.io._
+import org.http4s.internal.invokeCallback
 import org.log4s.getLogger
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 
-sealed abstract class OkHttp[F[_]] private (
-    okHttpClient: OkHttpClient,
-    blockingExecutionContext: ExecutionContext
+/** A builder for [[org.http4s.client.Client]] with an OkHttp backend.
+  *
+  * @define BLOCKINGEC an execution context onto which all blocking
+  * I/O operations will be shifted.
+  *
+  * @define WHYNOSHUTDOWN It is assumed that the OkHttp client is
+  * passed to us as a Resource, or that the caller will shut it down, or
+  * that the caller is comfortable letting OkHttp's resources expire on
+  * their own.
+  *
+  * @param okHttpClient the underlying OkHttp client.
+  * @param blockingExecutionContext $BLOCKINGEC
+  */
+sealed abstract class OkHttpBuilder[F[_]] private (
+    val okHttpClient: OkHttpClient,
+    val blockingExecutionContext: ExecutionContext
 ) {
   private[this] val logger = getLogger
 
   private def copy(
       okHttpClient: OkHttpClient = okHttpClient,
       blockingExecutionContext: ExecutionContext = blockingExecutionContext
-  ) = new OkHttp[F](okHttpClient, blockingExecutionContext) {}
+  ) = new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
 
-  def withOkHttpClient(okHttpClient: OkHttpClient): OkHttp[F] =
+  def withOkHttpClient(okHttpClient: OkHttpClient): OkHttpBuilder[F] =
     copy(okHttpClient = okHttpClient)
 
-  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): OkHttp[F] =
+  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
     copy(blockingExecutionContext = blockingExecutionContext)
 
-  def create(implicit F: Effect[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
+  /** Creates the [[org.http4s.client.Client]]
+    *
+    * The shutdown method on this client is a no-op.  $WHYNOSHUTDOWN
+    */
+  def create(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
 
-  private def open(implicit F: Effect[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
-    F.async[DisposableResponse[F]] { cb =>
+  /** Creates the [[org,http4s.client.Client]] as a resource.
+    *
+    * The release on this resource is a no-op.  $WHYNOSHUTDOWN
+    */
+  def resource(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Resource[F, Client[F]] =
+    Resource.make(F.delay(create))(_.shutdown)
+
+  /** Creates the [[org,http4s.client.Client]] as a singleton stream.
+    *
+    * The bracketed release on this stream is a no-op.  $WHYNOSHUTDOWN
+    */
+  def stream(implicit F: ConcurrentEffect[F], cs: ContextShift[F]): Stream[F, Client[F]] =
+    Stream.resource(resource)
+
+  private def open(implicit F: ConcurrentEffect[F], cs: ContextShift[F]) =
+    Kleisli { req: Request[F] =>
+      F.async[DisposableResponse[F]] { cb =>
         okHttpClient.newCall(toOkHttpRequest(req)).enqueue(handler(cb))
         ()
       }
-      .guarantee(cs.shift)
-  }
+    }
 
   private def handler(cb: Either[Throwable, DisposableResponse[F]] => Unit)(
-      implicit F: Effect[F],
+      implicit F: ConcurrentEffect[F],
       cs: ContextShift[F]): Callback =
     new Callback {
       override def onFailure(call: Call, e: IOException): Unit =
-        cb(Left(e))
+        invokeCallback(logger)(cb(Left(e)))
 
       override def onResponse(call: Call, response: OKResponse): Unit = {
         val protocol = response.protocol() match {
@@ -88,7 +119,7 @@ sealed abstract class OkHttp[F[_]] private (
             bodyStream.close()
             t
           }
-        cb(dr)
+        invokeCallback(logger)(cb(dr))
       }
     }
 
@@ -140,16 +171,32 @@ sealed abstract class OkHttp[F[_]] private (
   }
 }
 
-object OkHttp {
+/** Builder for a [[org.http4s.client.Client]] with an OkHttp backend
+  *
+  * @define BLOCKINGEC an execution context onto which all blocking
+  * I/O operations will be shifted.
+  */
+object OkHttpBuilder {
   private[this] val logger = getLogger
 
+  /** Creates a builder.
+    *
+    * @param okHttpClient the underlying client.
+    * @param blockingExecutionContext $BLOCKINGEC
+    */
   def apply[F[_]](
       okHttpClient: OkHttpClient,
-      blockingExecutionContext: ExecutionContext): OkHttp[F] =
-    new OkHttp[F](okHttpClient, blockingExecutionContext) {}
+      blockingExecutionContext: ExecutionContext): OkHttpBuilder[F] =
+    new OkHttpBuilder[F](okHttpClient, blockingExecutionContext) {}
 
-  def default[F[_]](blockingExecutionContext: ExecutionContext)(
-      implicit F: Sync[F]): Resource[F, OkHttp[F]] =
+  /** Create a builder with a default OkHttp client.  The builder is
+    * returned as a `Resource` so we shut down the OkHttp client that
+    * we create.
+    *
+    * @param blockingExecutionContext $BLOCKINGEC
+    */
+  def withDefaultClient[F[_]](blockingExecutionContext: ExecutionContext)(
+      implicit F: Sync[F]): Resource[F, OkHttpBuilder[F]] =
     defaultOkHttpClient.map(apply(_, blockingExecutionContext))
 
   private def defaultOkHttpClient[F[_]](implicit F: Sync[F]): Resource[F, OkHttpClient] =

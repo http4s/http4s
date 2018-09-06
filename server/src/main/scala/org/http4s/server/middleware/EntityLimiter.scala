@@ -2,6 +2,7 @@ package org.http4s
 package server
 package middleware
 
+import cats.ApplicativeError
 import cats.data.Kleisli
 import fs2._
 
@@ -15,16 +16,18 @@ object EntityLimiter {
 
   def apply[F[_], G[_], B](
       @deprecatedName('service) http: Kleisli[F, Request[G], B],
-      limit: Long = DefaultMaxEntitySize): Kleisli[F, Request[G], B] =
+      limit: Long = DefaultMaxEntitySize)(
+      implicit G: ApplicativeError[G, Throwable]): Kleisli[F, Request[G], B] =
     Kleisli { req =>
       http(req.withBodyStream(req.body.through(takeLimited(limit))))
     }
 
-  private def takeLimited[F[_]](n: Long): Pipe[F, Byte, Byte] =
+  private def takeLimited[F[_]](n: Long)(
+      implicit F: ApplicativeError[F, Throwable]): Pipe[F, Byte, Byte] =
     _.pull
       .take(n)
       .flatMap {
-        case Some(_) => Pull.raiseError(EntityTooLarge(n))
+        case Some(_) => Pull.raiseError[F](EntityTooLarge(n))
         case None => Pull.done
       }
       .stream

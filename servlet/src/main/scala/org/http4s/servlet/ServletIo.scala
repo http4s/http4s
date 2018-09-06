@@ -11,6 +11,7 @@ import org.http4s.util.bug
 import org.http4s.util.execution.trampoline
 import org.log4s.getLogger
 import scala.annotation.tailrec
+import scala.concurrent.ExecutionContext
 
 /**
   * Determines the mode of I/O used for reading request bodies and writing response bodies.
@@ -30,9 +31,15 @@ sealed abstract class ServletIo[F[_]: Async] {
   * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
   * require a larger request thread pool for the same load.
   */
-final case class BlockingServletIo[F[_]: Effect](chunkSize: Int) extends ServletIo[F] {
+final case class BlockingServletIo[F[_]: Effect: ContextShift](
+    chunkSize: Int,
+    blockingExecutionContext: ExecutionContext)
+    extends ServletIo[F] {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody[F] =
-    io.readInputStream[F](F.pure(servletRequest.getInputStream), chunkSize)
+    io.readInputStream[F](
+      F.pure(servletRequest.getInputStream),
+      chunkSize,
+      blockingExecutionContext)
 
   override protected[servlet] def initWriter(
       servletResponse: HttpServletResponse): BodyWriter[F] = {
@@ -160,7 +167,7 @@ final case class NonBlockingServletIo[F[_]: Effect](chunkSize: Int) extends Serv
                 }
                 go()
               })
-        readStream.unNoneTerminate.flatMap(Stream.chunk[Byte])
+        readStream.unNoneTerminate.flatMap(Stream.chunk)
       }
     }
 

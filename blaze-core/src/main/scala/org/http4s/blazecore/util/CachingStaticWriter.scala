@@ -7,6 +7,7 @@ import fs2._
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
+import scala.collection.mutable.Buffer
 import scala.concurrent.{ExecutionContext, Future}
 
 private[http4s] class CachingStaticWriter[F[_]](
@@ -18,7 +19,7 @@ private[http4s] class CachingStaticWriter[F[_]](
 
   @volatile
   private var _forceClose = false
-  private var bodyBuffer: Chunk[Byte] = _
+  private val bodyBuffer: Buffer[Chunk[Byte]] = Buffer()
   private var writer: StringWriter = null
   private var innerWriter: InnerWriter = _
 
@@ -27,15 +28,18 @@ private[http4s] class CachingStaticWriter[F[_]](
     FutureUnit
   }
 
-  private def addChunk(b: Chunk[Byte]): Chunk[Byte] = {
-    if (bodyBuffer == null) bodyBuffer = b
-    else bodyBuffer = (bodyBuffer.toSegment ++ b.toSegment).force.toChunk
-    bodyBuffer
+  private def addChunk(chunk: Chunk[Byte]): Unit = {
+    bodyBuffer += chunk
+    ()
   }
 
+  private def toChunk: Chunk[Byte] = Chunk.concatBytes(bodyBuffer.toSeq)
+
+  private def clear(): Unit = bodyBuffer.clear()
+
   override protected def exceptionFlush(): Future[Unit] = {
-    val c = bodyBuffer
-    bodyBuffer = null
+    val c = toChunk
+    clear()
 
     if (innerWriter == null) { // We haven't written anything yet
       writer << "\r\n"
@@ -46,7 +50,9 @@ private[http4s] class CachingStaticWriter[F[_]](
   override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] =
     if (innerWriter != null) innerWriter.writeEnd(chunk)
     else { // We are finished! Write the length and the keep alive
-      val c = addChunk(chunk)
+      addChunk(chunk)
+      val c = toChunk
+      clear()
       writer << "Content-Length: " << c.size << "\r\nConnection: keep-alive\r\n\r\n"
 
       new InnerWriter().writeEnd(c).map(_ || _forceClose)
@@ -55,7 +61,8 @@ private[http4s] class CachingStaticWriter[F[_]](
   override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (innerWriter != null) innerWriter.writeBodyChunk(chunk, flush)
     else {
-      val c = addChunk(chunk)
+      addChunk(chunk)
+      val c = toChunk
       if (flush || c.size >= bufferSize) { // time to just abort and stream it
         _forceClose = true
         writer << "\r\n"

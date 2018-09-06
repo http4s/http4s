@@ -12,7 +12,7 @@ package object util {
   private[http4s] def unNoneTerminateChunks[F[_], I]: Pipe[F, Option[Chunk[I]], I] =
     _.unNoneTerminate.repeatPull {
       _.uncons1.flatMap {
-        case Some((hd, tl)) => Pull.output(hd.toSegment).as(Some(tl))
+        case Some((hd, tl)) => Pull.output(hd).as(Some(tl))
         case None => Pull.done.as(None)
       }
     }

@@ -1,5 +1,6 @@
 package org.http4s.client
 
+import cats.effect.{Resource, Sync}
 import java.net.{InetAddress, InetSocketAddress}
 import java.security.{KeyStore, Security}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
@@ -8,12 +9,21 @@ import org.eclipse.jetty.server.{Server => JServer, _}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 
-class JettyScaffold(num: Int, secure: Boolean) {
+object JettyScaffold {
+  def apply[F[_]](num: Int, secure: Boolean, testServlet: HttpServlet)(
+      implicit F: Sync[F]): Resource[F, JettyScaffold] =
+    Resource.make(F.delay {
+      val scaffold = new JettyScaffold(num, secure)
+      scaffold.startServers(testServlet)
+    })(s => F.delay(s.stopServers()))
+}
+
+class JettyScaffold private (num: Int, secure: Boolean) {
 
   private var servers = Vector.empty[JServer]
   var addresses = Vector.empty[InetSocketAddress]
 
-  def startServers(testServlet: HttpServlet): Unit = {
+  def startServers(testServlet: HttpServlet): this.type = {
     val res = (0 until num).map { _ =>
       val server = new JServer()
       val context = new ServletContextHandler()
@@ -65,6 +75,8 @@ class JettyScaffold(num: Int, secure: Boolean) {
 
     servers = res.map(_._2)
     addresses = res.map(_._1)
+
+    this
   }
 
   def stopServers(): Unit = servers.foreach(_.stop())

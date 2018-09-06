@@ -4,7 +4,6 @@ package client
 import cats.syntax.applicative._
 import cats.effect._
 import fs2._
-import fs2.Stream._
 import org.http4s.Method._
 import org.http4s.MediaType
 import org.http4s.Status.{BadRequest, Created, InternalServerError, Ok}
@@ -256,7 +255,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     }
 
     "streaming disposes of the response on failure" in {
-      assertDisposes(_.streaming(req)(_ => Stream.raiseError(SadTrombone)).compile.drain)
+      assertDisposes(_.streaming(req)(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
     }
 
     "toService disposes of the response on success" in {
@@ -274,7 +273,7 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
     "toHttpApp disposes of the response if the body is run, even if it fails" in {
       assertDisposes(
         _.toHttpApp
-          .flatMapF(_.body.flatMap(_ => Stream.raiseError(SadTrombone)).compile.drain)
+          .flatMapF(_.body.flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
           .run(req))
     }
 

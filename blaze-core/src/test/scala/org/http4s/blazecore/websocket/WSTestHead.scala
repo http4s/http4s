@@ -1,7 +1,7 @@
 package org.http4s.blazecore.websocket
 
-import cats.effect.{IO, Timer}
-//import java.util.concurrent.ConcurrentLinkedQueue
+import cats.effect.{ContextShift, IO, Timer}
+import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import scala.concurrent.Future
@@ -22,8 +22,8 @@ import scala.concurrent.duration._
   *
   */
 sealed abstract class WSTestHead(
-    inQueue: fs2.async.mutable.Queue[IO, WebSocketFrame],
-    outQueue: fs2.async.mutable.Queue[IO, WebSocketFrame])(implicit T: Timer[IO])
+    inQueue: Queue[IO, WebSocketFrame],
+    outQueue: Queue[IO, WebSocketFrame])(implicit timer: Timer[IO], cs: ContextShift[IO])
     extends HeadStage[WebSocketFrame] {
 
   /** Block while we put elements into our queue
@@ -44,40 +44,37 @@ sealed abstract class WSTestHead(
     * so it's read by the websocket stage
     * @param ws
     */
-  def put(ws: WebSocketFrame): Unit = {
-    inQueue.enqueue1(ws).unsafeRunSync(); ()
-  }
+  def put(ws: WebSocketFrame): IO[Unit] =
+    inQueue.enqueue1(ws)
 
   /** poll our queue for a value,
     * timing out after `timeoutSeconds` seconds
     * runWorker(this);
     */
-  def poll(timeoutSeconds: Long): Option[WebSocketFrame] =
-    IO.race(Timer[IO].sleep(timeoutSeconds.seconds), outQueue.dequeue1)
+  def poll(timeoutSeconds: Long): IO[Option[WebSocketFrame]] =
+    IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeue1)
       .map {
         case Left(_) => None
         case Right(wsFrame) =>
           Some(wsFrame)
       }
-      .unsafeRunSync()
 
-  def pollBatch(batchSize: Int, timeoutSeconds: Long): List[WebSocketFrame] =
-    IO.race(Timer[IO].sleep(timeoutSeconds.seconds), outQueue.dequeueBatch1(batchSize))
+  def pollBatch(batchSize: Int, timeoutSeconds: Long): IO[List[WebSocketFrame]] =
+    IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeueBatch1(batchSize))
       .map {
         case Left(_) => Nil
         case Right(wsFrame) => wsFrame.toList
       }
-      .unsafeRunSync()
 
   override def name: String = "WS test stage"
 }
 
 object WSTestHead {
-  def apply()(implicit t: Timer[IO]): WSTestHead = {
+  def apply()(implicit t: Timer[IO], cs: ContextShift[IO]): WSTestHead = {
     val inQueue =
-      fs2.async.mutable.Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
+      Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
     val outQueue =
-      fs2.async.mutable.Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
+      Queue.unbounded[IO, WebSocketFrame].unsafeRunSync()
     new WSTestHead(inQueue, outQueue) {}
   }
 }

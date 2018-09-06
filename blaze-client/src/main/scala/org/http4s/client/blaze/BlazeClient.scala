@@ -21,11 +21,25 @@ object BlazeClient {
     * @param config blaze client configuration.
     * @param onShutdown arbitrary tasks that will be executed when this client is shutdown
     */
+  @deprecated("Use BlazeClientBuilder", "0.19.0-M2")
   def apply[F[_], A <: BlazeConnection[F]](
       manager: ConnectionManager[F, A],
       config: BlazeClientConfig,
       onShutdown: F[Unit])(implicit F: Sync[F]): Client[F] =
-    Client(
+    makeClient(
+      manager,
+      responseHeaderTimeout = config.responseHeaderTimeout,
+      idleTimeout = config.idleTimeout,
+      requestTimeout = config.requestTimeout
+    )
+
+  private[blaze] def makeClient[F[_], A <: BlazeConnection[F]](
+      manager: ConnectionManager[F, A],
+      responseHeaderTimeout: Duration,
+      idleTimeout: Duration,
+      requestTimeout: Duration
+  )(implicit F: Sync[F]) =
+    Client[F](
       Kleisli { req =>
         F.suspend {
           val key = RequestKey.fromRequest(req)
@@ -42,10 +56,10 @@ object BlazeClient {
             // Add the timeout stage to the pipeline
             val elapsed = (Instant.now.toEpochMilli - submitTime.toEpochMilli).millis
             val ts = new ClientTimeoutStage(
-              if (elapsed > config.responseHeaderTimeout) 0.milli
-              else config.responseHeaderTimeout - elapsed,
-              config.idleTimeout,
-              if (elapsed > config.requestTimeout) 0.milli else config.requestTimeout - elapsed,
+              if (elapsed > responseHeaderTimeout) 0.milli
+              else responseHeaderTimeout - elapsed,
+              idleTimeout,
+              if (elapsed > requestTimeout) 0.milli else requestTimeout - elapsed,
               bits.ClientTickWheel
             )
             next.connection.spliceBefore(ts)
@@ -79,6 +93,6 @@ object BlazeClient {
           manager.borrow(key).flatMap(loop)
         }
       },
-      onShutdown
+      manager.shutdown
     )
 }

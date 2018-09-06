@@ -2,9 +2,7 @@ package org.http4s.server.middleware
 
 import cats.data.{NonEmptyList, OptionT}
 import cats.effect.IO
-import cats.instances.int._
-import cats.instances.vector._
-import cats.syntax.foldable._
+import cats.implicits._
 import fs2._
 import org.http4s._
 import org.http4s.dsl.io._
@@ -54,14 +52,13 @@ class ChunkAggregatorSpec extends Http4sSpec {
     "handle chunks" in {
       prop { (chunks: NonEmptyList[Chunk[Byte]], transferCodings: List[TransferCoding]) =>
         val totalChunksSize = chunks.foldMap(_.size)
-        checkResponse(chunks.map(Stream.chunk[Byte]).reduceLeft(_ ++ _), transferCodings) {
-          response =>
-            if (totalChunksSize > 0) {
-              response.contentLength must beSome(totalChunksSize.toLong)
-              response.headers.get(`Transfer-Encoding`).map(_.values) must_=== NonEmptyList
-                .fromList(transferCodings)
-            }
-            response.body.compile.toVector.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
+        checkResponse(chunks.map(Stream.chunk).reduceLeft(_ ++ _), transferCodings) { response =>
+          if (totalChunksSize > 0) {
+            response.contentLength must beSome(totalChunksSize.toLong)
+            response.headers.get(`Transfer-Encoding`).map(_.values) must_=== NonEmptyList
+              .fromList(transferCodings)
+          }
+          response.body.compile.toVector.unsafeRunSync() must_=== chunks.foldMap(_.toVector)
         }
       }
     }

@@ -13,7 +13,7 @@ class StaticFileSpec extends Http4sSpec {
     "Determine the media-type based on the files extension" in {
 
       def check(f: File, tpe: Option[MediaType]): MatchResult[Any] = {
-        val r = StaticFile.fromFile[IO](f).value.unsafeRunSync
+        val r = StaticFile.fromFile[IO](f, testBlockingExecutionContext).value.unsafeRunSync
 
         r must beSome[Response[IO]]
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
@@ -35,7 +35,8 @@ class StaticFileSpec extends Http4sSpec {
     "handle an empty file" in {
       val emptyFile = File.createTempFile("empty", ".tmp")
 
-      StaticFile.fromFile[IO](emptyFile).value must returnValue(beSome[Response[IO]])
+      StaticFile.fromFile[IO](emptyFile, testBlockingExecutionContext).value must returnValue(
+        beSome[Response[IO]])
     }
 
     "Don't send unmodified files" in {
@@ -43,7 +44,10 @@ class StaticFileSpec extends Http4sSpec {
 
       val request =
         Request[IO]().putHeaders(`If-Modified-Since`(HttpDate.MaxValue))
-      val response = StaticFile.fromFile[IO](emptyFile, Some(request)).value.unsafeRunSync
+      val response = StaticFile
+        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .value
+        .unsafeRunSync
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -54,7 +58,10 @@ class StaticFileSpec extends Http4sSpec {
       val request =
         Request[IO]().putHeaders(
           ETag(s"${emptyFile.lastModified().toHexString}-${emptyFile.length().toHexString}"))
-      val response = StaticFile.fromFile[IO](emptyFile, Some(request)).value.unsafeRunSync
+      val response = StaticFile
+        .fromFile[IO](emptyFile, testBlockingExecutionContext, Some(request))
+        .value
+        .unsafeRunSync
       response must beSome[Response[IO]]
       response.map(_.status) must beSome(NotModified)
     }
@@ -64,7 +71,14 @@ class StaticFileSpec extends Http4sSpec {
         val f = new File(path)
         val r =
           StaticFile
-            .fromFile[IO](f, 0, 1, StaticFile.DefaultBufferSize, None, StaticFile.calcETag[IO])
+            .fromFile[IO](
+              f,
+              0,
+              1,
+              StaticFile.DefaultBufferSize,
+              testBlockingExecutionContext,
+              None,
+              StaticFile.calcETag[IO])
             .value
             .unsafeRunSync
 
@@ -101,6 +115,7 @@ class StaticFileSpec extends Http4sSpec {
             0,
             fileSize.toLong - 1,
             StaticFile.DefaultBufferSize,
+            testBlockingExecutionContext,
             None,
             StaticFile.calcETag[IO])
           .value
@@ -127,7 +142,7 @@ class StaticFileSpec extends Http4sSpec {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val expected = scala.io.Source.fromURL(url, "utf-8").mkString
       val s = StaticFile
-        .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"))
+        .fromURL[IO](getClass.getResource("/lorem-ipsum.txt"), testBlockingExecutionContext)
         .value
         .unsafeRunSync
         .fold[EntityBody[IO]](sys.error("Couldn't find resource"))(_.body)
@@ -135,14 +150,14 @@ class StaticFileSpec extends Http4sSpec {
       // saves chunks, which are mutated by naive usage of readInputStream.
       // This ensures that we're making a defensive copy of the bytes for
       // things like CachingChunkWriter that buffer the chunks.
-      new String(s.segments.compile.foldMonoid.unsafeRunSync().force.toArray, "utf-8") must_== expected
+      new String(s.compile.to[Array].unsafeRunSync(), "utf-8") must_== expected
     }
 
     "Set content-length header from a URL" in {
       val url = getClass.getResource("/lorem-ipsum.txt")
       val len =
         StaticFile
-          .fromURL[IO](url)
+          .fromURL[IO](url, testBlockingExecutionContext)
           .value
           .map(_.flatMap(_.contentLength))
       len must returnValue(beSome(24005L))

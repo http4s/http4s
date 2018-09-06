@@ -713,9 +713,10 @@ trait ArbitraryInstances {
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
-        case Right(bs) => IO { bytes = bs }
-        case Left(t) => IO.raiseError(t)
-      } *> readBytes
+          case Right(bs) => IO { bytes = bs }
+          case Left(t) => IO.raiseError(t)
+        }
+        .toIO *> readBytes
     }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =

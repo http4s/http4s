@@ -13,6 +13,8 @@ import org.specs2.mutable.Specification
 
 class MultipartSpec extends Specification {
 
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(Http4sSpec.TestExecutionContext)
+
   val url = Uri(
     scheme = Some(Scheme.https),
     authority = Some(Authority(host = RegName("example.com"))),
@@ -80,7 +82,11 @@ class MultipartSpec extends Specification {
         val file = new File(getClass.getResource("/ball.png").toURI)
 
         val field1 = Part.formData[IO]("field1", "Text_Field_1")
-        val field2 = Part.fileData[IO]("image", file, `Content-Type`(MediaType.image.png))
+        val field2 = Part.fileData[IO](
+          "image",
+          file,
+          Http4sSpec.TestBlockingExecutionContext,
+          `Content-Type`(MediaType.image.png))
 
         val multipart = Multipart[IO](Vector(field1, field2))
 
@@ -124,7 +130,7 @@ Content-Type: application/pdf
         val request = Request[IO](
           method = Method.POST,
           uri = url,
-          body = Stream.emit(body).through(text.utf8Encode),
+          body = Stream.emit(body).covary[IO].through(text.utf8Encode),
           headers = header)
 
         val decoded = EntityDecoder[IO, Multipart[IO]].decode(request, true)
@@ -180,6 +186,7 @@ I am a big moose
   }
 
   multipartSpec("with default decoder")(implicitly)
-  multipartSpec("with mixed decoder")(MultipartDecoder.mixedMultipart[IO]())
+  multipartSpec("with mixed decoder")(
+    MultipartDecoder.mixedMultipart[IO](Http4sSpec.TestBlockingExecutionContext))
 
 }

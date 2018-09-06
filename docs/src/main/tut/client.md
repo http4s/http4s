@@ -31,35 +31,64 @@ import cats.effect._
 import org.http4s._
 import org.http4s.dsl.io._
 import org.http4s.server.blaze._
-import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
+Blaze needs a [[`ConcurrentEffect`]] instance, which is derived from
+[[`ContextShift`]].  The following lines are not necessary if you are
+in an [[`IOApp`]]:
+
+```tut:book:silent
+import scala.concurrent.ExecutionContext.global
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
+```
+
+Finish setting up our server:
+
 ```tut:book
-val service = HttpRoutes.of[IO] {
+val routes = HttpRoutes.of[IO] {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
 
-val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(service, "/").start
+val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(routes, "/").start
 val server = builder.unsafeRunSync
 ```
 
 ### Creating the client
 
-A good default choice is the `Http1Client`.  The `Http1Client` maintains a connection pool and
-speaks HTTP 1.x.
-
-Note: In production code you would want to use `Http1Client.stream[F[_]: Effect]: Stream[F, Client[F]]`
-to safely acquire and release resources. In the documentation we are forced to use `.unsafeRunSync` to
-create the client.
+A good default choice is the `BlazeClientBuilder`.  The
+`BlazeClientBuilder` maintains a connection pool and speaks HTTP 1.x.
 
 ```tut:book:silent
 import org.http4s.client.blaze._
 import org.http4s.client._
+import scala.concurrent.ExecutionContext.Implicits.global
 ```
 
 ```tut:book
-val httpClient: Client[IO] = Http1Client[IO]().unsafeRunSync
+BlazeClientBuilder[IO](global).resource.use { client =>
+  // use `client` here and return an `IO`.
+  // the client will be acquired and shut down
+  // automatically each time the `IO` is run.
+  IO.unit
+}
+```
+
+For the remainder of this tut, we'll use an alternate client backend
+built on the standard `java.net` library client.  Unlike the blaze
+client, it does not need to be shut down.  Like the blaze-client, and
+any other http4s backend, it presents the exact same `Client`
+interface!
+
+It uses blocking IO and is less suited for production, but it is
+highly useful in a REPL:
+
+```tut:book:silent
+import scala.concurrent.ExecutionContext
+import java.util.concurrent._
+
+val blockingEC = ExecutionContext.fromExecutorService(Executors.newFixedThreadPool(5))
+val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
 ```
 
 ### Describing a call
@@ -256,6 +285,13 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
+```tut:silent
+blockingEC.shutdown()
+```
+
 [service]: ../service
 [entity]: ../entity
 [json]: ../json
+[`ContextShift`]: https://typelevel.org/cats-effect/datatypes/contextshift.html
+[`ConcurrentEffect`]: https://typelevel.org/cats-effect/typeclasses/concurrent-effect.html
+[`IOApp`]: https://typelevel.org/cats-effect/datatypes/ioapp.html

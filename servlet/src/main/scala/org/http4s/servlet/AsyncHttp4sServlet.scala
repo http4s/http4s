@@ -6,15 +6,13 @@ import cats.effect._
 import cats.implicits.{catsSyntaxEither => _, _}
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import org.http4s.internal.{loggingAsyncCallback, unsafeRunAsync}
+import org.http4s.internal.loggingAsyncCallback
 import org.http4s.server._
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class AsyncHttp4sServlet[F[_]](
     service: HttpRoutes[F],
     asyncTimeout: Duration = Duration.Inf,
-    implicit private[this] val executionContext: ExecutionContext = ExecutionContext.global,
     private[this] var servletIo: ServletIo[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: ConcurrentEffect[F])
     extends Http4sServlet[F](service, servletIo) {
@@ -24,24 +22,13 @@ class AsyncHttp4sServlet[F[_]](
 
   override def init(config: ServletConfig): Unit = {
     super.init(config)
-
-    verifyServletIo(servletApiVersion)
     logServletIo()
-  }
-
-  // TODO This is a dodgy check.  It will have already triggered class loading of javax.servlet.WriteListener.
-  // Remove when we can break binary compatibility.
-  private def verifyServletIo(servletApiVersion: ServletApiVersion): Unit = servletIo match {
-    case NonBlockingServletIo(chunkSize) if servletApiVersion < ServletApiVersion(3, 1) =>
-      logger.warn(
-        "Non-blocking servlet I/O requires Servlet API >= 3.1. Falling back to blocking I/O.")
-      servletIo = BlockingServletIo[F](chunkSize)
-    case _ => // cool
   }
 
   private def logServletIo(): Unit =
     logger.info(servletIo match {
-      case BlockingServletIo(chunkSize) => s"Using blocking servlet I/O with chunk size $chunkSize"
+      case BlockingServletIo(chunkSize, _) =>
+        s"Using blocking servlet I/O with chunk size $chunkSize"
       case NonBlockingServletIo(chunkSize) =>
         s"Using non-blocking servlet I/O with chunk size $chunkSize"
     })
@@ -54,16 +41,17 @@ class AsyncHttp4sServlet[F[_]](
       ctx.setTimeout(asyncTimeoutMillis)
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
-      unsafeRunAsync(
-        toRequest(servletRequest).fold(
-          onParseFailure(_, servletResponse, bodyWriter),
-          handleRequest(ctx, _, bodyWriter)
-        )) {
-        case Right(()) =>
-          IO(ctx.complete())
-        case Left(t) =>
-          IO(errorHandler(servletRequest, servletResponse)(t))
-      }
+      F.runAsync(
+          toRequest(servletRequest).fold(
+            onParseFailure(_, servletResponse, bodyWriter),
+            handleRequest(ctx, _, bodyWriter)
+          )) {
+          case Right(()) =>
+            IO(ctx.complete())
+          case Left(t) =>
+            IO(errorHandler(servletRequest, servletResponse)(t))
+        }
+        .unsafeRunSync()
     } catch errorHandler(servletRequest, servletResponse)
 
   private def handleRequest(
@@ -73,7 +61,7 @@ class AsyncHttp4sServlet[F[_]](
     val timeout = F.async[Unit] { cb =>
       ctx.addListener(new AsyncTimeoutHandler(cb))
     }
-    val response = Async.shift(executionContext) *>
+    val response =
       optionTSync
         .suspend(serviceFn(request))
         .getOrElse(Response.notFound)
@@ -103,7 +91,7 @@ class AsyncHttp4sServlet[F[_]](
           if (servletRequest.isAsyncStarted)
             servletRequest.getAsyncContext.complete()
         )
-      unsafeRunAsync(f)(loggingAsyncCallback(logger))
+      F.runAsync(f)(loggingAsyncCallback(logger)).unsafeRunSync()
   }
 
   private class AsyncTimeoutHandler(cb: Callback[Unit]) extends AbstractAsyncListener {
@@ -118,13 +106,11 @@ class AsyncHttp4sServlet[F[_]](
 object AsyncHttp4sServlet {
   def apply[F[_]: ConcurrentEffect](
       service: HttpRoutes[F],
-      asyncTimeout: Duration = Duration.Inf,
-      executionContext: ExecutionContext = ExecutionContext.global): AsyncHttp4sServlet[F] =
+      asyncTimeout: Duration = Duration.Inf): AsyncHttp4sServlet[F] =
     new AsyncHttp4sServlet[F](
       service,
       asyncTimeout,
-      executionContext,
-      BlockingServletIo[F](DefaultChunkSize),
+      NonBlockingServletIo[F](DefaultChunkSize),
       DefaultServiceErrorHandler
     )
 }
