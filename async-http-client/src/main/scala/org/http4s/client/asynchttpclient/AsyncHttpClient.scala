@@ -4,7 +4,7 @@ package asynchttpclient
 
 import cats.data.Kleisli
 import cats.effect._
-import cats.implicits._
+import cats.implicits.{catsSyntaxEither => _, _}
 import cats.effect.implicits._
 import fs2.Stream._
 import fs2._
@@ -139,7 +139,6 @@ object AsyncHttpClient {
       }
   }
 
-  import cats.syntax._
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
