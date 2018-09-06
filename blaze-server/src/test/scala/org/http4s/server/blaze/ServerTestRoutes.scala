@@ -116,6 +116,6 @@ object ServerTestRoutes extends Http4sDsl[IO] {
     // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
     case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
       NotModified()
-  }
+  }.orNotFound
 
 }

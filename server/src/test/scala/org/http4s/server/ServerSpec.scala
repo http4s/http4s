@@ -1,14 +1,15 @@
+/**
 package org.http4s
 package server
 
 import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
-import org.http4s.dsl.Http4sDsl
+import org.http4s.dsl.io._
 import org.specs2.specification.AfterAll
 import scala.io.Source
 
-trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
+trait ServerSpec extends Http4sSpec with AfterAll {
   def builder: ServerBuilder[IO]
 
   val server =
@@ -24,7 +25,7 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
 
         case req @ POST -> Root / "echo" =>
           Ok(req.body)
-      })
+      }.orNotFound)
       .start
       .unsafeRunSync()
 
@@ -64,3 +65,4 @@ trait ServerSpec extends Http4sSpec with Http4sDsl[IO] with AfterAll {
     }
   }
 }
+**/
