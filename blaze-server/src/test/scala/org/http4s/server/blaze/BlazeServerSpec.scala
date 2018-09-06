@@ -30,7 +30,7 @@ class BlazeServerSpec extends Http4sSpec with AfterAll {
     val server =
     builder
       .bindAny()
-      .mountService(service)
+      .withHttpApp(service)
       .start
       .unsafeRunSync()
 

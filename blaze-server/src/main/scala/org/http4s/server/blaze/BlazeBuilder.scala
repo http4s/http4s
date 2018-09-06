@@ -66,7 +66,7 @@ class BlazeBuilder[F[_]](
     isHttp2Enabled: Boolean,
     maxRequestLineLen: Int,
     maxHeadersLen: Int,
-    serviceMount: HttpApp[F],
+    httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F],
     banner: immutable.Seq[String]
 )(implicit protected val F: ConcurrentEffect[F])
@@ -91,7 +91,7 @@ class BlazeBuilder[F[_]](
       http2Support: Boolean = isHttp2Enabled,
       maxRequestLineLen: Int = maxRequestLineLen,
       maxHeadersLen: Int = maxHeadersLen,
-      serviceMount: HttpApp[F] = serviceMount,
+      httpApp: HttpApp[F] = httpApp,
       serviceErrorHandler: ServiceErrorHandler[F] = serviceErrorHandler,
       banner: immutable.Seq[String] = banner
   ): Self =
@@ -107,7 +107,7 @@ class BlazeBuilder[F[_]](
       http2Support,
       maxRequestLineLen,
       maxHeadersLen,
-      serviceMount,
+      httpApp,
       serviceErrorHandler,
       banner
     )
@@ -157,8 +157,8 @@ class BlazeBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  def mountService(service: HttpApp[F]): Self = {
-    copy(serviceMount = service)
+  def withHttpApp(httpApp: HttpApp[F]): Self = {
+    copy(httpApp = httpApp)
   }
 
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self =
@@ -168,7 +168,6 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    // val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)
@@ -193,7 +192,7 @@ class BlazeBuilder[F[_]](
 
         def http1Stage(secure: Boolean) =
           Http1ServerStage(
-            serviceMount,
+            httpApp,
             requestAttributes(secure = secure),
             executionContext,
             enableWebSockets,
@@ -205,7 +204,7 @@ class BlazeBuilder[F[_]](
         def http2Stage(engine: SSLEngine): ALPNServerSelector =
           ProtocolSelector(
             engine,
-            serviceMount,
+            httpApp,
             maxRequestLineLen,
             maxHeadersLen,
             requestAttributes(secure = true),
@@ -332,7 +331,7 @@ object BlazeBuilder {
       isHttp2Enabled = false,
       maxRequestLineLen = 4 * 1024,
       maxHeadersLen = 40 * 1024,
-      serviceMount = defaultApp[F],
+      httpApp = defaultApp[F],
       serviceErrorHandler = DefaultServiceErrorHandler,
       banner = ServerBuilder.DefaultBanner
     )

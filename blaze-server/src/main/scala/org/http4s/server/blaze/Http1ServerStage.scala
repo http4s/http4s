@@ -49,7 +49,7 @@ private[blaze] object Http1ServerStage {
 }
 
 private[blaze] class Http1ServerStage[F[_]](
-    routes: HttpApp[F],
+    httpApp: HttpApp[F],
     requestAttrs: AttributeMap,
     implicit protected val executionContext: ExecutionContext,
     maxRequestLineLen: Int,
@@ -59,8 +59,7 @@ private[blaze] class Http1ServerStage[F[_]](
     with TailStage[ByteBuffer] {
 
   // micro-optimization: unwrap the routes and call its .run directly
-  private[this] val routesFn = routes.run
-  // private[this] val optionTSync = Sync[OptionT[F, ?]]
+  private[this] val routesFn = httpApp.run
 
   // both `parser` and `isClosed` are protected by synchronization on `parser`
   private[this] val parser = new Http1ServerParser[F](logger, maxRequestLineLen, maxHeadersLen)

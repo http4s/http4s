@@ -24,13 +24,12 @@ private class Http2NodeStage[F[_]](
     timeout: Duration,
     implicit private val executionContext: ExecutionContext,
     attributes: AttributeMap,
-    service: HttpApp[F],
+    httpApp: HttpApp[F],
     serviceErrorHandler: ServiceErrorHandler[F])(implicit F: Effect[F])
     extends TailStage[StreamFrame] {
 
   // micro-optimization: unwrap the service and call its .run directly
-  private[this] val serviceFn = service.run
-  // private[this] val optionTSync = Sync[OptionT[F, ?]]
+  private[this] val serviceFn = httpApp.run
 
   override def name = "Http2NodeStage"
 
