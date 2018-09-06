@@ -278,15 +278,16 @@ import org.http4s.client.dsl.io._
 import org.http4s.client.blaze._
 import cats.effect.IO
 import io.circe.generic.auto._
+import fs2.Stream
 
 // Decode the Hello response
-def helloClient(name: String): IO[Hello] = {
+def helloClient(name: String): Stream[IO, Hello] = {
   // Encode a User request
   val req = POST(uri("http://localhost:8080/hello"), User(name).asJson)
   // Create a client
   BlazeClientBuilder[IO](global).stream.flatMap { httpClient =>
     // Decode a Hello response
-    httpClient.expect(req)(jsonOf[IO, Hello])
+    Stream.eval(httpClient.expect(req)(jsonOf[IO, Hello]))
   }
 }
 ```
@@ -296,7 +297,7 @@ Finally, we post `User("Alice")` to our Hello service and expect
 
 ```tut:book
 val helloAlice = helloClient("Alice")
-helloAlice.unsafeRunSync
+helloAlice.compile.last.unsafeRunSync
 ```
 
 ```tut:invisible

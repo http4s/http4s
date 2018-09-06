@@ -167,17 +167,24 @@ with an abstract `run` method that returns a `IO[ExitCode]`.  An
 the infinite process and gracefully shut down your server when a
 SIGTERM is received.
 
-```tut:book
-import cats.effect.IO
+```tut:book:reset
+import cats.effect._
 import cats.implicits._
+import org.http4s.HttpRoutes
+import org.http4s.dsl.io._
 import org.http4s.server.blaze._
 
 object Main extends IOApp {
+
+  val helloWorldService = HttpRoutes.of[IO] {
+    case GET -> Root / "hello" / name =>
+      Ok(s"Hello, $name.")
+  }
+
   def run(args: List[String]): IO[ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080, "localhost")
       .mountService(helloWorldService, "/")
-      .mountService(services, "/api")
       .serve
       .compile
       .drain
