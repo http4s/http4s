@@ -88,23 +88,157 @@ it.</p>
 
 <h1 id="v0-19-0-snapshot">v0.19.0-SNAPSHOT</h1>
 
+<h2 id="breaking-changes">Breaking changes</h2>
+
 <ul>
-<li>Add <code>UUIDVar</code> path extractor <a href="https://github.com/http4s/pull/1953">#1953</a></li>
-<li>Don&rsquo;t build <code>SSLContext</code> where not required in blaze-client <a href="https://github.com/http4s/http4s/pull/1956">#1956</a></li>
-<li>Add new <code>prometheus-client-metrics</code> module <a href="https://github.com/http4s/http4s/pull/1961">#1961</a></li>
-<li>Add <code>onClose</code> action in <code>WebSocketBuilder</code> <a href="https://github.com/phttp4s/http4s/pull/1973">#1973</a></li>
-<li>Add new <code>client-metrics</code> module for Dropwizard client metrics <a href="https://github.com/http4s/http4s/pull/1974">#1974</a></li>
-<li>Cancel requests on servlet backend when <code>AsyncTimeoutHandler.onTimeout</code> fires. Jetty and Tomcat now require a <code>ConcurrentEffect</code>. <a href="https://github.com/http4s/http4s/pull/1802">#1802</a></li>
-<li>Internal refactoring of the client <code>ConnectionManager</code>.  No API changes, but worth mentioning. <a href="https://github.com/http4s/http4s/pull/1934">#1934</a></li>
-<li>Dependency upgrades:
+<li><a href="https://github.com/http4s/http4s/pull/1802">#1802</a>: Race servlet requests against the <code>AsyncContext.timeout</code>. <code>JettyBuilder</code> and <code>TomcatBuilder</code> now require a <code>ConcurrentEffect</code> instance.</li>
+<li><a href="https://github.com/http4s/http4s/pull/1934">#1934</a>: Refactoring of <code>ConnectionManager</code>.  Now requires a <code>Concurrent</code> instance, which ripples to a <code>ConcurrentEffect</code> in blaze-client builders</li>
+<li><a href="https://github.com/http4s/http4s/pull/2023">#2023</a>: Don&rsquo;t overwrite existing <code>Vary</code> headers from <code>CORS</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2023">#2030</a>: Restrict <code>MethodNotAllowed</code> response generator in DSL</li>
+<li><a href="https://github.com/http4s/http4s/pull/2032">#2032</a>: Eliminate mutable <code>Status</code> registry. IANA-registered <code>Status</code>es are still cached, but <code>register</code> is no longer public.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2026">#2026</a>: <code>CSRF</code> enhancements
+
+<ul>
+<li>CSRF tokens represented with a newtype</li>
+<li>CSRF token signatures are encoded hexadecimal strings, making them URI-safe.</li>
+<li>Added a <code>headerCheck: Request[F] =&gt; Boolean</code> parameter</li>
+<li>Added an <code>onFailure: Response[F]</code> parameter, which defaults to a <code>403</code>. This was formerly a hardcoded <code>401</code>.</li>
+</ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2026">#1993</a>: Massive changes from cats-effect and fs2 upgrades
+
+<ul>
+<li><code>Timer</code> added to <code>AsyncHttpClient</code></li>
+<li>Dropwizard <code>Metrics</code> middleware now takes a <code>Clock</code> rather than a <code>Timer</code></li>
+<li>Client builders renamed and refactored for consistency and to support binary compatible evolution after 1.0:</li>
+<li><code>BlazeClientBuilder</code> replaces <code>Http1Client</code>, <code>BlazeClient</code>, and <code>BlazeClientConfig</code></li>
+<li>Removed deprecated <code>SimpleHttp1Client</code></li>
+<li><code>JavaNetClient</code> renamed to <code>JavaNetClientBuilder</code>, which now has a <code>resource</code> and <code>stream</code></li>
+<li><code>OkHttp</code> renamed to <code>OkHttpBuilder</code>.  The client now created from an <code>OkHttpClient</code> instance instead of an <code>F[OkHttpClient.Builder]</code>. A default client can be created as a <code>Resource</code> through <code>OkHttp.default</code>.</li>
+<li>Fallout from removal of <code>fs2.Segment</code></li>
+<li><code>EntityDecoder.collectBinary</code> now decodes a <code>Chunk</code></li>
+<li><code>EntityDecoder.binaryChunk</code> deprecated</li>
+<li><code>SegmentWriter</code> is removed</li>
+<li>Changes to:
+
+<ul>
+<li><code>ChunkWriter</code>s in blaze rewritten</li>
+<li><code>Logger</code> middlewares</li>
+<li><code>MemoryCache</code></li>
+</ul></li>
+<li>Blocking I/O now requires a blocking <code>ExecutionContext</code> and a <code>ContextShift</code>:</li>
+<li><code>EntityDecoder</code>s:
+
+<ul>
+<li><code>EntityDecoder.binFile</code></li>
+<li><code>EntityDecoder.textFile</code></li>
+<li><code>MultipartDecoder.mixedMultipart</code></li>
+</ul></li>
+<li><code>EntityEncoder</code>s (no longer implicit):
+
+<ul>
+<li><code>File</code></li>
+<li><code>Path</code></li>
+<li><code>InputStream</code></li>
+<li><code>Reader</code></li>
+</ul></li>
+<li>Multipart:
+
+<ul>
+<li><code>MultipartParser.parseStreamedFile</code></li>
+<li><code>MultipartParser.parseToPartsStreamedFile</code></li>
+<li><code>Part.fileData</code></li>
+</ul></li>
+<li>Static resources:
+
+<ul>
+<li><code>StaticFile.fromString</code></li>
+<li><code>StaticFile.fromResource</code></li>
+<li><code>StaticFile.fromURL</code></li>
+<li><code>StaticFile.fromFile</code></li>
+<li><code>FileService.Config</code></li>
+<li><code>ResourceService.Config</code></li>
+<li><code>WebjarService.Config</code></li>
+</ul></li>
+<li><code>OkHttpBuilder</code></li>
+<li>Servlets:
+
+<ul>
+<li><code>BlockingHttp4sServlet</code></li>
+<li><code>BlockingServletIo</code></li>
+</ul></li>
+<li>Servlet backend changes:</li>
+<li><code>Http4sServlet</code> no longer shift onto an <code>ExecutionContext</code> by default.  Accordingly, <code>ServerBuilder</code> no longer has a <code>withExecutionContext</code>.</li>
+<li>Jetty and Tomcat builders use their native executor types instead of shifting onto an <code>ExecutionContext</code>.  Accordingly, <code>ServletBuilder#withExecutionContext</code> is removed.</li>
+<li><code>AsyncHttp4sServlet</code> and <code>ServletContextSyntax</code> now default to non-blocking I/O.  No startup check is made against the servlet version, which failed classloading on an older servlet container.  Neither takes an <code>ExeuctionContext</code> parameter anymore.</li>
+<li>Removed deprecated <code>StreamApp</code> aliases. <code>fs2.StreamApp</code> is removed and replaced by <code>cats.effect.IOApp</code>, <code>monix.eval.TaskApp</code>, or similar.</li>
+<li>Removed deprecated <code>ServerApp</code>.</li>
+<li><code>EntityLimiter</code> middleware now requires an <code>ApplicativeError</code></li>
+</ul></li>
+<li><a href="https://github.com/http4s/http4s/pull/2054">#2054</a>: blaze-server builder changes
+
+<ul>
+<li><code>BlazeBuilder</code> deprecated for <code>BlazeServerBuilder</code></li>
+<li><code>BlazeServerBuidler</code> has a single <code>withHttpApp(HttpApp)</code> in place of zero-to-many calls <code>mountService(HttpRoutes)</code>.</li>
+<li>This change makes it possible to mount an <code>HttpApp</code> wrapped in a <code>Logger</code> middleware, which only supports <code>HttpApp</code></li>
+<li>Call <code>.orNotFound</code>, from <code>org.http4s.implicits._</code>, to cap an <code>HttpRoutes</code> as <code>HttpApp</code></li>
+<li>Use <code>Router</code> to combine multiple <code>HttpRoutes</code> into a single <code>HttpRoutes</code> by prefix</li>
+<li>This interface will see more changes before 0.19.0 to promote long-term binary compatibility</li>
+</ul></li>
+</ul>
+
+<h2 id="enhancements">Enhancements</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/1953">#1953</a>: Add <code>UUIDVar</code> path extractor</li>
+<li><a href="https://github.com/http4s/http4s/pull/1963">#1963</a>: Throw <code>ConnectException</code> rather than <code>IOException</code> on blaze-client connection failures</li>
+<li><a href="https://github.com/http4s/http4s/pull/1974">#1974</a>: New <code>http4s-client-metrics</code> module for Dropwizard Metrics</li>
+<li><a href="https://github.com/http4s/http4s/pull/2024">#2024</a>: Add <code>HeaderEcho</code> server middleware</li>
+</ul>
+
+<h2 id="bugfixes">Bugfixes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2024">#2027</a>: Miscellaneous websocket fixes
+
+<ul>
+<li>Stop sending frames even after closed</li>
+<li>Avoid deadlock on small threadpools</li>
+<li>Send <code>Close</code> frame in response to <code>Close</code> frame</li>
+</ul></li>
+</ul>
+
+<h2 id="documentation-updates">Documentation updates</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/1953">#1935</a>: Make <code>http4sVersion</code> lowercase</li>
+<li><a href="https://github.com/http4s/http4s/pull/1943">#1943</a>: Make the imports in the Client documentation silent</li>
+<li><a href="https://github.com/http4s/http4s/pull/1944">#1944</a>: Upgrade to cryptobits-1.2</li>
+<li><a href="https://github.com/http4s/http4s/pull/1958">#2034</a>: Add branch to quickstart instructions</li>
+<li><a href="https://github.com/http4s/http4s/pull/2035">#2035</a>: Add Christopher Davenport to community staff</li>
+</ul>
+
+<h2 id="internal">Internal</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/1966">#1966</a>: Use scalafmt directly from IntelliJ</li>
+<li><a href="https://github.com/http4s/http4s/pull/1968">#1968</a>: Build with sbt-1.2.1</li>
+<li><a href="https://github.com/http4s/http4s/pull/1996">#1996</a>: Internal refactoring of <code>JettyBuilder</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2041">#2041</a>: Simplify implementations of <code>RetryPolicy</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2050">#2050</a>: Replace test <code>ExecutionContext</code> in <code>Http4sWSStageSpec</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2050">#2052</a>: Introduce expiring <code>TestScheduler</code> to avoid leaking threads on tests</li>
+</ul>
+
+<h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.2</li>
-<li>jawn-fs2-0.13.0-M1</li>
-<li>jawn-json4s-0.12.2</li>
-<li>jawn-play-0.12.2</li>
+<li>cats-1.3.1</li>
+<li>cats-effect-1.0.0</li>
+<li>circe-0.10.0-M2</li>
+<li>fs2-1.0.0-M5</li>
+<li>jawn-0.13.0</li>
+<li>jawn-fs2-0.13.0-M4</li>
 <li>json4s-3.6.0</li>
-</ul></li>
 </ul>
 
 <h1 id="v0-18-17-2018-09-04">v0.18.17 (2018-09-04)</h1>
