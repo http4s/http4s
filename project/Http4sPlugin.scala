@@ -278,7 +278,7 @@ object Http4sPlugin extends AutoPlugin {
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
-  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.5.2"
+  lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.5.3"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.14.0-M3"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
   lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.3.1"
@@ -303,9 +303,9 @@ object Http4sPlugin extends AutoPlugin {
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.13.0"
   lazy val jawnPlay                         = "org.spire-math"         %% "jawn-play"                 % "0.13.0"
   lazy val jettyRunner                      = "org.eclipse.jetty"      %  "jetty-runner"              % jettyServer.revision
-  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.11.v20180605"
+  lazy val jettyServer                      = "org.eclipse.jetty"      %  "jetty-server"              % "9.4.12.v20180830"
   lazy val jettyServlet                     = "org.eclipse.jetty"      %  "jetty-servlet"             % jettyServer.revision
-  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.0"
+  lazy val json4sCore                       = "org.json4s"             %% "json4s-core"               % "3.6.1"
   lazy val json4sJackson                    = "org.json4s"             %% "json4s-jackson"            % json4sCore.revision
   lazy val json4sNative                     = "org.json4s"             %% "json4s-native"             % json4sCore.revision
   lazy val jspApi                           = "javax.servlet.jsp"      %  "javax.servlet.jsp-api"     % "2.3.3" // YourKit hack
