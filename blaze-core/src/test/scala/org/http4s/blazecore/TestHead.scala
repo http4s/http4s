@@ -14,6 +14,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
   private val p = Promise[ByteBuffer]
 
   var closed = false
+  @volatile var outboundCommands = Vector[OutboundCommand]()
 
   def getBytes(): Array[Byte] = acc.toArray.flatten
 
@@ -36,11 +37,14 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     ()
   }
 
-  override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
-    case Connect => stageStartup()
-    case Disconnect => stageShutdown()
-    case Error(e) => logger.error(e)(s"$name received unhandled error command")
-    case _ => // hushes ClientStageTimeout commands that we can't see here
+  override def outboundCommand(cmd: OutboundCommand): Unit = {
+    outboundCommands :+= cmd
+    cmd match {
+      case Connect => stageStartup()
+      case Disconnect => stageShutdown()
+      case Error(e) => logger.error(e)(s"$name received unhandled error command")
+      case _ => // hushes ClientStageTimeout commands that we can't see here
+    }
   }
 }
 

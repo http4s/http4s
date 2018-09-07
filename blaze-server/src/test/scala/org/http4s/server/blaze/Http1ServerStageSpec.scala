@@ -1,18 +1,19 @@
 package org.http4s.server
 package blaze
 
+import cats.data.Kleisli
 import cats.effect._
 import cats.implicits._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.{headers => H, _}
 import org.http4s.blaze._
-import org.http4s.blaze.pipeline.{Command => Cmd}
+import org.http4s.blaze.pipeline.Command.{Connected, Disconnect}
 import org.http4s.blazecore.{ResponseParser, SeqTestHead}
 import org.http4s.dsl.io._
 import org.http4s.headers.{Date, `Content-Length`, `Transfer-Encoding`}
 import org.specs2.specification.core.Fragment
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSpec {
@@ -35,7 +36,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       req: Seq[String],
       httpApp: HttpApp[IO],
       maxReqLine: Int = 4 * 1024,
-      maxHeaders: Int = 16 * 1024): Future[ByteBuffer] = {
+      maxHeaders: Int = 16 * 1024): SeqTestHead = {
     val head = new SeqTestHead(
       req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
     val httpStage = Http1ServerStage[IO](
@@ -48,8 +49,8 @@ class Http1ServerStageSpec extends Http4sSpec {
       DefaultServiceErrorHandler)
 
     pipeline.LeafBuilder(httpStage).base(head)
-    head.sendInboundCommand(Cmd.Connected)
-    head.result
+    head.sendInboundCommand(Connected)
+    head
   }
 
   "Http1ServerStage: Invalid Lengths" should {
@@ -62,14 +63,14 @@ class Http1ServerStageSpec extends Http4sSpec {
       .orNotFound
 
     "fail on too long of a request line" in {
-      val buff = Await.result(runRequest(Seq(req), routes, maxReqLine = 1), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req), routes, maxReqLine = 1).result, 5.seconds)
       val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
       // make sure we don't have signs of chunked encoding.
       str.contains("400 Bad Request") must_== true
     }
 
     "fail on too long of a header" in {
-      val buff = Await.result(runRequest(Seq(req), routes, maxHeaders = 1), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req), routes, maxHeaders = 1).result, 5.seconds)
       val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
       // make sure we don't have signs of chunked encoding.
       str.contains("400 Bad Request") must_== true
@@ -81,11 +82,11 @@ class Http1ServerStageSpec extends Http4sSpec {
       case ((req, (status, headers, resp)), i) =>
         if (i == 7 || i == 8) // Awful temporary hack
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
-            val result = Await.result(runRequest(Seq(req), ServerTestRoutes()), 5.seconds)
+            val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
           } else
           s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
-            val result = Await.result(runRequest(Seq(req), ServerTestRoutes()), 5.seconds)
+            val result = Await.result(runRequest(Seq(req), ServerTestRoutes()).result, 5.seconds)
             parseAndDropDate(result) must_== ((status, headers, resp))
           }
     }
@@ -104,7 +105,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       .orNotFound
 
     def runError(path: String) =
-      runRequest(List(path), exceptionService)
+      runRequest(List(path), exceptionService).result
         .map(parseAndDropDate)
         .map {
           case (s, h, r) =>
@@ -164,7 +165,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       // The first request will get split into two chunks, leaving the last byte off
       val req = "GET /foo HTTP/1.1\r\n\r\n"
 
-      val buff = Await.result(runRequest(Seq(req), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req), routes).result, 5.seconds)
 
       val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
       // make sure we don't have signs of chunked encoding.
@@ -188,7 +189,7 @@ class Http1ServerStageSpec extends Http4sSpec {
 
       val req = "GET /foo HTTP/1.1\r\n\r\n"
 
-      val buf = Await.result(runRequest(Seq(req), routes), 5.seconds)
+      val buf = Await.result(runRequest(Seq(req), routes).result, 5.seconds)
       val (status, hs, body) = ResponseParser.parseBuffer(buf)
 
       val hss = Headers(hs.toList)
@@ -207,7 +208,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-      val buff = Await.result(runRequest(Seq(req1), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req1), routes).result, 5.seconds)
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
@@ -225,7 +226,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-      val buff = Await.result(runRequest(Seq(req1), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req1), routes).result, 5.seconds)
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
@@ -244,7 +245,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11, r12) = req1.splitAt(req1.length - 1)
 
-      val buff = Await.result(runRequest(Seq(r11, r12), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(r11, r12), routes).result, 5.seconds)
 
       // Both responses must succeed
       parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`.unsafeFromLong(4)), "done"))
@@ -264,7 +265,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11, r12) = req1.splitAt(req1.length - 1)
 
-      val buff = Await.result(runRequest(Seq(r11, r12), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(r11, r12), routes).result, 5.seconds)
 
       // Both responses must succeed
       parseAndDropDate(buff) must_== (
@@ -288,7 +289,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(req1, req2), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req1, req2), routes).result, 5.seconds)
 
       val hs = Set(
         H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
@@ -312,7 +313,7 @@ class Http1ServerStageSpec extends Http4sSpec {
 
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(r11, r12, req2), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(r11, r12, req2), routes).result, 5.seconds)
 
       val hs = Set(
         H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
@@ -335,7 +336,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val (r11, r12) = req1.splitAt(req1.length - 1)
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(r11, r12, req2), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(r11, r12, req2), routes).result, 5.seconds)
 
       val hs = Set(
         H.`Content-Type`(MediaType.text.plain, Charset.`UTF-8`),
@@ -359,7 +360,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(req1 + req2), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req1 + req2), routes).result, 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== (
@@ -386,7 +387,7 @@ class Http1ServerStageSpec extends Http4sSpec {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(runRequest(Seq(req1, req2), routes), 5.seconds)
+      val buff = Await.result(runRequest(Seq(req1, req2), routes).result, 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== (
@@ -428,7 +429,7 @@ class Http1ServerStageSpec extends Http4sSpec {
         .orNotFound
 
       "Handle trailing headers" in {
-        val buff = Await.result(runRequest(Seq(req("foo")), routes), 5.seconds)
+        val buff = Await.result(runRequest(Seq(req("foo")), routes).result, 5.seconds)
 
         val results = dropDate(ResponseParser.parseBuffer(buff))
         results._1 must_== Ok
@@ -436,11 +437,17 @@ class Http1ServerStageSpec extends Http4sSpec {
       }
 
       "Fail if you use the trailers before they have resolved" in {
-        val buff = Await.result(runRequest(Seq(req("bar")), routes), 5.seconds)
+        val buff = Await.result(runRequest(Seq(req("bar")), routes).result, 5.seconds)
 
         val results = dropDate(ResponseParser.parseBuffer(buff))
         results._1 must_== InternalServerError
       }
     }
+  }
+
+  "Disconnect if we read an EOF" in {
+    val head = runRequest(Seq.empty, Kleisli.liftF(Ok("")))
+    Await.ready(head.result, 10.seconds)
+    head.outboundCommands must_== Seq(Disconnect)
   }
 }
