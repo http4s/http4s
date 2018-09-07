@@ -68,13 +68,26 @@ your PR fails due to formatting, run `;test:scalafmt`.
 
 [Scalafmt]: http://scalameta.org/scalafmt/
 
+#### IntelliJ IDEA specific settings
+
+To setup IntelliJ IDEA to conform with the formatting used in this project, 
+the following settings should be changed from the default.
+
+Under `Settings > Editor > Code Style > Scala`:
+
+* Set `Formatter` to `scalafmt`. The default path for the `.scalafmt.conf` 
+file should work, if not, point it to the `.scalafmt.conf` in the root of
+the project.
+* In the `Imports` tab, in the `Import layout` pane, delete all entries, 
+except for `all other imports`. This disables the grouping and sorting of
+imports that IntelliJ does by default.
+
 ### Types
 
 #### Effects
 
 Prefer a parameterized effect type and cats-effect type classes over
-specializing on a task. (In versions before cats-effect is on the classpath,
-specialize on use `fs2.Task` or `scalaz.concurrent.Task`.)
+specializing on a task.
 
 ```scala
 // Good
