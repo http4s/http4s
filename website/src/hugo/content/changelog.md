@@ -9,19 +9,111 @@ ordered chronologically, so each release contains all changes described below
 it.
 
 # v0.19.0-SNAPSHOT
-* Add `UUIDVar` path extractor [#1953](https://github.com/http4s/pull/1953)
-* Don't build `SSLContext` where not required in blaze-client [#1956](https://github.com/http4s/http4s/pull/1956)
-* Add new `prometheus-client-metrics` module [#1961](https://github.com/http4s/http4s/pull/1961)
-* Add `onClose` action in `WebSocketBuilder` [#1973](https://github.com/phttp4s/http4s/pull/1973)
-* Add new `client-metrics` module for Dropwizard client metrics [#1974](https://github.com/http4s/http4s/pull/1974)
-* Cancel requests on servlet backend when `AsyncTimeoutHandler.onTimeout` fires. Jetty and Tomcat now require a `ConcurrentEffect`. [#1802](https://github.com/http4s/http4s/pull/1802)
-* Internal refactoring of the client `ConnectionManager`.  No API changes, but worth mentioning. [#1934](https://github.com/http4s/http4s/pull/1934)
-* Dependency upgrades:
-  * async-http-client-2.5.2
-  * jawn-fs2-0.13.0-M1
-  * jawn-json4s-0.12.2
-  * jawn-play-0.12.2
-  * json4s-3.6.0
+
+## Breaking changes
+* [#1802](https://github.com/http4s/http4s/pull/1802): Race servlet requests against the `AsyncContext.timeout`. `JettyBuilder` and `TomcatBuilder` now require a `ConcurrentEffect` instance.
+* [#1934](https://github.com/http4s/http4s/pull/1934): Refactoring of `ConnectionManager`.  Now requires a `Concurrent` instance, which ripples to a `ConcurrentEffect` in blaze-client builders
+* [#2023](https://github.com/http4s/http4s/pull/2023): Don't overwrite existing `Vary` headers from `CORS`
+* [#2030](https://github.com/http4s/http4s/pull/2023): Restrict `MethodNotAllowed` response generator in DSL
+* [#2032](https://github.com/http4s/http4s/pull/2032): Eliminate mutable `Status` registry. IANA-registered `Status`es are still cached, but `register` is no longer public.
+* [#2026](https://github.com/http4s/http4s/pull/2026): `CSRF` enhancements
+  * CSRF tokens represented with a newtype
+  * CSRF token signatures are encoded hexadecimal strings, making them URI-safe.
+  * Added a `headerCheck: Request[F] => Boolean` parameter
+  * Added an `onFailure: Response[F]` parameter, which defaults to a `403`. This was formerly a hardcoded `401`.
+* [#1993](https://github.com/http4s/http4s/pull/2026): Massive changes from cats-effect and fs2 upgrades
+  * `Timer` added to `AsyncHttpClient`
+  * Dropwizard `Metrics` middleware now takes a `Clock` rather than a `Timer`
+  * Client builders renamed and refactored for consistency and to support binary compatible evolution after 1.0:
+    * `BlazeClientBuilder` replaces `Http1Client`, `BlazeClient`, and `BlazeClientConfig`
+    * Removed deprecated `SimpleHttp1Client`
+    * `JavaNetClient` renamed to `JavaNetClientBuilder`, which now has a `resource` and `stream`
+    * `OkHttp` renamed to `OkHttpBuilder`.  The client now created from an `OkHttpClient` instance instead of an `F[OkHttpClient.Builder]`. A default client can be created as a `Resource` through `OkHttp.default`.
+  * Fallout from removal of `fs2.Segment`
+    * `EntityDecoder.collectBinary` now decodes a `Chunk`
+    * `EntityDecoder.binaryChunk` deprecated
+    * `SegmentWriter` is removed
+    * Changes to:
+      * `ChunkWriter`s in blaze rewritten
+      * `Logger` middlewares
+      * `MemoryCache`
+  * Blocking I/O now requires a blocking `ExecutionContext` and a `ContextShift`:
+    * `EntityDecoder`s:
+      * `EntityDecoder.binFile`
+      * `EntityDecoder.textFile`
+      * `MultipartDecoder.mixedMultipart`
+    * `EntityEncoder`s (no longer implicit):
+      * `File`
+      * `Path`
+      * `InputStream`
+      * `Reader`
+    * Multipart:
+      * `MultipartParser.parseStreamedFile`
+      * `MultipartParser.parseToPartsStreamedFile`
+      * `Part.fileData`
+    * Static resources:
+      * `StaticFile.fromString`
+      * `StaticFile.fromResource`
+      * `StaticFile.fromURL`
+      * `StaticFile.fromFile`
+      * `FileService.Config`
+      * `ResourceService.Config`
+      * `WebjarService.Config`
+    * `OkHttpBuilder`
+    * Servlets:
+      * `BlockingHttp4sServlet`
+      * `BlockingServletIo`
+  * Servlet backend changes:
+    * `Http4sServlet` no longer shift onto an `ExecutionContext` by default.  Accordingly, `ServerBuilder` no longer has a `withExecutionContext`.
+    * Jetty and Tomcat builders use their native executor types instead of shifting onto an `ExecutionContext`.  Accordingly, `ServletBuilder#withExecutionContext` is removed.
+    * `AsyncHttp4sServlet` and `ServletContextSyntax` now default to non-blocking I/O.  No startup check is made against the servlet version, which failed classloading on an older servlet container.  Neither takes an `ExeuctionContext` parameter anymore.
+  * Removed deprecated `StreamApp` aliases. `fs2.StreamApp` is removed and replaced by `cats.effect.IOApp`, `monix.eval.TaskApp`, or similar.
+  * Removed deprecated `ServerApp`.
+  * `EntityLimiter` middleware now requires an `ApplicativeError`
+* [#2054](https://github.com/http4s/http4s/pull/2054): blaze-server builder changes
+  * `BlazeBuilder` deprecated for `BlazeServerBuilder`
+  * `BlazeServerBuidler` has a single `withHttpApp(HttpApp)` in place of zero-to-many calls `mountService(HttpRoutes)`.
+    * This change makes it possible to mount an `HttpApp` wrapped in a `Logger` middleware, which only supports `HttpApp`
+    * Call `.orNotFound`, from `org.http4s.implicits._`, to cap an `HttpRoutes` as `HttpApp`
+    * Use `Router` to combine multiple `HttpRoutes` into a single `HttpRoutes` by prefix
+    * This interface will see more changes before 0.19.0 to promote long-term binary compatibility
+
+## Enhancements
+* [#1953](https://github.com/http4s/http4s/pull/1953): Add `UUIDVar` path extractor
+* [#1963](https://github.com/http4s/http4s/pull/1963): Throw `ConnectException` rather than `IOException` on blaze-client connection failures
+* [#1974](https://github.com/http4s/http4s/pull/1974): New `http4s-client-metrics` module for Dropwizard Metrics
+* [#2024](https://github.com/http4s/http4s/pull/2024): Add `HeaderEcho` server middleware
+
+## Bugfixes
+* [#2027](https://github.com/http4s/http4s/pull/2024): Miscellaneous websocket fixes
+  * Stop sending frames even after closed
+  * Avoid deadlock on small threadpools
+  * Send `Close` frame in response to `Close` frame
+
+## Documentation updates
+* [#1935](https://github.com/http4s/http4s/pull/1953): Make `http4sVersion` lowercase
+* [#1943](https://github.com/http4s/http4s/pull/1943): Make the imports in the Client documentation silent
+* [#1944](https://github.com/http4s/http4s/pull/1944): Upgrade to cryptobits-1.2
+* [#2034](https://github.com/http4s/http4s/pull/1958): Add branch to quickstart instructions
+* [#2035](https://github.com/http4s/http4s/pull/2035): Add Christopher Davenport to community staff
+
+## Internal
+* [#1966](https://github.com/http4s/http4s/pull/1966): Use scalafmt directly from IntelliJ
+* [#1968](https://github.com/http4s/http4s/pull/1968): Build with sbt-1.2.1
+* [#1996](https://github.com/http4s/http4s/pull/1996): Internal refactoring of `JettyBuilder`
+* [#2041](https://github.com/http4s/http4s/pull/2041): Simplify implementations of `RetryPolicy`
+* [#2050](https://github.com/http4s/http4s/pull/2050): Replace test `ExecutionContext` in `Http4sWSStageSpec`
+* [#2052](https://github.com/http4s/http4s/pull/2050): Introduce expiring `TestScheduler` to avoid leaking threads on tests
+
+## Dependency upgrades
+* async-http-client-2.5.2
+* cats-1.3.1
+* cats-effect-1.0.0
+* circe-0.10.0-M2
+* fs2-1.0.0-M5
+* jawn-0.13.0
+* jawn-fs2-0.13.0-M4
+* json4s-3.6.0
 
 # v0.18.17 (2018-09-04)
 * Accumulate errors in `OptionalMultiQueryParamDecoderMatcher` [#2000](https://github.com/http4s/pull/2000)
