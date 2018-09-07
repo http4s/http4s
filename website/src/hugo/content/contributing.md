@@ -168,6 +168,8 @@ http4s is licensed under the [Apache License 2.0]. Opening a pull
 request signifies your consent to license your contributions under the
 Apache License 2.0.
 
+[Apache License 2.0]: https://www.apache.org/licenses/LICENSE-2.0.html
+
 ## Tests
 
 * Tests for http4s-core go into the `tests` module.
