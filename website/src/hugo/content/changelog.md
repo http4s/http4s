@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0-SNAPSHOT
+# v0.19.0-M2 (2018-09-07)
 
 ## Breaking changes
 * [#1802](https://github.com/http4s/http4s/pull/1802): Race servlet requests against the `AsyncContext.timeout`. `JettyBuilder` and `TomcatBuilder` now require a `ConcurrentEffect` instance.
@@ -83,6 +83,7 @@ it.
 * [#1963](https://github.com/http4s/http4s/pull/1963): Throw `ConnectException` rather than `IOException` on blaze-client connection failures
 * [#1974](https://github.com/http4s/http4s/pull/1974): New `http4s-client-metrics` module for Dropwizard Metrics
 * [#2024](https://github.com/http4s/http4s/pull/2024): Add `HeaderEcho` server middleware
+* [#2062](https://github.com/http4s/http4s/pull/2062): Eliminate "unhandled inbund command: Disconnected"` warnings in blaze-server
 
 ## Bugfixes
 * [#2027](https://github.com/http4s/http4s/pull/2024): Miscellaneous websocket fixes
@@ -96,6 +97,7 @@ it.
 * [#1944](https://github.com/http4s/http4s/pull/1944): Upgrade to cryptobits-1.2
 * [#2034](https://github.com/http4s/http4s/pull/1958): Add branch to quickstart instructions
 * [#2035](https://github.com/http4s/http4s/pull/2035): Add Christopher Davenport to community staff
+* [#2060](https://github.com/http4s/http4s/pull/2060): Guide to setting up IntelliJ for contributors
 
 ## Internal
 * [#1966](https://github.com/http4s/http4s/pull/1966): Use scalafmt directly from IntelliJ
@@ -107,6 +109,7 @@ it.
 
 ## Dependency upgrades
 * async-http-client-2.5.2
+* blaze-0.14.0-M4
 * cats-1.3.1
 * cats-effect-1.0.0
 * circe-0.10.0-M2
