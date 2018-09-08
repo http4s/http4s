@@ -16,6 +16,8 @@ import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 class Http1ServerStageSpec extends Http4sSpec {
+  sequential
+
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
     val a = new Array[Byte](b.remaining())
@@ -442,5 +444,17 @@ class Http1ServerStageSpec extends Http4sSpec {
         results._1 must_== InternalServerError
       }
     }
+  }
+
+  "cancels on stage shutdown" in {
+    var canceled = false
+    // This request will trigger a stage shutdown due to too short a body
+    val req = "POST /fail HTTP/1.0\r\nContent-Length: 100\r\n\r\nOverpromise and underdeliver"
+    val app: HttpApp[IO] = HttpApp { req =>
+      req.as[String].start.attempt >>
+        IO.cancelable(_ => IO { canceled = true })
+    }
+    runRequest(List(req), app)
+    eventually(canceled must_== true)
   }
 }
