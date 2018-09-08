@@ -271,10 +271,11 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  def playJsonVersion(scalaBinaryVersion: String) = scalaBinaryVersion match {
-    case "2.11" => "2.5.15"
-    case "2.12" => "2.6.10"
-  }
+  def playJsonVersion(scalaBinaryVersion: String): String =
+    CrossVersion.partialVersion(scalaBinaryVersion) match {
+      case Some((2, 11)) => "2.5.15"
+      case _ => "2.6.10"
+    }
 
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
