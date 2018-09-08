@@ -18,7 +18,8 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
+import org.http4s.blaze.pipeline.stages.SSLStage
+import org.http4s.blaze.temp.QuietTimeoutStage
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.log4s.getLogger
 import scala.collection.immutable
