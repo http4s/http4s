@@ -81,7 +81,9 @@ it.
 ## Enhancements
 * [#1953](https://github.com/http4s/http4s/pull/1953): Add `UUIDVar` path extractor
 * [#1963](https://github.com/http4s/http4s/pull/1963): Throw `ConnectException` rather than `IOException` on blaze-client connection failures
+* [#1961](https://github.com/http4s/http4s/pull/1961): New `http4s-prometheus-client-metrics` module
 * [#1974](https://github.com/http4s/http4s/pull/1974): New `http4s-client-metrics` module for Dropwizard Metrics
+* [#1973](https://github.com/http4s/http4s/pull/1973): Add `onClose` handler to `WebSocketBuilder`
 * [#2024](https://github.com/http4s/http4s/pull/2024): Add `HeaderEcho` server middleware
 * [#2062](https://github.com/http4s/http4s/pull/2062): Eliminate "unhandled inbund command: Disconnected"` warnings in blaze-server
 
@@ -95,6 +97,8 @@ it.
 * [#1935](https://github.com/http4s/http4s/pull/1953): Make `http4sVersion` lowercase
 * [#1943](https://github.com/http4s/http4s/pull/1943): Make the imports in the Client documentation silent
 * [#1944](https://github.com/http4s/http4s/pull/1944): Upgrade to cryptobits-1.2
+* [#1971](https://github.com/http4s/http4s/pull/1971): Minor corrections to DSL tut
+* [#1972](https://github.com/http4s/http4s/pull/1972): Add `UUIDVar` to DSL tut
 * [#2034](https://github.com/http4s/http4s/pull/1958): Add branch to quickstart instructions
 * [#2035](https://github.com/http4s/http4s/pull/2035): Add Christopher Davenport to community staff
 * [#2060](https://github.com/http4s/http4s/pull/2060): Guide to setting up IntelliJ for contributors
