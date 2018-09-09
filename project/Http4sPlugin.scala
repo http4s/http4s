@@ -271,11 +271,6 @@ object Http4sPlugin extends AutoPlugin {
     }
   }
 
-  def playJsonVersion(scalaBinaryVersion: String) = scalaBinaryVersion match {
-    case "2.11" => "2.5.15"
-    case "2.12" => "2.6.10"
-  }
-
   lazy val alpnBoot                         = "org.mortbay.jetty.alpn" %  "alpn-boot"                 % "8.1.12.v20180117"
   lazy val argonaut                         = "io.argonaut"            %% "argonaut"                  % "6.2.2"
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.5.3"
@@ -315,7 +310,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.21.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
-  def playJson(sbv: String)                 = "com.typesafe.play"      %% "play-json"                 % playJsonVersion(sbv)
+  lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.10"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
