@@ -99,7 +99,14 @@ object FollowRedirect {
                     pureBody.map(body => nextRequest(method, nextUri, Some(body)))
                 }
                 nextReq.fold(dontRedirect)(req =>
-                  dr.dispose.flatMap(_ => prepareLoop(req, redirects + 1)))
+                  dr.dispose.flatMap(_ => prepareLoop(req, redirects + 1))
+                    .map(disposableResponse => {
+                      val redirectUris = getRedirectUris(disposableResponse.response)
+                      val resp = disposableResponse.response
+                        .withAttribute(redirectUrisKey, req.uri +: redirectUris)
+                      disposableResponse.copy(response = resp)
+                    })
+                )
               }
             } else dontRedirect
 
@@ -150,4 +157,13 @@ object FollowRedirect {
 
     client.copy(open = Kleisli(prepareLoop(_, 0)))
   }
+
+  private val redirectUrisKey = AttributeKey[List[Uri]]
+
+  /**
+    * Get the redirection URIs for a `response`.
+    * Excludes the initial request URI
+    */
+  def getRedirectUris[F[_]](response: Response[F]): List[Uri] =
+    response.attributes.get(redirectUrisKey) getOrElse Nil
 }
