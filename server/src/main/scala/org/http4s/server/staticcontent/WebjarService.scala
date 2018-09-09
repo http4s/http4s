@@ -3,7 +3,8 @@ package server
 package staticcontent
 
 import cats.data.{Kleisli, OptionT}
-import cats.effect.Effect
+import cats.effect.{ContextShift, Effect}
+import scala.concurrent.ExecutionContext
 
 /**
   * Constructs new services to serve assets from Webjars
@@ -12,10 +13,12 @@ object WebjarService {
 
   /** [[org.http4s.server.staticcontent.WebjarService]] configuration
     *
+    * @param blockingExecutionContext execution context for blocking I/O
     * @param filter To filter which assets from the webjars should be served
     * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config[F[_]](
+      blockingExecutionContext: ExecutionContext,
       filter: WebjarAssetFilter = _ => true,
       cacheStrategy: CacheStrategy[F] = NoopCacheStrategy[F])
 
@@ -51,7 +54,7 @@ object WebjarService {
     * @param config The configuration for this service
     * @return The HttpRoutes
     */
-  def apply[F[_]: Effect](config: Config[F]): HttpRoutes[F] = Kleisli {
+  def apply[F[_]: Effect: ContextShift](config: Config[F]): HttpRoutes[F] = Kleisli {
     // Intercepts the routes that match webjar asset names
     case request if request.method == Method.GET =>
       OptionT
@@ -86,9 +89,9 @@ object WebjarService {
     * @param request The Request
     * @return Either the the Asset, if it exist, or Pass
     */
-  private def serveWebjarAsset[F[_]: Effect](config: Config[F], request: Request[F])(
+  private def serveWebjarAsset[F[_]: Effect: ContextShift](config: Config[F], request: Request[F])(
       webjarAsset: WebjarAsset): OptionT[F, Response[F]] =
     StaticFile
-      .fromResource(webjarAsset.pathInJar, Some(request))
+      .fromResource(webjarAsset.pathInJar, config.blockingExecutionContext, Some(request))
       .semiflatMap(config.cacheStrategy.cache(request.pathInfo, _))
 }

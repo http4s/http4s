@@ -7,7 +7,7 @@ import cats.effect.implicits._
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2._
 import fs2.Stream._
-import fs2.async.mutable.Queue
+import fs2.concurrent.Queue
 import java.nio.ByteBuffer
 import org.eclipse.jetty.client.api.{Result, Response => JettyResponse}
 import org.eclipse.jetty.http.{HttpFields, HttpVersion => JHttpVersion}
@@ -104,7 +104,7 @@ private[jetty] object ResponseListener {
   def apply[F[_]](cb: Callback[DisposableResponse[F]])(
       implicit F: ConcurrentEffect[F],
       ec: ExecutionContext): F[ResponseListener[F]] =
-    async
-      .synchronousQueue[F, Option[ByteBuffer]]
+    Queue
+      .synchronous[F, Option[ByteBuffer]]
       .map(q => ResponseListener(q, cb))
 }

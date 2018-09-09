@@ -2,30 +2,32 @@ package org.http4s
 package client
 
 import cats.data.Kleisli
-import cats.effect.{Async, Sync, Timer}
+import cats.effect.{Async, ContextShift, Resource, Sync}
 import cats.implicits._
-import fs2.io.{readInputStreamAsync, writeOutputStreamAsync}
+import fs2.Stream
+import fs2.io.{readInputStream, writeOutputStream}
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
-import org.http4s.internal.blocking
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, blocking}
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
-/** A [[Client]] based on `java.net.HttpUrlConnection`.
+/** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
-  * `JavaNetClient` adds no dependencies beyond `http4s-client`.  This
-  * client is generally not production grade, but convenient for
+  * The java.net client adds no dependencies beyond `http4s-client`.
+  * This client is generally not production grade, but convenient for
   * exploration in a REPL.
   *
   * All I/O operations in this client are blocking.
   *
   * @param blockingExecutionContext An `ExecutionContext` on which
   * blocking operations will be performed.
-  * @param ec The `ExecutionContext` to which work will be shifted
-  * back after blocking.
+  *
+  * @define WHYNOSHUTDOWN Creation of the client allocates no
+  * resources, and any resources allocated while using this client
+  * are reclaimed by the JVM at its own leisure.
   */
-sealed abstract class JavaNetClient private (
+sealed abstract class JavaNetClientBuilder private (
     val connectTimeout: Duration,
     val readTimeout: Duration,
     val proxy: Option[Proxy],
@@ -40,8 +42,8 @@ sealed abstract class JavaNetClient private (
       hostnameVerifier: Option[HostnameVerifier] = hostnameVerifier,
       sslSocketFactory: Option[SSLSocketFactory] = sslSocketFactory,
       blockingExecutionContext: ExecutionContext = blockingExecutionContext
-  ): JavaNetClient =
-    new JavaNetClient(
+  ): JavaNetClientBuilder =
+    new JavaNetClientBuilder(
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       proxy = proxy,
@@ -50,45 +52,58 @@ sealed abstract class JavaNetClient private (
       blockingExecutionContext = blockingExecutionContext
     ) {}
 
-  def withConnectTimeout(connectTimeout: Duration): JavaNetClient =
+  def withConnectTimeout(connectTimeout: Duration): JavaNetClientBuilder =
     copy(connectTimeout = connectTimeout)
 
-  def withReadTimeout(readTimeout: Duration): JavaNetClient =
+  def withReadTimeout(readTimeout: Duration): JavaNetClientBuilder =
     copy(readTimeout = readTimeout)
 
-  def withProxyOption(proxy: Option[Proxy]): JavaNetClient =
+  def withProxyOption(proxy: Option[Proxy]): JavaNetClientBuilder =
     copy(proxy = proxy)
-  def withProxy(proxy: Proxy): JavaNetClient =
+  def withProxy(proxy: Proxy): JavaNetClientBuilder =
     withProxyOption(Some(proxy))
-  def withoutProxy: JavaNetClient =
+  def withoutProxy: JavaNetClientBuilder =
     withProxyOption(None)
 
-  def withHostnameVerifierOption(hostnameVerifier: Option[HostnameVerifier]): JavaNetClient =
+  def withHostnameVerifierOption(hostnameVerifier: Option[HostnameVerifier]): JavaNetClientBuilder =
     copy(hostnameVerifier = hostnameVerifier)
-  def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClient =
+  def withHostnameVerifier(hostnameVerifier: HostnameVerifier): JavaNetClientBuilder =
     withHostnameVerifierOption(Some(hostnameVerifier))
-  def withoutHostnameVerifier: JavaNetClient =
+  def withoutHostnameVerifier: JavaNetClientBuilder =
     withHostnameVerifierOption(None)
 
-  def withSslSocketFactoryOption(sslSocketFactory: Option[SSLSocketFactory]): JavaNetClient =
+  def withSslSocketFactoryOption(sslSocketFactory: Option[SSLSocketFactory]): JavaNetClientBuilder =
     copy(sslSocketFactory = sslSocketFactory)
-  def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClient =
+  def withSslSocketFactory(sslSocketFactory: SSLSocketFactory): JavaNetClientBuilder =
     withSslSocketFactoryOption(Some(sslSocketFactory))
-  def withoutSslSocketFactory: JavaNetClient =
+  def withoutSslSocketFactory: JavaNetClientBuilder =
     withSslSocketFactoryOption(None)
 
-  def withBlockingExecutionContext(blockingExecutionContext: ExecutionContext): JavaNetClient =
+  def withBlockingExecutionContext(
+      blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
     copy(blockingExecutionContext = blockingExecutionContext)
 
-  /** Creates the `JavaNetClient`.
+  /** Creates a [[Client]].
     *
-    * The shutdown of this client is a no-op.  Creation of the client
-    * allocates no resources, and any resources allocated while using
-    * this client are reclaimed by the JVM at its own leisure.
+    * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
-  def create[F[_]](implicit F: Async[F], timer: Timer[F]): Client[F] = Client(open, F.unit)
+  def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] = Client(open, F.unit)
 
-  private def open[F[_]](implicit F: Async[F], timer: Timer[F]) = Kleisli { req: Request[F] =>
+  /** Creates a [[Client]] resource.
+    *
+    * The release of this resource is a no-op. $WHYNOSHUTDOWN
+    */
+  def resource[F[_]](implicit F: Async[F], cs: ContextShift[F]): Resource[F, Client[F]] =
+    Resource.make(F.delay(create))(_.shutdown)
+
+  /** Creates a [[Client]] stream.
+    *
+    * The bracketed release on this stream is a no-op. $WHYNOSHUTDOWN
+    */
+  def stream[F[_]](implicit F: Async[F], cs: ContextShift[F]): Stream[F, Client[F]] =
+    Stream.resource(resource)
+
+  private def open[F[_]](implicit F: Async[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
     for {
       url <- F.delay(new URL(req.uri.toString))
       conn <- openConnection(url)
@@ -101,13 +116,13 @@ sealed abstract class JavaNetClient private (
       })
       _ <- F.delay(conn.setInstanceFollowRedirects(false))
       _ <- F.delay(conn.setDoInput(true))
-      resp <- blocking(fetchResponse(req, conn), blockingExecutionContext)
+      resp <- cs.evalOn(blockingExecutionContext)(blocking(fetchResponse(req, conn)))
     } yield DisposableResponse(resp, F.delay(conn.getInputStream.close()))
   }
 
   private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
-      timer: Timer[F]) =
+      cs: ContextShift[F]) =
     for {
       _ <- writeBody(req, conn)
       code <- F.delay(conn.getResponseCode)
@@ -119,7 +134,7 @@ sealed abstract class JavaNetClient private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-      body = readInputStreamAsync(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
+      body = readInputStream(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
     } yield Response(status = status, headers = headers, body = body)
 
   private def timeoutMillis(d: Duration): Int = d match {
@@ -136,13 +151,12 @@ sealed abstract class JavaNetClient private (
 
   private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
-      timer: Timer[F]) =
+      cs: ContextShift[F]) =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
         req.body
-          .to(
-            writeOutputStreamAsync(F.delay(conn.getOutputStream), blockingExecutionContext, false))
+          .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
           .compile
           .drain
     } else
@@ -151,11 +165,7 @@ sealed abstract class JavaNetClient private (
           F.delay(conn.setDoOutput(true)) *>
             F.delay(conn.setFixedLengthStreamingMode(len)) *>
             req.body
-              .to(
-                writeOutputStreamAsync(
-                  F.delay(conn.getOutputStream),
-                  blockingExecutionContext,
-                  false))
+              .to(writeOutputStream(F.delay(conn.getOutputStream), blockingExecutionContext, false))
               .compile
               .drain
         case _ =>
@@ -173,9 +183,15 @@ sealed abstract class JavaNetClient private (
     }
 }
 
-object JavaNetClient {
-  def apply(blockingExecutionContext: ExecutionContext): JavaNetClient =
-    new JavaNetClient(
+/** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`. */
+object JavaNetClientBuilder {
+
+  /**
+    * @param blockingExecutionContext An `ExecutionContext` on which
+    * blocking operations will be performed.
+    */
+  def apply(blockingExecutionContext: ExecutionContext): JavaNetClientBuilder =
+    new JavaNetClientBuilder(
       connectTimeout = Duration.Inf,
       readTimeout = Duration.Inf,
       proxy = None,

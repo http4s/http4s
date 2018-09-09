@@ -1,6 +1,6 @@
 package mimegenerator
 
-import cats.effect.{ExitCode, IO, IOApp, Timer}
+import cats.effect.{ContextShift, ExitCode, IO, IOApp}
 import io.circe._
 import io.circe.generic.semiauto._
 import java.io.File
@@ -9,6 +9,7 @@ import fs2.Stream
 import org.http4s.circe._
 import org.http4s.client.blaze._
 import org.http4s.Uri
+import scala.concurrent.ExecutionContext.global
 import treehugger.forest._
 import definitions._
 import treehuggerDSL._
@@ -25,9 +26,9 @@ object MimeLoader {
   // Due to the limits on the jvm class size (64k) we cannot put all instances in one object
   // This particularly affects `application` which needs to be divided in 2
   val maxSizePerSection = 500
-  def readMimeDB(implicit t: Timer[IO]): Stream[IO, List[Mime]] =
+  def readMimeDB(implicit cs: ContextShift[IO]): Stream[IO, List[Mime]] =
     for {
-      client <- Http1Client.stream[IO]()
+      client <- BlazeClientBuilder[IO](global).stream
       _ <- Stream.eval(IO(println(s"Downloading mimedb from $url")))
       value <- Stream.eval(client.expect[Json](url))
       obj <- Stream.eval(IO(value.arrayOrObject(JsonObject.empty, _ => JsonObject.empty, identity)))
@@ -133,7 +134,7 @@ object MimeLoader {
     * This method will dowload the MimeDB and produce a file with generated code for http4s
     */
   def toFile(f: File, topLevelPackge: String, objectName: String, mediaTypeClassName: String)(
-      implicit t: Timer[IO]): IO[Unit] =
+      implicit cs: ContextShift[IO]): IO[Unit] =
     (for {
       m <- readMimeDB
       t <- Stream.emit(m.groupBy(_.mainType).toList.sortBy(_._1).map {

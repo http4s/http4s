@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 private[blaze] object ProtocolSelector {
   def apply[F[_]: ConcurrentEffect](
       engine: SSLEngine,
-      routes: HttpRoutes[F],
+      httpApp: HttpApp[F],
       maxRequestLineLen: Int,
       maxHeadersLen: Int,
       requestAttributes: AttributeMap,
@@ -30,7 +30,7 @@ private[blaze] object ProtocolSelector {
             Duration.Inf,
             executionContext,
             requestAttributes,
-            routes,
+            httpApp,
             serviceErrorHandler))
       }
 
@@ -47,7 +47,7 @@ private[blaze] object ProtocolSelector {
 
     def http1Stage(): TailStage[ByteBuffer] =
       Http1ServerStage[F](
-        routes,
+        httpApp,
         requestAttributes,
         executionContext,
         enableWebSockets = false,

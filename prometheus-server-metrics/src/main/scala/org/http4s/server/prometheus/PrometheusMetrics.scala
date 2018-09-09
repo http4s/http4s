@@ -147,7 +147,7 @@ object PrometheusMetrics {
         Stream.eval(Sync[F].delay {
           serviceMetrics.abnormalTerminations.labels(
             AbnormalTermination.report(AbnormalTermination.Abnormal))
-        }) *> Stream.raiseError[Byte](e).covary[F])
+        }) *> Stream.raiseError[F](e).covary[F])
     r.copy(body = newBody)
   }
 

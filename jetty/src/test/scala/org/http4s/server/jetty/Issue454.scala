@@ -3,14 +3,14 @@ package org.http4s
 package server
 package jetty
 
-import cats.effect.{IO, Timer}
+import cats.effect.{ContextShift, IO}
 import org.eclipse.jetty.server.{HttpConfiguration, HttpConnectionFactory, Server, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.http4s.dsl.io._
 import org.http4s.servlet.AsyncHttp4sServlet
 
 object Issue454 {
-  implicit val timer: Timer[IO] = Timer[IO]
+  implicit val cs: ContextShift[IO] = Http4sSpec.TestContextShift
 
   // If the bug is not triggered right away, try increasing or
   // repeating the request. Also if you decrease the data size (to
@@ -48,7 +48,6 @@ object Issue454 {
       case GET -> Root => Ok(insanelyHugeData)
     },
     servletIo = org.http4s.servlet.NonBlockingServletIo(4096),
-    executionContext = org.http4s.Http4sSpec.TestExecutionContext,
     serviceErrorHandler = DefaultServiceErrorHandler
   )
 }

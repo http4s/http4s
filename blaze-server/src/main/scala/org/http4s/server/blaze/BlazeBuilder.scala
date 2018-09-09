@@ -14,6 +14,7 @@ import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.blaze.http.http2.server.ALPNServerSelector
+import org.http4s.syntax.all._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{QuietTimeoutStage, SSLStage}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -51,6 +52,7 @@ import scala.concurrent.duration._
   * @param banner: Pretty log to display on server start. An empty sequence
   *    such as Nil disables this
   */
+@deprecated("Use BlazeServerBuilder instead", "0.19.0-M2")
 class BlazeBuilder[F[_]](
     socketAddress: InetSocketAddress,
     executionContext: ExecutionContext,
@@ -138,7 +140,7 @@ class BlazeBuilder[F[_]](
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  override def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
+  def withExecutionContext(executionContext: ExecutionContext): BlazeBuilder[F] =
     copy(executionContext = executionContext)
 
   override def withIdleTimeout(idleTimeout: Duration): Self = copy(idleTimeout = idleTimeout)
@@ -154,7 +156,7 @@ class BlazeBuilder[F[_]](
 
   def enableHttp2(enabled: Boolean): Self = copy(http2Support = enabled)
 
-  override def mountService(service: HttpRoutes[F], prefix: String): Self = {
+  def mountService(service: HttpRoutes[F], prefix: String): Self = {
     val prefixedService =
       if (prefix.isEmpty || prefix == "/") service
       else {
@@ -174,7 +176,8 @@ class BlazeBuilder[F[_]](
     copy(banner = banner)
 
   def start: F[Server[F]] = F.delay {
-    val aggregateService = Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*)
+    val aggregateService: HttpApp[F] =
+      Router(serviceMounts.map(mount => mount.prefix -> mount.service): _*).orNotFound
 
     def resolveAddress(address: InetSocketAddress) =
       if (address.isUnresolved) new InetSocketAddress(address.getHostName, address.getPort)

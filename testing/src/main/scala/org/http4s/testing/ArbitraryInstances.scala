@@ -117,10 +117,10 @@ trait ArbitraryInstances {
     Cogen[Int].contramap(_.##)
 
   val genValidStatusCode =
-    choose(100, 599)
+    choose(Status.MinCode, Status.MaxCode)
 
   val genStandardStatus =
-    oneOf(Status.registered.toSeq)
+    oneOf(Status.registered)
 
   val genCustomStatus = for {
     code <- genValidStatusCode
@@ -713,9 +713,10 @@ trait ArbitraryInstances {
       var bytes: Vector[Byte] = null
       val readBytes = IO(bytes)
       F.runAsync(stream.compile.toVector) {
-        case Right(bs) => IO { bytes = bs }
-        case Left(t) => IO.raiseError(t)
-      } *> readBytes
+          case Right(bs) => IO { bytes = bs }
+          case Left(t) => IO.raiseError(t)
+        }
+        .toIO *> readBytes
     }
 
   implicit def arbitraryEntity[F[_]]: Arbitrary[Entity[F]] =

@@ -1,23 +1,24 @@
 package com.example.http4s.blaze.demo.client
 
-import cats.effect.{ConcurrentEffect, IO}
+import cats.effect.{ConcurrentEffect, ExitCode, IO, IOApp}
 import com.example.http4s.blaze.demo.StreamUtils
-import fs2.StreamApp.ExitCode
-import fs2.{Stream, StreamApp}
+import cats.implicits._
 import io.circe.Json
-import jawn.Facade
-import org.http4s.client.blaze.Http1Client
+import jawn.RawFacade
+import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{Request, Uri}
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object StreamClient extends HttpClient[IO]
+object StreamClient extends IOApp {
+  def run(args: List[String]): IO[ExitCode] =
+    new HttpClient[IO].run.as(ExitCode.Success)
+}
 
-class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) extends StreamApp {
-  implicit val jsonFacade: Facade[Json] = io.circe.jawn.CirceSupportParser.facade
+class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) {
+  implicit val jsonFacade: RawFacade[Json] = io.circe.jawn.CirceSupportParser.facade
 
-  override def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] =
-    Http1Client
-      .stream[F]()
+  def run: F[Unit] =
+    BlazeClientBuilder[F](global).stream
       .flatMap { client =>
         val request = Request[F](uri = Uri.uri("http://localhost:8080/v1/dirs?depth=3"))
         for {
@@ -25,6 +26,6 @@ class HttpClient[F[_]](implicit F: ConcurrentEffect[F], S: StreamUtils[F]) exten
           _ <- S.putStr(response)
         } yield ()
       }
+      .compile
       .drain
-
 }

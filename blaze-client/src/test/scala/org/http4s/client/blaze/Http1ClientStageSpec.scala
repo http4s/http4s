@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blazecore.SeqTestHead
 import org.http4s.client.blaze.bits.DefaultUserAgent
+import org.http4s.headers.`User-Agent`
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -25,17 +26,23 @@ class Http1ClientStageSpec extends Http4sSpec {
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
-  // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
-  private val defaultConfig = BlazeClientConfig.defaultConfig.copy(executionContext = trampoline)
-
-  private def mkConnection(key: RequestKey) = new Http1Connection[IO](key, defaultConfig)
+  private def mkConnection(key: RequestKey, userAgent: Option[`User-Agent`] = None) =
+    new Http1Connection[IO](
+      key,
+      executionContext = trampoline,
+      maxResponseLineSize = 4096,
+      maxHeaderLength = 40960,
+      maxChunkSize = Int.MaxValue,
+      parserMode = ParserMode.Strict,
+      userAgent = userAgent
+    )
 
   private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
   private def bracketResponse[T](req: Request[IO], resp: String)(
       f: Response[IO] => IO[T]): IO[T] = {
-    val stage = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None))
+    val stage = mkConnection(FooRequestKey)
     IO.suspend {
       val h = new SeqTestHead(resp.toSeq.map { chr =>
         val b = ByteBuffer.allocate(1)
@@ -80,9 +87,12 @@ class Http1ClientStageSpec extends Http4sSpec {
     (request, result)
   }
 
-  private def getSubmission(req: Request[IO], resp: String): (String, String) = {
+  private def getSubmission(
+      req: Request[IO],
+      resp: String,
+      userAgent: Option[`User-Agent`] = None): (String, String) = {
     val key = RequestKey.fromRequest(req)
-    val tail = mkConnection(key)
+    val tail = mkConnection(key, userAgent)
     try getSubmission(req, resp, tail)
     finally { tail.shutdown() }
   }
@@ -183,11 +193,11 @@ class Http1ClientStageSpec extends Http4sSpec {
     "Insert a User-Agent header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val (request, response) = getSubmission(FooRequest, resp)
+      val (request, response) = getSubmission(FooRequest, resp, DefaultUserAgent)
 
       val requestLines = request.split("\r\n").toList
 
-      requestLines must contain(DefaultUserAgent.get.toString)
+      requestLines must contain(s"User-Agent: http4s-blaze/${BuildInfo.version}")
       response must_== "done"
     }
 
@@ -206,7 +216,7 @@ class Http1ClientStageSpec extends Http4sSpec {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1Connection[IO](FooRequestKey, defaultConfig.copy(userAgent = None))
+      val tail = mkConnection(FooRequestKey)
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail)

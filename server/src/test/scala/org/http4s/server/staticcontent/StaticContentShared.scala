@@ -55,10 +55,7 @@ private[staticcontent] trait StaticContentShared { this: Http4sSpec =>
 
   def runReq(req: Request[IO]): (Chunk[Byte], Response[IO]) = {
     val resp = routes.orNotFound(req).unsafeRunSync
-    val body = resp.body.chunks.compile.toVector.unsafeRunSync.foldLeft(Segment.empty[Byte]) {
-      (c, chunk) =>
-        c ++ chunk.toSegment
-    }
-    (body.force.toChunk, resp)
+    val chunk = Chunk.bytes(resp.body.compile.to[Array].unsafeRunSync)
+    (chunk, resp)
   }
 }

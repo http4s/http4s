@@ -9,7 +9,7 @@ package object http4s { // scalastyle:ignore
 
   type EntityBody[+F[_]] = Stream[F, Byte]
 
-  val EmptyBody: EntityBody[Nothing] = Stream.empty
+  val EmptyBody: EntityBody[Nothing] = Stream.empty[Nothing]
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 

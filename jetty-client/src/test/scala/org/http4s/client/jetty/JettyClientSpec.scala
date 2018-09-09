@@ -2,10 +2,8 @@ package org.http4s
 package client
 package jetty
 
-import cats.effect.{ConcurrentEffect, IO}
-import scala.concurrent.ExecutionContext.Implicits.global
+import cats.effect.{IO, Resource}
 
-class JettyClientSpec
-    extends ClientRouteTestBattery(
-      "JettyClient",
-      JettyClient()(ConcurrentEffect[IO], Http4sSpec.TestExecutionContext).unsafeRunSync())
+class JettyClientSpec extends ClientRouteTestBattery("JettyClient") {
+  override def clientResource = Resource.make(JettyClient[IO]())(_.shutdown)
+}

@@ -26,6 +26,7 @@ lazy val core = libraryProject("core")
       BuildInfoKey.map(http4sApiVersion) { case (_, v) => "apiVersion" -> v }
     ),
     buildInfoPackage := organization.value,
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
     libraryDependencies ++= Seq(
       cats,
       catsEffect,
@@ -292,6 +293,14 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core, testing % "test->test")
 
+lazy val scalatags = http4sProject("scalatags")
+  .settings(
+    description := "Scalatags template support for http4s",
+    libraryDependencies += scalatagsApi,
+    mimaPreviousArtifacts := Set.empty
+  )
+  .dependsOn(core, testing % "test->test")
+
 lazy val mimedbGenerator = http4sProject("mimedb-generator")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
@@ -342,12 +351,12 @@ lazy val docs = http4sProject("docs")
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
         bench,
-        examples,
-        examplesBlaze,
-        examplesDocker,
-        examplesJetty,
-        examplesTomcat,
-        examplesWar,
+        // examples,
+        // examplesBlaze,
+        // examplesDocker,
+        // examplesJetty,
+        // examplesTomcat,
+        // examplesWar,
         mimedbGenerator,
         loadTest
       ),
@@ -429,6 +438,7 @@ lazy val website = http4sProject("website")
       }
   )
 
+/**
 lazy val examples = http4sProject("examples")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
@@ -499,7 +509,7 @@ lazy val examplesWar = exampleProject("examples-war")
     containerLibs in Jetty := List(jettyRunner),
   )
   .dependsOn(servlet)
-
+**/
 def http4sProject(name: String) =
   Project(name, file(name))
     .settings(commonSettings)
@@ -511,11 +521,13 @@ def http4sProject(name: String) =
 
 def libraryProject(name: String) = http4sProject(name)
 
+/**
 def exampleProject(name: String) =
   http4sProject(name)
     .in(file(name.replace("examples-", "examples/")))
     .enablePlugins(PrivateProjectPlugin)
     .dependsOn(examples)
+**/
 
 lazy val commonSettings = Seq(
   http4sJvmTarget := scalaVersion.map {

@@ -3,7 +3,6 @@ package org.http4s
 import cats._
 import cats.data._
 import cats.implicits._
-
 final case class QueryParameterKey(value: String) extends AnyVal
 
 final case class QueryParameterValue(value: String) extends AnyVal
@@ -93,7 +92,8 @@ object QueryParamEncoder {
       override def encode(value: String) =
         QueryParameterValue(value)
     }
-
+  implicit lazy val uriQueryParamEncoder: QueryParamEncoder[Uri] =
+    QueryParamEncoder[String].contramap(_.renderString)
 }
 
 /**
@@ -194,5 +194,11 @@ object QueryParamDecoder {
     new QueryParamDecoder[String] {
       def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, String] =
         value.value.validNel
+    }
+
+  implicit val uriQueryParamDecoder: QueryParamDecoder[Uri] =
+    new QueryParamDecoder[Uri] {
+      def decode(value: QueryParameterValue): ValidatedNel[ParseFailure, Uri] =
+        Uri.fromString(value.value).toValidatedNel
     }
 }

@@ -2,15 +2,11 @@ package org.http4s
 package server
 package middleware
 
+import cats.data.OptionT
 import cats.effect._
-import cats.implicits._
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicBoolean
-
-import cats.data.OptionT
 import org.http4s.dsl.io._
-
-import scala.concurrent.CancellationException
 import scala.concurrent.duration._
 
 class TimeoutSpec extends Http4sSpec {
@@ -24,8 +20,6 @@ class TimeoutSpec extends Http4sSpec {
         ()
       }
   }
-
-  implicit val T = Timer.derive[OptionT[IO, ?]]
 
   val app = Timeout(5.milliseconds)(routes).orNotFound
 
@@ -53,13 +47,9 @@ class TimeoutSpec extends Http4sSpec {
 
     "cancel the loser" in {
       val canceled = new AtomicBoolean(false)
-      val cancellationException = new CancellationException()
       val routes = HttpRoutes.of[IO] {
         case _ =>
-          IO.sleep(2.seconds).onCancelRaiseError(cancellationException).attempt.flatMap {
-            case Left(`cancellationException`) => IO(canceled.set(true)) *> NoContent()
-            case _ => NoContent()
-          }
+          IO.never.guarantee(IO(canceled.set(true)))
       }
       val app = Timeout(1.millis)(routes).orNotFound
       checkStatus(app(Request[IO]()), InternalServerError)

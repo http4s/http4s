@@ -1,9 +1,8 @@
 package com.example.http4s
 package ssl
 
-import cats.effect.{ConcurrentEffect, Timer}
+import cats.effect._
 import cats.syntax.option._
-import fs2.StreamApp.ExitCode
 import fs2._
 import java.nio.file.Paths
 import org.http4s.HttpRoutes
@@ -14,9 +13,10 @@ import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.server.{SSLKeyStoreSupport, ServerBuilder}
 import scala.concurrent.ExecutionContext
 
-abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect]
-    extends StreamApp[F]
-    with Http4sDsl[F] {
+abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect](
+    implicit timer: Timer[F],
+    ctx: ContextShift[F])
+    extends Http4sDsl[F] {
   val securePort = 8443
 
   implicit val executionContext: ExecutionContext = ExecutionContext.global
@@ -29,7 +29,7 @@ abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect]
   val redirectService: HttpRoutes[F] = HttpRoutes.of[F] {
     case request =>
       request.headers.get(Host) match {
-        case Some(Host(host, _)) =>
+        case Some(Host(host @ _, _)) =>
           val baseUri = request.uri.copy(
             scheme = Scheme.https.some,
             authority = Some(
@@ -43,7 +43,7 @@ abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect]
       }
   }
 
-  def sslStream(implicit timer: Timer[F]): Stream[F, ExitCode] =
+  def sslStream: Stream[F, ExitCode] =
     builder
       .withSSL(StoreInfo(keypath, "password"), keyManagerPassword = "secure")
       .mountService(new ExampleService[F].service, "/http4s")
@@ -55,9 +55,4 @@ abstract class SslExampleWithRedirect[F[_]: ConcurrentEffect]
       .mountService(redirectService, "/http4s")
       .bindHttp(8080)
       .serve
-
-  def stream(args: List[String], requestShutdown: F[Unit]): Stream[F, ExitCode] = {
-    implicit val timer = Timer.derive[F]
-    sslStream.mergeHaltBoth(redirectStream)
-  }
 }

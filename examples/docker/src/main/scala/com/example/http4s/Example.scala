@@ -1,21 +1,22 @@
 package com.example.http4s.blaze
 
 import cats.effect._
-import fs2._
-import fs2.StreamApp.ExitCode
+import cats.implicits._
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.blaze.BlazeBuilder
-import scala.concurrent.ExecutionContext.Implicits.global
 
-object Example extends StreamApp[IO] with Http4sDsl[IO] {
-  val service: HttpRoutes[IO] = HttpRoutes.of[IO] {
+object Example extends IOApp with Http4sDsl[IO] {
+  val service: HttpApp[IO] = HttpRoutes.of[IO] {
     case GET -> Root / "ping" => Ok("ping")
-  }
+  }.orNotFound
 
-  def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
+  def run(args: List[String]): IO[ExitCode] =
     BlazeBuilder[IO]
       .bindHttp(8080, "0.0.0.0")
       .mountService(service)
       .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
 }

@@ -4,15 +4,12 @@ package server
 import cats.implicits._
 import cats.effect._
 import cats.effect.concurrent.Ref
-import fs2.StreamApp.ExitCode
 import fs2._
+import fs2.concurrent.SignallingRef
 import java.net.{InetAddress, InetSocketAddress}
-import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
-import fs2.async.immutable.Signal
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import scala.collection.immutable
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 trait ServerBuilder[F[_]] {
@@ -31,23 +28,13 @@ trait ServerBuilder[F[_]] {
 
   final def bindAny(host: String = DefaultHost): Self = bindHttp(0, host)
 
-  @deprecated("Use withExecutionContext", "0.17")
-  def withExecutorService(executorService: ExecutorService): Self =
-    withExecutionContext(ExecutionContext.fromExecutorService(executorService))
-
-  @deprecated("Use withExecutionContext", "0.17.0")
-  def withServiceExecutor(executorService: ExecutorService): Self =
-    withExecutorService(executorService)
-
-  def withExecutionContext(executionContext: ExecutionContext): Self
-
   /** Sets the handler for errors thrown invoking the service.  Is not
     * guaranteed to be invoked on errors on the server backend, such as
     * parsing a request or handling a context timeout.
     */
   def withServiceErrorHandler(serviceErrorHandler: ServiceErrorHandler[F]): Self
 
-  def mountService(service: HttpRoutes[F], prefix: String = ""): Self
+  // def mountService(service: HttpRoutes[F], prefix: String = ""): Self
 
   /** Returns a task to start a server.  The task completes with a
     * reference to the server when it has started.
@@ -60,7 +47,7 @@ trait ServerBuilder[F[_]] {
     */
   final def serve: Stream[F, ExitCode] =
     for {
-      signal <- Stream.eval(async.signalOf[F, Boolean](false))
+      signal <- Stream.eval(SignallingRef[F, Boolean](false))
       exitCode <- Stream.eval(Ref[F].of(ExitCode.Success))
       serve <- serveWhile(signal, exitCode)
     } yield serve
@@ -70,7 +57,7 @@ trait ServerBuilder[F[_]] {
     * Useful for servers with associated lifetime behaviors.
     */
   final def serveWhile(
-      terminateWhenTrue: Signal[F, Boolean],
+      terminateWhenTrue: SignallingRef[F, Boolean],
       exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
     Stream.bracket(start)(_.shutdown) *> (terminateWhenTrue.discrete
       .takeWhile(_ === false)

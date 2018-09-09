@@ -1,17 +1,15 @@
 package com.example.http4s.blaze
 
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits._
+import org.http4s.Http4s._
+import org.http4s.client.Client
+import org.http4s.client.blaze.BlazeClientBuilder
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ClientExample extends IOApp {
 
-  def getSite() = {
-
-    import cats.effect.IO
-    import org.http4s.Http4s._
-    import org.http4s.client._
-
-    val client: Client[IO] = blaze.Http1Client[IO]().unsafeRunSync()
-
+  def getSite(client: Client[IO]): IO[Unit] = IO {
     val page: IO[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
@@ -36,9 +34,10 @@ object ClientExample extends IOApp {
     }
 
     println(page2.unsafeRunSync())
-
-    client.shutdownNow()
   }
 
-  def run(args: List[String]): IO[ExitCode] = IO(getSite()).map(_ => ExitCode.Success)
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeClientBuilder[IO](global).resource
+      .use(getSite)
+      .as(ExitCode.Success)
 }

@@ -8,7 +8,6 @@ import fs2.Stream._
 import org.http4s.Charset._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.headers._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 object ServerTestRoutes extends Http4sDsl[IO] {
 
@@ -98,25 +97,28 @@ object ServerTestRoutes extends Http4sDsl[IO] {
       (Status.NotModified, Set[Header](connKeep), ""))
   )
 
-  def apply() = HttpRoutes.of[IO] {
-    case req if req.method == Method.GET && req.pathInfo == "/get" =>
-      Ok("get")
+  def apply()(implicit cs: ContextShift[IO]) =
+    HttpRoutes
+      .of[IO] {
+        case req if req.method == Method.GET && req.pathInfo == "/get" =>
+          Ok("get")
 
-    case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Ok(eval(IO.shift *> IO("chu")) ++ eval(IO.shift *> IO("nk")))
+        case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
+          Ok(eval(IO.shift *> IO("chu")) ++ eval(IO.shift *> IO("nk")))
 
-    case req if req.method == Method.POST && req.pathInfo == "/post" =>
-      Ok("post")
+        case req if req.method == Method.POST && req.pathInfo == "/post" =>
+          Ok("post")
 
-    case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
-      Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
+        case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
+          Ok("Foo", `Transfer-Encoding`(TransferCoding.chunked))
 
-    case req if req.method == Method.POST && req.pathInfo == "/echo" =>
-      Ok(emit("post") ++ req.bodyAsText)
+        case req if req.method == Method.POST && req.pathInfo == "/echo" =>
+          Ok(emit("post") ++ req.bodyAsText)
 
-    // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
-    case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
-      NotModified()
-  }
+        // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
+        case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
+          NotModified()
+      }
+      .orNotFound
 
 }

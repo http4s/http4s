@@ -13,17 +13,16 @@ import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHo
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
 import org.http4s.servlet.{AsyncHttp4sServlet, ServletContainer, ServletIo}
 import org.log4s.getLogger
-import scala.concurrent.ExecutionContext
 import scala.collection.immutable
 import scala.concurrent.duration._
 
 sealed class JettyBuilder[F[_]] private (
     socketAddress: InetSocketAddress,
-    private val executionContext: ExecutionContext,
+    threadPool: ThreadPool,
     private val idleTimeout: Duration,
     private val asyncTimeout: Duration,
     private val servletIo: ServletIo[F],
@@ -44,7 +43,7 @@ sealed class JettyBuilder[F[_]] private (
 
   private def copy(
       socketAddress: InetSocketAddress = socketAddress,
-      executionContext: ExecutionContext = executionContext,
+      threadPool: ThreadPool = threadPool,
       idleTimeout: Duration = idleTimeout,
       asyncTimeout: Duration = asyncTimeout,
       servletIo: ServletIo[F] = servletIo,
@@ -55,7 +54,7 @@ sealed class JettyBuilder[F[_]] private (
   ): Self =
     new JettyBuilder(
       socketAddress,
-      executionContext,
+      threadPool,
       idleTimeout,
       asyncTimeout,
       servletIo,
@@ -80,8 +79,8 @@ sealed class JettyBuilder[F[_]] private (
   override def bindSocketAddress(socketAddress: InetSocketAddress): Self =
     copy(socketAddress = socketAddress)
 
-  override def withExecutionContext(executionContext: ExecutionContext): Self =
-    copy(executionContext = executionContext)
+  def withThreadPool(threadPool: ThreadPool): JettyBuilder[F] =
+    copy(threadPool = threadPool)
 
   override def mountServlet(
       servlet: HttpServlet,
@@ -105,13 +104,12 @@ sealed class JettyBuilder[F[_]] private (
       context.addFilter(filterHolder, urlMapping, dispatches)
     })
 
-  override def mountService(service: HttpRoutes[F], prefix: String): Self =
+  def mountService(service: HttpRoutes[F], prefix: String): Self =
     copy(mounts = mounts :+ Mount[F] { (context, index, builder) =>
       val servlet = new AsyncHttp4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        executionContext = builder.executionContext,
         serviceErrorHandler = builder.serviceErrorHandler
       )
       val servletName = s"servlet-$index"
@@ -171,7 +169,6 @@ sealed class JettyBuilder[F[_]] private (
   }
 
   def start: F[Server[F]] = F.delay {
-    val threadPool = new QueuedThreadPool
     val jetty = new JServer(threadPool)
 
     val context = new ServletContextHandler()
@@ -223,7 +220,7 @@ sealed class JettyBuilder[F[_]] private (
 object JettyBuilder {
   def apply[F[_]: ConcurrentEffect] = new JettyBuilder[F](
     socketAddress = ServerBuilder.DefaultSocketAddress,
-    executionContext = ExecutionContext.global,
+    threadPool = new QueuedThreadPool(),
     idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
     asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
     servletIo = ServletContainer.DefaultServletIo,

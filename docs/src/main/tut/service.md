@@ -51,8 +51,14 @@ prefer you can read these introductions first:
 Wherever you are in your studies, let's create our first
 `HttpRoutes`.  Start by pasting these imports into your SBT console:
 
-```tut:book
+```tut:book:silent
 import cats.effect._, org.http4s._, org.http4s.dsl.io._, scala.concurrent.ExecutionContext.Implicits.global
+```
+
+You also will need a `ContextShift`.
+
+```tut:book:silent
+implicit val cs: ContextShift[IO] = IO.contextShift(global)
 ```
 
 Using the [http4s-dsl], we can construct an `HttpRoutes` by pattern
@@ -117,9 +123,11 @@ Multiple `HttpRoutes` can be combined with the `combineK` method (or its alias
 import cats.implicits._
 import org.http4s.server.blaze._
 import org.http4s.implicits._
+import org.http4s.server.Router
 
 val services = tweetService <+> helloWorldService
-val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api").start
+val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
+val builder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp).start
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -155,23 +163,35 @@ any output.  When this process is run with `.unsafeRunSync` on the
 main thread, it blocks forever, keeping the JVM (and your server)
 alive until the JVM is killed.
 
-As a convenience, fs2 provides an `fs2.StreamApp[F[_]]` trait
-with an abstract `main` method that returns a `Stream`.  A `StreamApp`
-runs the process and adds a JVM shutdown hook to interrupt the infinite
-process and gracefully shut down your server when a SIGTERM is received.
+As a convenience, cats-effect provides an `cats.effect.IOApp` trait
+with an abstract `run` method that returns a `IO[ExitCode]`.  An
+`IOApp` runs the process and adds a JVM shutdown hook to interrupt
+the infinite process and gracefully shut down your server when a
+SIGTERM is received.
 
-```tut:book
-import fs2.{Stream, StreamApp}
-import fs2.StreamApp.ExitCode
+```tut:book:reset
+import cats.effect._
+import cats.implicits._
+import org.http4s.HttpRoutes
+import org.http4s.syntax._
+import org.http4s.dsl.io._
 import org.http4s.server.blaze._
 
-object Main extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] =
-    BlazeBuilder[IO]
+object Main extends IOApp {
+
+  val helloWorldService = HttpRoutes.of[IO] {
+    case GET -> Root / "hello" / name =>
+      Ok(s"Hello, $name.")
+  }.orNotFound
+
+  def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
-      .mountService(helloWorldService, "/")
-      .mountService(services, "/api")
+      .withHttpApp(helloWorldService)
       .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
 }
 ```
 

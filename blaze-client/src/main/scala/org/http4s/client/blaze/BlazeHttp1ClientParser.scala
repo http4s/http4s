@@ -9,13 +9,13 @@ private[blaze] final class BlazeHttp1ClientParser(
     maxResponseLineSize: Int,
     maxHeaderLength: Int,
     maxChunkSize: Int,
-    isLenient: Boolean)
+    parserMode: ParserMode)
     extends Http1ClientParser(
       maxResponseLineSize,
       maxHeaderLength,
       2 * 1024,
       maxChunkSize,
-      isLenient) {
+      parserMode == ParserMode.Lenient) {
   private val headers = new ListBuffer[Header]
   private var status: Status = _
   private var httpVersion: HttpVersion = _

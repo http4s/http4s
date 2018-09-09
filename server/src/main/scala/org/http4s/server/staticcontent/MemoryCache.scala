@@ -4,7 +4,7 @@ package staticcontent
 
 import cats.effect._
 import cats.implicits._
-import fs2.Stream._
+import fs2.{Chunk, Stream}
 import java.util.concurrent.ConcurrentHashMap
 import org.log4s.getLogger
 
@@ -34,9 +34,10 @@ class MemoryCache[F[_]] extends CacheStrategy[F] {
 
   private def collectResource(path: String, resp: Response[F])(
       implicit F: Effect[F]): F[Response[F]] =
-    resp.body.segments.compile.foldMonoid
-      .map { bytes =>
-        val newResponse: Response[F] = resp.copy(body = segment(bytes).covary[F])
+    resp
+      .as[Chunk[Byte]]
+      .map { chunk =>
+        val newResponse: Response[F] = resp.copy(body = Stream.chunk(chunk).covary[F])
         cacheMap.put(path, newResponse)
         newResponse
       }

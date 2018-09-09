@@ -33,13 +33,13 @@ class Http1ServerStageSpec extends Http4sSpec {
 
   def runRequest(
       req: Seq[String],
-      routes: HttpRoutes[IO],
+      httpApp: HttpApp[IO],
       maxReqLine: Int = 4 * 1024,
       maxHeaders: Int = 16 * 1024): Future[ByteBuffer] = {
     val head = new SeqTestHead(
       req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
     val httpStage = Http1ServerStage[IO](
-      routes,
+      httpApp,
       AttributeMap.empty,
       testExecutionContext,
       enableWebSockets = true,
@@ -55,9 +55,11 @@ class Http1ServerStageSpec extends Http4sSpec {
   "Http1ServerStage: Invalid Lengths" should {
     val req = "GET /foo HTTP/1.1\r\nheader: value\r\n\r\n"
 
-    val routes = HttpRoutes.of[IO] {
-      case _ => Ok("foo!")
-    }
+    val routes = HttpRoutes
+      .of[IO] {
+        case _ => Ok("foo!")
+      }
+      .orNotFound
 
     "fail on too long of a request line" in {
       val buff = Await.result(runRequest(Seq(req), routes, maxReqLine = 1), 5.seconds)
@@ -90,14 +92,16 @@ class Http1ServerStageSpec extends Http4sSpec {
   }
 
   "Http1ServerStage: Errors" should {
-    val exceptionService = HttpRoutes.of[IO] {
-      case GET -> Root / "sync" => sys.error("Synchronous error!")
-      case GET -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
-      case GET -> Root / "sync" / "422" =>
-        throw InvalidMessageBodyFailure("lol, I didn't even look")
-      case GET -> Root / "async" / "422" =>
-        IO.raiseError(InvalidMessageBodyFailure("lol, I didn't even look"))
-    }
+    val exceptionService = HttpRoutes
+      .of[IO] {
+        case GET -> Root / "sync" => sys.error("Synchronous error!")
+        case GET -> Root / "async" => IO.raiseError(new Exception("Asynchronous error!"))
+        case GET -> Root / "sync" / "422" =>
+          throw InvalidMessageBodyFailure("lol, I didn't even look")
+        case GET -> Root / "async" / "422" =>
+          IO.raiseError(InvalidMessageBodyFailure("lol, I didn't even look"))
+      }
+      .orNotFound
 
     def runError(path: String) =
       runRequest(List(path), exceptionService)
@@ -148,13 +152,14 @@ class Http1ServerStageSpec extends Http4sSpec {
 
   "Http1ServerStage: routes" should {
     "Do not send `Transfer-Encoding: identity` response" in {
-      val routes = HttpRoutes.of[IO] {
-        case _ =>
-          val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
-          IO.pure(
-            Response[IO](headers = headers)
+      val routes = HttpRoutes
+        .of[IO] {
+          case _ =>
+            val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
+            IO.pure(Response[IO](headers = headers)
               .withEntity("hello world"))
-      }
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req = "GET /foo HTTP/1.1\r\n\r\n"
@@ -171,13 +176,15 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     "Do not send an entity or entity-headers for a status that doesn't permit it" in {
-      val routes: HttpRoutes[IO] = HttpRoutes.of[IO] {
-        case _ =>
-          IO.pure(
-            Response[IO](status = Status.NotModified)
-              .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
-              .withEntity("Foo!"))
-      }
+      val routes: HttpApp[IO] = HttpRoutes
+        .of[IO] {
+          case _ =>
+            IO.pure(
+              Response[IO](status = Status.NotModified)
+                .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+                .withEntity("Foo!"))
+        }
+        .orNotFound
 
       val req = "GET /foo HTTP/1.1\r\n\r\n"
 
@@ -191,9 +198,11 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     "Add a date header" in {
-      val routes = HttpRoutes.of[IO] {
-        case req => IO.pure(Response(body = req.body))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req => IO.pure(Response(body = req.body))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -207,9 +216,11 @@ class Http1ServerStageSpec extends Http4sSpec {
 
     "Honor an explicitly added date header" in {
       val dateHeader = Date(HttpDate.Epoch)
-      val routes = HttpRoutes.of[IO] {
-        case req => IO.pure(Response(body = req.body).replaceAllHeaders(dateHeader))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req => IO.pure(Response(body = req.body).replaceAllHeaders(dateHeader))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -223,9 +234,11 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     "Handle routes that echos full request body for non-chunked" in {
-      val routes = HttpRoutes.of[IO] {
-        case req => IO.pure(Response(body = req.body))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req => IO.pure(Response(body = req.body))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -238,12 +251,14 @@ class Http1ServerStageSpec extends Http4sSpec {
     }
 
     "Handle routes that consumes the full request body for non-chunked" in {
-      val routes = HttpRoutes.of[IO] {
-        case req =>
-          req.as[String].map { s =>
-            Response().withEntity("Result: " + s)
-          }
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req =>
+            req.as[String].map { s =>
+              Response().withEntity("Result: " + s)
+            }
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -263,9 +278,11 @@ class Http1ServerStageSpec extends Http4sSpec {
 
     "Maintain the connection if the body is ignored but was already read to completion by the Http1Stage" in {
 
-      val routes = HttpRoutes.of[IO] {
-        case _ => IO.pure(Response().withEntity("foo"))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case _ => IO.pure(Response().withEntity("foo"))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -283,9 +300,11 @@ class Http1ServerStageSpec extends Http4sSpec {
 
     "Drop the connection if the body is ignored and was not read to completion by the Http1Stage" in {
 
-      val routes = HttpRoutes.of[IO] {
-        case _ => IO.pure(Response().withEntity("foo"))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case _ => IO.pure(Response().withEntity("foo"))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -305,9 +324,11 @@ class Http1ServerStageSpec extends Http4sSpec {
 
     "Handle routes that runs the request body for non-chunked" in {
 
-      val routes = HttpRoutes.of[IO] {
-        case req => req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req => req.body.compile.drain *> IO.pure(Response().withEntity("foo"))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -327,10 +348,12 @@ class Http1ServerStageSpec extends Http4sSpec {
     // Think of this as drunk HTTP pipelining
     "Not die when two requests come in back to back" in {
 
-      val routes = HttpRoutes.of[IO] {
-        case req =>
-          IO.pure(Response(body = req.body))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req =>
+            IO.pure(Response(body = req.body))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -353,9 +376,11 @@ class Http1ServerStageSpec extends Http4sSpec {
 
     "Handle using the request body as the response body" in {
 
-      val routes = HttpRoutes.of[IO] {
-        case req => IO.pure(Response(body = req.body))
-      }
+      val routes = HttpRoutes
+        .of[IO] {
+          case req => IO.pure(Response(body = req.body))
+        }
+        .orNotFound
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
@@ -384,22 +409,23 @@ class Http1ServerStageSpec extends Http4sSpec {
           "0\r\n" +
           "Foo:Bar\r\n\r\n"
 
-      val routes = HttpRoutes.of[IO] {
-        case req if req.pathInfo == "/foo" =>
-          for {
-            _ <- req.body.compile.drain
-            hs <- req.trailerHeaders
-            resp <- Ok(hs.mkString)
-          } yield resp
+      val routes = HttpRoutes
+        .of[IO] {
+          case req if req.pathInfo == "/foo" =>
+            for {
+              _ <- req.body.compile.drain
+              hs <- req.trailerHeaders
+              resp <- Ok(hs.mkString)
+            } yield resp
 
-        case req if req.pathInfo == "/bar" =>
-          for {
-            // Don't run the body
-            hs <- req.trailerHeaders
-            resp <- Ok(hs.mkString)
-          } yield resp
-
-      }
+          case req if req.pathInfo == "/bar" =>
+            for {
+              // Don't run the body
+              hs <- req.trailerHeaders
+              resp <- Ok(hs.mkString)
+            } yield resp
+        }
+        .orNotFound
 
       "Handle trailing headers" in {
         val buff = Await.result(runRequest(Seq(req("foo")), routes), 5.seconds)
