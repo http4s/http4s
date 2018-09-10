@@ -1,13 +1,12 @@
 package org.http4s.server.middleware
 
-import org.http4s.{Headers, Http, Response, Status}
+import org.http4s.{Http, Response, Status}
 import cats.data.Kleisli
 import cats.effect.{Clock, Sync}
 import cats.effect.concurrent.Ref
 import scala.concurrent.duration.FiniteDuration
 import cats.implicits._
 import java.util.concurrent.TimeUnit.NANOSECONDS
-import org.http4s.headers.`Retry-After`
 import scala.concurrent.duration._
 
 /**
@@ -59,8 +58,8 @@ object Throttle {
                     setter((newTokenTotal - 1, currentTime))
                       .map(_.guard[Option].as(TokenAvailable))
                   } else {
-                    val timeToFull = (refillEvery.toNanos * capacity) - timeDifference
-                    val successResponse = TokenUnavailable(timeToFull.nanos.some)
+                    val timeToNextToken = refillEvery.toNanos - timeDifference
+                    val successResponse = TokenUnavailable(timeToNextToken.nanos.some)
                     setter((newTokenTotal, currentTime)).map(_.guard[Option].as(successResponse))
                   }
 
@@ -96,12 +95,9 @@ object Throttle {
     createBucket.map(bucket => apply(bucket)(http))
   }
 
-  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] = retryAfter match {
-    case Some(retryTime) => {
-      val retryHeader = `Retry-After`.unsafeFromDuration(retryTime)
-      Response[F](Status.TooManyRequests, headers = Headers(retryHeader))
-    }
-    case None => Response[F](Status.TooManyRequests)
+  def defaultResponse[F[_]](retryAfter: Option[FiniteDuration]): Response[F] = {
+    val _ = retryAfter
+    Response[F](Status.TooManyRequests)
   }
 
   /**

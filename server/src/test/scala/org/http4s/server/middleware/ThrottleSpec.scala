@@ -6,7 +6,6 @@ import org.http4s.{Http4sSpec, HttpApp, Request, Status}
 import cats.implicits._
 import org.http4s.dsl.io._
 import cats.effect.IO.ioEffect
-import org.http4s.headers.`Retry-After`
 import org.specs2.matcher.FutureMatchers
 import scala.concurrent.duration._
 import org.specs2.concurrent.ExecutionEnv
@@ -95,20 +94,22 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
       result must contain(TokenAvailable: TokenAvailability).exactly(1.times).await
     }
 
-    "return the time until the bucket is refilled when no token is available" in {
+    "return the time until the next token is available when no token is available" in {
       val ctx = TestContext()
       val testTimer: Timer[IO] = ctx.timer[IO]
       val capacity = 1
       val createBucket =
-        TokenBucket.local[IO](capacity, 1234.milliseconds)(ioEffect, testTimer.clock)
+        TokenBucket.local[IO](capacity, 100.milliseconds)(ioEffect, testTimer.clock)
 
       val takeTwoTokens = createBucket.flatMap(testee => {
-        testee.takeToken *> testee.takeToken
+        testee.takeToken *> testTimer.sleep(75.milliseconds) *> testee.takeToken
       })
 
       val result = takeTwoTokens.unsafeToFuture()
 
-      result must beEqualTo(TokenUnavailable(Some(1234.milliseconds))).await
+      ctx.tick(75.milliseconds)
+
+      result must beEqualTo(TokenUnavailable(Some(25.milliseconds))).await
     }
   }
 
@@ -137,19 +138,6 @@ class ThrottleSpec(implicit ee: ExecutionEnv) extends Http4sSpec with FutureMatc
       val req = Request[IO](uri = uri("/"))
 
       testee(req) must returnStatus(Status.TooManyRequests)
-    }
-
-    "include a retry-after time in the response to a denied request when provided one by the token provider" in {
-      val someRetryTime = Some(1234.seconds)
-      val result = Throttle.defaultResponse(someRetryTime)
-
-      result.headers.get(`Retry-After`) must beSome(`Retry-After`.unsafeFromLong(1234))
-    }
-
-    "not include a retry-after time in the response to a denied request when the token provider does not supply one" in {
-      val result = Throttle.defaultResponse(None)
-
-      result.headers.get(`Retry-After`) must beNone
     }
   }
 }
