@@ -6,6 +6,8 @@ import cats.effect._
 import cats.implicits._
 import fs2.Stream
 
+import scala.concurrent.duration._
+
 /** Create a HTTP1 client which will attempt to recycle connections */
 @deprecated("Use BlazeClientBuilder", "0.19.0-M2")
 object Http1Client {
@@ -14,7 +16,7 @@ object Http1Client {
     *
     * @param config blaze client configuration options
     */
-  def apply[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
+  def apply[F[_]: Timer](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
       implicit F: ConcurrentEffect[F]): F[Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = config.sslContext,
@@ -37,12 +39,14 @@ object Http1Client {
         maxConnectionsPerRequestKey = config.maxConnectionsPerRequestKey,
         responseHeaderTimeout = config.responseHeaderTimeout,
         requestTimeout = config.requestTimeout,
-        executionContext = config.executionContext
+        executionContext = config.executionContext,
+        listener = None,
+        listenerTimeout = 1.second
       )
       .map(pool => BlazeClient(pool, config, pool.shutdown()))
   }
 
-  def stream[F[_]: ConcurrentEffect](
+  def stream[F[_]: ConcurrentEffect: Timer](
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Stream[F, Client[F]] =
     Stream.bracket(apply(config))(_.shutdown)
 }

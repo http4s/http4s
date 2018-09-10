@@ -4,9 +4,8 @@ package client
 import cats.effect._
 import cats.effect.concurrent.Semaphore
 import cats.implicits._
-
 import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 /** Type that is responsible for the client lifecycle
   *
@@ -58,14 +57,16 @@ object ConnectionManager {
     * @param maxConnectionsPerRequestKey Map of RequestKey to number of max connections
     * @param executionContext `ExecutionContext` where async operations will execute
     */
-  def pool[F[_]: Concurrent, A <: Connection[F]](
+  def pool[F[_]: Concurrent: Timer, A <: Connection[F]](
       builder: ConnectionBuilder[F, A],
       maxTotal: Int,
       maxWaitQueueLimit: Int,
       maxConnectionsPerRequestKey: RequestKey => Int,
       responseHeaderTimeout: Duration,
       requestTimeout: Duration,
-      executionContext: ExecutionContext): F[ConnectionManager[F, A]] =
+      executionContext: ExecutionContext,
+      listener: Option[PoolManagerListener[F]],
+      listenerTimeout: FiniteDuration): F[ConnectionManager[F, A]] =
     Semaphore.uncancelable(1).map { semaphore =>
       new PoolManager[F, A](
         builder,
@@ -75,6 +76,9 @@ object ConnectionManager {
         responseHeaderTimeout,
         requestTimeout,
         semaphore,
-        executionContext)
+        executionContext,
+        listener,
+        listenerTimeout
+      )
     }
 }

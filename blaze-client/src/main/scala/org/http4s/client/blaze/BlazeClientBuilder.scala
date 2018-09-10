@@ -27,7 +27,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     val parserMode: ParserMode,
     val bufferSize: Int,
     val executionContext: ExecutionContext,
-    val asynchronousChannelGroup: Option[AsynchronousChannelGroup]
+    val asynchronousChannelGroup: Option[AsynchronousChannelGroup],
+    val poolManagerListener: Option[PoolManagerListener[F]],
+    val poolManagerListenerTimeout: FiniteDuration
 ) {
   private def copy(
       responseHeaderTimeout: Duration = responseHeaderTimeout,
@@ -45,7 +47,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode: ParserMode = parserMode,
       bufferSize: Int = bufferSize,
       executionContext: ExecutionContext = executionContext,
-      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup
+      asynchronousChannelGroup: Option[AsynchronousChannelGroup] = asynchronousChannelGroup,
+      poolManagerListener: Option[PoolManagerListener[F]] = poolManagerListener,
+      poolManagerListenerTimeout: FiniteDuration = poolManagerListenerTimeout
   ): BlazeClientBuilder[F] =
     new BlazeClientBuilder[F](
       responseHeaderTimeout = responseHeaderTimeout,
@@ -63,7 +67,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       bufferSize = bufferSize,
       executionContext = executionContext,
-      asynchronousChannelGroup = asynchronousChannelGroup
+      asynchronousChannelGroup = asynchronousChannelGroup,
+      poolManagerListener = poolManagerListener,
+      poolManagerListenerTimeout = poolManagerListenerTimeout
     ) {}
 
   def withResponseHeaderTimeout(responseHeaderTimeout: Duration): BlazeClientBuilder[F] =
@@ -126,7 +132,13 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutAsynchronousChannelGroup: BlazeClientBuilder[F] =
     withAsynchronousChannelGroupOption(None)
 
-  def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
+  def withPoolManagerListener(poolManagerListener: PoolManagerListener[F]): BlazeClientBuilder[F] =
+    copy(poolManagerListener = Some(poolManagerListener))
+
+  def withPoolManagerListenerTimeout(poolManagerListenerTimeout: FiniteDuration): BlazeClientBuilder[F] =
+    copy(poolManagerListenerTimeout = poolManagerListenerTimeout)
+
+  def resource(implicit F: ConcurrentEffect[F], timer: Timer[F]): Resource[F, Client[F]] =
     Resource.make(
       connectionManager.map(
         manager =>
@@ -137,11 +149,12 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
             requestTimeout = requestTimeout
         )))(_.shutdown)
 
-  def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
+  def stream(implicit F: ConcurrentEffect[F], timer: Timer[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
   private def connectionManager(
-      implicit F: ConcurrentEffect[F]): F[ConnectionManager[F, BlazeConnection[F]]] = {
+      implicit F: ConcurrentEffect[F],
+      timer: Timer[F]): F[ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -162,7 +175,9 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
         maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
         responseHeaderTimeout = responseHeaderTimeout,
         requestTimeout = requestTimeout,
-        executionContext = executionContext
+        executionContext = executionContext,
+        listener = poolManagerListener,
+        listenerTimeout = poolManagerListenerTimeout
       )
   }
 }
@@ -187,6 +202,8 @@ object BlazeClientBuilder {
       parserMode = ParserMode.Strict,
       bufferSize = 8192,
       executionContext = executionContext,
-      asynchronousChannelGroup = None
+      asynchronousChannelGroup = None,
+      poolManagerListener = None,
+      poolManagerListenerTimeout = 1.second
     ) {}
 }

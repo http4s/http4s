@@ -11,8 +11,9 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
+import cats.effect.implicits._
 
-private final class PoolManager[F[_], A <: Connection[F]](
+private final class PoolManager[F[_]: Timer, A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
     maxWaitQueueLimit: Int,
@@ -20,7 +21,9 @@ private final class PoolManager[F[_], A <: Connection[F]](
     responseHeaderTimeout: Duration,
     requestTimeout: Duration,
     semaphore: Semaphore[F],
-    implicit private val executionContext: ExecutionContext)(implicit F: Concurrent[F])
+    implicit private val executionContext: ExecutionContext,
+    listener: Option[PoolManagerListener[F]] = None,
+    listenerTimeout: FiniteDuration = 1.second)(implicit F: Concurrent[F])
     extends ConnectionManager[F, A] {
 
   private sealed case class Waiting(
@@ -36,6 +39,15 @@ private final class PoolManager[F[_], A <: Connection[F]](
   private val idleQueues = mutable.Map.empty[RequestKey, mutable.Queue[A]]
   private var waitQueue = mutable.Queue.empty[Waiting]
 
+  private def callListener(op: PoolManagerListener[F] => F[Unit]): F[Unit] =
+    listener.fold(F.unit) { li =>
+      op(li)
+        .timeoutTo(listenerTimeout, F.delay(logger.warn("Timed out calling stats listener")))
+        .handleErrorWith(th => F.delay(logger.warn(th)("Failed to call stats listener")))
+        .start
+        .void
+    }
+
   private def stats =
     s"curAllocated=$curTotal idleQueues.size=${idleQueues.size} waitQueue.size=${waitQueue.size} maxWaitQueueLimit=$maxWaitQueueLimit closed=${isClosed}"
 
@@ -49,23 +61,25 @@ private final class PoolManager[F[_], A <: Connection[F]](
     }
   }
 
-  private def incrConnection(key: RequestKey): F[Unit] = F.delay {
-    curTotal += 1
-    allocated.update(key, allocated.getOrElse(key, 0) + 1)
-  }
+  private def incrConnection(key: RequestKey): F[Unit] =
+    F.delay {
+      curTotal += 1
+      allocated.update(key, allocated.getOrElse(key, 0) + 1)
+    } *> callListener(_.onBorrow)
 
-  private def decrConnection(key: RequestKey): F[Unit] = F.delay {
-    curTotal -= 1
-    val numConnections = allocated.getOrElse(key, 0)
-    // If there are no more connections drop the key
-    if (numConnections == 1) {
-      allocated.remove(key)
-      idleQueues.remove(key)
-      ()
-    } else {
-      allocated.update(key, numConnections - 1)
-    }
-  }
+  private def decrConnection(key: RequestKey): F[Unit] =
+    F.delay {
+      curTotal -= 1
+      val numConnections = allocated.getOrElse(key, 0)
+      // If there are no more connections drop the key
+      if (numConnections == 1) {
+        allocated.remove(key)
+        idleQueues.remove(key)
+        ()
+      } else {
+        allocated.update(key, numConnections - 1)
+      }
+    } *> callListener(_.onRelease)
 
   private def numConnectionsCheckHolds(key: RequestKey): Boolean =
     curTotal < maxTotal && allocated.getOrElse(key, 0) < maxConnectionsPerRequestKey(key)
@@ -110,7 +124,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         logger.error(s"Max wait length reached, not scheduling.")
         callback(Left(new Exception("Wait queue is full")))
       }
-    }
+    } *> callListener(_.onWaitEnqueue)
 
   private def addToIdleQueue(connection: A, key: RequestKey): F[Unit] = F.delay {
     val q = idleQueues.getOrElse(key, mutable.Queue.empty[A])
@@ -206,7 +220,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         } else {
           F.delay(logger.debug(s"Fulfilling waiting connection request: $stats")) *>
             F.delay(callback(Right(NextConnection(connection, fresh = false))))
-        }
+        } *> callListener(_.onWaitDequeue)
 
       case None if waitQueue.isEmpty =>
         F.delay(logger.debug(s"Returning idle connection to pool: $stats")) *>
@@ -217,7 +231,8 @@ private final class PoolManager[F[_], A <: Connection[F]](
           case Some(Waiting(k, cb, _)) =>
             // This is the first waiter not blocked on the request key limit.
             // close the undesired connection and wait for another
-            F.delay(connection.shutdown()) *>
+            callListener(_.onWaitDequeue) *>
+              F.delay(connection.shutdown()) *>
               decrConnection(key) *>
               createConnection(k, cb)
 
@@ -269,27 +284,37 @@ private final class PoolManager[F[_], A <: Connection[F]](
     * @param connection The connection to be released.
     * @return An effect of Unit
     */
-  def release(connection: A): F[Unit] = semaphore.withPermit {
-    logger.debug(s"Recycling connection: $stats")
-    val key = connection.requestKey
-    if (connection.isRecyclable) {
-      releaseRecyclable(key, connection)
-    } else {
-      releaseNonRecyclable(key, connection)
-    }
-  }
+  def release(connection: A): F[Unit] =
+    semaphore.withPermit {
+      logger.debug(s"Recycling connection: $stats")
+      val key = connection.requestKey
+      if (connection.isRecyclable) {
+        releaseRecyclable(key, connection)
+      } else {
+        releaseNonRecyclable(key, connection)
+      }
+    } *> callListener(_.onRelease)
 
-  private def findFirstAllowedWaiter: F[Option[Waiting]] = F.delay {
-    val (expired, rest) = waitQueue.span(w => isExpired(w.at))
-    expired.foreach(
-      _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
-    logger.debug(s"expired requests: ${expired.length}")
-    waitQueue = rest
-    logger.debug(s"Dropped expired requests: $stats")
-    waitQueue.dequeueFirst { waiter =>
-      allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
-    }
-  }
+  private def findFirstAllowedWaiter: F[Option[Waiting]] =
+    for {
+      (expired, rest) <- F.delay {
+        val (expired, rest) = waitQueue.span(w => isExpired(w.at))
+        expired.foreach(
+          _.callback(Left(new TimeoutException("In wait queue for too long, timing out request."))))
+        (expired, rest)
+      }
+      _ <- List
+        .fill(expired.size)(())
+        .traverse(_ => callListener(_.onWaitDequeue) *> callListener(_.onWaitTimeout))
+      res <- F.delay {
+        logger.debug(s"expired requests: ${expired.length}")
+        waitQueue = rest
+        logger.debug(s"Dropped expired requests: $stats")
+        waitQueue.dequeueFirst { waiter =>
+          allocated.getOrElse(waiter.key, 0) < maxConnectionsPerRequestKey(waiter.key)
+        }
+      }
+    } yield res
 
   /**
     * This invalidates a Connection. This is what is exposed externally, and
@@ -339,19 +364,29 @@ private final class PoolManager[F[_], A <: Connection[F]](
     *
     * @return An effect Of Unit
     */
-  def shutdown(): F[Unit] = semaphore.withPermit {
-    F.delay {
-      logger.info(s"Shutting down connection pool: $stats")
-      if (!isClosed) {
-        isClosed = true
-        idleQueues.foreach(_._2.foreach(_.shutdown()))
-        idleQueues.clear()
-        allocated.clear()
-        curTotal = 0
+  def shutdown(): F[Unit] =
+    semaphore.withPermit {
+      F.delay {
+        logger.info(s"Shutting down connection pool: $stats")
+        if (!isClosed) {
+          isClosed = true
+          idleQueues.foreach(_._2.foreach(_.shutdown()))
+          idleQueues.clear()
+          allocated.clear()
+          curTotal = 0
+        }
       }
-    }
-  }
+    } *> callListener(_.onClose)
 }
 
 case class NoConnectionAllowedException(key: RequestKey)
     extends IllegalArgumentException(s"No client connections allowed to $key")
+
+trait PoolManagerListener[F[_]] {
+  def onClose: F[Unit]
+  def onBorrow: F[Unit]
+  def onRelease: F[Unit]
+  def onWaitEnqueue: F[Unit]
+  def onWaitDequeue: F[Unit]
+  def onWaitTimeout: F[Unit]
+}
