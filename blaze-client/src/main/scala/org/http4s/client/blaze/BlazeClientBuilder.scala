@@ -82,7 +82,7 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
   def withoutUserAgent: BlazeClientBuilder[F] =
     withUserAgentOption(None)
 
-  def withIdleTimeout(maxTotalConnections: Int): BlazeClientBuilder[F] =
+  def withMaxTotalConnections(maxTotalConnections: Int): BlazeClientBuilder[F] =
     copy(maxTotalConnections = maxTotalConnections)
 
   def withMaxWaitQueueLimit(maxWaitQueueLimit: Int): BlazeClientBuilder[F] =
