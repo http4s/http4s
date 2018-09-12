@@ -8,6 +8,12 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.18.18-SNAPSHOT
+
+## Enhancements
+* [#2048](https://github.com/http4s/http4s/pull/2048): Correct misleading logging in `Retry` middleware
+* [#2048](https://github.com/http4s/http4s/pull/2048): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
+
 # v0.19.0-M2 (2018-09-07)
 
 ## Breaking changes
