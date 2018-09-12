@@ -5,14 +5,12 @@ import cats.effect.{ContextShift, Sync}
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream._
 import fs2.io._
+import fs2.io.file.readRange
 import java.io._
 import java.net.URL
-
-import fs2.io.file.readRange
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
-
 import scala.concurrent.ExecutionContext
 
 object StaticFile {
