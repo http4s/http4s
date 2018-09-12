@@ -8,11 +8,26 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
+# v0.19.0-SNAPSHOT
+
+## Enhancements
+* [#2042](https://github.com/http4s/http4s/pull/2042): New `Throttle` server middleware
+
+## Bugfixes
+* [#2069](https://github.com/http4s/http4s/pull/2069): Add proper `withMaxTotalConnections` method to `BlazeClientBuilder` in place of misnamed `withIdleTimeout` overload.
+
+## Documentation updates
+* [#2076](https://github.com/http4s/http4s/pull/2076): Align coloring of legend and table for milestone on versoins page
+* [#2077](https://github.com/http4s/http4s/pull/2077): Replace Typelevel Code of Conduct with Scala Code of Conduct
+
+## Dependency upgrades
+* play-json-3.6.10 for Scala 2.11.x
+
 # v0.18.18-SNAPSHOT
 
 ## Enhancements
 * [#2048](https://github.com/http4s/http4s/pull/2048): Correct misleading logging in `Retry` middleware
-* [#2048](https://github.com/http4s/http4s/pull/2048): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
+* [#2078](https://github.com/http4s/http4s/pull/2078): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
 
 # v0.19.0-M2 (2018-09-07)
 
