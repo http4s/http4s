@@ -190,7 +190,7 @@ object StaticFile {
       end: Long,
       blockingExecutionContext: ExecutionContext
   ): EntityBody[F] =
-    readRange[F](f.toPath, blockingExecutionContext, DefaultBufferSize, start.toInt, end.toInt)
+    readRange[F](f.toPath, blockingExecutionContext, DefaultBufferSize, start, end)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {
