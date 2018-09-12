@@ -3,16 +3,16 @@ package org.http4s
 import cats.data._
 import cats.effect.{ContextShift, Sync}
 import cats.implicits.{catsSyntaxEither => _, _}
-import fs2._
 import fs2.Stream._
 import fs2.io._
-import fs2.io.file.{FileHandle, pulls}
 import java.io._
 import java.net.URL
-import java.nio.file.{Path, StandardOpenOption}
+
+import fs2.io.file.readRange
 import org.http4s.Status.NotModified
 import org.http4s.headers._
 import org.log4s.getLogger
+
 import scala.concurrent.ExecutionContext
 
 object StaticFile {
@@ -189,38 +189,8 @@ object StaticFile {
       start: Long,
       end: Long,
       blockingExecutionContext: ExecutionContext
-  ): EntityBody[F] = {
-    // Based on fs2 handling of files
-    def readAllFromFileHandle(chunkSize: Int, start: Long, end: Long)(
-        h: FileHandle[F]): Pull[F, Byte, Unit] =
-      _readAllFromFileHandle0(chunkSize, start, end)(h)
-
-    def _readAllFromFileHandle0(chunkSize: Int, offset: Long, end: Long)(
-        h: FileHandle[F]): Pull[F, Byte, Unit] = {
-      val bytesLeft = end - offset
-      if (bytesLeft <= 0L) Pull.done
-      else {
-        val bufferSize =
-          if (bytesLeft > Int.MaxValue) chunkSize else math.min(chunkSize, bytesLeft.toInt)
-        for {
-          res <- Pull.eval(h.read(bufferSize, offset))
-          next <- res
-            .filter(_.nonEmpty)
-            .fold[Pull[F, Byte, Unit]](Pull.done)(o =>
-              Pull
-                .output(o) >> _readAllFromFileHandle0(chunkSize, offset + o.size, end)(h))
-        } yield next
-      }
-    }
-
-    def readAll(path: Path, chunkSize: Int): Stream[F, Byte] =
-      pulls
-        .fromPath[F](path, blockingExecutionContext, List(StandardOpenOption.READ))
-        .flatMap(h => readAllFromFileHandle(chunkSize, start, end)(h.resource))
-        .stream
-
-    readAll(f.toPath, DefaultBufferSize)
-  }
+  ): EntityBody[F] =
+    readRange[F](f.toPath, blockingExecutionContext, DefaultBufferSize, start.toInt, end.toInt)
 
   private def nameToContentType(name: String): Option[`Content-Type`] =
     name.lastIndexOf('.') match {
