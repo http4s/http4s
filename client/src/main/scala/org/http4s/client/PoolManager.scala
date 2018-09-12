@@ -12,6 +12,10 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Random
 
+final case class WaitQueueFullFailure() extends RuntimeException {
+  def message: String = "Wait queue is full"
+}
+
 private final class PoolManager[F[_], A <: Connection[F]](
     builder: ConnectionBuilder[F, A],
     maxTotal: Int,
@@ -108,7 +112,7 @@ private final class PoolManager[F[_], A <: Connection[F]](
         waitQueue.enqueue(Waiting(key, callback, Instant.now()))
       } else {
         logger.error(s"Max wait length reached, not scheduling.")
-        callback(Left(new Exception("Wait queue is full")))
+        callback(Left(WaitQueueFullFailure()))
       }
     }
 
