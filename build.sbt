@@ -145,6 +145,16 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val jettyClient = libraryProject("jetty-client")
+  .settings(
+    description := "jetty implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.jettyClient
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
     description := "okhttp implementation for http4s clients",
