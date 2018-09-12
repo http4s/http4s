@@ -260,12 +260,12 @@
                         <a href="RequestKey.html" title="Represents a key for requests that can conceivably share a Connection.">RequestKey</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="class" href="" title=""></a>
-                        <a href="" title="">UnexpectedStatus</a>
+                        <a class="class" href="UnexpectedStatus.html" title=""></a>
+                        <a href="UnexpectedStatus.html" title="">UnexpectedStatus</a>
                       </li><li class="current-entities indented3">
                         <span class="separator"></span>
-                        <a class="class" href="WaitQueueFullFailure.html" title=""></a>
-                        <a href="WaitQueueFullFailure.html" title="">WaitQueueFullFailure</a>
+                        <a class="class" href="" title=""></a>
+                        <a href="" title="">WaitQueueFullFailure</a>
                       </li>
               </ul>
             </div>
@@ -275,8 +275,8 @@
       <div id="definition">
         <div class="big-circle class">c</div>
         <p id="owner"><a href="../../index.html" class="extype" name="org">org</a>.<a href="../index.html" class="extype" name="org.http4s">http4s</a>.<a href="index.html" class="extype" name="org.http4s.client">client</a></p>
-        <h1>UnexpectedStatus<span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html" title="Permalink">
+        <h1>WaitQueueFullFailure<span class="permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span></h1>
@@ -289,16 +289,16 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">UnexpectedStatus</span><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="http://www.scala-lang.org/api/2.12.6/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+        <span class="name">WaitQueueFullFailure</span><span class="params">()</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
       </span>
       </h4>
 
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c634fd80c656f55bad8f72048edab2a2dd66df34/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/blob/c634fd80c656f55bad8f72048edab2a2dd66df34/client/src/main/scala/org/http4s/client/PoolManager.scala" target="_blank">PoolManager.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a>, <span class="extype" name="java.lang.RuntimeException">RuntimeException</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a>, <span class="extype" name="java.lang.RuntimeException">RuntimeException</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div></div>
         
 
@@ -324,7 +324,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.client.UnexpectedStatus"><span>UnexpectedStatus</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="scala.util.control.NoStackTrace"><span>NoStackTrace</span></li><li class="in" name="java.lang.RuntimeException"><span>RuntimeException</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.client.WaitQueueFullFailure"><span>WaitQueueFullFailure</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="java.lang.RuntimeException"><span>RuntimeException</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -349,10 +349,10 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.client.UnexpectedStatus#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(status:org.http4s.Status):org.http4s.client.UnexpectedStatus"></a><a id="&lt;init&gt;:UnexpectedStatus"></a>
+              <ol><li name="org.http4s.client.WaitQueueFullFailure#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():org.http4s.client.WaitQueueFullFailure"></a><a id="&lt;init&gt;:WaitQueueFullFailure"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#&lt;init&gt;(status:org.http4s.Status):org.http4s.client.UnexpectedStatus" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#&lt;init&gt;():org.http4s.client.WaitQueueFullFailure" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -361,7 +361,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">UnexpectedStatus</span><span class="params">(<span name="status">status: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span>
+        <span class="name">WaitQueueFullFailure</span><span class="params">()</span>
       </span>
       
       
@@ -378,7 +378,7 @@
                 <li name="scala.AnyRef#!=" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a><a id="!=(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#!=(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#!=(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -394,7 +394,7 @@
     </li><li name="scala.AnyRef###" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html###():Int" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html###():Int" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -410,7 +410,7 @@
     </li><li name="scala.Predef.any2stringadd#+" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="+(other:String):String"></a><a id="+(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#+(other:String):String" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#+(other:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -423,14 +423,14 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(UnexpectedStatus,B)"></a>
+      <a id="-&gt;[B](y:B):(A,B)"></a><a id="-&gt;[B](B):(WaitQueueFullFailure,B)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#-&gt;[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#-&gt;[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -439,12 +439,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -453,7 +453,7 @@
     </li><li name="scala.AnyRef#==" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a><a id="==(Any):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#==(x$1:Any):Boolean" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#==(x$1:Any):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -469,7 +469,7 @@
     </li><li name="java.lang.Throwable#addSuppressed" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addSuppressed(x$1:Throwable):Unit"></a><a id="addSuppressed(Throwable):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#addSuppressed(x$1:Throwable):Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#addSuppressed(x$1:Throwable):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -485,7 +485,7 @@
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#asInstanceOf[T0]:T0" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#asInstanceOf[T0]:T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -501,7 +501,7 @@
     </li><li name="scala.AnyRef#clone" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a><a id="clone():AnyRef"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#clone():Object" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#clone():Object" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -523,9 +523,9 @@
               
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((UnexpectedStatus)⇒Boolean,⇒Any):UnexpectedStatus"></a>
+      <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a><a id="ensuring((WaitQueueFullFailure)⇒Boolean,⇒Any):WaitQueueFullFailure"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -534,18 +534,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((UnexpectedStatus)⇒Boolean):UnexpectedStatus"></a>
+      <a id="ensuring(cond:A=&gt;Boolean):A"></a><a id="ensuring((WaitQueueFullFailure)⇒Boolean):WaitQueueFullFailure"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#ensuring(cond:A=&gt;Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -554,18 +554,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>) ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):UnexpectedStatus"></a>
+      <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a><a id="ensuring(Boolean,⇒Any):WaitQueueFullFailure"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -574,18 +574,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):UnexpectedStatus"></a>
+      <a id="ensuring(cond:Boolean):A"></a><a id="ensuring(Boolean):WaitQueueFullFailure"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#ensuring(cond:Boolean):A" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#ensuring(cond:Boolean):A" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -594,18 +594,18 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.12.6/scala/Boolean.html#scala.Boolean" class="extype" name="scala.Boolean">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a></span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a><a id="eq(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#eq(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#eq(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -618,10 +618,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.util.control.NoStackTrace#fillInStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="java.lang.Throwable#fillInStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="fillInStackTrace():Throwable"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#fillInStackTrace():Throwable" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#fillInStackTrace():Throwable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -630,14 +630,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">fillInStackTrace</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Throwable">Throwable</span></span>
+        <span class="name">fillInStackTrace</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>NoStackTrace → Throwable</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#finalize():Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#finalize():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -659,7 +659,7 @@
     </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="formatted(fmtstr:String):String"></a><a id="formatted(String):String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#formatted(fmtstr:String):String" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#formatted(fmtstr:String):String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -672,8 +672,8 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -682,7 +682,7 @@
     </li><li name="java.lang.Throwable#getCause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getCause():Throwable"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getCause():Throwable" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getCause():Throwable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -698,7 +698,7 @@
     </li><li name="scala.AnyRef#getClass" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getClass():Class[_]" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getClass():Class[_]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -717,7 +717,7 @@
     </li><li name="java.lang.Throwable#getLocalizedMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getLocalizedMessage():String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getLocalizedMessage():String" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getLocalizedMessage():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -730,10 +730,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
-    </li><li name="org.http4s.client.UnexpectedStatus#getMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="java.lang.Throwable#getMessage" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getMessage():String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getMessage():String" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getMessage():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -742,14 +742,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getMessage</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">getMessage</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> → Throwable</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
     </li><li name="java.lang.Throwable#getStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getStackTrace():Array[StackTraceElement]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getStackTrace():Array[StackTraceElement]" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getStackTrace():Array[StackTraceElement]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -765,7 +765,7 @@
     </li><li name="java.lang.Throwable#getSuppressed" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getSuppressed():Array[Throwable]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getSuppressed():Array[Throwable]" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getSuppressed():Array[Throwable]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -781,7 +781,7 @@
     </li><li name="java.lang.Throwable#initCause" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="initCause(x$1:Throwable):Throwable"></a><a id="initCause(Throwable):Throwable"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#initCause(x$1:Throwable):Throwable" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#initCause(x$1:Throwable):Throwable" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -797,7 +797,7 @@
     </li><li name="scala.Any#isInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#isInstanceOf[T0]:Boolean" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#isInstanceOf[T0]:Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -810,10 +810,26 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.client.WaitQueueFullFailure#message" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="message:String"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#message:String" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">message</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      
+      
     </li><li name="scala.AnyRef#ne" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a><a id="ne(AnyRef):Boolean"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#ne(x$1:AnyRef):Boolean" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#ne(x$1:AnyRef):Boolean" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -829,7 +845,7 @@
     </li><li name="scala.AnyRef#notify" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#notify():Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#notify():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -848,7 +864,7 @@
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#notifyAll():Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#notifyAll():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -867,7 +883,7 @@
     </li><li name="java.lang.Throwable#printStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="printStackTrace(x$1:java.io.PrintWriter):Unit"></a><a id="printStackTrace(PrintWriter):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#printStackTrace(x$1:java.io.PrintWriter):Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#printStackTrace(x$1:java.io.PrintWriter):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -883,7 +899,7 @@
     </li><li name="java.lang.Throwable#printStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="printStackTrace(x$1:java.io.PrintStream):Unit"></a><a id="printStackTrace(PrintStream):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#printStackTrace(x$1:java.io.PrintStream):Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#printStackTrace(x$1:java.io.PrintStream):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -899,7 +915,7 @@
     </li><li name="java.lang.Throwable#printStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="printStackTrace():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#printStackTrace():Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#printStackTrace():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -915,7 +931,7 @@
     </li><li name="java.lang.Throwable#setStackTrace" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="setStackTrace(x$1:Array[StackTraceElement]):Unit"></a><a id="setStackTrace(Array[StackTraceElement]):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#setStackTrace(x$1:Array[StackTraceElement]):Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#setStackTrace(x$1:Array[StackTraceElement]):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -928,26 +944,10 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
-    </li><li name="org.http4s.client.UnexpectedStatus#status" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="status:org.http4s.Status"></a><a id="status:Status"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#status:org.http4s.Status" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">status</span><span class="result">: <a href="../Status.html" class="extype" name="org.http4s.Status">Status</a></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#synchronized[T0](x$1:=&gt;T0):T0" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -963,7 +963,7 @@
     </li><li name="java.lang.Throwable#toString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#toString():String" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#toString():String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -979,7 +979,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#wait():Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#wait():Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1001,7 +1001,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long,x$2:Int):Unit"></a><a id="wait(Long,Int):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#wait(x$1:Long,x$2:Int):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1023,7 +1023,7 @@
     </li><li name="scala.AnyRef#wait" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait(x$1:Long):Unit"></a><a id="wait(Long):Unit"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#wait(x$1:Long):Unit" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#wait(x$1:Long):Unit" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1045,9 +1045,9 @@
               
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(UnexpectedStatus,B)"></a>
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(WaitQueueFullFailure,B)"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#→[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#→[B](y:B):(A,B)" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1056,12 +1056,12 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li>
@@ -1075,7 +1075,7 @@
               <ol><li name="scala.Predef.RichException#getStackTraceString" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getStackTraceString:String"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/client/UnexpectedStatus.html#getStackTraceString:String" title="Permalink">
+      <a href="../../../org/http4s/client/WaitQueueFullFailure.html#getStackTraceString:String" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -1088,7 +1088,7 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to
             <span class="extype" name="scala.Predef.RichException">RichException</span> performed by method RichException in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>RichException</dd><dt>Annotations</dt><dd>
@@ -1106,8 +1106,6 @@
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Equals.html#scala.Equals" class="extype" name="scala.Equals">Equals</a></h3>
-            </div><div class="parent" name="scala.util.control.NoStackTrace">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/util/control/NoStackTrace.html#scala.util.control.NoStackTrace" class="extype" name="scala.util.control.NoStackTrace">NoStackTrace</a></h3>
             </div><div class="parent" name="java.lang.RuntimeException">
               <h3>Inherited from <span class="extype" name="java.lang.RuntimeException">RuntimeException</span></h3>
             </div><div class="parent" name="java.lang.Exception">
@@ -1123,23 +1121,23 @@
             </div>
         <div class="conversion" name="scala.Predef.RichException">
               <h3>Inherited by implicit conversion RichException from
-                <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to <span class="extype" name="scala.Predef.RichException">RichException</span>
+                <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to <span class="extype" name="scala.Predef.RichException">RichException</span>
               </h3>
             </div><div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>]
+                <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>]
+                <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>]
+                <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.client.UnexpectedStatus">UnexpectedStatus</a>]
+                <a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.client.WaitQueueFullFailure">WaitQueueFullFailure</a>]
               </h3>
             </div>
         </div>
