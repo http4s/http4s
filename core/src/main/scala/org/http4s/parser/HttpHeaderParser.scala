@@ -40,7 +40,8 @@ object HttpHeaderParser
     with StrictTransportSecurityHeader
     with ProxyAuthenticateHeader
     with WwwAuthenticateHeader
-    with ZipkinHeader {
+    with ZipkinHeader
+    with OriginHeader {
 
   type HeaderParser = String => ParseResult[Parsed]
 
@@ -103,7 +104,8 @@ object HttpHeaderParser
       Header("Cookie", "http4s=cool"),
       Header("Host", "http4s.org"),
       Header("X-Forwarded-For", "1.2.3.4"),
-      Header("Fancy-Custom-Header", "yeah")
+      Header("Fancy-Custom-Header", "yeah"),
+      Header("Origin", "http://example.com:12345")
     ).map(parseHeader)
     assert(results.forall(_.isRight))
   }

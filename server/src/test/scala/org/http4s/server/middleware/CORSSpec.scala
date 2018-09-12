@@ -21,7 +21,7 @@ class CORSSpec extends Http4sSpec {
       anyOrigin = false,
       allowCredentials = false,
       maxAge = 0,
-      allowedOrigins = Set("http://allowed.com/"),
+      allowedOrigins = Set("http://allowed.com"),
       allowedHeaders = Some(Set("User-Agent", "Keep-Alive", "Content-Type")),
       exposedHeaders = Some(Set("x-header"))
     )
@@ -33,7 +33,7 @@ class CORSSpec extends Http4sSpec {
 
   def buildRequest(path: String, method: Method = GET) =
     Request[IO](uri = Uri(path = path), method = method).replaceAllHeaders(
-      Header("Origin", "http://allowed.com/"),
+      Header("Origin", "http://allowed.com"),
       Header("Access-Control-Request-Method", "GET"))
 
   "CORS" should {
