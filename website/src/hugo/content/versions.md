@@ -41,7 +41,7 @@ title: Versions
   <tbody>
     <tr>
       <td><a href="/v0.19">{{% latestInSeries "0.19" %}}</a></td>
-      <td class="text-center"><span class="badge badge-danger">Milestone</span></td>
+      <td class="text-center"><span class="badge badge-warning">Milestone</span></td>
       <td class="text-center"><i class="fa fa-ban"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
       <td class="text-center"><i class="fa fa-check"></i></td>
