@@ -19,7 +19,7 @@ class GitHubService[F[_]: Sync](client: Client[F]) extends Http4sClientDsl[F] {
 
   private val RedirectUri = s"http://localhost:8080/$ApiVersion/login/github"
 
-  case class AccessTokenResponse(access_token: String)
+  final case class AccessTokenResponse(access_token: String)
 
   val authorize: Stream[F, Byte] = {
     val uri = Uri

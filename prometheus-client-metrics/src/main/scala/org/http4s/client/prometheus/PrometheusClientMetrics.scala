@@ -29,7 +29,7 @@ object PrometheusClientMetrics {
     }
   }
 
-  private case class ClientMetrics[F[_]](
+  private final case class ClientMetrics[F[_]](
       destination: Request[F] => String,
       responseDuration: Histogram,
       activeRequests: Gauge,

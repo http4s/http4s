@@ -35,7 +35,7 @@ import org.http4s.{AttributeEntry, Headers, Response, Status}
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
   */
-case class WebSocketBuilder[F[_]](
+final case class WebSocketBuilder[F[_]](
     send: Stream[F, WebSocketFrame],
     receive: Sink[F, WebSocketFrame],
     headers: Headers,

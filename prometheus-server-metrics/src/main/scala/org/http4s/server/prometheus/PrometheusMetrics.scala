@@ -51,7 +51,7 @@ object PrometheusMetrics {
     }
   }
 
-  private case class ServiceMetrics(
+  private final case class ServiceMetrics(
       requestDuration: Histogram,
       activeRequests: Gauge,
       requestCounter: Counter,
