@@ -15,7 +15,7 @@ trait RunTimedMatchers[F[_]] {
 
   protected implicit def F: Sync[F]
   protected def runWithTimeout[A](fa: F[A], timeout: FiniteDuration): Option[A]
-  protected def runAwait[A](fa: F[A]) : A
+  protected def runAwait[A](fa: F[A]): A
 
   // This comes from a private trait in real IOMatchers
   implicit class NotNullSyntax(s: String) {
@@ -32,12 +32,14 @@ trait RunTimedMatchers[F[_]] {
   def returnBefore[T](duration: FiniteDuration): TimedMatcher[T] =
     attemptRun(ValueCheck.alwaysOk, Some(duration))
 
-  private def attemptRun[T](check: ValueCheck[T], duration: Option[FiniteDuration]): TimedMatcher[T] =
+  private def attemptRun[T](
+      check: ValueCheck[T],
+      duration: Option[FiniteDuration]): TimedMatcher[T] =
     TimedMatcher(check, duration)
 
   case class TimedMatcher[T](
-    check: ValueCheck[T],
-    duration: Option[FiniteDuration]
+      check: ValueCheck[T],
+      duration: Option[FiniteDuration]
   ) extends Matcher[F[T]] {
 
     override final def apply[S <: F[T]](expected: Expectable[S]): MatchResult[S] = {
@@ -60,7 +62,7 @@ trait RunTimedMatchers[F[_]] {
             case Some(result) => checkOrFail(result)
           }
         case None =>
-          checkOrFail( runAwait( theAttempt))
+          checkOrFail(runAwait(theAttempt))
       }
 
     }
