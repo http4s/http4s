@@ -108,7 +108,7 @@ import org.http4s.implicits._
   case _ =&gt;
     Ok()
 }
-// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$52433/118186611@4a2078bb)
+// service: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$53267/355669714@71ede501)
 
 val request = Request[IO](Method.GET, uri(&quot;/&quot;))
 // request: org.http4s.Request[cats.effect.IO] = Request(method=GET, uri=/, headers=Headers())
@@ -123,7 +123,7 @@ service.orNotFound(request).unsafeRunSync
 // import org.http4s.server.middleware._
 
 val corsService = CORS(service)
-// corsService: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$52606/230721031@7b237ff2)
+// corsService: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$53440/1437870340@5a32d3ac)
 
 corsService.orNotFound(request).unsafeRunSync
 // res1: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
@@ -139,7 +139,7 @@ val corsRequest = request.putHeaders(originHeader)
 // corsRequest: request.Self = Request(method=GET, uri=/, headers=Headers(Origin: somewhere.com))
 
 corsService.orNotFound(corsRequest).unsafeRunSync
-// res2: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, Access-Control-Allow-Origin: somewhere.com, Access-Control-Max-Age: 86400))
+// res2: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 </code></pre>
 
 <p>Notice how the response has the CORS headers added. How easy was
@@ -177,19 +177,19 @@ val methodConfig = CORSConfig(
   allowedMethods = Some(Set(&quot;GET&quot;, &quot;POST&quot;)),
   allowCredentials = true,
   maxAge = 1.day.toSeconds)
-// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$52605/1332134362@16fff905,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
+// methodConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(true,true,86400,false,org.http4s.server.middleware.CORSConfig$$$Lambda$53439/1625165832@22c69009,Some(Set(GET, POST)),Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsMethodSvc = CORS(service, methodConfig)
-// corsMethodSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$52606/230721031@178873e4)
+// corsMethodSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$53440/1437870340@5d33c97a)
 
 corsMethodSvc.orNotFound(googleGet).unsafeRunSync
-// res3: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: google.com, Access-Control-Max-Age: 86400))
+// res3: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 
 corsMethodSvc.orNotFound(yahooPut).unsafeRunSync
-// res4: org.http4s.Response[cats.effect.IO] = Response(status=403, headers=Headers())
+// res4: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 
 corsMethodSvc.orNotFound(duckPost).unsafeRunSync
-// res5: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: true, Access-Control-Allow-Methods: GET, POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
+// res5: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 </code></pre>
 
 <p>As you can see, the CORS headers were only added to the <code>GET</code> and <code>POST</code> requests.
@@ -204,16 +204,16 @@ Next, we&rsquo;ll create a configuration that limits the origins to &ldquo;yahoo
 // originConfig: org.http4s.server.middleware.CORSConfig = CORSConfig(false,false,86400,true,Set(yahoo.com, duckduckgo.com),None,Some(Set(Content-Type, *)),Some(Set(*)))
 
 val corsOriginSvc = CORS(service, originConfig)
-// corsOriginSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$52606/230721031@346796cb)
+// corsOriginSvc: org.http4s.Http[[A]cats.data.OptionT[cats.effect.IO,A],cats.effect.IO] = Kleisli(org.http4s.server.middleware.CORS$$$Lambda$53440/1437870340@21954fe5)
 
 corsOriginSvc.orNotFound(googleGet).unsafeRunSync
-// res6: org.http4s.Response[cats.effect.IO] = Response(status=403, headers=Headers())
+// res6: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 
 corsOriginSvc.orNotFound(yahooPut).unsafeRunSync
-// res7: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: PUT, Access-Control-Allow-Origin: yahoo.com, Access-Control-Max-Age: 86400))
+// res7: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 
 corsOriginSvc.orNotFound(duckPost).unsafeRunSync
-// res8: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0, Access-Control-Expose-Headers: *, Vary: Origin,Access-Control-Request-Method, Access-Control-Allow-Credentials: false, Access-Control-Allow-Methods: POST, Access-Control-Allow-Origin: duckduckgo.com, Access-Control-Max-Age: 86400))
+// res8: org.http4s.Response[cats.effect.IO] = Response(status=200, headers=Headers(Content-Length: 0))
 </code></pre>
 
 <p>Again, the results are as expected. You can, of course, create a configuration that
