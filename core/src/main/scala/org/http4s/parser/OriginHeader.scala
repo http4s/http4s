@@ -12,7 +12,9 @@ trait OriginHeader {
   def ORIGIN(value: String): ParseResult[Origin] =
     new OriginParser(value).parse
 
-  private class OriginParser(value: String) extends Http4sHeaderParser[Origin](value) with Rfc3986Parser {
+  private class OriginParser(value: String)
+      extends Http4sHeaderParser[Origin](value)
+      with Rfc3986Parser {
 
     override def charset: Charset =
       StandardCharsets.ISO_8859_1
@@ -37,16 +39,14 @@ trait OriginHeader {
     }
 
     def hostListEntry: Rule1[Origin] = rule {
-      (host ~ zeroOrMore(" " ~ host)) ~> {
-        (head: Origin.Host, tail: Seq[Origin.Host]) =>
-          Origin.HostList(NonEmptyList(head, tail.toList))
+      (host ~ zeroOrMore(" " ~ host)) ~> { (head: Origin.Host, tail: Seq[Origin.Host]) =>
+        Origin.HostList(NonEmptyList(head, tail.toList))
       }
     }
 
     def host: Rule1[Origin.Host] = rule {
-      (scheme ~ "://" ~ Host ~ Port) ~> {
-        (s, h, p) =>
-          Origin.Host(s, h, p)
+      (scheme ~ "://" ~ Host ~ Port) ~> { (s, h, p) =>
+        Origin.Host(s, h, p)
       }
     }
   }

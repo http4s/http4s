@@ -35,7 +35,8 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
   // It only contains a scheme, a host, and an optional port.
   // Hence we re-used parts of the Uri class here, but we don't use a whole Uri:
   // http://tools.ietf.org/html/rfc6454#section-7
-  final case class Host(scheme: Uri.Scheme, host: Uri.Host, port: Option[Int] = None) extends Renderable {
+  final case class Host(scheme: Uri.Scheme, host: Uri.Host, port: Option[Int] = None)
+      extends Renderable {
     def toUri: Uri =
       Uri(scheme = Some(scheme), authority = Some(Uri.Authority(host = host, port = port)))
 
