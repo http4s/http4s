@@ -432,6 +432,10 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
                         <a class="object" href="IOMatchers$.html" title=""></a>
                         <a class="trait" href="IOMatchers.html" title="Matchers for cats.effect.IO"></a>
                         <a href="IOMatchers.html" title="Matchers for cats.effect.IO">IOMatchers</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="RunTimedMatchers.html" title="Matchers for cats.effect.F_"></a>
+                        <a href="RunTimedMatchers.html" title="Matchers for cats.effect.F_">RunTimedMatchers</a>
                       </li><li name="org.http4s.twirl" visbl="pub" class="indented3 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="twirl"></a><a id="twirl:twirl"></a>
       <span class="permalink">
@@ -641,9 +645,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       
     </li><li name="org.http4s.testing.Http4sMatchers" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="Http4sMatchersextendsMatcherswithIOMatchers"></a><a id="Http4sMatchers:Http4sMatchers"></a>
+      <a id="Http4sMatchers[F[_]]extendsMatcherswithRunTimedMatchers[F]"></a><a id="Http4sMatchers[F[_]]:Http4sMatchers[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/index.html#Http4sMatchersextendsMatcherswithIOMatchers" title="Permalink">
+      <a href="../../../org/http4s/testing/index.html#Http4sMatchers[F[_]]extendsMatcherswithRunTimedMatchers[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -652,7 +656,7 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="This might be useful in a testkit spinoff." href="Http4sMatchers.html"><span class="name">Http4sMatchers</span></a><span class="result"> extends <span class="extype" name="org.specs2.matcher.Matchers">Matchers</span> with <a href="IOMatchers.html" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a></span>
+        <a title="This might be useful in a testkit spinoff." href="Http4sMatchers.html"><span class="name">Http4sMatchers</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <span class="extype" name="org.specs2.matcher.Matchers">Matchers</span> with <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="org.http4s.testing.Http4sMatchers.F">F</span>]</span>
       </span>
       
       <p class="shortcomment cmt">This might be useful in a testkit spinoff.</p><div class="fullcomment"><div class="comment cmt"><p>This might be useful in a testkit spinoff.  Let's see what they do for us.</p></div></div>
@@ -689,9 +693,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
       
       
     </li><li name="org.http4s.testing.IOMatchers" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="IOMatchersextendsAnyRef"></a><a id="IOMatchers:IOMatchers"></a>
+      <a id="IOMatchersextendsRunTimedMatchers[cats.effect.IO]"></a><a id="IOMatchers:IOMatchers"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/index.html#IOMatchersextendsAnyRef" title="Permalink">
+      <a href="../../../org/http4s/testing/index.html#IOMatchersextendsRunTimedMatchers[cats.effect.IO]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -700,10 +704,27 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a title="Matchers for cats.effect.IO" href="IOMatchers.html"><span class="name">IOMatchers</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="Matchers for cats.effect.IO" href="IOMatchers.html"><span class="name">IOMatchers</span></a><span class="result"> extends <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
       </span>
       
       <p class="shortcomment cmt">Matchers for cats.effect.IO
+</p>
+    </li><li name="org.http4s.testing.RunTimedMatchers" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RunTimedMatchers[F[_]]extendsAnyRef"></a><a id="RunTimedMatchers[F[_]]:RunTimedMatchers[F]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/index.html#RunTimedMatchers[F[_]]extendsAnyRef" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a title="Matchers for cats.effect.F_" href="RunTimedMatchers.html"><span class="name">RunTimedMatchers</span></a><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+      </span>
+      
+      <p class="shortcomment cmt">Matchers for cats.effect.F_
 </p>
     </li></ol>
             </div>

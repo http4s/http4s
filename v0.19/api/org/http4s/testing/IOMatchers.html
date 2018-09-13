@@ -153,6 +153,10 @@
                         <a class="object" href="IOMatchers$.html" title=""></a>
                         <a class="trait" href="" title="Matchers for cats.effect.IO"></a>
                         <a href="" title="Matchers for cats.effect.IO">IOMatchers</a>
+                      </li><li class="current-entities indented3">
+                        <span class="separator"></span>
+                        <a class="trait" href="RunTimedMatchers.html" title="Matchers for cats.effect.F_"></a>
+                        <a href="RunTimedMatchers.html" title="Matchers for cats.effect.F_">RunTimedMatchers</a>
                       </li>
               </ul>
             </div>
@@ -178,7 +182,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">IOMatchers</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <span class="name">IOMatchers</span><span class="result"> extends <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
       </span>
       </h4>
 
@@ -188,12 +192,12 @@
           <span class="toggle">
             Linear Supertypes
           </span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>], <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">
               Known Subclasses
             </span>
-            <div class="subClasses hiddenContent"><a href="Http4sMatchers.html" class="extype" name="org.http4s.testing.Http4sMatchers">Http4sMatchers</a>, <a href="IOMatchers$.html" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a></div>
+            <div class="subClasses hiddenContent"><a href="IOMatchers$.html" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a></div>
           </div></div>
         
 
@@ -219,7 +223,7 @@
                   <span class="filtertype">Inherited<br />
                   </span>
                   <ol id="linearization">
-                    <li class="in" name="org.http4s.testing.IOMatchers"><span>IOMatchers</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                    <li class="in" name="org.http4s.testing.IOMatchers"><span>IOMatchers</span></li><li class="in" name="org.http4s.testing.RunTimedMatchers"><span>RunTimedMatchers</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                   </ol>
                 </div><div class="ancestors">
                   <span class="filtertype">Implicitly<br />
@@ -246,26 +250,10 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.testing.IOMatchers.IOMatcher" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="IOMatcher[T]extendsMatcher[cats.effect.IO[T]]withProductwithSerializable"></a><a id="IOMatcher[T]:IOMatcher[T]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/testing/IOMatchers.html#IOMatcher[T]extendsMatcher[cats.effect.IO[T]]withProductwithSerializable" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a title="" href="IOMatchers$IOMatcher.html"><span class="name">IOMatcher</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="check">check: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.IOMatchers.IOMatcher.T">T</span>]</span>, <span name="duration">duration: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a>]</span>)</span><span class="result"> extends <span class="extype" name="org.specs2.matcher.Matcher">Matcher</span>[<span class="extype" name="cats.effect.IO">IO</span>[<span class="extype" name="org.http4s.testing.IOMatchers.IOMatcher.T">T</span>]] with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
-      </span>
-      
-      
-    </li><li name="org.http4s.testing.IOMatchers.NotNullSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.testing.RunTimedMatchers.NotNullSyntax" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NotNullSyntaxextendsAnyRef"></a><a id="NotNullSyntax:NotNullSyntax"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/IOMatchers.html#NotNullSyntaxextendsAnyRef" title="Permalink">
+      <a href="../../../org/http4s/testing/RunTimedMatchers.html#NotNullSyntaxextendsAnyRef" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -274,10 +262,26 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a title="" href="IOMatchers$NotNullSyntax.html"><span class="name">NotNullSyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
+        <a title="" href="RunTimedMatchers$NotNullSyntax.html"><span class="name">NotNullSyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></span>
       </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
+    </li><li name="org.http4s.testing.RunTimedMatchers.TimedMatcher" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="TimedMatcher[T]extendsMatcher[F[T]]withProductwithSerializable"></a><a id="TimedMatcher[T]:TimedMatcher[T]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/RunTimedMatchers.html#TimedMatcher[T]extendsMatcher[F[T]]withProductwithSerializable" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a title="" href="RunTimedMatchers$TimedMatcher.html"><span class="name">TimedMatcher</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="check">check: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.TimedMatcher.T">T</span>]</span>, <span name="duration">duration: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a>]</span>)</span><span class="result"> extends <span class="extype" name="org.specs2.matcher.Matcher">Matcher</span>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.F">F</span>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.TimedMatcher.T">T</span>]] with <a href="http://www.scala-lang.org/api/2.12.6/scala/Product.html#scala.Product" class="extype" name="scala.Product">Product</a> with <a href="http://www.scala-lang.org/api/2.12.6/scala/Serializable.html#scala.Serializable" class="extype" name="scala.Serializable">Serializable</a></span>
+      </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -377,6 +381,22 @@
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.testing.IOMatchers#F" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="F:cats.effect.Sync[cats.effect.IO]"></a><a id="F:Sync[IO]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/IOMatchers.html#F:cats.effect.Sync[cats.effect.IO]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">F</span><span class="result">: <span class="extype" name="cats.effect.Sync">Sync</span>[<span class="extype" name="cats.effect.IO">IO</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a> → <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <span class="permalink">
@@ -682,10 +702,10 @@
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.testing.IOMatchers#returnBefore" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="returnBefore[T](duration:scala.concurrent.duration.FiniteDuration):IOMatchers.this.IOMatcher[T]"></a><a id="returnBefore[T](FiniteDuration):IOMatcher[T]"></a>
+    </li><li name="org.http4s.testing.RunTimedMatchers#returnBefore" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="returnBefore[T](duration:scala.concurrent.duration.FiniteDuration):RunTimedMatchers.this.TimedMatcher[T]"></a><a id="returnBefore[T](FiniteDuration):TimedMatcher[T]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/IOMatchers.html#returnBefore[T](duration:scala.concurrent.duration.FiniteDuration):IOMatchers.this.IOMatcher[T]" title="Permalink">
+      <a href="../../../org/http4s/testing/IOMatchers.html#returnBefore[T](duration:scala.concurrent.duration.FiniteDuration):RunTimedMatchers.this.TimedMatcher[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -694,14 +714,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">returnBefore</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="duration">duration: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a></span>)</span><span class="result">: <a href="IOMatchers$IOMatcher.html" class="extype" name="org.http4s.testing.IOMatchers.IOMatcher">IOMatcher</a>[<span class="extype" name="org.http4s.testing.IOMatchers.returnBefore.T">T</span>]</span>
+        <span class="name">returnBefore</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="duration">duration: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a></span>)</span><span class="result">: <a href="#TimedMatcher[T]extendsMatcher[F[T]]withProductwithSerializable" class="extmbr" name="org.http4s.testing.RunTimedMatchers.TimedMatcher">TimedMatcher</a>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.returnBefore.T">T</span>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.testing.IOMatchers#returnOk" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="returnOk[T]:IOMatchers.this.IOMatcher[T]"></a><a id="returnOk[T]:IOMatcher[T]"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
+    </li><li name="org.http4s.testing.RunTimedMatchers#returnOk" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="returnOk[T]:RunTimedMatchers.this.TimedMatcher[T]"></a><a id="returnOk[T]:TimedMatcher[T]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/IOMatchers.html#returnOk[T]:IOMatchers.this.IOMatcher[T]" title="Permalink">
+      <a href="../../../org/http4s/testing/IOMatchers.html#returnOk[T]:RunTimedMatchers.this.TimedMatcher[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -710,14 +730,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">returnOk</span><span class="tparams">[<span name="T">T</span>]</span><span class="result">: <a href="IOMatchers$IOMatcher.html" class="extype" name="org.http4s.testing.IOMatchers.IOMatcher">IOMatcher</a>[<span class="extype" name="org.http4s.testing.IOMatchers.returnOk.T">T</span>]</span>
+        <span class="name">returnOk</span><span class="tparams">[<span name="T">T</span>]</span><span class="result">: <a href="#TimedMatcher[T]extendsMatcher[F[T]]withProductwithSerializable" class="extmbr" name="org.http4s.testing.RunTimedMatchers.TimedMatcher">TimedMatcher</a>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.returnOk.T">T</span>]</span>
       </span>
       
-      
-    </li><li name="org.http4s.testing.IOMatchers#returnValue" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="returnValue[T](check:org.specs2.matcher.ValueCheck[T]):IOMatchers.this.IOMatcher[T]"></a><a id="returnValue[T](ValueCheck[T]):IOMatcher[T]"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
+    </li><li name="org.http4s.testing.RunTimedMatchers#returnValue" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="returnValue[T](check:org.specs2.matcher.ValueCheck[T]):RunTimedMatchers.this.TimedMatcher[T]"></a><a id="returnValue[T](ValueCheck[T]):TimedMatcher[T]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/testing/IOMatchers.html#returnValue[T](check:org.specs2.matcher.ValueCheck[T]):IOMatchers.this.IOMatcher[T]" title="Permalink">
+      <a href="../../../org/http4s/testing/IOMatchers.html#returnValue[T](check:org.specs2.matcher.ValueCheck[T]):RunTimedMatchers.this.TimedMatcher[T]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -726,10 +746,42 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">returnValue</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="check">check: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.IOMatchers.returnValue.T">T</span>]</span>)</span><span class="result">: <a href="IOMatchers$IOMatcher.html" class="extype" name="org.http4s.testing.IOMatchers.IOMatcher">IOMatcher</a>[<span class="extype" name="org.http4s.testing.IOMatchers.returnValue.T">T</span>]</span>
+        <span class="name">returnValue</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="check">check: <span class="extype" name="org.specs2.matcher.ValueCheck">ValueCheck</span>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.returnValue.T">T</span>]</span>)</span><span class="result">: <a href="#TimedMatcher[T]extendsMatcher[F[T]]withProductwithSerializable" class="extmbr" name="org.http4s.testing.RunTimedMatchers.TimedMatcher">TimedMatcher</a>[<span class="extype" name="org.http4s.testing.RunTimedMatchers.returnValue.T">T</span>]</span>
       </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
+    </li><li name="org.http4s.testing.IOMatchers#runAwait" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runAwait[A](fa:cats.effect.IO[A]):A"></a><a id="runAwait[A](IO[A]):A"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/IOMatchers.html#runAwait[A](fa:cats.effect.IO[A]):A" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runAwait</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="fa">fa: <span class="extype" name="cats.effect.IO">IO</span>[<span class="extype" name="org.http4s.testing.IOMatchers.runAwait.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.http4s.testing.IOMatchers.runAwait.A">A</span></span>
+      </span>
       
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a> → <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
+    </li><li name="org.http4s.testing.IOMatchers#runWithTimeout" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runWithTimeout[A](fa:cats.effect.IO[A],timeout:scala.concurrent.duration.FiniteDuration):Option[A]"></a><a id="runWithTimeout[A](IO[A],FiniteDuration):Option[A]"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/testing/IOMatchers.html#runWithTimeout[A](fa:cats.effect.IO[A],timeout:scala.concurrent.duration.FiniteDuration):Option[A]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runWithTimeout</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="fa">fa: <span class="extype" name="cats.effect.IO">IO</span>[<span class="extype" name="org.http4s.testing.IOMatchers.runWithTimeout.A">A</span>]</span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.12.6/scala/concurrent/duration/FiniteDuration.html#scala.concurrent.duration.FiniteDuration" class="extype" name="scala.concurrent.duration.FiniteDuration">FiniteDuration</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Option.html#scala.Option" class="extype" name="scala.Option">Option</a>[<span class="extype" name="org.http4s.testing.IOMatchers.runWithTimeout.A">A</span>]</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.testing.IOMatchers">IOMatchers</a> → <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -860,7 +912,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="org.http4s.testing.RunTimedMatchers">
+              <h3>Inherited from <a href="RunTimedMatchers.html" class="extype" name="org.http4s.testing.RunTimedMatchers">RunTimedMatchers</a>[<span class="extype" name="cats.effect.IO">IO</span>]</h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/AnyRef.html#scala.AnyRef" class="extype" name="scala.AnyRef">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.12.6/scala/Any.html#scala.Any" class="extype" name="scala.Any">Any</a></h3>
