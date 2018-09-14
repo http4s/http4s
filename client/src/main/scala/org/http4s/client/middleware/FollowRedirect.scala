@@ -110,7 +110,7 @@ object FollowRedirect {
               }
             } else dontRedirect
 
-          resp.status.code match {
+          val method = resp.status.code match {
             case 301 | 302 =>
               req.method match {
                 case POST =>
@@ -121,10 +121,10 @@ object FollowRedirect {
                   //
                   // TODO In a future version, configure this behavior through a
                   // redirect config.
-                  doRedirect(GET)
+                  Some(GET)
 
                 case m =>
-                  doRedirect(m)
+                  Some(m)
               }
 
             case 303 =>
@@ -134,10 +134,10 @@ object FollowRedirect {
               // provide an indirect response to the original request.  A user
               // agent can perform a retrieval request targeting that URI (a GET
               // or HEAD request if using HTTP)" -- RFC 7231
-              doRedirect(req.method match {
-                case HEAD => HEAD
-                case _ => GET
-              })
+              req.method match {
+                case HEAD => Some(HEAD)
+                case _ => Some(GET)
+              }
 
             case 307 | 308 =>
               // "Note: This status code is similar to 302 (Found), except that
@@ -147,11 +147,13 @@ object FollowRedirect {
               // 308 (Permanent Redirect) for this purpose). These status codes
               // may not change the method." -- RFC 7231
               //
-              doRedirect(req.method)
+              Some(req.method)
 
             case _ =>
-              F.pure(dr)
+              None
           }
+
+        method.map(doRedirect) getOrElse dontRedirect
       }
     }
 
