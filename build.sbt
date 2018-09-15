@@ -107,7 +107,8 @@ lazy val clientMetrics = libraryProject("client-metrics")
   .settings(
     description := "Support for Dropwizard Metrics on the client",
     libraryDependencies ++= Seq(
-      metricsCore
+      metricsCore,
+      prometheusClient
     )
   )
   .dependsOn(
