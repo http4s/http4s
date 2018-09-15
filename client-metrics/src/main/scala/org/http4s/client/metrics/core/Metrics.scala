@@ -14,27 +14,27 @@ object Metrics {
     prefix: String = "org.http4s.client",
     destination: Request[F] => Option[String] = { _: Request[F] => None}
   )(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
-    val ops = implicitly[MetricsOpsFactory[R]].instance(registry, prefix)
+    val ops = implicitly[MetricsOpsFactory[R]].instance[F](registry, prefix)
 
     def withMetrics()(req: Request[F]): F[DisposableResponse[F]] = {
       (for {
         start <- clock.monotonic(TimeUnit.NANOSECONDS)
-        _     <- F.delay(ops.increaseActiveRequests(destination(req)))
+        _     <- ops.increaseActiveRequests(destination(req))
         resp  <- client.open(req)
-        now   <- clock.monotonic(TimeUnit.NANOSECONDS)
-        _     <- F.delay(ops.registerRequestHeadersTime(resp.response.status, now - start, destination(req)))
-        iResp <- F.delay(instrumentResponse(start, destination(req), resp))
+        end   <- clock.monotonic(TimeUnit.NANOSECONDS)
+        _     <- ops.registerRequestHeadersTime(resp.response.status, end - start, destination(req))
+        iResp <- instrumentResponse(start, destination(req), resp)
       } yield iResp).handleErrorWith { e =>
-        F.delay(ops.decreaseActiveRequests(destination(req))) *> handleError(req, e) *>
+        ops.decreaseActiveRequests(destination(req)) *> handleError(req, e) *>
          F.raiseError[DisposableResponse[F]](e)
       }
     }
 
     def handleError(req: Request[F], e: Throwable): F[Unit] = {
       if (e.isInstanceOf[TimeoutException]) {
-        F.delay(ops.increaseTimeouts(destination(req)))
+        ops.increaseTimeouts(destination(req))
       } else {
-        F.delay(ops.increaseErrors(destination(req)))
+        ops.increaseErrors(destination(req))
       }
     }
 
@@ -42,15 +42,15 @@ object Metrics {
         start: Long,
         destination: Option[String],
         disposableResponse: DisposableResponse[F]
-    ): DisposableResponse[F] = {
+    ): F[DisposableResponse[F]] = {
       val newDisposable = for {
-        _       <- F.delay(ops.decreaseActiveRequests(destination))
+        _       <- ops.decreaseActiveRequests(destination)
         elapsed <- clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start)
-        _       <- F.delay(ops.registerRequestTotalTime(disposableResponse.response.status, elapsed, destination))
+        _       <- ops.registerRequestTotalTime(disposableResponse.response.status, elapsed, destination)
         _       <- disposableResponse.dispose
       } yield ()
 
-      disposableResponse.copy(dispose = newDisposable)
+      F.delay(disposableResponse.copy(dispose = newDisposable))
     }
 
     client.copy(open = Kleisli(withMetrics()))

@@ -1,24 +1,25 @@
 package org.http4s.client.metrics.prometheus
 
+import cats.effect.Sync
 import io.prometheus.client._
 import org.http4s.Status
 import org.http4s.client.metrics.core.{MetricsOps, MetricsOpsFactory}
 
-class PrometheusOps(registry: CollectorRegistry, prefix: String) extends MetricsOps {
+class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit F: Sync[F]) extends MetricsOps[F] {
 
-  override def increaseActiveRequests(destination: Option[String]): Unit = {
+  override def increaseActiveRequests(destination: Option[String]):F[Unit] = F.delay {
     metrics.activeRequests
       .labels(label(destination))
       .inc()
   }
 
-  override def decreaseActiveRequests(destination: Option[String]): Unit = {
+  override def decreaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
     metrics.activeRequests
       .labels(label(destination))
       .dec()
   }
 
-  override def registerRequestHeadersTime(status: Status, elapsed: Long, destination: Option[String]): Unit = {
+  override def registerRequestHeadersTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
     metrics.responseDuration
       .labels(
         label(destination),
@@ -27,7 +28,7 @@ class PrometheusOps(registry: CollectorRegistry, prefix: String) extends Metrics
       .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
   }
 
-  override def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): Unit = {
+  override def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
     metrics.responseDuration
       .labels(
         label(destination),
@@ -36,13 +37,13 @@ class PrometheusOps(registry: CollectorRegistry, prefix: String) extends Metrics
       .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
   }
 
-  override def increaseErrors(destination: Option[String]): Unit = {
+  override def increaseErrors(destination: Option[String]): F[Unit] = F.delay {
     metrics.clientErrorsCounter
       .labels(label(destination))
       .inc()
   }
 
-  override def increaseTimeouts(destination: Option[String]): Unit = {
+  override def increaseTimeouts(destination: Option[String]): F[Unit] = F.delay {
     metrics.timeoutsCounter
       .labels(label(destination))
       .inc()
@@ -114,7 +115,7 @@ private object ResponsePhase {
 
 class PrometheusOpsFactory extends MetricsOpsFactory[CollectorRegistry] {
 
-  override def instance(registry: CollectorRegistry, prefix: String): MetricsOps = new PrometheusOps(registry, prefix)
+  override def instance[F[_]: Sync](registry: CollectorRegistry, prefix: String): MetricsOps[F] = new PrometheusOps[F](registry, prefix)
 
 }
 

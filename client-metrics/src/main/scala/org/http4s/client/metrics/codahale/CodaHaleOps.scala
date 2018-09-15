@@ -1,27 +1,28 @@
 package org.http4s.client.metrics.codahale
 
+import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
 import java.util.concurrent.TimeUnit
 import org.http4s.Status
 import org.http4s.client.metrics.core.{MetricsOps, MetricsOpsFactory}
 
-class CodaHaleOps(registry: MetricRegistry, prefix: String) extends MetricsOps {
+class CodaHaleOps[F[_]](registry: MetricRegistry, prefix: String)(implicit F: Sync[F]) extends MetricsOps[F] {
 
-  override def increaseActiveRequests(destination: Option[String]): Unit = {
+  override def increaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
     registry.counter(s"${namespace(prefix, destination)}.active-requests").inc()
   }
 
-  override def decreaseActiveRequests(destination: Option[String]): Unit = {
+  override def decreaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
     registry.counter(s"${namespace(prefix, destination)}.active-requests").dec()
   }
 
-  override def registerRequestHeadersTime(status: Status, elapsed: Long, destination: Option[String]): Unit = {
+  override def registerRequestHeadersTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
     registry
       .timer(s"${namespace(prefix, destination)}.requests.headers")
       .update(elapsed, TimeUnit.NANOSECONDS)
   }
 
-  override def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): Unit = {
+  override def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
     registry
       .timer(s"${namespace(prefix, destination)}.requests.total")
       .update(elapsed, TimeUnit.NANOSECONDS)
@@ -29,11 +30,11 @@ class CodaHaleOps(registry: MetricRegistry, prefix: String) extends MetricsOps {
     registerStatusCode(status, destination)
   }
 
-  override def increaseErrors(destination: Option[String]): Unit = {
+  override def increaseErrors(destination: Option[String]): F[Unit] = F.delay {
     registry.counter(s"${namespace(prefix, destination)}.errors").inc()
   }
 
-  override def increaseTimeouts(destination: Option[String]): Unit = {
+  override def increaseTimeouts(destination: Option[String]): F[Unit] = F.delay {
     registry.counter(s"${namespace(prefix, destination)}.timeouts").inc()
   }
 
@@ -57,7 +58,7 @@ class CodaHaleOps(registry: MetricRegistry, prefix: String) extends MetricsOps {
 
 class CodaHaleOpsFactory extends MetricsOpsFactory[MetricRegistry] {
 
-  override def instance(registry: MetricRegistry, prefix: String): MetricsOps = new CodaHaleOps(registry, prefix)
+  override def instance[F[_]: Sync](registry: MetricRegistry, prefix: String): MetricsOps[F] = new CodaHaleOps[F](registry, prefix)
 
 }
 
