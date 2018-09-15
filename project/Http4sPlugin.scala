@@ -147,6 +147,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
     dependencyUpdatesFilter -= moduleFilter(organization = "org.spire-math"), // jawn-0.13 is incompatible with http4s-0.18
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline"), // discipline-0.10 is incompatible with scalacheck-1.13
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect-laws"),
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
@@ -277,7 +279,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val asyncHttpClient                  = "org.asynchttpclient"    %  "async-http-client"         % "2.0.39"
   lazy val blaze                            = "org.http4s"             %% "blaze-http"                % "0.12.13"
   lazy val boopickle                        = "io.suzaku"              %% "boopickle"                 % "1.3.0"
-  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.2.0"
+  lazy val cats                             = "org.typelevel"          %% "cats-core"                 % "1.4.0"
   lazy val catsEffect                       = "org.typelevel"          %% "cats-effect"               % "0.10.1"
   lazy val catsEffectLaws                   = "org.typelevel"          %% "cats-effect-laws"          % catsEffect.revision
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
