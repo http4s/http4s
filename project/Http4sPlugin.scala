@@ -309,7 +309,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val logbackClassic                   = "ch.qos.logback"         %  "logback-classic"           % "1.2.3"
   lazy val metricsCore                      = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.3"
   lazy val metricsJson                      = "io.dropwizard.metrics"  %  "metrics-json"              % metricsCore.revision
-  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.21.0"
+  lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.22.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.10"
   lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
