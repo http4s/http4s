@@ -68,8 +68,8 @@ lazy val serverMetrics = libraryProject("server-metrics")
   .settings(
     description := "Support for Dropwizard Metrics on the server",
     libraryDependencies ++= Seq(
-      metricsCore,
-      metricsJson
+      dropwizardMetricsCore,
+      dropwizardMetricsJson
     )
   )
   .dependsOn(server % "compile;test->test")
@@ -89,8 +89,10 @@ lazy val prometheusClientMetrics = libraryProject("prometheus-client-metrics")
     description := "Support for Prometheus Metrics on the client",
     libraryDependencies += prometheusClient
   )
-  .dependsOn(client % "compile;test->test")
-
+  .dependsOn(
+    client % "compile;test->test",
+    clientMetrics % "compile"
+  )
 lazy val client = libraryProject("client")
   .settings(
     description := "Base library for building http4s clients",
@@ -105,16 +107,20 @@ lazy val client = libraryProject("client")
 
 lazy val clientMetrics = libraryProject("client-metrics")
   .settings(
+    description := "Support for Metrics on the client"
+  )
+  .dependsOn(
+    client % "compile;test->test"
+  )
+
+lazy val dropwizardClientMetrics = libraryProject("dropwizard-client-metrics")
+  .settings(
     description := "Support for Dropwizard Metrics on the client",
-    libraryDependencies ++= Seq(
-      metricsCore,
-      prometheusClient
-    )
+    libraryDependencies += dropwizardMetricsCore
   )
   .dependsOn(
     client % "compile;test->test",
-    blazeClient % "test->compile",
-    blazeServer % "test->compile"
+    clientMetrics % "compile"
   )
 
 lazy val blazeCore = libraryProject("blaze-core")
@@ -459,7 +465,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
-    libraryDependencies ++= Seq(alpnBoot, metricsJson),
+    libraryDependencies ++= Seq(alpnBoot, dropwizardMetricsJson),
     javaOptions in run ++= addAlpnPath((managedClasspath in Runtime).value)
   )
   .dependsOn(blazeServer, blazeClient)
