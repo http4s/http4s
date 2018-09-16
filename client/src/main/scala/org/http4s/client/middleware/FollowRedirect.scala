@@ -42,7 +42,7 @@ object FollowRedirect {
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: MonadError[F, Throwable]): Client[F] = {
-    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] = {
+    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] =
       client.open(req).flatMap {
         case dr @ DisposableResponse(resp, _) =>
           def redirectUri =
@@ -98,26 +98,26 @@ object FollowRedirect {
                   case _ =>
                     pureBody.map(body => nextRequest(method, nextUri, Some(body)))
                 }
-                nextReq.fold(dontRedirect)(req =>
-                  dr.dispose.flatMap(_ => prepareLoop(req, redirects + 1))
-                    .map(disposableResponse => {
-                      val redirectUris = getRedirectUris(disposableResponse.response)
-                      val resp = disposableResponse.response
-                        .withAttribute(redirectUrisKey, req.uri +: redirectUris)
-                      disposableResponse.copy(response = resp)
-                    })
-                )
+                nextReq.fold(dontRedirect)(
+                  req =>
+                    dr.dispose
+                      .flatMap(_ => prepareLoop(req, redirects + 1))
+                      .map(disposableResponse => {
+                        val redirectUris = getRedirectUris(disposableResponse.response)
+                        val resp = disposableResponse.response
+                          .withAttribute(redirectUrisKey, req.uri +: redirectUris)
+                        disposableResponse.copy(response = resp)
+                      }))
               }
             } else dontRedirect
 
-        methodForRedirect(req, resp).map(doRedirect) getOrElse dontRedirect
+          methodForRedirect(req, resp).map(doRedirect).getOrElse(dontRedirect)
       }
-    }
 
     client.copy(open = Kleisli(prepareLoop(_, 0)))
   }
 
-  private def methodForRedirect[F[_]](req: Request[F], resp: Response[F]): Option[Method] = {
+  private def methodForRedirect[F[_]](req: Request[F], resp: Response[F]): Option[Method] =
     resp.status.code match {
       case 301 | 302 =>
         req.method match {
@@ -160,7 +160,6 @@ object FollowRedirect {
       case _ =>
         None
     }
-  }
 
   private val redirectUrisKey = AttributeKey[List[Uri]]
 
@@ -169,5 +168,5 @@ object FollowRedirect {
     * Excludes the initial request URI
     */
   def getRedirectUris[F[_]](response: Response[F]): List[Uri] =
-    response.attributes.get(redirectUrisKey) getOrElse Nil
+    response.attributes.get(redirectUrisKey).getOrElse(Nil)
 }

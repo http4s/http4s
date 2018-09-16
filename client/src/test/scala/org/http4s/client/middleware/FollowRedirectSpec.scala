@@ -192,11 +192,12 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
     "Record the intermediate URIs" in {
       client.fetch(Request[IO](uri = uri("http://localhost/loop/0"))) {
         case Ok(resp) => IO.pure(FollowRedirect.getRedirectUris(resp))
-      } must returnValue(List(
-        uri("http://localhost/loop/1"),
-        uri("http://localhost/loop/2"),
-        uri("http://localhost/loop/3")
-      ))
+      } must returnValue(
+        List(
+          uri("http://localhost/loop/1"),
+          uri("http://localhost/loop/2"),
+          uri("http://localhost/loop/3")
+        ))
     }
 
     "Not add any URIs when there are no redirects" in {
