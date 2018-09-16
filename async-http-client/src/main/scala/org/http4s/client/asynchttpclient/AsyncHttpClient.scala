@@ -62,7 +62,7 @@ object AsyncHttpClient {
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F],
+      implicit F: ConcurrentEffect[F]
   ): Stream[F, Client[F]] =
     Stream.bracket(F.delay(apply(config)))(_.shutdown)
 
