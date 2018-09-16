@@ -39,7 +39,7 @@ object AsyncHttpClient {
     * @param config configuration for the client
     * @param ec The ExecutionContext to run responses on
     */
-  def apply[F[_]: Timer](config: AsyncHttpClientConfig = defaultConfig)(
+  def apply[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: ConcurrentEffect[F]): Client[F] = {
     val client = new DefaultAsyncHttpClient(config)
     Client(
@@ -63,10 +63,10 @@ object AsyncHttpClient {
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
       implicit F: ConcurrentEffect[F],
-      timer: Timer[F]): Stream[F, Client[F]] =
+  ): Stream[F, Client[F]] =
     Stream.bracket(F.delay(apply(config)))(_.shutdown)
 
-  private def asyncHandler[F[_]: Timer](cb: Callback[DisposableResponse[F]])(
+  private def asyncHandler[F[_]](cb: Callback[DisposableResponse[F]])(
       implicit F: ConcurrentEffect[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
@@ -117,7 +117,7 @@ object AsyncHttpClient {
       }
     }
 
-  private def toAsyncRequest[F[_]: ConcurrentEffect: Timer](request: Request[F]): AsyncRequest = {
+  private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers)
       headers.add(h.name.toString, h.value)
@@ -128,7 +128,7 @@ object AsyncHttpClient {
       .build()
   }
 
-  private def getBodyGenerator[F[_]: ConcurrentEffect: Timer](req: Request[F]): BodyGenerator = {
+  private def getBodyGenerator[F[_]: ConcurrentEffect](req: Request[F]): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
       req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)

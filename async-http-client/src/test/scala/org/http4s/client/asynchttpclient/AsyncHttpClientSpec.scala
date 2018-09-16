@@ -5,5 +5,5 @@ package asynchttpclient
 import cats.effect.{IO, Resource}
 
 class AsyncHttpClientSpec extends ClientRouteTestBattery("AsyncHttpClient") {
-  def clientResource = Resource.make(IO(AsyncHttpClient()))(_.shutdown)
+  def clientResource = Resource.make(IO(AsyncHttpClient[IO]()))(_.shutdown)
 }
