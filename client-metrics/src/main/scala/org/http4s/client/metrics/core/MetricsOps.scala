@@ -9,7 +9,10 @@ trait MetricsOps[F[_]] {
 
   def decreaseActiveRequests(destination: Option[String]): F[Unit]
 
-  def registerRequestHeadersTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit]
+  def registerRequestHeadersTime(
+      status: Status,
+      elapsed: Long,
+      destination: Option[String]): F[Unit]
 
   def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit]
 

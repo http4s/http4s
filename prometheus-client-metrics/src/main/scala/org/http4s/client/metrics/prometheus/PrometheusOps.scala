@@ -5,9 +5,10 @@ import io.prometheus.client._
 import org.http4s.Status
 import org.http4s.client.metrics.core.{MetricsOps, MetricsOpsFactory}
 
-class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit F: Sync[F]) extends MetricsOps[F] {
+class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit F: Sync[F])
+    extends MetricsOps[F] {
 
-  override def increaseActiveRequests(destination: Option[String]):F[Unit] = F.delay {
+  override def increaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
     metrics.activeRequests
       .labels(label(destination))
       .inc()
@@ -19,7 +20,10 @@ class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit 
       .dec()
   }
 
-  override def registerRequestHeadersTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
+  override def registerRequestHeadersTime(
+      status: Status,
+      elapsed: Long,
+      destination: Option[String]): F[Unit] = F.delay {
     metrics.responseDuration
       .labels(
         label(destination),
@@ -31,7 +35,10 @@ class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit 
       .inc()
   }
 
-  override def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
+  override def registerRequestTotalTime(
+      status: Status,
+      elapsed: Long,
+      destination: Option[String]): F[Unit] = F.delay {
     metrics.responseDuration
       .labels(
         label(destination),
@@ -99,11 +106,11 @@ class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit 
 }
 
 case class ClientMetrics(
-  responseDuration: Histogram,
-  activeRequests: Gauge,
-  responseCounter: Counter,
-  clientErrorsCounter: Counter,
-  timeoutsCounter: Counter
+    responseDuration: Histogram,
+    activeRequests: Gauge,
+    responseCounter: Counter,
+    clientErrorsCounter: Counter,
+    timeoutsCounter: Counter
 )
 
 private sealed trait ResponsePhase
@@ -118,13 +125,13 @@ private object ResponsePhase {
 
 class PrometheusOpsFactory extends MetricsOpsFactory[CollectorRegistry] {
 
-  override def instance[F[_]: Sync](registry: CollectorRegistry, prefix: String): MetricsOps[F] = new PrometheusOps[F](registry, prefix)
+  override def instance[F[_]: Sync](registry: CollectorRegistry, prefix: String): MetricsOps[F] =
+    new PrometheusOps[F](registry, prefix)
 
 }
 
 object PrometheusOps {
 
-  implicit def prometheusMetricsFactory: MetricsOpsFactory[CollectorRegistry] = new PrometheusOpsFactory()
+  implicit def prometheusMetricsFactory: MetricsOpsFactory[CollectorRegistry] =
+    new PrometheusOpsFactory()
 }
-
-

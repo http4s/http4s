@@ -3,7 +3,7 @@ package org.http4s.client.metrics.prometheus
 import cats.effect.{Clock, IO}
 import io.prometheus.client.CollectorRegistry
 import java.io.IOException
-import java.util.concurrent.{TimeoutException, TimeUnit}
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Http4sSpec, HttpApp, Response, Status}
 import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.metrics.core.Metrics
@@ -102,36 +102,49 @@ class PrometheusMetricsSpec extends Http4sSpec {
     case "active_requests" =>
       registry.getSampleValue("client_active_request_count", Array("destination"), Array(""))
     case "2xx_responses" =>
-      registry.getSampleValue("client_response_total",
-        Array("destination", "code"), Array("", "2xx"))
+      registry
+        .getSampleValue("client_response_total", Array("destination", "code"), Array("", "2xx"))
     case "2xx_headers_duration" =>
-      registry.getSampleValue("client_response_duration_seconds_sum",
-        Array("destination", "code", "response_phase"), Array("", "2xx", "response_received"))
+      registry.getSampleValue(
+        "client_response_duration_seconds_sum",
+        Array("destination", "code", "response_phase"),
+        Array("", "2xx", "response_received"))
     case "2xx_total_duration" =>
-      registry.getSampleValue("client_response_duration_seconds_sum",
-        Array("destination", "code", "response_phase"), Array("", "2xx", "body_processed"))
+      registry.getSampleValue(
+        "client_response_duration_seconds_sum",
+        Array("destination", "code", "response_phase"),
+        Array("", "2xx", "body_processed"))
     case "4xx_responses" =>
-      registry.getSampleValue("client_response_total",
-        Array("destination", "code"), Array("", "4xx"))
+      registry
+        .getSampleValue("client_response_total", Array("destination", "code"), Array("", "4xx"))
     case "4xx_headers_duration" =>
-      registry.getSampleValue("client_response_duration_seconds_sum",
-        Array("destination", "code", "response_phase"), Array("", "4xx", "response_received"))
+      registry.getSampleValue(
+        "client_response_duration_seconds_sum",
+        Array("destination", "code", "response_phase"),
+        Array("", "4xx", "response_received"))
     case "4xx_total_duration" =>
-      registry.getSampleValue("client_response_duration_seconds_sum",
-        Array("destination", "code", "response_phase"), Array("", "4xx", "body_processed"))
+      registry.getSampleValue(
+        "client_response_duration_seconds_sum",
+        Array("destination", "code", "response_phase"),
+        Array("", "4xx", "body_processed"))
     case "5xx_responses" =>
-      registry.getSampleValue("client_response_total",
-        Array("destination", "code"), Array("", "5xx"))
+      registry
+        .getSampleValue("client_response_total", Array("destination", "code"), Array("", "5xx"))
     case "5xx_headers_duration" =>
-      registry.getSampleValue("client_response_duration_seconds_sum",
-        Array("destination", "code", "response_phase"), Array("", "5xx", "response_received"))
+      registry.getSampleValue(
+        "client_response_duration_seconds_sum",
+        Array("destination", "code", "response_phase"),
+        Array("", "5xx", "response_received"))
     case "5xx_total_duration" =>
-      registry.getSampleValue("client_response_duration_seconds_sum",
-        Array("destination", "code", "response_phase"), Array("", "5xx", "body_processed"))
+      registry.getSampleValue(
+        "client_response_duration_seconds_sum",
+        Array("destination", "code", "response_phase"),
+        Array("", "5xx", "body_processed"))
     case "timeouts" =>
       registry.getSampleValue("client_client_timeouts_total", Array("destination"), Array(""))
     case "client_errors" =>
-      registry.getSampleValue("client_client_errors_total", Array("destination"), Array(""))  }
+      registry.getSampleValue("client_client_errors_total", Array("destination"), Array(""))
+  }
 }
 
 class FakeClock extends Clock[IO] {
@@ -165,4 +178,3 @@ object RemoteEndpointStub {
       NotFound("404 Not Found")
   }
 }
-

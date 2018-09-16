@@ -3,7 +3,7 @@ package org.http4s.client.metrics.codahale
 import cats.effect.{Clock, IO}
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
 import java.io.IOException
-import java.util.concurrent.{TimeoutException, TimeUnit}
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Http4sSpec, HttpApp, Response, Status}
 import org.http4s.client.{Client, UnexpectedStatus}
 import org.http4s.client.metrics.codahale.CodaHaleOps._
@@ -103,7 +103,8 @@ class CodaHaleMetricsSpec extends Http4sSpec {
   }
 
   def count(registry: MetricRegistry, name: String): Long = registry.getCounters.get(name).getCount
-  def values(registry: MetricRegistry, name: String): Option[Array[Long]] = Option(registry.getTimers().get(name)).map(_.getSnapshot.getValues)
+  def values(registry: MetricRegistry, name: String): Option[Array[Long]] =
+    Option(registry.getTimers().get(name)).map(_.getSnapshot.getValues)
 }
 
 class FakeClock extends Clock[IO] {
@@ -137,4 +138,3 @@ object RemoteEndpointStub {
       NotFound("404 Not Found")
   }
 }
-
