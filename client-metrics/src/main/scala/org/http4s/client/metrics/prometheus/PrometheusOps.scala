@@ -26,6 +26,9 @@ class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit 
         reportStatus(status),
         ResponsePhase.report(ResponsePhase.ResponseReceived))
       .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+    metrics.responseCounter
+      .labels(label(destination), reportStatus(status))
+      .inc()
   }
 
   override def registerRequestTotalTime(status: Status, elapsed: Long, destination: Option[String]): F[Unit] = F.delay {
