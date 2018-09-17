@@ -107,6 +107,19 @@ object UrlForm {
     x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
   }
 
+  implicit val monoidInstance: Monoid[UrlForm] = new Monoid[UrlForm] {
+    override def empty: UrlForm = UrlForm.empty
+
+    override def combine(x: UrlForm, y: UrlForm): UrlForm =
+      UrlForm(x.values.foldLeft(y.values) {
+        case (my, (k, x)) =>
+          my.updated(k, my.get(k) match {
+            case Some(y) => x ++ y
+            case None => x
+          })
+      })
+  }
+
   /** Attempt to decode the `String` to a [[UrlForm]] */
   def decodeString(charset: Charset)(
       urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
