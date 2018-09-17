@@ -43,38 +43,34 @@ object RequestLogger {
 
             val response = service(changedRequest)
 
-            response.attempt
-              .flatMap {
-                case Left(e) =>
-                  OptionT.liftF(
-                    Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen)(logger) *>
-                      Sync[F].raiseError[Response[F]](e)
-                  )
-                case Right(resp) =>
-                  Sync[OptionT[F, ?]].pure(
-                    resp.withBodyStream(
-                      resp.body.onFinalize(
-                        Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                          logHeaders,
-                          logBody,
-                          redactHeadersWhen)(logger)
-                      )
+            OptionT(response.value.attempt.flatMap {
+              case Left(e) =>
+                Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                  logHeaders,
+                  logBody,
+                  redactHeadersWhen)(logger) *>
+                  Sync[F].raiseError[Option[Response[F]]](e)
+              case Right(resp) =>
+                Sync[F].pure(resp.map { r =>
+                  r.withBodyStream(
+                    r.body.onFinalize(
+                      Logger.logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                        logHeaders,
+                        logBody,
+                        redactHeadersWhen)(logger)
                     )
                   )
-              }
-              .orElse(
-                OptionT(
-                  Logger
-                    .logMessage[F, Request[F]](req.withBodyStream(newBody))(
-                      logHeaders,
-                      logBody,
-                      redactHeadersWhen)(logger)
-                    .as(Option.empty[Response[F]])
-                )
+                })
+            }).orElse(
+              OptionT(
+                Logger
+                  .logMessage[F, Request[F]](req.withBodyStream(newBody))(
+                    logHeaders,
+                    logBody,
+                    redactHeadersWhen)(logger)
+                  .as(Option.empty[Response[F]])
               )
+            )
           }
     }
 }
