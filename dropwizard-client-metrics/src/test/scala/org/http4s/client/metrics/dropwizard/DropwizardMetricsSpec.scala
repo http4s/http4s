@@ -1,4 +1,4 @@
-package org.http4s.client.metrics.codahale
+package org.http4s.client.metrics.dropwizard
 
 import cats.effect.{Clock, IO}
 import com.codahale.metrics.{MetricRegistry, SharedMetricRegistries}
@@ -6,13 +6,13 @@ import java.io.IOException
 import java.util.concurrent.{TimeUnit, TimeoutException}
 import org.http4s.{Http4sSpec, HttpApp, Response, Status}
 import org.http4s.client.{Client, UnexpectedStatus}
-import org.http4s.client.metrics.codahale.CodaHaleOps._
+import org.http4s.client.metrics.dropwizard.DropwizardOps._
 import org.http4s.client.metrics.core.Metrics
 import org.http4s.dsl.io._
 import org.http4s.Method.GET
 import scala.concurrent.duration.TimeUnit
 
-class CodaHaleMetricsSpec extends Http4sSpec {
+class DropwizardMetricsSpec extends Http4sSpec {
 
   val httpClient = Client.fromHttpApp[IO](RemoteEndpointStub.mockEndpoints)
 

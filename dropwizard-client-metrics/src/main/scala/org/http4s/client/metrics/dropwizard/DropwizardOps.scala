@@ -1,4 +1,4 @@
-package org.http4s.client.metrics.codahale
+package org.http4s.client.metrics.dropwizard
 
 import cats.effect.Sync
 import com.codahale.metrics.MetricRegistry
@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit
 import org.http4s.Status
 import org.http4s.client.metrics.core.{MetricsOps, MetricsOpsFactory}
 
-class CodaHaleOps[F[_]](registry: MetricRegistry, prefix: String)(implicit F: Sync[F])
+class DropwizardOps[F[_]](registry: MetricRegistry, prefix: String)(implicit F: Sync[F])
     extends MetricsOps[F] {
 
   override def increaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
@@ -65,10 +65,10 @@ class CodaHaleOps[F[_]](registry: MetricRegistry, prefix: String)(implicit F: Sy
 class CodaHaleOpsFactory extends MetricsOpsFactory[MetricRegistry] {
 
   override def instance[F[_]: Sync](registry: MetricRegistry, prefix: String): MetricsOps[F] =
-    new CodaHaleOps[F](registry, prefix)
+    new DropwizardOps[F](registry, prefix)
 
 }
 
-object CodaHaleOps {
+object DropwizardOps {
   implicit def codaHaleMetricsFactory: MetricsOpsFactory[MetricRegistry] = new CodaHaleOpsFactory()
 }
