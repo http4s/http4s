@@ -23,11 +23,21 @@ it.
 ## Dependency upgrades
 * play-json-3.6.10 for Scala 2.11.x
 
-# v0.18.18-SNAPSHOT
+# v0.18.18 (2018-09-18)
 
-## Enhancements
+## Bug fixes
 * [#2048](https://github.com/http4s/http4s/pull/2048): Correct misleading logging in `Retry` middleware
 * [#2078](https://github.com/http4s/http4s/pull/2078): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
+
+## Enhancements
+* [#2078](https://github.com/http4s/http4s/pull/2078): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
+* [#2095](https://github.com/http4s/http4s/pull/2095): Add `Monoid[UrlForm]` instance
+
+## Dependency upgrades
+* cats-1.4.0
+* fs2-0.10.6
+* jetty-9.4.12.v20180830
+* tomcat-9.0.12
 
 # v0.19.0-M2 (2018-09-07)
 
