@@ -7,7 +7,8 @@ import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import org.http4s.websocket.{WebSocketContext, Websocket}
 import org.http4s.{AttributeEntry, Headers, Response, Status}
 
-/**
+/** A low level ws builder
+  *
   * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
   * supplied exchange to process and respond to websocket messages.
   * @param send     The send side of the Exchange represents the outgoing stream of messages that should be sent to the client
@@ -35,13 +36,13 @@ import org.http4s.{AttributeEntry, Headers, Response, Status}
   * @param onHandshakeFailure The status code to return when failing to handle a websocket HTTP request to this route.
   *                           default: BadRequest
   */
-case class WebSocketBuilder[F[_]](
+case class LLWebSocketBuilder[F[_]](
     send: Stream[F, WebSocketFrame],
     receive: Sink[F, WebSocketFrame],
     headers: Headers,
     onNonWebSocketRequest: F[Response[F]],
     onHandshakeFailure: F[Response[F]])
-object WebSocketBuilder {
+object LLWebSocketBuilder {
 
   class Builder[F[_]: Applicative] {
     def build(
@@ -54,7 +55,7 @@ object WebSocketBuilder {
           .withEntity("WebSocket handshake failed.")
           .pure[F],
         onClose: F[Unit] = Applicative[F].unit): F[Response[F]] =
-      WebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
+      LLWebSocketBuilder(send, receive, headers, onNonWebSocketRequest, onHandshakeFailure).onNonWebSocketRequest
         .map(
           _.withAttribute(
             AttributeEntry(
