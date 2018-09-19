@@ -44,8 +44,12 @@ trait CirceInstances {
         case _ => jawn.jawnDecoderImpl[F, Json](msg)
       }
     }
+  
+  @deprecated("Use jsonDecoderOf instead")
+  implicit def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+    jsonOf
 
-  def jsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+  implicit def jsonDecoderOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .decodeJson(json)
@@ -56,6 +60,10 @@ trait CirceInstances {
           DecodeResult.success(_)
         )
     }
+  
+  @deprecated("Use accumulatingJsonDecoderOf instead")
+  def accumulatingJsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+    accumulatingJsonDecoderOf
 
   /**
     * An [[EntityDecoder]] that uses circe's accumulating decoder for decoding the JSON.
@@ -63,7 +71,7 @@ trait CirceInstances {
     * In case of a failure, returns an [[InvalidMessageBodyFailure]] with the cause containing
     * a [[DecodingFailures]] exception, from which the errors can be extracted.
     */
-  def accumulatingJsonOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
+  def accumulatingJsonDecoderOf[F[_]: Sync, A](implicit decoder: Decoder[A]): EntityDecoder[F, A] =
     jsonDecoder[F].flatMapR { json =>
       decoder
         .accumulating(json.hcursor)
@@ -90,7 +98,7 @@ trait CirceInstances {
       }
       .withContentType(`Content-Type`(MediaType.application.json))
 
-  def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
+  implicit def jsonEncoderOf[F[_]: Applicative, A](implicit encoder: Encoder[A]): EntityEncoder[F, A] =
     jsonEncoderWithPrinterOf(defaultPrinter)
 
   def jsonEncoderWithPrinterOf[F[_]: Applicative, A](printer: Printer)(
