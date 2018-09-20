@@ -6,18 +6,22 @@ import scalapb.compiler.{DescriptorImplicits, FunctionalPrinter, StreamType}
 
 class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits){
   import di._
+  import Fs2GrpcServicePrinter.constants._
+
+  private[this] val serviceName: String    = service.name
+  private[this] val servicePkgName: String = service.getFile.scalaPackageName
 
   private[this] def serviceMethodSignature(method: MethodDescriptor) = {
 
     val scalaInType   = method.inputType.scalaType
     val scalaOutType  = method.outputType.scalaType
-    val clientHeaders = "clientHeaders: _root_.io.grpc.Metadata"
+    val clientHeaders = s"clientHeaders: $Metadata"
 
     s"def ${method.name}" + (method.streamType match {
       case StreamType.Unary           => s"(request: $scalaInType, $clientHeaders): F[$scalaOutType]"
-      case StreamType.ClientStreaming => s"(request: _root_.fs2.Stream[F, $scalaInType], $clientHeaders): F[$scalaOutType]"
-      case StreamType.ServerStreaming => s"(request: $scalaInType, $clientHeaders): _root_.fs2.Stream[F, $scalaOutType]"
-      case StreamType.Bidirectional   => s"(request: _root_.fs2.Stream[F, $scalaInType], $clientHeaders): _root_.fs2.Stream[F, $scalaOutType]"
+      case StreamType.ClientStreaming => s"(request: $Stream[F, $scalaInType], $clientHeaders): F[$scalaOutType]"
+      case StreamType.ServerStreaming => s"(request: $scalaInType, $clientHeaders): $Stream[F, $scalaOutType]"
+      case StreamType.Bidirectional   => s"(request: $Stream[F, $scalaInType], $clientHeaders): $Stream[F, $scalaOutType]"
     })
   }
 
@@ -32,9 +36,9 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits)
 
   private[this] def createClientCall(method: MethodDescriptor) = {
     val basicClientCall =
-      s"_root_.org.lyranthe.fs2_grpc.java_runtime.client.Fs2ClientCall[F](channel, _root_.${service.getFile.scalaPackageName}.${service.name}Grpc.${method.descriptorName}, callOptions)"
+      s"$Fs2ClientCall[F](channel, _root_.$servicePkgName.${serviceName}Grpc.${method.descriptorName}, callOptions)"
     if (method.isServerStreaming)
-      s"_root_.fs2.Stream.eval($basicClientCall)"
+      s"$Stream.eval($basicClientCall)"
     else
       basicClientCall
   }
@@ -52,7 +56,7 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits)
   // TODO: update this
   private[this] def serviceBindingImplementation(method: MethodDescriptor): PrinterEndo = { p =>
     p.add(
-      s".addMethod(_root_.${service.getFile.scalaPackageName}.${service.getName}Grpc.${method.descriptorName}, _root_.org.lyranthe.fs2_grpc.java_runtime.server.Fs2ServerCallHandler[F].${handleMethod(
+      s".addMethod(_root_.$servicePkgName.${serviceName}Grpc.${method.descriptorName}, $Fs2ServerCallHandler[F].${handleMethod(
         method)}(serviceImpl.${method.name}))")
   }
 
@@ -63,20 +67,20 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits)
 
   private[this] def serviceBindingImplementations: PrinterEndo =
     _.indent
-      .add(s".builder(_root_.${service.getFile.scalaPackageName}.${service.getName}Grpc.${service.descriptorName})")
+      .add(s".builder(_root_.$servicePkgName.${serviceName}Grpc.${service.descriptorName})")
       .call(service.methods.map(serviceBindingImplementation): _*)
       .add(".build()")
       .outdent
 
   private[this] def serviceTrait: PrinterEndo =
-    _.add(s"trait ${service.name}Fs2Grpc[F[_]] {").indent.call(serviceMethods).outdent.add("}")
+    _.add(s"trait ${serviceName}Fs2Grpc[F[_]] {").indent.call(serviceMethods).outdent.add("}")
 
   private[this] def serviceObject: PrinterEndo =
-    _.add(s"object ${service.name}Fs2Grpc {").indent.call(serviceClient).call(serviceBinding).outdent.add("}")
+    _.add(s"object ${serviceName}Fs2Grpc {").indent.call(serviceClient).call(serviceBinding).outdent.add("}")
 
   private[this] def serviceClient: PrinterEndo = {
     _.add(
-      s"def stub[F[_]: _root_.cats.effect.Effect](channel: _root_.io.grpc.Channel, callOptions: _root_.io.grpc.CallOptions = _root_.io.grpc.CallOptions.DEFAULT)(implicit ec: _root_.scala.concurrent.ExecutionContext): ${service.name}Fs2Grpc[F] = new ${service.name}Fs2Grpc[F] {").indent
+      s"def stub[F[_]: $ConcurrentEffect](channel: $Channel, callOptions: $CallOptions = $CallOptions.DEFAULT): ${serviceName}Fs2Grpc[F] = new ${serviceName}Fs2Grpc[F] {").indent
       .call(serviceMethodImplementations)
       .outdent
       .add("}")
@@ -84,8 +88,8 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits)
 
   private[this] def serviceBinding: PrinterEndo = {
     _.add(
-      s"def bindService[F[_]: _root_.cats.effect.Effect](serviceImpl: ${service.name}Fs2Grpc[F])(implicit ec: _root_.scala.concurrent.ExecutionContext): _root_.io.grpc.ServerServiceDefinition = {").indent
-      .add("_root_.io.grpc.ServerServiceDefinition")
+      s"def bindService[F[_]: $ConcurrentEffect](serviceImpl: ${service.name}Fs2Grpc[F]): $ServerServiceDefinition = {").indent
+      .add(s"$ServerServiceDefinition")
       .call(serviceBindingImplementations)
       .outdent
       .add("}")
@@ -93,8 +97,32 @@ class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits)
 
   def printService(printer: FunctionalPrinter): FunctionalPrinter = {
     printer
-      .add("package " + service.getFile.scalaPackageName, "", "import _root_.cats.implicits._", "")
+      .add(s"package $servicePkgName", "", "import _root_.cats.implicits._", "")
       .call(serviceTrait)
       .call(serviceObject)
   }
+}
+
+object Fs2GrpcServicePrinter {
+
+  object constants {
+
+    private val effPkg  = "_root_.cats.effect"
+    private val grpcPkg = "_root_.io.grpc"
+    private val jrtPkg  = "_root_.org.lyranthe.fs2_grpc.java_runtime"
+    private val fs2Pkg  = "_root_.fs2"
+
+    ///
+
+    val ConcurrentEffect        = s"$effPkg.ConcurrentEffect"
+    val Stream                  = s"$fs2Pkg.Stream"
+    val Fs2ServerCallHandler    = s"$jrtPkg.server.Fs2ServerCallHandler"
+    val Fs2ClientCall           = s"$jrtPkg.client.Fs2ClientCall"
+    val ServerServiceDefinition = s"$grpcPkg.ServerServiceDefinition"
+    val CallOptions             = s"$grpcPkg.CallOptions"
+    val Channel                 = s"$grpcPkg.Channel"
+    val Metadata                = s"$grpcPkg.Metadata"
+
+  }
+
 }

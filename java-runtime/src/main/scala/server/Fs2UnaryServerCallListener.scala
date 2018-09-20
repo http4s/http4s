@@ -1,61 +1,59 @@
-package org.lyranthe.fs2_grpc.java_runtime.server
+package org.lyranthe.fs2_grpc
+package java_runtime
+package server
 
-import cats.effect._
-import cats.implicits._
-import fs2._
+import cats.effect.{ConcurrentEffect, Effect}
+import cats.effect.concurrent.{Deferred, Ref}
+import cats.syntax.all._
 import io.grpc._
 
-import scala.concurrent.ExecutionContext
-
 class Fs2UnaryServerCallListener[F[_], Request, Response] private (
-    value: async.Ref[IO, Option[Request]],
-    isComplete: async.Promise[IO, Unit],
+    value: Ref[F, Option[Request]],
+    isComplete: Deferred[F, Unit],
     val call: Fs2ServerCall[F, Request, Response])(implicit F: Effect[F])
-    extends ServerCall.Listener[Request]
-    with Fs2ServerCallListener[F, F, Request, Response] {
+    extends ServerCall.Listener[Request] with Fs2ServerCallListener[F, F, Request, Response] {
+
+  import Fs2UnaryServerCallListener._
+
   override def onMessage(message: Request): Unit = {
-    value.access
-      .flatMap {
-        case (curValue, modify) =>
-          if (curValue.isDefined)
-            IO.raiseError(
-              new StatusRuntimeException(Status.INTERNAL
-                .withDescription(Fs2UnaryServerCallListener.TooManyRequests)))
-          else
-            modify(message.some)
-      }
-      .unsafeRunSync()
-    ()
+
+    value.access.flatMap[Unit] {
+      case (curValue, modify) =>
+        if (curValue.isDefined)
+          F.raiseError(statusException(TooManyRequests))
+        else
+          modify(message.some).void
+    }.unsafeRun()
+
   }
 
-  override def onHalfClose(): Unit = isComplete.complete(()).unsafeRunSync()
+  override def onHalfClose(): Unit =
+    isComplete.complete(()).unsafeRun()
 
   override def source: F[Request] =
-    F.liftIO(for {
+    for {
       _           <- isComplete.get
       valueOrNone <- value.get
-      value <- valueOrNone.fold[IO[Request]](
-        IO.raiseError(
-          new StatusRuntimeException(Status.INTERNAL.withDescription(Fs2UnaryServerCallListener.NoMessage))))(IO.pure)
-    } yield value)
+            value <- valueOrNone.fold[F[Request]](F.raiseError(statusException(NoMessage)))(F.pure)
+    } yield value
 }
 
 object Fs2UnaryServerCallListener {
-  final val TooManyRequests: String = "Too many requests"
-  final val NoMessage: String       = "No message for unary call"
+
+  val TooManyRequests: String = "Too many requests"
+  val NoMessage: String       = "No message for unary call"
+
+  private val statusException: String => StatusRuntimeException = msg =>
+    new StatusRuntimeException(Status.INTERNAL.withDescription(msg))
 
   class PartialFs2UnaryServerCallListener[F[_]](val dummy: Boolean = false) extends AnyVal {
-    def unsafeCreate[Request, Response](call: ServerCall[Request, Response])(
-        implicit F: Effect[F],
-        ec: ExecutionContext): Fs2UnaryServerCallListener[F, Request, Response] = {
-      val listener = for {
-        ref     <- async.refOf[IO, Option[Request]](none)
-        promise <- async.promise[IO, Unit]
-      } yield
-        new Fs2UnaryServerCallListener[F, Request, Response](ref, promise, Fs2ServerCall[F, Request, Response](call))
 
-      listener.unsafeRunSync()
-    }
+    def apply[Request, Response](call: ServerCall[Request, Response])(
+      implicit F: ConcurrentEffect[F]
+    ): F[Fs2UnaryServerCallListener[F, Request, Response]] =
+      (Deferred[F, Unit], Ref.of[F, Option[Request]](none)).mapN((promise, ref) =>
+        new Fs2UnaryServerCallListener[F, Request, Response](ref, promise, Fs2ServerCall[F, Request, Response](call))
+      )
   }
 
   def apply[F[_]] = new PartialFs2UnaryServerCallListener[F]

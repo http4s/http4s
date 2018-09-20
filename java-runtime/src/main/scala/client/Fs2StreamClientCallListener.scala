@@ -1,49 +1,48 @@
-package org.lyranthe.fs2_grpc.java_runtime.client
+package org.lyranthe.fs2_grpc
+package java_runtime
+package client
 
-import cats.arrow.FunctionK
-import cats.effect.{IO, LiftIO}
+import cats.effect.{Effect, ConcurrentEffect}
 import cats.implicits._
 import fs2.{Pull, Stream}
+import fs2.concurrent.Queue
 import io.grpc.{ClientCall, Metadata, Status}
 
-import scala.concurrent.ExecutionContext
+class Fs2StreamClientCallListener[F[_]: Effect, Response](
+  request: Int => Unit, queue: Queue[F, Either[GrpcStatus, Response]]
+) extends ClientCall.Listener[Response] {
 
-class Fs2StreamClientCallListener[Response](request: Int => Unit,
-                                            queue: fs2.async.mutable.Queue[IO, Either[GrpcStatus, Response]])
-    extends ClientCall.Listener[Response] {
   override def onMessage(message: Response): Unit = {
     request(1)
-    queue.enqueue1(message.asRight).unsafeRunSync()
+    queue.enqueue1(message.asRight).unsafeRun()
   }
 
-  override def onClose(status: Status, trailers: Metadata): Unit = {
-    queue.enqueue1(GrpcStatus(status, trailers).asLeft).unsafeRunSync()
-  }
 
-  def stream[F[_]](implicit F: LiftIO[F]): Stream[F, Response] = {
+
+  override def onClose(status: Status, trailers: Metadata): Unit =
+    queue.enqueue1(GrpcStatus(status, trailers).asLeft).unsafeRun()
+
+  def stream: Stream[F, Response] = {
+
     def go(q: Stream[F, Either[GrpcStatus, Response]]): Pull[F, Response, Unit] = {
-      // TODO: Write in terms of Segment
       q.pull.uncons1.flatMap {
         case Some((Right(v), tl)) => Pull.output1(v) >> go(tl)
         case Some((Left(GrpcStatus(status, trailers)), _)) =>
           if (!status.isOk)
-            Pull.raiseError(status.asRuntimeException(trailers))
+            Pull.raiseError[F](status.asRuntimeException(trailers))
           else
             Pull.done
         case None => Pull.done
       }
     }
 
-    go(queue.dequeue.translate(FunctionK.lift(F.liftIO _))).stream
+    go(queue.dequeue).stream
   }
 }
 
 object Fs2StreamClientCallListener {
-  def apply[F[_], Response](request: Int => Unit)(implicit F: LiftIO[F],
-                                                  ec: ExecutionContext): F[Fs2StreamClientCallListener[Response]] = {
-    F.liftIO(
-      fs2.async
-        .unboundedQueue[IO, Either[GrpcStatus, Response]]
-        .map(new Fs2StreamClientCallListener[Response](request, _)))
-  }
+
+  def apply[F[_]: ConcurrentEffect, Response](request: Int => Unit): F[Fs2StreamClientCallListener[F, Response]] =
+      Queue.unbounded[F, Either[GrpcStatus, Response]].map(new Fs2StreamClientCallListener[F, Response](request, _))
+
 }

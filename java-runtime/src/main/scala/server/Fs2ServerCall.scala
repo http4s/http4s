@@ -1,4 +1,6 @@
-package org.lyranthe.fs2_grpc.java_runtime.server
+package org.lyranthe.fs2_grpc
+package java_runtime
+package server
 
 import cats.effect._
 import io.grpc._

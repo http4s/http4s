@@ -1,17 +1,20 @@
-package org.lyranthe.fs2_grpc.java_runtime
+package org.lyranthe.fs2_grpc
+package java_runtime
 package client
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import cats.effect.laws.util.TestContext
 import fs2._
-import io.grpc.{ManagedChannelBuilder, Metadata, Status, StatusRuntimeException}
+import io.grpc._
 import minitest._
-
 import scala.util.Success
 
 object ClientSuite extends SimpleTestSuite {
+
   test("single message to unaryToUnary") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -32,7 +35,10 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("no response message to unaryToUnary") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -50,7 +56,10 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("error response to unaryToUnary") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -73,7 +82,10 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("stream to streamingToUnary") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -97,7 +109,10 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("0-length to streamingToUnary") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
+
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -121,12 +136,14 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("single message to unaryToStreaming") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
-    val result =
-      client.unaryToStreamingCall("hello", new Metadata()).compile.toList.unsafeToFuture()
+    val result = client.unaryToStreamingCall("hello", new Metadata()).compile.toList.unsafeToFuture()
+
     dummy.listener.get.onMessage(1)
     dummy.listener.get.onMessage(2)
     dummy.listener.get.onMessage(3)
@@ -145,7 +162,9 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("stream to streamingToStreaming") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -173,7 +192,9 @@ object ClientSuite extends SimpleTestSuite {
   }
 
   test("error returned from streamingToStreaming") {
-    implicit val ec = TestContext()
+
+    implicit val ec: TestContext      = TestContext()
+    implicit val cs: ContextShift[IO] = IO.contextShift(ec)
 
     val dummy  = new DummyClientCall()
     val client = new Fs2ClientCall[IO, String, Int](dummy)
@@ -183,6 +204,7 @@ object ClientSuite extends SimpleTestSuite {
         .compile
         .toList
         .unsafeToFuture()
+
     dummy.listener.get.onMessage(1)
     dummy.listener.get.onMessage(2)
     dummy.listener.get.onMessage(3)
@@ -206,14 +228,15 @@ object ClientSuite extends SimpleTestSuite {
     assertEquals(dummy.requested, 4)
   }
 
-  test("stream awaits termination of managed channel") {
-    implicit val ec = TestContext()
+  test("resource awaits termination of managed channel") {
+    implicit val ec: TestContext  = TestContext()
 
     import implicits._
-    val result = ManagedChannelBuilder.forAddress("127.0.0.1", 0).stream[IO].compile.last.unsafeToFuture()
+    val result = ManagedChannelBuilder.forAddress("127.0.0.1", 0).resource[IO].use(IO.pure).unsafeToFuture()
 
     ec.tick()
-    val channel = result.value.get.get.get
+
+    val channel = result.value.get.get
     assert(channel.isTerminated)
   }
 }

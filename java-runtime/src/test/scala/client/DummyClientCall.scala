@@ -1,8 +1,9 @@
-package org.lyranthe.fs2_grpc.java_runtime.client
-
-import io.grpc._
+package org.lyranthe.fs2_grpc
+package java_runtime
+package client
 
 import scala.collection.mutable.ArrayBuffer
+import io.grpc._
 
 class DummyClientCall extends ClientCall[String, Int] {
   var requested: Int = 0
