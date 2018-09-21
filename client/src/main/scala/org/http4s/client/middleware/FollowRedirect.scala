@@ -105,6 +105,7 @@ object FollowRedirect {
                       .map(disposableResponse => {
                         val redirectUris = getRedirectUris(disposableResponse.response)
                         val resp = disposableResponse.response
+                          // prepend because `prepareLoop` is recursive
                           .withAttribute(redirectUrisKey, req.uri +: redirectUris)
                         disposableResponse.copy(response = resp)
                       }))
