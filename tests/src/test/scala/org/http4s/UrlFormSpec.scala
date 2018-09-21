@@ -1,8 +1,10 @@
 package org.http4s
 
-import cats.syntax.applicative._
+import cats._
 import cats.data._
 import cats.effect.IO
+import cats.implicits._
+import cats.kernel.laws.discipline.MonoidTests
 
 class UrlFormSpec extends Http4sSpec {
 //  // TODO: arbitrary charsets would be nice
@@ -107,6 +109,19 @@ class UrlFormSpec extends Http4sSpec {
           v <- vs.toList
         } yield (k -> v)
         UrlForm.fromSeq(flattened) must_== UrlForm(map.mapValues(_.toList))
+    }
+  }
+
+  checkAll("monoid", MonoidTests[UrlForm].monoid)
+
+  "UrlForm monoid" should {
+    "use the obvious empty" in {
+      Monoid[UrlForm].empty must_== UrlForm.empty
+    }
+
+    "combine two UrlForm instances" in {
+      val combined = UrlForm("foo" -> "1") |+| UrlForm("bar" -> "2", "foo" -> "3")
+      combined must_== UrlForm("foo" -> "1", "bar" -> "2", "foo" -> "3")
     }
   }
 }
