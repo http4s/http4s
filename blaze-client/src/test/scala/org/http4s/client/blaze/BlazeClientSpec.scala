@@ -60,7 +60,6 @@ class BlazeClientSpec extends Http4sSpec {
         mkClient(3),
         mkClient(1, 2.seconds),
         mkClient(1, 20.seconds),
-        mkClient(1, 20.seconds),
         JettyScaffold[IO](5, false, testServlet),
         JettyScaffold[IO](1, true, testServlet)
       ).tupled) {
@@ -70,7 +69,6 @@ class BlazeClientSpec extends Http4sSpec {
           client,
           failTimeClient,
           successTimeClient,
-          drainTestClient,
           jettyServer,
           jettySslServer
           ) => {
@@ -152,18 +150,24 @@ class BlazeClientSpec extends Http4sSpec {
           val address = addresses(0)
           val name = address.getHostName
           val port = address.getPort
-          drainTestClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .unsafeToFuture()
 
-          val resp = drainTestClient
-            .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
-            .attempt
-            .map(_.right.exists(_.nonEmpty))
-            .unsafeToFuture()
+          val resp = mkClient(1, 20.seconds)
+            .use { drainTestClient =>
+              drainTestClient
+                .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+                .attempt
+                .start
 
-          (IO.sleep(100.millis) *> drainTestClient.shutdown).unsafeToFuture()
+              val resp = drainTestClient
+                .expect[String](Uri.fromString(s"http://$name:$port/delayed").yolo)
+                .attempt
+                .map(_.right.exists(_.nonEmpty))
+                .start
+
+              // Wait 100 millis to shut down
+              IO.sleep(100.millis) *> resp.flatMap(_.join)
+            }
+            .unsafeToFuture()
 
           Await.result(resp, 6.seconds) must beTrue
         }
