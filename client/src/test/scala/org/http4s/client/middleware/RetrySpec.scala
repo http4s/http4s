@@ -2,8 +2,7 @@ package org.http4s
 package client
 package middleware
 
-import cats.data.Kleisli
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import cats.effect.concurrent.Ref
 import cats.implicits.{catsSyntaxEither => _, _}
 import fs2.Stream
@@ -105,7 +104,7 @@ class RetrySpec extends Http4sSpec with Tables {
     }
 
     "retry exceptions" in {
-      val failClient = Client[IO](Kleisli.liftF(IO.raiseError(new Exception("boom"))), IO.unit)
+      val failClient = Client[IO](_ => Resource.liftF(IO.raiseError(new Exception("boom"))))
       countRetries(failClient, GET, InternalServerError, EmptyBody) must_== 2
     }
   }

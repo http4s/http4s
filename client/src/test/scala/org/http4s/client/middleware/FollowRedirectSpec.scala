@@ -149,10 +149,9 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
     "Dispose of original response when redirecting" in {
       var disposed = 0
-      val disposingService = app.map { mr =>
-        DisposableResponse(mr, IO { disposed = disposed + 1; () })
-      }
-      val client = FollowRedirect(3)(Client(disposingService, IO.unit))
+      def disposingService(req: Request[IO]) =
+        Resource.make(app.run(req))(_ => IO { disposed = disposed + 1 }.void)
+      val client = FollowRedirect(3)(Client(disposingService))
       client.expect[String](uri("http://localhost/301")).unsafeRunSync()
       disposed must_== 2 // one for the original, one for the redirect
     }

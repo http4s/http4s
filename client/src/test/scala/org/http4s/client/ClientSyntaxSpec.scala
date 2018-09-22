@@ -40,7 +40,9 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       disposed = true
       ()
     }
-    val disposingClient = Client(app.map(r => DisposableResponse(r, dispose)), IO.unit)
+    val disposingClient = Client { req: Request[IO] =>
+      Resource.make(app(req))(_ => dispose)
+    }
     f(disposingClient).attempt.unsafeRunSync()
     disposed must beTrue
   }
@@ -275,10 +277,6 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
         _.toHttpApp
           .flatMapF(_.body.flatMap(_ => Stream.raiseError[IO](SadTrombone)).compile.drain)
           .run(req))
-    }
-
-    "toHttpApp allows the response to be read" in {
-      client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
     }
 
     "toHttpApp allows the response to be read" in {
