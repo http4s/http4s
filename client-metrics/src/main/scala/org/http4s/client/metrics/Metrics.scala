@@ -1,12 +1,11 @@
 package org.http4s.client.metrics
 
-import cats.data.Kleisli
-import cats.effect.{Clock, Sync}
+import cats.effect.{Clock, Resource, Sync}
 import cats.implicits._
 import com.codahale.metrics.{Counter, MetricRegistry, Timer => MetricTimer}
 import java.util.concurrent.TimeUnit
-import org.http4s.{Request, Status}
-import org.http4s.client.{Client, DisposableResponse}
+import org.http4s.{Request, Response, Status}
+import org.http4s.client.Client
 
 object Metrics {
   def apply[F[_]](
@@ -16,34 +15,32 @@ object Metrics {
         None
       })(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
 
-    def withMetrics()(req: Request[F]): F[DisposableResponse[F]] = {
+    def withMetrics()(req: Request[F]): Resource[F, Response[F]] = {
       val namespace = destination(req).map(d => s"${prefix}.${d}").getOrElse(s"${prefix}.default")
-      for {
+      Resource.suspend(for {
         start <- clock.monotonic(TimeUnit.NANOSECONDS)
         _ <- Sync[F].delay(registry.counter(s"${namespace}.active-requests").inc())
-        resp <- client.open(req)
+        resp <- F.pure(client.run(req))
         now <- clock.monotonic(TimeUnit.NANOSECONDS)
         _ <- Sync[F].delay(
           registry
             .timer(s"${namespace}.requests.headers")
             .update(now - start, TimeUnit.NANOSECONDS))
         iResp <- Sync[F].delay(instrumentResponse(start, namespace, resp))
-      } yield iResp
+      } yield iResp)
     }
 
     def instrumentResponse(
         start: Long,
         namespace: String,
-        disposableResponse: DisposableResponse[F]): DisposableResponse[F] = {
-      val newDisposable = for {
-        _ <- Sync[F].delay(registry.counter(s"${namespace}.active-requests").dec())
-        elapsed <- clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start)
-        _ <- Sync[F].delay(updateMetrics(disposableResponse.response.status, elapsed, namespace))
-        _ <- disposableResponse.dispose
-      } yield ()
-
-      disposableResponse.copy(dispose = newDisposable)
-    }
+        responseResource: Resource[F, Response[F]]): Resource[F, Response[F]] =
+      responseResource.flatMap { response =>
+        Resource(F.pure(response -> (for {
+          _ <- F.delay(registry.counter(s"${namespace}.active-requests").dec())
+          elapsed <- clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start)
+          _ <- F.delay(updateMetrics(response.status, elapsed, namespace))
+        } yield ())))
+      }
 
     def updateMetrics(status: Status, elapsed: Long, namespace: String): Unit = {
       registry.timer(s"${namespace}.requests.total").update(elapsed, TimeUnit.NANOSECONDS)
@@ -59,9 +56,8 @@ object Metrics {
       }
     }
 
-    client.copy(open = Kleisli(withMetrics()))
+    Client(withMetrics())
   }
-
 }
 
 private case class MetricsCollection(

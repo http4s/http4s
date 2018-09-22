@@ -1,6 +1,5 @@
 package org.http4s.client.prometheus
 
-import cats.data.Kleisli
 import cats.effect.Sync
 import org.http4s._
 import org.http4s.client.Client
@@ -18,6 +17,7 @@ object DestinationAttribute {
 
   /** Client middleware that sets the destination attribute of every request to the specified value. */
   def setRequestDestination[F[_]: Sync](client: Client[F], destination: String): Client[F] =
-    client.copy(open = Kleisli(r => client.open(r.withAttribute(Destination, destination))))
-
+    Client { req =>
+      client.run(req.withAttribute(Destination, destination))
+    }
 }
