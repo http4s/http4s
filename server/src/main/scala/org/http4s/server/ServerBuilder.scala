@@ -41,6 +41,11 @@ trait ServerBuilder[F[_]] {
     */
   def resource: Resource[F, Server[F]]
 
+  /** Returns a Server stream.  The stream does not emit until the
+    * server is started and ready to accept requests.
+    */
+  def stream: Stream[F, Server[F]] = Stream.resource(resource)
+
   /**
     * Runs the server as a process that never emits.  Useful for a server
     * that runs for the rest of the JVM's life.
