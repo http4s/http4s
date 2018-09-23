@@ -14,12 +14,14 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, ReactiveStreamsBodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
+import org.http4s.internal.invokeCallback
 import org.http4s.util.threads._
+import org.log4s.getLogger
 import org.reactivestreams.Publisher
 import scala.collection.JavaConverters._
-import scala.concurrent.ExecutionContext
 
 object AsyncHttpClient {
+  private[this] val logger = getLogger
 
   val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
@@ -36,14 +38,13 @@ object AsyncHttpClient {
     * @param config configuration for the client
     * @param ec The ExecutionContext to run responses on
     */
-  def resource[F[_]: Timer](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext): Resource[F, Client[F]] =
+  def resource[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
+      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
     Resource
       .make(F.delay(new DefaultAsyncHttpClient(config)))(c => F.delay(c.close()))
       .map(client =>
         Client[F] { req =>
-          Resource.suspend(F.async[Resource[F, Response[F]]] { cb =>
+          Resource(F.async[(Response[F], F[Unit])] { cb =>
             client.executeRequest(toAsyncRequest(req), asyncHandler(cb))
             ()
           })
@@ -58,14 +59,11 @@ object AsyncHttpClient {
     * shutdown when the stream terminates.
     */
   def stream[F[_]](config: AsyncHttpClientConfig = defaultConfig)(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext,
-      timer: Timer[F]): Stream[F, Client[F]] =
+      implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource(config))
 
-  private def asyncHandler[F[_]: Timer](cb: Callback[Resource[F, Response[F]]])(
-      implicit F: ConcurrentEffect[F],
-      ec: ExecutionContext) =
+  private def asyncHandler[F[_]](cb: Callback[(Response[F], F[Unit])])(
+      implicit F: ConcurrentEffect[F]) =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var response: Response[F] = Response()
@@ -84,9 +82,7 @@ object AsyncHttpClient {
             // callback, rather than waiting for onComplete, or else we'll
             // buffer the entire response before we return it for
             // streaming consumption.
-            ec.execute(new Runnable {
-              def run(): Unit = cb(Right(Resource(F.pure(response -> dispose))))
-            })
+            invokeCallback(logger)(cb(Right(response -> dispose)))
           }
           .runAsync(_ => IO.unit)
           .unsafeRunSync()
@@ -107,14 +103,14 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        ec.execute(new Runnable { def run(): Unit = cb(Left(throwable)) })
+        invokeCallback(logger)(cb(Left(throwable)))
 
       override def onCompleted(): Unit = {
         // Don't close here.  onStream may still be being called.
       }
     }
 
-  private def toAsyncRequest[F[_]: ConcurrentEffect: Timer](request: Request[F]): AsyncRequest = {
+  private def toAsyncRequest[F[_]: ConcurrentEffect](request: Request[F]): AsyncRequest = {
     val headers = new DefaultHttpHeaders
     for (h <- request.headers)
       headers.add(h.name.toString, h.value)
@@ -125,7 +121,7 @@ object AsyncHttpClient {
       .build()
   }
 
-  private def getBodyGenerator[F[_]: ConcurrentEffect: Timer](req: Request[F]): BodyGenerator = {
+  private def getBodyGenerator[F[_]: ConcurrentEffect](req: Request[F]): BodyGenerator = {
     val publisher = StreamUnicastPublisher(
       req.body.chunks.map(chunk => Unpooled.wrappedBuffer(chunk.toArray)))
     if (req.isChunked) new ReactiveStreamsBodyGenerator(publisher, -1)

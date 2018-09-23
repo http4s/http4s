@@ -141,6 +141,8 @@ object Http4sPlugin extends AutoPlugin {
     dependencyUpdatesFilter -= moduleFilter(organization = "org.scalacheck"), // scalacheck-1.14 is incompatible with cats-laws-1.1
     dependencyUpdatesFilter -= moduleFilter(organization = "org.specs2"), // specs2-4.2 is incompatible with scalacheck-1.13
     dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "discipline"), // discipline-0.10 is incompatible with scalacheck-1.13
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect"),
+    dependencyUpdatesFilter -= moduleFilter(organization = "org.typelevel", name = "cats-effect-laws"),
   ) ++ releaseSettings
 
   val releaseSettings = Seq(
