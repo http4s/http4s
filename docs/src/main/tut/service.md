@@ -127,17 +127,17 @@ import org.http4s.server.Router
 
 val services = tweetService <+> helloWorldService
 val httpApp = Router("/" -> helloWorldService, "/api" -> services).orNotFound
-val builder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp).start
+val serverBuilder = BlazeServerBuilder[IO].bindHttp(8080, "localhost").withHttpApp(httpApp)
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
 using defaults of port 8080 and the loopback address. The `mountService` call
 associates a base path with a `HttpRoutes`.
 
-A builder can be `run` to start the server.
+We start a server resource in the background.  The server will run until we cancel the fiber:
 
 ```tut:book
-val server = builder.unsafeRunSync()
+val fiber = serverBuilder.resource.use(_ => IO.never).start.unsafeRunSync()
 ```
 
 Use curl, or your favorite HTTP client, to see your service in action:
@@ -148,11 +148,10 @@ $ curl http://localhost:8080/hello/Pete
 
 ## Cleaning up
 
-Our server consumes system resources. Let's clean up by shutting it
-down:
+We can shut down the server by canceling its fiber.
 
 ```tut:book
-server.shutdown.unsafeRunSync()
+fiber.cancel.unsafeRunSync()
 ```
 
 ### Running your service as an `App`
