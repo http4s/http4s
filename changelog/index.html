@@ -113,13 +113,29 @@ it.</p>
 <li>play-json-3.6.10 for Scala 2.11.x</li>
 </ul>
 
-<h1 id="v0-18-18-snapshot">v0.18.18-SNAPSHOT</h1>
+<h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
 
-<h2 id="enhancements-1">Enhancements</h2>
+<h2 id="bug-fixes">Bug fixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2048">#2048</a>: Correct misleading logging in <code>Retry</code> middleware</li>
 <li><a href="https://github.com/http4s/http4s/pull/2078">#2078</a>: Replace generic exception on full wait queue with new <code>WaitQueueFullFailure</code></li>
+</ul>
+
+<h2 id="enhancements-1">Enhancements</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2078">#2078</a>: Replace generic exception on full wait queue with new <code>WaitQueueFullFailure</code></li>
+<li><a href="https://github.com/http4s/http4s/pull/2095">#2095</a>: Add <code>Monoid[UrlForm]</code> instance</li>
+</ul>
+
+<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
+
+<ul>
+<li>cats-1.4.0</li>
+<li>fs2-0.10.6</li>
+<li>jetty-9.4.12.v20180830</li>
+<li>tomcat-9.0.12</li>
 </ul>
 
 <h1 id="v0-19-0-m2-2018-09-07">v0.19.0-M2 (2018-09-07)</h1>
@@ -270,7 +286,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2050">#2052</a>: Introduce expiring <code>TestScheduler</code> to avoid leaking threads on tests</li>
 </ul>
 
-<h2 id="dependency-upgrades-1">Dependency upgrades</h2>
+<h2 id="dependency-upgrades-2">Dependency upgrades</h2>
 
 <ul>
 <li>async-http-client-2.5.2</li>
