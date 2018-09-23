@@ -10,8 +10,6 @@ import javax.servlet.{DispatcherType, Filter}
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{ServerConnector, Server => JServer}
 import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
-import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
-import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.{QueuedThreadPool, ThreadPool}
 import org.http4s.server.SSLKeyStoreSupport.StoreInfo
@@ -168,53 +166,42 @@ sealed class JettyBuilder[F[_]] private (
     }
   }
 
-  def start: F[Server[F]] = F.delay {
-    val jetty = new JServer(threadPool)
+  def resource: Resource[F, Server[F]] =
+    Resource(F.delay {
+      val jetty = new JServer(threadPool)
 
-    val context = new ServletContextHandler()
-    context.setContextPath("/")
+      val context = new ServletContextHandler()
+      context.setContextPath("/")
 
-    jetty.setHandler(context)
+      jetty.setHandler(context)
 
-    val connector = getConnector(jetty)
+      val connector = getConnector(jetty)
 
-    connector.setHost(socketAddress.getHostString)
-    connector.setPort(socketAddress.getPort)
-    connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
-    jetty.addConnector(connector)
+      connector.setHost(socketAddress.getHostString)
+      connector.setPort(socketAddress.getPort)
+      connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
+      jetty.addConnector(connector)
 
-    for ((mount, i) <- mounts.zipWithIndex)
-      mount.f(context, i, this)
+      for ((mount, i) <- mounts.zipWithIndex)
+        mount.f(context, i, this)
 
-    jetty.start()
+      jetty.start()
 
-    val server = new Server[F] {
-      override def shutdown: F[Unit] =
-        F.delay(jetty.stop())
-
-      override def onShutdown(f: => Unit): this.type = {
-        jetty.addLifeCycleListener {
-          new AbstractLifeCycleListener {
-            override def lifeCycleStopped(event: LifeCycle): Unit = f
-          }
+      val server = new Server[F] {
+        lazy val address: InetSocketAddress = {
+          val host = socketAddress.getHostString
+          val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+          new InetSocketAddress(host, port)
         }
-        this
+
+        lazy val isSecure: Boolean = sslBits.isDefined
       }
 
-      lazy val address: InetSocketAddress = {
-        val host = socketAddress.getHostString
-        val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
-        new InetSocketAddress(host, port)
-      }
-
-      lazy val isSecure: Boolean = sslBits.isDefined
-    }
-
-    banner.foreach(logger.info(_))
-    logger.info(
-      s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
-    server
-  }
+      banner.foreach(logger.info(_))
+      logger.info(
+        s"http4s v${BuildInfo.version} on Jetty v${JServer.getVersion} started at ${server.baseUri}")
+      server -> F.delay(jetty.stop())
+    })
 }
 
 object JettyBuilder {

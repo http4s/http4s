@@ -36,10 +36,10 @@ trait ServerBuilder[F[_]] {
 
   // def mountService(service: HttpRoutes[F], prefix: String = ""): Self
 
-  /** Returns a task to start a server.  The task completes with a
-    * reference to the server when it has started.
+  /** Returns a Server resource.  The resource is not acquired until the
+    * server is started and ready to accept requests.
     */
-  def start: F[Server[F]]
+  def resource: Resource[F, Server[F]]
 
   /**
     * Runs the server as a process that never emits.  Useful for a server
@@ -59,7 +59,7 @@ trait ServerBuilder[F[_]] {
   final def serveWhile(
       terminateWhenTrue: SignallingRef[F, Boolean],
       exitWith: Ref[F, ExitCode]): Stream[F, ExitCode] =
-    Stream.bracket(start)(_.shutdown) *> (terminateWhenTrue.discrete
+    Stream.resource(resource) *> (terminateWhenTrue.discrete
       .takeWhile(_ === false)
       .drain ++ Stream.eval(exitWith.get))
 

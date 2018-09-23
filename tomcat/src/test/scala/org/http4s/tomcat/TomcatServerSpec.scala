@@ -6,7 +6,6 @@ import cats.effect.IO
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
-import org.specs2.specification.AfterAll
 import scala.io.Source
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 
@@ -17,10 +16,10 @@ class TomcatServerSpec extends {
   // Needs to run before the server is initialized in the superclass.
   // This also makes me grumpy.
   val _ = TomcatURLStreamHandlerFactory.disable()
-} with Http4sSpec with AfterAll {
+} with Http4sSpec {
   def builder = TomcatBuilder[IO]
 
-  val server =
+  val serverR =
     builder
       .bindAny()
       .mountService(
@@ -37,42 +36,41 @@ class TomcatServerSpec extends {
         },
         "/"
       )
-      .start
-      .unsafeRunSync()
+      .resource
 
-  def afterAll = server.shutdownNow()
+  withResource(serverR) { server =>
+    // This should be in IO and shifted but I'm tired of fighting this.
+    def get(path: String): String =
+      Source
+        .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+        .getLines
+        .mkString
 
-  // This should be in IO and shifted but I'm tired of fighting this.
-  private def get(path: String): String =
-    Source
-      .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-      .getLines
-      .mkString
-
-  // This too
-  private def post(path: String, body: String): String = {
-    val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-    val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-    val bytes = body.getBytes(StandardCharsets.UTF_8)
-    conn.setRequestMethod("POST")
-    conn.setRequestProperty("Content-Length", bytes.size.toString)
-    conn.setDoOutput(true)
-    conn.getOutputStream.write(bytes)
-    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-  }
-
-  "A server" should {
-    "route requests on the service executor" in {
-      get("/thread/routing") must startWith("http4s-spec-")
+    // This too
+    def post(path: String, body: String): String = {
+      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+      val bytes = body.getBytes(StandardCharsets.UTF_8)
+      conn.setRequestMethod("POST")
+      conn.setRequestProperty("Content-Length", bytes.size.toString)
+      conn.setDoOutput(true)
+      conn.getOutputStream.write(bytes)
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
     }
 
-    "execute the service task on the service executor" in {
-      get("/thread/effect") must startWith("http4s-spec-")
-    }
+    "A server" should {
+      "route requests on the service executor" in {
+        get("/thread/routing") must startWith("http4s-spec-")
+      }
 
-    "be able to echo its input" in {
-      val input = """{ "Hello": "world" }"""
-      post("/echo", input) must startWith(input)
+      "execute the service task on the service executor" in {
+        get("/thread/effect") must startWith("http4s-spec-")
+      }
+
+      "be able to echo its input" in {
+        val input = """{ "Hello": "world" }"""
+        post("/echo", input) must startWith(input)
+      }
     }
   }
 }
