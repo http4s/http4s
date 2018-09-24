@@ -17,6 +17,7 @@ trait Http4sDsl[F[_]] extends Http4s with Methods with Statuses with Responses[F
   val :? : impl.:?.type = impl.:?
   val ~ : impl.~.type = impl.~
   val -> : impl.->.type = impl.->
+  val → : impl.->.type = impl.->
   val /: : impl./:.type = impl./:
   val +& : impl.+&.type = impl.+&
 
