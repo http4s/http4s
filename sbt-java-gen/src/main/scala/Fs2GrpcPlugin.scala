@@ -10,9 +10,8 @@ import sbt._
 import sbt.Keys._
 import sbt.plugins.JvmPlugin
 import sbtprotoc.ProtocPlugin.autoImport.PB
-import scalapb.compiler.{FunctionalPrinter, GeneratorException, GeneratorParams, ProtobufGenerator}
+import scalapb.compiler.{FunctionalPrinter, GeneratorException, DescriptorImplicits, ProtobufGenerator}
 import scalapb.options.compiler.Scalapb
-
 import scala.collection.JavaConverters._
 
 sealed trait CodeGeneratorOption extends Product with Serializable
@@ -20,12 +19,12 @@ sealed trait CodeGeneratorOption extends Product with Serializable
 object Fs2CodeGenerator extends ProtocCodeGenerator {
 
   def generateServiceFiles(file: FileDescriptor,
-                           params: GeneratorParams): Seq[PluginProtos.CodeGeneratorResponse.File] = {
+                           di: DescriptorImplicits): Seq[PluginProtos.CodeGeneratorResponse.File] = {
     println("Services: " + file.getServices.asScala)
     file.getServices.asScala.map { service =>
-      val p = new Fs2GrpcServicePrinter(service, params)
+      val p = new Fs2GrpcServicePrinter(service, di)
 
-      import p.{FileDescriptorPimp, ServiceDescriptorPimp}
+      import di.{ServiceDescriptorPimp, FileDescriptorPimp}
       val code = p.printService(FunctionalPrinter()).result()
       val b    = CodeGeneratorResponse.File.newBuilder()
       b.setName(file.scalaDirectory + "/" + service.objectName + "Fs2.scala")
@@ -40,6 +39,7 @@ object Fs2CodeGenerator extends ProtocCodeGenerator {
     ProtobufGenerator.parseParameters(request.getParameter) match {
       case Right(params) =>
         try {
+
           val filesByName: Map[String, FileDescriptor] =
             request.getProtoFileList.asScala.foldLeft[Map[String, FileDescriptor]](Map.empty) {
               case (acc, fp) =>
@@ -47,8 +47,10 @@ object Fs2CodeGenerator extends ProtocCodeGenerator {
                 acc + (fp.getName -> FileDescriptor.buildFrom(fp, deps.toArray))
             }
 
-          val files = request.getFileToGenerateList.asScala.map(filesByName).flatMap(generateServiceFiles(_, params))
-          b.addAllFile(files.asJava)
+          val genFiles  = request.getFileToGenerateList.asScala.map(filesByName)
+          val implicits = new DescriptorImplicits(params, genFiles)
+          val srvFiles  = genFiles.flatMap(generateServiceFiles(_, implicits))
+          b.addAllFile(srvFiles.asJava)
         } catch {
           case e: GeneratorException =>
             b.setError(e.message)
@@ -75,8 +77,8 @@ object Fs2CodeGenerator extends ProtocCodeGenerator {
 }
 
 object Fs2Grpc extends AutoPlugin {
-  override def requires = Fs2GrpcPlugin
-  override def trigger  = NoTrigger
+  override def requires: Plugins      = Fs2GrpcPlugin
+  override def trigger: PluginTrigger = NoTrigger
 
   override def projectSettings: Seq[Def.Setting[_]] = List(
     PB.targets := scalapbCodeGenerators.value
