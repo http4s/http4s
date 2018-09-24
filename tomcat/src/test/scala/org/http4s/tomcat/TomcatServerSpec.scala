@@ -2,11 +2,14 @@ package org.http4s
 package server
 package tomcat
 
-import cats.effect.IO
+import cats.effect.{IO, Timer}
+import cats.implicits._
+import java.io.IOException
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
 import org.specs2.specification.AfterAll
+import scala.concurrent.duration._
 import scala.io.Source
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 
@@ -34,6 +37,12 @@ class TomcatServerSpec extends {
 
           case req @ POST -> Root / "echo" =>
             Ok(req.body)
+
+          case GET -> Root / "never" =>
+            IO.never
+
+          case GET -> Root / "slow" =>
+            implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
         },
         "/"
       )
@@ -73,6 +82,16 @@ class TomcatServerSpec extends {
     "be able to echo its input" in {
       val input = """{ "Hello": "world" }"""
       post("/echo", input) must startWith(input)
+    }
+  }
+
+  "Timeout" should {
+    "not fire prematurely" in {
+      get("/slow") must_== "slow"
+    }
+
+    "fire on timeout" in {
+      get("/never") must throwAn[IOException]
     }
   }
 }

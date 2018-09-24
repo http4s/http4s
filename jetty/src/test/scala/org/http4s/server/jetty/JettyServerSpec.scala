@@ -2,11 +2,14 @@ package org.http4s
 package server
 package jetty
 
-import cats.effect.IO
+import cats.effect.{IO, Timer}
+import cats.implicits._
 import java.net.{HttpURLConnection, URL}
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
 import org.specs2.specification.AfterAll
+import scala.concurrent.duration._
 import scala.io.Source
 
 class JettyServerSpec extends Http4sSpec with AfterAll {
@@ -15,6 +18,7 @@ class JettyServerSpec extends Http4sSpec with AfterAll {
   val server =
     builder
       .bindAny()
+      .withAsyncTimeout(500.millis)
       .mountService(
         HttpRoutes.of {
           case GET -> Root / "thread" / "routing" =>
@@ -26,6 +30,12 @@ class JettyServerSpec extends Http4sSpec with AfterAll {
 
           case req @ POST -> Root / "echo" =>
             Ok(req.body)
+
+          case GET -> Root / "never" =>
+            IO.never
+
+          case GET -> Root / "slow" =>
+            implicitly[Timer[IO]].sleep(50.millis) *> Ok("slow")
         },
         "/"
       )
@@ -65,6 +75,16 @@ class JettyServerSpec extends Http4sSpec with AfterAll {
     "be able to echo its input" in {
       val input = """{ "Hello": "world" }"""
       post("/echo", input) must startWith(input)
+    }
+  }
+
+  "Timeout" should {
+    "not fire prematurely" in {
+      get("/slow") must_== "slow"
+    }
+
+    "fire on timeout" in {
+      get("/never") must throwAn[IOException]
     }
   }
 }

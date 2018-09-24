@@ -40,14 +40,13 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
       bodyWriter: BodyWriter[F]
   ): F[Unit] = {
     val response = Response[F](Status.BadRequest).withEntity(parseFailure.sanitized)
-    renderResponse(response, servletResponse, bodyWriter, F.async(_ => ()))
+    renderResponse(response, servletResponse, bodyWriter)
   }
 
   protected def renderResponse(
       response: Response[F],
       servletResponse: HttpServletResponse,
-      bodyWriter: BodyWriter[F],
-      timeout: F[Unit]
+      bodyWriter: BodyWriter[F]
   ): F[Unit] =
     // Note: the servlet API gives us no undeprecated method to both set
     // a body and a status reason.  We sacrifice the status reason.
@@ -58,7 +57,7 @@ abstract class Http4sServlet[F[_]](service: HttpRoutes[F], servletIo: ServletIo[
       }
       .attempt
       .flatMap {
-        case Right(()) => bodyWriter(response, timeout)
+        case Right(()) => bodyWriter(response)
         case Left(t) =>
           response.body.drain.compile.drain.handleError {
             case t2 => logger.error(t2)("Error draining body")
