@@ -9,7 +9,26 @@ is enabled in your compiler options (i.e `scalacOptions += "-Ypartial-unificatio
 This is enabled by default in the giter8 template.
 
 
-Getting started with http4s is easy.  Let's materialize an http4s
+Getting started with http4s is easy.
+
+To add http4s to an existing project, add these dependencies to your `build.sbt`:
+```scala
+
+val http4sVersion = "{{< version "http4s.doc" >}}"
+
+// Only necessary for SNAPSHOT releases
+resolvers += Resolver.sonatypeRepo("snapshots")
+
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-dsl" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-server" % http4sVersion,
+  "org.http4s" %% "http4s-blaze-client" % http4sVersion
+)
+
+scalacOptions ++= Seq("-Ypartial-unification")
+```
+
+To set up a demo project let's materialize an http4s
 skeleton project from its [giter8 template]:
 
 ```sbt
