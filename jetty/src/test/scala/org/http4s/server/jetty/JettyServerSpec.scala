@@ -8,17 +8,18 @@ import java.net.{HttpURLConnection, URL}
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.specification.AfterAll
 import scala.concurrent.duration._
 import scala.io.Source
 
-class JettyServerSpec extends Http4sSpec with AfterAll {
+class JettyServerSpec(implicit ee: ExecutionEnv) extends Http4sSpec with AfterAll {
   def builder = JettyBuilder[IO]
 
   val server =
     builder
       .bindAny()
-      .withAsyncTimeout(500.millis)
+      .withAsyncTimeout(3.seconds)
       .mountService(
         HttpRoutes.of {
           case GET -> Root / "thread" / "routing" =>
@@ -85,7 +86,7 @@ class JettyServerSpec extends Http4sSpec with AfterAll {
     }
 
     "fire on timeout" in {
-      get("/never").unsafeRunSync() must throwAn[IOException]
+      get("/never").unsafeToFuture() must throwAn[IOException].awaitFor(5.seconds)
     }
   }
 }

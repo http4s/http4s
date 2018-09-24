@@ -8,12 +8,13 @@ import java.io.IOException
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
 import org.http4s.dsl.io._
+import org.specs2.concurrent.ExecutionEnv
 import org.specs2.specification.AfterAll
 import scala.concurrent.duration._
 import scala.io.Source
 import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 
-class TomcatServerSpec extends {
+class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
   // Prevents us from loading jar and war URLs, but lets us
   // run Tomcat twice in the same JVM.  This makes me grumpy.
   //
@@ -26,7 +27,7 @@ class TomcatServerSpec extends {
   val server =
     builder
       .bindAny()
-      .withAsyncTimeout(1.second)
+      .withAsyncTimeout(3.seconds)
       .mountService(
         HttpRoutes.of {
           case GET -> Root / "thread" / "routing" =>
@@ -93,7 +94,7 @@ class TomcatServerSpec extends {
     }
 
     "fire on timeout" in {
-      get("/never").unsafeRunSync() must throwAn[IOException]
+      get("/never").unsafeToFuture() must throwAn[IOException].awaitFor(5.seconds)
     }
   }
 }
