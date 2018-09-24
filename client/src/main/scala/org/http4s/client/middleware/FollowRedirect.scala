@@ -42,7 +42,7 @@ object FollowRedirect {
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
       client: Client[F])(implicit F: MonadError[F, Throwable]): Client[F] = {
-    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] = {
+    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] =
       client.open(req).flatMap {
         case dr @ DisposableResponse(resp, _) =>
           def redirectUri =
@@ -98,56 +98,76 @@ object FollowRedirect {
                   case _ =>
                     pureBody.map(body => nextRequest(method, nextUri, Some(body)))
                 }
-                nextReq.fold(dontRedirect)(req =>
-                  dr.dispose.flatMap(_ => prepareLoop(req, redirects + 1)))
+                nextReq.fold(dontRedirect)(
+                  req =>
+                    dr.dispose
+                      .flatMap(_ => prepareLoop(req, redirects + 1))
+                      .map(disposableResponse => {
+                        val redirectUris = getRedirectUris(disposableResponse.response)
+                        val resp = disposableResponse.response
+                        // prepend because `prepareLoop` is recursive
+                          .withAttribute(redirectUrisKey, req.uri +: redirectUris)
+                        disposableResponse.copy(response = resp)
+                      }))
               }
             } else dontRedirect
 
-          resp.status.code match {
-            case 301 | 302 =>
-              req.method match {
-                case POST =>
-                  // "For historical reasons, a user agent MAY change the request method
-                  // from POST to GET for the subsequent request." -- RFC 7231
-                  //
-                  // This is common practice, so we do.
-                  //
-                  // TODO In a future version, configure this behavior through a
-                  // redirect config.
-                  doRedirect(GET)
-
-                case m =>
-                  doRedirect(m)
-              }
-
-            case 303 =>
-              // "303 (See Other) status code indicates that the server is
-              // redirecting the user agent to a different resource, as indicated
-              // by a URI in the Location header field, which is intended to
-              // provide an indirect response to the original request.  A user
-              // agent can perform a retrieval request targeting that URI (a GET
-              // or HEAD request if using HTTP)" -- RFC 7231
-              doRedirect(req.method match {
-                case HEAD => HEAD
-                case _ => GET
-              })
-
-            case 307 | 308 =>
-              // "Note: This status code is similar to 302 (Found), except that
-              // it does not allow changing the request method from POST to GET.
-              // This specification defines no equivalent counterpart for 301
-              // (Moved Permanently) ([RFC7238], however, defines the status code
-              // 308 (Permanent Redirect) for this purpose). These status codes
-              // may not change the method." -- RFC 7231
-              //
-              doRedirect(req.method)
-
-            case _ =>
-              F.pure(dr)
-          }
+          methodForRedirect(req, resp).map(doRedirect).getOrElse(dontRedirect)
       }
-    }
 
     client.copy(open = Kleisli(prepareLoop(_, 0)))
   }
+
+  private def methodForRedirect[F[_]](req: Request[F], resp: Response[F]): Option[Method] =
+    resp.status.code match {
+      case 301 | 302 =>
+        req.method match {
+          case POST =>
+            // "For historical reasons, a user agent MAY change the request method
+            // from POST to GET for the subsequent request." -- RFC 7231
+            //
+            // This is common practice, so we do.
+            //
+            // TODO In a future version, configure this behavior through a
+            // redirect config.
+            Some(GET)
+
+          case m =>
+            Some(m)
+        }
+
+      case 303 =>
+        // "303 (See Other) status code indicates that the server is
+        // redirecting the user agent to a different resource, as indicated
+        // by a URI in the Location header field, which is intended to
+        // provide an indirect response to the original request.  A user
+        // agent can perform a retrieval request targeting that URI (a GET
+        // or HEAD request if using HTTP)" -- RFC 7231
+        req.method match {
+          case HEAD => Some(HEAD)
+          case _ => Some(GET)
+        }
+
+      case 307 | 308 =>
+        // "Note: This status code is similar to 302 (Found), except that
+        // it does not allow changing the request method from POST to GET.
+        // This specification defines no equivalent counterpart for 301
+        // (Moved Permanently) ([RFC7238], however, defines the status code
+        // 308 (Permanent Redirect) for this purpose). These status codes
+        // may not change the method." -- RFC 7231
+        //
+        Some(req.method)
+
+      case _ =>
+        None
+    }
+
+  private val redirectUrisKey = AttributeKey[List[Uri]]
+
+  /**
+    * Get the redirection URIs for a `response`.
+    * Excludes the initial request URI
+    */
+  def getRedirectUris[F[_]](response: Response[F]): List[Uri] =
+    response.attributes.get(redirectUrisKey).getOrElse(Nil)
 }
