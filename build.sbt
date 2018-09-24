@@ -145,6 +145,16 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   )
   .dependsOn(core, testing % "test->test", client % "compile;test->test")
 
+lazy val jettyClient = libraryProject("jetty-client")
+  .settings(
+    description := "jetty implementation for http4s clients",
+    libraryDependencies ++= Seq(
+      Http4sPlugin.jettyClient
+    ),
+    mimaPreviousArtifacts := Set.empty // remove me once merged
+  )
+  .dependsOn(core, testing % "test->test", client % "compile;test->test")
+
 lazy val okHttpClient = libraryProject("okhttp-client")
   .settings(
     description := "okhttp implementation for http4s clients",
@@ -258,7 +268,7 @@ lazy val playJson = libraryProject("play-json")
     description := "Provides Play json codecs for http4s",
     libraryDependencies ++= Seq(
       jawnPlay,
-      Http4sPlugin.playJson(scalaBinaryVersion.value)
+      Http4sPlugin.playJson
     ),
     mimaPreviousArtifacts := Set.empty // remove me once merged
   )

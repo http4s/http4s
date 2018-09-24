@@ -10,6 +10,37 @@ it.
 
 # v0.19.0-SNAPSHOT
 
+## Enhancements
+* [#2042](https://github.com/http4s/http4s/pull/2042): New `Throttle` server middleware
+
+## Bugfixes
+* [#2069](https://github.com/http4s/http4s/pull/2069): Add proper `withMaxTotalConnections` method to `BlazeClientBuilder` in place of misnamed `withIdleTimeout` overload.
+
+## Documentation updates
+* [#2076](https://github.com/http4s/http4s/pull/2076): Align coloring of legend and table for milestone on versoins page
+* [#2077](https://github.com/http4s/http4s/pull/2077): Replace Typelevel Code of Conduct with Scala Code of Conduct
+
+## Dependency upgrades
+* play-json-3.6.10 for Scala 2.11.x
+
+# v0.18.18 (2018-09-18)
+
+## Bug fixes
+* [#2048](https://github.com/http4s/http4s/pull/2048): Correct misleading logging in `Retry` middleware
+* [#2078](https://github.com/http4s/http4s/pull/2078): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
+
+## Enhancements
+* [#2078](https://github.com/http4s/http4s/pull/2078): Replace generic exception on full wait queue with new `WaitQueueFullFailure`
+* [#2095](https://github.com/http4s/http4s/pull/2095): Add `Monoid[UrlForm]` instance
+
+## Dependency upgrades
+* cats-1.4.0
+* fs2-0.10.6
+* jetty-9.4.12.v20180830
+* tomcat-9.0.12
+
+# v0.19.0-M2 (2018-09-07)
+
 ## Breaking changes
 * [#1802](https://github.com/http4s/http4s/pull/1802): Race servlet requests against the `AsyncContext.timeout`. `JettyBuilder` and `TomcatBuilder` now require a `ConcurrentEffect` instance.
 * [#1934](https://github.com/http4s/http4s/pull/1934): Refactoring of `ConnectionManager`.  Now requires a `Concurrent` instance, which ripples to a `ConcurrentEffect` in blaze-client builders
@@ -81,8 +112,11 @@ it.
 ## Enhancements
 * [#1953](https://github.com/http4s/http4s/pull/1953): Add `UUIDVar` path extractor
 * [#1963](https://github.com/http4s/http4s/pull/1963): Throw `ConnectException` rather than `IOException` on blaze-client connection failures
+* [#1961](https://github.com/http4s/http4s/pull/1961): New `http4s-prometheus-client-metrics` module
 * [#1974](https://github.com/http4s/http4s/pull/1974): New `http4s-client-metrics` module for Dropwizard Metrics
+* [#1973](https://github.com/http4s/http4s/pull/1973): Add `onClose` handler to `WebSocketBuilder`
 * [#2024](https://github.com/http4s/http4s/pull/2024): Add `HeaderEcho` server middleware
+* [#2062](https://github.com/http4s/http4s/pull/2062): Eliminate "unhandled inbund command: Disconnected"` warnings in blaze-server
 
 ## Bugfixes
 * [#2027](https://github.com/http4s/http4s/pull/2024): Miscellaneous websocket fixes
@@ -94,8 +128,11 @@ it.
 * [#1935](https://github.com/http4s/http4s/pull/1953): Make `http4sVersion` lowercase
 * [#1943](https://github.com/http4s/http4s/pull/1943): Make the imports in the Client documentation silent
 * [#1944](https://github.com/http4s/http4s/pull/1944): Upgrade to cryptobits-1.2
+* [#1971](https://github.com/http4s/http4s/pull/1971): Minor corrections to DSL tut
+* [#1972](https://github.com/http4s/http4s/pull/1972): Add `UUIDVar` to DSL tut
 * [#2034](https://github.com/http4s/http4s/pull/1958): Add branch to quickstart instructions
 * [#2035](https://github.com/http4s/http4s/pull/2035): Add Christopher Davenport to community staff
+* [#2060](https://github.com/http4s/http4s/pull/2060): Guide to setting up IntelliJ for contributors
 
 ## Internal
 * [#1966](https://github.com/http4s/http4s/pull/1966): Use scalafmt directly from IntelliJ
@@ -107,6 +144,7 @@ it.
 
 ## Dependency upgrades
 * async-http-client-2.5.2
+* blaze-0.14.0-M4
 * cats-1.3.1
 * cats-effect-1.0.0
 * circe-0.10.0-M2

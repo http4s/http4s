@@ -44,7 +44,7 @@ trait Http4sSpec
     with FragmentsDsl
     with Discipline
     with IOMatchers
-    with Http4sMatchers {
+    with Http4sMatchers[IO] {
   implicit def testExecutionContext: ExecutionContext = Http4sSpec.TestExecutionContext
   val testBlockingExecutionContext: ExecutionContext = Http4sSpec.TestBlockingExecutionContext
   implicit val contextShift: ContextShift[IO] = Http4sSpec.TestContextShift

@@ -88,7 +88,7 @@ private[blaze] class Http1ServerStage[F[_]](
 
   private val handleReqRead: Try[ByteBuffer] => Unit = {
     case Success(buff) => reqLoopCallback(buff)
-    case Failure(Cmd.EOF) => stageShutdown()
+    case Failure(Cmd.EOF) => closeConnection()
     case Failure(t) => fatalError(t, "Error in requestLoop()")
   }
 
