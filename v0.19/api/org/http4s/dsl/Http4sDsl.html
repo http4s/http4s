@@ -3790,26 +3790,24 @@ at compile time.
       </span>
       
       
-    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(Http4sDsl[F],B)"></a>
+    </li><li name="org.http4s.dsl.Http4sDsl#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→:org.http4s.dsl.impl.-&gt;.type"></a><a id="→:impl.-&gt;.type"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/dsl/Http4sDsl.html#→[B](y:B):(A,B)" title="Permalink">
+      <a href="../../../org/http4s/dsl/Http4sDsl.html#→:org.http4s.dsl.impl.-&gt;.type" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.dsl.Http4sDsl">Http4sDsl</a>[<span class="extype" name="org.http4s.dsl.Http4sDsl.F">F</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="name">→</span><span class="result">: <a href="impl/$minus$greater$.html" class="extype" name="org.http4s.dsl.impl.-&gt;">impl.-&gt;</a>.type</span>
       </span>
       
-      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.Http4sDsl">Http4sDsl</a>[<span class="extype" name="org.http4s.dsl.Http4sDsl.F">F</span>] to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.Http4sDsl">Http4sDsl</a>[<span class="extype" name="org.http4s.dsl.Http4sDsl.F">F</span>]] performed by method ArrowAssoc in scala.Predef.
-            
-          </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
+      <p class="shortcomment cmt">Alias for <code>-&gt;</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Alias for <code>-&gt;</code>.</p><p>Note: Due to infix operation precedence, <code>→</code> has a lower priority than <code>/</code>. So you have to use parentheses in
+pattern matching when using this operator.</p><p>For example:</p><pre>(request.method, Path(request.path)) <span class="kw">match</span> {
+  <span class="kw">case</span> Method.GET → (Root / <span class="lit">"test.json"</span>) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl.impl.Auth.as" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="as"></a><a id="as:as"></a>
       <span class="permalink">
@@ -3855,6 +3853,26 @@ at compile time.
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="→[B](y:B):(A,B)"></a><a id="→[B](B):(Http4sDsl[F],B)"></a>
+      <span class="permalink">
+      <a href="../../../org/http4s/dsl/Http4sDsl.html#→[B](y:B):(A,B)" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $u2192" class="implicit shadowed">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.dsl.Http4sDsl">Http4sDsl</a>[<span class="extype" name="org.http4s.dsl.Http4sDsl.F">F</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+      </span>
+      
+      <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit</dt><dd>
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.Http4sDsl">Http4sDsl</a>[<span class="extype" name="org.http4s.dsl.Http4sDsl.F">F</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.Http4sDsl">Http4sDsl</a>[<span class="extype" name="org.http4s.dsl.Http4sDsl.F">F</span>]] performed by method ArrowAssoc in scala.Predef.
+            
+          </dd><dt class="implicit">Shadowing</dt><dd>This implicitly inherited member is shadowed by one or more members in this class.<br />To access this member you can use a <a href="http://stackoverflow.com/questions/2087250/what-is-the-purpose-of-type-ascription-in-scala" target="_blank">type ascription</a>:<br /><div class="cmt"><pre>(http4sDsl: ArrowAssoc[Http4sDsl[F]]).→(y)</pre></div></dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li></ol>
             </div>
 

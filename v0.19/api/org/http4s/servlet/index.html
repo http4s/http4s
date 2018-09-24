@@ -647,9 +647,9 @@ experimental.</p><p>Enter this package at your own risk, but we'd love the feedb
 require a larger request thread pool for the same load.
 </p></div></div>
     </li><li name="org.http4s.servlet.BodyWriter" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="BodyWriter[F[_]]=(org.http4s.Response[F],F[Unit])=&gt;F[Unit]"></a><a id="BodyWriter[F[_]]:BodyWriter[F]"></a>
+      <a id="BodyWriter[F[_]]=org.http4s.Response[F]=&gt;F[Unit]"></a><a id="BodyWriter[F[_]]:BodyWriter[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/index.html#BodyWriter[F[_]]=(org.http4s.Response[F],F[Unit])=&gt;F[Unit]" title="Permalink">
+      <a href="../../../org/http4s/servlet/index.html#BodyWriter[F[_]]=org.http4s.Response[F]=&gt;F[Unit]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -658,7 +658,7 @@ require a larger request thread pool for the same load.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">BodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>], <span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]) ⇒ <span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
+        <span class="name">BodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result alias"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>[<span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>]) ⇒ <span class="extype" name="org.http4s.servlet.BodyWriter.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -787,9 +787,9 @@ operationally annoying.
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.servlet#NullBodyWriter" visbl="prt" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NullBodyWriter[F[_]]:org.http4s.servlet.package.BodyWriter[F]"></a><a id="NullBodyWriter[F[_]]:BodyWriter[F]"></a>
+      <a id="NullBodyWriter[F[_]](implicitF:cats.effect.Async[F]):org.http4s.servlet.package.BodyWriter[F]"></a><a id="NullBodyWriter[F[_]](Async[F]):BodyWriter[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/servlet/index.html#NullBodyWriter[F[_]]:org.http4s.servlet.package.BodyWriter[F]" title="Permalink">
+      <a href="../../../org/http4s/servlet/index.html#NullBodyWriter[F[_]](implicitF:cats.effect.Async[F]):org.http4s.servlet.package.BodyWriter[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -798,7 +798,7 @@ operationally annoying.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">NullBodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="result">: <a href="#BodyWriter[F[_]]=(org.http4s.Response[F],F[Unit])=&gt;F[Unit]" class="extmbr" name="org.http4s.servlet.BodyWriter">BodyWriter</a>[<span class="extype" name="org.http4s.servlet.NullBodyWriter.F">F</span>]</span>
+        <span class="name">NullBodyWriter</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>]</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Async">Async</span>[<span class="extype" name="org.http4s.servlet.NullBodyWriter.F">F</span>]</span>)</span><span class="result">: <a href="#BodyWriter[F[_]]=org.http4s.Response[F]=&gt;F[Unit]" class="extmbr" name="org.http4s.servlet.BodyWriter">BodyWriter</a>[<span class="extype" name="org.http4s.servlet.NullBodyWriter.F">F</span>]</span>
       </span>
       
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
