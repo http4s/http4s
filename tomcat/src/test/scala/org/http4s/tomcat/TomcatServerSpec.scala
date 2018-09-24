@@ -26,6 +26,7 @@ class TomcatServerSpec extends {
   val server =
     builder
       .bindAny()
+      .withAsyncTimeout(1.second)
       .mountService(
         HttpRoutes.of {
           case GET -> Root / "thread" / "routing" =>
@@ -51,47 +52,48 @@ class TomcatServerSpec extends {
 
   def afterAll = server.shutdownNow()
 
-  // This should be in IO and shifted but I'm tired of fighting this.
-  private def get(path: String): String =
-    Source
-      .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-      .getLines
-      .mkString
+  private def get(path: String): IO[String] =
+    contextShift.evalOn(testBlockingExecutionContext)(
+      IO(
+        Source
+          .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+          .getLines
+          .mkString))
 
-  // This too
-  private def post(path: String, body: String): String = {
-    val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-    val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-    val bytes = body.getBytes(StandardCharsets.UTF_8)
-    conn.setRequestMethod("POST")
-    conn.setRequestProperty("Content-Length", bytes.size.toString)
-    conn.setDoOutput(true)
-    conn.getOutputStream.write(bytes)
-    Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-  }
+  private def post(path: String, body: String): IO[String] =
+    contextShift.evalOn(testBlockingExecutionContext)(IO {
+      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+      val bytes = body.getBytes(StandardCharsets.UTF_8)
+      conn.setRequestMethod("POST")
+      conn.setRequestProperty("Content-Length", bytes.size.toString)
+      conn.setDoOutput(true)
+      conn.getOutputStream.write(bytes)
+      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+    })
 
   "A server" should {
     "route requests on the service executor" in {
-      get("/thread/routing") must startWith("http4s-spec-")
+      get("/thread/routing") must returnValue(startWith("http4s-spec-"))
     }
 
     "execute the service task on the service executor" in {
-      get("/thread/effect") must startWith("http4s-spec-")
+      get("/thread/effect") must returnValue(startWith("http4s-spec-"))
     }
 
     "be able to echo its input" in {
       val input = """{ "Hello": "world" }"""
-      post("/echo", input) must startWith(input)
+      post("/echo", input) must returnValue(startWith(input))
     }
   }
 
   "Timeout" should {
     "not fire prematurely" in {
-      get("/slow") must_== "slow"
+      get("/slow") must returnValue("slow")
     }
 
     "fire on timeout" in {
-      get("/never") must throwAn[IOException]
+      get("/never").unsafeRunSync() must throwAn[IOException]
     }
   }
 }
