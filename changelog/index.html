@@ -88,10 +88,21 @@ it.</p>
 
 <h1 id="v0-19-0-snapshot">v0.19.0-SNAPSHOT</h1>
 
+<h2 id="breaking-changes">Breaking changes</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2081">#2081</a>: Remove <code>OkHttp</code> code redundant with <code>OkHttpBuilder</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2092">#2092</a>: Remove <code>ExecutionContext</code> and <code>Timer</code> implicits from async-http-client. Threads are managed by the <code>ContextShift</code>.</li>
+</ul>
+
 <h2 id="enhancements">Enhancements</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2042">#2042</a>: New <code>Throttle</code> server middleware</li>
+<li><a href="https://github.com/http4s/http4s/pull/2036">#2036</a>: New <code>http4s-jetty-client</code> backend, with HTTP/2 support</li>
+<li><a href="https://github.com/http4s/http4s/pull/2080">#2080</a>: Make <code>Http4sMatchers</code> polymorphic on their effect type</li>
+<li><a href="https://github.com/http4s/http4s/pull/2082">#2082</a>: Structured parser for the <code>Origin</code> header</li>
+<li><a href="https://github.com/http4s/http4s/pull/2061">#2061</a>: Send <code>Disconnect</code> event on EOF in blaze-server for faster cleanup of mid stages</li>
 </ul>
 
 <h2 id="bugfixes">Bugfixes</h2>
@@ -105,12 +116,16 @@ it.</p>
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2076">#2076</a>: Align coloring of legend and table for milestone on versoins page</li>
 <li><a href="https://github.com/http4s/http4s/pull/2077">#2077</a>: Replace Typelevel Code of Conduct with Scala Code of Conduct</li>
+<li><a href="https://github.com/http4s/http4s/pull/2083">#2083</a>: Fix link to 0.19 on the website</li>
+<li><a href="https://github.com/http4s/http4s/pull/2100">#2100</a>: Correct <code>re-start</code> to <code>reStart</code> in docs</li>
 </ul>
 
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
+<li>cats-1.4.0</li>
 <li>play-json-3.6.10 for Scala 2.11.x</li>
+<li>tomcat-9.0.12</li>
 </ul>
 
 <h1 id="v0-18-18-2018-09-18">v0.18.18 (2018-09-18)</h1>
@@ -140,7 +155,7 @@ it.</p>
 
 <h1 id="v0-19-0-m2-2018-09-07">v0.19.0-M2 (2018-09-07)</h1>
 
-<h2 id="breaking-changes">Breaking changes</h2>
+<h2 id="breaking-changes-1">Breaking changes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1802">#1802</a>: Race servlet requests against the <code>AsyncContext.timeout</code>. <code>JettyBuilder</code> and <code>TomcatBuilder</code> now require a <code>ConcurrentEffect</code> instance.</li>
