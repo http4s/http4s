@@ -93,6 +93,13 @@ it.</p>
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2081">#2081</a>: Remove <code>OkHttp</code> code redundant with <code>OkHttpBuilder</code>.</li>
 <li><a href="https://github.com/http4s/http4s/pull/2092">#2092</a>: Remove <code>ExecutionContext</code> and <code>Timer</code> implicits from async-http-client. Threads are managed by the <code>ContextShift</code>.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2115">#2115</a>: Refactoring of <code>Server</code> and <code>ServerBuilder</code>:
+
+<ul>
+<li>Removed <code>Server#shutdown</code>, <code>Server#shutdownNow</code>, <code>Server#onShutdown</code>, and <code>Server#awaitShutdown</code>.  <code>Server</code> lifecycles are managed as a <code>fs2.Stream</code> or a <code>cats.effect.Resource</code>.</li>
+<li><code>ServerBuilder#start</code> replaced by <code>Server#resource</code>, which shuts down the <code>Server</code> after use.</li>
+<li>Added a <code>ServerBuilder#stream</code> to construct a <code>Stream</code> from a <code>Resource</code>.</li>
+</ul></li>
 </ul>
 
 <h2 id="enhancements">Enhancements</h2>
@@ -103,12 +110,21 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2080">#2080</a>: Make <code>Http4sMatchers</code> polymorphic on their effect type</li>
 <li><a href="https://github.com/http4s/http4s/pull/2082">#2082</a>: Structured parser for the <code>Origin</code> header</li>
 <li><a href="https://github.com/http4s/http4s/pull/2061">#2061</a>: Send <code>Disconnect</code> event on EOF in blaze-server for faster cleanup of mid stages</li>
+<li><a href="https://github.com/http4s/http4s/pull/2093">#2093</a>: Track redirects in the <code>FollowRedirect</code> client middleware</li>
+<li><a href="https://github.com/http4s/http4s/pull/2109">#2109</a>: Add <code>→</code> as a synonym for <code>-&gt;</code> in http4s-dsl</li>
+<li><a href="https://github.com/http4s/http4s/pull/2100">#2100</a>: Tighten up module dependencies
+
+<ul>
+<li>http4s-testing only depends on specs2-matchers instead of specs2-core</li>
+<li>http4s-prometheus-server-metrics depends on simpleclient_common instead of simpleclient</li>
+</ul></li>
 </ul>
 
 <h2 id="bugfixes">Bugfixes</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/2069">#2069</a>: Add proper <code>withMaxTotalConnections</code> method to <code>BlazeClientBuilder</code> in place of misnamed <code>withIdleTimeout</code> overload.</li>
+<li><a href="https://github.com/http4s/http4s/pull/2106">#2106</a>: Add the servlet timeout listener before the response has a chance to complete the <code>AsyncContext</code></li>
 </ul>
 
 <h2 id="documentation-updates">Documentation updates</h2>
@@ -120,10 +136,19 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2100">#2100</a>: Correct <code>re-start</code> to <code>reStart</code> in docs</li>
 </ul>
 
+<h2 id="internal">Internal</h2>
+
+<ul>
+<li><a href="https://github.com/http4s/http4s/pull/2105">#2105</a>: Test on Oracle JDK 11</li>
+<li><a href="https://github.com/http4s/http4s/pull/2113">#2113</a>: Check for unused compile dependencies in build</li>
+<li><a href="https://github.com/http4s/http4s/pull/2115">#2115</a>: Stop testing on Oracle JDK 10</li>
+</ul>
+
 <h2 id="dependency-upgrades">Dependency upgrades</h2>
 
 <ul>
 <li>cats-1.4.0</li>
+<li>circe-0.10.0</li>
 <li>play-json-3.6.10 for Scala 2.11.x</li>
 <li>tomcat-9.0.12</li>
 </ul>
@@ -290,7 +315,7 @@ it.</p>
 <li><a href="https://github.com/http4s/http4s/pull/2060">#2060</a>: Guide to setting up IntelliJ for contributors</li>
 </ul>
 
-<h2 id="internal">Internal</h2>
+<h2 id="internal-1">Internal</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/pull/1966">#1966</a>: Use scalafmt directly from IntelliJ</li>
