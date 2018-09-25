@@ -7,12 +7,11 @@ import cats.implicits._
 import java.io.IOException
 import java.net.{HttpURLConnection, URL}
 import java.nio.charset.StandardCharsets
+import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 import org.http4s.dsl.io._
 import org.specs2.concurrent.ExecutionEnv
-import org.specs2.specification.AfterAll
 import scala.concurrent.duration._
 import scala.io.Source
-import org.apache.catalina.webresources.TomcatURLStreamHandlerFactory
 
 class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
   // Prevents us from loading jar and war URLs, but lets us
@@ -21,10 +20,10 @@ class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
   // Needs to run before the server is initialized in the superclass.
   // This also makes me grumpy.
   val _ = TomcatURLStreamHandlerFactory.disable()
-} with Http4sSpec with AfterAll {
+} with Http4sSpec {
   def builder = TomcatBuilder[IO]
 
-  val server =
+  val serverR =
     builder
       .bindAny()
       .withAsyncTimeout(3.seconds)
@@ -48,53 +47,52 @@ class TomcatServerSpec(implicit ee: ExecutionEnv) extends {
         },
         "/"
       )
-      .start
-      .unsafeRunSync()
+      .resource
 
-  def afterAll = server.shutdownNow()
+  withResource(serverR) { server =>
+    def get(path: String): IO[String] =
+      contextShift.evalOn(testBlockingExecutionContext)(
+        IO(
+          Source
+            .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
+            .getLines
+            .mkString))
 
-  private def get(path: String): IO[String] =
-    contextShift.evalOn(testBlockingExecutionContext)(
-      IO(
-        Source
-          .fromURL(new URL(s"http://127.0.0.1:${server.address.getPort}$path"))
-          .getLines
-          .mkString))
+    def post(path: String, body: String): IO[String] =
+      contextShift.evalOn(testBlockingExecutionContext)(IO {
+        val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
+        val conn = url.openConnection().asInstanceOf[HttpURLConnection]
+        val bytes = body.getBytes(StandardCharsets.UTF_8)
+        conn.setRequestMethod("POST")
+        conn.setRequestProperty("Content-Length", bytes.size.toString)
+        conn.setDoOutput(true)
+        conn.getOutputStream.write(bytes)
+        Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
+      })
 
-  private def post(path: String, body: String): IO[String] =
-    contextShift.evalOn(testBlockingExecutionContext)(IO {
-      val url = new URL(s"http://127.0.0.1:${server.address.getPort}$path")
-      val conn = url.openConnection().asInstanceOf[HttpURLConnection]
-      val bytes = body.getBytes(StandardCharsets.UTF_8)
-      conn.setRequestMethod("POST")
-      conn.setRequestProperty("Content-Length", bytes.size.toString)
-      conn.setDoOutput(true)
-      conn.getOutputStream.write(bytes)
-      Source.fromInputStream(conn.getInputStream, StandardCharsets.UTF_8.name).getLines.mkString
-    })
+    "A server" should {
+      "route requests on the service executor" in {
+        get("/thread/routing") must returnValue(startWith("http4s-spec-"))
+      }
 
-  "A server" should {
-    "route requests on the service executor" in {
-      get("/thread/routing") must returnValue(startWith("http4s-spec-"))
-    }
+      "execute the service task on the service executor" in {
+        get("/thread/effect") must returnValue(startWith("http4s-spec-"))
+      }
 
-    "execute the service task on the service executor" in {
-      get("/thread/effect") must returnValue(startWith("http4s-spec-"))
-    }
+      "be able to echo its input" in {
+        val input = """{ "Hello": "world" }"""
+        post("/echo", input) must returnValue(startWith(input))
+      }
 
-    "be able to echo its input" in {
-      val input = """{ "Hello": "world" }"""
-      post("/echo", input) must returnValue(startWith(input))
-    }
-  }
+      "Timeout" should {
+        "not fire prematurely" in {
+          get("/slow") must returnValue("slow")
+        }
 
-  "Timeout" should {
-    "not fire prematurely" in {
-      get("/slow") must returnValue("slow")
-    }
-
-    "fire on timeout" in {
-      get("/never").unsafeToFuture() must throwAn[IOException].awaitFor(5.seconds)
+        "fire on timeout" in {
+          get("/never").unsafeToFuture() must throwAn[IOException].awaitFor(5.seconds)
+        }
+      }
     }
   }
 }
