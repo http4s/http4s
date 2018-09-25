@@ -52,6 +52,7 @@ lazy val testing = libraryProject("testing")
 
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Tests for core project",
     mimaPreviousArtifacts := Set.empty
@@ -318,7 +319,6 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s",
     libraryDependencies += circeParser,
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(core, circe)
 
@@ -330,7 +330,6 @@ lazy val loadTest = http4sProject("load-test")
       gatlingHighCharts,
       gatlingTest
     ).map(_ % "it,test"),
-    unusedCompileDependenciesTest := {},
   )
   .enablePlugins(GatlingPlugin)
 
@@ -417,7 +416,6 @@ lazy val docs = http4sProject("docs")
             (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
     },
-    unusedCompileDependenciesTest := {},
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 

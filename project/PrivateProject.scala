@@ -3,6 +3,7 @@ package org.http4s.build
 import com.typesafe.sbt.pgp.PgpKeys.{publishLocalSigned, publishSigned}
 import com.typesafe.tools.mima.plugin.MimaPlugin
 import com.typesafe.tools.mima.plugin.MimaPlugin.autoImport._
+import explicitdeps.ExplicitDepsPlugin.autoImport._
 import sbt._
 import scoverage.ScoverageSbtPlugin
 import scoverage.ScoverageSbtPlugin.autoImport._
@@ -18,6 +19,7 @@ object PrivateProjectPlugin extends AutoPlugin {
       coverageExcludedPackages := ".*",
       mimaPreviousArtifacts := Set.empty,
       publishLocalSigned := {},
-      publishSigned := {}
+      publishSigned := {},
+      unusedCompileDependenciesTest := {},
     )
 }
