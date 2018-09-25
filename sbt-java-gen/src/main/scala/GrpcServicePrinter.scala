@@ -2,19 +2,22 @@ package org.lyranthe.fs2_grpc.java_runtime.sbt_gen
 
 import com.google.protobuf.Descriptors.{MethodDescriptor, ServiceDescriptor}
 import scalapb.compiler.FunctionalPrinter.PrinterEndo
-import scalapb.compiler.{DescriptorPimps, FunctionalPrinter, GeneratorParams, StreamType}
+import scalapb.compiler.{DescriptorImplicits, FunctionalPrinter, StreamType}
 
-class Fs2GrpcServicePrinter(service: ServiceDescriptor, override val params: GeneratorParams) extends DescriptorPimps {
+class Fs2GrpcServicePrinter(service: ServiceDescriptor, di: DescriptorImplicits){
+  import di._
+
   private[this] def serviceMethodSignature(method: MethodDescriptor) = {
+
+    val scalaInType   = method.inputType.scalaType
+    val scalaOutType  = method.outputType.scalaType
+    val clientHeaders = "clientHeaders: _root_.io.grpc.Metadata"
+
     s"def ${method.name}" + (method.streamType match {
-      case StreamType.Unary =>
-        s"(request: ${method.scalaIn}, clientHeaders: _root_.io.grpc.Metadata): F[${method.scalaOut}]"
-      case StreamType.ClientStreaming =>
-        s"(request: _root_.fs2.Stream[F, ${method.scalaIn}], clientHeaders: _root_.io.grpc.Metadata): F[${method.scalaOut}]"
-      case StreamType.ServerStreaming =>
-        s"(request: ${method.scalaIn}, clientHeaders: _root_.io.grpc.Metadata): _root_.fs2.Stream[F, ${method.scalaOut}]"
-      case StreamType.Bidirectional =>
-        s"(request: _root_.fs2.Stream[F, ${method.scalaIn}], clientHeaders: _root_.io.grpc.Metadata): _root_.fs2.Stream[F, ${method.scalaOut}]"
+      case StreamType.Unary           => s"(request: $scalaInType, $clientHeaders): F[$scalaOutType]"
+      case StreamType.ClientStreaming => s"(request: _root_.fs2.Stream[F, $scalaInType], $clientHeaders): F[$scalaOutType]"
+      case StreamType.ServerStreaming => s"(request: $scalaInType, $clientHeaders): _root_.fs2.Stream[F, $scalaOutType]"
+      case StreamType.Bidirectional   => s"(request: _root_.fs2.Stream[F, $scalaInType], $clientHeaders): _root_.fs2.Stream[F, $scalaOutType]"
     })
   }
 
