@@ -12,6 +12,9 @@ object GetRoutes {
   val SimplePath = "/simple"
   val ChunkedPath = "/chunked"
   val DelayedPath = "/delayed"
+  val NoContentPath = "/no-content"
+  val NotFoundPath = "/not-found"
+  val EmptyNotFoundPath = "/empty-not-found"
 
   def getPaths(implicit ec: ExecutionContext): Map[String, Response[IO]] =
     Map(
@@ -19,6 +22,9 @@ object GetRoutes {
       ChunkedPath -> Response[IO](Ok).withBody(
         Stream.emits("chunk".toSeq.map(_.toString)).covary[IO]),
       DelayedPath ->
-        IO.sleep(1.seconds) *> Response[IO](Ok).withBody("delayed path")
+        IO.sleep(1.seconds) *> Response[IO](Ok).withBody("delayed path"),
+      NoContentPath -> Response[IO](NoContent).pure[IO],
+      NotFoundPath -> Response[IO](NotFound).withBody("not found"),
+      EmptyNotFoundPath -> Response[IO](NotFound).pure[IO]
     ).mapValues(_.unsafeRunSync())
 }
