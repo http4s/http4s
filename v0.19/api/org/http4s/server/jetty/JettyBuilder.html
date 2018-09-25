@@ -779,6 +779,24 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.jetty.JettyBuilder#resource" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resource:cats.effect.Resource[F,org.http4s.server.Server[F]]"></a><a id="resource:Resource[F,Server[F]]"></a>
+      <span class="permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#resource:cats.effect.Resource[F,org.http4s.server.Server[F]]" title="Permalink">
+        <i class="material-icons"></i>
+      </a>
+    </span>
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resource</span><span class="result">: <span class="extype" name="cats.effect.Resource">Resource</span>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
+      </span>
+      
+      <p class="shortcomment cmt">Returns a Server resource.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a Server resource.  The resource is not acquired until the
+server is started and ready to accept requests.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.ServerBuilder#serve" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="serve:fs2.Stream[F,cats.effect.ExitCode]"></a><a id="serve:Stream[F,ExitCode]"></a>
       <span class="permalink">
@@ -815,10 +833,10 @@ that runs for the rest of the JVM's life.
       <p class="shortcomment cmt">Runs the server as a Stream that emits only when the terminated signal becomes true.</p><div class="fullcomment"><div class="comment cmt"><p>Runs the server as a Stream that emits only when the terminated signal becomes true.
 Useful for servers with associated lifetime behaviors.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
-    </li><li name="org.http4s.server.jetty.JettyBuilder#start" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="start:F[org.http4s.server.Server[F]]"></a><a id="start:F[Server[F]]"></a>
+    </li><li name="org.http4s.server.ServerBuilder#stream" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stream:fs2.Stream[F,org.http4s.server.Server[F]]"></a><a id="stream:Stream[F,Server[F]]"></a>
       <span class="permalink">
-      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#start:F[org.http4s.server.Server[F]]" title="Permalink">
+      <a href="../../../../org/http4s/server/jetty/JettyBuilder.html#stream:fs2.Stream[F,org.http4s.server.Server[F]]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -827,12 +845,12 @@ Useful for servers with associated lifetime behaviors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">start</span><span class="result">: <span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>[<a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
+        <span class="name">stream</span><span class="result">: <span class="extype" name="fs2.Stream">Stream</span>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>, <a href="../Server.html" class="extype" name="org.http4s.server.Server">Server</a>[<span class="extype" name="org.http4s.server.jetty.JettyBuilder.F">F</span>]]</span>
       </span>
       
-      <p class="shortcomment cmt">Returns a task to start a server.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a task to start a server.  The task completes with a
-reference to the server when it has started.
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <p class="shortcomment cmt">Returns a Server stream.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a Server stream.  The stream does not emit until the
+server is started and ready to accept requests.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">

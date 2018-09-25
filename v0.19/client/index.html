@@ -124,13 +124,17 @@ implicit val cs: ContextShift[IO] = IO.contextShift(global)
   case GET -&gt; Root / &quot;hello&quot; / name =&gt;
     Ok(s&quot;Hello, $name.&quot;)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$46041/994245231@74ae9ada)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$45652/815797156@6d0e1937)
 
-val builder = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(routes, &quot;/&quot;).start
-// builder: cats.effect.IO[org.http4s.server.Server[cats.effect.IO]] = IO$210143659
+val server = BlazeBuilder[IO].bindHttp(8080, &quot;localhost&quot;).mountService(routes, &quot;/&quot;).resource
+// server: cats.effect.Resource[cats.effect.IO,org.http4s.server.Server[cats.effect.IO]] = Allocate(&lt;function1&gt;)
+</code></pre>
 
-val server = builder.unsafeRunSync
-// server: org.http4s.server.Server[cats.effect.IO] = BlazeServer(/127.0.0.1:8080)
+<p>We&rsquo;ll start the server in the background.  The <code>IO.never</code> keeps it
+running until we cancel the fiber.</p>
+
+<pre><code class="language-scala">val fiber = server.use(_ =&gt; IO.never).start.unsafeRunSync()
+// fiber: cats.effect.Fiber[cats.effect.IO,Nothing] = Tuple(IO$818295288,IO$1217599007)
 </code></pre>
 
 <h3 id="creating-the-client">Creating the client</h3>
@@ -149,7 +153,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
   // automatically each time the `IO` is run.
   IO.unit
 }
-// res0: cats.effect.IO[Unit] = IO$1533709682
+// res0: cats.effect.IO[Unit] = IO$1657200069
 </code></pre>
 
 <p>For the remainder of this tut, we&rsquo;ll use an alternate client backend
@@ -174,7 +178,7 @@ val httpClient: Client[IO] = JavaNetClientBuilder(blockingEC).create
 and the URI we want:</p>
 
 <pre><code class="language-scala">val helloJames = httpClient.expect[String](&quot;http://localhost:8080/hello/James&quot;)
-// helloJames: cats.effect.IO[String] = IO$1055574684
+// helloJames: cats.effect.IO[String] = IO$1973070010
 </code></pre>
 
 <p>Note that we don&rsquo;t have any output yet.  We have a <code>IO[String]</code>, to
@@ -206,7 +210,7 @@ val people = Vector(&quot;Michael&quot;, &quot;Jessica&quot;, &quot;Ashley&quot;
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = people.parTraverse(hello)
-// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1789117755
+// greetingList: cats.effect.IO[scala.collection.immutable.Vector[String]] = IO$1568846676
 </code></pre>
 
 <p>Observe how simply we could combine a single <code>F[String]</code> returned
@@ -289,7 +293,7 @@ val withQuery = withPath.withQueryParam(&quot;hello&quot;, &quot;world&quot;)
 <p>You can send a GET by calling the <code>expect</code> method on the client, passing a <code>Uri</code>:</p>
 
 <pre><code class="language-scala">httpClient.expect[String](Uri.uri(&quot;https://google.com/&quot;))
-// res3: cats.effect.IO[String] = IO$521558060
+// res3: cats.effect.IO[String] = IO$187860454
 </code></pre>
 
 <p>If you need to do something more complicated like setting request headers, you
@@ -308,7 +312,7 @@ import org.http4s.MediaType
 // request: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=GET, uri=https://my-lovely-api.com/, headers=Headers(Authorization: &lt;REDACTED&gt;, Accept: application/json)))
 
 httpClient.expect[String](request)
-// res4: cats.effect.IO[String] = IO$45283101
+// res4: cats.effect.IO[String] = IO$445201901
 </code></pre>
 
 <h3 id="post-a-form-decoding-the-json-response-to-a-case-class">Post a form, decoding the JSON response to a case class</h3>
@@ -331,7 +335,7 @@ val postRequest = POST(
 // postRequest: cats.effect.IO[org.http4s.Request[cats.effect.IO]] = IO(Request(method=POST, uri=https://my-lovely-api.com/oauth2/token, headers=Headers(Content-Type: application/x-www-form-urlencoded; charset=UTF-8, Content-Length: 78)))
 
 httpClient.expect[AuthResponse](postRequest)
-// res6: cats.effect.IO[AuthResponse] = IO$682794264
+// res6: cats.effect.IO[AuthResponse] = IO$1072079917
 </code></pre>
 
 <h2 id="cleaning-up">Cleaning up</h2>
@@ -344,6 +348,11 @@ it down:</p>
 
 <p>If the client is created using <code>HttpClient.stream[F]()</code>, it will be shut down when
 the resulting stream finishes.</p>
+
+<p>We can also terminate our example server:</p>
+
+<pre><code class="language-scala">fiber.cancel.unsafeRunSync()
+</code></pre>
 
 <h2 id="calls-to-a-json-api">Calls to a JSON API</h2>
 

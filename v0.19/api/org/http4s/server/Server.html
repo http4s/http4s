@@ -399,9 +399,9 @@ for serious static content serving.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.Server#&lt;init&gt;" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;()(implicitF:cats.effect.Effect[F]):org.http4s.server.Server[F]"></a><a id="&lt;init&gt;:Server[F]"></a>
+      <a id="&lt;init&gt;():org.http4s.server.Server[F]"></a><a id="&lt;init&gt;:Server[F]"></a>
       <span class="permalink">
-      <a href="../../../org/http4s/server/Server.html#&lt;init&gt;()(implicitF:cats.effect.Effect[F]):org.http4s.server.Server[F]" title="Permalink">
+      <a href="../../../org/http4s/server/Server.html#&lt;init&gt;():org.http4s.server.Server[F]" title="Permalink">
         <i class="material-icons"></i>
       </a>
     </span>
@@ -410,7 +410,7 @@ for serious static content serving.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Server</span><span class="params">()</span><span class="params">(<span class="implicit">implicit </span><span name="F">F: <span class="extype" name="cats.effect.Effect">Effect</span>[<span class="extype" name="org.http4s.server.Server.F">F</span>]</span>)</span>
+        <span class="name">Server</span><span class="params">()</span>
       </span>
       
       
@@ -453,41 +453,6 @@ for serious static content serving.
       </span>
       
       
-    </li><li name="org.http4s.server.Server#shutdown" visbl="pub" class="indented0 " data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="shutdown:F[Unit]"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/Server.html#shutdown:F[Unit]" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdown</span><span class="result">: <span class="extype" name="org.http4s.server.Server.F">F</span>[<a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a>]</span>
-      </span>
-      
-      
-    </li><li name="org.http4s.server.Server#onShutdown" visbl="pub" class="indented0 " data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="onShutdown(f:=&gt;Unit):Server.this.type"></a><a id="onShutdown(⇒Unit):Server.this.type"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/Server.html#onShutdown(f:=&gt;Unit):Server.this.type" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.14) Compose with the shutdown task instead.">onShutdown</span><span class="params">(<span name="f">f: ⇒ <a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.Server">Server</a>.this.type</span>
-      </span>
-      
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Compose with the shutdown task instead.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -906,22 +871,6 @@ for serious static content serving.
                 <span class="name">@native</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.server.Server#shutdownNow" visbl="pub" class="indented0 " data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="shutdownNow():Unit"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/Server.html#shutdownNow():Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdownNow</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
-      </span>
-      
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a><a id="synchronized[T0](⇒T0):T0"></a>
       <span class="permalink">
@@ -1048,30 +997,7 @@ for serious static content serving.
 
         
 
-        <div class="values members">
-              <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.server.Server#awaitShutdown" visbl="pub" class="indented0 " data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="awaitShutdown():Unit"></a>
-      <span class="permalink">
-      <a href="../../../org/http4s/server/Server.html#awaitShutdown():Unit" title="Permalink">
-        <i class="material-icons"></i>
-      </a>
-    </span>
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use ServerApp instead.">awaitShutdown</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.12.6/scala/Unit.html#scala.Unit" class="extype" name="scala.Unit">Unit</a></span>
-      </span>
-      
-      <p class="shortcomment cmt">Blocks until the server shuts down.</p><div class="fullcomment"><div class="comment cmt"><p>Blocks until the server shuts down.
-</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use ServerApp instead.</p></dd></dl></div>
-    </li></ol>
-            </div>
+        
         </div>
 
         <div id="inheritedMembers">
