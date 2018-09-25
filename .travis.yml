@@ -17,6 +17,8 @@ matrix:
     scala: 2.11.12
   - jdk: oraclejdk10
     scala: 2.12.6
+  - jdk: openjdk11
+    scala: 2.12.6
 notifications:
   webhooks:
     urls:

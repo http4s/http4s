@@ -45,7 +45,7 @@ lazy val testing = libraryProject("testing")
     libraryDependencies ++= Seq(
       catsEffectLaws,
       scalacheck,
-      specs2Core
+      specs2Matcher
     ),
   )
   .dependsOn(core)
@@ -78,7 +78,7 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
   .settings(
     description := "Support for Prometheus Metrics on the server",
     libraryDependencies ++= Seq(
-      prometheusClient,
+      prometheusCommon,
       prometheusHotspot
     ),
   )
