@@ -10,8 +10,16 @@ it.
 
 # v0.19.0-SNAPSHOT
 
+## Breaking changes
+* [#2081](https://github.com/http4s/http4s/pull/2081): Remove `OkHttp` code redundant with `OkHttpBuilder`.
+* [#2092](https://github.com/http4s/http4s/pull/2092): Remove `ExecutionContext` and `Timer` implicits from async-http-client. Threads are managed by the `ContextShift`.
+
 ## Enhancements
 * [#2042](https://github.com/http4s/http4s/pull/2042): New `Throttle` server middleware
+* [#2036](https://github.com/http4s/http4s/pull/2036): New `http4s-jetty-client` backend, with HTTP/2 support
+* [#2080](https://github.com/http4s/http4s/pull/2080): Make `Http4sMatchers` polymorphic on their effect type
+* [#2082](https://github.com/http4s/http4s/pull/2082): Structured parser for the `Origin` header
+* [#2061](https://github.com/http4s/http4s/pull/2061): Send `Disconnect` event on EOF in blaze-server for faster cleanup of mid stages
 
 ## Bugfixes
 * [#2069](https://github.com/http4s/http4s/pull/2069): Add proper `withMaxTotalConnections` method to `BlazeClientBuilder` in place of misnamed `withIdleTimeout` overload.
@@ -19,9 +27,13 @@ it.
 ## Documentation updates
 * [#2076](https://github.com/http4s/http4s/pull/2076): Align coloring of legend and table for milestone on versoins page
 * [#2077](https://github.com/http4s/http4s/pull/2077): Replace Typelevel Code of Conduct with Scala Code of Conduct
+* [#2083](https://github.com/http4s/http4s/pull/2083): Fix link to 0.19 on the website
+* [#2100](https://github.com/http4s/http4s/pull/2100): Correct `re-start` to `reStart` in docs
 
 ## Dependency upgrades
+* cats-1.4.0
 * play-json-3.6.10 for Scala 2.11.x
+* tomcat-9.0.12
 
 # v0.18.18 (2018-09-18)
 

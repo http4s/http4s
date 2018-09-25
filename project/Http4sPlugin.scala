@@ -284,7 +284,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val catsKernelLaws                   = "org.typelevel"          %% "cats-kernel-laws"          % cats.revision
   lazy val catsLaws                         = "org.typelevel"          %% "cats-laws"                 % cats.revision
   lazy val circeGeneric                     = "io.circe"               %% "circe-generic"             % circeJawn.revision
-  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.10.0-M2"
+  lazy val circeJawn                        = "io.circe"               %% "circe-jawn"                % "0.10.0"
   lazy val circeLiteral                     = "io.circe"               %% "circe-literal"             % circeJawn.revision
   lazy val circeParser                      = "io.circe"               %% "circe-parser"              % circeJawn.revision
   lazy val circeTesting                     = "io.circe"               %% "circe-testing"             % circeJawn.revision
@@ -314,7 +314,8 @@ object Http4sPlugin extends AutoPlugin {
   lazy val mockito                          = "org.mockito"            %  "mockito-core"              % "2.22.0"
   lazy val okhttp                           = "com.squareup.okhttp3"   %  "okhttp"                    % "3.11.0"
   lazy val playJson                         = "com.typesafe.play"      %% "play-json"                 % "2.6.10"
-  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient_common"       % "0.5.0"
+  lazy val prometheusClient                 = "io.prometheus"          %  "simpleclient"              % "0.5.0"
+  lazy val prometheusCommon                 = "io.prometheus"          %  "simpleclient_common"       % prometheusClient.revision
   lazy val prometheusHotspot                = "io.prometheus"          %  "simpleclient_hotspot"      % prometheusClient.revision
   lazy val parboiled                        = "org.http4s"             %% "parboiled"                 % "1.0.0"
   lazy val quasiquotes                      = "org.scalamacros"        %% "quasiquotes"               % "2.1.0"
@@ -324,6 +325,7 @@ object Http4sPlugin extends AutoPlugin {
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
   lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.0"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
+  lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
   lazy val specs2Scalacheck                 = "org.specs2"             %% "specs2-scalacheck"         % specs2Core.revision
   lazy val treeHugger                       = "com.eed3si9n"           %% "treehugger"                % "0.4.3"
