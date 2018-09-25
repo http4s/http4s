@@ -317,7 +317,8 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
-    libraryDependencies += circeParser
+    libraryDependencies += circeParser,
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(core, circe)
 
@@ -328,7 +329,8 @@ lazy val loadTest = http4sProject("load-test")
     libraryDependencies ++= Seq(
       gatlingHighCharts,
       gatlingTest
-    ).map(_ % "it,test")
+    ).map(_ % "it,test"),
+    unusedCompileDependenciesTest := {},
   )
   .enablePlugins(GatlingPlugin)
 
@@ -414,7 +416,8 @@ lazy val docs = http4sProject("docs")
           f.getCanonicalPath.startsWith(
             (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
-    }
+    },
+    unusedCompileDependenciesTest := {},
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
