@@ -20,7 +20,7 @@ object Origin extends HeaderKey.Internal[Origin] with HeaderKey.Singleton {
 
   // If the Origin is not "null", it is a non-empty list of Hosts:
   // http://tools.ietf.org/html/rfc6454#section-7
-  case class HostList(hosts: NonEmptyList[Host]) extends Origin {
+  final case class HostList(hosts: NonEmptyList[Host]) extends Origin {
     def renderValue(writer: Writer): writer.type = {
       writer << hosts.head
       hosts.tail.foreach { host =>

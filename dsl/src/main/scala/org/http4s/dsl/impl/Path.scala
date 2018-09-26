@@ -84,7 +84,7 @@ object ~ {
     }
 }
 
-case class /(parent: Path, child: String) extends Path {
+final case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
 
   def lastOption: Some[String] = Some(child)

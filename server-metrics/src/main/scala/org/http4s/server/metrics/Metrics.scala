@@ -155,7 +155,7 @@ object Metrics {
       Sync[F].delay(active_requests.dec())
   }
 
-  private case class RequestTimers(
+  private final case class RequestTimers(
       getReq: Timer,
       postReq: Timer,
       putReq: Timer,
@@ -169,7 +169,7 @@ object Metrics {
       totalReq: Timer
   )
 
-  private case class ResponseTimers(
+  private final case class ResponseTimers(
       resp1xx: Timer,
       resp2xx: Timer,
       resp3xx: Timer,
@@ -177,14 +177,14 @@ object Metrics {
       resp5xx: Timer
   )
 
-  private case class GeneralServiceMetrics(
+  private final case class GeneralServiceMetrics(
       activeRequests: Counter,
       abnormalTerminations: Timer,
       serviceErrors: Timer,
       headersTimes: Timer
   )
 
-  private case class ServiceMetrics(
+  private final case class ServiceMetrics(
       generalMetrics: GeneralServiceMetrics,
       requestTimers: RequestTimers,
       responseTimers: ResponseTimers

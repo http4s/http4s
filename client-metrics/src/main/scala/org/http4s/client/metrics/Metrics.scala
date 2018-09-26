@@ -64,7 +64,7 @@ object Metrics {
 
 }
 
-private case class MetricsCollection(
+private final case class MetricsCollection(
     activeRequests: Counter,
     requestsHeaders: MetricTimer,
     requestsTotal: MetricTimer,
