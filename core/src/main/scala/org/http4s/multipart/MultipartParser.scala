@@ -192,7 +192,7 @@ object MultipartParser {
       if (state == values.length) {
         pullParts[F](b, strim ++ s, limit)
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, rest)) =>
             val (ix, strim) = splitAndIgnorePrev(values, state, chnk)
             go(rest, ix, strim)
@@ -201,7 +201,7 @@ object MultipartParser {
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chnk, strim)) =>
         val (ix, rest) = splitAndIgnorePrev(values, 0, chnk)
         go(strim, ix, rest)
@@ -287,7 +287,7 @@ object MultipartParser {
     def checkIfLast(c: Chunk[Byte], rest: Stream[F, Byte]): SplitStream[F] = {
       //Elide empty chunks until nonemptychunk is found
       def elideEmptyChunks(str: Stream[F, Byte]): Pull[F, Nothing, (Chunk[Byte], Stream[F, Byte])] =
-        str.pull.unconsChunk.flatMap {
+        str.pull.uncons.flatMap {
           case Some((chnk, r)) =>
             if (chnk.size <= 0)
               elideEmptyChunks(r)
@@ -316,14 +316,14 @@ object MultipartParser {
         }
 
       if (c.size <= 0) {
-        rest.pull.unconsChunk.flatMap {
+        rest.pull.uncons.flatMap {
           case Some((chnk, r)) =>
             checkIfLast(chnk, r)
           case None =>
             Pull.raiseError[F](MalformedMessageBodyFailure("Malformed Multipart ending"))
         }
       } else if (c.size == 1) {
-        rest.pull.unconsChunk.flatMap {
+        rest.pull.uncons.flatMap {
           case Some((chnk, remaining)) =>
             if (chnk.size <= 0)
               elideEmptyChunks(remaining).flatMap {
@@ -354,7 +354,7 @@ object MultipartParser {
       } else if (state == values.length) {
         Pull.pure((lacc, racc ++ s))
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, str)) =>
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r, limitCTR + add)
@@ -363,7 +363,7 @@ object MultipartParser {
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chunk, rest)) =>
         checkIfLast(chunk, rest)
       case None =>
@@ -419,7 +419,7 @@ object MultipartParser {
       if (state == values.length) {
         Pull.pure((lacc, racc ++ s))
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, str)) =>
             val (ix, l, r) = splitOnChunk[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r)
@@ -429,7 +429,7 @@ object MultipartParser {
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chunk, rest)) =>
         val (ix, l, r) = splitOnChunk[F](values, 0, chunk, Stream.empty, Stream.empty)
         go(rest, ix, l, r)
@@ -618,7 +618,7 @@ object MultipartParser {
           failOnLimit,
           blockingExecutionContext)
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, rest)) =>
             val (ix, strim) = splitAndIgnorePrev(values, state, chnk)
             go(rest, ix, strim)
@@ -627,7 +627,7 @@ object MultipartParser {
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chnk, strim)) =>
         val (ix, rest) = splitAndIgnorePrev(values, 0, chnk)
         go(strim, ix, rest)
@@ -794,7 +794,7 @@ object MultipartParser {
             .compile
             .drain) >> streamAndWrite(s, state, Stream.empty, racc, 0, fileRef)
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, str)) =>
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             streamAndWrite(str, ix, l, r, limitCTR + add, fileRef)
@@ -824,7 +824,7 @@ object MultipartParser {
       } else if (state == values.length) {
         Pull.pure((lacc, racc ++ s, None))
       } else {
-        s.pull.unconsChunk.flatMap {
+        s.pull.uncons.flatMap {
           case Some((chnk, str)) =>
             val (ix, l, r, add) = splitOnChunkLimited[F](values, state, chnk, lacc, racc)
             go(str, ix, l, r, limitCTR + add)
@@ -833,7 +833,7 @@ object MultipartParser {
         }
       }
 
-    stream.pull.unconsChunk.flatMap {
+    stream.pull.uncons.flatMap {
       case Some((chunk, rest)) =>
         val (ix, l, r, add) =
           splitOnChunkLimited[F](values, 0, chunk, Stream.empty, Stream.empty)
