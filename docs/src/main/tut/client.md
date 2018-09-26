@@ -50,9 +50,16 @@ val routes = HttpRoutes.of[IO] {
     Ok(s"Hello, $name.")
 }
 
-val builder = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(routes, "/").start
-val server = builder.unsafeRunSync
+val server = BlazeBuilder[IO].bindHttp(8080, "localhost").mountService(routes, "/").resource
 ```
+
+We'll start the server in the background.  The `IO.never` keeps it
+running until we cancel the fiber.
+
+```tut:book
+val fiber = server.use(_ => IO.never).start.unsafeRunSync()
+```
+
 
 ### Creating the client
 
@@ -235,7 +242,7 @@ httpClient.expect[AuthResponse](postRequest)
 ```
 
 ```tut:book:invisible
-server.shutdown.unsafeRunSync
+fiber.cancel.unsafeRunSync()
 ```
 
 ## Calls to a JSON API
@@ -273,7 +280,7 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-```tut:silent
+```tut:invisible
 blockingEC.shutdown()
 ```
 

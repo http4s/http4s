@@ -181,6 +181,7 @@ object Http4sPlugin extends AutoPlugin {
         tagRelease.when(primary && release),
         runTestWithCoverage,
         releaseStepCommand("mimaReportBinaryIssues"),
+        releaseStepCommand("unusedCompileDependenciesTest"),
         releaseStepCommand("test:scalafmt::test").when(primary),
         releaseStepCommand("docs/makeSite").when(primary),
         releaseStepCommand("website/makeSite").when(primary),

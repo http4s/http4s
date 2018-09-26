@@ -1,7 +1,7 @@
 resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 
 addSbtPlugin("com.earldouglas"     %  "xsbt-web-plugin"           % "4.0.2")
-addSbtPlugin("com.github.cb372"    %  "sbt-explicit-dependencies" % "0.2.5")
+addSbtPlugin("com.github.cb372"    %  "sbt-explicit-dependencies" % "0.2.6")
 addSbtPlugin("com.github.tkawachi" %  "sbt-doctest"               % "0.7.2")
 addSbtPlugin("com.lucidchart"      %  "sbt-scalafmt-coursier"     % "1.15")
 addSbtPlugin("org.scalastyle"      %% "scalastyle-sbt-plugin"     % "1.0.0")

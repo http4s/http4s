@@ -13,6 +13,10 @@ it.
 ## Breaking changes
 * [#2081](https://github.com/http4s/http4s/pull/2081): Remove `OkHttp` code redundant with `OkHttpBuilder`.
 * [#2092](https://github.com/http4s/http4s/pull/2092): Remove `ExecutionContext` and `Timer` implicits from async-http-client. Threads are managed by the `ContextShift`.
+* [#2115](https://github.com/http4s/http4s/pull/2115): Refactoring of `Server` and `ServerBuilder`:
+  * Removed `Server#shutdown`, `Server#shutdownNow`, `Server#onShutdown`, and `Server#awaitShutdown`.  `Server` lifecycles are managed as a `fs2.Stream` or a `cats.effect.Resource`.
+  * `ServerBuilder#start` replaced by `Server#resource`, which shuts down the `Server` after use.
+  * Added a `ServerBuilder#stream` to construct a `Stream` from a `Resource`.
 
 ## Enhancements
 * [#2042](https://github.com/http4s/http4s/pull/2042): New `Throttle` server middleware
@@ -20,9 +24,15 @@ it.
 * [#2080](https://github.com/http4s/http4s/pull/2080): Make `Http4sMatchers` polymorphic on their effect type
 * [#2082](https://github.com/http4s/http4s/pull/2082): Structured parser for the `Origin` header
 * [#2061](https://github.com/http4s/http4s/pull/2061): Send `Disconnect` event on EOF in blaze-server for faster cleanup of mid stages
+* [#2093](https://github.com/http4s/http4s/pull/2093): Track redirects in the `FollowRedirect` client middleware
+* [#2109](https://github.com/http4s/http4s/pull/2109): Add `→` as a synonym for `->` in http4s-dsl
+* [#2100](https://github.com/http4s/http4s/pull/2100): Tighten up module dependencies
+  * http4s-testing only depends on specs2-matchers instead of specs2-core
+  * http4s-prometheus-server-metrics depends on simpleclient_common instead of simpleclient
 
 ## Bugfixes
 * [#2069](https://github.com/http4s/http4s/pull/2069): Add proper `withMaxTotalConnections` method to `BlazeClientBuilder` in place of misnamed `withIdleTimeout` overload.
+* [#2106](https://github.com/http4s/http4s/pull/2106): Add the servlet timeout listener before the response has a chance to complete the `AsyncContext`
 
 ## Documentation updates
 * [#2076](https://github.com/http4s/http4s/pull/2076): Align coloring of legend and table for milestone on versoins page
@@ -30,8 +40,14 @@ it.
 * [#2083](https://github.com/http4s/http4s/pull/2083): Fix link to 0.19 on the website
 * [#2100](https://github.com/http4s/http4s/pull/2100): Correct `re-start` to `reStart` in docs
 
+## Internal
+* [#2105](https://github.com/http4s/http4s/pull/2105): Test on Oracle JDK 11
+* [#2113](https://github.com/http4s/http4s/pull/2113): Check for unused compile dependencies in build
+* [#2115](https://github.com/http4s/http4s/pull/2115): Stop testing on Oracle JDK 10
+
 ## Dependency upgrades
 * cats-1.4.0
+* circe-0.10.0
 * play-json-3.6.10 for Scala 2.11.x
 * tomcat-9.0.12
 
