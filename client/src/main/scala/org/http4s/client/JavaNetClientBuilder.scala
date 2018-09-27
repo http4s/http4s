@@ -5,11 +5,12 @@ import cats.effect.{Async, ContextShift, Resource, Sync}
 import cats.implicits._
 import fs2.Stream
 import fs2.io.{readInputStream, writeOutputStream}
+import java.io.IOException
 import java.net.{HttpURLConnection, Proxy, URL}
 import javax.net.ssl.{HostnameVerifier, HttpsURLConnection, SSLSocketFactory}
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, blocking}
 import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.{ExecutionContext, blocking}
 
 /** Builder for a [[Client]] backed by on `java.net.HttpUrlConnection`.
   *
@@ -21,7 +22,6 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
   *
   * @param blockingExecutionContext An `ExecutionContext` on which
   * blocking operations will be performed.
-  *
   * @define WHYNOSHUTDOWN Creation of the client allocates no
   * resources, and any resources allocated while using this client
   * are reclaimed by the JVM at its own leisure.
@@ -104,7 +104,11 @@ sealed abstract class JavaNetClientBuilder private (
 
       for {
         url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
-        conn <- Resource.make(openConnection(url))(conn => F.delay(conn.getInputStream.close()))
+        conn <- Resource.make(openConnection(url)) { conn =>
+          F.delay(conn.getInputStream().close()).recoverWith {
+            case _: IOException => F.delay(Option(conn.getErrorStream()).foreach(_.close()))
+          }
+        }
         resp <- Resource.liftF(respond(conn))
       } yield resp
     }
@@ -137,8 +141,7 @@ sealed abstract class JavaNetClientBuilder private (
             .flatMap { case (k, vs) => vs.asScala.map(Header(k, _)) }
             .toList
         ))
-      body = readInputStream(F.delay(conn.getInputStream), 4096, blockingExecutionContext)
-    } yield Response(status = status, headers = headers, body = body)
+    } yield Response(status = status, headers = headers, body = readBody(conn))
 
   private def timeoutMillis(d: Duration): Int = d match {
     case d: FiniteDuration if d > Duration.Zero => d.toMillis.max(0).min(Int.MaxValue).toInt
@@ -154,7 +157,7 @@ sealed abstract class JavaNetClientBuilder private (
 
   private def writeBody[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],
-      cs: ContextShift[F]) =
+      cs: ContextShift[F]): F[Unit] =
     if (req.isChunked) {
       F.delay(conn.setDoOutput(true)) *>
         F.delay(conn.setChunkedStreamingMode(4096)) *>
@@ -174,6 +177,19 @@ sealed abstract class JavaNetClientBuilder private (
         case _ =>
           F.delay(conn.setDoOutput(false))
       }
+
+  private def readBody[F[_]](
+      conn: HttpURLConnection)(implicit F: Sync[F], cs: ContextShift[F]): Stream[F, Byte] = {
+    def inputStream =
+      F.delay(Option(conn.getInputStream)).recoverWith {
+        case _: IOException if conn.getResponseCode > 0 =>
+          F.delay(Option(conn.getErrorStream))
+      }
+    Stream.eval(inputStream).flatMap {
+      case Some(in) => readInputStream(F.pure(in), 4096, blockingExecutionContext, false)
+      case None => Stream.empty
+    }
+  }
 
   private def configureSsl[F[_]](conn: HttpURLConnection)(implicit F: Sync[F]) =
     conn match {

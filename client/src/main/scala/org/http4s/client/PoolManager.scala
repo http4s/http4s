@@ -357,5 +357,5 @@ private final class PoolManager[F[_], A <: Connection[F]](
   }
 }
 
-case class NoConnectionAllowedException(key: RequestKey)
+final case class NoConnectionAllowedException(key: RequestKey)
     extends IllegalArgumentException(s"No client connections allowed to $key")

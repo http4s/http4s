@@ -9,6 +9,7 @@ import cats.implicits._
 import fs2._
 import org.http4s.Status.Successful
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import scala.annotation.tailrec
 
 private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwable])
     extends Client[F] {
@@ -61,23 +62,45 @@ private[client] abstract class DefaultClient[F[_]](implicit F: Bracket[F, Throwa
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpApp: HttpApp[F] = Kleisli { req =>
-    def go[A](r: Resource[F, A]): F[(A, F[Unit])] = r match {
-      case Resource.Allocate(r) =>
-        r.map { case (a, release) => (a, release(ExitCase.Completed)) }
-      case Resource.Bind(r, f) =>
-        go(r).flatMap {
-          case (a, releaseA) =>
-            go(f(a)).attempt.flatMap {
-              case Left(e) => F.raiseError[(A, F[Unit])](e).guarantee(releaseA)
-              case Right((b, releaseB)) => (b, releaseB.guarantee(releaseA)).pure[F]
-            }
-        }
-      case Resource.Suspend(r) =>
-        r.flatMap(go)
-    }
-    go(run(req)).map {
-      case (resp, dispose) =>
-        resp.copy(body = resp.body.onFinalize(dispose))
+    /* Derived from https://github.com/typelevel/cats-effect/blob/c62c6c76b3066c500fca2f9e0897605bc12eb2a0/core/shared/src/main/scala/cats/effect/Resource.scala */
+
+    // Indirection for calling `loop` needed because `loop` must be @tailrec
+    def continue(
+        current: Resource[F, Any],
+        stack: List[Any => Resource[F, Any]],
+        release: F[Unit]): F[(Any, F[Unit])] =
+      loop(current, stack, release)
+
+    // Interpreter that knows how to evaluate a Resource data structure;
+    // Maintains its own stack for dealing with Bind chains
+    @tailrec def loop(
+        current: Resource[F, Any],
+        stack: List[Any => Resource[F, Any]],
+        release: F[Unit]): F[(Any, F[Unit])] =
+      current match {
+        case Resource.Allocate(resource) =>
+          F.bracketCase(resource) {
+            case (a, rel) =>
+              stack match {
+                case Nil => F.pure(a -> rel(ExitCase.Completed).guarantee(release))
+                case f0 :: xs => continue(f0(a), xs, rel(ExitCase.Completed).guarantee(release))
+              }
+          } {
+            case (_, ExitCase.Completed) =>
+              F.unit
+            case ((_, release), ec) =>
+              release(ec)
+          }
+        case Resource.Bind(source, f0) =>
+          loop(source, f0.asInstanceOf[Any => Resource[F, Any]] :: stack, release)
+        case Resource.Suspend(resource) =>
+          resource.flatMap(continue(_, stack, release))
+      }
+
+    loop(run(req).asInstanceOf[Resource[F, Any]], Nil, F.unit).map {
+      case (a, release) =>
+        val resp = a.asInstanceOf[Response[F]]
+        resp.copy(body = resp.body.onFinalize(release))
     }
   }
 

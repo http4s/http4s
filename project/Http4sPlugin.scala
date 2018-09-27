@@ -98,7 +98,7 @@ object Http4sPlugin extends AutoPlugin {
     addCompilerPlugin("org.spire-math" % "kind-projector" % "0.9.7" cross CrossVersion.binary),
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.2.4"),
 
-    scalafmtVersion := "1.4.0",
+    scalafmtVersion := "1.5.1",
     scalafmt in Test := {
       (scalafmt in Compile).value
       (scalafmt in Test).value
@@ -293,13 +293,11 @@ object Http4sPlugin extends AutoPlugin {
   lazy val dropwizardMetricsCore            = "io.dropwizard.metrics"  %  "metrics-core"              % "4.0.3"
   lazy val dropwizardMetricsJson            = "io.dropwizard.metrics"  %  "metrics-json"              % dropwizardMetricsCore.revision
   lazy val discipline                       = "org.typelevel"          %% "discipline"                % "0.9.0"
-  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.0-M5"
-  lazy val fs2ReactiveStreams               = "com.github.zainab-ali"  %% "fs2-reactive-streams"      % "0.8.0"
-  lazy val gatlingTest                      = "io.gatling"             %  "gatling-test-framework"    % "2.3.1"
-  lazy val gatlingHighCharts                = "io.gatling.highcharts"  %  "gatling-charts-highcharts" % gatlingTest.revision
+  lazy val fs2Io                            = "co.fs2"                 %% "fs2-io"                    % "1.0.0-RC1"
+  lazy val fs2ReactiveStreams               = "co.fs2"                 %% "fs2-reactive-streams"      % fs2Io.revision
   lazy val http4sWebsocket                  = "org.http4s"             %% "http4s-websocket"          % "0.2.1"
   lazy val javaxServletApi                  = "javax.servlet"          %  "javax.servlet-api"         % "3.1.0"
-  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0-M4"
+  lazy val jawnFs2                          = "org.http4s"             %% "jawn-fs2"                  % "0.13.0-RC1"
   lazy val jawnJson4s                       = "org.spire-math"         %% "jawn-json4s"               % "0.13.0"
   lazy val jawnPlay                         = "org.spire-math"         %% "jawn-play"                 % "0.13.0"
   lazy val jettyClient                      = "org.eclipse.jetty"      %  "jetty-client"              % "9.4.12.v20180830"

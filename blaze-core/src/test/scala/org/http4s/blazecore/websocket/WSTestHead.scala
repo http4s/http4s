@@ -1,6 +1,7 @@
 package org.http4s.blazecore.websocket
 
 import cats.effect.{ContextShift, IO, Timer}
+import fs2.Stream
 import fs2.concurrent.Queue
 import org.http4s.blaze.pipeline.HeadStage
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
@@ -60,10 +61,12 @@ sealed abstract class WSTestHead(
       }
 
   def pollBatch(batchSize: Int, timeoutSeconds: Long): IO[List[WebSocketFrame]] =
-    IO.race(timer.sleep(timeoutSeconds.seconds), outQueue.dequeueBatch1(batchSize))
+    IO.race(
+        timer.sleep(timeoutSeconds.seconds),
+        Stream(batchSize).through(outQueue.dequeueBatch).compile.toList)
       .map {
         case Left(_) => Nil
-        case Right(wsFrame) => wsFrame.toList
+        case Right(s) => s
       }
 
   override def name: String = "WS test stage"

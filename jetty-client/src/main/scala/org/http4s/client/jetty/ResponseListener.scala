@@ -17,7 +17,7 @@ import org.log4s.getLogger
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContext
 
-private[jetty] case class ResponseListener[F[_]](
+private[jetty] final case class ResponseListener[F[_]](
     queue: Queue[F, Option[ByteBuffer]],
     cb: Callback[Resource[F, Response[F]]])(implicit val F: Effect[F], ec: ExecutionContext)
     extends JettyResponse.Listener.Adapter {
