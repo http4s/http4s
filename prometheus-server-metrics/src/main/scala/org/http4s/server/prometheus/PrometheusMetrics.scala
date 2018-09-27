@@ -214,7 +214,7 @@ object PrometheusMetrics {
       c: CollectorRegistry,
       prefix: String = "org_http4s_server",
       emptyResponseHandler: Option[Status] = Status.NotFound.some,
-      errorResponseHandler: Throwable => Option[Status] = e => Status.InternalServerError.some
+      errorResponseHandler: Throwable => Option[Status] = _ => Status.InternalServerError.some
   ): Kleisli[F, HttpService[F], HttpService[F]] = Kleisli { service: HttpService[F] =>
     Sync[F].delay {
       val serviceMetrics =
