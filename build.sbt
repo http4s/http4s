@@ -322,17 +322,6 @@ lazy val bench = http4sProject("bench")
   )
   .dependsOn(core, circe)
 
-lazy val loadTest = http4sProject("load-test")
-  .enablePlugins(PrivateProjectPlugin)
-  .settings(
-    description := "Load tests for http4s servers",
-    libraryDependencies ++= Seq(
-      gatlingHighCharts,
-      gatlingTest
-    ).map(_ % "it,test"),
-  )
-  .enablePlugins(GatlingPlugin)
-
 lazy val docs = http4sProject("docs")
   .enablePlugins(
     GhpagesPlugin,
@@ -359,7 +348,6 @@ lazy val docs = http4sProject("docs")
         // examplesTomcat,
         // examplesWar,
         mimedbGenerator,
-        loadTest
       ),
     scalacOptions in Tut ~= {
       val unwanted = Set("-Ywarn-unused:params", "-Ywarn-unused:imports")
