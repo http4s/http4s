@@ -110,7 +110,7 @@ class ScienceExperiments[F[_]] extends Http4sDsl[F] {
           Stream
             .eval(F.pure(Chunk.bytes(Array(' '.toByte))))
             .evalMap(_ =>
-              F.async[Byte] { cb => /* hang */
+              F.async[Byte] { _ => /* hang */
             }))
 
       case GET -> Root / "broken-body" =>
