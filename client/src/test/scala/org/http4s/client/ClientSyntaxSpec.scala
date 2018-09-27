@@ -1,8 +1,9 @@
 package org.http4s
 package client
 
-import cats.syntax.applicative._
 import cats.effect._
+import cats.effect.concurrent.Ref
+import cats.implicits._
 import fs2._
 import org.http4s.Method._
 import org.http4s.MediaType
@@ -40,7 +41,9 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       disposed = true
       ()
     }
-    val disposingClient = Client(app.map(r => DisposableResponse(r, dispose)), IO.unit)
+    val disposingClient = Client { req: Request[IO] =>
+      Resource.make(app(req))(_ => dispose)
+    }
     f(disposingClient).attempt.unsafeRunSync()
     disposed must beTrue
   }
@@ -281,8 +284,29 @@ class ClientSyntaxSpec extends Http4sSpec with Http4sClientDsl[IO] with MustThro
       client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
     }
 
-    "toHttpApp allows the response to be read" in {
-      client.toHttpApp(req).flatMap(_.as[String]) must returnValue("hello")
+    "toHttpApp disposes of resources in reverse order of acquisition" in {
+      Ref[IO].of(Vector.empty[Int]).flatMap { released =>
+        Client[IO] { _ =>
+          for {
+            _ <- List(1, 2, 3).traverse { i =>
+              Resource(IO.pure(() -> (IO(println("FART")) *> released.update(_ :+ i))))
+            }
+          } yield Response()
+        }.toHttpApp(req).flatMap(_.as[Unit]) >> released.get
+      } must returnValue(Vector(3, 2, 1))
+    }
+
+    "toHttpApp releases acquired resources on failure" in {
+      Ref[IO].of(Vector.empty[Int]).flatMap { released =>
+        Client[IO] { _ =>
+          for {
+            _ <- List(1, 2, 3).traverse { i =>
+              Resource(IO.pure(() -> (IO(println("FART")) *> released.update(_ :+ i))))
+            }
+            _ <- Resource.liftF[IO, Unit](IO.raiseError(SadTrombone))
+          } yield Response()
+        }.toHttpApp(req).flatMap(_.as[Unit]).attempt >> released.get
+      } must returnValue(Vector(3, 2, 1))
     }
   }
 

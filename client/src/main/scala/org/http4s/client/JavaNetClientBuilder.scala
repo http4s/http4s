@@ -1,7 +1,6 @@
 package org.http4s
 package client
 
-import cats.data.Kleisli
 import cats.effect.{Async, ContextShift, Resource, Sync}
 import cats.implicits._
 import fs2.Stream
@@ -88,14 +87,38 @@ sealed abstract class JavaNetClientBuilder private (
     * The shutdown of this client is a no-op. $WHYNOSHUTDOWN
     */
   def create[F[_]](implicit F: Async[F], cs: ContextShift[F]): Client[F] =
-    Client(open, F.unit)
+    Client { req: Request[F] =>
+      def respond(conn: HttpURLConnection): F[Response[F]] =
+        for {
+          _ <- configureSsl(conn)
+          _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
+          _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
+          _ <- F.delay(conn.setRequestMethod(req.method.renderString))
+          _ <- F.delay(req.headers.foreach {
+            case Header(name, value) => conn.setRequestProperty(name.value, value)
+          })
+          _ <- F.delay(conn.setInstanceFollowRedirects(false))
+          _ <- F.delay(conn.setDoInput(true))
+          resp <- cs.evalOn(blockingExecutionContext)(blocking(fetchResponse(req, conn)))
+        } yield resp
+
+      for {
+        url <- Resource.liftF(F.delay(new URL(req.uri.toString)))
+        conn <- Resource.make(openConnection(url)) { conn =>
+          F.delay(conn.getInputStream().close()).recoverWith {
+            case _: IOException => F.delay(Option(conn.getErrorStream()).foreach(_.close()))
+          }
+        }
+        resp <- Resource.liftF(respond(conn))
+      } yield resp
+    }
 
   /** Creates a [[Client]] resource.
     *
     * The release of this resource is a no-op. $WHYNOSHUTDOWN
     */
   def resource[F[_]](implicit F: Async[F], cs: ContextShift[F]): Resource[F, Client[F]] =
-    Resource.make(F.delay(create))(_.shutdown)
+    Resource.make(F.delay(create))(_ => F.unit)
 
   /** Creates a [[Client]] stream.
     *
@@ -103,28 +126,6 @@ sealed abstract class JavaNetClientBuilder private (
     */
   def stream[F[_]](implicit F: Async[F], cs: ContextShift[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
-
-  private def open[F[_]](implicit F: Async[F], cs: ContextShift[F]) = Kleisli { req: Request[F] =>
-    for {
-      url <- F.delay(new URL(req.uri.toString))
-      conn <- openConnection(url)
-      _ <- configureSsl(conn)
-      _ <- F.delay(conn.setConnectTimeout(timeoutMillis(connectTimeout)))
-      _ <- F.delay(conn.setReadTimeout(timeoutMillis(readTimeout)))
-      _ <- F.delay(conn.setRequestMethod(req.method.renderString))
-      _ <- F.delay(req.headers.foreach {
-        case Header(name, value) => conn.setRequestProperty(name.value, value)
-      })
-      _ <- F.delay(conn.setInstanceFollowRedirects(false))
-      _ <- F.delay(conn.setDoInput(true))
-      resp <- cs.evalOn(blockingExecutionContext)(blocking(fetchResponse(req, conn)))
-    } yield {
-      val dispose = F.delay(conn.getInputStream().close()).recoverWith {
-        case _: IOException => F.delay(Option(conn.getErrorStream()).foreach(_.close()))
-      }
-      DisposableResponse(resp, dispose)
-    }
-  }
 
   private def fetchResponse[F[_]](req: Request[F], conn: HttpURLConnection)(
       implicit F: Async[F],

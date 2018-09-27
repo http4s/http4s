@@ -3,10 +3,10 @@ package org.http4s.client.prometheus
 import io.prometheus.client._
 import cats.implicits._
 import cats.data.Kleisli
-import cats.effect.{Clock, Sync}
+import cats.effect.{Clock, Resource, Sync}
 import java.util.concurrent.TimeUnit
 import org.http4s._
-import org.http4s.client.{Client, DisposableResponse}
+import org.http4s.client.Client
 
 object PrometheusClientMetrics {
 
@@ -40,29 +40,31 @@ object PrometheusClientMetrics {
   private def now[F[_]](implicit clock: Clock[F]): F[Long] =
     clock.monotonic(TimeUnit.NANOSECONDS)
 
-  private def metricsClient[F[_]: Sync: Clock](
+  private def metricsClient[F[_]: Clock](
       metrics: ClientMetrics[F],
       client: Client[F]
   )(
       request: Request[F]
-  ): F[DisposableResponse[F]] =
-    for {
+  )(implicit F: Sync[F]): Resource[F, Response[F]] =
+    Resource.suspend(for {
       startTime <- now
-      _ <- Sync[F].delay(
+      _ <- F.delay(
         metrics.activeRequests
           .labels(metrics.destination(request))
           .inc())
-      responseAttempt <- client.open(request).attempt
+      response <- F.pure(client.run(request))
       responseReceivedTime <- now
-      result <- responseAttempt.fold(
-        e =>
-          onClientError(request, metrics) *>
-            Sync[F].raiseError[DisposableResponse[F]](e),
-        dr =>
-          onResponse(request, dr.response, startTime, responseReceivedTime, metrics).map(r =>
-            dr.copy(response = r))
-      )
-    } yield result
+      result <- F.pure(
+        response.attempt.flatMap(
+          response =>
+            Resource.liftF(
+              response.fold(
+                e =>
+                  onClientError(request, metrics) *>
+                    F.raiseError[Response[F]](e),
+                response => onResponse(request, response, startTime, responseReceivedTime, metrics)
+              ))))
+    } yield result)
 
   private def onClientError[F[_]: Sync](request: Request[F], metrics: ClientMetrics[F]): F[Unit] =
     Sync[F].delay {
@@ -142,7 +144,7 @@ object PrometheusClientMetrics {
             .labelNames("destination")
             .register(c)
         )
-        client.copy(open = Kleisli(metricsClient[F](clientMetrics, client)(_)))
+        Client(metricsClient[F](clientMetrics, client)(_))
       }
     }
 }

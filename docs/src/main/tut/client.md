@@ -241,21 +241,7 @@ val postRequest = POST(
 httpClient.expect[AuthResponse](postRequest)
 ```
 
-## Cleaning up
-
-Our client consumes system resources. Let's clean up after ourselves by shutting
-it down:
-
-```tut:book
-httpClient.shutdownNow()
-```
-
-If the client is created using `HttpClient.stream[F]()`, it will be shut down when
-the resulting stream finishes.
-
-We can also terminate our example server:
-
-```tut:book:silent
+```tut:book:invisible
 fiber.cancel.unsafeRunSync()
 ```
 
@@ -294,7 +280,7 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-```tut:silent
+```tut:invisible
 blockingEC.shutdown()
 ```
 

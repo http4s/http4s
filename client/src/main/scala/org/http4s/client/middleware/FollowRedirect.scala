@@ -2,8 +2,7 @@ package org.http4s
 package client
 package middleware
 
-import cats._
-import cats.data.Kleisli
+import cats.effect.{Bracket, Resource}
 import cats.implicits._
 import fs2._
 import org.http4s.Method._
@@ -41,81 +40,73 @@ object FollowRedirect {
   def apply[F[_]](
       maxRedirects: Int,
       sensitiveHeaderFilter: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders)(
-      client: Client[F])(implicit F: MonadError[F, Throwable]): Client[F] = {
-    def prepareLoop(req: Request[F], redirects: Int): F[DisposableResponse[F]] =
-      client.open(req).flatMap {
-        case dr @ DisposableResponse(resp, _) =>
-          def redirectUri =
-            resp.headers.get(Location).map { loc =>
-              val uri = loc.uri
-              // https://tools.ietf.org/html/rfc7231#section-7.1.2
-              uri.copy(
-                scheme = uri.scheme.orElse(req.uri.scheme),
-                authority = uri.authority.orElse(req.uri.authority),
-                fragment = uri.fragment.orElse(req.uri.fragment)
-              )
-            }
+      client: Client[F])(implicit F: Bracket[F, Throwable]): Client[F] = {
+    def prepareLoop(req: Request[F], redirects: Int): Resource[F, Response[F]] =
+      client.run(req).flatMap { resp =>
+        def redirectUri =
+          resp.headers.get(Location).map { loc =>
+            val uri = loc.uri
+            // https://tools.ietf.org/html/rfc7231#section-7.1.2
+            uri.copy(
+              scheme = uri.scheme.orElse(req.uri.scheme),
+              authority = uri.authority.orElse(req.uri.authority),
+              fragment = uri.fragment.orElse(req.uri.fragment)
+            )
+          }
 
-          // We can only resubmit a body if it was not effectful.
-          def pureBody: Option[Stream[F, Byte]] =
-            // We Are Propogating The Stream
-            Some(req.body)
-          // TODO fs2 port
+        def pureBody: Option[Stream[F, Byte]] = Some(req.body)
 
-          def dontRedirect: F[DisposableResponse[F]] = F.pure(dr)
+        def dontRedirect: Resource[F, Response[F]] = resp.pure[Resource[F, ?]]
 
-          def stripSensitiveHeaders(nextUri: Uri): Request[F] =
-            if (req.uri.authority != nextUri.authority)
-              req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
-            else
-              req
+        def stripSensitiveHeaders(nextUri: Uri): Request[F] =
+          if (req.uri.authority != nextUri.authority)
+            req.transformHeaders(_.filterNot(h => sensitiveHeaderFilter(h.name)))
+          else
+            req
 
-          def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[F, Byte]])
-            : Request[F] =
-            bodyOpt match {
-              case Some(body) =>
-                stripSensitiveHeaders(nextUri)
-                  .withMethod(method)
-                  .withUri(nextUri)
-                  .withBodyStream(body)
-              case None =>
-                stripSensitiveHeaders(nextUri)
-                  .withMethod(method)
-                  .withUri(nextUri)
-                  .withEmptyBody
-            }
+        def nextRequest(method: Method, nextUri: Uri, bodyOpt: Option[Stream[F, Byte]])
+          : Request[F] =
+          bodyOpt match {
+            case Some(body) =>
+              stripSensitiveHeaders(nextUri)
+                .withMethod(method)
+                .withUri(nextUri)
+                .withBodyStream(body)
+            case None =>
+              stripSensitiveHeaders(nextUri)
+                .withMethod(method)
+                .withUri(nextUri)
+                .withEmptyBody
+          }
 
-          def doRedirect(method: Method): F[DisposableResponse[F]] =
-            if (redirects < maxRedirects) {
-              // If we get a redirect response without a location, then there is
-              // nothing to redirect.
-              redirectUri.fold(dontRedirect) { nextUri =>
-                // We can only redirect safely if there is no body or if we've
-                // verified that the body is pure.
-                val nextReq: Option[Request[F]] = method match {
-                  case GET | HEAD =>
-                    Option(nextRequest(method, nextUri, None))
-                  case _ =>
-                    pureBody.map(body => nextRequest(method, nextUri, Some(body)))
-                }
-                nextReq.fold(dontRedirect)(
-                  req =>
-                    dr.dispose
-                      .flatMap(_ => prepareLoop(req, redirects + 1))
-                      .map(disposableResponse => {
-                        val redirectUris = getRedirectUris(disposableResponse.response)
-                        val resp = disposableResponse.response
-                        // prepend because `prepareLoop` is recursive
-                          .withAttribute(redirectUrisKey, req.uri +: redirectUris)
-                        disposableResponse.copy(response = resp)
-                      }))
+        def doRedirect(method: Method): Resource[F, Response[F]] =
+          if (redirects < maxRedirects) {
+            // If we get a redirect response without a location, then there is
+            // nothing to redirect.
+            redirectUri.fold(dontRedirect) { nextUri =>
+              // We can only redirect safely if there is no body or if we've
+              // verified that the body is pure.
+              val nextReq: Option[Request[F]] = method match {
+                case GET | HEAD =>
+                  Option(nextRequest(method, nextUri, None))
+                case _ =>
+                  pureBody.map(body => nextRequest(method, nextUri, Some(body)))
               }
-            } else dontRedirect
+              nextReq.fold(dontRedirect)(req =>
+                prepareLoop(req, redirects + 1)
+                  .map(response => {
+                    val redirectUris = getRedirectUris(response)
+                    response
+                    // prepend because `prepareLoop` is recursive
+                      .withAttribute(redirectUrisKey, req.uri +: redirectUris)
+                  }))
+            }
+          } else dontRedirect
 
-          methodForRedirect(req, resp).map(doRedirect).getOrElse(dontRedirect)
+        methodForRedirect(req, resp).map(doRedirect).getOrElse(dontRedirect)
       }
 
-    client.copy(open = Kleisli(prepareLoop(_, 0)))
+    Client(prepareLoop(_, 0))
   }
 
   private def methodForRedirect[F[_]](req: Request[F], resp: Response[F]): Option[Method] =

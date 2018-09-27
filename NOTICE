@@ -7,6 +7,11 @@ https://github.com/akka/akka-http
 Copyright (C) 2009-2017 Lightbend Inc. <http://www.lightbend.com>
 Licensed under Apache License 2.0 (see LICENSE)
 
+This software contains portions of code derived from cats-effect
+https://github.com/typelevel/cats-effect
+Copyright (c) 2017-2018 The Typelevel Cats-effect Project Developers
+Licensed under Apache License 2.0 (see LICENSE)
+
 This software contains portions of code derived from finagle
 https://github.com/twitter/finagle
 Licensed under Apache License 2.0 (see LICENSE)
