@@ -5,61 +5,65 @@ import io.prometheus.client._
 import org.http4s.Status
 import org.http4s.client.metrics.core.{MetricsOps, MetricsOpsFactory}
 
+/**
+  * Implementation of [[MetricsOps]] that supports Prometheus metrics
+  *
+  * @param registry a metrics collector registry
+  * @param prefix a prefix that will be added to all metrics
+  */
 class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit F: Sync[F])
     extends MetricsOps[F] {
 
-  override def increaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
+  override def increaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
     metrics.activeRequests
-      .labels(label(destination))
+      .labels(label(classifier))
       .inc()
   }
 
-  override def decreaseActiveRequests(destination: Option[String]): F[Unit] = F.delay {
+  override def decreaseActiveRequests(classifier: Option[String]): F[Unit] = F.delay {
     metrics.activeRequests
-      .labels(label(destination))
+      .labels(label(classifier))
       .dec()
   }
 
-  override def registerRequestHeadersTime(
+  override def recordHeadersTime(
       status: Status,
       elapsed: Long,
-      destination: Option[String]): F[Unit] = F.delay {
+      classifier: Option[String]): F[Unit] = F.delay {
     metrics.responseDuration
       .labels(
-        label(destination),
+        label(classifier),
         reportStatus(status),
         ResponsePhase.report(ResponsePhase.ResponseReceived))
       .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
     metrics.responseCounter
-      .labels(label(destination), reportStatus(status))
+      .labels(label(classifier), reportStatus(status))
       .inc()
   }
 
-  override def registerRequestTotalTime(
-      status: Status,
-      elapsed: Long,
-      destination: Option[String]): F[Unit] = F.delay {
-    metrics.responseDuration
-      .labels(
-        label(destination),
-        reportStatus(status),
-        ResponsePhase.report(ResponsePhase.BodyProcessed))
-      .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
-  }
+  override def recordTotalTime(status: Status, elapsed: Long, classifier: Option[String]): F[Unit] =
+    F.delay {
+      metrics.responseDuration
+        .labels(
+          label(classifier),
+          reportStatus(status),
+          ResponsePhase.report(ResponsePhase.BodyProcessed))
+        .observe(SimpleTimer.elapsedSecondsFromNanos(0, elapsed))
+    }
 
-  override def increaseErrors(destination: Option[String]): F[Unit] = F.delay {
+  override def increaseErrors(classifier: Option[String]): F[Unit] = F.delay {
     metrics.clientErrorsCounter
-      .labels(label(destination))
+      .labels(label(classifier))
       .inc()
   }
 
-  override def increaseTimeouts(destination: Option[String]): F[Unit] = F.delay {
+  override def increaseTimeouts(classifier: Option[String]): F[Unit] = F.delay {
     metrics.timeoutsCounter
-      .labels(label(destination))
+      .labels(label(classifier))
       .inc()
   }
 
-  private def label(destination: Option[String]): String = destination.getOrElse("")
+  private def label(classifier: Option[String]): String = classifier.getOrElse("")
 
   private def reportStatus(status: Status): String =
     status.code match {
@@ -76,31 +80,31 @@ class PrometheusOps[F[_]](registry: CollectorRegistry, prefix: String)(implicit 
         .build()
         .name(prefix + "_" + "response_duration_seconds")
         .help("Response Duration in seconds.")
-        .labelNames("destination", "code", "response_phase")
+        .labelNames("classifier", "code", "response_phase")
         .register(registry),
       activeRequests = Gauge
         .build()
         .name(prefix + "_" + "active_request_count")
         .help("Total Active Requests.")
-        .labelNames("destination")
+        .labelNames("classifier")
         .register(registry),
       responseCounter = Counter
         .build()
         .name(prefix + "_" + "response_total")
         .help("Total Responses.")
-        .labelNames("destination", "code")
+        .labelNames("classifier", "code")
         .register(registry),
       clientErrorsCounter = Counter
         .build()
         .name(prefix + "_" + "client_errors_total")
         .help("Total Client Errors.")
-        .labelNames("destination")
+        .labelNames("classifier")
         .register(registry),
       timeoutsCounter = Counter
         .build()
         .name(prefix + "_" + "client_timeouts_total")
         .help("Total Client Timeouts.")
-        .labelNames("destination")
+        .labelNames("classifier")
         .register(registry)
     )
 }
@@ -127,11 +131,10 @@ class PrometheusOpsFactory extends MetricsOpsFactory[CollectorRegistry] {
 
   override def instance[F[_]: Sync](registry: CollectorRegistry, prefix: String): MetricsOps[F] =
     new PrometheusOps[F](registry, prefix)
-
 }
 
-object PrometheusOps {
+trait PrometheusOpsFactoryInstances {
 
-  implicit def prometheusMetricsFactory: MetricsOpsFactory[CollectorRegistry] =
+  implicit val prometheusOpsFactory: MetricsOpsFactory[CollectorRegistry] =
     new PrometheusOpsFactory()
 }
