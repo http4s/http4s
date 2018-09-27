@@ -147,7 +147,7 @@ val routes = HttpRoutes.of[IO] {
   case request @ GET -&gt; Root / path if List(&quot;.js&quot;, &quot;.css&quot;, &quot;.map&quot;, &quot;.html&quot;, &quot;.webm&quot;).exists(path.endsWith) =&gt;
     static(path, blockingEc, request)
 }
-// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$70052/1129887829@678be501)
+// routes: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.HttpRoutes$$$Lambda$72385/1774224020@303eaad9)
 </code></pre>
 
 <h2 id="webjars">Webjars</h2>
@@ -185,7 +185,7 @@ val webjars: HttpRoutes[IO] = webjarService(
     blockingExecutionContext = blockingEc
   )
 )
-// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$70117/971847464@232a0fbb)
+// webjars: org.http4s.HttpRoutes[cats.effect.IO] = Kleisli(org.http4s.server.staticcontent.WebjarService$$$Lambda$72455/2115240302@66089aca)
 </code></pre>
 
 <pre><code class="language-scala">blockingEc.shutdown()
