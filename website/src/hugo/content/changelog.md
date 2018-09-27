@@ -8,7 +8,7 @@ Maintenance branches are merged before each new release. This change log is
 ordered chronologically, so each release contains all changes described below
 it.
 
-# v0.19.0-SNAPSHOT
+# v0.19.0-M3 (2018-09-27)
 
 ## Breaking changes
 * [#2081](https://github.com/http4s/http4s/pull/2081): Remove `OkHttp` code redundant with `OkHttpBuilder`.
@@ -17,6 +17,14 @@ it.
   * Removed `Server#shutdown`, `Server#shutdownNow`, `Server#onShutdown`, and `Server#awaitShutdown`.  `Server` lifecycles are managed as a `fs2.Stream` or a `cats.effect.Resource`.
   * `ServerBuilder#start` replaced by `Server#resource`, which shuts down the `Server` after use.
   * Added a `ServerBuilder#stream` to construct a `Stream` from a `Resource`.
+* [#2118](https://github.com/http4s/http4s/pull/2118): Finalize various case classes.
+* [#2102](https://github.com/http4s/http4s/pull/2102): Refactoring of `Client` and some builders:
+  * `Client` is no longer a case class.  Construct a new `Client` backend or middleware with `Client.apply(run: Request[F] => Response[F, Resource[F]])` for any `F` with a `Bracket[Throwable, F]`.
+  * Removed `DisposableResponse[F]` in favor of `Resource[F, Response[F]]`.
+  * Removed `Client#open` in favor of `Client#run`.
+  * Removed `Client#shutdown` in favor of `cats.effect.Resource` or `fs2.Stream`.
+  * Removed `AsyncHttpClient.apply`. It was not referentially transparent, and no longer possible. Use `AsyncHttpClient.resource` instead.
+  * Removed deprecated `blaze.Http1Client.apply`
 
 ## Enhancements
 * [#2042](https://github.com/http4s/http4s/pull/2042): New `Throttle` server middleware
@@ -44,10 +52,14 @@ it.
 * [#2105](https://github.com/http4s/http4s/pull/2105): Test on Oracle JDK 11
 * [#2113](https://github.com/http4s/http4s/pull/2113): Check for unused compile dependencies in build
 * [#2115](https://github.com/http4s/http4s/pull/2115): Stop testing on Oracle JDK 10
+* [#2079](https://github.com/http4s/http4s/pull/2079): Use `readRange`, as contributed to fs2
+* [#2123](https://github.com/http4s/http4s/pull/2123): Remove unmaintained `load-test` module
 
 ## Dependency upgrades
 * cats-1.4.0
 * circe-0.10.0
+* fs2-1.0.0-RC1
+* jawn-fs2-0.13.0-RC1
 * play-json-3.6.10 for Scala 2.11.x
 * tomcat-9.0.12
 
