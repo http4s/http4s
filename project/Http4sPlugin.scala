@@ -322,7 +322,7 @@ object Http4sPlugin extends AutoPlugin {
   def scalaCompiler(so: String, sv: String) = so                       %  "scala-compiler"            % sv
   def scalaReflect(so: String, sv: String)  = so                       %  "scala-reflect"             % sv
   lazy val scalatagsApi                     = "com.lihaoyi"            %% "scalatags"                 % "0.6.7"
-  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.0"
+  lazy val scalaXml                         = "org.scala-lang.modules" %% "scala-xml"                 % "1.1.1"
   lazy val specs2Core                       = "org.specs2"             %% "specs2-core"               % "4.1.0"
   lazy val specs2Matcher                    = "org.specs2"             %% "specs2-matcher"            % specs2Core.revision
   lazy val specs2MatcherExtra               = "org.specs2"             %% "specs2-matcher-extra"      % specs2Core.revision
