@@ -15,7 +15,7 @@ it.
 * [#2117](https://github.com/http4s/http4s/pull/2117): Handle unsuccessful responses in `JavaNetClient`
 
 ## Internal
-* [#2116](https://github.com/http4s/http4s/pull/2116): Test against Oracle JDK 11. Retire Oracle JDK 10.
+* [#2116](https://github.com/http4s/http4s/pull/2116): Test against OpenJDK 11. Retire Oracle JDK 10.
 
 # v0.18.18 (2018-09-18)
 
