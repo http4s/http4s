@@ -26,6 +26,16 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
             req.headers.get(`Content-Length`).fold(0L)(_.length).toString),
           Header("X-Original-Authorization", req.headers.get(Authorization.name).fold("")(_.value))
         )
+
+      case GET -> Root / "loop" / i =>
+        val iteration = i.toInt
+        if (iteration < 3) {
+          val uri = Uri.unsafeFromString(s"/loop/${iteration + 1}")
+          MovedPermanently(Location(uri)).map(_.withEntity(iteration.toString))
+        } else {
+          Ok(iteration.toString)
+        }
+
       case _ -> Root / "different-authority" =>
         TemporaryRedirect(Location(uri("http://www.example.com/ok")))
       case _ -> Root / status =>
@@ -149,10 +159,9 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
 
     "Dispose of original response when redirecting" in {
       var disposed = 0
-      val disposingService = app.map { mr =>
-        DisposableResponse(mr, IO { disposed = disposed + 1; () })
-      }
-      val client = FollowRedirect(3)(Client(disposingService, IO.unit))
+      def disposingService(req: Request[IO]) =
+        Resource.make(app.run(req))(_ => IO { disposed = disposed + 1 }.void)
+      val client = FollowRedirect(3)(Client(disposingService))
       client.expect[String](uri("http://localhost/301")).unsafeRunSync()
       disposed must_== 2 // one for the original, one for the redirect
     }
@@ -177,6 +186,23 @@ class FollowRedirectSpec extends Http4sSpec with Http4sClientDsl[IO] with Tables
         case Ok(resp) =>
           resp.headers.get("X-Original-Authorization".ci).map(_.value).pure[IO]
       } must returnValue(Some("Bearer s3cr3t"))
+    }
+
+    "Record the intermediate URIs" in {
+      client.fetch(Request[IO](uri = uri("http://localhost/loop/0"))) {
+        case Ok(resp) => IO.pure(FollowRedirect.getRedirectUris(resp))
+      } must returnValue(
+        List(
+          uri("http://localhost/loop/1"),
+          uri("http://localhost/loop/2"),
+          uri("http://localhost/loop/3")
+        ))
+    }
+
+    "Not add any URIs when there are no redirects" in {
+      client.fetch(Request[IO](uri = uri("http://localhost/loop/100"))) {
+        case Ok(resp) => IO.pure(FollowRedirect.getRedirectUris(resp))
+      } must returnValue(Nil)
     }
   }
 }

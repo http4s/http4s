@@ -264,8 +264,8 @@ val jsonService = HttpRoutes.of[IO] {
 implicit val cs: ContextShift[IO] = IO.contextShift(global)
 
 import org.http4s.server.blaze._
-val builder = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").start
-val blazeServer = builder.unsafeRunSync
+val server = BlazeBuilder[IO].bindHttp(8080).mountService(jsonService, "/").resource
+val fiber = server.use(_ => IO.never).start.unsafeRunSync()
 ```
 
 ## A Hello world client
@@ -300,8 +300,10 @@ val helloAlice = helloClient("Alice")
 helloAlice.compile.last.unsafeRunSync
 ```
 
-```tut:invisible
-blazeServer.shutdown.unsafeRunSync()
+Finally, shut down our example server.
+
+```tut:silent
+fiber.cancel.unsafeRunSync()
 ```
 
 [argonaut-shapeless]: https://github.com/alexarchambault/argonaut-shapeless

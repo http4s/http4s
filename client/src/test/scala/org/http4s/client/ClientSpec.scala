@@ -34,15 +34,6 @@ class ClientSpec extends Http4sSpec with Http4sDsl[IO] {
       }
     }
 
-    "fail to read body after client shutdown" in {
-      val client: Client[IO] = Client.fromHttpApp(app)
-      client.shutdownNow()
-      client.expect[String](Request[IO](POST).withEntity("foo")).attempt.unsafeRunSync() must beLeft
-        .like {
-          case e: IOException => e.getMessage == "client was shut down"
-        }
-    }
-
     "include a Host header in requests whose URIs are absolute" in {
       val hostClient = Client.fromHttpApp(HttpApp[IO] { r =>
         Ok(r.headers.get(Host).map(_.value).getOrElse("None"))

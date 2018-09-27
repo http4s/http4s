@@ -43,7 +43,7 @@ class BlockingHttp4sServlet[F[_]](
       .suspend(serviceFn(request))
       .getOrElse(Response.notFound)
       .recoverWith(serviceErrorHandler(request))
-      .flatMap(renderResponse(_, servletResponse, bodyWriter, F.never))
+      .flatMap(renderResponse(_, servletResponse, bodyWriter))
 
   private def errorHandler(servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
     case t: Throwable if servletResponse.isCommitted =>
@@ -54,7 +54,7 @@ class BlockingHttp4sServlet[F[_]](
       val response = Response[F](Status.InternalServerError)
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      val render = renderResponse(response, servletResponse, NullBodyWriter, F.never)
+      val render = renderResponse(response, servletResponse, NullBodyWriter)
       F.runAsync(render)(_ => IO.unit).unsafeRunSync()
   }
 }

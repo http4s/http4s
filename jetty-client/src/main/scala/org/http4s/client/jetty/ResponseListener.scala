@@ -19,29 +19,26 @@ import scala.concurrent.ExecutionContext
 
 private[jetty] case class ResponseListener[F[_]](
     queue: Queue[F, Option[ByteBuffer]],
-    cb: Callback[DisposableResponse[F]])(implicit val F: Effect[F], ec: ExecutionContext)
+    cb: Callback[Resource[F, Response[F]]])(implicit val F: Effect[F], ec: ExecutionContext)
     extends JettyResponse.Listener.Adapter {
 
   import ResponseListener.logger
 
   override def onHeaders(response: JettyResponse): Unit = {
-    val dr = Status
+    val r = Status
       .fromInt(response.getStatus)
       .map { s =>
-        DisposableResponse[F](
-          response = Response(
-            status = s,
-            httpVersion = getHttpVersion(response.getVersion),
-            headers = getHeaders(response.getHeaders),
-            body = queue.dequeue.unNoneTerminate.flatMap(bBuf => chunk(Chunk.byteBuffer(bBuf)))
-          ),
-          F.unit
-        )
+        Resource.pure[F, Response[F]](Response(
+          status = s,
+          httpVersion = getHttpVersion(response.getVersion),
+          headers = getHeaders(response.getHeaders),
+          body = queue.dequeue.unNoneTerminate.flatMap(bBuf => chunk(Chunk.byteBuffer(bBuf)))
+        ))
       }
       .leftMap(t => { abort(t, response); t })
 
     ec.execute(new Runnable {
-      override def run(): Unit = cb(dr)
+      override def run(): Unit = cb(r)
     })
   }
 
@@ -101,7 +98,7 @@ private[jetty] case class ResponseListener[F[_]](
 private[jetty] object ResponseListener {
   private val logger = getLogger
 
-  def apply[F[_]](cb: Callback[DisposableResponse[F]])(
+  def apply[F[_]](cb: Callback[Resource[F, Response[F]]])(
       implicit F: ConcurrentEffect[F],
       ec: ExecutionContext): F[ResponseListener[F]] =
     Queue

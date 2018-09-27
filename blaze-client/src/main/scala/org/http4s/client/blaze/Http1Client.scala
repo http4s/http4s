@@ -14,8 +14,8 @@ object Http1Client {
     *
     * @param config blaze client configuration options
     */
-  def apply[F[_]](config: BlazeClientConfig = BlazeClientConfig.defaultConfig)(
-      implicit F: ConcurrentEffect[F]): F[Client[F]] = {
+  private def resource[F[_]](config: BlazeClientConfig)(
+      implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = config.sslContext,
       bufferSize = config.bufferSize,
@@ -29,20 +29,22 @@ object Http1Client {
       userAgent = config.userAgent
     ).makeClient
 
-    ConnectionManager
-      .pool(
-        builder = http1,
-        maxTotal = config.maxTotalConnections,
-        maxWaitQueueLimit = config.maxWaitQueueLimit,
-        maxConnectionsPerRequestKey = config.maxConnectionsPerRequestKey,
-        responseHeaderTimeout = config.responseHeaderTimeout,
-        requestTimeout = config.requestTimeout,
-        executionContext = config.executionContext
-      )
+    Resource
+      .make(
+        ConnectionManager
+          .pool(
+            builder = http1,
+            maxTotal = config.maxTotalConnections,
+            maxWaitQueueLimit = config.maxWaitQueueLimit,
+            maxConnectionsPerRequestKey = config.maxConnectionsPerRequestKey,
+            responseHeaderTimeout = config.responseHeaderTimeout,
+            requestTimeout = config.requestTimeout,
+            executionContext = config.executionContext
+          ))(_.shutdown)
       .map(pool => BlazeClient(pool, config, pool.shutdown()))
   }
 
   def stream[F[_]: ConcurrentEffect](
       config: BlazeClientConfig = BlazeClientConfig.defaultConfig): Stream[F, Client[F]] =
-    Stream.bracket(apply(config))(_.shutdown)
+    Stream.resource(resource(config))
 }

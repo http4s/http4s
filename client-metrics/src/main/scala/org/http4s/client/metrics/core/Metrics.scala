@@ -1,11 +1,10 @@
 package org.http4s.client.metrics.core
 
-import cats.data.Kleisli
-import cats.effect.{Clock, Sync}
+import cats.effect.{Clock, Resource, Sync}
 import cats.implicits._
 import java.util.concurrent.TimeUnit
-import org.http4s.Request
-import org.http4s.client.{Client, DisposableResponse}
+import org.http4s.{Request, Response}
+import org.http4s.client.Client
 import scala.concurrent.TimeoutException
 
 object Metrics {
@@ -18,42 +17,32 @@ object Metrics {
   )(client: Client[F])(implicit F: Sync[F], clock: Clock[F]): Client[F] = {
     val ops = implicitly[MetricsOpsFactory[R]].instance[F](registry, prefix)
 
-    def withMetrics()(req: Request[F]): F[DisposableResponse[F]] =
+    def withMetrics(req: Request[F]): Resource[F, Response[F]] =
       (for {
-        start <- clock.monotonic(TimeUnit.NANOSECONDS)
-        _ <- ops.increaseActiveRequests(destination(req))
-        resp <- client.open(req)
-        end <- clock.monotonic(TimeUnit.NANOSECONDS)
-        _ <- ops.registerRequestHeadersTime(resp.response.status, end - start, destination(req))
-        iResp <- instrumentResponse(start, destination(req), resp)
-      } yield iResp).handleErrorWith { e =>
-        ops.decreaseActiveRequests(destination(req)) *> handleError(req, e) *>
-          F.raiseError[DisposableResponse[F]](e)
+        start <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
+        _ <- Resource.liftF(ops.increaseActiveRequests(destination(req)))
+        resp <- client.run(req)
+        end <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS))
+        _ <- Resource.liftF(
+          ops.registerRequestHeadersTime(resp.status, end - start, destination(req)))
+        _ <- Resource.liftF(ops.decreaseActiveRequests(destination(req)))
+        elapsed <- Resource.liftF(clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start))
+        _ <- Resource.liftF(ops.registerRequestTotalTime(resp.status, elapsed, destination(req)))
+      } yield resp).handleErrorWith { e: Throwable =>
+        Resource.liftF[F, Response[F]](
+          ops.decreaseActiveRequests(destination(req)) *> registerError(req, e) *>
+            F.raiseError[Response[F]](e)
+        )
       }
 
-    def handleError(req: Request[F], e: Throwable): F[Unit] =
+    def registerError(req: Request[F], e: Throwable): F[Unit] =
       if (e.isInstanceOf[TimeoutException]) {
         ops.increaseTimeouts(destination(req))
       } else {
         ops.increaseErrors(destination(req))
       }
 
-    def instrumentResponse(
-        start: Long,
-        destination: Option[String],
-        disposableResponse: DisposableResponse[F]
-    ): F[DisposableResponse[F]] = {
-      val newDisposable = for {
-        _ <- ops.decreaseActiveRequests(destination)
-        elapsed <- clock.monotonic(TimeUnit.NANOSECONDS).map(now => now - start)
-        _ <- ops.registerRequestTotalTime(disposableResponse.response.status, elapsed, destination)
-        _ <- disposableResponse.dispose
-      } yield ()
-
-      F.delay(disposableResponse.copy(dispose = newDisposable))
-    }
-
-    client.copy(open = Kleisli(withMetrics()))
+    Client(withMetrics)
   }
 
 }

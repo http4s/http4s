@@ -127,21 +127,20 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
     withAsynchronousChannelGroupOption(None)
 
   def resource(implicit F: ConcurrentEffect[F]): Resource[F, Client[F]] =
-    Resource.make(
-      connectionManager.map(
-        manager =>
-          BlazeClient.makeClient(
-            manager = manager,
-            responseHeaderTimeout = responseHeaderTimeout,
-            idleTimeout = idleTimeout,
-            requestTimeout = requestTimeout
-        )))(_.shutdown)
+    connectionManager.map(
+      manager =>
+        BlazeClient.makeClient(
+          manager = manager,
+          responseHeaderTimeout = responseHeaderTimeout,
+          idleTimeout = idleTimeout,
+          requestTimeout = requestTimeout
+      ))
 
   def stream(implicit F: ConcurrentEffect[F]): Stream[F, Client[F]] =
     Stream.resource(resource)
 
   private def connectionManager(
-      implicit F: ConcurrentEffect[F]): F[ConnectionManager[F, BlazeConnection[F]]] = {
+      implicit F: ConcurrentEffect[F]): Resource[F, ConnectionManager[F, BlazeConnection[F]]] = {
     val http1: ConnectionBuilder[F, BlazeConnection[F]] = new Http1Support(
       sslContextOption = sslContext,
       bufferSize = bufferSize,
@@ -154,16 +153,17 @@ sealed abstract class BlazeClientBuilder[F[_]] private (
       parserMode = parserMode,
       userAgent = userAgent
     ).makeClient
-    ConnectionManager
-      .pool(
-        builder = http1,
-        maxTotal = maxTotalConnections,
-        maxWaitQueueLimit = maxWaitQueueLimit,
-        maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
-        responseHeaderTimeout = responseHeaderTimeout,
-        requestTimeout = requestTimeout,
-        executionContext = executionContext
-      )
+    Resource.make(
+      ConnectionManager
+        .pool(
+          builder = http1,
+          maxTotal = maxTotalConnections,
+          maxWaitQueueLimit = maxWaitQueueLimit,
+          maxConnectionsPerRequestKey = maxConnectionsPerRequestKey,
+          responseHeaderTimeout = responseHeaderTimeout,
+          requestTimeout = requestTimeout,
+          executionContext = executionContext
+        ))(_.shutdown)
   }
 }
 

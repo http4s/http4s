@@ -2,7 +2,6 @@ package org.http4s
 package client
 package middleware
 
-import cats.data.Kleisli
 import cats.effect._
 import cats.effect.concurrent.Ref
 import cats.implicits._
@@ -21,38 +20,39 @@ object ResponseLogger {
       logBody: Boolean,
       redactHeadersWhen: CaseInsensitiveString => Boolean = Headers.SensitiveHeaders.contains
   )(client: Client[F])(implicit F: Concurrent[F]): Client[F] =
-    client.copy(open = Kleisli { req =>
-      client.open(req).flatMap {
-        case dr @ DisposableResponse(response, _) =>
-          if (!logBody)
+    Client { req =>
+      client.run(req).flatMap { response =>
+        if (!logBody)
+          Resource.liftF(
             Logger.logMessage[F, Response[F]](response)(logHeaders, logBody, redactHeadersWhen)(
-              logger.info(_)) *> F.delay(dr)
-          else
-            Ref[F].of(Vector.empty[Chunk[Byte]]).map {
-              vec =>
+              logger.info(_)) *> F.delay(response))
+        else
+          Resource.suspend {
+            Ref[F].of(Vector.empty[Chunk[Byte]]).map { vec =>
+              Resource.make(
+                F.pure(
+                  response.copy(body = response.body
+                  // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
+                    .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s)))))
+                )) { _ =>
                 val newBody = Stream
                   .eval(vec.get)
                   .flatMap(v => Stream.emits(v).covary[F])
                   .flatMap(c => Stream.chunk(c).covary[F])
 
-                dr.copy(
-                  response = response.copy(
-                    body = response.body
-                    // Cannot Be Done Asynchronously - Otherwise All Chunks May Not Be Appended Previous to Finalization
-                      .observe(_.chunks.flatMap(s => Stream.eval_(vec.update(_ :+ s))))),
-                  dispose =
-                    Logger
-                      .logMessage[F, Response[F]](response.withBodyStream(newBody))(
-                        logHeaders,
-                        logBody,
-                        redactHeadersWhen)(logger.info(_))
-                      .attempt
-                      .flatMap {
-                        case Left(t) => F.delay(logger.error(t)("Error logging response body"))
-                        case Right(()) => F.unit
-                      } *> dr.dispose
-                )
+                Logger
+                  .logMessage[F, Response[F]](response.withBodyStream(newBody))(
+                    logHeaders,
+                    logBody,
+                    redactHeadersWhen)(logger.info(_))
+                  .attempt
+                  .flatMap {
+                    case Left(t) => F.delay(logger.error(t)("Error logging response body"))
+                    case Right(()) => F.unit
+                  }
+              }
             }
+          }
       }
-    })
+    }
 }

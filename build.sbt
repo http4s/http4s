@@ -45,13 +45,14 @@ lazy val testing = libraryProject("testing")
     libraryDependencies ++= Seq(
       catsEffectLaws,
       scalacheck,
-      specs2Core
+      specs2Matcher
     ),
   )
   .dependsOn(core)
 
 // Defined outside core/src/test so it can depend on published testing
 lazy val tests = libraryProject("tests")
+  .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Tests for core project",
     mimaPreviousArtifacts := Set.empty
@@ -78,7 +79,7 @@ lazy val prometheusServerMetrics = libraryProject("prometheus-server-metrics")
   .settings(
     description := "Support for Prometheus Metrics on the server",
     libraryDependencies ++= Seq(
-      prometheusClient,
+      prometheusCommon,
       prometheusHotspot
     ),
   )
@@ -324,7 +325,7 @@ lazy val bench = http4sProject("bench")
   .enablePlugins(PrivateProjectPlugin)
   .settings(
     description := "Benchmarks for http4s",
-    libraryDependencies += circeParser
+    libraryDependencies += circeParser,
   )
   .dependsOn(core, circe)
 
@@ -335,7 +336,7 @@ lazy val loadTest = http4sProject("load-test")
     libraryDependencies ++= Seq(
       gatlingHighCharts,
       gatlingTest
-    ).map(_ % "it,test")
+    ).map(_ % "it,test"),
   )
   .enablePlugins(GatlingPlugin)
 
@@ -421,7 +422,7 @@ lazy val docs = http4sProject("docs")
           f.getCanonicalPath.startsWith(
             (ghpagesRepository.value / s"${docsPrefix}").getCanonicalPath)
       }
-    }
+    },
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
