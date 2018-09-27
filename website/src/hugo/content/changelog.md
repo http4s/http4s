@@ -53,6 +53,7 @@ it.
 * [#2113](https://github.com/http4s/http4s/pull/2113): Check for unused compile dependencies in build
 * [#2115](https://github.com/http4s/http4s/pull/2115): Stop testing on Oracle JDK 10
 * [#2079](https://github.com/http4s/http4s/pull/2079): Use `readRange`, as contributed to fs2
+* [#2123](https://github.com/http4s/http4s/pull/2123): Remove unmaintained `load-test` module
 
 ## Dependency upgrades
 * cats-1.4.0
